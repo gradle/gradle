@@ -20,6 +20,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
@@ -143,11 +144,11 @@ public class DependencyInsightReportTask extends DefaultTask {
     @TaskAction
     public void report() {
         if (configuration == null) {
-            throw new ReportException("Dependency insight report cannot be generated because the input configuration was not specified. "
+            throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
                     + "\nIt can be specified from the command line, e.g: '$path --configuration someConf --dependency someDep'")
         }
         if (dependencySpec == null) {
-            throw new ReportException("Dependency insight report cannot be generated because the dependency to show was not specified."
+            throw new InvalidUserDataException("Dependency insight report cannot be generated because the dependency to show was not specified."
                     + "\nIt can be specified from the command line, e.g: '$path --dependency someDep'")
         }
 

@@ -61,9 +61,9 @@ The configuration of a task, whose execution has already started, has been depre
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Incubating DependencyInsightReport throws better exception
+
+For consistency, InvalidUserDataException is thrown instead of ReportException when user incorrectly uses the dependency insight report.
 
 ## External contributions
 

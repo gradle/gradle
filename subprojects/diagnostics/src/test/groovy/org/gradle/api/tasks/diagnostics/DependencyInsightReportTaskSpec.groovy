@@ -16,10 +16,10 @@
 
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.specs.Spec
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-import org.gradle.api.InvalidUserDataException
 
 /**
  * by Szczepan Faber, created at: 9/20/12
@@ -34,7 +34,7 @@ class DependencyInsightReportTaskSpec extends Specification {
         task.report()
 
         then:
-        thrown(ReportException)
+        thrown(InvalidUserDataException)
     }
 
     def "fails if dependency to include missing"() {
@@ -45,7 +45,7 @@ class DependencyInsightReportTaskSpec extends Specification {
         task.report()
 
         then:
-        thrown(ReportException)
+        thrown(InvalidUserDataException)
     }
 
     def "fails if dependency to include is empty"() {
