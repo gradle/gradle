@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks;
 import groovy.util.ObservableList;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.Factory;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,6 @@ import java.beans.PropertyChangeEvent;
 public class TaskStatusNagger {
     private final TaskInternal taskInternal;
     private boolean nagUser = true;
-    private static Logger logger = LoggerFactory.getLogger(TaskStatusNagger.class);
 
     public TaskStatusNagger(TaskInternal taskInternal) {
         this.taskInternal = taskInternal;
@@ -67,7 +67,7 @@ public class TaskStatusNagger {
     }
 
     private void warn(String method) {
-        logger.warn(String.format("Calling %s after task execution has started has been deprecated and is scheduled to be removed in Gradle 2.0. Check the configuration of %s. You may have misused '<<' at task declaration.", method, taskInternal));
+        DeprecationLogger.nagUserOfDeprecated(String.format("Calling %s after task execution has started", method), String.format("Check the configuration of %s. You may have misused '<<' at task declaration.", taskInternal));
     }
 
     public void whileDisabled(Runnable runnable) {
