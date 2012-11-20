@@ -131,7 +131,7 @@ public class XmlTestSuiteWriter {
         }
     }
 
-    public void writeTo(File reportFile) {
+    private void writeTo(File reportFile) {
         try {
             OutputStream outstr = new BufferedOutputStream(new FileOutputStream(reportFile));
             try {
