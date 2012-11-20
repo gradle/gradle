@@ -22,6 +22,7 @@ import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
 import org.gradle.build.docs.releasenotes.*
 import org.gradle.build.docs.releasenotes.checks.*
+import org.apache.tools.ant.filters.ReplaceTokens
 
 apply plugin: 'base'
 apply plugin: 'pegdown'
@@ -130,7 +131,7 @@ task configureCss << {
 
     ext.tokens = images + fonts
     css.inputs.property 'tokens', tokens
-    css.filter org.apache.tools.ant.filters.ReplaceTokens, tokens: tokens
+    css.filter ReplaceTokens, tokens: tokens
 }
 
 task css(type: Sync, dependsOn: configureCss) {
@@ -377,7 +378,6 @@ task decorateReleaseNotes(type: Jsoup) {
     apply from: "release-notes-transform.gradle"
 }
 
-import org.apache.tools.ant.filters.ReplaceTokens
 task releaseNotes(type: Copy) {
     group = "release notes"
     ext.fileName = "release-notes.html"
