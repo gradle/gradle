@@ -24,24 +24,38 @@ public class PerformanceTestRunner {
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
     def current = new GradleDistribution()
-    def previous = new ReleasedVersions(current).last
 
     String testProject
     int runs
     int warmUpRuns
-    Amount<Duration> maxExecutionTimeRegression
-    Amount<DataAmount> maxMemoryRegression
-    List<String> otherVersions = []
+
     List<String> tasksToRun = []
     DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
     List<String> args = []
 
+    List<String> targetVersions = ['last']
+    List<Amount<Duration>> maxExecutionTimeRegression = [Duration.millis(0)]
+    List<Amount<DataAmount>> maxMemoryRegression = [DataAmount.bytes(0)]
+
     PerformanceResults results
 
     PerformanceResults run() {
-        results = new PerformanceResults(maxExecutionTimeRegression: maxExecutionTimeRegression, maxMemoryRegression: maxMemoryRegression, displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
-        results.previous.name = "Gradle ${previous.version}"
-        otherVersions.each { results.others[it] = new MeasuredOperationList(name: "Gradle $it") }
+        assert targetVersions.size() == maxExecutionTimeRegression.size()
+        assert targetVersions.size() == maxMemoryRegression.size()
+
+        def baselineVersions = []
+        targetVersions.eachWithIndex { it, idx ->
+            def ver = it == 'last'? new ReleasedVersions(current).last.version : it
+            baselineVersions << new BaselineVersion(version: ver,
+                    maxExecutionTimeRegression: maxExecutionTimeRegression[idx],
+                    maxMemoryRegression: maxMemoryRegression[idx],
+                    results: new MeasuredOperationList(name: "Gradle $ver")
+            )
+        }
+
+        results = new PerformanceResults(
+                baselineVersions: baselineVersions,
+                displayName: "Results for test project '$testProject' with tasks ${tasksToRun.join(', ')}")
 
         println "Running performance tests for test project '$testProject', no. of runs: $runs"
         warmUpRuns.times {
@@ -58,10 +72,12 @@ public class PerformanceTestRunner {
 
     void runOnce() {
         File projectDir = new TestProjectLocator().findProjectDir(testProject)
-        runOnce(previous, projectDir, results.previous)
-        otherVersions.each {
-            runOnce(current.previousVersion(it), projectDir, results.others[it])
+        results.baselineVersions.reverse().each {
+            println "Gradle ${it.version}..."
+            runOnce(current.previousVersion(it.version), projectDir, it.results)
         }
+
+        println "Current Gradle..."
         runOnce(current, projectDir, results.current)
     }
 

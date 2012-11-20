@@ -18,44 +18,35 @@ package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
 
-import static PrettyCalculator.prettyBytes
-import static PrettyCalculator.prettyTime
-import static org.gradle.peformance.fixture.PrettyCalculator.toBytes
-import static org.gradle.peformance.fixture.PrettyCalculator.toMillis
-
 public class PerformanceResults {
-
-    String displayName
-    Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
-    Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
-    final MeasuredOperationList previous = new MeasuredOperationList(name: "Previous release")
-    final MeasuredOperationList current = new MeasuredOperationList(name:  "Current Gradle")
-    final Map<String, MeasuredOperationList> others = new TreeMap<>()
+    List<BaselineVersion> baselineVersions = [ new BaselineVersion(version:  "1.x", results: new MeasuredOperationList(name: "Gradle 1.x")) ]
+    String displayName
+
+    final MeasuredOperationList current = new MeasuredOperationList(name:  "Current G.")
 
     def clear() {
-        previous.clear();
-        current.clear();
-        others.values()*.clear()
+        baselineVersions.each { it.clearResults() }
+        current.clear()
     }
 
     void assertEveryBuildSucceeds() {
         LOGGER.info("Asserting all builds have succeeded...");
-        assert previous.size() == current.size()
         def failures = []
-        failures.addAll previous.findAll { it.exception }
-        others.values().each {
-            failures.addAll it.findAll { it.exception }
+        baselineVersions.each {
+            failures.addAll it.results.findAll { it.exception }
         }
         failures.addAll current.findAll { it.exception }
+
         assert failures.collect { it.exception }.empty : "Some builds have failed."
     }
 
     void assertCurrentVersionHasNotRegressed() {
         def slower = assertCurrentReleaseIsNotSlower()
         def larger = assertMemoryUsed()
+        assertEveryBuildSucceeds()
         if (slower && larger) {
             throw new AssertionError("$slower\n$larger")
         }
@@ -65,72 +56,41 @@ public class PerformanceResults {
         if (larger) {
             throw new AssertionError(larger)
         }
-        assertEveryBuildSucceeds()
     }
 
     private String assertMemoryUsed() {
-        def failed = (current.avgMemory() - previous.avgMemory()) > maxMemoryRegression
+        def failed = false
+        def sb = new StringBuilder()
+        baselineVersions.each {
+            failed = failed || (current.avgMemory() - it.results.avgMemory()) > it.maxMemoryRegression
 
-        String message;
-        if (current.avgMemory() > previous.avgMemory()) {
-            message = "Memory $displayName: current Gradle needs a little more memory on average."
-        } else {
-            message = "Memory $displayName: AWESOME! current Gradle needs less memory on average :D"
+            if (current.avgMemory() > it.results.avgMemory()) {
+                sb.append "Memory $displayName: we need more memory than $it.version.\n"
+            } else {
+                sb.append "Memory $displayName: AWESOME! we need less memory than $it.version :D\n"
+            }
+            sb.append it.getMemoryStatsAgainst(current) + "\n"
         }
-        message += "\n${memoryStats()}"
-        println("\n$message")
+        def message = sb.toString()
+        println(message)
         return failed ? message : null
     }
 
     private String assertCurrentReleaseIsNotSlower() {
-        def failed = (current.avgTime() - previous.avgTime()) > maxExecutionTimeRegression
+        def failed = false
+        def sb = new StringBuilder()
+        baselineVersions.each {
+            failed = failed || (current.avgTime() - it.results.avgTime()) > it.maxExecutionTimeRegression
 
-        String message;
-        if (current.avgTime() > previous.avgTime()) {
-            message = "Speed $displayName: current Gradle is a little slower on average."
-        } else {
-            message = "Speed $displayName: AWESOME! current Gradle is faster on average :D"
+            if (current.avgTime() > it.results.avgTime()) {
+                sb.append "Speed $displayName: we're slower than $it.version.\n"
+            } else {
+                sb.append "Speed $displayName: AWESOME! we're faster than $it.version :D\n"
+            }
+            sb.append it.getSpeedStatsAgainst(current) + "\n"
         }
-        message += "\n${speedStats()}"
-        println("\n$message")
+        def message = sb.toString()
+        println(message)
         return failed ? message : null
-    }
-
-    String memoryStats() {
-        def result = new StringBuilder()
-        result.append(memoryStats(previous))
-        others.values().each {
-            result.append(memoryStats(it))
-        }
-        result.append(memoryStats(current))
-        def diff = current.avgMemory() - previous.avgMemory()
-        def desc = diff > DataAmount.bytes(0) ? "more" : "less"
-        result.append("Difference: ${prettyBytes(diff.abs())} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(current.avgMemory(), previous.avgMemory())}%, max regression: ${prettyBytes(maxMemoryRegression)}")
-        return result.toString()
-    }
-
-    String memoryStats(MeasuredOperationList list) {
-        """  ${list.name} avg: ${prettyBytes(list.avgMemory())} ${list.collect { prettyBytes(it.totalMemoryUsed) }}
-  ${list.name} min: ${prettyBytes(list.minMemory())}, max: ${prettyBytes(list.maxMemory())}
-"""
-    }
-
-    String speedStats() {
-        def result = new StringBuilder()
-        result.append(speedStats(previous))
-        others.values().each {
-            result.append(speedStats(it))
-        }
-        result.append(speedStats(current))
-        def diff = current.avgTime() - previous.avgTime()
-        def desc = diff > Duration.millis(0) ? "slower" : "faster"
-        result.append("Difference: ${prettyTime(diff.abs())} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(current.avgTime(), previous.avgTime())}%, max regression: ${prettyTime(maxExecutionTimeRegression)}")
-        return result.toString()
-    }
-
-    String speedStats(MeasuredOperationList list) {
-        """  ${list.name} avg: ${prettyTime(list.avgTime())} ${list.collect { prettyTime(it.executionTime) }}
-  ${list.name} min: ${prettyTime(list.minTime())}, max: ${prettyTime(list.maxTime())}
-"""
     }
 }

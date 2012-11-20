@@ -23,9 +23,9 @@ class PerformanceResultsTest extends Specification {
 
     def "passes when average execution time for current release is smaller than average execution time for previous release"() {
         given:
-        result.previous.add(operation(executionTime: 110))
-        result.previous.add(operation(executionTime: 100))
-        result.previous.add(operation(executionTime: 90))
+        result.baselineVersions[0].results.add(operation(executionTime: 110))
+        result.baselineVersions[0].results.add(operation(executionTime: 100))
+        result.baselineVersions[0].results.add(operation(executionTime: 90))
 
         and:
         result.current.add(operation(executionTime: 90))
@@ -38,10 +38,10 @@ class PerformanceResultsTest extends Specification {
 
     def "passes when average execution time for current release is within specified range of average execution time for previous release"() {
         given:
-        result.maxExecutionTimeRegression = Duration.millis(10)
-        result.previous.add(operation(executionTime: 100))
-        result.previous.add(operation(executionTime: 100))
-        result.previous.add(operation(executionTime: 100))
+        result.baselineVersions[0].maxExecutionTimeRegression = Duration.millis(10)
+        result.baselineVersions[0].results.add(operation(executionTime: 100))
+        result.baselineVersions[0].results.add(operation(executionTime: 100))
+        result.baselineVersions[0].results.add(operation(executionTime: 100))
 
         and:
         result.current.add(operation(executionTime: 110))
@@ -55,10 +55,10 @@ class PerformanceResultsTest extends Specification {
     def "fails when average execution time for current release is larger than average execution time for previous release"() {
         given:
         result.displayName = '<test>'
-        result.maxExecutionTimeRegression = Duration.millis(10)
-        result.previous.add(operation(executionTime: 100))
-        result.previous.add(operation(executionTime: 100))
-        result.previous.add(operation(executionTime: 100))
+        result.baselineVersions[0].maxExecutionTimeRegression = Duration.millis(10)
+        result.baselineVersions[0].results.add(operation(executionTime: 100))
+        result.baselineVersions[0].results.add(operation(executionTime: 100))
+        result.baselineVersions[0].results.add(operation(executionTime: 100))
 
         and:
         result.current.add(operation(executionTime: 110))
@@ -70,15 +70,15 @@ class PerformanceResultsTest extends Specification {
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith('Speed <test>: current Gradle is a little slower on average.')
+        e.message.startsWith("Speed <test>: we're slower than 1.x.")
         e.message.contains('Difference: 10.333 ms slower (10.333 ms), 10.33%')
     }
 
     def "passes when average heap usage for current release is smaller than average heap usage for previous release"() {
         given:
-        result.previous.add(operation(heapUsed: 1000))
-        result.previous.add(operation(heapUsed: 1000))
-        result.previous.add(operation(heapUsed: 1000))
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000))
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000))
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000))
 
         and:
         result.current.add(operation(heapUsed: 1000))
@@ -91,10 +91,10 @@ class PerformanceResultsTest extends Specification {
 
     def "passes when average heap usage for current release is slightly larger than average heap usage for previous release"() {
         given:
-        result.maxMemoryRegression = DataAmount.bytes(100)
-        result.previous.add(operation(heapUsed: 1000))
-        result.previous.add(operation(heapUsed: 1000))
-        result.previous.add(operation(heapUsed: 1000))
+        result.baselineVersions[0].maxMemoryRegression = DataAmount.bytes(100)
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000))
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000))
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000))
 
         and:
         result.current.add(operation(heapUsed: 1100))
@@ -108,10 +108,10 @@ class PerformanceResultsTest extends Specification {
     def "fails when average heap usage for current release is larger than average heap usage for previous release"() {
         given:
         result.displayName = '<test>'
-        result.maxMemoryRegression = DataAmount.bytes(100)
-        result.previous.add(operation(heapUsed: 1000))
-        result.previous.add(operation(heapUsed: 1000))
-        result.previous.add(operation(heapUsed: 1000))
+        result.baselineVersions[0].maxMemoryRegression = DataAmount.bytes(100)
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000))
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000))
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000))
 
         and:
         result.current.add(operation(heapUsed: 1100))
@@ -123,16 +123,16 @@ class PerformanceResultsTest extends Specification {
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith('Memory <test>: current Gradle needs a little more memory on average.')
+        e.message.startsWith('Memory <test>: we need more memory than 1.x.')
         e.message.contains('Difference: 100.333 B more (100.333 B), 10.03%')
     }
 
     def "fails when both heap usage and execution time have regressed"() {
         given:
         result.displayName = '<test>'
-        result.previous.add(operation(heapUsed: 1000, executionTime: 100))
-        result.previous.add(operation(heapUsed: 1000, executionTime: 100))
-        result.previous.add(operation(heapUsed: 1000, executionTime: 100))
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000, executionTime: 100))
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000, executionTime: 100))
+        result.baselineVersions[0].results.add(operation(heapUsed: 1000, executionTime: 100))
 
         and:
         result.current.add(operation(heapUsed: 1100, executionTime: 110))
@@ -144,15 +144,15 @@ class PerformanceResultsTest extends Specification {
 
         then:
         AssertionError e = thrown()
-        e.message.contains('Speed <test>: current Gradle is a little slower on average.')
+        e.message.contains("Speed <test>: we're slower than 1.x.")
         e.message.contains('Difference: 10.333 ms slower (10.333 ms)')
-        e.message.contains('Memory <test>: current Gradle needs a little more memory on average.')
+        e.message.contains('Memory <test>: we need more memory than 1.x.')
         e.message.contains('Difference: 100.333 B more (100.333 B)')
     }
 
     def "fails when a previous operation fails"() {
         given:
-        result.previous.add(operation(failure: new RuntimeException()))
+        result.baselineVersions[0].results.add(operation(failure: new RuntimeException()))
         result.current.add(operation())
 
         when:
@@ -165,7 +165,7 @@ class PerformanceResultsTest extends Specification {
 
     def "fails when a current operation fails"() {
         given:
-        result.previous.add(operation())
+        result.baselineVersions[0].results.add(operation())
         result.current.add(operation(failure: new RuntimeException()))
 
         when:
@@ -178,10 +178,10 @@ class PerformanceResultsTest extends Specification {
 
     def "fails when an operation fails"() {
         given:
-        result.others.oldVersion = new MeasuredOperationList()
-        result.previous.add(operation())
         result.current.add(operation())
-        result.others.oldVersion.add(operation(failure: new RuntimeException()))
+        result.baselineVersions << new BaselineVersion(version: 'oldVersion', results: new MeasuredOperationList())
+        result.baselineVersions[0].results.add(operation())
+        result.baselineVersions[1].results.add(operation(failure: new RuntimeException()))
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -190,6 +190,8 @@ class PerformanceResultsTest extends Specification {
         AssertionError e = thrown()
         e.message.startsWith("Some builds have failed.")
     }
+
+    //TODO SF add more coverage for multiple baseline versions
 
     private MeasuredOperation operation(Map<String, Object> args) {
         def operation = new MeasuredOperation()

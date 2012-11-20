@@ -20,31 +20,33 @@ import org.gradle.peformance.fixture.PerformanceTestRunner
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.peformance.fixture.DataAmount.*
-import static org.gradle.peformance.fixture.Duration.*
+import static org.gradle.peformance.fixture.DataAmount.kbytes
+import static org.gradle.peformance.fixture.Duration.millis
 
 /**
  * by Szczepan Faber, created at: 2/9/12
  */
 class PerformanceTest extends Specification {
+
     @Unroll("Project '#testProject' clean build")
     def "clean build"() {
         expect:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['clean', 'build'],
-                otherVersions: ['1.0'],
                 runs: runs,
                 warmUpRuns: 1,
+                targetVersions: ['1.0', 'last'],
                 maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: kbytes(1400)
+                maxMemoryRegression: [kbytes(1400), kbytes(1400)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject       | runs | maxExecutionTimeRegression
-        "small"           | 5    | millis(500)
-        "multi"           | 5    | millis(1000)
-        "lotDependencies" | 5    | millis(1000)
+                                   //max regression for 1.0 is very generous
+        "small"           | 5    | [millis(50000), millis(500)]
+        "multi"           | 5    | [millis(50000), millis(1000)]
+        "lotDependencies" | 5    | [millis(50000), millis(1000)]
     }
 
     @Unroll("Project '#testProject' up-to-date build")
@@ -54,8 +56,8 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['build'],
                 runs: runs,
                 warmUpRuns: 1,
-                maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: kbytes(1400)
+                maxExecutionTimeRegression: [maxExecutionTimeRegression],
+                maxMemoryRegression: [kbytes(1400)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
@@ -73,8 +75,8 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['dependencyReport'],
                 runs: runs,
                 warmUpRuns: 1,
-                maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: kbytes(1400)
+                maxExecutionTimeRegression: [maxExecutionTimeRegression],
+                maxMemoryRegression: [kbytes(1400)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
@@ -90,8 +92,8 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['eclipse'],
                 runs: runs,
                 warmUpRuns: 1,
-                maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: kbytes(1400)
+                maxExecutionTimeRegression: [maxExecutionTimeRegression],
+                maxMemoryRegression: [kbytes(1400)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
@@ -109,8 +111,8 @@ class PerformanceTest extends Specification {
                 tasksToRun: ['idea'],
                 runs: runs,
                 warmUpRuns: 1,
-                maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: kbytes(1400)
+                maxExecutionTimeRegression: [maxExecutionTimeRegression],
+                maxMemoryRegression: [kbytes(1400)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
@@ -126,19 +128,21 @@ class PerformanceTest extends Specification {
         when:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['cleanTest', 'test'],
-                args: ['-q'],
                 runs: runs,
+                args: ['-q'],
                 warmUpRuns: 1,
+                targetVersions: versions,
                 maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: kbytes(1400)
+                maxMemoryRegression: maxMemoryRegression
         ).run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject         | runs | maxExecutionTimeRegression
-        "withTestNG"        | 4    | millis(800)
-        "withVerboseJUnits" | 4    | millis(1200)
+        testProject         | runs | versions        | maxExecutionTimeRegression   | maxMemoryRegression
+        //needs to be tuned when html report is efficient
+        "withTestNG"        | 4    | ['1.2', 'last'] | [millis(1200), millis(200)]  | [kbytes(0), kbytes(0)]
+        "withVerboseJUnits" | 4    | ['last']        | [millis(1200)]               | [kbytes(0)]
     }
 }

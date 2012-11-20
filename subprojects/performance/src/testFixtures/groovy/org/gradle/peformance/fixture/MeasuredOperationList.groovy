@@ -16,6 +16,9 @@
 
 package org.gradle.peformance.fixture
 
+import static org.gradle.peformance.fixture.PrettyCalculator.prettyBytes
+import static org.gradle.peformance.fixture.PrettyCalculator.prettyTime
+
 /**
  * by Szczepan Faber, created at: 2/10/12
  */
@@ -46,5 +49,17 @@ public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
 
     Amount<Duration> minTime() {
         return collect { it.executionTime }.min()
+    }
+
+    String getSpeedStats() {
+        """  ${name} avg: ${prettyTime(avgTime())} ${collect { prettyTime(it.executionTime) }}
+  > min: ${prettyTime(minTime())}, max: ${prettyTime(maxTime())}
+"""
+    }
+
+    String getMemoryStats() {
+        """  ${name} avg: ${prettyBytes(avgMemory())} ${collect { prettyBytes(it.totalMemoryUsed) }}
+  > min: ${prettyBytes(minMemory())}, max: ${prettyBytes(maxMemory())}
+"""
     }
 }
