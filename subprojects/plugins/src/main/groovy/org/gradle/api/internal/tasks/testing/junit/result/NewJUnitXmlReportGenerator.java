@@ -44,7 +44,7 @@ public class NewJUnitXmlReportGenerator {
     public NewJUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.saxWriter = new SaxJUnitXmlResultWriter(getHostname(), testResultsProvider, XMLOutputFactory.newFactory());
+        this.saxWriter = new SaxJUnitXmlResultWriter(getHostname(), testResultsProvider, XMLOutputFactory.newInstance());
     }
 
     public void generate() {
