@@ -21,7 +21,7 @@ import org.gradle.internal.SystemProperties
 
 class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
-    private static String NL = SystemProperties.getLineSeparator()
+    private static final String NL = SystemProperties.getLineSeparator()
 
     def "throws decent warnings when task is configured during execution time"() {
 
