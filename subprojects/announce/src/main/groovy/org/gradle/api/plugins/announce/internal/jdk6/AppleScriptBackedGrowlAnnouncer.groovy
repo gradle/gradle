@@ -15,12 +15,11 @@
  */
 package org.gradle.api.plugins.announce.internal.jdk6
 
-import org.gradle.api.plugins.announce.internal.AnnouncerUnavailableException
-import org.gradle.api.plugins.announce.internal.Growl
-import org.gradle.api.plugins.announce.internal.IconProvider
-
 import javax.script.ScriptEngine
 import javax.script.ScriptEngineManager
+import org.gradle.api.plugins.announce.internal.Growl
+import org.gradle.api.plugins.announce.internal.IconProvider
+import org.gradle.api.plugins.announce.internal.AnnouncerUnavailableException
 
 class AppleScriptBackedGrowlAnnouncer extends Growl {
     private final IconProvider iconProvider
@@ -32,9 +31,6 @@ class AppleScriptBackedGrowlAnnouncer extends Growl {
     void send(String title, String message) {
         ScriptEngineManager mgr = new ScriptEngineManager();
         ScriptEngine engine = mgr.getEngineByName("AppleScript");
-        if (engine == null) {
-            engine = mgr.getEngineByName("AppleScriptEngine");
-        }
 
         String isRunning = """
 tell application "System Events"
