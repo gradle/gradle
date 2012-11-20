@@ -109,4 +109,11 @@ public class TextUtil {
 
         return builder.toString();
     }
+
+    /**
+     * makes sure the input can be written to CDATA section of the xml
+     */
+    public static String escapeCDATA(String input) {
+        return input.replaceAll("]]>", "]]&gt;");
+    }
 }

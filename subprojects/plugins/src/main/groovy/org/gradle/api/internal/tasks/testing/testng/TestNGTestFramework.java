@@ -118,8 +118,7 @@ public class TestNGTestFramework implements TestFramework {
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new TestNGTestClassProcessor(testReportDir, options, suiteFiles,
-                    serviceRegistry.get(IdGenerator.class), new JULRedirector(),
-                    testResultsDir, testReportOn);
+                    serviceRegistry.get(IdGenerator.class), new JULRedirector(), testReportOn);
         }
     }
 }

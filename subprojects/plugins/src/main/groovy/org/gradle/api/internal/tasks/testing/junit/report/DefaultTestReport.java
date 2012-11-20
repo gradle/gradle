@@ -16,7 +16,10 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.reporting.HtmlReportRenderer;
+import org.gradle.util.Clock;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -32,6 +35,7 @@ public class DefaultTestReport implements TestReporter {
     private final HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
     private File resultDir;
     private File reportDir;
+    private final static Logger LOG = Logging.getLogger(DefaultTestReport.class);
 
     public DefaultTestReport() {
         htmlRenderer.requireResource(getClass().getResource("/org/gradle/reporting/report.js"));
@@ -49,8 +53,10 @@ public class DefaultTestReport implements TestReporter {
     }
 
     public void generateReport() {
+        Clock clock = new Clock();
         AllTestResults model = loadModel();
         generateFiles(model);
+        LOG.info("Finished generating test html results (" + clock.getTime() + ")");
     }
 
     private AllTestResults loadModel() {

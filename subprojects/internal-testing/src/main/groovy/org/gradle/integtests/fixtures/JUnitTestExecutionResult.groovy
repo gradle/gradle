@@ -22,6 +22,7 @@ import org.hamcrest.Matcher
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
+//TODO SF finish the move, add TestNG
 class JUnitTestExecutionResult implements TestExecutionResult {
     private final TestFile buildDir
 
@@ -78,6 +79,10 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     def JUnitTestClassExecutionResult(GPathResult testClassNode, String testClassName) {
         this.testClassNode = testClassNode
         this.testClassName = testClassName
+    }
+
+    def JUnitTestClassExecutionResult(String content, String testClassName) {
+        this(new XmlSlurper().parse(new StringReader(content)), testClassName)
     }
 
     TestClassExecutionResult assertTestsExecuted(String... testNames) {

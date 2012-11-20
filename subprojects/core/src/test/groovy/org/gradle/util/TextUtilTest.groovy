@@ -69,4 +69,15 @@ class TextUtilTest extends Specification {
         "abc\ndef\nghi" | " "    | " abc\n def\n ghi"
         "abc\n\t\n   \nghi" | "X"    | "Xabc\n\t\n   \nXghi"
     }
+
+    def "escapes CDATA"() {
+        expect:
+        TextUtil.escapeCDATA(text) == result
+
+        where:
+        text              | result
+        ""                | ""
+        "abc"             | "abc"
+        "abc]]>foo\n]]>"  | "abc]]&gt;foo\n]]&gt;"
+    }
 }

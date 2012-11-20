@@ -28,8 +28,10 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.internal.tasks.testing.junit.result.NewJUnitXmlReportGenerator;
+import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
 import org.gradle.api.internal.tasks.testing.logging.*;
-import org.gradle.api.internal.tasks.testing.results.*;
+import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.specs.Spec;
@@ -398,6 +400,19 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
 
+        File binaryResultsDir = new File(getTemporaryDir(), "binary-test-results");
+        TestReportDataCollector testReportDataCollector = null;
+        if (testReport && testFramework instanceof TestNGTestFramework) {
+            //TODO SF this is obviously work in progress, add coverage for binary results interference
+
+            getProject().delete(binaryResultsDir);
+            getProject().mkdir(binaryResultsDir);
+
+            testReportDataCollector = new TestReportDataCollector(binaryResultsDir);
+            addTestListener(testReportDataCollector);
+            addTestOutputListener(testReportDataCollector);
+        }
+
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
         TestCountLogger testCountLogger = new TestCountLogger(progressLoggerFactory);
         addTestListener(testCountLogger);
@@ -406,6 +421,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 getTestListenerBroadcaster().getSource(), testOutputListenerBroadcaster.getSource());
 
         testExecuter.execute(this, resultProcessor);
+
+        if (testReportDataCollector != null) {
+            new NewJUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector).generate();
+            getProject().delete(binaryResultsDir);
+        }
+
         testFramework.report();
         testFramework = null;
 
