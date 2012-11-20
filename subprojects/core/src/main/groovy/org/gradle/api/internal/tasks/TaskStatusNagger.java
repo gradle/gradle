@@ -17,17 +17,21 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.util.ObservableList;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 
 public class TaskStatusNagger {
+    private static final String DEPRECATION_MESSAGE = "Calling %s after task execution has started";
+    private static final String EXPLANAITION = "Check the configuration of %s";
+    private static final String EXPLANAITION_WITH_HINT = EXPLANAITION + ". You may have misused '<<' at task declaration";
+
     private final TaskInternal taskInternal;
     private boolean nagUser = true;
+    private boolean executingleftShiftAction;
 
     public TaskStatusNagger(TaskInternal taskInternal) {
         this.taskInternal = taskInternal;
@@ -66,23 +70,31 @@ public class TaskStatusNagger {
         }
     }
 
+    public Action<Task> leftShift(final Action<? super Task> action) {
+        return new Action<Task>() {
+            public void execute(Task task) {
+                executingleftShiftAction = true;
+                try {
+                    action.execute(task);
+                } finally {
+                    executingleftShiftAction = false;
+                }
+            }
+        };
+    }
+
     private void warn(String method) {
-        DeprecationLogger.nagUserOfDeprecated(String.format("Calling %s after task execution has started", method), String.format("Check the configuration of %s. You may have misused '<<' at task declaration.", taskInternal));
+        if (executingleftShiftAction) {
+            DeprecationLogger.nagUserOfDeprecated(String.format(DEPRECATION_MESSAGE, method), String.format(EXPLANAITION_WITH_HINT, taskInternal));
+        } else {
+            DeprecationLogger.nagUserOfDeprecated(String.format(DEPRECATION_MESSAGE, method), String.format(EXPLANAITION, taskInternal));
+        }
     }
 
     public void whileDisabled(Runnable runnable) {
         nagUser = false;
         try {
             runnable.run();
-        } finally {
-            nagUser = true;
-        }
-    }
-
-    public <T> T whileDisabled(Factory<T> factory) {
-        nagUser = false;
-        try {
-            return factory.create();
         } finally {
             nagUser = true;
         }

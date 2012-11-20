@@ -414,11 +414,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task leftShift(final Closure action) {
         taskStatusNagger.nagIfTaskNotInConfigurableState("Task.leftShit(Closure)");
-        return taskStatusNagger.whileDisabled(new Factory<Task>() {
-            public Task create() {
-                return doLast(action);
-            }
-        });
+        if (action == null) {
+            throw new InvalidUserDataException("Action must not be null!");
+        }
+        actions.add(taskStatusNagger.leftShift(convertClosureToAction(action)));
+        return this;
     }
 
     public Task configure(Closure closure) {
