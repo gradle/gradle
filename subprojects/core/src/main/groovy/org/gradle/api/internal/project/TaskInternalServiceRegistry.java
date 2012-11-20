@@ -32,13 +32,11 @@ import org.gradle.logging.LoggingManagerInternal;
 public class TaskInternalServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final ProjectInternal project;
     private final TaskInternal taskInternal;
-    private TaskStatusNagger taskStatusNagger;
 
     public TaskInternalServiceRegistry(ServiceRegistry parent, final ProjectInternal project, TaskInternal taskInternal) {
         super(parent);
         this.project = project;
         this.taskInternal = taskInternal;
-        this.taskStatusNagger = new TaskStatusNagger(taskInternal);
     }
 
     protected TaskInputs createTaskInputs() {
