@@ -36,8 +36,6 @@ import org.apache.ivy.plugins.parser.AbstractModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.ModuleDescriptorParserRegistry;
 import org.apache.ivy.plugins.parser.ParserSettings;
-import org.apache.ivy.plugins.parser.xml.UpdateOptions;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorUpdater;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
@@ -71,7 +69,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     public static final String IVY_DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
 
     /**
-     * @param settings
      * @param xmlURL
      *            the url pointing to the file to parse
      * @param res
@@ -81,14 +78,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
      * @throws java.text.ParseException
      * @throws java.io.IOException
      */
-    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL xmlURL, Resource res,
+    public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL xmlURL, Resource res,
             boolean validate) throws ParseException, IOException {
         Parser parser = newParser(ivySettings);
         parser.setValidate(validate);
         parser.setResource(res);
         parser.setInput(xmlURL);
         parser.parse();
-        return parser.getModuleDescriptor();
+        return (DefaultModuleDescriptor) parser.getModuleDescriptor();
     }
 
     /** Used for test purpose */
@@ -122,29 +119,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
     public void toIvyFile(InputStream is, Resource res, File destFile, ModuleDescriptor md)
             throws IOException, ParseException {
-        try {
-            Namespace ns = null;
-            if (md instanceof DefaultModuleDescriptor) {
-                DefaultModuleDescriptor dmd = (DefaultModuleDescriptor) md;
-                ns = dmd.getNamespace();
-            }
-            XmlModuleDescriptorUpdater.update(is, res, destFile,
-                    new UpdateOptions()
-                            .setSettings(IvyContext.getContext().getSettings())
-                            .setStatus(md.getStatus())
-                            .setRevision(md.getResolvedModuleRevisionId().getRevision())
-                            .setPubdate(md.getResolvedPublicationDate())
-                            .setUpdateBranch(false)
-                            .setNamespace(ns));
-        } catch (SAXException e) {
-            ParseException ex = new ParseException("exception occurred while parsing " + res, 0);
-            ex.initCause(e);
-            throw ex;
-        } finally {
-            if (is != null) {
-                is.close();
-            }
-        }
+        throw new UnsupportedOperationException();
     }
 
     public static class Parser extends AbstractParser {
