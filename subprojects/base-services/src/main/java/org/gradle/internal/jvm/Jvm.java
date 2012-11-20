@@ -23,15 +23,16 @@ import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.script.ScriptEngineManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Jvm implements JavaInfo {
-    
+
     private final static Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
-    
+
     private final OperatingSystem os;
     //supplied java location
     private final File javaBase;
@@ -39,6 +40,7 @@ public class Jvm implements JavaInfo {
     private final File javaHome;
     private final boolean userSupplied;
     private final JavaVersion javaVersion;
+    private final boolean appleScriptSupported;
 
     public static Jvm current() {
         return create(null);
@@ -82,14 +84,16 @@ public class Jvm implements JavaInfo {
             this.userSupplied = true;
             this.javaVersion = null;
         }
+
+        ScriptEngineManager mgr = new ScriptEngineManager();
+        this.appleScriptSupported = mgr.getEngineByName("AppleScript") != null || mgr.getEngineByName("AppleScriptEngine") != null;
     }
-    
+
     /**
      * Creates jvm instance for given java home. Attempts to validate if provided javaHome is a valid jdk or jre location.
      *
      * @param javaHome - location of your jdk or jre (jdk is safer), cannot be null
      * @return jvm for given java home
-     *
      * @throws org.gradle.internal.jvm.JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
@@ -227,11 +231,8 @@ public class Jvm implements JavaInfo {
         return envVars;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public boolean getSupportsAppleScript() {
-        return false;
+        return appleScriptSupported;
     }
 
     public boolean isIbmJvm() {
@@ -250,8 +251,7 @@ public class Jvm implements JavaInfo {
     }
 
     /**
-     * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE,
-     * but this is likely an over-simplification.
+     * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE, but this is likely an over-simplification.
      */
     static class AppleJvm extends Jvm {
         AppleJvm(OperatingSystem os) {
@@ -293,14 +293,6 @@ public class Jvm implements JavaInfo {
                 vars.put(entry.getKey(), entry.getValue());
             }
             return vars;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean getSupportsAppleScript() {
-            return true;
         }
     }
 }
