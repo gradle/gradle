@@ -19,6 +19,7 @@ import groovy.text.SimpleTemplateEngine
 import org.gradle.util.TextUtil
 import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Chmod
+import org.gradle.util.GFileUtils
 
 class StartScriptGenerator {
     /**
@@ -100,7 +101,7 @@ class StartScriptGenerator {
     }
 
     void writeToFile(String scriptContent, File scriptFile) {
-        scriptFile.parentFile.mkdirs()
+        GFileUtils.mkdirs(scriptFile.parentFile)
         scriptFile.write(scriptContent)
     }
 

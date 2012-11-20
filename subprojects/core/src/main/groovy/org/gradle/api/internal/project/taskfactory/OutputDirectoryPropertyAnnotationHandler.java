@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
@@ -74,10 +73,7 @@ public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotat
                         }
                         for (File file : files) {
                             file = GFileUtils.canonicalise(file);
-                            if (!file.isDirectory() && !file.mkdirs()) {
-                                throw new InvalidUserDataException(String.format(
-                                        "Cannot create directory '%s' specified for property '%s'.", file, context.getName()));
-                            }
+                            GFileUtils.mkdirs(file);
                         }
                     }
                 });

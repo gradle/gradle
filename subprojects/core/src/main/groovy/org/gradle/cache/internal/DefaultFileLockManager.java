@@ -21,7 +21,10 @@ import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -99,7 +102,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 lockFile = new File(target.getParentFile(), target.getName() + ".lock");
             }
 
-            lockFile.getParentFile().mkdirs();
+            GFileUtils.mkdirs(lockFile.getParentFile());
             lockFile.createNewFile();
             lockFileAccess = new RandomAccessFile(lockFile, "rw");
             try {

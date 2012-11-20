@@ -60,7 +60,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                              Transformer transformer, Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(classesDir);
-        classesDir.mkdirs();
+        GFileUtils.mkdirs(classesDir);
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
         try {

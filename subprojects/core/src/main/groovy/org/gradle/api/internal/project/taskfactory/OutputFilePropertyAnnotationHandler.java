@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
@@ -73,9 +72,7 @@ public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHa
                         }
                         for (File file : files) {
                             file = GFileUtils.canonicalise(file);
-                            if (!file.getParentFile().isDirectory() && !file.getParentFile().mkdirs()) {
-                                throw new InvalidUserDataException(String.format("Cannot create parent directory '%s' of file specified for property '%s'.", file.getParentFile(), context.getName()));
-                            }
+                            GFileUtils.mkdirs(file.getParentFile());
                         }
                     }
                 });

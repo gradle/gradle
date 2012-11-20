@@ -31,6 +31,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.util.Clock;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -95,7 +96,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         Clock clock = new Clock();
         try {
-            workingDir.mkdirs();
+            GFileUtils.mkdirs(workingDir);
 
             DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
             ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer);

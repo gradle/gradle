@@ -54,6 +54,7 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -540,7 +541,7 @@ public class ExternalResourceResolver extends BasicResolver {
     protected long get(Resource resource, File destination) throws IOException {
         LOGGER.debug("Downloading {} to {}", resource.getName(), destination);
         if (destination.getParentFile() != null) {
-            destination.getParentFile().mkdirs();
+            GFileUtils.mkdirs(destination.getParentFile());
         }
 
         if (!(resource instanceof ExternalResource)) {

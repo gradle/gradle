@@ -36,6 +36,7 @@ import org.gradle.process.internal.DefaultJavaExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.JavaExecAction;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.net.URI;
@@ -120,7 +121,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         if (dir.isFile()) {
             throw new InvalidUserDataException(String.format("Can't create directory. The path=%s points to an existing file.", path));
         }
-        dir.mkdirs();
+        GFileUtils.mkdirs(dir);
         return dir;
     }
 

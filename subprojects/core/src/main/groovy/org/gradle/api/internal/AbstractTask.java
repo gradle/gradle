@@ -42,6 +42,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GFileUtils;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -426,7 +427,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public File getTemporaryDir() {
         File dir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
-        dir.mkdirs();
+        GFileUtils.mkdirs(dir);
         return dir;
     }
 

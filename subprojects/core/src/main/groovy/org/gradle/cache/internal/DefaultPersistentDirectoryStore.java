@@ -39,7 +39,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     public DefaultPersistentDirectoryStore open() {
-        GFileUtils.createDirectory(dir);
+        GFileUtils.mkdirs(dir);
         cacheAccess = createCacheAccess();
         try {
             cacheAccess.open(lockMode);

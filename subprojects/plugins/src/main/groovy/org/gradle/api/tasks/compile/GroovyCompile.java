@@ -29,6 +29,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public class GroovyCompile extends AbstractCompile {
         spec.setGroovyCompileOptions(groovyCompileOptions);
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
             File dir = tempFileProvider.newTemporaryFile("groovy-java-stubs");
-            dir.mkdirs();
+            GFileUtils.mkdirs(dir);
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
         WorkResult result = compiler.execute(spec);

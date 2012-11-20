@@ -22,6 +22,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.nativeplatform.filesystem.Chmod;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.util.GFileUtils;
 
 import java.io.*;
 
@@ -57,10 +58,10 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
     public boolean copyTo(File target) {
         validateTimeStamps();
         try {
-            target.getParentFile().mkdirs();
             if (isDirectory()) {
-                target.mkdirs();
+                GFileUtils.mkdirs(target);
             } else {
+                GFileUtils.mkdirs(target.getParentFile());
                 copyFile(target);
             }
             getChmod().chmod(target, getMode());

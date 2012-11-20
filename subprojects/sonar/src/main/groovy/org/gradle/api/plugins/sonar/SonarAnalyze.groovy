@@ -21,6 +21,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ClasspathUtil
 
 import org.gradle.api.plugins.sonar.model.SonarRootModel
+import org.gradle.util.GFileUtils
 
 /**
  * Analyzes a project hierarchy and writes the results to the
@@ -34,7 +35,7 @@ class SonarAnalyze extends ConventionTask {
 
     @TaskAction
     void analyze() {
-        rootModel.bootstrapDir.mkdirs()
+        GFileUtils.mkdirs(rootModel.bootstrapDir)
         def bootstrapper = new Bootstrapper("Gradle", rootModel.server.url, rootModel.bootstrapDir)
 
         def classLoader = bootstrapper.createClassLoader(

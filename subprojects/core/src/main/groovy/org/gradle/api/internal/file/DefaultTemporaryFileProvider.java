@@ -38,7 +38,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
 
     public File createTemporaryFile(String prefix, @Nullable String suffix, String... path) {
         File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
-        GFileUtils.createDirectory(dir);
+        GFileUtils.mkdirs(dir);
         try {
             return File.createTempFile(prefix, suffix, dir);
         } catch (IOException e) {
@@ -48,7 +48,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
 
     public File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path) {
         File dir = new File(baseDirFactory.create(), CollectionUtils.join("/", path));
-        GFileUtils.createDirectory(dir);
+        GFileUtils.mkdirs(dir);
         try {
             // TODO: This is not a great paradigm for creating a temporary directory.
             // See http://guava-libraries.googlecode.com/svn/tags/release08/javadoc/com/google/common/io/Files.html#createTempDir%28%29 for an alternative.

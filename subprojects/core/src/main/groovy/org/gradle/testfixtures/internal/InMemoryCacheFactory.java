@@ -17,11 +17,12 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.*;
+import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Serializer;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -33,7 +34,7 @@ public class InMemoryCacheFactory implements CacheFactory {
     }
 
     public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) {
-        cacheDir.mkdirs();
+        GFileUtils.mkdirs(cacheDir);
         InMemoryCache cache = new InMemoryCache(cacheDir);
         if (initializer != null) {
             initializer.execute(cache);
@@ -46,7 +47,7 @@ public class InMemoryCacheFactory implements CacheFactory {
     }
 
     public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<E> serializer) {
-        cacheDir.mkdirs();
+        GFileUtils.mkdirs(cacheDir);
         return new SimpleStateCache<E>(new File(cacheDir, "state.bin"), new NoOpFileLock(), new DefaultSerializer<E>());
     }
 

@@ -24,11 +24,15 @@ import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccesso
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploader;
 import org.gradle.internal.Factory;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +60,7 @@ public class FileResourceConnector implements ExternalResourceLister, ExternalRe
         if (!target.canWrite()) {
             target.delete();
         } // if target is writable, the copy will overwrite it without requiring a delete
-        target.getParentFile().mkdirs();
+        GFileUtils.mkdirs(target.getParentFile());
         FileOutputStream fileOutputStream = new FileOutputStream(target);
         try {
             InputStream sourceInputStream = source.create();

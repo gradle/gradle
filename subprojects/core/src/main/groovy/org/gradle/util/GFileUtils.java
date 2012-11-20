@@ -219,15 +219,6 @@ public class GFileUtils {
             throw new UncheckedIOException(e);
         }
     }
-    /**
-     * Creates a directory and any unexisting parent directories. Throws an
-     * UncheckedIOException if it fails to do so.
-     */
-    public static void createDirectory(File directory) {
-        if (!directory.mkdirs() && !directory.isDirectory()) {
-            throw new UncheckedIOException("Failed to create directory " + directory);
-        }
-    }
 
     /**
      * Returns a relative path from 'from' to 'to'
@@ -290,12 +281,12 @@ public class GFileUtils {
                 throw new UncheckedIOException(String.format("Cannot create parent directory '%s' when creating directory '%s' as '%s' is not a directory", parentDirToCreate, dir, parentDirToCreateParent));
             }
 
-            if (!parentDirToCreate.mkdir()) {
+            if (!parentDirToCreate.mkdir() && !parentDirToCreate.isDirectory()) {
                 throw new UncheckedIOException(String.format("Failed to create parent directory '%s' when creating directory '%s'", parentDirToCreate, dir));
             }
         }
 
-        if (!dir.mkdirs()) {
+        if (!dir.mkdir() && !dir.isDirectory()) {
             throw new UncheckedIOException(String.format("Failed to create directory '%s'", dir));
         }
     }
