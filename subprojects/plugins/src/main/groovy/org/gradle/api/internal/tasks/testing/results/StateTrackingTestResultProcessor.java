@@ -103,8 +103,4 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
 
     protected void completed(TestState state) {
     }
-
-    protected TestState getTestStateFor(Object testId) {
-        return executing.get(testId);
-    }
 }
