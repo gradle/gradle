@@ -16,11 +16,10 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.IoActions;
 import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
@@ -39,7 +38,9 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
@@ -230,30 +231,19 @@ public class GradleBuildComparison {
         return connector.connect();
     }
 
-    private void writeReport(BuildComparisonResult result, File reportDir, FileStore<String> fileStore, Map<String, String> hostAttributes) {
+    private void writeReport(final BuildComparisonResult result, final File reportDir, FileStore<String> fileStore, final Map<String, String> hostAttributes) {
         if (reportDir.exists() && reportDir.list().length > 0) {
             GFileUtils.cleanDirectory(reportDir);
         }
 
         fileStore.moveFilestore(new File(reportDir, FILES_DIR_NAME));
 
-        Charset encoding = Charset.defaultCharset();
-        OutputStream outputStream;
-        Writer writer;
-
-        try {
-            outputStream = FileUtils.openOutputStream(new File(reportDir, HTML_REPORT_FILE_NAME));
-            writer = new OutputStreamWriter(outputStream, encoding);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
-        try {
-            createResultRenderer(encoding, reportDir, hostAttributes).render(result, writer);
-        } finally {
-            IOUtils.closeQuietly(writer);
-            IOUtils.closeQuietly(outputStream);
-        }
+        final Charset encoding = Charset.defaultCharset();
+        IoActions.writeFile(new File(reportDir, HTML_REPORT_FILE_NAME), encoding.name(), new Action<BufferedWriter>() {
+            public void execute(BufferedWriter writer) {
+                createResultRenderer(encoding, reportDir, hostAttributes).render(result, writer);
+            }
+        });
     }
 
     private BuildComparisonResultRenderer<Writer> createResultRenderer(Charset encoding, final File reportDir, final Map<String, String> hostAttributes) {
