@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.test.fixtures.maven.MavenHttpModule
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -132,6 +133,51 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
 
         module.verifyRootMetaDataChecksums()
         module.rootMetaData.versions == ["2"]
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+    }
+
+    @Unroll
+    def "reports failure publishing with wrong credentials using #authScheme"() {
+        given:
+        def credentials = new DefaultPasswordCredentials('wrong', 'wrong')
+
+        buildFile << """
+            publishing.repositories.maven.credentials {
+                username '${credentials.username}'
+                password '${credentials.password}'
+            }
+        """
+
+        server.authenticationScheme = authScheme
+        module.expectArtifactPut(401, credentials)
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
+        failure.assertHasCause('Could not publish configuration: [detachedConfiguration')
+        failure.assertThatCause(Matchers.containsString('Return code is: 401'))
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+    }
+
+    @Unroll
+    def "reports failure when required credentials are not provided #authScheme"() {
+        given:
+        server.authenticationScheme = authScheme
+        module.expectArtifactPut(401)
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
+        failure.assertHasCause('Could not publish configuration: [detachedConfiguration')
+        failure.assertThatCause(Matchers.containsString('Return code is: 401'))
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
