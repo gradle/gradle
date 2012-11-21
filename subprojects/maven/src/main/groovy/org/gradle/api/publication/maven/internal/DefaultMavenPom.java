@@ -16,12 +16,12 @@
 package org.gradle.api.publication.maven.internal;
 
 import groovy.lang.Closure;
-import org.apache.commons.io.IOUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
@@ -187,7 +187,11 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public DefaultMavenPom writeTo(final Writer pomWriter) {
-        getEffectivePom().writeNonEffectivePom(pomWriter);
+        try {
+            getEffectivePom().writeNonEffectivePom(pomWriter);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         return this;
     }
 
@@ -200,15 +204,15 @@ public class DefaultMavenPom implements MavenPom {
         return this;
     }
 
-    private void writeNonEffectivePom(final Writer pomWriter) {
+    private void writeNonEffectivePom(final Writer pomWriter) throws IOException {
         try {
             withXmlActions.transform(pomWriter, POM_FILE_ENCODING, new ErroringAction<Writer>() {
-                protected void doExecute(Writer writer) throws IOException{
+                protected void doExecute(Writer writer) throws IOException {
                     mavenProject.writeModel(writer);
                 }
             });
         } finally {
-            IOUtils.closeQuietly(pomWriter);
+            pomWriter.close();
         }
     }
 
