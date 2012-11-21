@@ -31,7 +31,6 @@ class MavenHttpModule implements MavenModule {
         this.backingModule = backingModule
         this.server = server
         this.moduleRootPath = "${repoRoot}/${backingModule.groupId.replace('.', '/')}/${backingModule.artifactId}"
-        backingModule.moduleDir.mkdirs()
     }
 
     protected String getModuleVersionPath() {
@@ -95,7 +94,7 @@ class MavenHttpModule implements MavenModule {
     }
 
     String getMetaDataPath() {
-        "$moduleRootPath/$metaDataFile.name"
+        "$moduleVersionPath/$metaDataFile.name"
     }
 
     TestFile sha1File(TestFile file) {
