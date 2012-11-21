@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenPublishIntegTest extends AbstractIntegrationSpec {
 
-    def "can publish a project with dependency in mapped and unmapped configuration"() {
+    def "can publish simple jar"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
