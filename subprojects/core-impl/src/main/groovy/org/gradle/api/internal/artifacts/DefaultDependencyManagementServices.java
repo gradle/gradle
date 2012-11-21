@@ -307,15 +307,19 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         get(ProgressLoggerFactory.class),
                         get(LocalFileRepositoryCacheManager.class),
                         get(DownloadingRepositoryCacheManager.class),
-                        new DefaultArtifactPublisherFactory(new Transformer<ArtifactPublisher, ResolverProvider>() {
-                            public ArtifactPublisher transform(ResolverProvider resolverProvider) {
-                                return createArtifactPublisher(resolverProvider);
-                            }
-                        })
+                        createArtifactPublisherFactory()
                 );
             }
 
             return baseRepositoryFactory;
+        }
+
+        public ArtifactPublisherFactory createArtifactPublisherFactory() {
+            return new DefaultArtifactPublisherFactory(new Transformer<ArtifactPublisher, ResolverProvider>() {
+                public ArtifactPublisher transform(ResolverProvider resolverProvider) {
+                    return createArtifactPublisher(resolverProvider);
+                }
+            });
         }
 
         private DefaultRepositoryHandler createRepositoryHandler() {
@@ -438,6 +442,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         public IvyModuleDescriptorWriter getIvyModuleDescriptorWriter() {
             return new IvyXmlModuleDescriptorWriter();
+        }
+
+        public ArtifactPublisherFactory createArtifactPublisherFactory() {
+            return dependencyResolutionServices.createArtifactPublisherFactory();
         }
     }
 }

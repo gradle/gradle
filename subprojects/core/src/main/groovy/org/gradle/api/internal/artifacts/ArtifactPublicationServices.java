@@ -27,4 +27,6 @@ public interface ArtifactPublicationServices {
     ModuleDescriptorConverter getDescriptorFileModuleConverter();
 
     IvyModuleDescriptorWriter getIvyModuleDescriptorWriter();
+
+    ArtifactPublisherFactory createArtifactPublisherFactory();
 }

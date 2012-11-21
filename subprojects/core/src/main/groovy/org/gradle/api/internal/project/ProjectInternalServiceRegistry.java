@@ -26,9 +26,9 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
-import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -156,9 +156,8 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new DependencyMetaDataProvider() {
-
             public Module getModule() {
-                return new DefaultModule(project.getGroup().toString(), project.getName(), project.getVersion().toString(), project.getStatus().toString());
+                return new ProjectBackedModule(project);
             }
         };
     }

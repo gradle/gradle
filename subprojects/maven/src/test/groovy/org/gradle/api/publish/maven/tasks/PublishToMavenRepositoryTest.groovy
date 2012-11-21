@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-dependencies {
-    groovy libraries.groovy
+package org.gradle.api.publish.maven.tasks
 
-    compile project(':core')
-    compile project(':coreImpl')
-    compile project(':plugins')
-    compile project(':publish')
-    compile libraries.slf4j_api
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
 
-    compile libraries.maven_ant_tasks
-    compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
-    compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
-    compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
+class PublishToMavenRepositoryTest extends Specification {
+
+    def project = HelperUtil.createRootProject()
+
+    def "can instantiate"() {
+        when:
+        project.tasks.add("task", PublishToMavenRepository)
+
+        then:
+        true
+    }
 }
-
-useTestFixtures()
