@@ -142,6 +142,7 @@ configurations {
 
 dependencies {
     runtime project(':launcher')
+    runtime project(':wrapper')
     plugins pluginProjects
     plugins project(':coreImpl')
 }
