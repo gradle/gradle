@@ -42,6 +42,48 @@ class MavenPublishIntegTest extends AbstractIntegrationSpec {
         then:
         def module = mavenRepo.module('group', 'root', 1.0)
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.pom')
+        with(module.pom) {
+            groupId == "group"
+            artifactId == "root"
+            version == "1.0"
+        }
+    }
+
+    def "can customise pom xml"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven {
+                        pom.withXml {
+                            asNode().version[0].value = "foo"
+                        }
+                    }
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('group', 'root', "foo")
+        module.assertArtifactsPublished('root-foo.jar', 'root-foo.pom')
+        with(module.pom) {
+            groupId == "group"
+            artifactId == "root"
+            version == "foo"
+        }
+
     }
 
 }
