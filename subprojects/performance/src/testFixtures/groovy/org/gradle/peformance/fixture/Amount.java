@@ -18,7 +18,9 @@ package org.gradle.peformance.fixture;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * An amount is an immutable value of some quantity, such as duration or length. Each amount has a decimal value and associated units.
@@ -70,10 +72,10 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
             Units<Q> candidate = allUnits.get(i);
             if (base.compareTo(candidate.getFactor()) >= 0) {
                 BigDecimal scaled = units.scaleTo(value, candidate);
-                return String.format("%s %s", new DecimalFormat("#.###").format(scaled), candidate.format(scaled));
+                return String.format("%s %s", new DecimalFormat("#.###", DecimalFormatSymbols.getInstance(Locale.US)).format(scaled), candidate.format(scaled));
             }
         }
-        return String.format("%s %s", new DecimalFormat("#.###").format(value), units.format(value));
+        return String.format("%s %s", new DecimalFormat("#.###", DecimalFormatSymbols.getInstance(Locale.US)).format(value), units.format(value));
     }
 
     /**
