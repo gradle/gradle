@@ -1,36 +1,16 @@
-import org.gradle.build.*
 
-configurations{
-    delegate.default.extendsFrom -= [runtime]
-    delegate.default.extendsFrom publishCompile
-
-    fatJarConfiguration{
-        extendsFrom compile
-        exclude group:"org.slf4j"
-    }
-}
 dependencies {
     groovy libraries.groovy
-    compile project(path:':core', configuration:"publishCompileWithProjectJar")
-    compile project(path:':messaging', configuration:"publishCompileWithProjectJar")
-    compile project(path:':wrapper', configuration:"publishCompileWithProjectJar")
-    compile project(path:':baseServices', configuration:"publishCompileWithProjectJar")
+
+    publishCompile project(':core')
+    publishCompile project(':baseServices')
+    publishCompile project(':messaging')
+    publishCompile project(':wrapper')
     publishCompile libraries.slf4j_api
+
+    // lots of integTest errors otherwise
+    integTestRuntime project(':ide')
 }
-
-task printDefaults << {
-    configurations.default.each{
-        println it
-    }
-}
-
-task printFatJar << {
-    configurations.fatJarConfiguration.each{
-        println it
-    }
-}
-
-
 
 useTestFixtures()
 
@@ -46,30 +26,12 @@ daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 
-task jar(type: JarJarJar, overwrite: true) {
-    doFirst {
-        configurations.fatJarConfiguration.each {
-            from(zipTree(it)) {
-                exclude "META-INF/**"
-            }
-        }
-    }
-    from(sourceSets.main.output)
-
-    rule('com.google.common.**', 'org.gradle.jarjar.com.google.common.@1')
-    keep('org.gradle.**')
-}
-
-artifacts{
-    delegate.default jar
-}
-
 eclipse {
-    classpath {
-        file.whenMerged { classpath ->
-            //**TODO
-            classpath.entries.removeAll { it.path.contains('src/test/groovy') }
-            classpath.entries.removeAll { it.path.contains('src/integTest/groovy') }
+	classpath {
+    	file.whenMerged { classpath ->
+        	 //**TODO
+        	classpath.entries.removeAll { it.path.contains('src/test/groovy') }
+        	classpath.entries.removeAll { it.path.contains('src/integTest/groovy') }
         }
     }
 }
