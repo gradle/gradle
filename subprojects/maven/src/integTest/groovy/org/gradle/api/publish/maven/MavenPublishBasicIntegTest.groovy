@@ -18,7 +18,10 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class MavenPublishIntegTest extends AbstractIntegrationSpec {
+/**
+ * Tests “simple” maven publishing scenarios
+ */
+class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
 
     def "can publish simple jar"() {
         given:
@@ -83,7 +86,6 @@ class MavenPublishIntegTest extends AbstractIntegrationSpec {
             artifactId == "root"
             version == "foo"
         }
-
     }
 
 }
