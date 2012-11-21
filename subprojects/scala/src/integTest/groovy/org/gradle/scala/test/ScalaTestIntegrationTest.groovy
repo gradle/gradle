@@ -18,8 +18,6 @@ package org.gradle.scala.test
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import spock.lang.Issue
-import spock.lang.Ignore
 
 class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
 
@@ -38,21 +36,25 @@ class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
                 scalaTools 'org.scala-lang:scala-library:2.8.1'
                 compile 'org.scala-lang:scala-library:2.8.1'
                 testCompile 'org.scalatest:scalatest_2.8.1:1.8'
+                testCompile 'junit:junit:4.10'
             }
         """
 
         when:
         file("src/test/scala/MultiLineNameTest.scala") << """
 import org.scalatest.FunSuite
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class MultiLineSuite extends FunSuite {
-    test("This test \n spans many \n lines") {
+    test("This test method name \\n spans many \\n lines") {
         assert(1 === 2)
     }
 }"""
 
         then:
         //the build should fail because the failing test has been executed
-        runAndFail("test").assertHasDescription("Execution failed for task ':testScala'.")
+        runAndFail("test").assertHasDescription("Execution failed for task ':test'.")
     }
 }
