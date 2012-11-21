@@ -17,9 +17,9 @@
 package org.gradle.api.publish.maven.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenHttpModule
-import org.gradle.integtests.fixtures.MavenHttpRepository
 import org.gradle.integtests.fixtures.ProgressLoggingFixture
+import org.gradle.test.fixtures.maven.MavenHttpModule
+import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 

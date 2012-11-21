@@ -17,6 +17,8 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.test.fixtures.ivy.IvyFileRepository;
 import org.gradle.test.fixtures.ivy.IvyRepository;
+import org.gradle.test.fixtures.maven.MavenFileRepository;
+import org.gradle.test.fixtures.maven.MavenRepository;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestFileContext;
 import org.junit.Rule;

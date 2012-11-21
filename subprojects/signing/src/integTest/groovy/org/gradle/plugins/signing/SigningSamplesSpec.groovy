@@ -17,9 +17,9 @@
 package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.test.fixtures.maven.MavenRepository
 import org.junit.Rule
 
 class SigningSamplesSpec extends AbstractIntegrationSpec {

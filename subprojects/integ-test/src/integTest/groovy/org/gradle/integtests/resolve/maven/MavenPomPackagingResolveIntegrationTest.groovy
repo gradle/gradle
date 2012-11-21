@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.MavenFileModule
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.maven.MavenFileModule
 import spock.lang.FailsWith
 import spock.lang.Issue
 

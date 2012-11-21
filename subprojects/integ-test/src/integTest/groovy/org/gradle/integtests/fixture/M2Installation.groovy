@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixture
 
-import org.gradle.integtests.fixtures.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.TestFile
 
 class M2Installation {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.test.fixtures.maven
 
 /**
  * http://maven.apache.org/ref/3.0.1/maven-repository-metadata/repository-metadata.html

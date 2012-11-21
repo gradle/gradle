@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.runner.RunWith

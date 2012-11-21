@@ -16,8 +16,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 

@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.fixtures
+package org.gradle.test.fixtures.maven
 
 import org.gradle.util.TestFile
 
