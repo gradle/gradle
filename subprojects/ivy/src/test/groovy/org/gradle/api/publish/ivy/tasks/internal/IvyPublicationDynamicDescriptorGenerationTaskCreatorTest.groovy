@@ -56,18 +56,18 @@ class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specifica
 
         then:
         descriptorGeneratorTasks.size() == 1
-        GenerateIvyDescriptor task = project.tasks.generateIvyPublicationModuleDescriptor
+        GenerateIvyDescriptor task = project.tasks.generateIvyModuleDescriptor
         task.group == "publishing"
         task.description != null
         publishing.publications.ivy.descriptor.buildDependencies.getDependencies(null) == [task] as Set
 
         when:
-        publishing.publications.add(ivyPublication("ivy2"))
+        publishing.publications.add(ivyPublication("other"))
 
         then:
         descriptorGeneratorTasks.size() == 2
-        def task2 = project.tasks.generateIvy2PublicationModuleDescriptor
-        publishing.publications.ivy2.descriptor.buildDependencies.getDependencies(null) == [task2] as Set
+        def task2 = project.tasks.generateOtherIvyModuleDescriptor
+        publishing.publications.other.descriptor.buildDependencies.getDependencies(null) == [task2] as Set
     }
 
     Publication publication(String name) {

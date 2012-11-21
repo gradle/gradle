@@ -77,7 +77,10 @@ public class IvyPublicationDynamicDescriptorGenerationTaskCreator {
     }
 
     private String calculateDescriptorTaskName(String publicationName) {
-        return String.format("generate%sPublicationModuleDescriptor", capitalize(publicationName));
+        return String.format(
+                "generate%sIvyModuleDescriptor",
+                publicationName.toLowerCase().equals("ivy") ? "" : capitalize(publicationName)
+        );
     }
 
 }
