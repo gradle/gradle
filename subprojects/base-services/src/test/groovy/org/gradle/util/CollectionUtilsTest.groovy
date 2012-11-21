@@ -259,6 +259,15 @@ class CollectionUtilsTest extends Specification {
         e.message == "The 'action' cannot be null"
     }
 
+    def "to set"() {
+        expect:
+        toSet([1, 2, 3]) == [1, 2, 3] as Set
+        toSet([1, 2, 2, 3]) == [1, 2, 3] as Set
+        def set = [1] as Set
+        toSet(set).is(set)
+        toSet([]).empty
+    }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }

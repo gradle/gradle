@@ -181,6 +181,21 @@ public abstract class CollectionUtils {
         return list;
     }
 
+    public static <T> Set<T> toSet(Iterable<? extends T> things) {
+        if (things == null) {
+            return new HashSet<T>(0);
+        }
+        if (things instanceof Set) {
+            return (Set<T>) things;
+        }
+
+        Set<T> set = new LinkedHashSet<T>();
+        for (T thing : things) {
+            set.add(thing);
+        }
+        return set;
+    }
+
     public static <E> List<E> compact(List<E> list) {
         boolean foundAtLeastOneNull = false;
         List<E> compacted = null;
