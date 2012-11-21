@@ -18,6 +18,7 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
@@ -117,44 +118,68 @@ class MavenHttpModule implements MavenModule {
         server.expectGetMissing(metaDataPath)
     }
 
-    void expectRootMetaDataGetMissing() {
-        server.expectGetMissing(rootMetaDataPath)
+    void expectRootMetaDataGetMissing(PasswordCredentials passwordCredentials = null) {
+        server.expectGetMissing(rootMetaDataPath, passwordCredentials)
     }
 
-    void expectMetaDataPut(int statusCode = 200) {
-        server.expectPut(metaDataPath, backingModule.metaDataFile, statusCode)
+    void expectMetaDataPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(metaDataPath, backingModule.metaDataFile, statusCode, credentials)
     }
 
-    void expectMetaDataSha1Put(int statusCode = 200) {
-        server.expectPut(sha1Path(metaDataPath), sha1File(metaDataFile), statusCode)
+    void expectMetaDataSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(sha1Path(metaDataPath), sha1File(metaDataFile), statusCode, credentials)
     }
 
-    void expectMetaDataMd5Put(int statusCode = 200) {
-        server.expectPut(md5Path(metaDataPath), md5File(metaDataFile), statusCode)
+    void expectMetaDataMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(md5Path(metaDataPath), md5File(metaDataFile), statusCode, credentials)
     }
 
-    void expectRootMetaDataPut(int statusCode = 200) {
-        server.expectPut(rootMetaDataPath, rootMetaDataFile, statusCode)
+    void expectRootMetaDataPut(PasswordCredentials credentials) {
+        expectRootMetaDataPut(200, credentials)
     }
 
-    void expectRootMetaDataSha1Put(int statusCode = 200) {
-        server.expectPut(sha1Path(rootMetaDataPath), sha1File(rootMetaDataFile), statusCode)
+    void expectRootMetaDataPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(rootMetaDataPath, rootMetaDataFile, statusCode, credentials)
     }
 
-    void expectRootMetaDataMd5Put(int statusCode = 200) {
-        server.expectPut(md5Path(rootMetaDataPath), md5File(rootMetaDataFile), statusCode)
+    void expectRootMetaDataSha1Put(PasswordCredentials credentials) {
+        expectRootMetaDataSha1Put(200, credentials)
     }
 
-    void expectPomPut(int statusCode = 200) {
-        server.expectPut(pomPath, pomFile, statusCode)
+    void expectRootMetaDataSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(sha1Path(rootMetaDataPath), sha1File(rootMetaDataFile), statusCode, credentials)
     }
 
-    void expectPomSha1Put(int statusCode = 200) {
-        server.expectPut(sha1Path(pomPath), sha1File(pomFile), statusCode)
+    void expectRootMetaDataMd5Put(PasswordCredentials credentials) {
+        expectRootMetaDataMd5Put(200, credentials)
     }
 
-    void expectPomMd5Put(int statusCode = 200) {
-        server.expectPut(md5Path(pomPath), md5File(pomFile), statusCode)
+    void expectRootMetaDataMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(md5Path(rootMetaDataPath), md5File(rootMetaDataFile), statusCode, credentials)
+    }
+
+    void expectPomPut(PasswordCredentials credentials) {
+        expectPomPut(200, credentials)
+    }
+
+    void expectPomPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(pomPath, pomFile, statusCode, credentials)
+    }
+
+    void expectPomSha1Put(PasswordCredentials credentials) {
+        expectPomSha1Put(200, credentials)
+    }
+
+    void expectPomSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(sha1Path(pomPath), sha1File(pomFile), statusCode, credentials)
+    }
+
+    void expectPomMd5Put(PasswordCredentials credentials) {
+        expectPomMd5Put(200, credentials)
+    }
+
+    void expectPomMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(md5Path(pomPath), md5File(pomFile), statusCode, credentials)
     }
 
     void expectPomGet() {
@@ -241,16 +266,28 @@ class MavenHttpModule implements MavenModule {
         }
     }
 
-    void expectArtifactPut(int statusCode = 200) {
-        server.expectPut(artifactPath, artifactFile, statusCode)
+    void expectArtifactPut(PasswordCredentials credentials) {
+        expectArtifactPut(200, credentials)
     }
 
-    void expectArtifactSha1Put(int statusCode = 200) {
-        server.expectPut(artifactSha1Path, artifactSha1File, statusCode)
+    void expectArtifactPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(artifactPath, artifactFile, statusCode, credentials)
     }
 
-    void expectArtifactMd5Put(int statusCode = 200) {
-        server.expectPut(artifactMd5Path, artifactMd5File, statusCode)
+    void expectArtifactSha1Put(PasswordCredentials credentials) {
+        expectArtifactSha1Put(200, credentials)
+    }
+
+    void expectArtifactSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(artifactSha1Path, artifactSha1File, statusCode, credentials)
+    }
+
+    void expectArtifactMd5Put(PasswordCredentials credentials) {
+        expectArtifactMd5Put(200, credentials)
+    }
+
+    void expectArtifactMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(artifactMd5Path, artifactMd5File, statusCode, credentials)
     }
 
     void verifyArtifactChecksums() {

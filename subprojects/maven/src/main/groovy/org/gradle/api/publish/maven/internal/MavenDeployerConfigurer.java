@@ -16,10 +16,12 @@
 
 package org.gradle.api.publish.maven.internal;
 
+import org.apache.maven.artifact.ant.Authentication;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 
 public class MavenDeployerConfigurer implements Action<MavenDeployer> {
 
@@ -36,6 +38,18 @@ public class MavenDeployerConfigurer implements Action<MavenDeployer> {
     private RemoteRepository createRepository() {
         RemoteRepository remoteRepository = new RemoteRepository();
         remoteRepository.setUrl(artifactRepository.getUrl().toString());
+
+        PasswordCredentials credentials = artifactRepository.getCredentials();
+        String username = credentials.getUsername();
+        String password = credentials.getPassword();
+
+        if (username != null || password != null) {
+            Authentication authentication = new Authentication();
+            authentication.setUserName(username);
+            authentication.setPassword(password);
+            remoteRepository.addAuthentication(authentication);
+        }
+
         return remoteRepository;
     }
 }

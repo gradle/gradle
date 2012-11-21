@@ -15,6 +15,7 @@
  */
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.hash.HashUtil
 import org.hamcrest.Matcher
@@ -247,8 +248,8 @@ class HttpServer extends ExternalResource {
     /**
      * Allows one GET request for the given URL, which return 404 status code
      */
-    void expectGetMissing(String path) {
-        expect(path, false, ['GET'], notFound())
+    void expectGetMissing(String path, PasswordCredentials passwordCredentials = null) {
+        expect(path, false, ['GET'], notFound(), passwordCredentials)
     }
 
     /**
@@ -431,8 +432,8 @@ class HttpServer extends ExternalResource {
     /**
      * Allows one PUT request for the given URL. Writes the request content to the given file.
      */
-    void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK) {
-        expect(path, false, ['PUT'], new Action() {
+    void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK, PasswordCredentials credentials = null) {
+        def action = new Action() {
             String getDisplayName() {
                 return "write request to $destFile.name and return status $statusCode"
             }
@@ -448,7 +449,9 @@ class HttpServer extends ExternalResource {
                 destFile.bytes = request.inputStream.bytes
                 response.setStatus(statusCode)
             }
-        })
+        }
+
+        expect(path, false, ['PUT'], action, credentials)
     }
 
     /**
@@ -514,7 +517,11 @@ class HttpServer extends ExternalResource {
         }
     }
 
-    private void expect(String path, boolean recursive, Collection<String> methods, Action action) {
+    private void expect(String path, boolean recursive, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
+        if (credentials != null) {
+            action = withAuthentication(path, credentials.username, credentials.password, action)
+        }
+
         ExpectOne expectation = new ExpectOne(action, methods, path)
         expections << expectation
         add(path, recursive, methods, new AbstractHandler() {

@@ -16,12 +16,14 @@
 
 package org.gradle.api.publish.maven.plugins
 
+import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ProgressLoggingFixture
 import org.gradle.test.fixtures.maven.MavenHttpModule
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import spock.lang.Unroll
 
 class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
 
@@ -90,5 +92,50 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         module.verifyRootMetaDataChecksums()
         module.rootMetaData.versions == ["2"]
     }
+
+    @Unroll
+    def "can publish to authenticated repository using #authScheme auth"() {
+        given:
+        def credentials = new DefaultPasswordCredentials('username', 'password')
+
+        buildFile << """
+            publishing.repositories.maven.credentials {
+                username '${credentials.username}'
+                password '${credentials.password}'
+            }
+        """
+
+        server.authenticationScheme = authScheme
+
+        module.expectArtifactPut(credentials)
+        module.expectArtifactSha1Put(credentials)
+        module.expectArtifactMd5Put(credentials)
+        module.expectRootMetaDataGetMissing(credentials)
+        module.expectRootMetaDataPut(credentials)
+        module.expectRootMetaDataSha1Put(credentials)
+        module.expectRootMetaDataMd5Put(credentials)
+        module.expectPomPut(credentials)
+        module.expectPomSha1Put(credentials)
+        module.expectPomMd5Put(credentials)
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def localPom = file("build/publications/maven/pom-default.xml").assertIsFile()
+        def localArtifact = file("build/libs/publish-2.jar").assertIsFile()
+
+        module.pomFile.assertIsCopyOf(localPom)
+        module.verifyPomChecksums()
+        module.artifactFile.assertIsCopyOf(localArtifact)
+        module.verifyArtifactChecksums()
+
+        module.verifyRootMetaDataChecksums()
+        module.rootMetaData.versions == ["2"]
+
+        where:
+        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+    }
+
 
 }
