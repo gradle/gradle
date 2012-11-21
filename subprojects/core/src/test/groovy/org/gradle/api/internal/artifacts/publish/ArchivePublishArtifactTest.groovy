@@ -79,4 +79,16 @@ public class ArchivePublishArtifactTest extends AbstractPublishArtifactTest {
         PublishArtifact publishArtifact = new ArchivePublishArtifact(archiveTask)
         assertThat(publishArtifact.getName(), equalTo(getTestName() + "-" + testAppendix))
     }
+
+    @Test
+    public void equality() {
+        String testAppendix = "appendix"
+        prepareMocks(getTestClassifier(), testAppendix)
+        ArchivePublishArtifact publishArtifact1 = new ArchivePublishArtifact(archiveTask)
+        ArchivePublishArtifact publishArtifact2 = new ArchivePublishArtifact(archiveTask)
+
+        assert publishArtifact1 == publishArtifact2
+        publishArtifact1.name = "changed"
+        assert publishArtifact1 != publishArtifact2
+    }
 }

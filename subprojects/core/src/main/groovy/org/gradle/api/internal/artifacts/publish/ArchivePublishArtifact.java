@@ -90,4 +90,52 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
     public void setFile(File file) {
         this.file = file;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ArchivePublishArtifact that = (ArchivePublishArtifact) o;
+
+        if (!getArchiveTask().equals(that.getArchiveTask())) {
+            return false;
+        }
+        if (getClassifier() != null ? !getClassifier().equals(that.getClassifier()) : that.getClassifier() != null) {
+            return false;
+        }
+        if (getDate() != null ? !getDate().equals(that.getDate()) : that.getDate() != null) {
+            return false;
+        }
+        if (getExtension() != null ? !getExtension().equals(that.getExtension()) : that.getExtension() != null) {
+            return false;
+        }
+        if (getFile() != null ? !getFile().equals(that.getFile()) : that.getFile() != null) {
+            return false;
+        }
+        if (getName() != null ? !getName().equals(that.getName()) : that.getName() != null) {
+            return false;
+        }
+        if (getType() != null ? !getType().equals(that.getType()) : that.getType() != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getName() != null ? getName().hashCode() : 0;
+        result = 31 * result + (getExtension() != null ? getExtension().hashCode() : 0);
+        result = 31 * result + (getType() != null ? getType().hashCode() : 0);
+        result = 31 * result + (getClassifier() != null ? getClassifier().hashCode() : 0);
+        result = 31 * result + (getDate() != null ? getDate().hashCode() : 0);
+        result = 31 * result + (getFile() != null ? getFile().hashCode() : 0);
+        result = 31 * result + getArchiveTask().hashCode();
+        return result;
+    }
 }
