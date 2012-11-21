@@ -14,30 +14,39 @@
  * limitations under the License.
  */
 
-
 package org.gradle.integtests.fixtures
 
-import org.gradle.util.TestFile
-
 /**
- * A fixture for dealing with local Maven repositories.
+ * http://maven.apache.org/ref/3.0.1/maven-repository-metadata/repository-metadata.html
  */
-class MavenFileRepository implements MavenRepository {
-    final TestFile rootDir
+class MavenMetaData {
 
-    MavenFileRepository(TestFile rootDir) {
-        this.rootDir = rootDir
+    String text
+
+    String groupId
+    String artifactId
+    String version
+
+    List<String> versions = []
+    String lastUpdated
+
+    MavenMetaData(File file) {
+        text = file.text
+        def xml = new XmlParser().parseText(text)
+
+        groupId = xml.groupId[0]?.text()
+        artifactId = xml.artifactId[0]?.text()
+        version = xml.version[0]?.text()
+
+        def versioning = xml.versioning[0]
+
+        lastUpdated = versioning.lastUpdated[0]?.text()
+
+        versioning.versions[0].version.each {
+            versions << it.text()
+        }
     }
 
-    URI getUri() {
-        return rootDir.toURI()
-    }
 
-    MavenFileModule module(String groupId, String artifactId, Object version = '1.0') {
-        def artifactDir = rootDir.file("${groupId.replace('.', '/')}/$artifactId/$version")
-        return new MavenFileModule(artifactDir, groupId, artifactId, version as String)
-    }
+
 }
-
-
-

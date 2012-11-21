@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.integtests.fixtures
 
 import org.gradle.util.TestFile
@@ -39,4 +41,8 @@ interface MavenModule {
     TestFile getArtifactFile()
 
     TestFile getMetaDataFile()
+
+    MavenPom getPom()
+
+    MavenMetaData getRootMetaData()
 }

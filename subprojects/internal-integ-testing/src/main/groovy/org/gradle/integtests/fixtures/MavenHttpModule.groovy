@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -21,13 +23,18 @@ import org.gradle.util.TestFile
 
 class MavenHttpModule implements MavenModule {
     private final HttpServer server
-    private final String modulePath
+    private final String moduleRootPath
     private final MavenFileModule backingModule
 
-    MavenHttpModule(HttpServer server, String modulePath, MavenFileModule backingModule) {
+    MavenHttpModule(HttpServer server, String repoRoot, MavenFileModule backingModule) {
         this.backingModule = backingModule
         this.server = server
-        this.modulePath = modulePath
+        this.moduleRootPath = "${repoRoot}/${backingModule.groupId.replace('.', '/')}/${backingModule.artifactId}"
+        backingModule.moduleDir.mkdirs()
+    }
+
+    protected String getModuleVersionPath() {
+        "${moduleRootPath}/${backingModule.version}"
     }
 
     MavenHttpModule publish() {
@@ -62,36 +69,112 @@ class MavenHttpModule implements MavenModule {
         return backingModule.metaDataFile
     }
 
+    MavenPom getPom() {
+        backingModule.pom
+    }
+
+    MavenMetaData getRootMetaData() {
+        backingModule.rootMetaData
+    }
+
+    TestFile getRootMetaDataFile() {
+        return backingModule.rootMetaDataFile
+    }
+
     void allowAll() {
-        server.allowGetOrHead(modulePath, backingModule.moduleDir)
+        server.allowGetOrHead(moduleVersionPath, backingModule.moduleDir)
     }
 
     void expectMetaDataGet() {
-        server.expectGet("$modulePath/$metaDataFile.name", metaDataFile)
+        server.expectGet(getMetaDataPath(), metaDataFile)
+    }
+
+    String getRootMetaDataPath() {
+        "$moduleRootPath/$rootMetaDataFile.name"
+    }
+
+    String getMetaDataPath() {
+        "$moduleRootPath/$metaDataFile.name"
+    }
+
+    TestFile sha1File(TestFile file) {
+        backingModule.getSha1File(file)
+    }
+
+    String sha1Path(String path) {
+        "${path}.sha1"
+    }
+
+    TestFile md5File(TestFile file) {
+        backingModule.getMd5File(file)
+    }
+
+    String md5Path(String path) {
+        "${path}.md5"
     }
 
     void expectMetaDataGetMissing() {
-        server.expectGetMissing("$modulePath/$metaDataFile.name")
+        server.expectGetMissing(metaDataPath)
+    }
+
+    void expectRootMetaDataGetMissing() {
+        server.expectGetMissing(rootMetaDataPath)
+    }
+
+    void expectMetaDataPut(int statusCode = 200) {
+        server.expectPut(metaDataPath, backingModule.metaDataFile, statusCode)
+    }
+
+    void expectMetaDataSha1Put(int statusCode = 200) {
+        server.expectPut(sha1Path(metaDataPath), sha1File(metaDataFile), statusCode)
+    }
+
+    void expectMetaDataMd5Put(int statusCode = 200) {
+        server.expectPut(md5Path(metaDataPath), md5File(metaDataFile), statusCode)
+    }
+
+    void expectRootMetaDataPut(int statusCode = 200) {
+        server.expectPut(rootMetaDataPath, rootMetaDataFile, statusCode)
+    }
+
+    void expectRootMetaDataSha1Put(int statusCode = 200) {
+        server.expectPut(sha1Path(rootMetaDataPath), sha1File(rootMetaDataFile), statusCode)
+    }
+
+    void expectRootMetaDataMd5Put(int statusCode = 200) {
+        server.expectPut(md5Path(rootMetaDataPath), md5File(rootMetaDataFile), statusCode)
+    }
+
+    void expectPomPut(int statusCode = 200) {
+        server.expectPut(pomPath, pomFile, statusCode)
+    }
+
+    void expectPomSha1Put(int statusCode = 200) {
+        server.expectPut(sha1Path(pomPath), sha1File(pomFile), statusCode)
+    }
+
+    void expectPomMd5Put(int statusCode = 200) {
+        server.expectPut(md5Path(pomPath), md5File(pomFile), statusCode)
     }
 
     void expectPomGet() {
-        server.expectGet("$modulePath/$pomFile.name", pomFile)
+        server.expectGet("$moduleVersionPath/$pomFile.name", pomFile)
     }
 
     void expectPomHead() {
-        server.expectHead("$modulePath/$pomFile.name", pomFile)
+        server.expectHead("$moduleVersionPath/$pomFile.name", pomFile)
     }
 
     void expectPomGetMissing() {
-        server.expectGetMissing("$modulePath/$missingPomName")
+        server.expectGetMissing("$moduleVersionPath/$missingPomName")
     }
 
     void expectPomSha1Get() {
-        server.expectGet("$modulePath/${pomFile.name}.sha1", backingModule.sha1File(pomFile))
+        server.expectGet("$moduleVersionPath/${pomFile.name}.sha1", backingModule.sha1File(pomFile))
     }
 
     void expectPomSha1GetMissing() {
-        server.expectGetMissing("$modulePath/${missingPomName}.sha1")
+        server.expectGetMissing("$moduleVersionPath/${missingPomName}.sha1")
     }
 
     private String getMissingPomName() {
@@ -103,27 +186,51 @@ class MavenHttpModule implements MavenModule {
     }
 
     void expectArtifactGet() {
-        server.expectGet("$modulePath/$artifactFile.name", artifactFile)
+        server.expectGet(getArtifactPath(), artifactFile)
+    }
+
+    String getArtifactPath() {
+        "$moduleVersionPath/$artifactFile.name"
+    }
+
+    String getPomPath() {
+        "$moduleVersionPath/$pomFile.name"
     }
 
     void expectArtifactHead() {
-        server.expectHead("$modulePath/$artifactFile.name", artifactFile)
+        server.expectHead("$moduleVersionPath/$artifactFile.name", artifactFile)
     }
 
     void expectArtifactGetMissing() {
-        server.expectGetMissing("$modulePath/$missingArtifactName")
+        server.expectGetMissing("$moduleVersionPath/$missingArtifactName")
     }
 
     void expectArtifactHeadMissing() {
-        server.expectHeadMissing("$modulePath/$missingArtifactName")
+        server.expectHeadMissing("$moduleVersionPath/$missingArtifactName")
     }
 
     void expectArtifactSha1Get() {
-        server.expectGet("$modulePath/${artifactFile.name}.sha1", backingModule.sha1File(artifactFile))
+        server.expectGet(getArtifactSha1Path(), backingModule.sha1File(artifactFile))
+    }
+
+    TestFile getArtifactSha1File() {
+        backingModule.artifactSha1File
+    }
+
+    String getArtifactSha1Path() {
+        "${artifactPath}.sha1"
+    }
+
+    TestFile getArtifactMd5File() {
+        backingModule.artifactMd5File
+    }
+
+    String getArtifactMd5Path() {
+        "${artifactPath}.md5"
     }
 
     void expectArtifactSha1GetMissing() {
-        server.expectGetMissing("$modulePath/${missingArtifactName}.sha1")
+        server.expectGetMissing("$moduleVersionPath/${missingArtifactName}.sha1")
     }
 
     private String getMissingArtifactName() {
@@ -132,5 +239,29 @@ class MavenHttpModule implements MavenModule {
         } else {
             return artifactFile.name
         }
+    }
+
+    void expectArtifactPut(int statusCode = 200) {
+        server.expectPut(artifactPath, artifactFile, statusCode)
+    }
+
+    void expectArtifactSha1Put(int statusCode = 200) {
+        server.expectPut(artifactSha1Path, artifactSha1File, statusCode)
+    }
+
+    void expectArtifactMd5Put(int statusCode = 200) {
+        server.expectPut(artifactMd5Path, artifactMd5File, statusCode)
+    }
+
+    void verifyArtifactChecksums() {
+        backingModule.verifyChecksums(artifactFile)
+    }
+
+    void verifyPomChecksums() {
+        backingModule.verifyChecksums(pomFile)
+    }
+
+    void verifyRootMetaDataChecksums() {
+        backingModule.verifyChecksums(rootMetaDataFile)
     }
 }

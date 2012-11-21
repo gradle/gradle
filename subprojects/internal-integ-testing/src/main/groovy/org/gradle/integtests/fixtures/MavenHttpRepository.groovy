@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -60,6 +62,6 @@ class MavenHttpRepository {
 
     MavenHttpModule module(String groupId, String artifactId, Object version) {
         def backingModule = backingRepository.module(groupId, artifactId, version)
-        return new MavenHttpModule(server, "$contextPath/${groupId.replace('.', '/')}/$artifactId/$version", backingModule)
+        return new MavenHttpModule(server, contextPath, backingModule)
     }
 }

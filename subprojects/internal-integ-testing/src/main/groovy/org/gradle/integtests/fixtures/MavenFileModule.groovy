@@ -103,6 +103,10 @@ class MavenFileModule implements MavenModule {
         return new MavenPom(pomFile)
     }
 
+    MavenMetaData getRootMetaData() {
+        new MavenMetaData(rootMetaDataFile)
+    }
+
     TestFile getPomFile() {
         return moduleDir.file("$artifactId-${publishArtifactVersion}.pom")
     }
@@ -117,6 +121,14 @@ class MavenFileModule implements MavenModule {
 
     TestFile getArtifactFile() {
         return artifactFile([:])
+    }
+
+    TestFile getArtifactSha1File() {
+        return getSha1File(getArtifactFile())
+    }
+
+    TestFile getArtifactMd5File() {
+        return getMd5File(getArtifactFile())
     }
 
     TestFile artifactFile(Map<String, ?> options) {
@@ -278,8 +290,16 @@ class MavenFileModule implements MavenModule {
         md5File(file)
     }
 
+    TestFile getSha1File(File file) {
+        getHashFile(file, "sha1")
+    }
+
     TestFile sha1File(File file) {
         hashFile(file, "sha1");
+    }
+
+    TestFile getMd5File(File file) {
+        getHashFile(file, "md5")
     }
 
     TestFile md5File(File file) {
@@ -287,8 +307,26 @@ class MavenFileModule implements MavenModule {
     }
 
     private TestFile hashFile(TestFile file, String algorithm) {
-        def hashFile = file.parentFile.file("${file.name}.${algorithm}")
-        hashFile.text = HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
+        def hashFile = getHashFile(file, algorithm)
+        hashFile.text = getHash(file, algorithm)
         return hashFile
     }
+
+    protected TestFile getHashFile(TestFile file, String algorithm) {
+        file.parentFile.file("${file.name}.${algorithm}")
+    }
+
+    protected String getHash(TestFile file, String algorithm) {
+        HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
+    }
+
+    void verifyChecksums(File file) {
+        def sha1File = getSha1File(file)
+        sha1File.assertIsFile()
+        assert new BigInteger(sha1File.text, 16) == new BigInteger(getHash(file, "sha1"), 16)
+        def md5File = getMd5File(file)
+        md5File.assertIsFile()
+        assert new BigInteger(md5File.text, 16) == new BigInteger(getHash(file, "md5"), 16)
+    }
+
 }
