@@ -6,6 +6,9 @@ configurations {
     compile {
         extendsFrom publishCompile
     }
+    publishCompileWithProjectJar{
+        extendsFrom publishCompile
+    }
 }
 
 task sourceJar(type: Jar) {
@@ -35,11 +38,11 @@ task generatePom {
             pom.version = version
             pom.writeTo(pomFile)
         }
-
     }
 }
 
 artifacts {
+    publishCompileWithProjectJar jar
     publishRuntime jar
     publishRuntime sourceJar
     publishRuntime new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact(archivesBaseName, 'pom', 'pom', null, new Date(), generatePom.pomFile, generatePom)
