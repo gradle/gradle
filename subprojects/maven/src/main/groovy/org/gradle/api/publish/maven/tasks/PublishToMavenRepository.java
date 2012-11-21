@@ -16,15 +16,13 @@
 
 package org.gradle.api.publish.maven.tasks;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
-import org.gradle.api.InvalidUserDataException;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
-import org.gradle.api.internal.artifacts.ArtifactPublisherFactory;
+import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publication.maven.internal.*;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -52,13 +50,13 @@ public class PublishToMavenRepository extends DefaultTask {
 
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final FileResolver fileResolver;
-    private final ArtifactPublisherFactory artifactPublisherFactory;
+    private final ArtifactPublicationServices artifactPublicationServices;
 
     @Inject
     public PublishToMavenRepository(Factory<ArtifactPublicationServices> artifactPublicationServicesFactory, Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
-        this.artifactPublisherFactory = artifactPublicationServicesFactory.create().createArtifactPublisherFactory();
+        this.artifactPublicationServices = artifactPublicationServicesFactory.create();
 
 
         // Allow the publication to participate in incremental build
@@ -162,7 +160,11 @@ public class PublishToMavenRepository extends DefaultTask {
                 return getProject().getConfigurations().detachedConfiguration();
             }
         };
-        MavenPublisher publisher = new MavenPublisher(createDeployerFactory(), configurationFactory, artifactPublisherFactory);
+        MavenPublisher publisher = new MavenPublisher(createDeployerFactory(), configurationFactory, new Transformer<ArtifactPublisher, DependencyResolver>() {
+            public ArtifactPublisher transform(DependencyResolver resolver) {
+                return artifactPublicationServices.createDetachedArtifactPublisher(resolver);
+            }
+        });
         MavenNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
         publisher.publish(normalizedPublication, repository);
     }

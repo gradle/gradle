@@ -21,7 +21,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.internal.artifacts.ArtifactPublisherFactory
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
@@ -49,14 +48,13 @@ class DefaultBaseRepositoryFactoryTest {
     final FileResolver fileResolver = context.mock(FileResolver.class)
     final RepositoryTransportFactory transportFactory = context.mock(RepositoryTransportFactory.class)
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = context.mock(LocallyAvailableResourceFinder.class)
-    final ArtifactPublisherFactory artifactPublisherFactory = context.mock(ArtifactPublisherFactory)
     final RepositoryCacheManager localCacheManager = context.mock(RepositoryCacheManager)
     final RepositoryCacheManager downloadingCacheManager = context.mock(RepositoryCacheManager)
     final ProgressLoggerFactory progressLoggerFactory = context.mock(ProgressLoggerFactory)
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
-            progressLoggerFactory, localCacheManager, downloadingCacheManager, artifactPublisherFactory
+            progressLoggerFactory, localCacheManager, downloadingCacheManager
     )
 
     @Before public void setup() {

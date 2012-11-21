@@ -20,13 +20,10 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
-import org.gradle.api.internal.artifacts.repositories.IvyArtifactRepositoryInternal
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
-import org.gradle.api.publish.ivy.internal.IvyPublisher
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -41,11 +38,7 @@ class PublishToIvyRepositoryTest extends Specification {
         asNormalisedPublication() >> normalizedPublication
     }
 
-    def publisher = Mock(IvyPublisher) {}
-
-    def repository = Mock(IvyArtifactRepositoryInternal) {
-        createPublisher() >> publisher
-    }
+    def repository = Mock(IvyArtifactRepository) {}
 
     def setup() {
         project = HelperUtil.createRootProject()
@@ -61,20 +54,6 @@ class PublishToIvyRepositoryTest extends Specification {
 
         when:
         publish.publication = [:] as IvyPublicationInternal
-
-        then:
-        notThrown(Exception)
-    }
-
-    def "repository must implement the internal interface"() {
-        when:
-        publish.repository = [:] as IvyArtifactRepository
-
-        then:
-        thrown(InvalidUserDataException)
-
-        when:
-        publish.repository = [:] as IvyArtifactRepositoryInternal
 
         then:
         notThrown(Exception)
@@ -100,40 +79,6 @@ class PublishToIvyRepositoryTest extends Specification {
         then:
         publish.inputs.files.files == publishableFiles.files
         publish.taskDependencies.getDependencies(publish) == [otherTask] as Set
-    }
-
-    def "repository and publication are required"() {
-        given:
-        repository = Mock(IvyArtifactRepositoryInternal) {
-            1 * createPublisher() >> publisher
-        }
-
-        when:
-        publish.execute()
-
-        then:
-        def e = thrown(TaskExecutionException)
-        e.cause instanceof InvalidUserDataException
-        e.cause.message == "The 'publication' property is required"
-
-        when:
-        publish = createPublish("publish2")
-        publish.publication = publication
-        publish.execute()
-
-        then:
-        e = thrown(TaskExecutionException)
-        e.cause instanceof InvalidUserDataException
-        e.cause.message == "The 'repository' property is required"
-
-        when:
-        publish = createPublish("publish3")
-        publish.publication = publication
-        publish.repository = repository
-        publish.execute()
-
-        then:
-        true
     }
 
     PublishToIvyRepository createPublish(String name) {

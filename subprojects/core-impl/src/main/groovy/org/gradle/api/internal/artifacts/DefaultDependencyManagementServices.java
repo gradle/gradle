@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.StartParameter;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -72,6 +72,7 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
@@ -306,20 +307,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         get(LocallyAvailableResourceFinder.class),
                         get(ProgressLoggerFactory.class),
                         get(LocalFileRepositoryCacheManager.class),
-                        get(DownloadingRepositoryCacheManager.class),
-                        createArtifactPublisherFactory()
+                        get(DownloadingRepositoryCacheManager.class)
                 );
             }
 
             return baseRepositoryFactory;
-        }
-
-        public ArtifactPublisherFactory createArtifactPublisherFactory() {
-            return new DefaultArtifactPublisherFactory(new Transformer<ArtifactPublisher, ResolverProvider>() {
-                public ArtifactPublisher transform(ResolverProvider resolverProvider) {
-                    return createArtifactPublisher(resolverProvider);
-                }
-            });
         }
 
         private DefaultRepositoryHandler createRepositoryHandler() {
@@ -444,8 +436,13 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return new IvyXmlModuleDescriptorWriter();
         }
 
-        public ArtifactPublisherFactory createArtifactPublisherFactory() {
-            return dependencyResolutionServices.createArtifactPublisherFactory();
+        public ArtifactPublisher createDetachedArtifactPublisher(final DependencyResolver resolver) {
+            return dependencyResolutionServices.createArtifactPublisher(new ResolverProvider() {
+                public List<DependencyResolver> getResolvers() {
+                    return Collections.singletonList(resolver);
+                }
+            });
         }
     }
+
 }

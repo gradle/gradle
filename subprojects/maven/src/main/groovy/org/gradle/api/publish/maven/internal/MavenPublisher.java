@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -25,7 +26,6 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.Cast;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.api.internal.artifacts.ArtifactPublisherFactory;
 import org.gradle.api.publication.maven.internal.DeployerFactory;
 import org.gradle.internal.Factory;
 
@@ -35,9 +35,9 @@ public class MavenPublisher {
 
     private final DeployerFactory deployerFactory;
     private final Factory<Configuration> configurationFactory;
-    private final ArtifactPublisherFactory artifactPublisherFactory;
+    private final Transformer<ArtifactPublisher, DependencyResolver> artifactPublisherFactory;
 
-    public MavenPublisher(DeployerFactory deployerFactory, Factory<Configuration> configurationFactory, ArtifactPublisherFactory artifactPublisherFactory) {
+    public MavenPublisher(DeployerFactory deployerFactory, Factory<Configuration> configurationFactory, Transformer<ArtifactPublisher, DependencyResolver> artifactPublisherFactory) {
         this.deployerFactory = deployerFactory;
         this.configurationFactory = configurationFactory;
         this.artifactPublisherFactory = artifactPublisherFactory;
@@ -58,7 +58,7 @@ public class MavenPublisher {
         Configuration artifactsAsConfiguration = createPopulatedConfiguration(publication.getArtifacts());
 
         DependencyResolver dependencyResolver = Cast.cast(DependencyResolver.class, deployer);
-        ArtifactPublisher artifactPublisher = artifactPublisherFactory.createArtifactPublisher(dependencyResolver);
+        ArtifactPublisher artifactPublisher = artifactPublisherFactory.transform(dependencyResolver);
         artifactPublisher.publish(module, Collections.singleton(artifactsAsConfiguration), null);
     }
 

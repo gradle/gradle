@@ -20,16 +20,15 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.externalresource.transport.file.FileTransport
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
-import spock.lang.Specification
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.api.internal.artifacts.ArtifactPublisherFactory
+import spock.lang.Specification
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
@@ -39,10 +38,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final CachedExternalResourceIndex cachedExternalResourceIndex = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
-    final ArtifactPublisherFactory artifactPublisherFactory = Mock()
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
-            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, artifactPublisherFactory
+            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder
     )
 
     def "cannot create a resolver for url with unknown scheme"() {

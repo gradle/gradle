@@ -19,8 +19,7 @@ package org.gradle.api.publish.ivy.tasks.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.IvyArtifactRepositoryInternal;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
@@ -45,14 +44,14 @@ public class IvyPublishDynamicTaskCreator {
     public void monitor(final PublicationContainer publications, final ArtifactRepositoryContainer repositories) {
         publications.all(new Action<Publication>() {
             public void execute(Publication publication) {
-                for (ArtifactRepository repository : repositories) {
+                for (IvyArtifactRepository repository : repositories.withType(IvyArtifactRepository.class)) {
                     maybeCreate(publication, repository);
                 }
             }
         });
 
-        repositories.whenObjectAdded(new Action<ArtifactRepository>() {
-            public void execute(ArtifactRepository repository) {
+        repositories.withType(IvyArtifactRepository.class).whenObjectAdded(new Action<IvyArtifactRepository>() {
+            public void execute(IvyArtifactRepository repository) {
                 for (Publication publication : publications) {
                     maybeCreate(publication, repository);
                 }
@@ -64,16 +63,12 @@ public class IvyPublishDynamicTaskCreator {
         //       (though this is a violation of the Named contract)
     }
 
-    private void maybeCreate(Publication publication, ArtifactRepository repository) {
+    private void maybeCreate(Publication publication, IvyArtifactRepository repository) {
         if (!(publication instanceof IvyPublicationInternal)) {
-            return;
-        }
-        if (!(repository instanceof IvyArtifactRepositoryInternal)) {
             return;
         }
 
         final IvyPublicationInternal publicationInternal = (IvyPublicationInternal) publication;
-        final IvyArtifactRepositoryInternal repositoryInternal = (IvyArtifactRepositoryInternal) repository;
 
         String publicationName = publication.getName();
         String repositoryName = repository.getName();
@@ -81,7 +76,7 @@ public class IvyPublishDynamicTaskCreator {
         String publishTaskName = calculatePublishTaskName(publicationName, repositoryName);
         PublishToIvyRepository publishTask = tasks.add(publishTaskName, PublishToIvyRepository.class);
         publishTask.setPublication(publicationInternal);
-        publishTask.setRepository(repositoryInternal);
+        publishTask.setRepository(repository);
         publishTask.setGroup("publishing");
         publishTask.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'", publicationName, repositoryName));
 

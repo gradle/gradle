@@ -22,7 +22,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
-import org.gradle.api.internal.artifacts.ArtifactPublisherFactory;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -47,7 +46,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final RepositoryCacheManager localCacheManager;
     private final RepositoryCacheManager downloadingCacheManager;
-    private final ArtifactPublisherFactory artifactPublisherFactory;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -56,8 +54,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                                         ProgressLoggerFactory progressLoggerFactory,
                                         RepositoryCacheManager localCacheManager,
-                                        RepositoryCacheManager downloadingCacheManager,
-                                        ArtifactPublisherFactory artifactPublisherFactory) {
+                                        RepositoryCacheManager downloadingCacheManager) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
@@ -66,7 +63,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.progressLoggerFactory = progressLoggerFactory;
         this.localCacheManager = localCacheManager;
         this.downloadingCacheManager = downloadingCacheManager;
-        this.artifactPublisherFactory = artifactPublisherFactory;
     }
 
     public ArtifactRepository createRepository(Object userDescription) {
@@ -113,7 +109,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, artifactPublisherFactory
+                locallyAvailableResourceFinder
         );
     }
 
