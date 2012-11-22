@@ -16,7 +16,6 @@
 
 package org.gradle.listener;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.dispatch.*;
@@ -25,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -49,11 +47,6 @@ public class BroadcastDispatch<T> implements Dispatch<MethodInvocation> {
 
     public void add(T listener) {
         handlers.put(listener, new ReflectionDispatch(listener));
-    }
-
-    public void add(String methodName, Closure closure) {
-        assertIsMethod(methodName);
-        handlers.put(closure, new ClosureInvocationHandler(methodName, closure));
     }
 
     public void add(String methodName, Action<?> action) {
@@ -95,26 +88,6 @@ public class BroadcastDispatch<T> implements Dispatch<MethodInvocation> {
             tracker.stop();
         } catch (DispatchException t) {
             throw new ListenerNotificationException(getErrorMessage(), t.getCause());
-        }
-    }
-
-    private class ClosureInvocationHandler implements Dispatch<MethodInvocation> {
-        private final String methodName;
-        private final Closure closure;
-
-        public ClosureInvocationHandler(String methodName, Closure closure) {
-            this.methodName = methodName;
-            this.closure = closure;
-        }
-
-        public void dispatch(MethodInvocation message) {
-            if (message.getMethod().getName().equals(methodName)) {
-                Object[] parameters = message.getArguments();
-                if (closure.getMaximumNumberOfParameters() < parameters.length) {
-                    parameters = Arrays.asList(parameters).subList(0, closure.getMaximumNumberOfParameters()).toArray();
-                }
-                closure.call(parameters);
-            }
         }
     }
 

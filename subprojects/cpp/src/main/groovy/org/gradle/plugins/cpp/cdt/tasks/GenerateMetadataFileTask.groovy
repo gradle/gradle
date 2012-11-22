@@ -46,6 +46,6 @@ class GenerateMetadataFileTask<T extends PersistableConfigurationObject> extends
     }
 
     void onConfigure(Closure configure) {
-        configures.add(new ClosureBackedAction(closure))
+        configures.add(new ClosureBackedAction(configure))
     }
 }

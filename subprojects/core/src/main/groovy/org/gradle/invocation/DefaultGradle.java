@@ -23,7 +23,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
@@ -32,6 +31,7 @@ import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ActionBroadcast;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
@@ -161,31 +161,31 @@ public class DefaultGradle implements GradleInternal {
     }
 
     public void beforeProject(Closure closure) {
-        projectEvaluationListenerBroadcast.add("beforeEvaluate", new ClosureBackedAction<Object>(closure));
+        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
     }
 
     public void afterProject(Closure closure) {
-        projectEvaluationListenerBroadcast.add("afterEvaluate", new ClosureBackedAction<Object>(closure));
+        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
     }
 
     public void buildStarted(Closure closure) {
-        buildListenerBroadcast.add("buildStarted", new ClosureBackedAction<Object>(closure));
+        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildStarted", closure));
     }
 
     public void settingsEvaluated(Closure closure) {
-        buildListenerBroadcast.add("settingsEvaluated", new ClosureBackedAction<Object>(closure));
+        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("settingsEvaluated", closure));
     }
 
     public void projectsLoaded(Closure closure) {
-        buildListenerBroadcast.add("projectsLoaded", new ClosureBackedAction<Object>(closure));
+        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsLoaded", closure));
     }
 
     public void projectsEvaluated(Closure closure) {
-        buildListenerBroadcast.add("projectsEvaluated", new ClosureBackedAction<Object>(closure));
+        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsEvaluated", closure));
     }
 
     public void buildFinished(Closure closure) {
-        buildListenerBroadcast.add("buildFinished", new ClosureBackedAction<Object>(closure));
+        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildFinished", closure));
     }
 
     public void addListener(Object listener) {

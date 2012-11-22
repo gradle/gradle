@@ -39,6 +39,6 @@ class PropertiesFileContentMerger extends FileContentMerger {
     * @param closure The closure to execute when the Properties have been created.
     */
     void withProperties(Closure closure) {
-        transformer.addAction(new ClosureBackedAction<Properties>(closure))
+        transformer.addAction(new ClosureBackedAction<Properties>(closure, Closure.OWNER_FIRST))
     }
 }

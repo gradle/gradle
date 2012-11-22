@@ -21,7 +21,6 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.CollectionUtils;
@@ -549,7 +549,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public void beforeResolve(Closure action) {
-            resolutionListenerBroadcast.add("beforeResolve", new ClosureBackedAction<Object>(action));
+            resolutionListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeResolve", action));
         }
 
         public void afterResolve(Action<? super ResolvableDependencies> action) {
@@ -557,7 +557,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public void afterResolve(Closure action) {
-            resolutionListenerBroadcast.add("afterResolve", new ClosureBackedAction<Object>(action));
+            resolutionListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterResolve", action));
         }
 
         public ResolutionResult getResolutionResult() {

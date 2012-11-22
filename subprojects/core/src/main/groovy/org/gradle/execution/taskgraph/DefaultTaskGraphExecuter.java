@@ -20,10 +20,10 @@ import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.Clock;
@@ -97,7 +97,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void whenReady(final Closure closure) {
-        graphListeners.add("graphPopulated", new ClosureBackedAction<Object>(closure));
+        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", closure));
     }
 
     public void addTaskExecutionListener(TaskExecutionListener listener) {
@@ -109,11 +109,11 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void beforeTask(final Closure closure) {
-        taskListeners.add("beforeExecute", new ClosureBackedAction<Object>(closure));
+        taskListeners.add(new ClosureBackedMethodInvocationDispatch("beforeExecute", closure));
     }
 
     public void afterTask(final Closure closure) {
-        taskListeners.add("afterExecute", new ClosureBackedAction<Object>(closure));
+        taskListeners.add(new ClosureBackedMethodInvocationDispatch("afterExecute", closure));
     }
 
     public boolean hasTask(Task task) {

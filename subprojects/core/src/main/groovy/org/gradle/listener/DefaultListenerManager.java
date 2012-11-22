@@ -21,7 +21,10 @@ import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ReflectionDispatch;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings({"unchecked"})
 public class DefaultListenerManager implements ListenerManager {
@@ -134,7 +137,7 @@ public class DefaultListenerManager implements ListenerManager {
         if (listener instanceof ClosureListener) {
             ClosureListener closureListener = (ClosureListener) listener;
             if (broadcaster.getType().isAssignableFrom(closureListener.listenerType)) {
-                broadcaster.add(closureListener.method, closureListener.closure);
+                broadcaster.add(new ClosureBackedMethodInvocationDispatch(closureListener.method, closureListener.closure));
             }
         } else if (broadcaster.getType().isInstance(listener)) {
             broadcaster.add(listener);

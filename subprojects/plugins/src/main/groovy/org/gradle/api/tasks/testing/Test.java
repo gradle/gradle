@@ -21,7 +21,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -42,6 +41,7 @@ import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ConsoleRenderer;
@@ -501,7 +501,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void beforeSuite(Closure closure) {
-        testListenerBroadcaster.add("beforeSuite", new ClosureBackedAction<Object>(closure));
+        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeSuite", closure));
     }
 
     /**
@@ -514,7 +514,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void afterSuite(Closure closure) {
-        testListenerBroadcaster.add("afterSuite", new ClosureBackedAction<Object>(closure));
+        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterSuite", closure));
     }
 
     /**
@@ -524,7 +524,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void beforeTest(Closure closure) {
-        testListenerBroadcaster.add("beforeTest", new ClosureBackedAction<Object>(closure));
+        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeTest", closure));
     }
 
     /**
@@ -534,7 +534,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void afterTest(Closure closure) {
-        testListenerBroadcaster.add("afterTest", new ClosureBackedAction<Object>(closure));
+        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterTest", closure));
     }
 
     /**
@@ -556,7 +556,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void onOutput(Closure closure) {
-        testOutputListenerBroadcaster.add("onOutput", new ClosureBackedAction<Object>(closure));
+        testOutputListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("onOutput", closure));
     }
 
     /**

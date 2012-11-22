@@ -52,6 +52,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
@@ -764,11 +765,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public void beforeEvaluate(Closure closure) {
-        evaluationListener.add("beforeEvaluate", new ClosureBackedAction(closure));
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
     }
 
     public void afterEvaluate(Closure closure) {
-        evaluationListener.add("afterEvaluate", new ClosureBackedAction(closure));
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
     }
 
     public Logger getLogger() {

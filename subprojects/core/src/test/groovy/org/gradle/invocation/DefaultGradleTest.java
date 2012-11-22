@@ -23,7 +23,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -32,6 +31,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
@@ -147,7 +147,7 @@ public class DefaultGradleTest {
     public void broadcastsBeforeProjectEvaluateEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
-            one(projectEvaluationListenerBroadcast).add("beforeEvaluate", new ClosureBackedAction<Object>(closure));
+            one(projectEvaluationListenerBroadcast).add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
         }});
 
         gradle.beforeProject(closure);
@@ -157,7 +157,7 @@ public class DefaultGradleTest {
     public void broadcastsAfterProjectEvaluateEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations() {{
-            one(projectEvaluationListenerBroadcast).add("afterEvaluate", new ClosureBackedAction<Object>(closure));
+            one(projectEvaluationListenerBroadcast).add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
         }});
 
         gradle.afterProject(closure);
@@ -169,7 +169,7 @@ public class DefaultGradleTest {
         gradle.buildStarted(closure);
 
         context.checking(new Expectations() {{
-            one(closure).call();
+            one(closure).call(new Object[0]);
         }});
         gradle.getBuildListenerBroadcaster().buildStarted(gradle);
     }
@@ -180,7 +180,7 @@ public class DefaultGradleTest {
         gradle.settingsEvaluated(closure);
 
         context.checking(new Expectations() {{
-            one(closure).call();
+            one(closure).call(new Object[0]);
         }});
 
         gradle.getBuildListenerBroadcaster().settingsEvaluated(null);
@@ -192,7 +192,7 @@ public class DefaultGradleTest {
         gradle.projectsLoaded(closure);
 
         context.checking(new Expectations() {{
-            one(closure).call();
+            one(closure).call(new Object[0]);
         }});
 
         gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);
@@ -204,7 +204,7 @@ public class DefaultGradleTest {
         gradle.projectsEvaluated(closure);
 
         context.checking(new Expectations() {{
-            one(closure).call();
+            one(closure).call(new Object[0]);
         }});
         gradle.getBuildListenerBroadcaster().projectsEvaluated(gradle);
     }
@@ -215,7 +215,7 @@ public class DefaultGradleTest {
         gradle.buildFinished(closure);
 
         context.checking(new Expectations() {{
-            one(closure).call();
+            one(closure).call(new Object[0]);
         }});
         gradle.getBuildListenerBroadcaster().buildFinished(null);
     }
@@ -292,9 +292,6 @@ public class DefaultGradleTest {
         context.checking(new Expectations(){{
             allowing(mock).getMaximumNumberOfParameters();
             will(returnValue(0));
-            allowing(mock).clone(); will(returnValue(mock));
-            allowing(mock).setResolveStrategy(Closure.DELEGATE_FIRST);
-            allowing(mock).setDelegate(with(anything()));
         }});
         return mock;
     }
