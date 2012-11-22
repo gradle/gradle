@@ -33,6 +33,7 @@ import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 
@@ -60,6 +61,7 @@ public class Upload extends ConventionTask {
     private ModuleDescriptorConverter moduleDescriptorConverter;
     private IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
 
+    @Inject
     public Upload(Factory<ArtifactPublicationServices> artifactPublicationServicesFactory) {
         ArtifactPublicationServices publicationServices = artifactPublicationServicesFactory.create();
         repositories = publicationServices.getRepositoryHandler();
