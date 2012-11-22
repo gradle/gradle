@@ -87,17 +87,14 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected ProcessEnvironment createProcessEnvironment() {
-        Jvm jvm = get(Jvm.class);
-        if (jvm.isIbmJvm()) {
-            return new UnsupportedEnvironment();
-        }
+        ProcessEnvironment environment;
 
         OperatingSystem operatingSystem = get(OperatingSystem.class);
         try {
             if (operatingSystem.isUnix()) {
-                return new LibCBackedProcessEnvironment(get(LibC.class));
+                environment = new LibCBackedProcessEnvironment(get(LibC.class));
             } else if (operatingSystem.isWindows()) {
-                return new WindowsProcessEnvironment();
+                environment = new WindowsProcessEnvironment();
             } else {
                 return new UnsupportedEnvironment();
             }
@@ -106,6 +103,11 @@ public class NativeServices extends DefaultServiceRegistry {
             LOGGER.debug("Unable to load native library. Continuing with fallback. Failure: {}", format(e));
             return new UnsupportedEnvironment();
         }
+
+        if (get(Jvm.class).isIbmJvm()) {
+            return new TemporaryIbmProcessEnvironment(environment);
+        }
+        return environment;
     }
 
     protected ConsoleDetector createConsoleDetector() {
