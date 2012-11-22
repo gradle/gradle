@@ -72,10 +72,10 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
             Units<Q> candidate = allUnits.get(i);
             if (base.compareTo(candidate.getFactor()) >= 0) {
                 BigDecimal scaled = units.scaleTo(value, candidate);
-                return String.format("%s %s", new DecimalFormat("#.###", DecimalFormatSymbols.getInstance(Locale.US)).format(scaled), candidate.format(scaled));
+                return String.format("%s %s", new DecimalFormat("#.###", new DecimalFormatSymbols(Locale.US)).format(scaled), candidate.format(scaled));
             }
         }
-        return String.format("%s %s", new DecimalFormat("#.###", DecimalFormatSymbols.getInstance(Locale.US)).format(value), units.format(value));
+        return String.format("%s %s", new DecimalFormat("#.###", new DecimalFormatSymbols(Locale.US)).format(value), units.format(value));
     }
 
     /**
