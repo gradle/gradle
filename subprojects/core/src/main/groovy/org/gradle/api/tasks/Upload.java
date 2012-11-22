@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +60,8 @@ public class Upload extends ConventionTask {
     private ModuleDescriptorConverter moduleDescriptorConverter;
     private IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
 
-    public Upload() {
-        ArtifactPublicationServices publicationServices = getServices().getFactory(ArtifactPublicationServices.class).create();
+    public Upload(Factory<ArtifactPublicationServices> artifactPublicationServicesFactory) {
+        ArtifactPublicationServices publicationServices = artifactPublicationServicesFactory.create();
         repositories = publicationServices.getRepositoryHandler();
         artifactPublisher = publicationServices.getArtifactPublisher();
         moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();

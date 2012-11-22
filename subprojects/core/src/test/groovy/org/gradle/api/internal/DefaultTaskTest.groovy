@@ -18,16 +18,23 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.AbstractTaskTest
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.listener.ListenerManager
+import org.gradle.util.WrapUtil
+import org.jmock.Expectations
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import spock.lang.Issue
 
 import java.util.concurrent.Callable
 
+import static org.gradle.util.Matchers.dependsOn
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
@@ -56,8 +63,9 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test public void testDefaultTask() {
-        assertThat(defaultTask.dependsOn, isEmpty())
-        assertEquals([], defaultTask.actions)
+        DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, { new DefaultTask() } as Callable)
+        assertThat(task.dependsOn, isEmpty())
+        assertEquals([], task.actions)
     }
 
     @Test public void testHasUsefulToString() {
@@ -68,6 +76,19 @@ class DefaultTaskTest extends AbstractTaskTest {
         DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, { new DefaultTask() } as Callable)
         assertThat(task.project, sameInstance(project))
         assertThat(task.name, equalTo(TEST_TASK_NAME))
+    }
+
+    @Test
+    public void testDependsOn() {
+        Task dependsOnTask = createTask(project, "somename");
+        Task task = createTask(project, TEST_TASK_NAME);
+        project.getTasks().add("path1");
+        project.getTasks().add("path2");
+
+        task.dependsOn(Project.PATH_SEPARATOR + "path1");
+        assertThat(task, dependsOn("path1"));
+        task.dependsOn("path2", dependsOnTask);
+        assertThat(task, dependsOn("path1", "path2", "somename"));
     }
 
     @Test
@@ -228,6 +249,39 @@ class DefaultTaskTest extends AbstractTaskTest {
     @Test
     void canAccessServices() {
         assertNotNull(defaultTask.services.get(ListenerManager))
+    }
+
+    @Test
+    public void testDependentTaskDidWork() {
+        final Task task1 = context.mock(Task.class, "task1");
+        final Task task2 = context.mock(Task.class, "task2");
+        final TaskDependency dependencyMock = context.mock(TaskDependency.class);
+        getTask().dependsOn(dependencyMock);
+        context.checking(new Expectations() {{
+            allowing(dependencyMock).getDependencies(getTask());
+            will(returnValue(WrapUtil.toSet(task1, task2)));
+
+            exactly(2).of(task1).getDidWork();
+            will(returnValue(false));
+
+            exactly(2).of(task2).getDidWork();
+            will(onConsecutiveCalls(returnValue(false), returnValue(true)));
+        }});
+
+        assertFalse(getTask().dependsOnTaskDidWork());
+
+        assertTrue(getTask().dependsOnTaskDidWork());
+    }
+
+    @Test
+    @Issue("http://issues.gradle.org/browse/GRADLE-2022")
+    public void testGoodErrorMessageWhenTaskInstantiatedDirectly() {
+        try {
+            new DefaultTask();
+            fail();
+        } catch (TaskInstantiationException e) {
+            assertThat(e.getMessage(), containsString("has been instantiated directly which is not supported"));
+        }
     }
 }
 
