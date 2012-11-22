@@ -36,14 +36,11 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
     private final ModuleDescriptorConverter publishModuleDescriptorConverter;
     private final IvyFactory ivyFactory;
     private final IvyDependencyPublisher dependencyPublisher;
-    private final Iterable<DependencyResolver> dependencyResolvers;
 
-    public IvyBackedArtifactPublisher(Iterable<DependencyResolver> dependencyResolvers,
-                                      SettingsConverter settingsConverter,
+    public IvyBackedArtifactPublisher(SettingsConverter settingsConverter,
                                       ModuleDescriptorConverter publishModuleDescriptorConverter,
                                       IvyFactory ivyFactory,
                                       IvyDependencyPublisher dependencyPublisher) {
-        this.dependencyResolvers = dependencyResolvers;
         this.settingsConverter = settingsConverter;
         this.publishModuleDescriptorConverter = publishModuleDescriptorConverter;
         this.ivyFactory = ivyFactory;
@@ -54,7 +51,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         return ivyFactory.createIvy(settingsConverter.convertForPublish(publishResolvers));
     }
 
-    public void publish(Module module, Set<? extends Configuration> configurations, File descriptor) throws PublishException {
+    public void publish(Iterable<DependencyResolver> dependencyResolvers, Module module, Set<? extends Configuration> configurations, File descriptor) throws PublishException {
         List<DependencyResolver> publishResolvers = CollectionUtils.toList(dependencyResolvers);
         Ivy ivy = ivyForPublish(publishResolvers);
         Set<String> confs = Configurations.getNames(configurations, false);

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
@@ -387,9 +386,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                             resolver))));
         }
 
-        ArtifactPublisher createArtifactPublisher(Iterable<DependencyResolver> resolvers) {
+        ArtifactPublisher createArtifactPublisher() {
             return new IvyBackedArtifactPublisher(
-                    resolvers,
                     get(SettingsConverter.class),
                     get(PublishModuleDescriptorConverter.class),
                     get(IvyFactory.class),
@@ -420,8 +418,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return new IvyXmlModuleDescriptorWriter();
         }
 
-        public ArtifactPublisher createArtifactPublisher(Iterable<DependencyResolver> resolvers) {
-            return dependencyResolutionServices.createArtifactPublisher(resolvers);
+        public ArtifactPublisher createArtifactPublisher() {
+            return dependencyResolutionServices.createArtifactPublisher();
         }
     }
 

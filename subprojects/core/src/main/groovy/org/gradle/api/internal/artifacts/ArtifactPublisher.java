@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
@@ -26,5 +27,5 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface ArtifactPublisher {
-    void publish(Module module, Set<? extends Configuration> configurations, File descriptor) throws PublishException;
+    void publish(Iterable<DependencyResolver> dependencyResolvers, Module module, Set<? extends Configuration> configurations, File descriptor) throws PublishException;
 }

@@ -116,7 +116,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
     def "publish services provide an ArtifactPublisher"() {
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def ivyService = resolutionServices.publishServicesFactory.create().createArtifactPublisher(Collections.emptyList())
+        def ivyService = resolutionServices.publishServicesFactory.create().createArtifactPublisher()
 
         then:
         ivyService != null

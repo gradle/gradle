@@ -16,17 +16,14 @@
 
 package org.gradle.api.publish.ivy.tasks;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.Cast;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication;
@@ -36,7 +33,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Factory;
 
 import javax.inject.Inject;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -155,11 +151,10 @@ public class PublishToIvyRepository extends DefaultTask {
         new PublishOperation(publication, repository) {
             @Override
             protected void publish() throws Exception {
-                DependencyResolver dependencyResolver = Cast.cast(ArtifactRepositoryInternal.class, repository).createResolver();
-                ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher(Collections.singleton(dependencyResolver));
-                IvyPublisher publisher = new IvyPublisher(artifactPublisher);
+                ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher();
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
-                publisher.publish(normalizedPublication);
+                IvyPublisher publisher = new IvyPublisher(artifactPublisher);
+                publisher.publish(normalizedPublication, repository);
             }
         }.run();
     }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
@@ -28,5 +27,5 @@ public interface ArtifactPublicationServices {
 
     IvyModuleDescriptorWriter getIvyModuleDescriptorWriter();
 
-    ArtifactPublisher createArtifactPublisher(Iterable<DependencyResolver> resolvers);
+    ArtifactPublisher createArtifactPublisher();
 }

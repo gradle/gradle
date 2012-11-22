@@ -16,13 +16,14 @@
 
 package org.gradle.api.publish.maven.tasks;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.*;
+import org.gradle.api.Buildable;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
-import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publication.maven.internal.*;
 import org.gradle.api.publish.internal.PublishOperation;
@@ -36,7 +37,6 @@ import org.gradle.logging.LoggingManagerInternal;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -165,11 +165,7 @@ public class PublishToMavenRepository extends DefaultTask {
                         return getProject().getConfigurations().detachedConfiguration();
                     }
                 };
-                MavenPublisher publisher = new MavenPublisher(createDeployerFactory(), configurationFactory, new Transformer<ArtifactPublisher, DependencyResolver>() {
-                    public ArtifactPublisher transform(DependencyResolver resolver) {
-                        return artifactPublicationServices.createArtifactPublisher(Collections.singleton(resolver));
-                    }
-                });
+                MavenPublisher publisher = new MavenPublisher(createDeployerFactory(), configurationFactory, artifactPublicationServices.createArtifactPublisher());
                 MavenNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
                 publisher.publish(normalizedPublication, repository);
             }

@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -35,12 +34,12 @@ public class MavenPublisher {
 
     private final DeployerFactory deployerFactory;
     private final Factory<Configuration> configurationFactory;
-    private final Transformer<ArtifactPublisher, DependencyResolver> artifactPublisherFactory;
+    private final ArtifactPublisher artifactPublisher;
 
-    public MavenPublisher(DeployerFactory deployerFactory, Factory<Configuration> configurationFactory, Transformer<ArtifactPublisher, DependencyResolver> artifactPublisherFactory) {
+    public MavenPublisher(DeployerFactory deployerFactory, Factory<Configuration> configurationFactory, ArtifactPublisher artifactPublisher) {
         this.deployerFactory = deployerFactory;
         this.configurationFactory = configurationFactory;
-        this.artifactPublisherFactory = artifactPublisherFactory;
+        this.artifactPublisher = artifactPublisher;
     }
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
@@ -58,8 +57,7 @@ public class MavenPublisher {
         Configuration artifactsAsConfiguration = createPopulatedConfiguration(publication.getArtifacts());
 
         DependencyResolver dependencyResolver = Cast.cast(DependencyResolver.class, deployer);
-        ArtifactPublisher artifactPublisher = artifactPublisherFactory.transform(dependencyResolver);
-        artifactPublisher.publish(module, Collections.singleton(artifactsAsConfiguration), null);
+        artifactPublisher.publish(Collections.singleton(dependencyResolver), module, Collections.singleton(artifactsAsConfiguration), null);
     }
 
     private void copyIdentity(MavenProjectIdentity projectIdentity, MavenPom pom) {

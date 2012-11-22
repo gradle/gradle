@@ -16,7 +16,13 @@
 
 package org.gradle.api.publish.ivy.internal;
 
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.internal.Cast;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
+
+import java.util.Collections;
 
 public class IvyPublisher {
 
@@ -26,8 +32,9 @@ public class IvyPublisher {
         this.artifactPublisher = artifactPublisher;
     }
 
-    public void publish(IvyNormalizedPublication publication) {
-        artifactPublisher.publish(publication.getModule(), publication.getConfigurations(), publication.getDescriptorFile());
+    public void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository) {
+        DependencyResolver dependencyResolver = Cast.cast(ArtifactRepositoryInternal.class, repository).createResolver();
+        artifactPublisher.publish(Collections.singleton(dependencyResolver), publication.getModule(), publication.getConfigurations(), publication.getDescriptorFile());
     }
 
 }

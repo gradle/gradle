@@ -38,6 +38,7 @@ import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.internal.Cast.cast;
@@ -69,11 +70,7 @@ public class Upload extends ConventionTask {
         Module module = ((ConfigurationInternal) configuration).getModule();
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
 
-        ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher(collect(repositories, new Transformer<DependencyResolver, ArtifactRepository>() {
-            public DependencyResolver transform(ArtifactRepository repository) {
-                return cast(ArtifactRepositoryInternal.class, repository).createResolver();
-            }
-        }));
+        ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher();
 
         try {
             File descriptorDestination = isUploadDescriptor() ? getDescriptorDestination() : null;
@@ -85,7 +82,12 @@ public class Upload extends ConventionTask {
                 ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorDestination);
             }
 
-            artifactPublisher.publish(module, configurationsToPublish, descriptorDestination);
+            List<DependencyResolver> resolvers = collect(repositories, new Transformer<DependencyResolver, ArtifactRepository>() {
+                public DependencyResolver transform(ArtifactRepository repository) {
+                    return cast(ArtifactRepositoryInternal.class, repository).createResolver();
+                }
+            });
+            artifactPublisher.publish(resolvers,  module, configurationsToPublish, descriptorDestination);
         } catch (Exception e) {
             throw new PublishException(String.format("Could not publish configuration '%s'", configuration.getName()), e);
         }
