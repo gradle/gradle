@@ -169,7 +169,7 @@ credentials {
 
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
-        failure.assertHasCause('Could not publish configurations: [archives, compile, default, runtime]')
+        failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
         failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
@@ -206,7 +206,7 @@ credentials {
 
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
-        failure.assertHasCause('Could not publish configurations: [archives, compile, default, runtime]')
+        failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
         failure.assertThatCause(Matchers.containsString('Received status code 500 from server: broken'))
 
         when:
@@ -217,7 +217,7 @@ credentials {
 
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
-        failure.assertHasCause('Could not publish configurations: [archives, compile, default, runtime]')
+        failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
         failure.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
 

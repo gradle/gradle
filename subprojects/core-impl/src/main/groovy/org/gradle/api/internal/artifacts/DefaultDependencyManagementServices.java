@@ -390,14 +390,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         }
 
         ArtifactPublisher createArtifactPublisher(ResolverProvider resolverProvider) {
-            return new ErrorHandlingArtifactPublisher(
-                    new IvyBackedArtifactPublisher(
-                            resolverProvider,
-                            get(SettingsConverter.class),
-                            get(PublishModuleDescriptorConverter.class),
-                            get(IvyFactory.class),
-                            new DefaultIvyDependencyPublisher()
-                    )
+            return new IvyBackedArtifactPublisher(
+                    resolverProvider,
+                    get(SettingsConverter.class),
+                    get(PublishModuleDescriptorConverter.class),
+                    get(IvyFactory.class),
+                    new DefaultIvyDependencyPublisher()
             );
         }
 

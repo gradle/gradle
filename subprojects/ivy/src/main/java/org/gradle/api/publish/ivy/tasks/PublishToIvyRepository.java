@@ -27,6 +27,7 @@ import org.gradle.api.internal.Cast;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
+import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
@@ -149,12 +150,17 @@ public class PublishToIvyRepository extends DefaultTask {
         doPublish(publicationInternal, repository);
     }
 
-    private void doPublish(IvyPublicationInternal publication, IvyArtifactRepository repository) {
-        DependencyResolver dependencyResolver = Cast.cast(ArtifactRepositoryInternal.class, repository).createResolver();
-        ArtifactPublisher artifactPublisher = publicationServices.createDetachedArtifactPublisher(dependencyResolver);
-        IvyPublisher publisher = new IvyPublisher(artifactPublisher);
-        IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
-        publisher.publish(normalizedPublication);
+    private void doPublish(final IvyPublicationInternal publication, final IvyArtifactRepository repository) {
+        new PublishOperation(publication, repository) {
+            @Override
+            protected void publish() throws Exception {
+                DependencyResolver dependencyResolver = Cast.cast(ArtifactRepositoryInternal.class, repository).createResolver();
+                ArtifactPublisher artifactPublisher = publicationServices.createDetachedArtifactPublisher(dependencyResolver);
+                IvyPublisher publisher = new IvyPublisher(artifactPublisher);
+                IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
+                publisher.publish(normalizedPublication);
+            }
+        }.run();
     }
 
 }

@@ -158,7 +158,7 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
-        failure.assertHasCause('Could not publish configuration: [detachedConfiguration')
+        failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
         failure.assertThatCause(Matchers.containsString('Return code is: 401'))
 
         where:
@@ -176,7 +176,7 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
-        failure.assertHasCause('Could not publish configuration: [detachedConfiguration')
+        failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
         failure.assertThatCause(Matchers.containsString('Return code is: 401'))
 
         where:

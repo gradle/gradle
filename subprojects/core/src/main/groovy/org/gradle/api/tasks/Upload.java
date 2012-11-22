@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
@@ -63,16 +64,19 @@ public class Upload extends ConventionTask {
 
         ArtifactPublisher artifactPublisher = publicationServices.getArtifactPublisher();
 
-        if (isUploadDescriptor()) {
-            File descriptorDestination = getDescriptorDestination();
-            Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
-            ModuleDescriptorConverter moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
-            ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(allConfigurations, module);
-            IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
-            ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorDestination);
+        try {
+            File descriptorDestination = isUploadDescriptor() ? getDescriptorDestination() : null;
+            if (descriptorDestination != null) {
+                Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
+                ModuleDescriptorConverter moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
+                ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(allConfigurations, module);
+                IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
+                ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorDestination);
+            }
+
             artifactPublisher.publish(module, configurationsToPublish, descriptorDestination);
-        } else {
-            artifactPublisher.publish(module, configurationsToPublish, null);
+        } catch (Exception e) {
+            throw new PublishException(String.format("Could not publish configuration '%s'", configuration.getName()), e);
         }
     }
 
