@@ -16,7 +16,6 @@
 
 package org.gradle.listener;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
@@ -96,13 +95,6 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
      */
     public void add(Dispatch<MethodInvocation> dispatch) {
         broadcast.add(dispatch);
-    }
-    
-    /**
-     * Adds a closure to be notified when the given method is called.
-     */
-    public void add(String methodName, Closure closure) {
-        broadcast.add(methodName, closure);
     }
 
     /**

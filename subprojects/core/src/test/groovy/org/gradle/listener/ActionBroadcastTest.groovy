@@ -15,8 +15,8 @@
  */
 package org.gradle.listener
 
-import spock.lang.Specification
 import org.gradle.api.Action
+import spock.lang.Specification
 
 class ActionBroadcastTest extends Specification {
     final ActionBroadcast<String> broadcast = new ActionBroadcast<String>()
@@ -33,16 +33,4 @@ class ActionBroadcastTest extends Specification {
         0 * action._
     }
 
-    def broadcastsEventsToClosure() {
-        Closure action = Mock()
-        broadcast.add(action)
-
-        when:
-        broadcast.execute('value')
-
-        then:
-        _ * action.maximumNumberOfParameters >> 1
-        1 * action.call('value')
-        0 * action._
-    }
 }

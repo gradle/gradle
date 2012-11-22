@@ -21,6 +21,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
@@ -548,7 +549,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public void beforeResolve(Closure action) {
-            resolutionListenerBroadcast.add("beforeResolve", action);
+            resolutionListenerBroadcast.add("beforeResolve", new ClosureBackedAction<Object>(action));
         }
 
         public void afterResolve(Action<? super ResolvableDependencies> action) {
@@ -556,7 +557,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public void afterResolve(Closure action) {
-            resolutionListenerBroadcast.add("afterResolve", action);
+            resolutionListenerBroadcast.add("afterResolve", new ClosureBackedAction<Object>(action));
         }
 
         public ResolutionResult getResolutionResult() {

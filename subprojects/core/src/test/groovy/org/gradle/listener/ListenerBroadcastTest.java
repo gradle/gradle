@@ -17,6 +17,7 @@
 package org.gradle.listener;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -29,8 +30,8 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.gradle.util.HelperUtil.*;
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.HelperUtil.toClosure;
+import static org.gradle.util.Matchers.strictlyEqual;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -136,7 +137,7 @@ public class ListenerBroadcastTest {
             will(returnValue("ignore me"));
         }});
 
-        broadcast.add("event1", toClosure(testClosure));
+        broadcast.add("event1", new ClosureBackedAction<Object>(toClosure(testClosure)));
         broadcast.getSource().event1("param");
     }
 
@@ -144,13 +145,13 @@ public class ListenerBroadcastTest {
     public void doesNotNotifyClosureForOtherEventMethods() {
         final TestClosure testClosure = context.mock(TestClosure.class);
 
-        broadcast.add("event1", toClosure(testClosure));
+        broadcast.add("event1", new ClosureBackedAction<Object>(toClosure(testClosure)));
         broadcast.getSource().event2(9, "param");
     }
 
     @Test
     public void closureCanHaveFewerParametersThanEventMethod() {
-        broadcast.add("event2", toClosure("{ a -> 'result' }"));
+        broadcast.add("event2", new ClosureBackedAction<Object>(toClosure("{ a -> 'result' }")));
         broadcast.getSource().event2(1, "param");
         broadcast.getSource().event2(2, null);
     }
@@ -244,7 +245,7 @@ public class ListenerBroadcastTest {
             will(throwException(failure));
         }});
 
-        broadcast.add("event1", toClosure(testClosure));
+        broadcast.add("event1", new ClosureBackedAction<Object>(toClosure(testClosure)));
 
         try {
             broadcast.getSource().event1("param");

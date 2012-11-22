@@ -764,11 +764,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public void beforeEvaluate(Closure closure) {
-        evaluationListener.add("beforeEvaluate", closure);
+        evaluationListener.add("beforeEvaluate", new ClosureBackedAction(closure));
     }
 
     public void afterEvaluate(Closure closure) {
-        evaluationListener.add("afterEvaluate", closure);
+        evaluationListener.add("afterEvaluate", new ClosureBackedAction(closure));
     }
 
     public Logger getLogger() {

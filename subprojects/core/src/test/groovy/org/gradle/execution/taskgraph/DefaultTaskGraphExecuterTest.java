@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
+import groovy.lang.Closure;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
@@ -33,10 +34,12 @@ import org.gradle.internal.Factory;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.messaging.serialize.Serializer;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestClosure;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
+import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -375,7 +378,8 @@ public class DefaultTaskGraphExecuterTest {
         final Task a = task("a");
         final Task b = task("b");
 
-        taskExecuter.beforeTask(toClosure(runnable));
+        final Closure closure = toClosure(runnable);
+        taskExecuter.beforeTask(closure);
 
         taskExecuter.addTasks(toList(a, b));
 
@@ -530,6 +534,16 @@ public class DefaultTaskGraphExecuterTest {
 
                 public void describeTo(Description description) {
                     description.appendText("compare to");
+                }
+            });
+            allowing(task).configure(with(notNullValue(Closure.class)));
+            will(new Action() {
+                public Object invoke(Invocation invocation) throws Throwable {
+                    return ConfigureUtil.configure((Closure) invocation.getParameter(0), task, false);
+                }
+
+                public void describeTo(Description description) {
+                    description.appendText("configure");
                 }
             });
         }});

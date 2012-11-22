@@ -23,6 +23,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
@@ -160,31 +161,31 @@ public class DefaultGradle implements GradleInternal {
     }
 
     public void beforeProject(Closure closure) {
-        projectEvaluationListenerBroadcast.add("beforeEvaluate", closure);
+        projectEvaluationListenerBroadcast.add("beforeEvaluate", new ClosureBackedAction<Object>(closure));
     }
 
     public void afterProject(Closure closure) {
-        projectEvaluationListenerBroadcast.add("afterEvaluate", closure);
+        projectEvaluationListenerBroadcast.add("afterEvaluate", new ClosureBackedAction<Object>(closure));
     }
 
     public void buildStarted(Closure closure) {
-        buildListenerBroadcast.add("buildStarted", closure);
+        buildListenerBroadcast.add("buildStarted", new ClosureBackedAction<Object>(closure));
     }
 
     public void settingsEvaluated(Closure closure) {
-        buildListenerBroadcast.add("settingsEvaluated", closure);
+        buildListenerBroadcast.add("settingsEvaluated", new ClosureBackedAction<Object>(closure));
     }
 
     public void projectsLoaded(Closure closure) {
-        buildListenerBroadcast.add("projectsLoaded", closure);
+        buildListenerBroadcast.add("projectsLoaded", new ClosureBackedAction<Object>(closure));
     }
 
     public void projectsEvaluated(Closure closure) {
-        buildListenerBroadcast.add("projectsEvaluated", closure);
+        buildListenerBroadcast.add("projectsEvaluated", new ClosureBackedAction<Object>(closure));
     }
 
     public void buildFinished(Closure closure) {
-        buildListenerBroadcast.add("buildFinished", closure);
+        buildListenerBroadcast.add("buildFinished", new ClosureBackedAction<Object>(closure));
     }
 
     public void addListener(Object listener) {
