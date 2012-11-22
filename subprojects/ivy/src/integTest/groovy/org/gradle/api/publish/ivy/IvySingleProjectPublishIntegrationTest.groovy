@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
@@ -76,62 +72,5 @@ class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         def ivyDescriptor = ivyModule.ivy
         ivyDescriptor.expectArtifact("jar1").conf == ["archives", "toPublish"]
         ivyDescriptor.expectArtifact("jar2").conf == ["toPublish"]
-    }
-
-    @Ignore("We don't have a way to have separate publications right now")
-    def "publish multiple artifacts in separate configurations"() {
-        file("settings.gradle") << "rootProject.name = 'publishTest'"
-        file("file1") << "some content"
-        file("file2") << "other content"
-
-        buildFile << """
-            apply plugin: "base"
-
-            group = "org.gradle.test"
-            version = 1.9
-
-            configurations { publish1; publish2 }
-
-            task jar1(type: Jar) {
-                baseName = "jar1"
-                from "file1"
-            }
-
-            task jar2(type: Jar) {
-                baseName = "jar2"
-                from "file2"
-            }
-
-            artifacts {
-                publish1 jar1
-                publish2 jar2
-            }
-
-            tasks.withType(Upload) {
-                repositories {
-                    main {
-                        url "${ivyRepo.uri}"
-                    }
-                }
-            }
-        """
-
-        when:
-        run "uploadPublish$n"
-
-        then:
-        def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
-        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "jar$n-1.9.jar")
-        ivyModule.moduleDir.file("jar$n-1.9.jar").bytes == file("build/libs/jar$n-1.9.jar").bytes
-
-        and:
-        def ivyDescriptor = ivyModule.ivy
-        ivyDescriptor.expectArtifact("jar$n").conf.contains("publish$n" as String)
-        ivyDescriptor.expectArtifact("jar$n").conf.contains("archives") == onArchivesConfig
-
-        where:
-        n | onArchivesConfig
-        1 | true
-        2 | false
     }
 }
