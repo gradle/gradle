@@ -27,7 +27,7 @@ import static org.gradle.api.internal.Cast.cast;
 
 public abstract class CollectionUtils {
 
-    public static <T> T findFirst(Iterable<T> source, Spec<? super T> filter) {
+    public static <T> T findFirst(Iterable<? extends T> source, Spec<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
                 return item;
@@ -37,15 +37,15 @@ public abstract class CollectionUtils {
         return null;
     }
 
-    public static <T> Set<T> filter(Set<T> set, Spec<? super T> filter) {
+    public static <T> Set<T> filter(Set<? extends T> set, Spec<? super T> filter) {
         return filter(set, new LinkedHashSet<T>(), filter);
     }
 
-    public static <T> List<T> filter(List<T> list, Spec<? super T> filter) {
+    public static <T> List<T> filter(List<? extends T> list, Spec<? super T> filter) {
         return filter(list, new LinkedList<T>(), filter);
     }
 
-    public static <T, C extends Collection<T>> C filter(Iterable<T> source, C destination, Spec<? super T> filter) {
+    public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, Spec<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
                 destination.add(item);
@@ -68,11 +68,11 @@ public abstract class CollectionUtils {
         return destination;
     }
 
-    public static <R, I> R[] collectArray(I[] list, Class<R> newType, Transformer<R, I> transformer) {
+    public static <R, I> R[] collectArray(I[] list, Class<R> newType, Transformer<? extends R, ? super I> transformer) {
         return collectArray(list, (R[]) Array.newInstance(newType, list.length), transformer);
     }
 
-    public static <R, I> R[] collectArray(I[] list, R[] destination, Transformer<R, I> transformer) {
+    public static <R, I> R[] collectArray(I[] list, R[] destination, Transformer<? extends R, ? super I> transformer) {
         assert list.length <= destination.length;
         for (int i = 0; i < list.length; ++i) {
             destination[i] = transformer.transform(list[i]);
@@ -80,19 +80,19 @@ public abstract class CollectionUtils {
         return destination;
     }
 
-    public static <R, I> List<R> collect(List<? extends I> list, Transformer<R, ? super I> transformer) {
+    public static <R, I> List<R> collect(List<? extends I> list, Transformer<? extends R, ? super I> transformer) {
         return collect(list, new ArrayList<R>(list.size()), transformer);
     }
 
-    public static <R, I> List<R> collect(I[] list, Transformer<R, ? super I> transformer) {
+    public static <R, I> List<R> collect(I[] list, Transformer<? extends R, ? super I> transformer) {
         return collect(Arrays.asList(list), transformer);
     }
 
-    public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<R, ? super I> transformer) {
+    public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<? extends R, ? super I> transformer) {
         return collect(set, new HashSet<R>(), transformer);
     }
 
-    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<R, ? super I> transformer) {
+    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<? extends R, ? super I> transformer) {
         for (I item : source) {
             destination.add(transformer.transform(item));
         }
@@ -126,7 +126,7 @@ public abstract class CollectionUtils {
      * @param <T> The target type in the flattened list
      * @return A flattened list of the given things
      */
-    public static <T> List<? extends T> flattenToList(Class<T> type, Object... things) {
+    public static <T> List<T> flattenToList(Class<T> type, Object... things) {
         if (things == null) {
             return Collections.singletonList(null);
         } else if (things.length == 0) {
@@ -227,7 +227,7 @@ public abstract class CollectionUtils {
         return stringize(source, new ArrayList<String>(source.size()));
     }
 
-    public static <E> boolean replace(List<E> list, Spec<? super E> filter, Transformer<E, ? super E> transformer) {
+    public static <E> boolean replace(List<E> list, Spec<? super E> filter, Transformer<? extends E, ? super E> transformer) {
         boolean replaced = false;
         int i = 0;
         for (E it : list) {
@@ -252,7 +252,7 @@ public abstract class CollectionUtils {
         return map;
     }
 
-    public static <T> boolean every(Iterable<T> things, Spec<? super T> predicate) {
+    public static <T> boolean every(Iterable<? extends T> things, Spec<? super T> predicate) {
         for (T thing : things) {
             if (!predicate.isSatisfiedBy(thing)) {
                 return false;
