@@ -79,7 +79,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         TaskContainer tasks = project.getTasks();
 
-        // Create publish tasks automatically for any Ivy publication and repository combinations
+        // Create publish tasks automatically for any Maven publication and repository combinations
         Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
         MavenPublishDynamicTaskCreator publishTaskCreator = new MavenPublishDynamicTaskCreator(tasks, publishLifecycleTask);
         publishTaskCreator.monitor(extension.getPublications(), extension.getRepositories());
