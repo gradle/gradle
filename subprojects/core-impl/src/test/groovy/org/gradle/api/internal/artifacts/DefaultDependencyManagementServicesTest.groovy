@@ -18,25 +18,25 @@ package org.gradle.api.internal.artifacts
 import org.gradle.StartParameter
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.internal.Factory
+import org.gradle.internal.TimeProvider
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.internal.TimeProvider
 import spock.lang.Specification
-import org.gradle.api.internal.file.TemporaryFileProvider
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -102,26 +102,21 @@ class DefaultDependencyManagementServicesTest extends Specification {
         DefaultRepositoryHandler publishRepositoryHandler = Mock()
 
         given:
-        _ * parent.get(StartParameter.class) >> startParameter
         _ * parent.get(Instantiator.class) >> instantiator
         _ * instantiator.newInstance(DefaultRepositoryHandler.class, _, _) >> publishRepositoryHandler
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def publishResolverHandler = resolutionServices.publishServicesFactory.create().repositoryHandler
+        def publishResolverHandler = resolutionServices.publishServicesFactory.create().createRepositoryHandler()
 
         then:
         publishResolverHandler == publishRepositoryHandler
     }
 
     def "publish services provide an ArtifactPublisher"() {
-        given:
-        _ * parent.get(StartParameter.class) >> startParameter
-        _ * parent.get(Instantiator.class) >> instantiator
-
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def ivyService = resolutionServices.publishServicesFactory.create().artifactPublisher
+        def ivyService = resolutionServices.publishServicesFactory.create().createArtifactPublisher(Collections.emptyList())
 
         then:
         ivyService != null

@@ -26,7 +26,6 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.*;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
@@ -72,7 +71,6 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
@@ -389,9 +387,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                                             resolver))));
         }
 
-        ArtifactPublisher createArtifactPublisher(ResolverProvider resolverProvider) {
+        ArtifactPublisher createArtifactPublisher(Iterable<DependencyResolver> resolvers) {
             return new IvyBackedArtifactPublisher(
-                    resolverProvider,
+                    resolvers,
                     get(SettingsConverter.class),
                     get(PublishModuleDescriptorConverter.class),
                     get(IvyFactory.class),
@@ -403,25 +401,13 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {
         private final DefaultDependencyResolutionServices dependencyResolutionServices;
-        private DefaultRepositoryHandler repositoryHandler;
-        private ArtifactPublisher artifactPublisher;
 
         public DefaultArtifactPublicationServices(DefaultDependencyResolutionServices dependencyResolutionServices) {
             this.dependencyResolutionServices = dependencyResolutionServices;
         }
 
-        public ArtifactPublisher getArtifactPublisher() {
-            if (artifactPublisher == null) {
-                artifactPublisher = dependencyResolutionServices.createArtifactPublisher(getRepositoryHandler());
-            }
-            return artifactPublisher;
-        }
-
-        public DefaultRepositoryHandler getRepositoryHandler() {
-            if (repositoryHandler == null) {
-                repositoryHandler = dependencyResolutionServices.createRepositoryHandler();
-            }
-            return repositoryHandler;
+        public DefaultRepositoryHandler createRepositoryHandler() {
+            return dependencyResolutionServices.createRepositoryHandler();
         }
 
         public ModuleDescriptorConverter getDescriptorFileModuleConverter() {
@@ -434,12 +420,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return new IvyXmlModuleDescriptorWriter();
         }
 
-        public ArtifactPublisher createDetachedArtifactPublisher(final DependencyResolver resolver) {
-            return dependencyResolutionServices.createArtifactPublisher(new ResolverProvider() {
-                public List<DependencyResolver> getResolvers() {
-                    return Collections.singletonList(resolver);
-                }
-            });
+        public ArtifactPublisher createArtifactPublisher(Iterable<DependencyResolver> resolvers) {
+            return dependencyResolutionServices.createArtifactPublisher(resolvers);
         }
     }
 

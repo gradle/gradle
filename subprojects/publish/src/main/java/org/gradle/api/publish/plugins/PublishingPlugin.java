@@ -50,7 +50,7 @@ public class PublishingPlugin implements Plugin<Project> {
     }
 
     public void apply(Project project) {
-        RepositoryHandler repositories = artifactPublicationServicesFactory.create().getRepositoryHandler();
+        RepositoryHandler repositories = artifactPublicationServicesFactory.create().createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
         project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 

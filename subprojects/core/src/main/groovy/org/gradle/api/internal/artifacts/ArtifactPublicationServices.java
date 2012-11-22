@@ -21,13 +21,12 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 
 public interface ArtifactPublicationServices {
-    ArtifactPublisher getArtifactPublisher();
 
-    RepositoryHandler getRepositoryHandler();
+    RepositoryHandler createRepositoryHandler();
 
     ModuleDescriptorConverter getDescriptorFileModuleConverter();
 
     IvyModuleDescriptorWriter getIvyModuleDescriptorWriter();
 
-    ArtifactPublisher createDetachedArtifactPublisher(DependencyResolver resolver);
+    ArtifactPublisher createArtifactPublisher(Iterable<DependencyResolver> resolvers);
 }

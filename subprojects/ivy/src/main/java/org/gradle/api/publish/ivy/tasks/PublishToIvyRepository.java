@@ -36,6 +36,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Factory;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -155,7 +156,7 @@ public class PublishToIvyRepository extends DefaultTask {
             @Override
             protected void publish() throws Exception {
                 DependencyResolver dependencyResolver = Cast.cast(ArtifactRepositoryInternal.class, repository).createResolver();
-                ArtifactPublisher artifactPublisher = publicationServices.createDetachedArtifactPublisher(dependencyResolver);
+                ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher(Collections.singleton(dependencyResolver));
                 IvyPublisher publisher = new IvyPublisher(artifactPublisher);
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
                 publisher.publish(normalizedPublication);

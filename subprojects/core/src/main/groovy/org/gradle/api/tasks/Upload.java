@@ -18,10 +18,13 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
@@ -29,12 +32,16 @@ import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
+
+import static org.gradle.api.internal.Cast.cast;
+import static org.gradle.util.CollectionUtils.collect;
 
 /**
  * Uploads the artifacts of a {@link Configuration} to a set of repositories.
@@ -53,7 +60,7 @@ public class Upload extends ConventionTask {
     @Inject
     public Upload(Factory<ArtifactPublicationServices> artifactPublicationServicesFactory) {
         publicationServices = artifactPublicationServicesFactory.create();
-        repositories = publicationServices.getRepositoryHandler();
+        repositories = publicationServices.createRepositoryHandler();
     }
 
     @TaskAction
@@ -62,7 +69,11 @@ public class Upload extends ConventionTask {
         Module module = ((ConfigurationInternal) configuration).getModule();
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
 
-        ArtifactPublisher artifactPublisher = publicationServices.getArtifactPublisher();
+        ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher(collect(repositories, new Transformer<DependencyResolver, ArtifactRepository>() {
+            public DependencyResolver transform(ArtifactRepository repository) {
+                return cast(ArtifactRepositoryInternal.class, repository).createResolver();
+            }
+        }));
 
         try {
             File descriptorDestination = isUploadDescriptor() ? getDescriptorDestination() : null;

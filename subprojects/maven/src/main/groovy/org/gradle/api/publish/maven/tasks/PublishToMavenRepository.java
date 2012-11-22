@@ -36,6 +36,7 @@ import org.gradle.logging.LoggingManagerInternal;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -166,7 +167,7 @@ public class PublishToMavenRepository extends DefaultTask {
                 };
                 MavenPublisher publisher = new MavenPublisher(createDeployerFactory(), configurationFactory, new Transformer<ArtifactPublisher, DependencyResolver>() {
                     public ArtifactPublisher transform(DependencyResolver resolver) {
-                        return artifactPublicationServices.createDetachedArtifactPublisher(resolver);
+                        return artifactPublicationServices.createArtifactPublisher(Collections.singleton(resolver));
                     }
                 });
                 MavenNormalizedPublication normalizedPublication = publication.asNormalisedPublication();

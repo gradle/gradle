@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
@@ -36,14 +36,14 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
     private final ModuleDescriptorConverter publishModuleDescriptorConverter;
     private final IvyFactory ivyFactory;
     private final IvyDependencyPublisher dependencyPublisher;
-    private final ResolverProvider resolverProvider;
+    private final Iterable<DependencyResolver> dependencyResolvers;
 
-    public IvyBackedArtifactPublisher(ResolverProvider resolverProvider,
+    public IvyBackedArtifactPublisher(Iterable<DependencyResolver> dependencyResolvers,
                                       SettingsConverter settingsConverter,
                                       ModuleDescriptorConverter publishModuleDescriptorConverter,
                                       IvyFactory ivyFactory,
                                       IvyDependencyPublisher dependencyPublisher) {
-        this.resolverProvider = resolverProvider;
+        this.dependencyResolvers = dependencyResolvers;
         this.settingsConverter = settingsConverter;
         this.publishModuleDescriptorConverter = publishModuleDescriptorConverter;
         this.ivyFactory = ivyFactory;
@@ -55,7 +55,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
     }
 
     public void publish(Module module, Set<? extends Configuration> configurations, File descriptor) throws PublishException {
-        List<DependencyResolver> publishResolvers = resolverProvider.getResolvers();
+        List<DependencyResolver> publishResolvers = CollectionUtils.toList(dependencyResolvers);
         Ivy ivy = ivyForPublish(publishResolvers);
         Set<String> confs = Configurations.getNames(configurations, false);
         dependencyPublisher.publish(
