@@ -46,28 +46,16 @@ public class Upload extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Upload.class);
 
     private Configuration configuration;
-
     private boolean uploadDescriptor;
-
     private File descriptorDestination;
-
-    /**
-     * The resolvers to delegate the uploads to. Usually a resolver corresponds to a repository.
-     */
     private RepositoryHandler repositories;
 
-    private ArtifactPublisher artifactPublisher;
-
-    private ModuleDescriptorConverter moduleDescriptorConverter;
-    private IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
+    private final ArtifactPublicationServices publicationServices;
 
     @Inject
     public Upload(Factory<ArtifactPublicationServices> artifactPublicationServicesFactory) {
-        ArtifactPublicationServices publicationServices = artifactPublicationServicesFactory.create();
+        publicationServices = artifactPublicationServicesFactory.create();
         repositories = publicationServices.getRepositoryHandler();
-        artifactPublisher = publicationServices.getArtifactPublisher();
-        moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
-        ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
     }
 
     @TaskAction
@@ -76,10 +64,14 @@ public class Upload extends ConventionTask {
         Module module = ((ConfigurationInternal) configuration).getModule();
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
 
+        ArtifactPublisher artifactPublisher = publicationServices.getArtifactPublisher();
+
         if (isUploadDescriptor()) {
             File descriptorDestination = getDescriptorDestination();
             Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
+            ModuleDescriptorConverter moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
             ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(allConfigurations, module);
+            IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
             ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorDestination);
             artifactPublisher.publish(module, configurationsToPublish, descriptorDestination);
         } else {
@@ -145,19 +137,4 @@ public class Upload extends ConventionTask {
         return configuration == null ? null : configuration.getAllArtifacts().getFiles();
     }
 
-    void setRepositories(RepositoryHandler repositories) {
-        this.repositories = repositories;
-    }
-
-    void setArtifactPublisher(ArtifactPublisher artifactPublisher) {
-        this.artifactPublisher = artifactPublisher;
-    }
-
-    void setModuleDescriptorConverter(ModuleDescriptorConverter moduleDescriptorConverter) {
-        this.moduleDescriptorConverter = moduleDescriptorConverter;
-    }
-
-    void setIvyModuleDescriptorWriter(IvyModuleDescriptorWriter ivyModuleDescriptorWriter) {
-        this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
-    }
 }
