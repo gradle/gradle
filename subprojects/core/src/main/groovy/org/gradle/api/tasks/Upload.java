@@ -30,8 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -43,7 +41,6 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class Upload extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(Upload.class);
 
     private Configuration configuration;
     private boolean uploadDescriptor;
@@ -60,7 +57,7 @@ public class Upload extends ConventionTask {
 
     @TaskAction
     protected void upload() {
-        logger.info("Publishing configuration: " + configuration);
+        getLogger().info("Publishing configuration: " + configuration);
         Module module = ((ConfigurationInternal) configuration).getModule();
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
 
