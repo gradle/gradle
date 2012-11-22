@@ -94,6 +94,7 @@ public class Upload extends ConventionTask {
         return descriptorDestination;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public void setDescriptorDestination(File descriptorDestination) {
         this.descriptorDestination = descriptorDestination;
     }
