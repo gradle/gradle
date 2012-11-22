@@ -17,16 +17,21 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TestFile
 
 class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
 
-    public void "can publish custom configurations"() {
-        given:
-        def module = ivyRepo.module("org.gradle", "publish", "2")
-        def artifact = file("artifact.txt").createFile()
+    org.gradle.test.fixtures.ivy.IvyFileModule module
+    TestFile artifact
 
+    def setup() {
+        module = ivyRepo.module("org.gradle", "publish", "2")
+        artifact = file("artifact.txt").createFile()
         settingsFile << 'rootProject.name = "publish"'
+    }
 
+    public void "can publish custom configurations with java plugin"() {
+        given:
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'ivy-publish'
@@ -57,6 +62,45 @@ class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
         then:
         module.ivyFile.assertIsFile()
         module.assertArtifactsPublished("ivy-2.xml", "foo-2.txt", "publish-2.jar")
+        with(module.ivy.artifacts.foo) {
+            name == "foo"
+            ext == "txt"
+            "custom" in conf
+        }
+    }
+
+    public void "can publish custom configurations"() {
+        given:
+        buildFile << """
+            apply plugin: 'base'
+            apply plugin: 'ivy-publish'
+
+            version = '2'
+            group = 'org.gradle'
+
+            configurations { custom }
+            artifacts {
+                custom file("${artifact.name}"), {
+                    name "foo"
+                    extension "txt"
+                }
+            }
+
+            publishing {
+                repositories {
+                    ivy {
+                        url "${ivyRepo.uri}"
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        module.ivyFile.assertIsFile()
+        module.assertArtifactsPublished("ivy-2.xml", "foo-2.txt")
         with(module.ivy.artifacts.foo) {
             name == "foo"
             ext == "txt"
