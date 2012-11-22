@@ -17,11 +17,11 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectList;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
 import org.gradle.api.tasks.TaskContainer;
@@ -39,17 +39,20 @@ public class MavenPublishDynamicTaskCreator {
     }
 
     public void monitor(final PublicationContainer publications, final ArtifactRepositoryContainer repositories) {
-        publications.all(new Action<Publication>() {
-            public void execute(Publication publication) {
-                for (ArtifactRepository repository : repositories) {
+        final NamedDomainObjectSet<MavenPublicationInternal> mavenPublications = publications.withType(MavenPublicationInternal.class);
+        final NamedDomainObjectList<MavenArtifactRepository> mavenRepositories = repositories.withType(MavenArtifactRepository.class);
+
+        mavenPublications.all(new Action<MavenPublicationInternal>() {
+            public void execute(MavenPublicationInternal publication) {
+                for (MavenArtifactRepository repository : mavenRepositories) {
                     maybeCreate(publication, repository);
                 }
             }
         });
 
-        repositories.whenObjectAdded(new Action<ArtifactRepository>() {
-            public void execute(ArtifactRepository repository) {
-                for (Publication publication : publications) {
+        mavenRepositories.all(new Action<MavenArtifactRepository>() {
+            public void execute(MavenArtifactRepository repository) {
+                for (MavenPublicationInternal publication : mavenPublications) {
                     maybeCreate(publication, repository);
                 }
             }
@@ -60,28 +63,20 @@ public class MavenPublishDynamicTaskCreator {
         //       (though this is a violation of the Named contract)
     }
 
-    private void maybeCreate(Publication publication, ArtifactRepository repository) {
-        if (!(publication instanceof MavenPublicationInternal)) {
-            return;
-        }
-        if (!(repository instanceof MavenArtifactRepository)) {
-            return;
-        }
-
-        final MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
-        final MavenArtifactRepository mavenRepository = (MavenArtifactRepository) repository;
-
+    private void maybeCreate(MavenPublicationInternal publication, MavenArtifactRepository repository) {
         String publicationName = publication.getName();
         String repositoryName = repository.getName();
 
         String publishTaskName = calculatePublishTaskName(publicationName, repositoryName);
-        PublishToMavenRepository publishTask = tasks.add(publishTaskName, PublishToMavenRepository.class);
-        publishTask.setPublication(publicationInternal);
-        publishTask.setRepository(mavenRepository);
-        publishTask.setGroup("publishing");
-        publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven repository '%s'", publicationName, repositoryName));
+        if (tasks.findByName(publishTaskName) == null) {
+            PublishToMavenRepository publishTask = tasks.add(publishTaskName, PublishToMavenRepository.class);
+            publishTask.setPublication(publication);
+            publishTask.setRepository(repository);
+            publishTask.setGroup("publishing");
+            publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven repository '%s'", publicationName, repositoryName));
 
-        publishLifecycleTask.dependsOn(publishTask);
+            publishLifecycleTask.dependsOn(publishTask);
+        }
     }
 
     private String calculatePublishTaskName(String publicationName, String repositoryName) {
