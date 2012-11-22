@@ -23,7 +23,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.tasks.TaskDependency;
@@ -89,9 +88,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public TaskDependency getBuildDependencies() {
-        DefaultTaskDependency taskDependency = new DefaultTaskDependency(taskResolver);
-        taskDependency.add(getPublishableFiles().getBuildDependencies());
-        return taskDependency;
+        return getPublishableFiles().getBuildDependencies();
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
