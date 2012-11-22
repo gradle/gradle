@@ -33,6 +33,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.LazyIterable;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -101,8 +102,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     name, instantiator, projectIdentity, asPublishArtifacts(configurations), pomDirCallable.call(),
                     fileResolver, project.getTasks()
             );
-        } catch (Exception ignore) {
-            throw new RuntimeException(ignore);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         DslObject publicationDslObject = new DslObject(publication);
