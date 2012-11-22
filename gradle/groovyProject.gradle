@@ -45,8 +45,8 @@ testTasks.all { task ->
 
 jarTasks.all { jar ->
     jar.manifest.mainAttributes(
-        (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-        (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
+            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
     )
 }
 
@@ -97,3 +97,4 @@ class ClasspathManifest extends DefaultTask {
         manifestFile.withOutputStream { properties.save(it, 'module definition') }
     }
 }
+ext.ClasspathManifest = ClasspathManifest
