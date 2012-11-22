@@ -34,7 +34,7 @@ import static org.hamcrest.Matchers.equalTo
 class SaxJUnitXmlResultWriterSpec extends Specification {
 
     private provider = Mock(TestResultsProvider)
-    private generator = new SaxJUnitXmlResultWriter("localhost", provider, XMLOutputFactory.newFactory())
+    private generator = new SaxJUnitXmlResultWriter("localhost", provider, XMLOutputFactory.newInstance())
 
     def "writes xml JUnit result"() {
         StringWriter sw = new StringWriter()
