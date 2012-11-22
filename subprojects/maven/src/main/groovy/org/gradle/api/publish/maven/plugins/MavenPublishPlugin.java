@@ -33,7 +33,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.LazyIterable;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -95,19 +94,12 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         ModuleBackedMavenProjectIdentity projectIdentity = new ModuleBackedMavenProjectIdentity(dependencyMetaDataProvider.getModule());
 
-        DefaultMavenPublication publication;
-        try {
-            publication = instantiator.newInstance(
-                    DefaultMavenPublication.class,
-                    name, instantiator, projectIdentity, asPublishArtifacts(configurations), pomDirCallable.call(),
-                    fileResolver, project.getTasks()
-            );
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        DefaultMavenPublication publication = instantiator.newInstance(
+                DefaultMavenPublication.class,
+                name, instantiator, projectIdentity, asPublishArtifacts(configurations), null, fileResolver, project.getTasks()
+        );
 
-        DslObject publicationDslObject = new DslObject(publication);
-        ConventionMapping descriptorConventionMapping = publicationDslObject.getConventionMapping();
+        ConventionMapping descriptorConventionMapping = new DslObject(publication).getConventionMapping();
         descriptorConventionMapping.map("pomDir", pomDirCallable);
 
         return publication;
