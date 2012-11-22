@@ -65,4 +65,35 @@ public class ClosureBackedAction<T> implements Action<T> {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ClosureBackedAction that = (ClosureBackedAction) o;
+
+        if (configureableAware != that.configureableAware) {
+            return false;
+        }
+        if (resolveStrategy != that.resolveStrategy) {
+            return false;
+        }
+        if (!closure.equals(that.closure)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = closure.hashCode();
+        result = 31 * result + (configureableAware ? 1 : 0);
+        result = 31 * result + resolveStrategy;
+        return result;
+    }
 }

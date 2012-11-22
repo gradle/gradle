@@ -41,6 +41,7 @@ import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
@@ -286,7 +287,7 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
     }
 
     public void beforeDeployment(Closure action) {
-        beforeDeploymentActions.add(action);
+        beforeDeploymentActions.add(new ClosureBackedAction<MavenDeployment>(action));
     }
 
 }

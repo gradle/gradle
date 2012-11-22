@@ -85,6 +85,18 @@ class ClosureBackedActionTest extends Specification {
         e.message == "The closure '${closure.toString()}' is not valid as an action for argument '1'. It should accept no parameters, or one compatible with type 'java.lang.String'. It accepts (java.util.Map, java.util.List)."
     }
 
+    def "equality"() {
+        given:
+        def c = {}
+        def a1 = action(c)
+
+        expect:
+        a1 == action(c)
+        a1 != new ClosureBackedAction(c, Closure.OWNER_ONLY)
+        a1 != new ClosureBackedAction(c, Closure.DELEGATE_FIRST, false)
+        a1 != action({})
+    }
+
     Action<?> action(Closure<?> c) {
         new ClosureBackedAction(c)
     }

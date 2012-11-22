@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.api
 
+import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.PropertiesTransformer
 
 /**
@@ -38,6 +39,6 @@ class PropertiesFileContentMerger extends FileContentMerger {
     * @param closure The closure to execute when the Properties have been created.
     */
     void withProperties(Closure closure) {
-        transformer.addAction(closure)
+        transformer.addAction(new ClosureBackedAction<Properties>(closure))
     }
 }

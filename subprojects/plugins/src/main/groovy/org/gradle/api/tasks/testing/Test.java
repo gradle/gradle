@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -500,7 +501,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void beforeSuite(Closure closure) {
-        testListenerBroadcaster.add("beforeSuite", closure);
+        testListenerBroadcaster.add("beforeSuite", new ClosureBackedAction<Object>(closure));
     }
 
     /**
@@ -513,7 +514,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void afterSuite(Closure closure) {
-        testListenerBroadcaster.add("afterSuite", closure);
+        testListenerBroadcaster.add("afterSuite", new ClosureBackedAction<Object>(closure));
     }
 
     /**
@@ -523,7 +524,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void beforeTest(Closure closure) {
-        testListenerBroadcaster.add("beforeTest", closure);
+        testListenerBroadcaster.add("beforeTest", new ClosureBackedAction<Object>(closure));
     }
 
     /**
@@ -533,7 +534,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void afterTest(Closure closure) {
-        testListenerBroadcaster.add("afterTest", closure);
+        testListenerBroadcaster.add("afterTest", new ClosureBackedAction<Object>(closure));
     }
 
     /**
@@ -555,7 +556,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void onOutput(Closure closure) {
-        testOutputListenerBroadcaster.add("onOutput", closure);
+        testOutputListenerBroadcaster.add("onOutput", new ClosureBackedAction<Object>(closure));
     }
 
     /**

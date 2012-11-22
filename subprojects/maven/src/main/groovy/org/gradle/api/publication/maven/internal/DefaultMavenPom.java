@@ -26,6 +26,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.IoActions;
 import org.gradle.api.internal.XmlTransformer;
@@ -217,7 +218,7 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public DefaultMavenPom whenConfigured(final Closure closure) {
-        whenConfiguredActions.add(closure);
+        whenConfiguredActions.add(new ClosureBackedAction<MavenPom>(closure));
         return this;
     }
 

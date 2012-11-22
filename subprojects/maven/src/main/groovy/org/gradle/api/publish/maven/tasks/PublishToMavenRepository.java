@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publication.maven.internal.*;
+import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.MavenPublicationInternal;
@@ -154,19 +155,24 @@ public class PublishToMavenRepository extends DefaultTask {
         doPublish(publicationInternal, repository);
     }
 
-    private void doPublish(MavenPublicationInternal publication, MavenArtifactRepository repository) {
-        Factory<Configuration> configurationFactory = new Factory<Configuration>() {
-            public Configuration create() {
-                return getProject().getConfigurations().detachedConfiguration();
+    private void doPublish(final MavenPublicationInternal publication, final MavenArtifactRepository repository) {
+        new PublishOperation(publication, repository) {
+            @Override
+            protected void publish() throws Exception {
+                Factory<Configuration> configurationFactory = new Factory<Configuration>() {
+                    public Configuration create() {
+                        return getProject().getConfigurations().detachedConfiguration();
+                    }
+                };
+                MavenPublisher publisher = new MavenPublisher(createDeployerFactory(), configurationFactory, new Transformer<ArtifactPublisher, DependencyResolver>() {
+                    public ArtifactPublisher transform(DependencyResolver resolver) {
+                        return artifactPublicationServices.createDetachedArtifactPublisher(resolver);
+                    }
+                });
+                MavenNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
+                publisher.publish(normalizedPublication, repository);
             }
-        };
-        MavenPublisher publisher = new MavenPublisher(createDeployerFactory(), configurationFactory, new Transformer<ArtifactPublisher, DependencyResolver>() {
-            public ArtifactPublisher transform(DependencyResolver resolver) {
-                return artifactPublicationServices.createDetachedArtifactPublisher(resolver);
-            }
-        });
-        MavenNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
-        publisher.publish(normalizedPublication, repository);
+        }.run();
     }
 
     private DeployerFactory createDeployerFactory() {
