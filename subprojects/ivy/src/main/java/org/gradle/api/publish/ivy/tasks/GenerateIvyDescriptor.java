@@ -49,16 +49,12 @@ public class GenerateIvyDescriptor extends DefaultTask {
     private Object destination;
 
     private final FileResolver fileResolver;
-    private final ModuleDescriptorConverter moduleDescriptorConverter;
-    private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
+    private final ArtifactPublicationServices publicationServices;
 
     @Inject
-    public GenerateIvyDescriptor(FileResolver fileResolver) {
+    public GenerateIvyDescriptor(FileResolver fileResolver, ArtifactPublicationServices publicationServices) {
         this.fileResolver = fileResolver;
-
-        ArtifactPublicationServices publicationServices = getServices().getFactory(ArtifactPublicationServices.class).create();
-        moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
-        ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
+        this.publicationServices = publicationServices;
 
         // Never up to date; we don't understand the data structures.
         getOutputs().upToDateWhen(Specs.satisfyNone());
@@ -127,7 +123,9 @@ public class GenerateIvyDescriptor extends DefaultTask {
             xmlTransformer.addAction(xmlAction);
         }
 
+        ModuleDescriptorConverter moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(getConfigurations(), getModule());
+        IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
         ivyModuleDescriptorWriter.write(moduleDescriptor, getDestination(), xmlTransformer);
     }
 }

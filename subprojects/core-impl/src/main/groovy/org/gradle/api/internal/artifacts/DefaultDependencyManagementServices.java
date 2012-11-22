@@ -59,7 +59,6 @@ import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.cache.CacheRepository;
-import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -345,12 +344,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             return artifactHandler;
         }
 
-        public Factory<ArtifactPublicationServices> getPublishServicesFactory() {
-            return new Factory<ArtifactPublicationServices>() {
-                public ArtifactPublicationServices create() {
-                    return new DefaultArtifactPublicationServices(DefaultDependencyResolutionServices.this);
-                }
-            };
+        public ArtifactPublicationServices createArtifactPublicationServices() {
+                return new DefaultArtifactPublicationServices(DefaultDependencyResolutionServices.this);
         }
 
         ArtifactDependencyResolver createDependencyResolver(DefaultRepositoryHandler resolverProvider) {

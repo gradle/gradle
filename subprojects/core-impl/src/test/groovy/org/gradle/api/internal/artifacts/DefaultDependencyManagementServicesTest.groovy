@@ -95,7 +95,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         resolutionServices.configurationContainer != null
         resolutionServices.dependencyHandler != null
         resolutionServices.artifactHandler != null
-        resolutionServices.publishServicesFactory != null
+        resolutionServices.createArtifactPublicationServices() != null
     }
 
     def "publish services provide a repository handler"() {
@@ -107,7 +107,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def publishResolverHandler = resolutionServices.publishServicesFactory.create().createRepositoryHandler()
+        def publishResolverHandler = resolutionServices.createArtifactPublicationServices().createRepositoryHandler()
 
         then:
         publishResolverHandler == publishRepositoryHandler
@@ -116,7 +116,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
     def "publish services provide an ArtifactPublisher"() {
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def ivyService = resolutionServices.publishServicesFactory.create().createArtifactPublisher()
+        def ivyService = resolutionServices.createArtifactPublicationServices().createArtifactPublisher()
 
         then:
         ivyService != null

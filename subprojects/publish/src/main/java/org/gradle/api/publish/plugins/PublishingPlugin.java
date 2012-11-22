@@ -25,7 +25,6 @@ import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -41,16 +40,16 @@ public class PublishingPlugin implements Plugin<Project> {
     public static final String PUBLISH_LIFECYCLE_TASK_NAME = "publish";
 
     private final Instantiator instantiator;
-    private final Factory<ArtifactPublicationServices> artifactPublicationServicesFactory;
+    private final ArtifactPublicationServices publicationServices;
 
     @Inject
-    public PublishingPlugin(Factory<ArtifactPublicationServices> artifactPublicationServicesFactory, Instantiator instantiator) {
-        this.artifactPublicationServicesFactory = artifactPublicationServicesFactory;
+    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator) {
+        this.publicationServices = publicationServices;
         this.instantiator = instantiator;
     }
 
     public void apply(Project project) {
-        RepositoryHandler repositories = artifactPublicationServicesFactory.create().createRepositoryHandler();
+        RepositoryHandler repositories = publicationServices.createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
         project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 

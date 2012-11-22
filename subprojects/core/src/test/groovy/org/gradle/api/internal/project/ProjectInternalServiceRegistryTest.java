@@ -74,7 +74,7 @@ public class ProjectInternalServiceRegistryTest {
     private final PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private final DependencyResolutionServices dependencyResolutionServices = context.mock(DependencyResolutionServices.class);
     private final RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
-    private final Factory publishServicesFactory = context.mock(Factory.class);
+    private final ArtifactPublicationServices publicationServices = context.mock(ArtifactPublicationServices.class);
     private final DependencyHandler dependencyHandler = context.mock(DependencyHandler.class);
     private final ArtifactHandler artifactHandler = context.mock(ArtifactHandler.class);
     private final DirectInstantiator instantiator = new DirectInstantiator();
@@ -139,8 +139,7 @@ public class ProjectInternalServiceRegistryTest {
     public void providesAnArtifactPublicationServicesFactory() {
         expectDependencyResolutionServicesCreated();
 
-        assertThat(registry.getFactory(ArtifactPublicationServices.class), sameInstance(publishServicesFactory));
-        assertThat(registry.getFactory(ArtifactPublicationServices.class), sameInstance(registry.getFactory(ArtifactPublicationServices.class)));
+        assertThat(registry.get(ArtifactPublicationServices.class), sameInstance(publicationServices));
     }
 
     @Test
@@ -258,8 +257,8 @@ public class ProjectInternalServiceRegistryTest {
             allowing(dependencyResolutionServices).getResolveRepositoryHandler();
             will(returnValue(repositoryHandler));
 
-            allowing(dependencyResolutionServices).getPublishServicesFactory();
-            will(returnValue(publishServicesFactory));
+            allowing(dependencyResolutionServices).createArtifactPublicationServices();
+            will(returnValue(publicationServices));
 
             allowing(dependencyResolutionServices).getConfigurationContainer();
             will(returnValue(configurationContainer));

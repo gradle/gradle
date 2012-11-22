@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
-import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -59,8 +58,8 @@ public class Upload extends ConventionTask {
     private final ArtifactPublicationServices publicationServices;
 
     @Inject
-    public Upload(Factory<ArtifactPublicationServices> artifactPublicationServicesFactory) {
-        publicationServices = artifactPublicationServicesFactory.create();
+    public Upload(ArtifactPublicationServices publicationServices) {
+        this.publicationServices = publicationServices;
         repositories = publicationServices.createRepositoryHandler();
     }
 

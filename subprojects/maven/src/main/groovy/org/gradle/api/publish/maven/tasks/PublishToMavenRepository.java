@@ -52,13 +52,13 @@ public class PublishToMavenRepository extends DefaultTask {
 
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final FileResolver fileResolver;
-    private final ArtifactPublicationServices artifactPublicationServices;
+    private final ArtifactPublicationServices publicationServices;
 
     @Inject
-    public PublishToMavenRepository(Factory<ArtifactPublicationServices> artifactPublicationServicesFactory, Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver) {
+    public PublishToMavenRepository(ArtifactPublicationServices publicationServices, Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
-        this.artifactPublicationServices = artifactPublicationServicesFactory.create();
+        this.publicationServices = publicationServices;
 
 
         // Allow the publication to participate in incremental build
@@ -165,7 +165,7 @@ public class PublishToMavenRepository extends DefaultTask {
                         return getProject().getConfigurations().detachedConfiguration();
                     }
                 };
-                MavenPublisher publisher = new MavenPublisher(createDeployerFactory(), configurationFactory, artifactPublicationServices.createArtifactPublisher());
+                MavenPublisher publisher = new MavenPublisher(createDeployerFactory(), configurationFactory, publicationServices.createArtifactPublisher());
                 MavenNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
                 publisher.publish(normalizedPublication, repository);
             }
@@ -173,9 +173,8 @@ public class PublishToMavenRepository extends DefaultTask {
     }
 
     private DeployerFactory createDeployerFactory() {
-        DefaultMavenFactory mavenFactory = new DefaultMavenFactory();
-        final DefaultDeployerFactory deployerFactory = new DefaultDeployerFactory(
-                mavenFactory,
+        return new DefaultDeployerFactory(
+                new DefaultMavenFactory(),
                 loggingManagerFactory,
                 fileResolver,
                 new MavenPomMetaInfoProvider() {
@@ -186,7 +185,6 @@ public class PublishToMavenRepository extends DefaultTask {
                 getProject().getConfigurations(), // these won't actually be used, but it's the easiest way to get a ConfigurationContainer.
                 new DefaultConf2ScopeMappingContainer()
         );
-        return deployerFactory;
     }
 
 }

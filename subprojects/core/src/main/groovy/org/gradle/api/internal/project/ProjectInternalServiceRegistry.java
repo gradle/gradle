@@ -104,8 +104,8 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new DefaultTaskContainerFactory(get(Instantiator.class), get(ITaskFactory.class), project);
     }
 
-    protected Factory<ArtifactPublicationServices> createRepositoryHandlerFactory() {
-        return get(DependencyResolutionServices.class).getPublishServicesFactory();
+    protected ArtifactPublicationServices createArtifactPublicationServices() {
+        return get(DependencyResolutionServices.class).createArtifactPublicationServices();
     }
 
     protected RepositoryHandler createRepositoryHandler() {

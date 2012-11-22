@@ -30,7 +30,6 @@ import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.internal.IvyPublisher;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.Factory;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -49,8 +48,8 @@ public class PublishToIvyRepository extends DefaultTask {
     private final ArtifactPublicationServices publicationServices;
 
     @Inject
-    public PublishToIvyRepository(Factory<ArtifactPublicationServices> artifactPublicationServicesFactory) {
-        publicationServices = artifactPublicationServicesFactory.create();
+    public PublishToIvyRepository(ArtifactPublicationServices publicationServices) {
+        this.publicationServices = publicationServices;
 
         // Allow the publication to participate in incremental build
         getInputs().files(new Callable<FileCollection>() {
