@@ -58,7 +58,7 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
             publishing {
                 repositories {
                     maven {
-                        url "http://localhost:${server.port}${repoPath}"
+                        url "$mavenRemoteRepo.uri"
                     }
                 }
             }
