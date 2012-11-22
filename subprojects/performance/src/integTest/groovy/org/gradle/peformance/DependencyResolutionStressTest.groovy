@@ -18,7 +18,7 @@ package org.gradle.peformance
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.HttpHeaders
@@ -27,10 +27,10 @@ import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.AbstractHandler
 import spock.lang.Specification
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 class DependencyResolutionStressTest extends Specification {
     @Rule GradleDistribution distribution = new GradleDistribution()

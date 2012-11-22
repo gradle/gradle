@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.registry
 
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.messaging.remote.internal.inet.SocketInetAddress
-import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification

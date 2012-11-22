@@ -25,7 +25,7 @@ import org.gradle.launcher.daemon.testing.DaemonContextParser
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import spock.lang.IgnoreIf
 
-import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.

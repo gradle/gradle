@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tests.fixtures
+package org.gradle.test.fixtures
+
+import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.StoppableExecutor
+import org.junit.rules.ExternalResource
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executor
@@ -21,11 +27,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.StoppableExecutor
-import org.junit.rules.ExternalResource
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 /**
  * <p>A base class for writing specifications which exercise concurrent code.

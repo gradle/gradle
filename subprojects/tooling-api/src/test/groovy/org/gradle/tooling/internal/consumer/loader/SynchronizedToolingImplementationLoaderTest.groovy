@@ -16,15 +16,15 @@
 
 package org.gradle.tooling.internal.consumer.loader
 
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
+import org.gradle.logging.ProgressLogger
+import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.tooling.internal.consumer.Distribution
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
+import spock.lang.Specification
 
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.tests.fixtures.ConcurrentTestUtil
-import org.gradle.tooling.internal.consumer.Distribution
-import spock.lang.Specification
 
 /**
  * by Szczepan Faber, created at: 12/15/11

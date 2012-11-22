@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
 /**
  * by Szczepan Faber, created at: 1/20/12

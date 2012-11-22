@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 /**
  * by Szczepan Faber, created at: 1/20/12

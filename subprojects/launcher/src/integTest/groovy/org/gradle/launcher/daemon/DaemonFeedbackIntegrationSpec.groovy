@@ -20,7 +20,8 @@ import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.util.TextUtil
 import spock.lang.Timeout
-import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
+
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 /**
  * by Szczepan Faber, created at: 1/20/12

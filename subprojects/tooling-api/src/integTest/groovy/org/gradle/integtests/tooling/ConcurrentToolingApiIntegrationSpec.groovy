@@ -21,8 +21,9 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
@@ -32,7 +33,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import org.gradle.internal.classpath.ClassPath
+
 import java.util.concurrent.CopyOnWriteArrayList
 
 @Issue("GRADLE-1933")
