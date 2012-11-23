@@ -46,13 +46,12 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         TestClassResult result = new TestClassResult(new Date(1353344968049).getTime())
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, 10, 25, 1, 1, 0, emptyList())))
         result.add(new TestMethodResult("some test two", new DefaultTestResult(SUCCESS, 10, 25, 1, 1, 0, emptyList())))
-        result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, 15, 25, 1, 0, 1, asList(new RuntimeException("Boo! ]]> cdata check!")))))
+        result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, 15, 25, 1, 0, 1, [new RuntimeException("Boo!")])))
         result.add(new TestMethodResult("some skipped test", new DefaultTestResult(SKIPPED, 15, 25, 1, 0, 1, asList())))
 
         provider.provideOutputs("com.foo.FooTest", TestOutputEvent.Destination.StdOut, sw) >> {
             sw.write("1st output message\n")
             sw.write("2nd output message\n")
-            sw.write("cdata check: ]]&gt; end\n")
         }
         provider.provideOutputs("com.foo.FooTest", TestOutputEvent.Destination.StdErr, sw) >> { sw.write("err") }
 
@@ -62,12 +61,11 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         then:
         new JUnitTestClassExecutionResult(sw.toString(), "com.foo.FooTest")
             .assertTestCount(4, 1, 0)
-            .assertTestFailed("some failing test", equalTo('java.lang.RuntimeException: Boo! ]]> cdata check!'))
+            .assertTestFailed("some failing test", equalTo('java.lang.RuntimeException: Boo!'))
             .assertTestsSkipped("some skipped test")
             .assertTestsExecuted("some test", "some test two", "some failing test")
             .assertStdout(equalTo("""1st output message
 2nd output message
-cdata check: ]]&gt; end
 """))
             .assertStderr(equalTo("err"))
 
@@ -78,13 +76,12 @@ cdata check: ]]&gt; end
     <testcase name="some test" classname="com.foo.FooTest" time="0.015"></testcase>
     <testcase name="some test two" classname="com.foo.FooTest" time="0.015"></testcase>
     <testcase name="some failing test" classname="com.foo.FooTest" time="0.01">
-      <failure message="java.lang.RuntimeException: Boo! ]]&gt; cdata check!" type="java.lang.RuntimeException"><![CDATA[java.lang.RuntimeException: Boo! ]]&gt; cdata check!"""
+      <failure message="java.lang.RuntimeException: Boo!" type="java.lang.RuntimeException">java.lang.RuntimeException: Boo!"""
 
-        sw.toString().endsWith """]]></failure></testcase>
+        sw.toString().endsWith """</failure></testcase>
     <ignored-testcase name="some skipped test" classname="com.foo.FooTest" time="0.01"></ignored-testcase>
   <system-out><![CDATA[1st output message
 2nd output message
-cdata check: ]]&gt; end
 ]]></system-out>
   <system-err><![CDATA[err]]></system-err>
 </testsuite>"""
@@ -106,6 +103,19 @@ cdata check: ]]&gt; end
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>"""
+    }
+
+    def "encodes xml"() {
+        StringWriter sw = new StringWriter()
+        TestClassResult result = new TestClassResult(new Date(1353344968049).getTime())
+        result.add(new TestMethodResult("some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
+
+        when:
+        generator.write("com.foo.FooTest", result, sw)
+
+        then:
+        //attribute and text is encoded:
+        sw.toString().contains('message="java.lang.RuntimeException: &lt;&gt; encoded!" type="java.lang.RuntimeException">java.lang.RuntimeException: &lt;&gt; encoded!')
     }
 
 }

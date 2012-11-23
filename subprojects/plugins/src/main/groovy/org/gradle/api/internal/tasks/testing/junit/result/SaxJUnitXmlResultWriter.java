@@ -29,8 +29,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Set;
 
-import static org.gradle.util.TextUtil.escapeCDATA;
-
 /**
  * by Szczepan Faber, created at: 11/13/12
  */
@@ -97,7 +95,7 @@ public class SaxJUnitXmlResultWriter {
                 writer.writeAttribute("message", failureMessage(failure));
                 writer.writeAttribute("type", failure.getClass().getName());
 
-                writer.writeCData(escapeCDATA(stackTrace(failure)));
+                writer.writeCharacters(stackTrace(failure));
 
                 writer.writeEndElement();
             }
