@@ -119,8 +119,8 @@ class MavenFileModule implements MavenModule {
         moduleDir.parentFile.file("maven-metadata.xml")
     }
 
-    TestFile getArtifactFile() {
-        return artifactFile([:])
+    TestFile getArtifactFile(Map options = [:]) {
+        return artifactFile(options)
     }
 
     TestFile getArtifactSha1File() {

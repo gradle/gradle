@@ -37,6 +37,15 @@ class MavenHttpModule implements MavenModule {
         "${moduleRootPath}/${backingModule.version}"
     }
 
+    /**
+     * Adds an additional artifact to this module.
+     * @param options Can specify any of: type or classifier
+     */
+    MavenHttpModule artifact(Map<String, ?> options) {
+        backingModule.artifact(options)
+        return this
+    }
+
     MavenHttpModule publish() {
         backingModule.publish()
         return this
@@ -61,8 +70,8 @@ class MavenHttpModule implements MavenModule {
         return backingModule.pomFile
     }
 
-    TestFile getArtifactFile() {
-        return backingModule.artifactFile
+    TestFile getArtifactFile(Map options = [:]) {
+        return backingModule.getArtifactFile(options)
     }
 
     TestFile getMetaDataFile() {
@@ -209,12 +218,15 @@ class MavenHttpModule implements MavenModule {
         }
     }
 
+    void expectArtifactGet(Map options) {
+        server.expectGet(getArtifactPath(options), getArtifactFile(options))
+    }
     void expectArtifactGet() {
         server.expectGet(getArtifactPath(), artifactFile)
     }
 
-    String getArtifactPath() {
-        "$moduleVersionPath/$artifactFile.name"
+    String getArtifactPath(Map options = [:]) {
+        "$moduleVersionPath/${getArtifactFile(options).name}"
     }
 
     String getPomPath() {
