@@ -274,13 +274,9 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         fileTree.visit(visitor)
 
         then:
-        1 * visitor.visitDir({ it.file == tempDir.file("dir1") })
-
-        then:
-        1 * visitor.visitFile({ it.file == tempDir.file("dir1/file1") }) >> { FileVisitDetails details -> details.stopVisiting() }
-
-        then:
-        0 * _
+        1 * visitor.visitDir({ it.file == tempDir.file("dir2") }) >> { FileVisitDetails details -> details.stopVisiting() }
+        0 * visitor.visitDir({ it.path.startsWith("dir2") })
+        0 * visitor.visitFile({ it.path.startsWith("dir2") })
     }
 
     def "use exclude spec"() {
@@ -293,6 +289,22 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         1 * visitor.visitDir({ it.file == tempDir.file("dir1") })
         1 * visitor.visitDir({ it.file == tempDir.file("dir3") })
         1 * visitor.visitFile({ it.file == tempDir.file("dir1/file1") })
+        1 * visitor.visitFile({ it.file == tempDir.file("dir3/file1") })
+        0 * _
+    }
+
+    def "use backslashes"() {
+        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir?\\file1")
+
+        when:
+        fileTree.visit(visitor)
+
+        then:
+        1 * visitor.visitDir({ it.file == tempDir.file("dir1") })
+        1 * visitor.visitDir({ it.file == tempDir.file("dir2") })
+        1 * visitor.visitDir({ it.file == tempDir.file("dir3") })
+        1 * visitor.visitFile({ it.file == tempDir.file("dir1/file1") })
+        1 * visitor.visitFile({ it.file == tempDir.file("dir2/file1") })
         1 * visitor.visitFile({ it.file == tempDir.file("dir3/file1") })
         0 * _
     }
