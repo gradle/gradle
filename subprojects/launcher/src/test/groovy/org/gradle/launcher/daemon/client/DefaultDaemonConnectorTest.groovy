@@ -23,6 +23,7 @@ import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.messaging.remote.Address
+import org.gradle.messaging.remote.internal.ConnectException
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.OutgoingConnector
 import spock.lang.Specification
@@ -114,14 +115,13 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
         assert !registry.all.empty
 
-        connector.connector.connect(_ as Address) >> { throw new RuntimeException("Problem!") }
+        connector.connector.connect(_ as Address) >> { throw new ConnectException("Problem!", new RuntimeException("foo")) }
 
         when:
-        connector.maybeConnect( { true } as ExplainingSpec)
+        def connection = connector.maybeConnect( { true } as ExplainingSpec)
 
         then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Problem!"
+        !connection
 
         registry.all.empty
     }

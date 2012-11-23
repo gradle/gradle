@@ -146,7 +146,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         Connection<Object> connection;
         try {
             connection = connector.connect(daemonInfo.getAddress());
-        } catch (RuntimeException e) {
+        } catch (ConnectException e) {
             onFailure.run();
             throw e;
         }

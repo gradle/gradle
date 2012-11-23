@@ -57,22 +57,18 @@ public class TcpOutgoingConnector<T> implements OutgoingConnector<T> {
                 SocketChannel socketChannel;
                 try {
                     socketChannel = SocketChannel.open(new InetSocketAddress(candidate, address.getPort()));
-                } catch (java.net.ConnectException e) {
-                    LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
-                    lastFailure = e;
-                    continue;
                 } catch (SocketException e) {
                     LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
-                    lastFailure = new RuntimeException(String.format("Could not connect to address %s.", candidate), e);
+                    lastFailure = e;
                     continue;
                 }
                 LOGGER.debug("Connected to address {}.", candidate);
                 return new SocketConnection<T>(socketChannel, serializer);
             }
-            throw lastFailure;
-        } catch (java.net.ConnectException e) {
             throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
-                    destinationAddress, candidateAddresses), e);
+                    destinationAddress, candidateAddresses), lastFailure);
+        } catch (ConnectException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not connect to server %s. Tried addresses: %s.",
                     destinationAddress, candidateAddresses), e);
