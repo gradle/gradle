@@ -2,15 +2,11 @@ import org.gradle.build.*
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
 configurations {
-    delegate.default.extendsFrom -= [runtime]
-    delegate.default.extendsFrom publishCompile
-
     fatJarConfiguration {
         extendsFrom compile
         exclude group: "org.slf4j"
     }
 }
-
 
 dependencies {
     groovy libraries.groovy
@@ -38,44 +34,28 @@ daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 
-task classpathManifest(type: ClasspathManifest, overwrite: true) {
-    input = configurations.publishCompile
-}
-
-sourceSets {
-    main.output.dir generatedResourcesDir, builtBy: classpathManifest
-}
-
-jar.enabled = false
-
 task jarjarJar(type: JarJarJar) {
+    appendix = "fat"
+    dependsOn jar
     doFirst {
+        from(zipTree(jar.getArchivePath()))
         configurations.fatJarConfiguration.each {
             from(zipTree(it)) {
-                exclude "META-INF/**"
-                exclude "*classpath.properties"
             }
         }
     }
-    from(sourceSets.main.output)
+    exclude "META-INF/**"
+    exclude "*classpath.properties"
     rule('com.google.common.**', 'org.gradle.jarjar.com.google.common.@1')
     keep('org.gradle.**')
 }
 
-sourceSets {
-    integTest {
-        compileClasspath += test.output + jarjarJar.outputs.files
-        runtimeClasspath += test.output + jarjarJar.outputs.files
-    }
-}
-
 artifacts {
-    delegate.default jarjarJar
     publishCompileWithProjectJar jarjarJar
-    publishRuntime jarjarJar
+    publishRuntime new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact(archivesBaseName, 'jar', 'jar', null, new Date(), jarjarJar.getArchivePath(), jarjarJar)
 }
 
-configurations.all { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask == jar } }
+configurations.publishRuntime { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask == jar } }
 
 eclipse {
     classpath {
