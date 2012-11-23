@@ -101,6 +101,10 @@ class TestFileHelper {
     }
 
     String getPermissions() {
+        if (!isUnix()) {
+            return ""
+        }
+
         def process = ["ls", "-ld", file.absolutePath].execute()
         def result = process.inputStream.text
         def error = process.errorStream.text
