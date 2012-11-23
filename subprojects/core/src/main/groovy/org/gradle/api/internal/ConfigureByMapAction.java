@@ -40,4 +40,32 @@ public class ConfigureByMapAction<T> implements Action<T> {
     public void execute(T thing) {
         ConfigureUtil.configureByMap(properties, thing, mandatoryProperties);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ConfigureByMapAction that = (ConfigureByMapAction) o;
+
+        if (!mandatoryProperties.equals(that.mandatoryProperties)) {
+            return false;
+        }
+        if (!properties.equals(that.properties)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = properties.hashCode();
+        result = 31 * result + mandatoryProperties.hashCode();
+        return result;
+    }
 }

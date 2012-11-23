@@ -22,8 +22,9 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.ConfigureByMapAction;
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
@@ -42,15 +43,19 @@ import static org.gradle.util.CollectionUtils.flattenToList;
  */
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler, ResolverProvider {
 
-    private final RepositoryFactoryInternal repositoryFactory;
+    public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
+    private static final String MAVEN_REPO_DEFAULT_NAME = "maven";
+    private static final String IVY_REPO_DEFAULT_NAME = "ivy";
 
-    public DefaultRepositoryHandler(RepositoryFactoryInternal repositoryFactory, Instantiator instantiator) {
-        super(repositoryFactory.getBaseRepositoryFactory(), instantiator);
+    private final BaseRepositoryFactory repositoryFactory;
+
+    public DefaultRepositoryHandler(BaseRepositoryFactory repositoryFactory, Instantiator instantiator) {
+        super(repositoryFactory, instantiator);
         this.repositoryFactory = repositoryFactory;
     }
 
     public FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action) {
-        return addRepository(repositoryFactory.flatDir(action));
+        return addRepository(repositoryFactory.createFlatDirRepository(), FLAT_DIR_DEFAULT_NAME, action);
     }
 
     public FlatDirectoryArtifactRepository flatDir(Closure configureClosure) {
@@ -58,11 +63,11 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
-        return addRepository(repositoryFactory.flatDir(args));
+        return flatDir(new ConfigureByMapAction<FlatDirectoryArtifactRepository>(args));
     }
 
     public MavenArtifactRepository mavenCentral() {
-        return addRepository(repositoryFactory.mavenCentral());
+        return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME);
     }
 
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
@@ -76,13 +81,11 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             modifiedArgs.put("artifactUrls", urls);
         }
 
-        MavenArtifactRepository repo = repositoryFactory.mavenCentral();
-        ConfigureUtil.configureByMap(modifiedArgs, repo);
-        return addRepository(repo);
+        return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<MavenArtifactRepository>(modifiedArgs));
     }
 
     public MavenArtifactRepository mavenLocal() {
-        return addRepository(repositoryFactory.mavenLocal());
+        return addRepository(repositoryFactory.createMavenLocalRepository(), DEFAULT_MAVEN_LOCAL_REPO_NAME);
     }
 
     public DependencyResolver mavenRepo(Map<String, ?> args) {
@@ -104,17 +107,17 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             }
         }
 
-        MavenArtifactRepository repository = repositoryFactory.maven(Actions.doNothing());
+        MavenArtifactRepository repository = repositoryFactory.createMavenRepository();
         ConfigureUtil.configureByMap(modifiedArgs, repository);
-        DependencyResolver resolver = repositoryFactory.getBaseRepositoryFactory().toResolver(repository);
+        DependencyResolver resolver = repositoryFactory.toResolver(repository);
         ConfigureUtil.configure(configClosure, resolver);
-        addRepository(new FixedResolverArtifactRepository(resolver));
+        addRepository(new FixedResolverArtifactRepository(resolver), resolver.getName());
         return resolver;
     }
 
 
     public MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action) {
-        return addRepository(repositoryFactory.maven(action));
+        return addRepository(repositoryFactory.createMavenRepository(), MAVEN_REPO_DEFAULT_NAME, action);
     }
 
     public MavenArtifactRepository maven(Closure closure) {
@@ -122,11 +125,12 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action) {
-        return addRepository(repositoryFactory.ivy(action));
+        return addRepository(repositoryFactory.createIvyRepository(), IVY_REPO_DEFAULT_NAME, action);
     }
 
     public IvyArtifactRepository ivy(Closure closure) {
         return ivy(new ClosureBackedAction<IvyArtifactRepository>(closure));
     }
+
 
 }

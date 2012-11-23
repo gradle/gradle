@@ -67,6 +67,29 @@ public abstract class Actions {
                 action.execute(item);
             }
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            CompositeAction that = (CompositeAction) o;
+
+            if (!actions.equals(that.actions)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return actions.hashCode();
+        }
     }
 
     /**

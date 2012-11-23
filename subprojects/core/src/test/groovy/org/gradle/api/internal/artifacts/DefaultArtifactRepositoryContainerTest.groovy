@@ -29,34 +29,34 @@ import spock.lang.Specification
 
 class DefaultArtifactRepositoryContainerTest extends Specification {
 
-    BaseRepositoryFactory baseRepositoryFactory
+    BaseRepositoryFactory repositoryFactory
     DefaultArtifactRepositoryContainer container
 
     def setup() {
-        baseRepositoryFactory = Mock(BaseRepositoryFactory)
+        repositoryFactory = Mock(BaseRepositoryFactory)
         container = createResolverContainer()
     }
 
     ArtifactRepositoryContainer createResolverContainer(
-            BaseRepositoryFactory baseRepositoryFactory = baseRepositoryFactory,
+            BaseRepositoryFactory repositoryFactory = repositoryFactory,
             Instantiator instantiator = new DirectInstantiator()
     ) {
-        new DefaultArtifactRepositoryContainer(baseRepositoryFactory, instantiator)
+        new DefaultArtifactRepositoryContainer(repositoryFactory, instantiator)
     }
 
-    List setupNotation(int i, baseRepositoryFactory = baseRepositoryFactory) {
-        setupNotation("repoNotation$i", "repo$i", "resolver$i", baseRepositoryFactory)
+    List setupNotation(int i, repositoryFactory = repositoryFactory) {
+        setupNotation("repoNotation$i", "repo$i", "resolver$i", repositoryFactory)
     }
 
-    List setupNotation(notation, repoName, resolverName, baseRepositoryFactory = baseRepositoryFactory) {
+    List setupNotation(notation, repoName, resolverName, repositoryFactory = repositoryFactory) {
         def repo = Mock(ArtifactRepositoryInternal) { getName() >> repoName }
         def resolver = new FileSystemResolver()
         def resolverRepo = Spy(FixedResolverArtifactRepository, constructorArgs: [resolver])
 
         interaction {
-            1 * baseRepositoryFactory.createRepository(notation) >> repo
-            1 * baseRepositoryFactory.toResolver(repo) >> resolver
-            1 * baseRepositoryFactory.createResolverBackedRepository(resolver) >> resolverRepo
+            1 * repositoryFactory.createRepository(notation) >> repo
+            1 * repositoryFactory.toResolver(repo) >> resolver
+            1 * repositoryFactory.createResolverBackedRepository(resolver) >> resolverRepo
             1 * resolverRepo.onAddToContainer(container)
         }
 
@@ -95,9 +95,9 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         def resolverRepo = Spy(FixedResolverArtifactRepository, constructorArgs: [resolver])
 
         interaction {
-            1 * baseRepositoryFactory.createRepository(resolver) >> repo
-            1 * baseRepositoryFactory.toResolver(repo) >> resolver
-            1 * baseRepositoryFactory.createResolverBackedRepository(resolver) >> resolverRepo
+            1 * repositoryFactory.createRepository(resolver) >> repo
+            1 * repositoryFactory.toResolver(repo) >> resolver
+            1 * repositoryFactory.createResolverBackedRepository(resolver) >> resolverRepo
             1 * resolverRepo.onAddToContainer(container)
         }
 

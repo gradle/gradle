@@ -15,12 +15,15 @@
  */
 package org.gradle.api.publication.maven.internal
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
+import org.gradle.api.internal.Actions
+import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.api.internal.ConfigureByMapAction
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 
@@ -32,6 +35,18 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
     final DeployerFactory factory = Mock()
     final MavenPomMetaInfoProvider metaInfoProvider = Mock()
     final DefaultMavenRepositoryHandlerConvention convention = new DefaultMavenRepositoryHandlerConvention(container, factory)
+
+    Action byMap(Map m) {
+        new ConfigureByMapAction(m)
+    }
+
+    Action byClosure(Closure c) {
+        new ClosureBackedAction(c)
+    }
+
+    Action composite(Action... actions) {
+        Actions.composite(actions)
+    }
 
     public void mavenDeployerWithoutName() {
         GroovyMavenDeployer deployer = Mock()
@@ -54,7 +69,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
         then:
         result == deployer
         1 * factory.createMavenDeployer() >> deployer
-        1 * container.addRepository(deployer, [name: 'someName'], "mavenDeployer") >> deployer
+        1 * container.addRepository(deployer, "mavenDeployer", byMap(name: 'someName')) >> deployer
     }
 
     public void mavenDeployerWithArgsAndClosure() {
@@ -69,7 +84,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
         then:
         result == deployer
         1 * factory.createMavenDeployer() >> deployer
-        1 * container.addRepository(deployer, [name: 'someName'], cl, "mavenDeployer") >> deployer
+        1 * container.addRepository(deployer, "mavenDeployer", composite(byMap(name: 'someName'), byClosure(cl))) >> deployer
     }
 
     public void mavenDeployerWithClosure() {
@@ -84,7 +99,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
         then:
         result == deployer
         1 * factory.createMavenDeployer() >> deployer
-        1 * container.addRepository(deployer, cl, "mavenDeployer") >> deployer
+        1 * container.addRepository(deployer, "mavenDeployer", byClosure(cl)) >> deployer
     }
 
     public void mavenInstallerWithoutName() {
@@ -108,7 +123,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
         then:
         result == installer
         1 * factory.createMavenInstaller() >> installer
-        1 * container.addRepository(installer, [name: 'name'], "mavenInstaller") >> installer
+        1 * container.addRepository(installer, "mavenInstaller", byMap(name: 'name')) >> installer
     }
 
     public void mavenInstallerWithNameAndClosure() {
@@ -121,7 +136,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
         then:
         result == installer
         1 * factory.createMavenInstaller() >> installer
-        1 * container.addRepository(installer, [name: 'name'], cl, "mavenInstaller") >> installer
+        1 * container.addRepository(installer, "mavenInstaller", composite(byMap(name: 'name'), byClosure(cl))) >> installer
     }
 
     public void mavenInstallerWithClosure() {
@@ -134,7 +149,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
         then:
         result == installer
         1 * factory.createMavenInstaller() >> installer
-        1 * container.addRepository(installer, cl, "mavenInstaller") >> installer
+        1 * container.addRepository(installer, "mavenInstaller", byClosure(cl)) >> installer
     }
 
 }

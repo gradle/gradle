@@ -25,6 +25,7 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.internal.reflect.Instantiator;
@@ -34,7 +35,6 @@ import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.gradle.api.internal.Cast.cast;
 
@@ -157,7 +157,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         DependencyResolver resolver = baseRepositoryFactory.toResolver(repository);
         ConfigureUtil.configure(configureClosure, resolver);
         ArtifactRepository resolverRepository = baseRepositoryFactory.createResolverBackedRepository(resolver);
-        addRepository(resolverRepository, "repository", orderAction);
+        addWithUniqueName(resolverRepository, "repository", orderAction);
         return resolver;
     }
 
@@ -174,48 +174,23 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         return returnedResolvers;
     }
 
-    public <T extends ArtifactRepository> T addRepository(T repository, Closure closure, String defaultName) {
-        return addRepository(repository, closure, defaultName, addLastAction);
-    }
-
-    public <T extends ArtifactRepository> T addRepository(T repository, Map<String, ?> args, Closure closure, String defaultName) {
-        ConfigureUtil.configureByMap(args, repository);
-        return addRepository(repository, closure, defaultName);
-    }
-
-    protected <T extends ArtifactRepository> T addRepository(T repository, Closure closure, String defaultName, Action<ArtifactRepository> action) {
-        ConfigureUtil.configure(closure, repository);
-        return addRepository(repository, defaultName, action);
-    }
-
-    public <T extends ArtifactRepository> T addRepository(T repository, Map<String, ?> args, String defaultName) {
-        ConfigureUtil.configureByMap(args, repository);
-        addRepository(repository, defaultName);
-        return repository;
-    }
-
     public <T extends ArtifactRepository> T addRepository(T repository, String defaultName) {
-        return addRepository(repository, defaultName, addLastAction);
+        return addRepository(repository, defaultName, Actions.doNothing());
     }
 
-    protected <T extends ArtifactRepository> T addRepository(T repository, String defaultName, Action<ArtifactRepository> action) {
+    public <T extends ArtifactRepository> T addRepository(T repository, String defaultName, Action<? super T> configureAction) {
+        configureAction.execute(repository);
+        return addWithUniqueName(repository, defaultName, addLastAction);
+    }
+
+    private <T extends ArtifactRepository> T addWithUniqueName(T repository, String defaultName, Action<? super T> insertion) {
         String repositoryName = repository.getName();
         if (!GUtil.isTrue(repositoryName)) {
-            repositoryName = uniquifyName(defaultName);
-            repository.setName(repositoryName);
+            repository.setName(uniquifyName(defaultName));
+        } else {
+            repository.setName(uniquifyName(repositoryName));
         }
-        assertCanAdd(repositoryName);
-        action.execute(repository);
-        cast(ArtifactRepositoryInternal.class, repository).onAddToContainer(this);
-        return repository;
-    }
 
-    protected <T extends ArtifactRepository> T addRepository(T repository) {
-        return addRepository(repository, addLastAction);
-    }
-
-    protected <T extends ArtifactRepository> T addRepository(T repository, Action<? super T> insertion) {
-        repository.setName(uniquifyName(repository.getName()));
         assertCanAdd(repository.getName());
         insertion.execute(repository);
         cast(ArtifactRepositoryInternal.class, repository).onAddToContainer(this);
