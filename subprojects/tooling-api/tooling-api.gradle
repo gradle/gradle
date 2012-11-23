@@ -52,7 +52,7 @@ task jarjarJar(type: JarJarJar) {
 
 artifacts {
     publishCompileWithProjectJar jarjarJar
-    publishRuntime new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact(archivesBaseName, 'jar', 'jar', null, new Date(), jarjarJar.getArchivePath(), jarjarJar)
+    publishRuntime file: jarjarJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: jarjarJar
 }
 
 configurations.publishRuntime { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask == jar } }
