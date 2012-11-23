@@ -163,25 +163,9 @@
         <para>
             Executing this task will build all of the artifacts to be published, and transfer them to the repository.
         </para>
-        <!--
-            We are cheating here. We can't use the tested output mechanism because we need to modify the sample before we can run it.
-            We could avoid this if we were able to grab the output from a test (org.gradle.api.publish.ivy.SamplesIvyPublishIntegrationTest)
-        -->
-        <para>Output of <userinput>gradle publishIvyPublicationToIvyRepository</userinput></para>
-        <screen>:subproject:compileJava
-:subproject:processResources UP-TO-DATE
-:subproject:classes
-:subproject:jar
-:compileJava
-:processResources UP-TO-DATE
-:classes
-:jar
-:sourceJar
-:publishIvyPublicationToIvyRepository
-
-BUILD SUCCESSFUL
-
-Total time: 1 sec</screen>
+        <sample dir="ivypublish-new" id="publishingIvyPublishSingle" title="Publishing via single publish task">
+            <output args='publishIvyPublicationToIvyRepository'/>
+        </sample>
     <section>
         <title>The “<literal>publish</literal>” lifecycle task</title>
         <para>
@@ -192,26 +176,10 @@ Total time: 1 sec</screen>
             In more concrete terms, executing this task will execute all <apilink class="org.gradle.api.publish.ivy.tasks.PublishToIvyRepository" /> tasks in the project.
             This is usually the most convenient way to perform a publish.
         </para>
-        <!--
-            Cheating again, see above.
-        -->
-        <para>Output of <userinput>gradle publish</userinput></para>
-        <screen>:subproject:compileJava
-:subproject:processResources UP-TO-DATE
-:subproject:classes
-:subproject:jar
-:compileJava
-:processResources UP-TO-DATE
-:classes
-:jar
-:sourceJar
-:publishIvyPublicationToIvyRepository
-:publish
-
-BUILD SUCCESSFUL
-
-Total time: 1 sec</screen>
-        </section>
+        <sample dir="ivypublish-new" id="publishingIvyPublishLifecycle" title="Publishing via “publish” lifecycle task">
+            <output args='publish'/>
+        </sample>
+    </section>
     </section>
     <section>
         <title>Future features</title>

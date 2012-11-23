@@ -1,0 +1,16 @@
+:generateIvyModuleDescriptor
+:subproject:compileJava
+:subproject:processResources UP-TO-DATE
+:subproject:classes
+:subproject:jar
+:compileJava
+:processResources UP-TO-DATE
+:classes
+:jar
+:sourceJar
+:publishIvyPublicationToIvyRepository
+:publish
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

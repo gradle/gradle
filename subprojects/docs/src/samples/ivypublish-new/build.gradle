@@ -34,7 +34,7 @@ publishing {
 // END SNIPPET input
     repositories {
         ivy {
-            url "http://mycompany.com/repo" // change to point to your repo
+            url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
             credentials {
                 username "user1"
                 password "secret"
