@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.util;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.Action;
@@ -35,10 +37,10 @@ import java.util.*;
  */
 public class PatternSet implements AntBuilderAware, PatternFilterable {
 
-    private Set<String> includes = new LinkedHashSet<String>();
-    private Set<String> excludes = new LinkedHashSet<String>();
-    private Set<Spec<FileTreeElement>> includeSpecs = new LinkedHashSet<Spec<FileTreeElement>>();
-    private Set<Spec<FileTreeElement>> excludeSpecs = new LinkedHashSet<Spec<FileTreeElement>>();
+    private final Set<String> includes = Sets.newLinkedHashSet();
+    private final Set<String> excludes = Sets.newLinkedHashSet();
+    private final Set<Spec<FileTreeElement>> includeSpecs = Sets.newLinkedHashSet();
+    private final Set<Spec<FileTreeElement>> excludeSpecs = Sets.newLinkedHashSet();
 
     boolean caseSensitive = true;
 
@@ -113,43 +115,32 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public Spec<FileTreeElement> getAsSpec() {
-        Spec<FileTreeElement> includeSpec = Specs.satisfyAll();
+        return new AndSpec<FileTreeElement>(getAsIncludeSpec(), new NotSpec<FileTreeElement>(getAsExcludeSpec()));
+    }
 
-        Set<String> includes = this.getIncludes();
-        Set<Spec<FileTreeElement>> includeSpecs = getIncludeSpecs();
-
-        boolean hasIncludes = !includes.isEmpty() || !includeSpecs.isEmpty();
-        if (hasIncludes) {
-            List<Spec<FileTreeElement>> matchers = new LinkedList<Spec<FileTreeElement>>();
-            for (String include : includes) {
-                Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), include);
-                matchers.add(new RelativePathSpec(patternMatcher));
-            }
-            matchers.addAll(includeSpecs);
-            includeSpec = new OrSpec<FileTreeElement>(matchers);
+    public Spec<FileTreeElement> getAsIncludeSpec() {
+        List<Spec<FileTreeElement>> matchers = Lists.newArrayList();
+        for (String include : includes) {
+            Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(true, caseSensitive, include);
+            matchers.add(new RelativePathSpec(patternMatcher));
         }
 
+        matchers.addAll(includeSpecs);
+        return new OrSpec<FileTreeElement>(matchers);
+    }
 
-        Set<String> excludes = getExcludes();
-        Collection<String> allExcludes = new HashSet<String>(excludes);
+    public Spec<FileTreeElement> getAsExcludeSpec() {
+        Collection<String> allExcludes = Sets.newLinkedHashSet(excludes);
         Collections.addAll(allExcludes, DirectoryScanner.getDefaultExcludes());
 
-        Set<Spec<FileTreeElement>> excludeSpecs = getExcludeSpecs();
-
-        List<Spec<FileTreeElement>> matchers = new LinkedList<Spec<FileTreeElement>>();
+        List<Spec<FileTreeElement>> matchers = Lists.newArrayList();
         for (String exclude : allExcludes) {
-            Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(false, isCaseSensitive(), exclude);
+            Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(false, caseSensitive, exclude);
             matchers.add(new RelativePathSpec(patternMatcher));
         }
 
         matchers.addAll(excludeSpecs);
-        Spec<FileTreeElement> excludeSpec = new NotSpec<FileTreeElement>(new OrSpec<FileTreeElement>(matchers));
-
-        if (!hasIncludes) {
-            return excludeSpec;
-        }
-
-        return new AndSpec<FileTreeElement>(includeSpec, excludeSpec);
+        return new OrSpec<FileTreeElement>(matchers);
     }
 
     public Set<String> getIncludes() {
@@ -201,9 +192,8 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     /*
-    This can't be called just include, because it has the same erasure as include(Iterable<String>)
+    This can't be called just include, because it has the same erasure as include(Iterable<String>).
      */
-
     public PatternSet includeSpecs(Iterable<Spec<FileTreeElement>> includeSpecs) {
         CollectionUtils.addAll(this.includeSpecs, includeSpecs);
         return this;
@@ -241,10 +231,10 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     public Object addToAntBuilder(Object node, String childNodeName) {
 
-        if (!getIncludeSpecs().isEmpty() || !getExcludeSpecs().isEmpty()) {
+        if (!includeSpecs.isEmpty() || !excludeSpecs.isEmpty()) {
             throw new UnsupportedOperationException("Cannot add include/exclude specs to Ant node. Only include/exclude patterns are currently supported.");
         }
 
-        return new PatternSetAntBuilderDelegate(getIncludes(), getExcludes(), isCaseSensitive()).addToAntBuilder(node, childNodeName);
+        return new PatternSetAntBuilderDelegate(includes, excludes, caseSensitive).addToAntBuilder(node, childNodeName);
     }
 }
