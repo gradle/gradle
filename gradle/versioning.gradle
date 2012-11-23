@@ -5,7 +5,7 @@ if (incomingDistributionsBuildReceipt) {
     ext.versionBase = incomingDistributionsBuildReceipt.versionBase
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
 } else {
-    ext.versionBase = rootProject.file("version.txt").text
+    ext.versionBase = rootProject.file("version.txt").text.trim()
 
     if (project.hasProperty("buildTimestamp")) {
         ext.buildTime = timestampFormat.parse(buildTimestamp)
