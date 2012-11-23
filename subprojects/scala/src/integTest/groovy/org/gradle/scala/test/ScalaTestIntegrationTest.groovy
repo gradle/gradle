@@ -16,12 +16,16 @@
 package org.gradle.scala.test
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import static org.hamcrest.Matchers.equalTo
+
 
 class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule TestResources resources = new TestResources()
+    
 
     def executesTestsWithMultiLineDescriptions() {
         file("build.gradle") << """
@@ -42,13 +46,15 @@ class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         file("src/test/scala/MultiLineNameTest.scala") << """
+package org.gradle
+
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class MultiLineSuite extends FunSuite {
-    test("This test method name \\n spans many \\n lines") {
+    test("This test method name\\nspans many\\nlines") {
         assert(1 === 2)
     }
 }"""
@@ -56,5 +62,9 @@ class MultiLineSuite extends FunSuite {
         then:
         //the build should fail because the failing test has been executed
         runAndFail("test").assertHasDescription("Execution failed for task ':test'.")
+
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        result.assertTestClassesExecuted('org.gradle.MultiLineSuite')
+	result.testClass("org.gradle.MultiLineSuite").assertTestFailed( "This test method name\nspans many\nlines", equalTo("org.scalatest.exceptions.TestFailedException: 1 did not equal 2")) 
     }
 }
