@@ -331,13 +331,14 @@ this, we will introduce a synthetic version for changing modules.
 1. Increment the cache layout version in `DefaultCacheLockingManager`. Will need to update `LocallyAvailableResourceFinderFactory` for this change.
 2. Change `ModuleDescriptorCache.CachedModuleDescriptor` to add a `descriptorHash` property.
 3. Change `DefaultModuleDescriptorCache` to store the hash of the module descriptor from the `ModuleDescriptorStore` as part of the `ModuleDescriptorCacheEntry`.
-4. Change `CachedExternalResource` to add a `descriptorHash` property.
-5. Change `CachingModuleVersionRepository.resolve()` to use the owning module version's descriptorHash as the artifact's descriptorHash when storing.
+4. Split CachedArtifactIndex/CachedArtifact from CachedExternalResourceIndex/CachedExternalResource to handle cached Artifacts. Let ArtifactAtRepositoryCachedExternalResourceIndex implement CachedArtifactIndex.
+5. Change `CachedArtifact` to add a `descriptorHash` property.
+6. Change `CachingModuleVersionRepository.resolve()` to use the owning module version's descriptorHash as the artifact's descriptorHash when storing.
    The final implementation should avoid loading the module descriptor multiple times. It should be possible to attach the module version descriptorHash,
    when resolving the module metadata, to the `Artifact that will later be passed to `resolve()`.
-6. Change `CachePolicy.mustRefreshArtifact()` to expire a cached artifact if its descriptorHash != its owning module version's descriptorHash, except
+7. Change `CachePolicy.mustRefreshArtifact()` to expire a cached artifact if its descriptorHash != its owning module version's descriptorHash, except
    when offline.
-7. Change CachingModuleVersionRepository.lookupModuleInCache() so that it no longer calls expireArtifactsForChangingModule().
+8. Change CachingModuleVersionRepository.lookupModuleInCache() so that it no longer calls expireArtifactsForChangingModule().
 
 ### User-visible changes and backward-compatibility issues
 
