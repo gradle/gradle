@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.DefaultFileTreeElement;
+import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -110,13 +111,17 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
      * the listener.  If it is a file, the file will be checked and notified.
      */
     public void visit(FileVisitor visitor) {
+        visitFrom(visitor, dir, new RelativePath(false));
+    }
+
+    public void visitFrom(FileVisitor visitor, File dir, RelativePath path) {
         AtomicBoolean stopFlag = new AtomicBoolean();
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
         if (dir.exists()) {
             if (dir.isFile()) {
                 processSingleFile(dir, visitor, spec, stopFlag);
             } else {
-                walkDir(dir, new RelativePath(false), visitor, spec, stopFlag);
+                walkDir(dir, path, visitor, spec, stopFlag);
             }
         } else {
             LOGGER.info("file or directory '" + dir + "', not found");
@@ -125,7 +130,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     private void processSingleFile(File file, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
         RelativePath path = new RelativePath(true, file.getName());
-        FileVisitDetailsImpl details = new FileVisitDetailsImpl(file, path, stopFlag);
+        FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag);
         if (isAllowed(details, spec)) {
             visitor.visitFile(details);
         }
@@ -140,12 +145,12 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
             // else, might be a link which points to nothing, or has been removed while we're visiting, or ...
             throw new GradleException(String.format("Could not list contents of '%s'.", file));
         }
-        List<FileVisitDetailsImpl> dirs = new ArrayList<FileVisitDetailsImpl>();
+        List<FileVisitDetails> dirs = new ArrayList<FileVisitDetails>();
         for (int i = 0; !stopFlag.get() && i < children.length; i++) {
             File child = children[i];
             boolean isFile = child.isFile();
             RelativePath childPath = path.append(isFile, child.getName());
-            FileVisitDetailsImpl details = new FileVisitDetailsImpl(child, childPath, stopFlag);
+            FileVisitDetails details = new DefaultFileVisitDetails(child, childPath, stopFlag);
             if (isAllowed(details, spec)) {
                 if (isFile) {
                     visitor.visitFile(details);
@@ -157,7 +162,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
         // now handle dirs
         for (int i = 0; !stopFlag.get() && i < dirs.size(); i++) {
-            FileVisitDetailsImpl dir = dirs.get(i);
+            FileVisitDetails dir = dirs.get(i);
             if (depthFirst) {
                 walkDir(dir.getFile(), dir.getRelativePath(), visitor, spec, stopFlag);
                 visitor.visitDir(dir);
@@ -175,18 +180,5 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     public DirectoryFileTree depthFirst() {
         depthFirst = true;
         return this;
-    }
-
-    private static class FileVisitDetailsImpl extends DefaultFileTreeElement implements FileVisitDetails {
-        private final AtomicBoolean stop;
-
-        private FileVisitDetailsImpl(File file, RelativePath relativePath, AtomicBoolean stop) {
-            super(file, relativePath);
-            this.stop = stop;
-        }
-
-        public void stopVisiting() {
-            stop.set(true);
-        }
     }
 }
