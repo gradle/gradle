@@ -17,6 +17,8 @@ package org.gradle.util;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.rules.MethodRule;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
@@ -26,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * A JUnit rule which provides a unique temporary folder for the test.
  */
-public class TemporaryFolder implements MethodRule, TestFileContext {
+public class TemporaryFolder implements MethodRule, TestRule, TestFileContext {
     private TestFile dir;
     private String prefix;
     private static TestFile root;
@@ -65,7 +67,7 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
     }
 
     public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
-        init(method, target);
+        init(method.getName(), target.getClass().getSimpleName());
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
@@ -76,13 +78,29 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
         };
     }
 
-    private void init(FrameworkMethod method, Object target) {
+    public Statement apply(final Statement base, Description description) {
+        init(description.getMethodName(), description.getTestClass().getSimpleName());
+        return new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                base.evaluate();
+                getDir().maybeDeleteDir();
+                // Don't delete on failure
+            }
+        };
+    }
+
+    private void init(String methodName, String className) {
+        if (methodName == null) {
+            // must be a @ClassRule; use the rule's class name instead
+            methodName = getClass().getSimpleName();
+        }
         if (prefix == null) {
-            String safeMethodName = method.getName().replaceAll("\\s", "_").replace(File.pathSeparator, "_").replace(":", "_");
+            String safeMethodName = methodName.replaceAll("\\s", "_").replace(File.pathSeparator, "_").replace(":", "_");
             if (safeMethodName.length() > 64) {
                 safeMethodName = safeMethodName.substring(0, 32) + "..." + safeMethodName.substring(safeMethodName.length() - 32);
             }
-            prefix = String.format("%s/%s", target.getClass().getSimpleName(), safeMethodName);
+            prefix = String.format("%s/%s", className, safeMethodName);
         }
     }
 
@@ -92,7 +110,7 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
 
     public static TemporaryFolder newInstance(FrameworkMethod method, Object target) {
         TemporaryFolder temporaryFolder = new TemporaryFolder();
-        temporaryFolder.init(method, target);
+        temporaryFolder.init(method.getName(), target.getClass().getSimpleName());
         return temporaryFolder;
     }
 
