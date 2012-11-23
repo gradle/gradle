@@ -296,4 +296,11 @@ class SingleIncludePatternFileTreeSpec extends Specification {
         1 * visitor.visitFile({ it.file == tempDir.file("dir3/file1") })
         0 * _
     }
+
+    def "display name"() {
+        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir?/file1")
+
+        expect:
+        fileTree.displayName == "directory '$tempDir.dir' include 'dir?/file1'"
+    }
 }

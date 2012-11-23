@@ -124,6 +124,6 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
     }
 
     public String getDisplayName() {
-        return "file tree with base dir " + baseDir + " and include pattern " + includePattern + " (and possibly some exclusions)";
+        return "directory '" + baseDir + "' include '" + includePattern + "'";
     }
 }
