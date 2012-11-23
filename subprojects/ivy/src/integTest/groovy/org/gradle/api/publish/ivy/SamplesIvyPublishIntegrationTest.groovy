@@ -18,11 +18,9 @@ package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.ivy.IvyDescriptor
-import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.ivy.IvyHttpRepository
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.util.TestFile
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
@@ -37,7 +35,7 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(sample.dir)
 
         and:
-        def fileRepo = new IvyFileRepository(new TestFile(sample.dir, "repo"))
+        def fileRepo = ivy(sample.dir.file("repo"))
         IvyHttpRepository httpRepo = new IvyHttpRepository(httpServer, fileRepo)
         IvyModule ivyModule = httpRepo.module("org.gradle.test", "ivypublish", "1.0")
         def uploads = file("uploads").createDir()
