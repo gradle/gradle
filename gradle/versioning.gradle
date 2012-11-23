@@ -33,17 +33,22 @@ if (incomingDistributionsBuildReceipt) {
     }
 }
 
-ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber : null
-ext.finalRelease = project.hasProperty("finalRelease") ? project.finalRelease as boolean : false
+ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
+ext.finalRelease = project.hasProperty("finalRelease")
 if (rcNumber != null && finalRelease) {
     throw new InvalidUserDataException("Cannot set rcNumber and finalRelease at the same time")
 }
 
 version = versionBase
-if (rcNumber != null) {
+
+ext.isSnapshot = false
+if (finalRelease) {
+    // use version base
+} else if (rcNumber != null) {
     version += "-rc-$rcNumber"
-}
-ext.isSnapshot = finalRelease == false && rcNumber == null
-if (isSnapshot) {
+} else {
+    isSnapshot = true
     version += "-$buildTimestamp"
 }
+
+println "Gradle version: $version"
