@@ -49,6 +49,8 @@ artifacts {
 }
 
 uploadArchives { task ->
+    onlyIf { !project.hasProperty("noUpload") }
+
     gradle.taskGraph.whenReady { graph ->
         if (graph.hasTask(task)) {
             // check properties defined and fail early
