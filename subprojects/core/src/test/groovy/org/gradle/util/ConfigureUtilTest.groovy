@@ -17,83 +17,97 @@ package org.gradle.util
 
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.util.ConfigureUtil.IncompleteInputException
-import org.junit.Test
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.sameInstance
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.fail
+import spock.lang.Specification
 
-class ConfigureUtilTest {
-    @Test
-    public void canConfigureObjectUsingClosure() {
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertThat
+
+class ConfigureUtilTest extends Specification {
+    
+    def canConfigureObjectUsingClosure() {
+        given:
         List obj = []
         def cl = {
             add('a');
             assertThat(size(), equalTo(1));
             assertThat(obj, equalTo(['a']))
         }
+        
+        when:
         ConfigureUtil.configure(cl, obj)
-        assertThat(obj, equalTo(['a']))
+        
+        then:
+        obj == ['a']
     }
 
-    @Test
-    public void passesConfiguredObjectToClosureAsParameter() {
+    def passesConfiguredObjectToClosureAsParameter() {
+        given:
         List obj = []
         def cl = {
-            assertThat(it, sameInstance(obj))
+            it.is obj
         }
         def cl2 = {List list ->
-            assertThat(list, sameInstance(obj))
+            list.is obj
         }
         def cl3 = {->
-            assertThat(delegate, sameInstance(obj))
+            delegate.is obj
         }
+
+        when:
         ConfigureUtil.configure(cl, obj)
         ConfigureUtil.configure(cl2, obj)
         ConfigureUtil.configure(cl3, obj)
+
+        then:
+        noExceptionThrown()
     }
 
-    @Test
-    public void canConfigureObjectPropertyUsingMap() {
+    def canConfigureObjectPropertyUsingMap() {
+        given:
         Bean obj = new Bean()
 
+        when:
         ConfigureUtil.configureByMap(obj, prop: 'value')
-        assertThat(obj.prop, equalTo('value'))
 
+        then:
+        obj.prop == "value"
+
+        when:
         ConfigureUtil.configureByMap(obj, method: 'value2')
-        assertThat(obj.prop, equalTo('value2'))
+
+        then:
+        obj.prop == 'value2'
     }
 
-    @Test
-    public void canConfigureAndValidateObjectUsingMap() {
+    def canConfigureAndValidateObjectUsingMap() {
+        given:
         Bean obj = new Bean()
 
-        try {
-            //when
-            ConfigureUtil.configureByMap([prop: 'value'], obj, ['foo'])
-            //then
-            fail();
-        } catch (IncompleteInputException e) {
-            assert e.missingKeys.contains('foo')
-        }
+        when:
+        ConfigureUtil.configureByMap([prop: 'value'], obj, ['foo'])
 
-        //when
+        then:
+        def e = thrown(IncompleteInputException)
+        e.missingKeys.contains("foo")
+
+        when:
         ConfigureUtil.configureByMap([prop: 'value'], obj, ['prop'])
-        //then
+
+        then:
         assert obj.prop == 'value'
     }
 
-    @Test
-    public void throwsExceptionForUnknownProperty() {
+    def throwsExceptionForUnknownProperty() {
+        given:
         Bean obj = new Bean()
 
-        try {
-            ConfigureUtil.configureByMap(obj, unknown: 'value')
-            fail()
-        } catch (MissingPropertyException e) {
-            assertThat(e.type, equalTo(Bean.class))
-            assertThat(e.property, equalTo('unknown'))
-        }
+        when:
+        ConfigureUtil.configureByMap(obj, unknown: 'value')
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.type == Bean
+        e.property == 'unknown'
     }
     
     static class TestConfigurable implements Configurable {
@@ -105,18 +119,27 @@ class ConfigureUtilTest {
         }
     }
     
-    @Test
-    void testConfigurableAware() {
+
+    def testConfigurableAware() {
+        given:
         def c = new TestConfigurable()
+
+        when:
         ConfigureUtil.configure({ a = 1 }, c)
-        assert c.props.a == 1
+
+        then:
+        c.props.a == 1
     }
-    
-    @Test
+
     void configureByMapTriesMethodForExtensibleObjects() {
+        given:
         Bean bean = ThreadGlobalInstantiator.getOrCreate().newInstance(Bean)
+
+        when:
         ConfigureUtil.configureByMap(bean, method:  "foo")
-        assert bean.prop == "foo"
+
+        then:
+        bean.prop == "foo"
     }
     
 }
