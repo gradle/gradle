@@ -23,10 +23,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
 
 import javax.xml.stream.XMLOutputFactory;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -57,7 +54,7 @@ public class NewJUnitXmlReportGenerator {
             File file = new File(testResultsDir, "TEST-" + className + ".xml");
             Writer output = null;
             try {
-                output = new FileWriter(file);
+                output = new BufferedWriter(new FileWriter(file));
                 saxWriter.write(className, result, output);
             } catch (IOException e) {
                 throw new GradleException("Problems writing xml test results to file: " + file, e);

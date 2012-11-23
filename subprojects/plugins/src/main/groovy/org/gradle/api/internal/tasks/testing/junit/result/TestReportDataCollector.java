@@ -69,6 +69,8 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             }
 
             classResult.add(methodResult);
+            cachingFileWriter.close(outputsFile(testDescriptor.getClassName(), TestOutputEvent.Destination.StdOut));
+            cachingFileWriter.close(outputsFile(testDescriptor.getClassName(), TestOutputEvent.Destination.StdErr));
         }
     }
 
@@ -89,11 +91,11 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     }
 
     private File standardErrorFile(String className) {
-        return new File(resultsDir, className + ".stderr.bin");
+        return new File(resultsDir, className + ".stderr.txt");
     }
 
     private File standardOutputFile(String className) {
-        return new File(resultsDir, className + ".stdout.bin");
+        return new File(resultsDir, className + ".stdout.txt");
     }
 
     public void provideOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {

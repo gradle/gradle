@@ -22,8 +22,6 @@ import java.io.*;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -31,25 +29,14 @@ import java.util.concurrent.locks.ReentrantLock;
 public class CachingFileWriter {
 
     final LinkedHashMap<File, Writer> openFiles = new LinkedHashMap<File, Writer>();
-    private final Lock lock = new ReentrantLock();
     private final int openFilesCount;
 
     public CachingFileWriter(int openFilesCount) {
         this.openFilesCount = openFilesCount;
     }
 
-    public void closeAll() {
-        for (Writer w : openFiles.values()) {
-            IOUtils.closeQuietly(w);
-        }
-        openFiles.clear();
-    }
-
     public void write(File file, String text) {
         Writer out = null;
-        //there are more effective ways of synchronizing below
-        //however, this fat lock seems to be very effective anyway (negligible overhead according to the profiler)
-        lock.lock();
         try {
             if (openFiles.containsKey(file)) {
                 out = openFiles.get(file);
@@ -59,7 +46,7 @@ public class CachingFileWriter {
                 if (openFiles.size() > openFilesCount) {
                     //remove first
                     Iterator<Map.Entry<File, Writer>> iterator = openFiles.entrySet().iterator();
-                    IOUtils.closeQuietly(iterator.next().getValue());
+                    close(iterator.next().getValue(), file.toString());
                     iterator.remove();
                 }
             }
@@ -67,8 +54,28 @@ public class CachingFileWriter {
         } catch (IOException e) {
             IOUtils.closeQuietly(out);
             throw new RuntimeException("Problems writing to file: " + file, e);
-        } finally {
-            lock.unlock();
+        }
+    }
+
+    public void close(File file) {
+        Writer w = openFiles.remove(file);
+        if (w != null) { //could be already closed
+            close(w, file.toString());
+        }
+    }
+
+    public void closeAll() {
+        for (Map.Entry<File, Writer> entry : openFiles.entrySet()) {
+            close(entry.getValue(), entry.getKey().toString());
+        }
+        openFiles.clear();
+    }
+
+    private void close(Writer w, String displayName) {
+        try {
+            w.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Problems closing " + displayName, e);
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -35,8 +36,6 @@ class TestReportDataCollectorSpec extends Specification {
 
     @Rule private TemporaryFolder temp = new TemporaryFolder()
     private collector = new TestReportDataCollector(temp.dir)
-
-    //TODO SF add concurrent coverage for this and CachingFileWriter
 
     def "validates results directory"() {
         temp.file("foo.txt").createNewFile()
@@ -77,6 +76,19 @@ class TestReportDataCollectorSpec extends Specification {
 
         then:
         1 * collector.cachingFileWriter.closeAll()
+    }
+
+    def "closes files after test"() {
+        collector.cachingFileWriter = Mock(CachingFileWriter)
+        def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
+
+        when:
+        collector.afterTest(test, Mock(TestResult))
+
+        then:
+        1 * collector.cachingFileWriter.close(new File(temp.dir, "FooTest.stderr.txt"))
+        1 * collector.cachingFileWriter.close(new File(temp.dir, "FooTest.stdout.txt"))
+        0 * collector._
     }
 
     def "keeps track of test results"() {
