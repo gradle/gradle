@@ -97,6 +97,26 @@ class ConfigureUtilTest extends Specification {
         assert obj.prop == 'value'
     }
 
+    def canConfigureAndValidateObjectUsingMapUsingGstrings() {
+        given:
+        Bean obj = new Bean()
+        def prop = "prop"
+        def foo = "foo"
+
+        when:
+        ConfigureUtil.configureByMap(["$prop": 'value'], obj, ["$foo"])
+
+        then:
+        def e = thrown(IncompleteInputException)
+        e.missingKeys.contains("foo")
+
+        when:
+        ConfigureUtil.configureByMap(["$prop": 'value'], obj, ["$prop"])
+
+        then:
+        assert obj.prop == 'value'
+    }
+
     def throwsExceptionForUnknownProperty() {
         given:
         Bean obj = new Bean()

@@ -25,7 +25,7 @@ import org.gradle.api.internal.DynamicObjectUtil;
 import java.util.Collection;
 import java.util.Map;
 
-import static org.apache.commons.collections.CollectionUtils.subtract;
+import static org.gradle.util.CollectionUtils.toStringList;
 
 /**
  * @author Hans Dockter
@@ -53,10 +53,13 @@ public class ConfigureUtil {
         return delegate;
     }
 
-    public static <T> T configureByMap(Map<String, ?> properties, T delegate, Collection<String> mandatoryKeys) {
-        Collection missingKeys = subtract(mandatoryKeys, properties.keySet());
-        if(!missingKeys.isEmpty()) {
-            throw new IncompleteInputException("Input configuration map does not contain following mandatory keys: " + missingKeys, missingKeys);
+    public static <T> T configureByMap(Map<?, ?> properties, T delegate, Collection<?> mandatoryKeys) {
+        if (!mandatoryKeys.isEmpty()) {
+            Collection<String> missingKeys = toStringList(mandatoryKeys);
+            missingKeys.removeAll(toStringList(properties.keySet()));
+            if (!missingKeys.isEmpty()) {
+                throw new IncompleteInputException("Input configuration map does not contain following mandatory keys: " + missingKeys, missingKeys);
+            }
         }
         return configureByMap(properties, delegate);
     }
