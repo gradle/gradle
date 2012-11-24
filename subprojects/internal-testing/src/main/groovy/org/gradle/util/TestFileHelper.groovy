@@ -102,7 +102,7 @@ class TestFileHelper {
 
     String getPermissions() {
         if (!isUnix()) {
-            return ""
+            return "-rwxr-xr-x"
         }
 
         def process = ["ls", "-ld", file.absolutePath].execute()
