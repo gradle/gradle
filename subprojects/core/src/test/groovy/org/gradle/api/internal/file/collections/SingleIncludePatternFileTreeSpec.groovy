@@ -77,7 +77,6 @@ class SingleIncludePatternFileTreeSpec extends Specification {
                 size == expectedDir.size()
                 name == expectedDir.name
                 path == "dir1"
-                mode == expectedDir.mode
                 relativePath.segments == ["dir1"]
             }
         }
@@ -90,7 +89,6 @@ class SingleIncludePatternFileTreeSpec extends Specification {
                 size == expectedFile.size()
                 name == expectedFile.name
                 path == "dir1/file2"
-                mode == expectedFile.mode
                 relativePath.segments == ["dir1", "file2"]
             }
         }
