@@ -47,7 +47,7 @@ task jarjarJar(type: JarJarJar) {
     exclude "META-INF/**"
     exclude "*classpath.properties"
     rule('com.google.common.**', 'org.gradle.jarjar.com.google.common.@1')
-    keep('org.gradle.**')
+    keep('org.gradle.tooling.**')
 }
 
 artifacts {
