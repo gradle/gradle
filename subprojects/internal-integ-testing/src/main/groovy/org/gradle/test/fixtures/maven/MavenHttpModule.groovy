@@ -221,6 +221,7 @@ class MavenHttpModule implements MavenModule {
     void expectArtifactGet(Map options) {
         server.expectGet(getArtifactPath(options), getArtifactFile(options))
     }
+
     void expectArtifactGet() {
         server.expectGet(getArtifactPath(), artifactFile)
     }
@@ -233,8 +234,8 @@ class MavenHttpModule implements MavenModule {
         "$moduleVersionPath/$pomFile.name"
     }
 
-    void expectArtifactHead() {
-        server.expectHead("$moduleVersionPath/$artifactFile.name", artifactFile)
+    void expectArtifactHead(Map options = [:]) {
+        server.expectHead("$moduleVersionPath/${getArtifactFile(options).name}", getArtifactFile(options))
     }
 
     void expectArtifactGetMissing() {
@@ -245,16 +246,16 @@ class MavenHttpModule implements MavenModule {
         server.expectHeadMissing("$moduleVersionPath/$missingArtifactName")
     }
 
-    void expectArtifactSha1Get() {
-        server.expectGet(getArtifactSha1Path(), backingModule.sha1File(artifactFile))
+    void expectArtifactSha1Get(Map options = [:]) {
+        server.expectGet(getArtifactSha1Path(options), backingModule.sha1File(getArtifactFile(options)))
     }
 
     TestFile getArtifactSha1File() {
         backingModule.artifactSha1File
     }
 
-    String getArtifactSha1Path() {
-        "${artifactPath}.sha1"
+    String getArtifactSha1Path(Map options = [:]) {
+        "${getArtifactPath(options)}.sha1"
     }
 
     TestFile getArtifactMd5File() {
