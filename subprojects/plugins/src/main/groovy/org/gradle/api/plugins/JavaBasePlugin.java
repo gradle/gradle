@@ -324,7 +324,6 @@ public class JavaBasePlugin implements Plugin<Project> {
             }
         });
         test.workingDir(project.getProjectDir());
-        //TODO SF move coverage from below to the JavaBasePluginSpec
         test.getConventionMapping().map("testReport", new Callable<Object>() {
             public Object call() throws Exception {
                 return !(test.getTestFramework() instanceof TestNGTestFramework);

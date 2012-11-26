@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.reflect.Instantiator
@@ -28,9 +29,9 @@ import org.gradle.util.Matchers
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
+
 import static org.gradle.util.Matchers.sameCollection
 import static org.gradle.util.WrapUtil.toLinkedSet
-import org.gradle.api.tasks.compile.JavaCompile
 
 /**
  * @author Hans Dockter
@@ -143,10 +144,30 @@ class JavaBasePluginTest extends Specification {
         test.workingDir == project.projectDir
         test.testResultsDir == project.testResultsDir
         test.testReportDir == project.testReportDir
+        test.testReport //by default (JUnit), the report is 'on'
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")
         javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+    }
+
+    void "configures test task for testNG"() {
+        given:
+        javaBasePlugin.apply(project)
+        def test = project.task('customTest', type: Test.class)
+
+        when:
+        test.useTestNG()
+
+        then:
+        assert !test.testReport //for TestNG, the report is 'off' by default for now
+
+        when:
+        test.testReport = true
+        test.useTestNG()
+
+        then:
+        assert test.testReport
     }
 
     void appliesMappingsToCustomJarTasks() {

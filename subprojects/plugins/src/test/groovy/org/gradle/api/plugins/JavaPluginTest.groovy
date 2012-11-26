@@ -225,25 +225,6 @@ class JavaPluginTest {
         assert task.classpath == project.sourceSets.test.runtimeClasspath
         assert task.testClassesDir == project.sourceSets.test.output.classesDir
         assert task.workingDir == project.projectDir
-        assert task.testReport //by default (JUnit), the report is 'on'
-    }
-
-    @Test void "configures test task for testNG"() {
-        javaPlugin.apply(project)
-        def task = project.tasks[JavaPlugin.TEST_TASK_NAME]
-
-        //when
-        task.useTestNG()
-
-        //then
-        assert !task.testReport //for TestNG, the report is 'off' by default for now
-
-        //when
-        task.testReport = true
-        task.useTestNG()
-
-        //then
-        assert task.testReport
     }
 
     @Test public void appliesMappingsToTasksAddedByTheBuildScript() {
