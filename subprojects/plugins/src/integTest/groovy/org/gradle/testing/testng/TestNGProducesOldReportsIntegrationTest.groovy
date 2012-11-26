@@ -54,7 +54,7 @@ test {
 }
 """
         when:
-        executer.withTasks('test').runWithFailure()
+        executer.withTasks('test').runWithFailure().assertTestsFailed()
 
         then:
         !new JUnitTestExecutionResult(file(".")).hasJUnitXmlResults()

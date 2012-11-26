@@ -19,7 +19,6 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitTestExecutionResult
-import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.*
 import static org.hamcrest.core.IsNot.not
@@ -30,17 +29,19 @@ public class TestNGProducesJUnitXmlResultsIntegrationTest extends
         executer.allowExtraLogging = false
     }
 
-    @Unroll("#testConfiguration")
     def "produces JUnit xml results"() {
         expect:
-        assertProducesXmlResults(testConfiguration)
+        assertProducesXmlResults "useTestNG()"
+    }
 
-        where:
-        testConfiguration << [
-                "useTestNG()",
-                "useTestNG(); forkEvery 1",
-                "useTestNG(); maxParallelForks 2"
-        ]
+    def "produces JUnit xml results when running tests in parallel"() {
+        expect:
+        assertProducesXmlResults "useTestNG(); maxParallelForks 2"
+    }
+
+    def "produces JUnit xml results with aggressive forking"() {
+        expect:
+        assertProducesXmlResults "useTestNG(); forkEvery 1"
     }
 
     def assertProducesXmlResults(String testConfiguration) {
@@ -121,7 +122,7 @@ test {
 }
 """
         //when
-        executer.withTasks('test').runWithFailure()
+        executer.withTasks('test').runWithFailure().assertTestsFailed()
 
         //then
         def junitResult = new JUnitTestExecutionResult(file("."));

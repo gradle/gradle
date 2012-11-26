@@ -383,5 +383,10 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             assertThat(failure.getMessage(), containsLine(matcher));
             return this;
         }
+
+        public ExecutionFailure assertTestsFailed() {
+            new DetailedExecutionFailure(this).assertTestsFailed();
+            return this;
+        }
     }
 }

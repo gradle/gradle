@@ -134,8 +134,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     public void reportsAndBreaksBuildWhenTestFails() {
         ExecutionFailure failure = executer.withTasks('build').runWithFailure();
 
-        failure.assertHasDescription("Execution failed for task ':test'.");
-        failure.assertThatCause(startsWith('There were failing tests.'));
+        failure.assertTestsFailed()
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted(
