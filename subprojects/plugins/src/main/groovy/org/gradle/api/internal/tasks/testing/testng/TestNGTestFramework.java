@@ -65,7 +65,7 @@ public class TestNGTestFramework implements TestFramework {
         options.setTestResources(testTask.getTestSrcDirs());
         List<File> suiteFiles = options.getSuites(testTask.getTemporaryDir());
         return new TestClassProcessorFactoryImpl(testTask.getTestReportDir(), options, suiteFiles,
-                testTask.getTestResultsDir(), testTask.isTestReport());
+                testTask.isTestReport());
     }
 
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
@@ -78,11 +78,11 @@ public class TestNGTestFramework implements TestFramework {
 
     public void report() {
         if (!testTask.isTestReport()) {
-            LOG.info("Test report disabled, omitting generation of the html test report.");
+            LOG.info("Test report disabled, omitting generation of the HTML test report.");
             return;
         }
-        // TODO SF make the logging consistent in frameworks, sanitize JUnit coverage (it's jmock)
-        LOG.info("Generating html test report...");
+        // TODO SF split out from TestFramework, sanitize JUnit coverage (it's jmock)
+        LOG.info("Generating HTML test report...");
         reporter.setTestReportDir(testTask.getTestReportDir());
         reporter.setTestResultsDir(testTask.getTestResultsDir());
         reporter.generateReport();
@@ -104,15 +104,13 @@ public class TestNGTestFramework implements TestFramework {
         private final File testReportDir;
         private final TestNGOptions options;
         private final List<File> suiteFiles;
-        private final File testResultsDir;
         private final boolean testReportOn;
 
         public TestClassProcessorFactoryImpl(File testReportDir, TestNGOptions options, List<File> suiteFiles,
-                                             File testResultsDir, boolean testReportOn) {
+                                             boolean testReportOn) {
             this.testReportDir = testReportDir;
             this.options = options;
             this.suiteFiles = suiteFiles;
-            this.testResultsDir = testResultsDir;
             this.testReportOn = testReportOn;
         }
 
