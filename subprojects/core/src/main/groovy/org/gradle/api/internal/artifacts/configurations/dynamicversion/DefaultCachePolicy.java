@@ -39,6 +39,7 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         cacheDynamicVersionsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         cacheMissingModulesAndArtifactsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+        refreshArtifactForNonMatchingDescriptorHash();
     }
 
     public void eachDependency(Action<? super DependencyResolutionControl> rule) {
@@ -88,6 +89,16 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         });
     }
 
+    private void refreshArtifactForNonMatchingDescriptorHash() {
+        eachArtifact(new Action<ArtifactResolutionControl>() {
+            public void execute(ArtifactResolutionControl artifactResolutionControl) {
+                if(!artifactResolutionControl.isModuleDescriptorInSync()){
+                    artifactResolutionControl.refresh();
+                }
+            }
+        });
+    }
+
     public boolean mustRefreshDynamicVersion(ModuleVersionSelector selector, ModuleVersionIdentifier moduleId, long ageMillis) {
         CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(selector, moduleId, ageMillis);
 
@@ -122,16 +133,14 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         return false;
     }
 
-    public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis) {
-        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactIdentifier, cachedArtifactFile, ageMillis);
-
+    public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis, boolean moduleDescriptorInSync) {
+        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactIdentifier, cachedArtifactFile, ageMillis, moduleDescriptorInSync);
         for (Action<? super ArtifactResolutionControl> rule : artifactCacheRules) {
             rule.execute(artifactResolutionControl);
             if (artifactResolutionControl.ruleMatch()) {
                 return artifactResolutionControl.mustCheck();
             }
         }
-
         return false;
     }
 
@@ -207,8 +216,15 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     }
 
     private class CachedArtifactResolutionControl extends AbstractResolutionControl<ArtifactIdentifier, File> implements ArtifactResolutionControl {
-        private CachedArtifactResolutionControl(ArtifactIdentifier artifactIdentifier, File cachedResult, long ageMillis) {
+        private final boolean moduleDescriptorInSync;
+
+        private CachedArtifactResolutionControl(ArtifactIdentifier artifactIdentifier, File cachedResult, long ageMillis, boolean moduleDescriptorInSync) {
             super(artifactIdentifier, cachedResult, ageMillis);
+            this.moduleDescriptorInSync = moduleDescriptorInSync;
+        }
+
+        public boolean isModuleDescriptorInSync() {
+            return moduleDescriptorInSync;
         }
     }
 }

@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
@@ -38,12 +38,15 @@ class CachingModuleVersionRepositoryTest extends Specification {
     ModuleVersionRepository realRepo = Mock()
     ModuleResolutionCache moduleResolutionCache = Mock()
     ModuleDescriptorCache moduleDescriptorCache = Mock()
-    CachedExternalResourceIndex artifactAtRepositoryCache = Mock()
+    CachedArtifactIndex artifactAtRepositoryCache = Mock()
     CachePolicy cachePolicy = Mock()
-
+    ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = Mock()
     CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache, cachePolicy, new TrueTimeProvider())
-    
-    @Unroll "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
+    ModuleRevisionId moduleRevisionId = Mock()
+    int descriptorHash = 1234
+
+    @Unroll
+    "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
         given:
         ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1, null, null)
         File file = new File("local")
@@ -51,10 +54,14 @@ class CachingModuleVersionRepositoryTest extends Specification {
         Artifact artifact = Mock()
         ArtifactRevisionId id = arid()
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey(realRepo, id)
-        
+
 
         and:
+        _ * artifact.getModuleRevisionId() >> moduleRevisionId;
+
+        _ * moduleDescriptorCache.getCachedModuleDescriptor(realRepo, moduleRevisionId) >> cachedModuleDescriptor
         _ * realRepo.isLocal() >> false
+        _ * cachedModuleDescriptor.getDescriptorHash() >> descriptorHash
         _ * artifactAtRepositoryCache.lookup(atRepositoryKey) >> null
         _ * realRepo.resolve(artifact, result)
         _ * result.file >> file
@@ -63,10 +70,10 @@ class CachingModuleVersionRepositoryTest extends Specification {
 
         when:
         repo.resolve(artifact, result)
-        
+
         then:
-        1 * artifactAtRepositoryCache.store(atRepositoryKey, file, externalResourceMetaData)
-        
+        1 * artifactAtRepositoryCache.store(atRepositoryKey, file, descriptorHash)
+
         where:
         lastModified << [new Date(), null]
     }

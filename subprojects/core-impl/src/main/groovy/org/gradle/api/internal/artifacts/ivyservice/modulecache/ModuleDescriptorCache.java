@@ -34,6 +34,8 @@ public interface ModuleDescriptorCache {
 
         long getAgeMillis();
 
+        int getDescriptorHash();
+
         boolean isMissing();
     }
 }

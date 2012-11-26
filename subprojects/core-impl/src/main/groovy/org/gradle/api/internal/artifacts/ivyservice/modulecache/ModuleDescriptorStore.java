@@ -58,9 +58,9 @@ public class ModuleDescriptorStore {
         return null;
     }
 
-    public void putModuleDescriptor(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
+    public FileStoreEntry putModuleDescriptor(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
         String filePath = getFilePath(repository, moduleDescriptor.getModuleRevisionId());
-        pathKeyFileStore.add(filePath, new Action<File>() {
+        return pathKeyFileStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
                     ivyModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);

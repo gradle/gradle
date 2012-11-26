@@ -107,7 +107,7 @@ public class DefaultCachePolicySpec extends Specification {
         then:
         hasDynamicVersionTimeout(100 * SECOND)
     }
-    
+
     def "provides details of cached dynamic version"() {
         expect:
         cachePolicy.eachDependency(new Action<DependencyResolutionControl>() {
@@ -119,7 +119,7 @@ public class DefaultCachePolicySpec extends Specification {
         })
         cachePolicy.mustRefreshDynamicVersion(moduleSelector('g', 'n', 'v'), moduleIdentifier('group', 'name', 'version'), 0)
     }
-    
+
     def "provides details of cached module"() {
         expect:
         cachePolicy.eachModule(new Action<ModuleResolutionControl>() {
@@ -132,7 +132,7 @@ public class DefaultCachePolicySpec extends Specification {
         })
         cachePolicy.mustRefreshModule(moduleIdentifier('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), null, 0)
     }
-    
+
     def "provides details of cached changing module"() {
         expect:
         cachePolicy.eachModule(new Action<ModuleResolutionControl>() {
@@ -145,7 +145,7 @@ public class DefaultCachePolicySpec extends Specification {
         })
         cachePolicy.mustRefreshChangingModule(moduleIdentifier('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 0)
     }
-    
+
     def "provides details of cached artifact"() {
         expect:
         cachePolicy.eachArtifact(new Action<ArtifactResolutionControl>() {
@@ -160,9 +160,9 @@ public class DefaultCachePolicySpec extends Specification {
             }
         })
         def artifactIdentifier = new DefaultArtifactIdentifier(moduleIdentifier('group', 'name', 'version'), 'artifact', 'type', 'ext', 'classifier')
-        cachePolicy.mustRefreshArtifact(artifactIdentifier, null, 0)
+        cachePolicy.mustRefreshArtifact(artifactIdentifier, null, 0, true)
     }
-    
+
     def "can use cacheFor to control missing module and artifact timeout"() {
         when:
         cachePolicy.eachModule(new Action<ModuleResolutionControl>() {
@@ -187,7 +187,13 @@ public class DefaultCachePolicySpec extends Specification {
         hasMissingModuleTimeout(10 * SECOND)
         hasMissingArtifactTimeout(20 * SECOND)
     }
-    
+
+    def "must refresh artifact when moduledescriptorhash not in sync"() {
+        expect:
+        !cachePolicy.mustRefreshArtifact(null, null, 1000, true)
+        cachePolicy.mustRefreshArtifact(null, null, 1000, false)
+    }
+
     private def hasDynamicVersionTimeout(int timeout) {
         def moduleId = moduleIdentifier('group', 'name', 'version')
         assert !cachePolicy.mustRefreshDynamicVersion(null, moduleId, 100)
@@ -220,17 +226,17 @@ public class DefaultCachePolicySpec extends Specification {
     }
 
     private def hasMissingArtifactTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshArtifact(null, null, timeout);
-        assert !cachePolicy.mustRefreshArtifact(null, null, timeout - 1)
-        cachePolicy.mustRefreshArtifact(null, null, timeout + 1)
+        assert !cachePolicy.mustRefreshArtifact(null, null, timeout, true);
+        assert !cachePolicy.mustRefreshArtifact(null, null, timeout - 1, true)
+        cachePolicy.mustRefreshArtifact(null, null, timeout + 1, true)
     }
-    
-    private def assertId(def moduleId, String group, String name , String version) {
+
+    private def assertId(def moduleId, String group, String name, String version) {
         assert moduleId.group == group
         assert moduleId.name == name
         assert moduleId.version == version
     }
-    
+
     private def moduleSelector(String group, String name, String version) {
         new DefaultModuleVersionSelector(group, name, version)
     }

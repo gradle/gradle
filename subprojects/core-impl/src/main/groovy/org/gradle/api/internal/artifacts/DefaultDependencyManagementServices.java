@@ -49,7 +49,7 @@ import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRe
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResourceIndex;
-import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedArtifactIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -188,9 +188,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
 
-    protected ArtifactAtRepositoryCachedExternalResourceIndex createArtifactAtRepositoryCachedResolutionIndex() {
-        return new ArtifactAtRepositoryCachedExternalResourceIndex(
-                new File(get(ArtifactCacheMetaData.class).getCacheDir(), "artifact-at-repository.bin"),
+    protected ArtifactAtRepositoryCachedArtifactIndex createArtifactAtRepositoryCachedResolutionIndex() {
+        return new ArtifactAtRepositoryCachedArtifactIndex(new File(get(ArtifactCacheMetaData.class).getCacheDir(), "artifact-at-repository.bin"),
                 get(BuildCommencedTimeProvider.class),
                 get(CacheLockingManager.class)
         );
@@ -351,7 +350,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(SettingsConverter.class),
                     get(ModuleResolutionCache.class),
                     get(ModuleDescriptorCache.class),
-                    get(ArtifactAtRepositoryCachedExternalResourceIndex.class),
+                    get(ArtifactAtRepositoryCachedArtifactIndex.class),
                     get(CacheLockingManager.class),
                     startParameterResolutionOverride,
                     get(BuildCommencedTimeProvider.class));

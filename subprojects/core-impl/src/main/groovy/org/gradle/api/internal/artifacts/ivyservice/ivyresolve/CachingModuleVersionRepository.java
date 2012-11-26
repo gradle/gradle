@@ -30,8 +30,8 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.cached.CachedArtifact;
+import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
 import org.gradle.internal.TimeProvider;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
-    private final CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
+    private final CachedArtifactIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
 
     private final CachePolicy cachePolicy;
 
@@ -52,7 +52,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     private final TimeProvider timeProvider;
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
-                                          CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
+                                          CachedArtifactIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
                                           CachePolicy cachePolicy, TimeProvider timeProvider) {
         this.delegate = delegate;
         this.moduleDescriptorCache = moduleDescriptorCache;
@@ -176,24 +176,25 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
     public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
         ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate, artifact.getId());
-
         // Look in the cache for this resolver
-        CachedExternalResource cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
+        CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
 
+        final ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(delegate, artifact.getModuleRevisionId());
+        final int descriptorHash = cachedModuleDescriptor == null ? -1 : cachedModuleDescriptor.getDescriptorHash();
         if (cached != null) {
             ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
             long age = timeProvider.getCurrentTime() - cached.getCachedAt();
             if (cached.isMissing()) {
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age)) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, descriptorHash == cached.getDescriptorHash())) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
                     result.notFound(artifact);
                     return;
                 }
             } else {
                 File cachedArtifactFile = cached.getCachedFile();
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age)) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, descriptorHash == cached.getDescriptorHash())) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
-                    result.resolved(cachedArtifactFile, cached.getExternalResourceMetaData());
+                    result.resolved(cachedArtifactFile, null);
                     return;
                 }
             }
@@ -203,9 +204,9 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate);
 
         if (result.getFailure() instanceof ArtifactNotFoundException) {
-            artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey);
+            artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey, descriptorHash);
         } else {
-            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, result.getFile(), result.getExternalResourceMetaData());
+            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, result.getFile(), descriptorHash);
         }
     }
 

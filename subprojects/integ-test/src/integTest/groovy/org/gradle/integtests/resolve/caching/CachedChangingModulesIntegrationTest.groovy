@@ -17,11 +17,9 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import spock.lang.Ignore;
 
 public class CachedChangingModulesIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Ignore
     def "can cache and refresh artifacts with a classifier"() {
         given:
         server.start()

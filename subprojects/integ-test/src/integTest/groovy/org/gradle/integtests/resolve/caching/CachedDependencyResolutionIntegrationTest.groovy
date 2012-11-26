@@ -182,6 +182,7 @@ task retrieve(type: Sync) {
 
         then:
         headSha1ThenGetRequests()
+        executer.withArgument("-d")
         changedResolve()
     }
 

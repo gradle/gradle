@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
 import org.gradle.internal.TimeProvider;
 import org.gradle.util.WrapUtil;
@@ -42,14 +42,14 @@ public class ResolveIvyFactory {
     private final SettingsConverter settingsConverter;
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
-    private final CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
+    private final CachedArtifactIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
     private final CacheLockingManager cacheLockingManager;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final TimeProvider timeProvider;
 
     public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter,
                              ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
-                             CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
+                             CachedArtifactIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
                              CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride,
                              TimeProvider timeProvider) {
         this.ivyFactory = ivyFactory;
@@ -106,6 +106,4 @@ public class ResolveIvyFactory {
         options.setConfs(WrapUtil.toArray(configurationName));
         return new ResolveData(ivy.getResolveEngine(), options);
     }
-
-
 }

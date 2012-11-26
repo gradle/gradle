@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.cache;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ArtifactIdentifier;
+package org.gradle.api.internal.externalresource.cached;
 
-import java.io.File;
-
-/**
- * Command methods for controlling artifact resolution via the DSL.
- */
-@Incubating
-public interface ArtifactResolutionControl extends ResolutionControl<ArtifactIdentifier, File> {
-    boolean isModuleDescriptorInSync();
+public interface CachedArtifact extends CachedItem {
+    int getDescriptorHash();
 }

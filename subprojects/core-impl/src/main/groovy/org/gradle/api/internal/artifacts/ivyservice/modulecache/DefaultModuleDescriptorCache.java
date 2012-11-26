@@ -22,9 +22,11 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
+import org.gradle.api.internal.filestore.FileStoreEntry;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.TimeProvider;
+import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,8 +86,8 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
             getCache().put(createKey(repository, moduleRevisionId), createMissingEntry(isChanging));
         } else {
             LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
-            moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
-            getCache().put(createKey(repository, moduleRevisionId), createEntry(isChanging));
+            FileStoreEntry fileStoreEntry = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
+            getCache().put(createKey(repository, moduleRevisionId), createEntry(isChanging, fileStoreEntry.getSha1()));
         }
     }
 
@@ -94,11 +96,11 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     }
 
     private ModuleDescriptorCacheEntry createMissingEntry(boolean changing) {
-        return new ModuleDescriptorCacheEntry(changing, true, timeProvider);
+        return new ModuleDescriptorCacheEntry(changing, true, timeProvider, 0);
     }
 
-    private ModuleDescriptorCacheEntry createEntry(boolean changing) {
-        return new ModuleDescriptorCacheEntry(changing, false, timeProvider);
+    private ModuleDescriptorCacheEntry createEntry(boolean changing, HashValue moduleDescriptorHash) {
+        return new ModuleDescriptorCacheEntry(changing, false, timeProvider, moduleDescriptorHash.hashCode());
     }
 
     private static class RevisionKey implements Serializable {

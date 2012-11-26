@@ -25,12 +25,14 @@ import java.io.Serializable;
 
 class DefaultCachedModuleDescriptor implements ModuleDescriptorCache.CachedModuleDescriptor, Serializable {
     private final ModuleDescriptor moduleDescriptor;
+    private final int descriptorHash;
     private final boolean isChangingModule;
     private final long ageMillis;
 
     public DefaultCachedModuleDescriptor(ModuleDescriptorCacheEntry entry, ModuleDescriptor moduleDescriptor, TimeProvider timeProvider) {
         this.moduleDescriptor = moduleDescriptor;
         this.isChangingModule = entry.isChanging;
+        this.descriptorHash = entry.moduleDescriptorHash;
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
     }
 
@@ -53,5 +55,9 @@ class DefaultCachedModuleDescriptor implements ModuleDescriptorCache.CachedModul
 
     public long getAgeMillis() {
         return ageMillis;
+    }
+
+    public int getDescriptorHash() {
+        return descriptorHash;
     }
 }

@@ -23,10 +23,12 @@ class ModuleDescriptorCacheEntry implements Serializable {
     public boolean isChanging;
     public boolean isMissing;
     public long createTimestamp;
+    public int moduleDescriptorHash;
 
-    ModuleDescriptorCacheEntry(boolean isChanging, boolean isMissing, TimeProvider timeProvider) {
+    ModuleDescriptorCacheEntry(boolean isChanging, boolean isMissing, TimeProvider timeProvider, int moduleDescriptorHash) {
         this.isChanging = isChanging;
         this.isMissing = isMissing;
         this.createTimestamp = timeProvider.getCurrentTime();
+        this.moduleDescriptorHash = moduleDescriptorHash;
     }
 }
