@@ -213,7 +213,7 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         runAndFail 'tasks', '-all'
 
         then:
-        failure.assertHasDescription("Incorrect command line arguments: [-l, -l]. Task options must have long format (e.g. double dash), for example: 'gradle tasks --all'.")
+        failure.assertHasDescription("Problem configuring task :tasks from command line. Unknown command-line option '-l'.")
     }
 
     @Ignore

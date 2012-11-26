@@ -148,8 +148,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
 
         then:
         def ex = thrown(GradleException)
-        ex.message.contains('-c')
-        ex.message.contains('must have long format')
+        ex.message.contains("Unknown command-line option '-c'")
     }
 
     public static class SomeTask extends DefaultTask {

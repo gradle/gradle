@@ -636,23 +636,4 @@ class CommandLineParserTest extends Specification {
         result.extraArguments == ['-ba', '-ba=c']
     }
 
-    def "can prevent short options"() {
-        when:
-        parser
-                .allowUnknownOptions()
-                .allowMixedSubcommandsAndOptions()
-                .allowOnlyLongOptions()
-                .parse(options)
-        then:
-        thrown(UnsupportedShortOptionException)
-
-        where:
-        options << [
-            ['-a'],
-            ['a', '-a'],
-            ['a', '--b', '-c'],
-            ['hey', '--joe=foo', '-c', 'xxx'],
-            ['hey', '--joe', 'hey', '-c', 'xxx']
-        ]
-    }
 }
