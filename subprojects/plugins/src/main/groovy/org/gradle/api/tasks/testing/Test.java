@@ -109,7 +109,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private boolean ignoreFailures;
     private FileCollection classpath;
     private TestFramework testFramework;
-    private boolean testReport;
+    private boolean testReport = true;
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
@@ -403,7 +403,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         File binaryResultsDir = new File(getTemporaryDir(), "binary-test-results");
         TestReportDataCollector testReportDataCollector = null;
-        if (testReport && testFramework instanceof TestNGTestFramework) {
+        if (isTestReport() && testFramework instanceof TestNGTestFramework) {
             //TODO SF this is obviously work in progress, add coverage for binary results interference
 
             getProject().delete(binaryResultsDir);
