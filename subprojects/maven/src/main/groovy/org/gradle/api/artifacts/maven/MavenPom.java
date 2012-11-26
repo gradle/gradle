@@ -155,7 +155,8 @@ public interface MavenPom {
     MavenPom setModel(Object model);
 
     /**
-     * Writes the {@link #getEffectivePom()} xml to a writer while applying the {@link #withXml(org.gradle.api.Action)} actions.
+     * Writes the {@link #getEffectivePom()} xml to a writer while applying the {@link #withXml(org.gradle.api.Action)} actions. Closes the supplied
+     * Writer when finished.
      *
      * @param writer The writer to write the pom xml.
      * @return this

@@ -38,6 +38,8 @@ import java.util.Set;
 
 /**
  * Generates an Ivy XML Module Descriptor file.
+ *
+ * @since 1.4
  */
 @Incubating
 public class GenerateIvyDescriptor extends DefaultTask {
