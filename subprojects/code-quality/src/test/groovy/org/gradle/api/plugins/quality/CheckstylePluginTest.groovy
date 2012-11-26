@@ -80,7 +80,8 @@ class CheckstylePluginTest extends Specification {
             assert configFile == project.file("config/checkstyle/checkstyle.xml")
             assert configProperties == [:]
             assert resultFile == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
-            assert ignoreFailures == false
+            assert ignoreFailures
+            assert displayViolations
         }
     }
     
@@ -94,7 +95,7 @@ class CheckstylePluginTest extends Specification {
         task.configFile == project.file("config/checkstyle/checkstyle.xml")
         task.configProperties == [:]
         task.resultFile == project.file("build/reports/checkstyle/custom.xml")
-        task.ignoreFailures == false
+        task.ignoreFailures
     }
 
     def "adds checkstyle tasks to check lifecycle task"() {
@@ -123,6 +124,7 @@ class CheckstylePluginTest extends Specification {
             configProperties = [foo: "foo"]
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
+            displayViolations = true
         }
         
         expect:
@@ -143,7 +145,8 @@ class CheckstylePluginTest extends Specification {
             assert configFile == project.file("checkstyle-config")
             assert configProperties == [foo: "foo"]
             assert resultFile == project.file("checkstyle-reports/${sourceSet.name}.xml")
-            assert ignoreFailures == true
+            assert ignoreFailures
+            assert displayViolations
         }
     }
     
@@ -163,7 +166,7 @@ class CheckstylePluginTest extends Specification {
         task.configFile == project.file("checkstyle-config")
         task.configProperties == [foo: "foo"]
         task.resultFile == project.file("checkstyle-reports/custom.xml")
-        task.ignoreFailures == true
+        task.ignoreFailures
     }
     
 }

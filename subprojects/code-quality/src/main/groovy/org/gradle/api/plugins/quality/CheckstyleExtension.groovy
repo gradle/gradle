@@ -26,4 +26,14 @@ class CheckstyleExtension extends CodeQualityExtension {
      * file.
      */
     Map<String, Object> configProperties = [:]
+
+    /**
+     * Specifies whether the build should display violations on the console or not. Defaults to true
+     */
+    /**
+     * Whether or not the build should display violations on the console or not. Defaults to <tt>true</tt>.
+     *
+     * Example: displayViolations = false
+     */
+    boolean displayViolations = true
 }

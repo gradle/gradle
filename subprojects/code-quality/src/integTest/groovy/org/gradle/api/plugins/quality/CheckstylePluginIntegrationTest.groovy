@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.hamcrest.Matcher
+
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
@@ -50,6 +51,23 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         fails("check")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
+        failure.error.contains("Name 'class1' must match pattern")
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+    }
+
+    def "can suppress console output"() {
+        given:
+        badCode()
+
+        when:
+        buildFile << "checkstyle { displayViolations = false }"
+
+        then:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain'")
+        failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
+        !failure.error.contains("Name 'class1' must match pattern")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
     }
