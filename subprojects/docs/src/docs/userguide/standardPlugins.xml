@@ -149,7 +149,7 @@
                 <td><literal>java</literal></td>
                 <td>-</td>
                 <td>
-                    <para>Adds tasks for running and bundling a project as application.
+                    <para>Adds tasks for running and bundling a Java project as a command-line application.
                     </para>
                 </td>
             </tr>
@@ -191,7 +191,7 @@
                 <td>-</td>
                 <td><literal>java</literal>, <literal>war</literal></td>
                 <td>
-                    <para>Adds support for deploying artifacts to Maven repositories.</para>
+                    <para>Adds support for publishing artifacts to Maven repositories.</para>
                 </td>
             </tr>
             <tr>
@@ -213,6 +213,32 @@
                     </para>
                 </td>
             </tr>
+        </table>
+    </section>
+    <section>
+        <title>Incubating integration plugins</title>
+        <para>These plugins provide some integration with various build and runtime technologies.</para>
+        <table>
+            <title>Incubating integration plugins</title>
+            <thead>
+                <tr>
+                    <td>Plugin Id</td>
+                    <td>Automatically applies</td>
+                    <td>Works with</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend="publishing_ivy"><literal>ivy-publish</literal></link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for publishing artifacts to Ivy repositories.
+                    </para>
+                </td>
+            </tr>
             <tr>
                 <td>
                     <link linkend="bootstrap_plugin"><literal>maven2Gradle</literal></link>
@@ -220,7 +246,7 @@
                 <td>-</td>
                 <td>-</td>
                 <td>
-                    <para>Adds experimental support for converting an existing maven build into a Gradle project.
+                    <para>Adds support for converting an existing Maven build into a Gradle project.
                     </para>
                 </td>
             </tr>
