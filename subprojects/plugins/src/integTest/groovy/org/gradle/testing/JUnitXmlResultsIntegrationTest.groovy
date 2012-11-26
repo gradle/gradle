@@ -24,6 +24,10 @@ import spock.lang.Unroll
 
 public class JUnitXmlResultsIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        executer.allowExtraLogging = false
+    }
+
     @Unroll
     def "produces encoded xml when #testSettings"() {
         buildFile << """
