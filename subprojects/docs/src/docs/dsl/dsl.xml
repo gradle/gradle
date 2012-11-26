@@ -232,6 +232,9 @@
                 <td>org.gradle.api.plugins.quality.CodeNarc</td>
             </tr>
             <tr>
+                <td>org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.compile.Compile</td>
             </tr>
             <tr>
@@ -254,6 +257,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.quality.FindBugs</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.GradleBuild</td>
@@ -292,6 +298,9 @@
                 <td>org.gradle.api.plugins.quality.Pmd</td>
             </tr>
             <tr>
+                <td>org.gradle.api.publish.ivy.tasks.PublishToIvyRepository</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.scala.ScalaCompile</td>
             </tr>
             <tr>
@@ -323,15 +332,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Zip</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.publish.ivy.tasks.PublishToIvyRepository</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor</td>
             </tr>
         </table>
     </section>
