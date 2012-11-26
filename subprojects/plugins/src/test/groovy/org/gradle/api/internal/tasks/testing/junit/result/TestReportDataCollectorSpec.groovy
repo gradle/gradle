@@ -119,7 +119,7 @@ class TestReportDataCollectorSpec extends Specification {
         fooTest.startTime == 100
         fooTest.testsCount == 2
         fooTest.failuresCount == 1
-        fooTest.duration == 150
+        fooTest.duration == 200
         fooTest.results.size() == 2
         fooTest.results.find { it.name == 'testMethod' && it.result == result1 && it.duration == 100 }
         fooTest.results.find { it.name == 'testMethod2' && it.result == result2 && it.duration == 50 }
