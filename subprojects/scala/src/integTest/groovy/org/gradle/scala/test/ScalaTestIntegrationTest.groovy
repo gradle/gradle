@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,30 +18,26 @@ package org.gradle.scala.test
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.junit.Rule
-import static org.hamcrest.Matchers.equalTo
 
+import org.junit.Rule
 
 class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
-
-    @Rule TestResources resources = new TestResources()
+    @Rule TestResources resources
     
-
     def executesTestsWithMultiLineDescriptions() {
         file("build.gradle") << """
-            apply plugin: 'scala'
+apply plugin: 'scala'
 
-            repositories {
-                mavenCentral()
-            }
+repositories {
+    mavenCentral()
+}
 
-            dependencies {
-                scalaTools 'org.scala-lang:scala-compiler:2.8.1'
-                scalaTools 'org.scala-lang:scala-library:2.8.1'
-                compile 'org.scala-lang:scala-library:2.8.1'
-                testCompile 'org.scalatest:scalatest_2.8.1:1.8'
-                testCompile 'junit:junit:4.10'
-            }
+dependencies {
+    scalaTools "org.scala-lang:scala-compiler:2.9.2"
+    compile "org.scala-lang:scala-library:2.9.2"
+    testCompile "org.scalatest:scalatest_2.9.2:1.8"
+    testCompile "junit:junit:4.10"
+}
         """
 
         when:
@@ -55,16 +51,17 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class MultiLineSuite extends FunSuite {
     test("This test method name\\nspans many\\nlines") {
-        assert(1 === 2)
+        assert(1 === 1)
     }
-}"""
+}
+        """
 
         then:
         //the build should fail because the failing test has been executed
-        runAndFail("test").assertHasDescription("Execution failed for task ':test'.")
+        succeeds("test")
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
-        result.assertTestClassesExecuted('org.gradle.MultiLineSuite')
-	result.testClass("org.gradle.MultiLineSuite").assertTestFailed( "This test method name\nspans many\nlines", equalTo("org.scalatest.exceptions.TestFailedException: 1 did not equal 2")) 
+        result.assertTestClassesExecuted("org.gradle.MultiLineSuite")
+	    result.testClass("org.gradle.MultiLineSuite").assertTestPassed("This test method name\nspans many\nlines")
     }
 }
