@@ -46,7 +46,6 @@ public class TestNGProducesJUnitXmlResultsIntegrationTest extends
 
     def assertProducesXmlResults(String testConfiguration) {
         file("src/test/java/org/MixedMethodsTest.java") << """package org;
-import org.testng.*;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
@@ -73,9 +72,7 @@ public class MixedMethodsTest {
 }
 """
         file("src/test/java/org/PassingTest.java") << """package org;
-import org.testng.*;
 import org.testng.annotations.*;
-import static org.testng.Assert.*;
 
 public class PassingTest {
     @Test public void passing() {
@@ -85,7 +82,6 @@ public class PassingTest {
 }
 """
         file("src/test/java/org/FailingTest.java") << """package org;
-import org.testng.*;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
@@ -100,13 +96,25 @@ public class FailingTest {
 }
 """
         file("src/test/java/org/NoOutputsTest.java") << """package org;
-import org.testng.*;
 import org.testng.annotations.*;
-import static org.testng.Assert.*;
 
 public class NoOutputsTest {
     @Test(enabled=false) public void skipped() {}
     @Test public void passing() {}
+}
+"""
+
+        file("src/test/java/org/EncodingTest.java") << """package org;
+import org.testng.annotations.*;
+
+public class EncodingTest {
+    @Test public void encodesCdata() {
+        System.out.println("< html allowed, cdata closing token ]]> encoded!");
+        System.err.println("< html allowed, cdata closing token ]]> encoded!");
+    }
+    @Test public void encodesAttributeValues() {
+        throw new RuntimeException("html: <> cdata: ]]>");
+    }
 }
 """
 
@@ -127,7 +135,7 @@ test {
         //then
         def junitResult = new JUnitTestExecutionResult(file("."));
         junitResult
-            .assertTestClassesExecuted("org.FailingTest","org.PassingTest", "org.MixedMethodsTest", "org.NoOutputsTest")
+            .assertTestClassesExecuted("org.FailingTest","org.PassingTest", "org.MixedMethodsTest", "org.NoOutputsTest", "org.EncodingTest")
 
         junitResult.testClass("org.MixedMethodsTest")
             .assertTestCount(4, 2, 0)
@@ -161,5 +169,12 @@ test {
             .assertTestsExecuted("passing").assertTestPassed("passing")
             .assertStdout(equalTo(""))
             .assertStderr(equalTo(""))
+
+        junitResult.testClass("org.EncodingTest")
+            .assertTestCount(2, 1, 0)
+            .assertTestPassed("encodesCdata")
+            .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))
+            .assertStdout(equalTo("< html allowed, cdata closing token ]]&gt; encoded!\n"))
+            .assertStderr(equalTo("< html allowed, cdata closing token ]]&gt; encoded!\n"))
     }
 }

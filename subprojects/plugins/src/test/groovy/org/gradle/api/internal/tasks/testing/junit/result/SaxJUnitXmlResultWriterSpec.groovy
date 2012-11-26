@@ -43,7 +43,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
 
     def "writes xml JUnit result"() {
         StringWriter sw = new StringWriter()
-        TestClassResult result = new TestClassResult(new Date(1353344968049).getTime())
+        TestClassResult result = new TestClassResult(1353344968049)
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, 10, 25, 1, 1, 0, emptyList())))
         result.add(new TestMethodResult("some test two", new DefaultTestResult(SUCCESS, 10, 25, 1, 1, 0, emptyList())))
         result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, 15, 25, 1, 0, 1, [new RuntimeException("Boo!")])))
@@ -89,7 +89,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
 
     def "writes results with empty outputs"() {
         StringWriter sw = new StringWriter()
-        TestClassResult result = new TestClassResult(new Date(1353344968049).getTime())
+        TestClassResult result = new TestClassResult(1353344968049)
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, 100, 300, 1, 1, 0, emptyList())))
 
         when:
@@ -107,7 +107,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
 
     def "encodes xml"() {
         StringWriter sw = new StringWriter()
-        TestClassResult result = new TestClassResult(new Date(1353344968049).getTime())
+        TestClassResult result = new TestClassResult(1353344968049)
         result.add(new TestMethodResult("some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
 
         when:
