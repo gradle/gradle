@@ -20,8 +20,6 @@ import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 
-import static java.util.Arrays.asList
-
 /**
  * by Szczepan Faber, created at: 11/19/12
  */
@@ -29,11 +27,12 @@ class TestClassResultSpec extends Specification {
 
     def "provides test class result information"() {
         def result = new TestClassResult(100)
+        assert result.duration == 0
 
         when:
-        result.add(new TestMethodResult("foo",   new DefaultTestResult(TestResult.ResultType.SUCCESS, 100, 200, 1, 1, 0, asList())))
-        result.add(new TestMethodResult("fail",  new DefaultTestResult(TestResult.ResultType.FAILURE, 200, 300, 1, 0, 1, asList(new RuntimeException("bar")))))
-        result.add(new TestMethodResult("fail2", new DefaultTestResult(TestResult.ResultType.FAILURE, 300, 450, 1, 0, 1, asList(new RuntimeException("foo")))))
+        result.add(new TestMethodResult("foo",   new DefaultTestResult(TestResult.ResultType.SUCCESS, 100, 200, 1, 1, 0, [])))
+        result.add(new TestMethodResult("fail",  new DefaultTestResult(TestResult.ResultType.FAILURE, 250, 300, 1, 0, 1, [new RuntimeException("bar")])))
+        result.add(new TestMethodResult("fail2", new DefaultTestResult(TestResult.ResultType.FAILURE, 300, 450, 1, 0, 1, [new RuntimeException("foo")])))
 
         then:
         result.failuresCount == 2

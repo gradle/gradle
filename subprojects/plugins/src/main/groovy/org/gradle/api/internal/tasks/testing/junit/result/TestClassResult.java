@@ -59,10 +59,12 @@ public class TestClassResult {
     }
 
     public long getDuration() {
-        long duration = 0;
+        long end = startTime;
         for (TestMethodResult m : methodResults) {
-            duration += m.getDuration();
+            if (end < m.getEndTime()) {
+                end = m.getEndTime();
+            }
         }
-        return duration;
+        return end - startTime;
     }
 }
