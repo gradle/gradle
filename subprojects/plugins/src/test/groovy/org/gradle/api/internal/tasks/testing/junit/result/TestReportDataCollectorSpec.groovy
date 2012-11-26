@@ -138,8 +138,8 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
 
         then:
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr.bin"), "err")
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stdout.bin"), "out")
+        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr.txt"), "err")
+        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stdout.txt"), "out")
         0 * collector.cachingFileWriter._
     }
 
@@ -151,7 +151,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "hey ]]> foo"))
 
         then:
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr.bin"), "hey ]]&gt; foo")
+        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr.txt"), "hey ]]&gt; foo")
     }
 
     def "provides outputs"() {
