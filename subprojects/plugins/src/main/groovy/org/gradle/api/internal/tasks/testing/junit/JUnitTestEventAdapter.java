@@ -133,7 +133,7 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private Matcher methodStringMatcher(Description description) {
-        return Pattern.compile("(.*)\\((.*)\\)").matcher(description.toString());
+        return Pattern.compile("(.*)\\((.*)\\)", Pattern.DOTALL).matcher(description.toString());
     }
 
 }
