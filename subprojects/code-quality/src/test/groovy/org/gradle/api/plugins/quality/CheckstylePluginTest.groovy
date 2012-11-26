@@ -19,11 +19,13 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.HelperUtil
+import org.gradle.api.plugins.JavaBasePlugin
+
 import spock.lang.Specification
+
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
-import org.gradle.api.plugins.JavaBasePlugin
 
 class CheckstylePluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
@@ -81,7 +83,7 @@ class CheckstylePluginTest extends Specification {
             assert configProperties == [:]
             assert resultFile == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
             assert ignoreFailures
-            assert displayViolations
+            assert showViolations
         }
     }
     
@@ -146,7 +148,7 @@ class CheckstylePluginTest extends Specification {
             assert configProperties == [foo: "foo"]
             assert resultFile == project.file("checkstyle-reports/${sourceSet.name}.xml")
             assert ignoreFailures
-            assert displayViolations
+            assert showViolations
         }
     }
     

@@ -149,9 +149,9 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     boolean ignoreFailures
 
     /**
-     * Whether or not the build should display violations on the console or not.
+     * Whether or not rule violations are to be displayed on the console.
      */
-    boolean displayViolations
+    boolean showViolations
 
     @TaskAction
     public void run() {
@@ -162,7 +162,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
             ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
                 getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 getClasspath().addToAntBuilder(ant, 'classpath')
-                if (displayViolations) {
+                if (showViolations) {
                     formatter(type: 'plain', useFile: false)
                 }
                 if (reports.xml.enabled) {

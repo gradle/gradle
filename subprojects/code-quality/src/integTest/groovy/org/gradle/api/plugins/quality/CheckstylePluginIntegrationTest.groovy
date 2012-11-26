@@ -61,7 +61,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         badCode()
 
         when:
-        buildFile << "checkstyle { displayViolations = false }"
+        buildFile << "checkstyle { showViolations = false }"
 
         then:
         fails("check")

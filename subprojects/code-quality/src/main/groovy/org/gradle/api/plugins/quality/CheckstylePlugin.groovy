@@ -58,7 +58,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             configFile = { extension.configFile }
             configProperties = { extension.configProperties }
             ignoreFailures = { extension.ignoreFailures }
-            displayViolations = { extension.displayViolations }
+            showViolations = { extension.showViolations }
         }
 
         task.reports.xml.conventionMapping.with {
