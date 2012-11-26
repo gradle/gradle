@@ -40,14 +40,15 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
 
     // XMLStreamWriter uses single quotes in the <xml> leading element on java 5
     @Shared startQuoteChar = JavaVersion.current().java5 ? "'" : '"'
+    private startTime = 1353344968049
 
     def "writes xml JUnit result"() {
         StringWriter sw = new StringWriter()
-        TestClassResult result = new TestClassResult(1353344968049)
-        result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, 10, 25, 1, 1, 0, emptyList())))
-        result.add(new TestMethodResult("some test two", new DefaultTestResult(SUCCESS, 10, 25, 1, 1, 0, emptyList())))
-        result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, 15, 25, 1, 0, 1, [new RuntimeException("Boo!")])))
-        result.add(new TestMethodResult("some skipped test", new DefaultTestResult(SKIPPED, 15, 25, 1, 0, 1, asList())))
+        TestClassResult result = new TestClassResult(startTime)
+        result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 10, startTime + 25, 1, 1, 0, emptyList())))
+        result.add(new TestMethodResult("some test two", new DefaultTestResult(SUCCESS, startTime + 15, startTime + 30, 1, 1, 0, emptyList())))
+        result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
+        result.add(new TestMethodResult("some skipped test", new DefaultTestResult(SKIPPED, startTime + 35, startTime + 45, 1, 0, 1, asList())))
 
         provider.provideOutputs("com.foo.FooTest", TestOutputEvent.Destination.StdOut, sw) >> {
             sw.write("1st output message\n")
@@ -71,7 +72,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
 
         and:
         sw.toString().startsWith """<?xml version=${startQuoteChar}1.0${startQuoteChar} encoding=${startQuoteChar}UTF-8${startQuoteChar}?>
-  <testsuite name="com.foo.FooTest" tests="4" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.05">
+  <testsuite name="com.foo.FooTest" tests="4" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
   <properties/>
     <testcase name="some test" classname="com.foo.FooTest" time="0.015"></testcase>
     <testcase name="some test two" classname="com.foo.FooTest" time="0.015"></testcase>
@@ -89,15 +90,15 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
 
     def "writes results with empty outputs"() {
         StringWriter sw = new StringWriter()
-        TestClassResult result = new TestClassResult(1353344968049)
-        result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, 100, 300, 1, 1, 0, emptyList())))
+        TestClassResult result = new TestClassResult(startTime)
+        result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
 
         when:
         generator.write("com.foo.FooTest", result, sw)
 
         then:
         sw.toString() == """<?xml version=${startQuoteChar}1.0${startQuoteChar} encoding=${startQuoteChar}UTF-8${startQuoteChar}?>
-  <testsuite name="com.foo.FooTest" tests="1" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.2">
+  <testsuite name="com.foo.FooTest" tests="1" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
   <properties/>
     <testcase name="some test" classname="com.foo.FooTest" time="0.2"></testcase>
   <system-out><![CDATA[]]></system-out>
@@ -107,7 +108,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
 
     def "encodes xml"() {
         StringWriter sw = new StringWriter()
-        TestClassResult result = new TestClassResult(1353344968049)
+        TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
 
         when:
