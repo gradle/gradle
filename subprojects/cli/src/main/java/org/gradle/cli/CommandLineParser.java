@@ -55,7 +55,6 @@ public class CommandLineParser {
     private boolean allowMixedOptions;
     private boolean allowUnknownOptions;
     private final PrintWriter deprecationPrinter;
-    private boolean allowOnlyLongOptions;
 
     public CommandLineParser() {
         this(new OutputStreamWriter(System.out));
@@ -100,12 +99,10 @@ public class CommandLineParser {
                     OptionParserState parsedOption = parseState.onStartOption(arg, arg.substring(2, endArg));
                     parseState = parsedOption.onArgument(arg.substring(endArg + 1));
                 } else if (arg.matches("-[^=]=.*")) {
-                    validateShortOption(arg);
                     OptionParserState parsedOption = parseState.onStartOption(arg, arg.substring(1, 2));
                     parseState = parsedOption.onArgument(arg.substring(3));
                 } else {
                     assert arg.matches("-[^-].*");
-                    validateShortOption(arg);
                     String option = arg.substring(1);
                     if (optionsByString.containsKey(option)) {
                         OptionParserState parsedOption = parseState.onStartOption(arg, option);
@@ -146,12 +143,6 @@ public class CommandLineParser {
 
         parseState.onCommandLineEnd();
         return parsedCommandLine;
-    }
-
-    private void validateShortOption(String arg) {
-        if (this.allowOnlyLongOptions) {
-            throw new UnsupportedShortOptionException("Unsupported short option: '" + arg + "'.");
-        }
     }
 
     public CommandLineParser allowMixedSubcommandsAndOptions() {
@@ -246,11 +237,6 @@ public class CommandLineParser {
             this.optionsByString.put(optionStr, option);
         }
         return option;
-    }
-
-    public CommandLineParser allowOnlyLongOptions() {
-        this.allowOnlyLongOptions = true;
-        return this;
     }
 
     private static class OptionString {

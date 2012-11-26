@@ -845,12 +845,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Since Gradle 1.3 the TestNG uses this property in the following way:
      * <ul>
      *     <li>report 'on' means that new TestNG reporting is used:
-     *     new improved html reports are generated, old reports are not generated,
-     *     xml junit results (typically consumed by your CI server) are generated to {@link Test#getTestResultsDir()} dir
+     *     new improved HTML reports are generated, old reports are not generated,
+     *     XML JUnit results (typically consumed by your CI server) are generated to {@link Test#getTestResultsDir()} dir
      *     (previously those were generated into {@code Test.testReportsDir/junitreports} dir).
      *     </li>
-     *     <li>report 'off' means that old TestNG reporting is used: old html reports are generated,
-     *     the xml junit results (for CI) are generated to {@code Test.testReportsDir/junitreports} dir.
+     *     <li>report 'off' means that old TestNG reporting is used: old HTML reports are generated,
+     *     the XML JUnit results (for CI) are generated to {@code Test.testReportsDir/junitreports} dir.
      *     </li>
      * </ul>
      * Even though the property is processed differently by TestNG tests, the default behavior does not change.

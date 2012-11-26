@@ -34,4 +34,8 @@ public class TestMethodResult {
     public long getDuration() {
         return result.getEndTime() - result.getStartTime();
     }
+
+    public long getEndTime() {
+        return result.getEndTime();
+    }
 }

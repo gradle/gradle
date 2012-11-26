@@ -439,4 +439,38 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         assert result.getOutput().contains("thread 1 out")
         assert result.getOutput().contains("thread 2 out")
     }
+
+    @Test
+    void "produces encoded xml results"() {
+        file("build.gradle") << """
+            apply plugin: 'java'
+                repositories { mavenCentral() }
+                dependencies { testCompile 'junit:junit:4.10' }
+        """
+
+        file("src/test/java/EncodingTest.java") << """
+import org.junit.*;
+
+public class EncodingTest {
+    @Test public void encodesCdata() {
+        System.out.println("< html allowed, cdata closing token ]]> encoded!");
+        System.err.println("< html allowed, cdata closing token ]]> encoded!");
+    }
+    @Test public void encodesAttributeValues() {
+        throw new RuntimeException("html: <> cdata: ]]>");
+    }
+}
+"""
+        when:
+        executer.withTasks("test").runWithFailure()
+
+        then:
+        new JUnitTestExecutionResult(testDir)
+            .testClass("EncodingTest")
+            .assertTestPassed("encodesCdata")
+            .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))
+            .assertStdout(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+            .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+    }
+
 }
