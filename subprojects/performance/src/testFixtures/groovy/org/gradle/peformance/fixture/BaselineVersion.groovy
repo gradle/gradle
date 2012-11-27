@@ -35,22 +35,47 @@ class BaselineVersion {
         results.clear()
     }
 
-    String getSpeedStatsAgainst(MeasuredOperationList current) {
+    static BaselineVersion baseline(String version) {
+        new BaselineVersion(version: version, results: new MeasuredOperationList(name: "Gradle $version"))
+    }
+
+    String getSpeedStatsAgainst(String displayName, MeasuredOperationList current) {
         def sb = new StringBuilder()
+        if (current.avgTime() > results.avgTime()) {
+            sb.append "Speed $displayName: we're slower than $version.\n"
+        } else {
+            sb.append "Speed $displayName: AWESOME! we're faster than $version :D\n"
+        }
         def diff = current.avgTime() - results.avgTime()
         def desc = diff > Duration.millis(0) ? "slower" : "faster"
         sb.append("Difference: ${prettyTime(diff.abs())} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(current.avgTime(), results.avgTime())}%, max regression: ${prettyTime(maxExecutionTimeRegression)}\n")
         sb.append(current.speedStats)
         sb.append(results.speedStats)
+        sb.append("\n")
+        sb.toString()
     }
 
-    String getMemoryStatsAgainst(MeasuredOperationList current) {
+    String getMemoryStatsAgainst(String displayName, MeasuredOperationList current) {
         def sb = new StringBuilder()
+        if (current.avgMemory() > results.avgMemory()) {
+            sb.append("Memory $displayName: we need more memory than $version.\n")
+        } else {
+            sb.append("Memory $displayName: AWESOME! we need less memory than $version :D\n")
+        }
         def diff = current.avgMemory() - results.avgMemory()
         def desc = diff > DataAmount.bytes(0) ? "more" : "less"
         sb.append("Difference: ${prettyBytes(diff.abs())} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(current.avgMemory(), results.avgMemory())}%, max regression: ${prettyBytes(maxMemoryRegression)}\n")
         sb.append(current.memoryStats)
         sb.append(results.memoryStats)
-        return sb.toString()
+        sb.append("\n")
+        sb.toString()
+    }
+
+    boolean usesLessMemoryThan(MeasuredOperationList current) {
+        current.avgMemory() - results.avgMemory() > maxMemoryRegression
+    }
+
+    boolean fasterThan(MeasuredOperationList current) {
+        current.avgTime() - results.avgTime() > maxExecutionTimeRegression
     }
 }

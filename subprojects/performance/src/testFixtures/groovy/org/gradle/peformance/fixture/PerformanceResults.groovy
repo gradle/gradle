@@ -18,11 +18,13 @@ package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
 
+import static org.gradle.peformance.fixture.BaselineVersion.baseline
+
 public class PerformanceResults {
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
-    List<BaselineVersion> baselineVersions = [ new BaselineVersion(version:  "1.x", results: new MeasuredOperationList(name: "Gradle 1.x")) ]
+    List<BaselineVersion> baselineVersions = [ baseline("1.x")]
     String displayName
 
     final MeasuredOperationList current = new MeasuredOperationList(name:  "Current G.")
@@ -44,8 +46,8 @@ public class PerformanceResults {
     }
 
     void assertCurrentVersionHasNotRegressed() {
-        def slower = assertCurrentReleaseIsNotSlower()
-        def larger = assertMemoryUsed()
+        def slower = checkBaselineVersion({it.fasterThan(current)},         {it.getSpeedStatsAgainst(displayName, current)})
+        def larger = checkBaselineVersion({it.usesLessMemoryThan(current)}, {it.getMemoryStatsAgainst(displayName, current)})
         assertEveryBuildSucceeds()
         if (slower && larger) {
             throw new AssertionError("$slower\n$larger")
@@ -58,39 +60,17 @@ public class PerformanceResults {
         }
     }
 
-    private String assertMemoryUsed() {
+    private String checkBaselineVersion(Closure fails, Closure provideMessage) {
         def failed = false
-        def sb = new StringBuilder()
+        def failure = new StringBuilder()
         baselineVersions.each {
-            failed = failed || (current.avgMemory() - it.results.avgMemory()) > it.maxMemoryRegression
-
-            if (current.avgMemory() > it.results.avgMemory()) {
-                sb.append "Memory $displayName: we need more memory than $it.version.\n"
-            } else {
-                sb.append "Memory $displayName: AWESOME! we need less memory than $it.version :D\n"
+            String message = provideMessage(it)
+            if (fails(it)) {
+                failed = true
+                failure.append message
             }
-            sb.append it.getMemoryStatsAgainst(current) + "\n"
+            println message
         }
-        def message = sb.toString()
-        println(message)
-        return failed ? message : null
-    }
-
-    private String assertCurrentReleaseIsNotSlower() {
-        def failed = false
-        def sb = new StringBuilder()
-        baselineVersions.each {
-            failed = failed || (current.avgTime() - it.results.avgTime()) > it.maxExecutionTimeRegression
-
-            if (current.avgTime() > it.results.avgTime()) {
-                sb.append "Speed $displayName: we're slower than $it.version.\n"
-            } else {
-                sb.append "Speed $displayName: AWESOME! we're faster than $it.version :D\n"
-            }
-            sb.append it.getSpeedStatsAgainst(current) + "\n"
-        }
-        def message = sb.toString()
-        println(message)
-        return failed ? message : null
+        return failed ? failure.toString() : null
     }
 }
