@@ -9,13 +9,15 @@
 apply plugin: 'java'
 
 configurations {
+    outputDirs
+
     testFixturesCompile.extendsFrom compile
     testFixturesRuntime.extendsFrom runtime, testFixturesCompile
         
     // Expose configurations that include the test fixture classes for clients to use
-    testFixturesUsageCompile.extendsFrom testFixturesCompile
+    testFixturesUsageCompile.extendsFrom testFixturesCompile, outputDirs
     testFixturesUsageRuntime.extendsFrom testFixturesRuntime
-    
+
     // Assume that the project wants to use the fixtures for its tests
     testCompile.extendsFrom testFixturesUsageCompile
     testRuntime.extendsFrom testFixturesUsageRuntime
@@ -29,26 +31,32 @@ sourceSets {
 }
 
 dependencies {
-    testFixturesUsageCompile sourceSets.testFixtures.output, sourceSets.main.output
+    outputDirs sourceSets.testFixtures.output, sourceSets.main.output
     testFixturesCompile libraries.junit, libraries.jmock, libraries.spock
 }
 
-plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
     idea {
         module {
             testSourceDirs += sourceSets.testFixtures.groovy.srcDirs
             testSourceDirs += sourceSets.testFixtures.resources.srcDirs
             scopes.TEST.plus.add(configurations.testFixturesCompile)
             scopes.TEST.plus.add(configurations.testFixturesRuntime)
+
+            //avoiding the certain output directories from the classpath in IDEA
+            scopes.TEST.minus.add(configurations.outputDirs)
         }
     }
 }
 
-plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plugin not applied yet
+plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) {
     eclipse {
         classpath {
             plusConfigurations.add(configurations.testFixturesCompile)
             plusConfigurations.add(configurations.testFixturesRuntime)
+
+            //avoiding the certain output directories from the classpath in Eclipse
+            minusConfigurations.add(configurations.outputDirs)
         }
     }
 }
