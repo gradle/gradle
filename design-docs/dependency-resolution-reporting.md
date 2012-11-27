@@ -13,17 +13,17 @@ Improved dependency resolution reporting
 
 # Implementation plan
 
-## Dependency report shows requested dependency versions
+## Dependency report shows requested dependency versions (DONE)
 
 ### User visible changes
 
-The dependencies report should include information of the 'asked' dependency version
-Instead of raw version we can print something like: 1.0->3.0. Mock up:
+The dependencies report should include information of the 'requested' and 'selected' dependency version
+Instead of the selected version, we can print something like: 1.0->3.0. Mock up:
 
 <pre>
 testCompile - Classpath for compiling the test sources.
 +--- root:a:1.0
-|    \--- foo:bar:1.0 - >3.0
+|    \--- foo:bar:1.0 -> 3.0
 \--- root:b:1.0
      \--- foo:bar:3.0(*)
 </pre>
@@ -63,7 +63,7 @@ Scenarios:
 3. We should not incur increased memory usage - try to serialize the dependency graph and make it available on demand.
     Make sure it does not make things slower.
 
-## New report shows usages of each dependency
+## New report shows usages of each dependency (DONE)
 
 Attempts to answer following questions:
 
@@ -97,7 +97,7 @@ com.coolcorp.util:util-core:2.4.6 -> 4.0.7
 
 The idea is to traverse the graph the other way and print the dependent path for a given dependency.
 This report is useful to track where the given version of some dependency was picked up from in case of conflict resolution.
-This drives some conveniences to our DependencyGraph API.
+This drives some conveniences to our dependency graph API.
 
 For interesting version modules, the report shows also if the the version was 'forced' or if it was selected by 'conflict resolution'.
 
@@ -123,61 +123,101 @@ For interesting version modules, the report shows also if the the version was 'f
 - the report prints a warning if the configuration resolves with failures because this can affect the dependency tree
 - the plugin implementation potentially should go to 'reporting' subproject
 
-### Open issues
-
-- the name of the report is not good. The existing 'dependencies' report also gives 'insight' into the dependencies.
-- the task-level api (the configuration & dependency spec inputs, outputs)
-- should the new report extend AbstractReportTask? In that case we need decide what to do with 'projects' public property on AbstractReportTask.
-- if there is a single configuration in the project, should it be used by default by the task?
-- behavior when some dependencies are unresolved
-- needs to work with the c++ plugins in the same way it works with the java plugin
-
 ## Dependency report handles resolution failures
 
 ### User visible changes
 
-TBD
+Unresolved dependencies should be included in the report output, in the appropriate location in the tree. For example:
+
+<pre>
+testCompile - Classpath for compiling the test sources.
++--- root:a:1.0
+|    \--- foo:bar:1.0 -> 3.0
+\--- root:b:1.0
+     \--- foo:unknown:1.0 FAILED
+</pre>
+
+The report should also consider the case where the requested and selected versions are different. For example, a module may be forced to use a version
+that does not exist:
+
+<pre>
+testCompile - Classpath for compiling the test sources.
++--- root:a:1.0
+|    \--- foo:bar:1.0 -> 3.0 FAILED
+\--- root:b:1.0
+</pre>
+
+The task should not fail when there are unresolved dependencies in the dependency graph. However, it should display a warning informing the user
+that the result is not complete.
+
+For all other problems, the task should continue to fail as it does now.
 
 ### Test coverage
 
-TBD
+* A build that declares a dependency on a requested module version that does not exist (change or replace DependencyReportTaskIntegrationTest."renders even if resolution fails"). Assert that:
+    * The unresolved dependency is rendered in the appropriate location in the tree, as above.
+    * The report renders the tree for each requested configuration.
+    * The build does not fail.
+* A build that declares a dependency on a module version that does exist, but forces the dependency to use a version that does not exist. Assert that:
+    * The unresolved dependency is rendered in the appropriate location in the tree. The output should show the user which version actually could not
+      be resolved, as above.
+    * The build does not fail.
 
 ### Implementation approach
 
-TBD
+Should only require changes to the report rendering.
 
 ## Dependency insight report handles resolution failures
 
 ### User visible changes
 
-TBD
+Unresolved dependencies should be included in the report output, in the appropriate location in the tree. For example:
+
+<pre>
+foo:unknown:1.0 FAILED
+\--- root:b:1.0
+     \--- compile
+</pre>
+
+Or where multiple versions are involved:
+
+<pre>
+foo:unknown:1.0 (forced) FAILED
+\--- root:b:1.0
+     \--- compile
+
+foo:unknown:2.1 -> 1.0 FAILED
+\--- root:a:1.0
+     \--- compile
+</pre>
+
+The task should not fail when there are unresolved dependencies in the dependency graph. However, it should display a warning informing the user
+that the result is not complete.
+
+For all other problems, the task should continue to fail as it does now.
 
 ### Test coverage
 
-TBD
+* A build that declares a dependency on a module version that does not exist (change or replace DependencyInsightReportTaskIntegrationTest."deals with unresolved dependencies").
+    * The unresolved dependency is rendered in the appropriate location in the tree, as above.
+    * The build does not fail.
+    * When run with --dependencies that does not match anything, the user is warned that some dependencies could not be resolved.
+* A build that declares a dependency on a module version that does exist, but forces the dependency to use a version
+  that does not exist. Assert that:
+    * The unresolved dependency is rendered in the appropriate location in the tree. The output should show the user which version actually could not
+      be resolved, as above.
+    * The build does not fail.
 
 ### Implementation approach
 
-TBD
-
-## Dependency reports include file dependencies
-
-Currently the dependencies report does not include: file dependencies, gradleApi(), localGroovy() dependencies
-In addition to above, the dependency insight report does not include the project dependencies (not sure if they are needed in this report)
-
-### User visible changes
-
-TBD
-
-### Test coverage
-
-TBD
-
-### Implementation approach
-
-TBD
+Should only require changes to the report rendering.
 
 # Open issues / ideas
 
-1. Model the unresolved dependencies - how to carry the resolution failure?
-2. I would also think about wrapping access to the graph in some kind of action
+- Dependency reports should include file dependencies.
+- Render locally built things differently to external things (ie show the project dependencies differently to external dependencies).
+- Model the unresolved dependencies - how to carry the resolution failure?
+- The API of the DependencyInsightReportTask type (the configuration & dependency spec inputs, outputs)
+- Should DependencyInsightReportTask extend AbstractReportTask? In that case we need decide what to do with 'projects' public property on AbstractReportTask.
+- If there is a single configuration in the project, should it be used by default by the dependency insight report?
+- The dependency insight report needs to work with the c++ plugins in the same way it works with the java plugin.
