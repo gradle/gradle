@@ -61,30 +61,39 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Executes tests. Supports JUnit (3.8.x or 4.x) or TestNG tests.
- * <p>
- * An example with a blend of various settings
+ * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
+ * The sample below shows various configuration options.
+ *
  * <pre autoTested=''>
  * apply plugin: 'java' // adds 'test' task
  *
  * test {
- *   //configuring a system property for tests
+ *   // enable TestNG support (default is JUnit)
+ *   useTestNG()
+ *
+ *   // set a system property for the test JVM(s)
  *   systemProperty 'some.prop', 'value'
  *
- *   //tuning the included/excluded tests
+ *   // explicitly include or exclude tests
  *   include 'org/foo/**'
  *   exclude 'org/boo/**'
  *
- *   //makes the standard streams (err and out) visible at console when running tests
+ *   // show standard out and standard error of the test JVM(s) on the console
  *   testLogging.showStandardStreams = true
  *
- *   //tweaking memory settings for the forked vm that runs tests
- *   jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m'
+ *   // set heap size for the test JVM(s)
+ *   minHeapSize = "128m"
+ *   maxHeapSize = "512m"
  *
- *   //listening to test execution events
+ *   // set JVM arguments for the test JVM(s)
+ *   jvmArgs '-XX:MaxPermSize=256m'
+ *
+ *   // listen to events in the test execution lifecycle
  *   beforeTest { descriptor ->
  *      logger.lifecycle("Running test: " + descriptor)
  *   }
+ *
+ *   // listen to standard out and standard error of the test JVM(s)
  *   onOutput { descriptor, event ->
  *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
  *   }
