@@ -202,6 +202,10 @@ class MavenHttpModule implements MavenModule {
         server.expectGetMissing("$moduleVersionPath/$missingPomName")
     }
 
+    void expectPomHeadMissing() {
+        server.expectHeadMissing("$moduleVersionPath/$missingPomName")
+    }
+
     void expectPomSha1Get() {
         server.expectGet("$moduleVersionPath/${pomFile.name}.sha1", backingModule.sha1File(pomFile))
     }
@@ -238,12 +242,12 @@ class MavenHttpModule implements MavenModule {
         server.expectHead("$moduleVersionPath/${getArtifactFile(options).name}", getArtifactFile(options))
     }
 
-    void expectArtifactGetMissing() {
-        server.expectGetMissing("$moduleVersionPath/$missingArtifactName")
+    void expectArtifactGetMissing(Map options = [:]) {
+        server.expectGetMissing("$moduleVersionPath/${getMissingArtifactName(options)}")
     }
 
-    void expectArtifactHeadMissing() {
-        server.expectHeadMissing("$moduleVersionPath/$missingArtifactName")
+    void expectArtifactHeadMissing(Map options=[:]) {
+        server.expectHeadMissing("$moduleVersionPath/${getMissingArtifactName(options)}")
     }
 
     void expectArtifactSha1Get(Map options = [:]) {
@@ -270,9 +274,9 @@ class MavenHttpModule implements MavenModule {
         server.expectGetMissing("$moduleVersionPath/${missingArtifactName}.sha1")
     }
 
-    private String getMissingArtifactName() {
+    private String getMissingArtifactName(Map option = [:]) {
         if (backingModule.version.endsWith("-SNAPSHOT")) {
-            return "${backingModule.artifactId}-${backingModule.version}.jar"
+            return "${backingModule.artifactId}-${backingModule.version}${option["classifier"] ?"-"+option["classifier"]:""}.jar"
         } else {
             return artifactFile.name
         }

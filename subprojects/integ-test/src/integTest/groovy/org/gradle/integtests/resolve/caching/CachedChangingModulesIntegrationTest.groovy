@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 
 public class CachedChangingModulesIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -85,6 +86,60 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
 
         when:
         module.publishWithChangedContent()
+        server.resetExpectations()
+        then:
+        executer.withArgument("--offline")
+        run 'retrieve'
+    }
+
+    @Ignore
+    def "can run offline mode after hitting broken repo url"() {
+        given:
+        server.start()
+        def repo = mavenHttpRepo("repo")
+        def module = repo.module("group", "projectA", "1.0-SNAPSHOT")
+        module.publish()
+        buildFile << """
+                repositories {
+                    maven {
+                        name 'repo'
+                        url '${repo.uri}'
+                    }
+                }
+                configurations {
+                    compile
+                }
+
+                configurations.all {
+                    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+                }
+
+                dependencies {
+                    compile 'group:projectA:1.0-SNAPSHOT'
+                }
+
+                task retrieve(type: Sync) {
+                    into 'libs'
+                    from configurations.compile
+                }
+                """
+
+        when:
+        module.expectPomGet()
+        module.expectArtifactGet()
+        module.expectMetaDataGet()
+        module.expectMetaDataGet()
+        then:
+
+        run 'retrieve'
+
+        when:
+        server.resetExpectations()
+        server.addBroken("/")
+        then:
+        fails 'retrieve'
+
+        when:
         server.resetExpectations()
         then:
         executer.withArgument("--offline")
