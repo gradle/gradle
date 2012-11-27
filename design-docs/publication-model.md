@@ -1,4 +1,3 @@
-
 There are many shortcomings with the existing model and DSL for publishing. This specification describes a plan to implement a new publication model and DSL.
 
 The basic strategy taken here is to incrementally grow the new model along-side the existing model.
@@ -147,8 +146,9 @@ The `ivy-publish` plugin is intended to move Ivy concepts out of the core Gradle
 projects that use Ivy. It also allows us to introduce some breaking changes, in an opt-in way.
 
 Note: there are some breaking changes here when you apply the `ivy-publish` plugin:
-    * The project name rather than the `archivesBaseName` property is  used as the default Ivy module name.
-    * Only the dependency declarations and artifacts from public configurations are referenced in the generated Ivy descriptor and published to the
+
+* The project name rather than the `archivesBaseName` property is  used as the default Ivy module name.
+* Only the dependency declarations and artifacts from public configurations are referenced in the generated Ivy descriptor and published to the
       repository.
 
 Note that publishing multiple Ivy modules is not yet supported. This is covered by later stories.
@@ -244,9 +244,10 @@ Publishing both an Ivy and Maven module:
 Running `gradle publish` will build and upload both modules.
 
 Note: there are some breaking changes here when you apply the `maven-publish` plugin:
-    * The project name rather than `archivesBaseName` property is used as the default Maven module artifactId.
-    * Only the runtime dependencies are included in the generated pom. The compile dependencies and test dependencies are not included.
-    * Only artifacts from public configurations are included the publication.
+
+* The project name rather than `archivesBaseName` property is used as the default Maven module artifactId.
+* Only the runtime dependencies are included in the generated pom. The compile dependencies and test dependencies are not included.
+* Only artifacts from public configurations are included the publication.
 
 Note that publishing multiple Maven modules is not yet supported. It is also not possible to add dependencies to the pom. This is covered by later stories.
 
