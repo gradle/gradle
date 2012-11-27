@@ -15,17 +15,18 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
-import spock.lang.Ignore
+
+import org.gradle.integtests.fixtures.IgnoreVersions
+import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
 
 @TargetVersions('1.0-milestone-6+')
-@Ignore
-class CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
+@IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultCacheLockingManager.CACHE_LAYOUT_VERSION })
+class CacheReuseCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
     @Rule public final HttpServer server = new HttpServer()
     final MavenHttpRepository httpRepo = new MavenHttpRepository(server, new MavenFileRepository(file("maven-repo")))
 

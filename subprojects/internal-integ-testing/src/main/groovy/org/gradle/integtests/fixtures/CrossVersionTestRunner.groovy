@@ -51,14 +51,24 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
             target.previous = previousVersion
         }
 
+        private static <T> T getAnnotationValue(Class target, Class annotation, T defaultValue) {
+            def a = target.getAnnotation(annotation)
+            a? a.value() : defaultValue
+        }
+
+        private static Closure getAnnotationClosure(Class target, Class annotation, Closure defaultValue) {
+            def a = target.getAnnotation(annotation)
+            a? a.value().newInstance(target, target) : defaultValue
+        }
+
         @Override
         protected boolean isEnabled() {
-            TargetVersions targetGradleVersions = target.getAnnotation(TargetVersions)
-            if (!targetGradleVersions) {
-                return true
-            }
-            for (String targetGradleVersion: targetGradleVersions.value()) {
-                if (isMatching(targetGradleVersion, previousVersion.version)) {
+            List<String> targetGradleVersions = getAnnotationValue(target, TargetVersions, [])
+            Closure ignoreVersions = getAnnotationClosure(target, IgnoreVersions, {})
+
+            for (String targetGradleVersion: targetGradleVersions) {
+                def isIgnored = ignoreVersions(previousVersion)
+                if (isMatching(targetGradleVersion, previousVersion.version) && !isIgnored) {
                     return true
                 }
             }

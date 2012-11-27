@@ -91,6 +91,10 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return true;
     }
 
+    public int getArtifactCacheLayoutVersion() {
+        return 15;
+    }
+
     public boolean wrapperCanExecute(String version) {
         // Current wrapper works with anything > 0.8
         return GradleVersion.version(version).compareTo(GradleVersion.version("0.8")) > 0;

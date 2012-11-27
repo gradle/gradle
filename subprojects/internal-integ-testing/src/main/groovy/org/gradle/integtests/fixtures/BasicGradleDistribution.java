@@ -61,10 +61,14 @@ public interface BasicGradleDistribution {
     boolean isDaemonIdleTimeoutConfigurable();
 
     /**
-     *
      * Returns true if the tooling API is supported by this distribution.
      */
     boolean isToolingApiSupported();
+
+    /**
+     * Returns the version of the artifact cache layout
+     */
+    int getArtifactCacheLayoutVersion();
 
     /**
      * Returns true if the open API is supported by this distribution.

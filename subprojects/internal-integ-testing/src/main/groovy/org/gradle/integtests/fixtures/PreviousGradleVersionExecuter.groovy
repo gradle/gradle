@@ -114,6 +114,15 @@ class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter imp
         return version >= GradleVersion.version('1.0-milestone-3')
     }
 
+    private final static ARTIFACT_CACHE_LAYOUT = [
+        "default": 1,
+        "1.3": 15,
+    ]
+
+    int getArtifactCacheLayoutVersion() {
+        ARTIFACT_CACHE_LAYOUT.containsKey(version.version)? ARTIFACT_CACHE_LAYOUT[version.version] : ARTIFACT_CACHE_LAYOUT['default']
+    }
+
     boolean wrapperCanExecute(String version) {
         if (version == '0.8' || this.version == GradleVersion.version('0.8')) {
             // There was a breaking change after 0.8
