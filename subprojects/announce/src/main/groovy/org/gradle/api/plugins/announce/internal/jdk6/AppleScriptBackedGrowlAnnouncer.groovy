@@ -24,10 +24,10 @@ import javax.script.ScriptEngineManager
 
 class AppleScriptBackedGrowlAnnouncer extends Growl {
     private final IconProvider iconProvider
-
+    private final ScriptEngine engine;
     AppleScriptBackedGrowlAnnouncer(IconProvider iconProvider) {
         ScriptEngineManager mgr = new ScriptEngineManager();
-        ScriptEngine engine = mgr.getEngineByName("AppleScript");
+        engine = mgr.getEngineByName("AppleScript");
         if (engine == null) {
             engine = mgr.getEngineByName("AppleScriptEngine");
         }
@@ -37,11 +37,6 @@ class AppleScriptBackedGrowlAnnouncer extends Growl {
     }
 
     void send(String title, String message) {
-        ScriptEngineManager mgr = new ScriptEngineManager();
-        ScriptEngine engine = mgr.getEngineByName("AppleScript");
-        if (engine == null) {
-            throw new AnnouncerUnavailableException("AppleScript engine not available on used JVM")
-        }
         String isRunning = """
 tell application "System Events"
 set isRunning to count of (every process whose bundle identifier is "com.Growl.GrowlHelperApp") > 0

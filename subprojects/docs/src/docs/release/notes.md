@@ -67,7 +67,7 @@ For consistency, InvalidUserDataException is thrown instead of ReportException w
 
 ### Removed getSupportsAppleScript() in org.gradle.util.Jvm
 
-In the deprecated class `org.gradle.util.Jvm` we removed the method `getSupportsAppleScript()` to check that AppleScriptEngine is available on the Jvm.
+In the deprecated internal class `org.gradle.util.Jvm` we removed the method `getSupportsAppleScript()` to check that AppleScriptEngine is available on the Jvm.
 As a workaround you can dynamically check if the AppleScriptEngine is available:
 
         import javax.script.ScriptEngine
