@@ -54,6 +54,7 @@ Improve TestNG test execution/reporting
 ### Coverage
 
 -tweak performance tests
+-tests that don't have an associated method or class
 
 ### Backwards compatibility:
 

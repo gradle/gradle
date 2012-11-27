@@ -50,10 +50,10 @@ The end goal is to introduce 2 concepts:
 
 Both of these are defined in the [dependency model spec](dependency-model.md).
 
-A component is a logical description of a piece of software, such as a Java library or native executable or report.
+A component is a logical piece of software, such as a Java library or native executable or report.
 
-A publication is a mapping of that component to a set of artifacts and meta-data, ready to be used by some consumer project. A publication is a strongly-typed
-model element. There will be 3 types of publication:
+A publication is a mapping of that component to a set of artifacts and meta-data, ready to be used by some consumer project. A publication is a
+strongly-typed model element. There will initially be 3 types of publication:
 
 * An Ivy publication, for publishing to an Ivy repository.
 * A Maven publication, for publishing to a Maven repository.
@@ -61,13 +61,13 @@ model element. There will be 3 types of publication:
 
 The following sections present a series of steps that allow us to evolve towards this model.
 
-At the end of the process described below, a project will have-a set of publications. Each publication will be fully and independently configurable.
-The existing Maven deployer and Maven installer DSL will be discontinued, and the existing Configuration DSL will be split into incoming dependencies
-and outgoing publications.
+At the end of the process described below, a project will have a set of publications that define the major outputs of the project. Each publication
+will be fully and independently configurable. The existing Maven deployer and Maven installer DSL will be discontinued, and the existing Configuration
+DSL will be split into incoming dependencies and outgoing publications.
 
 Note: for the following discussion, all changes are `@Incubating` unless specified otherwise.
 
-## Customising Ivy descriptor XML
+## Customising Ivy descriptor XML (DONE)
 
 This initial step will provide some capability to modify the generated `ivy.xml` files before publication. It will introduce a new set of tasks for publishing
 to repositories.
@@ -186,10 +186,11 @@ publication tasks to publish Maven modules.
     * All artifacts from public configurations are published.
     * When the `java` plugin is applied, the following dependencies are included in the `pom.xml`:
         * All dependencies specified in `configurations.runtime` are added with runtime scope.
-4. Add a `MavenPublish` task.
+4. Add a `PublishToMavenRepository` task.
 5. Change the `maven` repository type to handle publishing a `MavenPublication`.
 6. Add `Pom.withXml()` methods and wire these up to pom generation.
-7. When the `maven-publish` plugin is applied, a rule is added to define a `MavenPublish` task instance for each `MavenPublication`, as for the `ivy-plugin` above.
+7. When the `maven-publish` plugin is applied, a rule is added to define a `PublishToMavenRepository` task instance for each `MavenPublication` and each publishing repository of
+   type `MavenRepository`.
 8. When the `maven-publish` plugin is applied, a rule is added to define a `publishLocal${publication.name}` task of type `MavenPublish` for each publication
    of type `MavenPublication` added to the publications container.
     * The `publication` property is wired up to the publication
@@ -256,24 +257,68 @@ It should be possible to implement this as an adapter over the existing MavenPom
 ### Test cases
 
 * Basic test that running the `publish` task actually publishes something.
+* Publish a java project with runtime dependencies.
 * Multi-project build with project dependencies that is published to a Maven repository can be successfully resolved by another build.
 * A `withXml` action can be used to modify the generated `pom.xml`.
 * Decent error message when the `withXml` action fails.
 * Descriptor contains non-ascii characters.
+* Copy existing Maven publication tests and rework to use `maven-publish` plugin.
 
 ## Allow Ivy module descriptor to be generated without publishing to a repository
 
 In this step, the meta-data file generation for an Ivy publication is moved out of the `publish` tasks and into a separate task.
 
-1. Add `GenerateIvyFile` task type. Takes a `IvyModuleDescriptor` as input and generates an `ivy.xml` from this.
+1. Add `GenerateIvyDescriptor` task type. Takes a `IvyModuleDescriptor` as input and generates an `ivy.xml` from this.
 2. The `ivy-publish` task adds a rule to define a `generate${publication}MetaData` task for each publication of type `IvyPublication` added to the
    publications container.
+3. Change `IvyModuleDescriptor` so that it is not `Buildable`. Move the `file` property to `IvyPublication`.
+4. Update user guide to mention how to generate ivy.xml
 
 Running `gradle generateIvyMetaData` would generate the `ivy.xml` for the default Ivy publication.
 
 ### Test cases
 
-TBD
+* Unignore IvyLocalPublishIntTest.canGenerateTheIvyXmlWithoutPublishing().
+
+## Allow Java libraries to be published
+
+1. Change the publish plugins to publish an empty publication when the `base` plugin has not been applied.
+2. Fix warning when publishing a Maven publication with no artifacts.
+3. Change the publish plugins to publish only artifacts from the `archives` configuration when the `base` plugin has been applied.
+4. Change the Ivy publish plugin to include only public configurations in the generated Ivy xml.
+5. Change the Maven publish plugin to include no dependencies in the generated POM when the `java` plugin has not been applied.
+6. Change the Maven publish plugin to include the dependencies from the `runtime` configuration in the generated POM when the `java` plugin has been applied.
+7. Publishing Java project -> only runtime and default configurations should be included.
+8. Inline inherited dependencies in generated ivy.xml.
+
+## Disallow publication to Ivy or Maven repositories when group or version has not been specified
+
+## Warn when no repository of the appropriate type has been specified
+
+## Allow other types of components to be published
+
+* Maven publish fails when using 'war' plugin or 'ear' + 'war' plugin, due to duplicate main artifact.
+* No pom published when using 'cpp-lib' plugin, due to no main artifact.
+* Publishing War project -> only runtime configuration should be included.
+* Publishing Ear project -> only runtime configuration should be included.
+* Publishing C++ Exe project -> only runtime configuration should be included.
+* Publishing C++ Lib project -> only runtime and headers configurations should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
+
+## Some fixes
+
+* Publishing to Ivy uses archivesBaseName for archive names.
+
+## Allow Maven POM to be generated without publishing to a repository
+
+In this step, the POM generation for a publication is moved out of the `publish` tasks and into a separate task.
+
+1. Add `GeneratePomFile` task type. Takes a `Pom` as input and generated a `pom.xml` from this.
+2. The `maven-publish` task adds a rule to define a `generate${publication}MetaData` task for each publication of type `MavenPublication` that is added to
+   the publications container.
+
+Running `gradle generateMavenMetaData` would generate the `pom.xml` for the default Maven publication.
+
+### Test cases
 
 ## Customising the Maven and Ivy publication identifier
 
@@ -287,6 +332,7 @@ This step will allow some basic customisation of the meta data model for each pu
    for a project dependencies, over the existing candidate identifiers.
 6. Change the `pom.xml` generation to prefer the (groupId, artifactId, version) identifier of the `MavenPublication` instance from the target project
    for project dependencies, over the existing candidate identifiers.
+7. Warn when multiple publications across all projects have the same identifier.
 
 To customise the `pom.xml`:
 
@@ -347,16 +393,6 @@ And:
     3. Assert that another build can resolve project-A from this Ivy repository.
     4. Publish both projects to a Maven repository.
     5. Assert that another build can resolve project-A from this Maven repository.
-
-## Allow Maven POM to be generated without publishing to a repository
-
-In this step, the POM generation for a publication is moved out of the `publish` tasks and into a separate task.
-
-1. Add `GeneratePomFile` task type. Takes a `Pom` as input and generated a `pom.xml` from this.
-2. The `maven-publish` task adds a rule to define a `generate${publication}MetaData` task for each publication of type `MavenPublication` that is added to
-   the publications container.
-
-Running `gradle generateMavenMetaData` would generate the `pom.xml` for the default Maven publication.
 
 ## Allow outgoing dependencies to be customised
 
@@ -592,3 +628,4 @@ TBD - consuming components.
 * Add in local publications.
 * Add Gradle descriptor.
 * Move Project.repositories to Project.dependencies.repositories.
+* Validation: Is is an error to call `publish` without defining any publications and/or repositories?

@@ -1,4 +1,3 @@
-
 This specification covers some improvements to how reports are generated and presented to the user.
 
 # Use cases
@@ -28,7 +27,7 @@ reports.
 It should be possible to view a persistent summary of the documentation that the build has generated. It should be possible for a build to declare
 custom documentation.
 
-## Developer view a summary of the test coverage for all tests executed by the build
+## Developer views a summary of the test coverage for all tests executed by the build
 
 As for test execution. Test results and summaries should include coverage information.
 
@@ -92,6 +91,8 @@ Note that running `gradle buildDashboard check` will not do anything very useful
 2. Add a `build-dashboard` plugin.
     * Adds a `buildDashboard` task of type `GenerateBuildDashboard`.
     * Configures `buildDashboard` to report on all enabled `Report` instances for all tasks of type `Reporting` in the current project and all subprojects.
+
+## Test task implements `Reporting`
 
 ## Include summary of all verification task results in the dashboard report
 

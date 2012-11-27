@@ -212,10 +212,13 @@ For all other problems, the task should continue to fail as it does now.
 
 Should only require changes to the report rendering.
 
-# Open issues / ideas
+# Open issues / further work
 
 - Dependency reports should include file dependencies.
+- Spike the serialisation of the resolution result to disk, to keep it out of the heap.
+- HTML dependency report.
 - Render locally built things differently to external things (ie show the project dependencies differently to external dependencies).
+- Change the 'dependencies' task instance to default to show the compile configuration only.
 - Model the unresolved dependencies - how to carry the resolution failure?
 - The API of the DependencyInsightReportTask type (the configuration & dependency spec inputs, outputs)
 - Should DependencyInsightReportTask extend AbstractReportTask? In that case we need decide what to do with 'projects' public property on AbstractReportTask.
