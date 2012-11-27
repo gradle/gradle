@@ -83,10 +83,6 @@ public class Jvm implements JavaInfo {
         return jvm.getInheritableEnvironmentVariables(envVars);
     }
 
-    public boolean getSupportsAppleScript() {
-        return jvm.getSupportsAppleScript();
-    }
-
     public boolean isIbmJvm() {
         return jvm.isIbmJvm();
     }

@@ -65,6 +65,19 @@ The configuration of a task, whose execution has already started, has been depre
 
 For consistency, InvalidUserDataException is thrown instead of ReportException when user incorrectly uses the dependency insight report.
 
+### Removed getSupportsAppleScript() in org.gradle.util.Jvm
+
+In the deprecated class `org.gradle.util.Jvm` we removed the method `getSupportsAppleScript()` to check that AppleScriptEngine is available on the Jvm.
+As a workaround you can dynamically check if the AppleScriptEngine is available:
+
+        import javax.script.ScriptEngine
+        import javax.script.ScriptEngineManager
+
+        ScriptEngineManager mgr = new ScriptEngineManager();
+        ScriptEngine engine = mgr.getEngineByName("AppleScript");
+        boolean isAppleScriptAvailable = engine != null;
+
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
