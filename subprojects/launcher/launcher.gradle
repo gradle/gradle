@@ -15,8 +15,6 @@ dependencies {
     compile libraries.slf4j_api
 
     startScriptGenerator project(':plugins')
-
-    testRuntime project(':diagnostics')
 }
 
 useTestFixtures()
