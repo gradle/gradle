@@ -92,7 +92,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     }
 
     public int getArtifactCacheLayoutVersion() {
-        return 16;
+        return 17;
     }
 
     public boolean wrapperCanExecute(String version) {

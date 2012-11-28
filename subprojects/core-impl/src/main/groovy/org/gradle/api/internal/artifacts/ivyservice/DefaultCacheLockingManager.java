@@ -25,7 +25,7 @@ import org.gradle.cache.internal.FileLockManager;
 import java.io.File;
 
 public class DefaultCacheLockingManager implements CacheLockingManager {
-    public static final int CACHE_LAYOUT_VERSION = 16;
+    public static final int CACHE_LAYOUT_VERSION = 17;
     private final PersistentCache cache;
 
     public DefaultCacheLockingManager(CacheRepository cacheRepository) {
