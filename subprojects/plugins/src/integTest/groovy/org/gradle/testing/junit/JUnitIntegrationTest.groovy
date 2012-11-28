@@ -22,6 +22,7 @@ import org.junit.Test
 import org.gradle.integtests.fixtures.*
 
 import static org.gradle.util.Matchers.containsLine
+import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
@@ -416,28 +417,38 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     public void canHaveMultipleTestTaskInstances() {
         executer.withTasks('check').run()
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        def result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.Test1', 'org.gradle.Test2')
         result.testClass('org.gradle.Test1').assertTestPassed('ok')
         result.testClass('org.gradle.Test2').assertTestPassed('ok')
     }
 
-    // primarily tests that we don't crash like we used to
     @Test
     void canHandleMultipleThreadsWritingToSystemOut() {
         def result = executer.withTasks("test").run()
         assert result.getOutput().contains("thread 0 out")
         assert result.getOutput().contains("thread 1 out")
         assert result.getOutput().contains("thread 2 out")
+
+        def junitResult = new JUnitTestExecutionResult(testDir)
+        def testClass = junitResult.testClass("org.gradle.SystemOutTest")
+        testClass.assertStdout(containsText("thread 0 out"))
+        testClass.assertStdout(containsText("thread 1 out"))
+        testClass.assertStdout(containsText("thread 2 out"))
     }
 
-    // primarily tests that we don't crash like we used to
     @Test
     void canHandleMultipleThreadsWritingToSystemErr() {
         def result = executer.withTasks("test").run()
         assert result.getOutput().contains("thread 0 out")
         assert result.getOutput().contains("thread 1 out")
         assert result.getOutput().contains("thread 2 out")
+
+        def junitResult = new JUnitTestExecutionResult(testDir)
+        def testClass = junitResult.testClass("org.gradle.SystemOutTest")
+        testClass.assertStderr(containsText("thread 0 err"))
+        testClass.assertStderr(containsText("thread 1 err"))
+        testClass.assertStderr(containsText("thread 2 err"))
     }
 
     @Test
