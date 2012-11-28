@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import java.io.IOException;
 
 /**
- * A {@code DependencyReportRenderer} is responsible for rendering the model of a project dependency report.
+ * Renders the model of a project dependency report.
  *
  * @author Phil Messenger
  */

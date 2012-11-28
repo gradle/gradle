@@ -22,7 +22,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * <p>A {@code ProjectReportRenderer} is responsible for rendering the model of a project report.</p>
+ * Renders the model of a project report.
  */
 public interface ReportRenderer {
     /**
