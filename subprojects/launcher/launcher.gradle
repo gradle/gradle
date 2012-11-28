@@ -58,25 +58,16 @@ class StartScriptGenerator extends DefaultTask {
     @TaskAction
     def generate() {
         logging.captureStandardOutput(LogLevel.INFO)
-        def factory = services.get(ClassLoaderFactory)
-        def classLoader = factory.createIsolatedClassLoader(classpath.collect { it.toURI() })
-        try {
-            def generator = classLoader.loadClass('org.gradle.api.internal.plugins.StartScriptGenerator').newInstance()
-            generator.applicationName = 'Gradle'
-            generator.optsEnvironmentVar = 'GRADLE_OPTS'
-            generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'
-            generator.mainClassName = 'org.gradle.launcher.GradleMain'
-            generator.scriptRelPath = 'bin/gradle'
-            generator.classpath = ["lib/${launcherJar.singleFile.name}" as String]
-            generator.appNameSystemProperty = 'org.gradle.appname'
-            generator.generateUnixScript(shellScript)
-            generator.generateWindowsScript(batchFile)
-        } finally {
-            try {
-                // use JDK7's URLClassLoader.close() if available
-                classLoader.close()
-            } catch (Throwable ignored) {}
-        }
+        def generator = new org.gradle.api.internal.plugins.StartScriptGenerator()
+        generator.applicationName = 'Gradle'
+        generator.optsEnvironmentVar = 'GRADLE_OPTS'
+        generator.exitEnvironmentVar = 'GRADLE_EXIT_CONSOLE'
+        generator.mainClassName = 'org.gradle.launcher.GradleMain'
+        generator.scriptRelPath = 'bin/gradle'
+        generator.classpath = ["lib/${launcherJar.singleFile.name}" as String]
+        generator.appNameSystemProperty = 'org.gradle.appname'
+        generator.generateUnixScript(shellScript)
+        generator.generateWindowsScript(batchFile)
     }
 }
 
