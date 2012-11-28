@@ -19,12 +19,12 @@ package org.gradle
 public class SystemErrTest {
     @org.junit.Test
     void test() {
-        System.err.println ("thread 0 out")
+        System.err.println ("thread 0 err")
         def thread1 = Thread.start {
-            System.err.println "thread 1 out"
+            System.err.println "thread 1 err"
         }
         def thread2 = Thread.start {
-            System.err.println "thread 2 out"
+            System.err.println "thread 2 err"
         }
         thread1.join()
         thread2.join()

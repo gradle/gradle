@@ -440,12 +440,12 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     @Test
     void canHandleMultipleThreadsWritingToSystemErr() {
         def result = executer.withTasks("test").run()
-        assert result.getOutput().contains("thread 0 out")
-        assert result.getOutput().contains("thread 1 out")
-        assert result.getOutput().contains("thread 2 out")
+        assert result.getOutput().contains("thread 0 err")
+        assert result.getOutput().contains("thread 1 err")
+        assert result.getOutput().contains("thread 2 err")
 
         def junitResult = new JUnitTestExecutionResult(testDir)
-        def testClass = junitResult.testClass("org.gradle.SystemOutTest")
+        def testClass = junitResult.testClass("org.gradle.SystemErrTest")
         testClass.assertStderr(containsText("thread 0 err"))
         testClass.assertStderr(containsText("thread 1 err"))
         testClass.assertStderr(containsText("thread 2 err"))
