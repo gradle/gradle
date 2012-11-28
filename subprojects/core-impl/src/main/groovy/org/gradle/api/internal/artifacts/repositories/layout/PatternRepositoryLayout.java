@@ -48,12 +48,20 @@ public class PatternRepositoryLayout extends RepositoryLayout {
     }
 
     /**
+     * Tells whether a Maven style layout is to be used for the 'organisation' part, replacing any dots with forward slashes.
+     * Defaults to {@code false}.
+     */
+    public boolean getM2Compatible() {
+        return m2compatible;
+    }
+
+    /**
      * Sets whether a Maven style layout is to be used for the 'organisation' part, replacing any dots with forward slashes.
      * Defaults to {@code false}.
      *
      * @param m2compatible whether a Maven style layout is to be used for the 'organisation' part
      */
-    public void m2compatible(boolean m2compatible) {
+    public void setM2compatible(boolean m2compatible) {
         this.m2compatible = m2compatible;
     }
 

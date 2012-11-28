@@ -200,7 +200,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.layout 'pattern', {
             artifact '[module]/[revision]/[artifact](.[ext])'
             ivy '[module]/[revision]/ivy.xml'
-            m2compatible true
+            m2compatible = true
         }
 
         given:

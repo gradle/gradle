@@ -109,7 +109,7 @@ repositories {
         layout 'pattern', {
             artifact "[organisation]/[module]/[revision]/[artifact].[ext]"
             ivy "[organisation]/[module]/[revision]/ivy.xml"
-            m2compatible true
+            m2compatible = true
         }
     }
 }
