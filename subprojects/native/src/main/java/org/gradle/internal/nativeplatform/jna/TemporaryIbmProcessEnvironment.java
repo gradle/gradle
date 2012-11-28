@@ -43,11 +43,11 @@ public class TemporaryIbmProcessEnvironment implements ProcessEnvironment {
     }
 
     public void setEnvironmentVariable(String name, String value) throws NativeIntegrationException {
-        throw new NativeIntegrationException("TemporaryIbmProcessEnvironment doesn't implement setEnvironmentVariable()");
+        delegate.setEnvironmentVariable(name, value);
     }
 
     public void removeEnvironmentVariable(String name) throws NativeIntegrationException {
-        throw new NativeIntegrationException("TemporaryIbmProcessEnvironment doesn't implement removeEnvironmentVariable()");
+        delegate.removeEnvironmentVariable(name);
     }
 
     public Long maybeGetPid() {
@@ -59,14 +59,14 @@ public class TemporaryIbmProcessEnvironment implements ProcessEnvironment {
     }
 
     public boolean maybeSetEnvironment(Map<String, String> source) {
-        return false;
+        return delegate.maybeSetEnvironment(source);
     }
 
     public boolean maybeSetEnvironmentVariable(String name, String value) {
-        return false;
+        return delegate.maybeSetEnvironmentVariable(name, value);
     }
 
     public boolean maybeRemoveEnvironmentVariable(String name) {
-        return false;
+        return maybeRemoveEnvironmentVariable(name);
     }
 }
