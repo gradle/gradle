@@ -45,7 +45,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
-    private final CachedArtifactIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
+    private final CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex;
 
     private final CachePolicy cachePolicy;
 
@@ -53,7 +53,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     private final TimeProvider timeProvider;
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
-                                          CachedArtifactIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
+                                          CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                           CachePolicy cachePolicy, TimeProvider timeProvider) {
         this.delegate = delegate;
         this.moduleDescriptorCache = moduleDescriptorCache;
@@ -195,7 +195,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
                 File cachedArtifactFile = cached.getCachedFile();
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, descriptorHash.equals(cached.getDescriptorHash()))) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
-                    result.resolved(cachedArtifactFile, null);
+                    result.resolved(cachedArtifactFile);
                     return;
                 }
             }

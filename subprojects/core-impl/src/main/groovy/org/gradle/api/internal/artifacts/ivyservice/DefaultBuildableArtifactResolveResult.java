@@ -17,25 +17,21 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 
 public class DefaultBuildableArtifactResolveResult implements BuildableArtifactResolveResult {
     private ArtifactResolveException failure;
     private File file;
-    private ExternalResourceMetaData externalResourceMetaData;
 
     public void failed(ArtifactResolveException failure) {
         this.failure = failure;
     }
 
-    public void resolved(File file, @Nullable ExternalResourceMetaData externalResourceMetaData) {
+    public void resolved(File file) {
         this.file = file;
-        this.externalResourceMetaData = externalResourceMetaData;
     }
 
     public void notFound(Artifact artifact) {
@@ -50,11 +46,6 @@ public class DefaultBuildableArtifactResolveResult implements BuildableArtifactR
     public File getFile() throws ArtifactResolveException {
         assertResolved();
         return file;
-    }
-
-    public ExternalResourceMetaData getExternalResourceMetaData() throws ArtifactResolveException {
-        assertResolved();
-        return externalResourceMetaData;
     }
 
     private void assertResolved() {

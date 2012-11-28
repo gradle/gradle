@@ -44,7 +44,6 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.Message;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
@@ -171,7 +170,7 @@ public class ExternalResourceResolver extends BasicResolver {
     }
 
     public ResolvedModuleRevision parse(final ResolvedResource mdRef, DependencyDescriptor dd,
-            ResolveData data) throws ParseException {
+                                        ResolveData data) throws ParseException {
 
         DependencyDescriptor nsDd = dd;
         dd = toSystem(nsDd);
@@ -195,7 +194,7 @@ public class ExternalResourceResolver extends BasicResolver {
     }
 
     private void checkDescriptorConsistency(ModuleRevisionId mrid, ModuleDescriptor md,
-            ResolvedResource ivyRef) throws ParseException {
+                                            ResolvedResource ivyRef) throws ParseException {
         boolean ok = true;
         StringBuilder errors = new StringBuilder();
         if (!mrid.getOrganisation().equals(md.getModuleRevisionId().getOrganisation())) {
@@ -244,10 +243,10 @@ public class ExternalResourceResolver extends BasicResolver {
         for (Iterator it = mrid.getExtraAttributes().entrySet().iterator(); it.hasNext();) {
             Map.Entry extra = (Map.Entry) it.next();
             if (extra.getValue() != null && !extra.getValue().equals(
-                                                md.getExtraAttribute((String) extra.getKey()))) {
+                    md.getExtraAttribute((String) extra.getKey()))) {
                 String errorMsg = "bad " + extra.getKey() + " found in " + ivyRef.getResource()
-                                        + ": expected='" + extra.getValue() + "' found='"
-                                        + md.getExtraAttribute((String) extra.getKey()) + "'";
+                        + ": expected='" + extra.getValue() + "' found='"
+                        + md.getExtraAttribute((String) extra.getKey()) + "'";
                 Message.error("\t" + getName() + ": " + errorMsg);
                 errors.append(errorMsg + ";");
                 ok = false;
@@ -288,7 +287,8 @@ public class ExternalResourceResolver extends BasicResolver {
     public ArtifactOrigin locate(Artifact artifact) {
         ResolvedResource artifactRef = getArtifactRef(artifact, null, false);
         if (artifactRef != null && artifactRef.getResource().exists()) {
-            return new ArtifactOriginWithMetaData(artifact, artifactRef.getResource());
+            final Resource resource = artifactRef.getResource();
+            return new ArtifactOrigin(artifact, resource.isLocal(), resource.getName());
         }
         return null;
     }
@@ -308,10 +308,10 @@ public class ExternalResourceResolver extends BasicResolver {
         return new ResourceMDParser() {
             public MDResolvedResource parse(Resource resource, String rev) {
                 DefaultModuleDescriptor md =
-                    DefaultModuleDescriptor.newDefaultInstance(new ModuleRevisionId(mid, rev));
+                        DefaultModuleDescriptor.newDefaultInstance(new ModuleRevisionId(mid, rev));
                 md.setStatus("integration");
                 MetadataArtifactDownloadReport madr =
-                    new MetadataArtifactDownloadReport(md.getMetadataArtifact());
+                        new MetadataArtifactDownloadReport(md.getMetadataArtifact());
                 madr.setDownloadStatus(DownloadStatus.NO);
                 madr.setSearched(true);
                 return new MDResolvedResource(resource, rev, new ResolvedModuleRevision(ExternalResourceResolver.this, ExternalResourceResolver.this, md, madr, isForce()));

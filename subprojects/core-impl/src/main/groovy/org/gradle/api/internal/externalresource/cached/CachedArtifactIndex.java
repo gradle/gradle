@@ -17,11 +17,12 @@
 package org.gradle.api.internal.externalresource.cached;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
 
 import java.io.File;
 import java.math.BigInteger;
 
-public interface CachedArtifactIndex<K> {
+public interface CachedArtifactIndex {
     /**
      * Adds a resolution to the index.
      *
@@ -30,9 +31,9 @@ public interface CachedArtifactIndex<K> {
      * @param key The key to cache this resolution under in the index. Cannot be null.
      * @param artifactFile The artifact file in the persistent file store. Cannot be null
      * @param moduleDescriptorHash The checksum (SHA1) of the related moduledescriptor.
-     * @see #storeMissing(K, BigInteger)
+     * @see #storeMissing(ArtifactAtRepositoryKey, BigInteger)
      */
-    void store(K key, File artifactFile, BigInteger moduleDescriptorHash);
+    void store(ArtifactAtRepositoryKey key, File artifactFile, BigInteger moduleDescriptorHash);
 
     /**
      * Record that the artifact with the given key was missing.
@@ -40,7 +41,7 @@ public interface CachedArtifactIndex<K> {
      * @param key The key to cache this resolution under in the index.
      * @param descriptorHash The SHA1 hash of the related moduleDescriptor
      */
-    void storeMissing(K key, BigInteger descriptorHash);
+    void storeMissing(ArtifactAtRepositoryKey key, BigInteger descriptorHash);
 
     /**
      * Lookup a cached resolution.
@@ -51,12 +52,12 @@ public interface CachedArtifactIndex<K> {
      * @return The cached artifact resolution if one exists, otherwise null.
      */
     @Nullable
-    CachedArtifact lookup(K key);
+    CachedArtifact lookup(ArtifactAtRepositoryKey key);
 
     /**
      * Remove the entry for the given key if it exists.
      *
      * @param key The key of the item to remove.
      */
-    void clear(K key);
+    void clear(ArtifactAtRepositoryKey key);
 }

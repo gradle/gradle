@@ -29,8 +29,6 @@ import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
-import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
 
 import java.io.File;
 import java.text.ParseException;
@@ -58,7 +56,7 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
         File file = new File(resolvedResource.getResource().getName());
         assert file.isFile();
 
-        ArtifactOrigin origin = new ArtifactOriginWithMetaData(artifact, true, new DefaultExternalResourceMetaData(file.getAbsolutePath()));
+        ArtifactOrigin origin = new ArtifactOrigin(artifact, true, file.getAbsolutePath());
         report.setDownloadStatus(DownloadStatus.NO);
         report.setArtifactOrigin(origin);
         report.setSize(file.length());

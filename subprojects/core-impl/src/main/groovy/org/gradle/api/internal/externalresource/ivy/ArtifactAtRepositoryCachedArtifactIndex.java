@@ -25,7 +25,7 @@ import org.gradle.internal.TimeProvider;
 import java.io.File;
 import java.math.BigInteger;
 
-public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements CachedArtifactIndex<ArtifactAtRepositoryKey> {
+public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements CachedArtifactIndex {
 
     private final TimeProvider timeProvider;
 

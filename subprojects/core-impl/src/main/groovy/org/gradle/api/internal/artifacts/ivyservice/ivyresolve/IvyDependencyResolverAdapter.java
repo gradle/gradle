@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 
@@ -48,15 +46,9 @@ public class IvyDependencyResolverAdapter extends AbstractDependencyResolverAdap
             return;
         }
 
-        ArtifactOrigin artifactOrigin = artifactDownloadReport.getArtifactOrigin();
-
         File localFile = artifactDownloadReport.getLocalFile();
         if (localFile != null) {
-            ExternalResourceMetaData metaData = null;
-            if (artifactOrigin instanceof ArtifactOriginWithMetaData) {
-                metaData = ((ArtifactOriginWithMetaData) artifactOrigin).getMetaData();
-            }
-            result.resolved(localFile, metaData);
+            result.resolved(localFile);
         } else {
             result.notFound(artifact);
         }

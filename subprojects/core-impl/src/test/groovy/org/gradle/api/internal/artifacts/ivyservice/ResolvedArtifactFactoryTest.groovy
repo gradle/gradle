@@ -48,7 +48,7 @@ class ResolvedArtifactFactoryTest extends Specification {
         1 * lockingManager.useCache(!null, !null) >> {String displayName, Factory<?> action ->
             return action.create()
         }
-        1 * artifactResolver.resolve(artifact, _) >> { args -> args[1].resolved(file, null) }
+        1 * artifactResolver.resolve(artifact, _) >> { args -> args[1].resolved(file) }
         0 * _._
     }
 }

@@ -17,17 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 
 import java.io.File;
 
 public interface BuildableArtifactResolveResult extends ArtifactResolveResult {
     /**
-     * Marks the module version as resolved, with the given meta-data and artifact resolver.
+     * Marks the module version as resolved, with the given artifact resolver.
      */
-    void resolved(File file, @Nullable ExternalResourceMetaData resourceMetaData);
+    void resolved(File file);
 
     /**
      * Marks the resolve as failed with the given exception.

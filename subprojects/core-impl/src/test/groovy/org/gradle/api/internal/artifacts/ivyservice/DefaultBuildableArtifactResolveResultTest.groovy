@@ -34,15 +34,6 @@ class DefaultBuildableArtifactResolveResultTest extends Specification {
         e.message == 'No result has been specified.'
     }
 
-    def "cannot get metadata when no result specified"() {
-        when:
-        result.externalResourceMetaData
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'No result has been specified.'
-    }
-
     def "cannot get failure when no result specified"() {
         when:
         result.failure
@@ -58,18 +49,6 @@ class DefaultBuildableArtifactResolveResultTest extends Specification {
         when:
         result.failed(failure)
         result.file
-
-        then:
-        ArtifactResolveException e = thrown()
-        e == failure
-    }
-
-    def "cannot get metadata when resolve failed"() {
-        def failure = new ArtifactResolveException("broken")
-
-        when:
-        result.failed(failure)
-        result.externalResourceMetaData
 
         then:
         ArtifactResolveException e = thrown()

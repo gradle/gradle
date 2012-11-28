@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.cachemanager;
 
+import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.CacheDownloadOptions;
 import org.apache.ivy.core.cache.CacheMetadataOptions;
 import org.apache.ivy.core.cache.DownloadListener;
@@ -33,7 +34,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithMetaData;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
@@ -65,7 +65,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
     }
 
     public EnhancedArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver,
-                                           ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
+                                                   ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
         EnhancedArtifactDownloadReport adr = new EnhancedArtifactDownloadReport(artifact);
 
         DownloadListener listener = options.getListener();
@@ -77,7 +77,8 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         try {
             ResolvedResource artifactRef = resourceResolver.resolve(artifact);
             if (artifactRef != null) {
-                ArtifactOriginWithMetaData origin = new ArtifactOriginWithMetaData(artifact, artifactRef.getResource());
+                final Resource resource = artifactRef.getResource();
+                ArtifactOrigin origin = new ArtifactOrigin(artifact, resource.isLocal(), getLocation(resource));
                 if (listener != null) {
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }
@@ -102,6 +103,14 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
             listener.endArtifactDownload(this, artifact, adr, adr.getLocalFile());
         }
         return adr;
+    }
+
+    private static String getLocation(Resource resource) {
+        if (resource instanceof ExternalResource) {
+            return ((ExternalResource) resource).getMetaData().getLocation();
+        } else {
+            return resource.getName();
+        }
     }
 
     private File downloadArtifactFile(final Artifact artifact, final ResourceDownloader resourceDownloader, final ResolvedResource artifactRef) throws IOException {
