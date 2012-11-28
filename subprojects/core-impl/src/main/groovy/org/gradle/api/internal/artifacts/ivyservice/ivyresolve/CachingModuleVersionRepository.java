@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.math.BigInteger;
 
 public class CachingModuleVersionRepository implements LocalAwareModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleVersionRepository.class);
@@ -180,7 +181,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
 
         final ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(delegate, artifact.getModuleRevisionId());
-        final int descriptorHash = cachedModuleDescriptor == null ? -1 : cachedModuleDescriptor.getDescriptorHash();
+        final BigInteger descriptorHash = cachedModuleDescriptor == null ? BigInteger.valueOf(-1) : cachedModuleDescriptor.getDescriptorHash();
         if (cached != null) {
             ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
             long age = timeProvider.getCurrentTime() - cached.getCachedAt();

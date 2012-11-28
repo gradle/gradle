@@ -19,6 +19,7 @@ package org.gradle.api.internal.externalresource.cached;
 import org.gradle.api.Nullable;
 
 import java.io.File;
+import java.math.BigInteger;
 
 public interface CachedArtifactIndex<K> {
     /**
@@ -29,9 +30,9 @@ public interface CachedArtifactIndex<K> {
      * @param key The key to cache this resolution under in the index. Cannot be null.
      * @param artifactFile The artifact file in the persistent file store. Cannot be null
      * @param moduleDescriptorHash The checksum (SHA1) of the related moduledescriptor.
-     * @see #storeMissing(K, int)
+     * @see #storeMissing(K, BigInteger)
      */
-    void store(K key, File artifactFile, int moduleDescriptorHash);
+    void store(K key, File artifactFile, BigInteger moduleDescriptorHash);
 
     /**
      * Record that the artifact with the given key was missing.
@@ -39,7 +40,7 @@ public interface CachedArtifactIndex<K> {
      * @param key The key to cache this resolution under in the index.
      * @param descriptorHash The SHA1 hash of the related moduleDescriptor
      */
-    void storeMissing(K key, int descriptorHash);
+    void storeMissing(K key, BigInteger descriptorHash);
 
     /**
      * Lookup a cached resolution.

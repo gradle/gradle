@@ -18,14 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.gradle.internal.TimeProvider;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 
 class ModuleDescriptorCacheEntry implements Serializable {
     public boolean isChanging;
     public boolean isMissing;
     public long createTimestamp;
-    public int moduleDescriptorHash;
+    public BigInteger moduleDescriptorHash;
 
-    ModuleDescriptorCacheEntry(boolean isChanging, boolean isMissing, TimeProvider timeProvider, int moduleDescriptorHash) {
+    ModuleDescriptorCacheEntry(boolean isChanging, boolean isMissing, TimeProvider timeProvider, BigInteger moduleDescriptorHash) {
         this.isChanging = isChanging;
         this.isMissing = isMissing;
         this.createTimestamp = timeProvider.getCurrentTime();

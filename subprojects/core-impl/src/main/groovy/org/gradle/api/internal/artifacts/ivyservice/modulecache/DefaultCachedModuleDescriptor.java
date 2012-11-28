@@ -22,10 +22,11 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResol
 import org.gradle.internal.TimeProvider;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 
 class DefaultCachedModuleDescriptor implements ModuleDescriptorCache.CachedModuleDescriptor, Serializable {
     private final ModuleDescriptor moduleDescriptor;
-    private final int descriptorHash;
+    private final BigInteger descriptorHash;
     private final boolean isChangingModule;
     private final long ageMillis;
 
@@ -57,7 +58,7 @@ class DefaultCachedModuleDescriptor implements ModuleDescriptorCache.CachedModul
         return ageMillis;
     }
 
-    public int getDescriptorHash() {
+    public BigInteger getDescriptorHash() {
         return descriptorHash;
     }
 }

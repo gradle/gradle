@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.Serializable;
+import java.math.BigInteger;
 
 public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleDescriptorCache.class);
@@ -96,11 +97,11 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     }
 
     private ModuleDescriptorCacheEntry createMissingEntry(boolean changing) {
-        return new ModuleDescriptorCacheEntry(changing, true, timeProvider, 0);
+        return new ModuleDescriptorCacheEntry(changing, true, timeProvider, BigInteger.ZERO);
     }
 
     private ModuleDescriptorCacheEntry createEntry(boolean changing, HashValue moduleDescriptorHash) {
-        return new ModuleDescriptorCacheEntry(changing, false, timeProvider, moduleDescriptorHash.hashCode());
+        return new ModuleDescriptorCacheEntry(changing, false, timeProvider, new BigInteger(1, moduleDescriptorHash.asByteArray()));
     }
 
     private static class RevisionKey implements Serializable {

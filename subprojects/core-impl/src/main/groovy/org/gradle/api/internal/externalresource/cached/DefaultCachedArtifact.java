@@ -18,19 +18,20 @@ package org.gradle.api.internal.externalresource.cached;
 
 import java.io.File;
 import java.io.Serializable;
+import java.math.BigInteger;
 
 public class DefaultCachedArtifact implements CachedArtifact, Serializable {
     private final File cachedFile;
     private final long cachedAt;
-    private final int descriptorHash;
+    private final BigInteger descriptorHash;
 
-    public DefaultCachedArtifact(File cachedFile, long cachedAt, int descriptorHash) {
+    public DefaultCachedArtifact(File cachedFile, long cachedAt, BigInteger descriptorHash) {
         this.cachedFile = cachedFile;
         this.cachedAt = cachedAt;
         this.descriptorHash = descriptorHash;
     }
 
-    public DefaultCachedArtifact(long cachedAt, int descriptorHash) {
+    public DefaultCachedArtifact(long cachedAt, BigInteger descriptorHash) {
         this.cachedAt = cachedAt;
         this.cachedFile = null;
         this.descriptorHash = descriptorHash;
@@ -48,7 +49,7 @@ public class DefaultCachedArtifact implements CachedArtifact, Serializable {
         return cachedAt;
     }
 
-    public int getDescriptorHash() {
+    public BigInteger getDescriptorHash() {
         return descriptorHash;
     }
 

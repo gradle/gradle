@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.externalresource.cached;
 
+import java.math.BigInteger;
+
 public interface CachedArtifact extends CachedItem {
-    int getDescriptorHash();
+    BigInteger getDescriptorHash();
 }

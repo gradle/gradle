@@ -23,6 +23,7 @@ import org.gradle.api.internal.externalresource.cached.DefaultCachedArtifact;
 import org.gradle.internal.TimeProvider;
 
 import java.io.File;
+import java.math.BigInteger;
 
 public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements CachedArtifactIndex<ArtifactAtRepositoryKey> {
 
@@ -33,22 +34,22 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
         this.timeProvider = timeProvider;
     }
 
-    private DefaultCachedArtifact createEntry(File artifactFile, int moduleDescriptorHash) {
+    private DefaultCachedArtifact createEntry(File artifactFile, BigInteger moduleDescriptorHash) {
         return new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash);
     }
 
-    public void store(final ArtifactAtRepositoryKey key, final File artifactFile, int moduleDescriptorHash) {
+    public void store(final ArtifactAtRepositoryKey key, final File artifactFile, BigInteger moduleDescriptorHash) {
         assertArtifactFileNotNull(artifactFile);
         assertKeyNotNull(key);
         storeInternal(key, createEntry(artifactFile, moduleDescriptorHash));
     }
 
 
-    public void storeMissing(ArtifactAtRepositoryKey key, int descriptorHash) {
+    public void storeMissing(ArtifactAtRepositoryKey key, BigInteger descriptorHash) {
         storeInternal(key, createMissingEntry(descriptorHash));
     }
 
-    CachedArtifact createMissingEntry(int descriptorHash) {
+    CachedArtifact createMissingEntry(BigInteger descriptorHash) {
         return new DefaultCachedArtifact(timeProvider.getCurrentTime(), descriptorHash);
     }
 }
