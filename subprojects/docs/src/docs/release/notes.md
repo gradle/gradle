@@ -70,13 +70,12 @@ For consistency, InvalidUserDataException is thrown instead of ReportException w
 In the deprecated internal class `org.gradle.util.Jvm` we removed the method `getSupportsAppleScript()` to check that AppleScriptEngine is available on the Jvm.
 As a workaround you can dynamically check if the AppleScriptEngine is available:
 
-        import javax.script.ScriptEngine
-        import javax.script.ScriptEngineManager
+    import javax.script.ScriptEngine
+    import javax.script.ScriptEngineManager
 
-        ScriptEngineManager mgr = new ScriptEngineManager();
-        ScriptEngine engine = mgr.getEngineByName("AppleScript");
-        boolean isAppleScriptAvailable = engine != null;
-
+    ScriptEngineManager mgr = new ScriptEngineManager();
+    ScriptEngine engine = mgr.getEngineByName("AppleScript");
+    boolean isAppleScriptAvailable = engine != null;
 
 ## External contributions
 
