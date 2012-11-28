@@ -25,7 +25,6 @@ import org.gradle.util.TestFile
  * We are using Ivy here, but the strategy is the same for any kind of repository.
  */
 class CachedDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
-
     IvyHttpModule module
 
     TestFile downloaded
@@ -182,7 +181,6 @@ task retrieve(type: Sync) {
 
         then:
         headSha1ThenGetRequests()
-        executer.withArgument("-d")
         changedResolve()
     }
 
