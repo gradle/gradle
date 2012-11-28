@@ -186,14 +186,14 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
             long age = timeProvider.getCurrentTime() - cached.getCachedAt();
             if (cached.isMissing()) {
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, descriptorHash == cached.getDescriptorHash())) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, descriptorHash.equals(cached.getDescriptorHash()))) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
                     result.notFound(artifact);
                     return;
                 }
             } else {
                 File cachedArtifactFile = cached.getCachedFile();
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, descriptorHash == cached.getDescriptorHash())) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, descriptorHash.equals(cached.getDescriptorHash()))) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
                     result.resolved(cachedArtifactFile, null);
                     return;
