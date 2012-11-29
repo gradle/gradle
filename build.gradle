@@ -78,7 +78,7 @@ ext {
     internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions"] }
     groovyProjects = subprojects.findAll { !(it.name in ["docs"]) }
     publicGroovyProjects = groovyProjects - internalProjects
-    publishedProjects = [project(':toolingApi')]
+    publishedProjects = [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices'), project(':messaging')]
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
         'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'buildComparison',

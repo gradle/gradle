@@ -1,8 +1,8 @@
 dependencies {
     groovy libraries.groovy
-    compile project(':baseServices')
-    compile libraries.slf4j_api
-    compile libraries.guava
+    publishCompile project(':baseServices')
+    publishCompile libraries.slf4j_api
+    publishCompile libraries.guava
 }
 
 useTestFixtures()

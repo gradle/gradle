@@ -21,9 +21,9 @@ configurations {
 dependencies {
     groovy libraries.groovy
 
-    compile libraries.slf4j_api
-    compile project(":baseServices")
-    compile project(":messaging")
+    publishCompile libraries.slf4j_api
+    publishCompile project(":baseServices")
+    publishCompile project(":messaging")
 
     compile project(":baseServicesGroovy")
     compile libraries.asm
