@@ -7,7 +7,7 @@
 dependencies {
     groovy libraries.groovy
 
-    publishCompile libraries.slf4j_api
+    compile libraries.slf4j_api
 }
 
 useTestFixtures()

@@ -3,7 +3,7 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
 dependencies {
     groovy libraries.groovy
-    compile project(path: ':core', configuration: "publishCompileWithProjectJar")
+    compile(project(':core'),{transitive = false})
     compile project(':messaging')
     compile project(':wrapper')
     compile project(':baseServices')
@@ -51,7 +51,6 @@ task jarjarJar(type: JarJarJar) {
 }
 
 artifacts {
-    publishCompileWithProjectJar jarjarJar
     publishRuntime file: jarjarJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: jarjarJar
 }
 
