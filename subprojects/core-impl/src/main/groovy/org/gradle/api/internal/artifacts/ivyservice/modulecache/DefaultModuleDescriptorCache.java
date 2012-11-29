@@ -101,7 +101,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     }
 
     private ModuleDescriptorCacheEntry createEntry(boolean changing, HashValue moduleDescriptorHash) {
-        return new ModuleDescriptorCacheEntry(changing, false, timeProvider, new BigInteger(1, moduleDescriptorHash.asByteArray()));
+        return new ModuleDescriptorCacheEntry(changing, false, timeProvider, moduleDescriptorHash.asBigInteger());
     }
 
     private static class RevisionKey implements Serializable {
