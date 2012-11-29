@@ -219,6 +219,50 @@ allprojects {
     }
 
     @Test
+    void "forces modules by rule"()
+    {
+        repo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
+        repo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
+
+        repo.module("org.utils", "api", '1.3').publish()
+        repo.module("org.utils", "api", '1.5').publish()
+
+        repo.module("org.stuff", "foo", '2.0').dependsOn('org.utils', 'api', '1.5') publish()
+        repo.module("org.utils", "optional-lib", '5.0').publish()
+
+        //above models the scenario where org.utils:api and org.utils:impl are libraries that must be resolved with the same version
+        //however due to the conflict resolution, org.utils:api:1.5 and org.utils.impl:1.3 are resolved.
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+            configurations { conf }
+            repositories {
+                maven { url "${repo.uri}" }
+            }
+
+            dependencies {
+                conf 'org.stuff:foo:2.0', 'org.utils:impl:1.3', 'org.utils:optional-lib:5.0'
+            }
+
+            configurations.conf.resolutionStrategy {
+	            forceRule = {
+                    if (it.module.group == 'org.utils' && it.module.name != 'optional-lib') {
+                        it.forceVersion '1.5'
+                    }
+	            }
+	            failOnVersionConflict()
+	        }
+"""
+
+        //when
+        executer.withTasks("dependencies").run()
+
+        //then no exceptions are thrown
+
+        //TODO SF more coverge, split tests
+    }
+
+    @Test
     void "can force arbitrary version of a module and avoid conflict"() {
         repo.module("org", "foo", '1.3.3').publish()
         repo.module("org", "foobar", '1.3.3').publish()

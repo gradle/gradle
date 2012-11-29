@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
+
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -115,6 +117,13 @@ public interface ResolutionStrategy {
      * @since 1.0-milestone-7
      */
     Set<ModuleVersionSelector> getForcedModules();
+
+    /**
+     * Configures a forcing modules rule
+     * @param rule
+     * @return this
+     */
+    ResolutionStrategy setForceRule(Action<ForcedModuleDetails> rule);
 
     /**
      * Sets the length of time that dynamic versions will be cached, with units expressed as a String.

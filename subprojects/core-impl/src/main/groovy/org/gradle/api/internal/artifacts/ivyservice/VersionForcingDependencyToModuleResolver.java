@@ -18,28 +18,33 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ForcedModuleDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.forcing.DefaultForcedModuleDetails;
 
 public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionIdResolver resolver;
-    private final Map<ModuleId, ModuleRevisionId> forcedModules = new HashMap<ModuleId, ModuleRevisionId>();
+    private final Iterable<Action<ForcedModuleDetails>> rules;
 
-    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Iterable<? extends ModuleVersionSelector> forcedModules) {
+    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Iterable<Action<ForcedModuleDetails>> rules) {
         this.resolver = resolver;
-        for (ModuleVersionSelector forcedModule : forcedModules) {
-            ModuleId moduleId = new ModuleId(forcedModule.getGroup(), forcedModule.getName());
-            this.forcedModules.put(moduleId, new ModuleRevisionId(moduleId, forcedModule.getVersion()));
-        }
+        this.rules = rules;
     }
 
     public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        ModuleRevisionId newRevisionId = forcedModules.get(dependencyDescriptor.getDependencyId());
-        if (newRevisionId != null) {
-            ModuleVersionIdResolveResult result = resolver.resolve(dependencyDescriptor.clone(newRevisionId));
-            return new ForcedModuleVersionIdResolveResult(result);
+        for (Action<ForcedModuleDetails> rule : rules) {
+            ModuleVersionSelector module = new DefaultModuleVersionSelector(dependencyDescriptor.getDependencyRevisionId().getOrganisation(), dependencyDescriptor.getDependencyRevisionId().getName(), dependencyDescriptor.getDependencyRevisionId().getRevision());
+            DefaultForcedModuleDetails details = new DefaultForcedModuleDetails(module);
+            rule.execute(details);
+            if (details.getForcedVersion() != null) {
+                ModuleId moduleId = new ModuleId(details.getModule().getGroup(), details.getModule().getName());
+                ModuleRevisionId revisionId = new ModuleRevisionId(moduleId, details.getForcedVersion());
+                DependencyDescriptor descriptor = dependencyDescriptor.clone(revisionId);
+                ModuleVersionIdResolveResult result = resolver.resolve(descriptor);
+                return new ForcedModuleVersionIdResolveResult(result);
+            }
         }
         return resolver.resolve(dependencyDescriptor);
     }

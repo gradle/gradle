@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
+
     /**
      * Gets the current expiry policy for dynamic revisions.
      *
@@ -40,4 +41,11 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * @return the resolution rules
      */
     ResolutionRules getResolutionRules();
+
+    /**
+     * The strategy for forcing modules
+     *
+     * @return module forcing strategy
+     */
+    ModuleForcingStrategy getModuleForcingStrategy();
 }

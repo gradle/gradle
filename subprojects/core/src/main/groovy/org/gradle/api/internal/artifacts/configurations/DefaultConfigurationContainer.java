@@ -60,7 +60,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     protected Configuration doCreate(String name) {
         return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name),
                 name, this, dependencyResolver, listenerManager,
-                dependencyMetaDataProvider, new DefaultResolutionStrategy());
+                dependencyMetaDataProvider, instantiator.newInstance(DefaultResolutionStrategy.class));
     }
 
     public Set<Configuration> getAll() {

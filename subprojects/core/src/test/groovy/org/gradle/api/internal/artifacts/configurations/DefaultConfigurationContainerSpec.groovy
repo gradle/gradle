@@ -41,6 +41,10 @@ public class DefaultConfigurationContainerSpec extends Specification {
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(dependencyResolver, instantiator, domainObjectContext, listenerManager, metaDataProvider);
 
+    def setup() {
+        instantiator.newInstance(DefaultResolutionStrategy) >> new DefaultResolutionStrategy()
+    }
+
     def "adds and gets"() {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
