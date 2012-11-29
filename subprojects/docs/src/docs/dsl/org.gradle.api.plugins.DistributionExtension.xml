@@ -1,0 +1,24 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr><td>Name</td>
+                    <td>Default value</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>name</td>
+                <td><literal>project.name</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr><td>Name</td></tr>
+            </thead>
+        </table>
+    </section>
+</section>
