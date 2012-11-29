@@ -50,6 +50,13 @@ task jarjarJar(type: JarJarJar) {
     keep('org.gradle.tooling.**')
 }
 
+sourceJar{
+    configurations.compile.allDependencies.withType(ProjectDependency).each {
+        from it.dependencyProject.sourceSets.main.groovy.srcDirs
+        from it.dependencyProject.sourceSets.main.java.srcDirs
+    }
+}
+
 artifacts {
     publishRuntime file: jarjarJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: jarjarJar
 }
