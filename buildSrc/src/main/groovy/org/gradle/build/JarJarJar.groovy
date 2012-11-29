@@ -15,10 +15,11 @@
  */
 
 package org.gradle.build
+
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.*
 import org.gradle.api.file.*
 import org.gradle.api.tasks.*
-import org.gradle.api.tasks.bundling.Jar
 import com.tonicsystems.jarjar.Main as JarJarMain
 
 /*
@@ -32,12 +33,29 @@ class JarJarJar extends Jar {
         doLast {
             executeJarJar();
         }
+        doLast {
+            fixEmptyFoldersWithJarJar()
+        }
     }
 
-    void executeJarJar(){
+    void executeJarJar() {
         File tempRuleFile = new File(getTemporaryDir(), "jarjar.rules.txt")
         writeRuleFile(tempRuleFile)
         JarJarMain.main("process", tempRuleFile.absolutePath, getArchivePath().absolutePath, getArchivePath().absolutePath)
+    }
+
+    void fixEmptyFoldersWithJarJar() {
+        def withNoEmptyDirs = "${getTemporaryDir()}/withNoEmptyDirs"
+        project.copy{
+            from project.zipTree(getArchivePath().absolutePath)
+            into withNoEmptyDirs
+            includeEmptyDirs = false
+        }
+        project.ant {
+            zip(destfile: getArchivePath(), update: false) {
+                fileset(dir: withNoEmptyDirs)
+            }
+        }
     }
 
     void rule(String pattern, String result) {
