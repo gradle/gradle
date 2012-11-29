@@ -386,8 +386,8 @@ subprojects {
     configurations { compile }
 
     configurations.all {
-        resolutionStrategy.resolutionRules.eachModule({ module ->
-            module.refresh()
+        resolutionStrategy.resolutionRules.eachArtifact({ artifact ->
+            artifact.refresh()
         } as Action)
     }
 
@@ -428,10 +428,6 @@ project('second') {
         module.expectMetaDataGet()
         module.expectArtifactGet()
 
-        module2.expectMetaDataGet()
-        module2.expectPomHead()
-        module2.expectPomSha1Get()
-        module2.expectPomGet()
         module2.expectMetaDataGet()
         module2.expectArtifactHead()
         module2.expectArtifactSha1Get()

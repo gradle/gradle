@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import spock.lang.Ignore
 
 public class CachedChangingModulesIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -59,12 +58,15 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.expectArtifactGet(classifier: "source")
         module.expectMetaDataGet()
         module.expectMetaDataGet()
+
         then:
         run 'retrieve'
 
         when:
         server.resetExpectations()
         module.expectMetaDataGet()
+        module.expectMetaDataGet()
+        module.expectArtifactHead(classifier: "source")
         module.expectPomHead()
         then:
         run 'retrieve'
@@ -92,7 +94,6 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         run 'retrieve'
     }
 
-    @Ignore
     def "can run offline mode after hitting broken repo url"() {
         given:
         server.start()
@@ -130,7 +131,6 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.expectMetaDataGet()
         module.expectMetaDataGet()
         then:
-
         run 'retrieve'
 
         when:

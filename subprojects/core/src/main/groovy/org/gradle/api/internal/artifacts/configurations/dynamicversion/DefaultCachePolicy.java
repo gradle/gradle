@@ -39,8 +39,8 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         cacheDynamicVersionsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         cacheMissingModulesAndArtifactsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
-        refreshArtifactForNonMatchingDescriptorHash();
     }
+
 
     public void eachDependency(Action<? super DependencyResolutionControl> rule) {
         dependencyCacheRules.add(0, rule);
@@ -70,6 +70,13 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
                 }
             }
         });
+        eachArtifact(new Action<ArtifactResolutionControl>() {
+            public void execute(ArtifactResolutionControl artifactResolutionControl) {
+                if (artifactResolutionControl.belongsToChangingModule()) {
+                    artifactResolutionControl.cacheFor(value, units);
+                }
+            }
+        });
     }
 
     private void cacheMissingModulesAndArtifactsFor(final int value, final TimeUnit units) {
@@ -84,16 +91,6 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
             public void execute(ArtifactResolutionControl artifactResolutionControl) {
                 if (artifactResolutionControl.getCachedResult() == null) {
                     artifactResolutionControl.cacheFor(value, units);
-                }
-            }
-        });
-    }
-
-    private void refreshArtifactForNonMatchingDescriptorHash() {
-        eachArtifact(new Action<ArtifactResolutionControl>() {
-            public void execute(ArtifactResolutionControl artifactResolutionControl) {
-                if(!artifactResolutionControl.isModuleDescriptorInSync()){
-                    artifactResolutionControl.refresh();
                 }
             }
         });
@@ -133,8 +130,11 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         return false;
     }
 
-    public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis, boolean moduleDescriptorInSync) {
-        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactIdentifier, cachedArtifactFile, ageMillis, moduleDescriptorInSync);
+    public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {
+        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactIdentifier, cachedArtifactFile, ageMillis, belongsToChangingModule);
+        if(belongsToChangingModule && !moduleDescriptorInSync){
+            return true;
+        }
         for (Action<? super ArtifactResolutionControl> rule : artifactCacheRules) {
             rule.execute(artifactResolutionControl);
             if (artifactResolutionControl.ruleMatch()) {
@@ -216,15 +216,15 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     }
 
     private class CachedArtifactResolutionControl extends AbstractResolutionControl<ArtifactIdentifier, File> implements ArtifactResolutionControl {
-        private final boolean moduleDescriptorInSync;
+        private final boolean belongsToChangingModule;
 
-        private CachedArtifactResolutionControl(ArtifactIdentifier artifactIdentifier, File cachedResult, long ageMillis, boolean moduleDescriptorInSync) {
+        private CachedArtifactResolutionControl(ArtifactIdentifier artifactIdentifier, File cachedResult, long ageMillis, boolean belongsToChangingModule) {
             super(artifactIdentifier, cachedResult, ageMillis);
-            this.moduleDescriptorInSync = moduleDescriptorInSync;
+            this.belongsToChangingModule = belongsToChangingModule;
         }
 
-        public boolean isModuleDescriptorInSync() {
-            return moduleDescriptorInSync;
+        public boolean belongsToChangingModule() {
+            return belongsToChangingModule;
         }
     }
 }

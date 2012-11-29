@@ -25,5 +25,5 @@ import java.io.File;
  */
 @Incubating
 public interface ArtifactResolutionControl extends ResolutionControl<ArtifactIdentifier, File> {
-    boolean isModuleDescriptorInSync();
+    boolean belongsToChangingModule();
 }

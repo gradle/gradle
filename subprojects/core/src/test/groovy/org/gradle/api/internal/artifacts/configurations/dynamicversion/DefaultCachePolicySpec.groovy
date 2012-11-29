@@ -57,7 +57,7 @@ public class DefaultCachePolicySpec extends Specification {
         hasChangingModuleTimeout(10 * SECOND)
         hasModuleTimeout(FOREVER)
         hasMissingModuleTimeout(DAY)
-        hasMissingArtifactTimeout(DAY)
+        hasChangingArtifactTimeout(DAY)
     }
 
     def "uses dynamic version timeout for dynamic versions"() {
@@ -160,7 +160,7 @@ public class DefaultCachePolicySpec extends Specification {
             }
         })
         def artifactIdentifier = new DefaultArtifactIdentifier(moduleIdentifier('group', 'name', 'version'), 'artifact', 'type', 'ext', 'classifier')
-        cachePolicy.mustRefreshArtifact(artifactIdentifier, null, 0, true)
+        cachePolicy.mustRefreshArtifact(artifactIdentifier, null, 0, true, true)
     }
 
     def "can use cacheFor to control missing module and artifact timeout"() {
@@ -188,10 +188,11 @@ public class DefaultCachePolicySpec extends Specification {
         hasMissingArtifactTimeout(20 * SECOND)
     }
 
-    def "must refresh artifact when moduledescriptorhash not in sync"() {
+    def "must refresh artifact for changing modules when moduledescriptorhash not in sync"() {
         expect:
-        !cachePolicy.mustRefreshArtifact(null, null, 1000, true)
-        cachePolicy.mustRefreshArtifact(null, null, 1000, false)
+        !cachePolicy.mustRefreshArtifact(null, null, 1000, false, true)
+        !cachePolicy.mustRefreshArtifact(null, null, 1000, false, false)
+        cachePolicy.mustRefreshArtifact(null, null, 1000, true, false)
     }
 
     private def hasDynamicVersionTimeout(int timeout) {
@@ -225,10 +226,14 @@ public class DefaultCachePolicySpec extends Specification {
         cachePolicy.mustRefreshModule(null, null, null, timeout + 1)
     }
 
+    private def hasChangingArtifactTimeout(int timeout){
+        cachePolicy.mustRefreshArtifact(null, null, timeout, true, true)
+    }
+
     private def hasMissingArtifactTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshArtifact(null, null, timeout, true);
-        assert !cachePolicy.mustRefreshArtifact(null, null, timeout - 1, true)
-        cachePolicy.mustRefreshArtifact(null, null, timeout + 1, true)
+        assert !cachePolicy.mustRefreshArtifact(null, null, timeout, true, true);
+        assert !cachePolicy.mustRefreshArtifact(null, null, timeout - 1, true, true)
+        cachePolicy.mustRefreshArtifact(null, null, timeout + 1, true, true)
     }
 
     private def assertId(def moduleId, String group, String name, String version) {

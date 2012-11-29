@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -144,7 +143,6 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
         if (cachedModuleDescriptor.isChangingModule() || resolvedDependencyDescriptor.isChanging()) {
             if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier, cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
-                expireArtifactsForChangingModule(repository, cachedModuleDescriptor.getModuleDescriptor());
                 LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
                 return;
             }
@@ -159,12 +157,6 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
         // TODO:DAZ Could provide artifact metadata and file here from artifactFileStore (it's not needed currently)
         result.resolved(cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule());
-    }
-
-    private void expireArtifactsForChangingModule(ModuleVersionRepository repository, ModuleDescriptor descriptor) {
-        for (Artifact artifact : descriptor.getAllArtifacts()) {
-            artifactAtRepositoryCachedResolutionIndex.clear(new ArtifactAtRepositoryKey(repository, artifact.getId()));
-        }
     }
 
     private boolean isChangingDependency(DependencyDescriptor descriptor, ModuleVersionDescriptor downloadedModule) {
@@ -185,15 +177,16 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         if (cached != null) {
             ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
             long age = timeProvider.getCurrentTime() - cached.getCachedAt();
+            boolean artifactBelongsToChangingModule = cachedModuleDescriptor != null ? cachedModuleDescriptor.isChangingModule() : true;
             if (cached.isMissing()) {
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, descriptorHash.equals(cached.getDescriptorHash()))) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, artifactBelongsToChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
                     result.notFound(artifact);
                     return;
                 }
             } else {
                 File cachedArtifactFile = cached.getCachedFile();
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, descriptorHash.equals(cached.getDescriptorHash()))) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, artifactBelongsToChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
                     result.resolved(cachedArtifactFile);
                     return;
