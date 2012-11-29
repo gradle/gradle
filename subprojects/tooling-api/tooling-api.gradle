@@ -1,19 +1,12 @@
 import org.gradle.build.*
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
-configurations {
-    fatJarConfiguration {
-        extendsFrom compile
-        exclude group: "org.slf4j"
-    }
-}
-
 dependencies {
     groovy libraries.groovy
     compile project(path: ':core', configuration: "publishCompileWithProjectJar")
-    compile project(path: ':messaging', configuration: "publishCompileWithProjectJar")
-    compile project(path: ':wrapper', configuration: "publishCompileWithProjectJar")
-    compile project(path: ':baseServices', configuration: "publishCompileWithProjectJar")
+    compile project(':messaging')
+    compile project(':wrapper')
+    compile project(':baseServices')
     publishCompile libraries.slf4j_api
 
     // lots of integTest errors otherwise
@@ -39,9 +32,8 @@ task jarjarJar(type: JarJarJar) {
     dependsOn jar
     doFirst {
         from(zipTree(jar.getArchivePath()))
-        configurations.fatJarConfiguration.each {
-            from(zipTree(it)) {
-            }
+        (configurations.runtime - configurations.publishCompile).each {
+            from(zipTree(it))
         }
     }
     exclude "META-INF/**"
