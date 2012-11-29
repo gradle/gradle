@@ -78,7 +78,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
             ResolvedResource artifactRef = resourceResolver.resolve(artifact);
             if (artifactRef != null) {
                 final Resource resource = artifactRef.getResource();
-                ArtifactOrigin origin = new ArtifactOrigin(artifact, resource.isLocal(), getLocation(resource));
+                ArtifactOrigin origin = new ArtifactOrigin(artifact, resource.isLocal(), resource.getName());
                 if (listener != null) {
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }
@@ -103,14 +103,6 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
             listener.endArtifactDownload(this, artifact, adr, adr.getLocalFile());
         }
         return adr;
-    }
-
-    private static String getLocation(Resource resource) {
-        if (resource instanceof ExternalResource) {
-            return ((ExternalResource) resource).getMetaData().getLocation();
-        } else {
-            return resource.getName();
-        }
     }
 
     private File downloadArtifactFile(final Artifact artifact, final ResourceDownloader resourceDownloader, final ResolvedResource artifactRef) throws IOException {
