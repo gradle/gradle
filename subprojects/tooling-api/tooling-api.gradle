@@ -46,7 +46,15 @@ task jarjarJar(type: JarJarJar) {
     }
     exclude "META-INF/**"
     exclude "*classpath.properties"
-    rule('com.google.common.**', 'org.gradle.jarjar.com.google.common.@1')
+
+
+    rule('org.gradle.**', '@0')
+    rule('org.slf4j.**', '@0')
+
+    rule('org.**', 'org.gradle.jarjar.@0')
+    rule('com.**', 'org.gradle.jarjar.@0')
+    rule('net.**', 'org.gradle.jarjar.@0')
+
     keep('org.gradle.tooling.**')
 }
 
