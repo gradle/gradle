@@ -82,9 +82,11 @@ abstract class DistributionIntegrationSpec extends Specification {
         assert coreLibs.size() == 11
         coreLibs.each { assertIsGradleJar(it) }
         def wrapperJar = contentsDir.file("lib/gradle-wrapper-${version}.jar")
+        wrapperJar.assertIsFile()
         assert wrapperJar.length() < 20 * 1024; // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${version}.jar")
+        toolingApiJar.assertIsFile()
         assert toolingApiJar.length() < 200 * 1024; // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Plugins
