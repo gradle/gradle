@@ -2,12 +2,14 @@ apply from: 'src/generator.groovy'
 
 configurations {
     junit
+    plugin
 }
 
 dependencies {
     junit 'junit:junit:4.10'
     groovy libraries.groovy
     testFixturesCompile project(':internalIntegTesting')
+    plugin gradleApi()
 }
 
 useTestFixtures()
@@ -18,17 +20,12 @@ task small(type: ProjectGeneratorTask, description: 'Generates a small project')
 task largeSrc(type: ProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
     sourceFiles = 50000
     linesOfCodePerSourceFile = 20
-    withPlainAntCompile = true
+//    subProjectTemplates << 'plain-ant-compile'
 }
 
 task multi(type: ProjectGeneratorTask, description: 'Generates a multi-project build') {
     projects = 25
     sourceFiles = 100
-}
-
-task parallel(type: ProjectGeneratorTask, description: 'Generates a multi-project build') {
-    projects = 8
-    sourceFiles = 1000
 }
 
 task mixedSize(type: ProjectGeneratorTask) {
@@ -38,18 +35,15 @@ task mixedSize(type: ProjectGeneratorTask) {
 }
 
 task withTestNG(type: ProjectGeneratorTask) {
-    projects = 2
+    projects = 1
     sourceFiles = 10
-    testReport = true
-    testFramework = 'useTestNG(); maxParallelForks = 2'
-    testClassTemplate = 'TestNGTest.java'
+    subProjectTemplates << 'with-testng'
 }
 
 task withVerboseJUnits(type: ProjectGeneratorTask) {
-    projects = 2
+    projects = 1
     sourceFiles = 10
-    testReport = true
-    testClassTemplate = 'VerboseJUnitTest.java'
+    subProjectTemplates << 'with-verbose-junit'
 }
 
 task multiGroovy(type: ProjectGeneratorTask, description: 'Generates a multi-project groovy build') {
@@ -67,7 +61,7 @@ task largeMulti(type: ProjectGeneratorTask, description: 'Generates a large mult
     sourceFiles = 100
 }
 
-task lotDependencies(type: ProjectGeneratorTask, description: 'Generates a small multi-project build with a large Dependency Graph'){
+task lotDependencies(type: ProjectGeneratorTask, description: 'Generates a small multi-project build with a large Dependency Graph') {
     projects = 5
     sourceFiles = 100
 
@@ -76,6 +70,52 @@ task lotDependencies(type: ProjectGeneratorTask, description: 'Generates a small
         depth = 4
         useSnapshotVersions = true //default is false
     }
+}
+
+task manyProjects(type: ProjectGeneratorTask) {
+    projects = 500
+    sourceFiles = 0
+}
+
+task singleProjectNoBuildScript(type: ProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 0
+    rootProjectTemplates = []
+    subProjectTemplates = []
+}
+
+task manyProjectNoBuildScript(type: ProjectGeneratorTask) {
+    projects = 500
+    sourceFiles = 0
+    rootProjectTemplates = []
+    subProjectTemplates = []
+}
+
+task manyProjectMinimalBuildScript(type: ProjectGeneratorTask) {
+    projects = 500
+    sourceFiles = 0
+    rootProjectTemplates = ['minimal']
+    subProjectTemplates = ['minimal']
+}
+
+task manyProjectConfigInject(type: ProjectGeneratorTask) {
+    projects = 500
+    sourceFiles = 0
+    rootProjectTemplates = ['config-inject']
+    subProjectTemplates = []
+}
+
+task compilePlugin(type: JavaCompile) {
+    source 'src/configPlugin'
+    destinationDir file("$buildDir/configPlugin")
+    classpath = configurations.plugin
+}
+
+task manyProjectJavaConfig(type: ProjectGeneratorTask, dependsOn: compilePlugin) {
+    projects = 500
+    sourceFiles = 0
+    rootProjectTemplates = ['java-config']
+    subProjectTemplates = []
 }
 
 def generators = tasks.withType(ProjectGeneratorTask)

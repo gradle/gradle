@@ -1,0 +1,5 @@
+${original}
+
+test {
+    testReport = true
+}

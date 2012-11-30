@@ -1,0 +1,7 @@
+buildscript {
+    dependencies {
+        classpath files("../configPlugin")
+    }
+}
+
+apply plugin: ConfigPlugin

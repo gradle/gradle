@@ -1,0 +1,40 @@
+${original}
+
+class PlainAntCompile extends DefaultTask{
+	File outputDirectoy
+	File sourceDirectory
+	FileCollection classpath;
+
+	@TaskAction
+	void compile(){
+		outputDirectoy.mkdirs()
+		project.ant {
+			property(name:"build.sysclasspath", value:"last")
+			path(id:'classpath') {
+				pathelement(path:classpath.asPath)
+			}
+			path(id:'sourcepath') {
+				pathelement(location:outputDirectoy.absolutePath)
+			}
+			presetdef(name: 'antCompileJava') {
+				javac(  classpathref:'classpath',
+						encoding:'UTF-8',
+						destdir:outputDirectoy.absolutePath,
+						excludes:'',
+						fork:'true',
+						memoryInitialSize:'1024m',
+						memoryMaximumSize:'1536m',
+						source:'1.6',
+						srcdir:sourceDirectory.absolutePath,
+						target:'1.6')
+			}
+		}
+		project.ant.antCompileJava()
+	}
+}
+
+task plainAntCompile(type:PlainAntCompile){
+	sourceDirectory = file("src/main/java")
+	outputDirectoy = file("\$buildDir/classes/main")
+	classpath = sourceSets.main.compileClasspath
+}

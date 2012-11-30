@@ -3,14 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.gradle</groupId>
     <artifactId>${projectName}</artifactId>
-<% if (!subprojects.empty ) { %>
-    <packaging>pom</packaging>
-    <modules>
-        <% subprojects.each { out.println "<module>$it</module>" } %>
-    </modules>
-<% } else { %>
     <packaging>jar</packaging>
-<% } %>
     <version>1.0-SNAPSHOT</version>
     <% if (repository ) { %>
     <repositories>

@@ -1,10 +1,12 @@
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
+import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
+
 import java.text.SimpleDateFormat
+import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
-import java.util.jar.JarEntry
 
 class TestProject {
     final String name
@@ -38,16 +40,14 @@ class ProjectGeneratorTask extends DefaultTask {
     File destDir
     boolean groovyProject
     boolean scalaProject
-    boolean withPlainAntCompile
     int sourceFiles = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
     @InputFiles FileCollection testDependencies
-    String testClassTemplate = 'Test.java'
-    boolean testReport = false
-    String testFramework = 'useJUnit()'
 
     final List<TestProject> projects = []
+    List<String> rootProjectTemplates = ['root-project']
+    List<String> subProjectTemplates = ['project-with-source']
     final SimpleTemplateEngine engine = new SimpleTemplateEngine()
     final Map<File, Template> templates = [:]
 
@@ -118,8 +118,13 @@ class ProjectGeneratorTask extends DefaultTask {
     }
 
     def generateRootProject() {
+        def templates = subprojectNames.empty ? subProjectTemplates : rootProjectTemplates
+        if (!templates.empty) {
+            templates << 'heap-capture'
+        }
         generateProject rootProject, subprojects: subprojectNames, projectDir: destDir,
                 files: subprojectNames.empty ? [] : ['settings.gradle'],
+                templates: templates,
                 includeSource: subprojectNames.empty
 
         project.copy {
@@ -130,29 +135,43 @@ class ProjectGeneratorTask extends DefaultTask {
 
     def generateSubProject(TestProject testProject) {
         generateProject testProject, subprojects: [], projectDir: new File(destDir, testProject.name), files: [],
-                includeSource: true
+                templates: subProjectTemplates, includeSource: true
     }
 
     def generateProject(Map args, TestProject testProject) {
         File projectDir = args.projectDir
+        List<String> templates = args.templates
         logger.lifecycle "Generating test project '$testProject.name' into $projectDir"
 
-        List files = args.files + [
-                'build.gradle',
-                'pom.xml',
-                'build.xml',
-        ]
+        def files = []
+        files.addAll(args.files)
+        files.addAll(['build.gradle', 'pom.xml', 'build.xml'])
 
-        Closure generate = {String name, String templateName, Map templateArgs ->
+        Closure generate = { String name, String templateName, Map templateArgs ->
             File destFile = new File(projectDir, name)
-            File srcTemplate = project.file("src/templates/$templateName")
+            File baseFile = project.file("src/templates/$templateName")
+
+            List<File> templateFiles = []
+            if (baseFile.exists()) {
+                templateFiles << baseFile
+            }
+            templateFiles.addAll templates.collect { project.file("src/templates/$it/$templateName") }.findAll { it.exists() }
+            if (templateFiles.empty) {
+                return
+            }
+            templateFiles.subList(0, templateFiles.size() - 1).each {
+                def writer = new StringWriter()
+                getTemplate(it).make(templateArgs).writeTo(writer)
+                templateArgs.original = writer.toString()
+            }
+
             destFile.parentFile.mkdirs()
-            destFile.withWriter {Writer writer ->
-                getTemplate(srcTemplate).make(templateArgs).writeTo(writer)
+            destFile.withWriter { Writer writer ->
+                getTemplate(templateFiles.last()).make(templateArgs).writeTo(writer)
             }
         }
 
-        args += [projectName: testProject.name, groovyProject: groovyProject, scalaProject: scalaProject, withPlainAntCompile: withPlainAntCompile,
+        args += [projectName: testProject.name, groovyProject: groovyProject, scalaProject: scalaProject,
                 propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), repository: testProject.repository, dependencies:testProject.dependencies,
                 testProject: testProject
                 ]
@@ -170,7 +189,7 @@ class ProjectGeneratorTask extends DefaultTask {
             testProject.testSourceFiles.times {
                 String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
                 Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
-                generate("src/test/java/${packageName.replace('.', '/')}/${classArgs.testClassName}.java", testProject.defaults.testClassTemplate, classArgs)
+                generate("src/test/java/${packageName.replace('.', '/')}/${classArgs.testClassName}.java", 'Test.java', classArgs)
             }
             if (groovyProject) {
                 testProject.sourceFiles.times {
@@ -202,7 +221,11 @@ class ProjectGeneratorTask extends DefaultTask {
     def getTemplate(File srcTemplate) {
         def template = templates[srcTemplate]
         if (!template) {
-            template = engine.createTemplate(srcTemplate)
+            try {
+                template = engine.createTemplate(srcTemplate)
+            } catch (Exception e) {
+                throw new GradleException("Could not create template from source file '$srcTemplate'", e)
+            }
             templates[srcTemplate] = template
         }
         return template
