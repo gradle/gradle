@@ -19,6 +19,12 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+### Repackaged Tooling API
+
+We refactored the publication and packaging of the Tooling API. The Tooling API is now shipped in a single jar.
+All you need to work with the Tooling API is the tooling api jar and slf4j. Furthermore we repackaged the transitive dependencies to avoid conflicts
+with other libraries on your classpath.
+
 ## Incubating features
 
 Incubating features are intended to be used, but not yet guaranteed to be backwards compatible.
