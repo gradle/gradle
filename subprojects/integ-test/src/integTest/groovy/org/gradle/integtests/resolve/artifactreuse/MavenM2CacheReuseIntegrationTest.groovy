@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.M2Installation
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.maven.M2Installation
 
 class MavenM2CacheReuseIntegrationTest extends AbstractDependencyResolutionTest {
     def "uses cached artifacts from maven local cache"() {

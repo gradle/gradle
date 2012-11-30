@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
 
-import org.gradle.test.fixtures.maven.MavenFileRepository
+
+package org.gradle.test.fixtures.maven
+
 import org.gradle.util.TestFile
 
 class M2Installation {
