@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixture
+package org.gradle.util
 
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 

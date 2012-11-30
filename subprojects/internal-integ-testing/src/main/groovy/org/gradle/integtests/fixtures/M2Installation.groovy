@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixture
+package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.TestFile

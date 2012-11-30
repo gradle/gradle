@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixture.M2Installation
+import org.gradle.integtests.fixtures.M2Installation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.SetSystemProperties
