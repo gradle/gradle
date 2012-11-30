@@ -371,8 +371,9 @@ allprojects {
         given:
         def module = mavenHttpRepo("/repo", maven("repo1")).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         def module2 = mavenHttpRepo("/repo", maven("repo2")).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
-        module2.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
         module2.pomFile << '    ' // ensure it's a different length to the first one
+        def module2Artifact = module2.artifact
+        module2Artifact.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
 
         and:
         settingsFile << "include 'first', 'second'"
@@ -429,9 +430,9 @@ project('second') {
         module.getArtifact().expectGet()
 
         module2.expectMetaDataGet()
-        module2.expectArtifactHead()
-        module2.expectArtifactSha1Get()
-        module2.getArtifact().expectGet()
+        module2Artifact.expectHead()
+        module2Artifact.expectSha1Get()
+        module2Artifact.expectGet()
 
         then:
         run 'cleanup'
@@ -468,10 +469,11 @@ project('second') {
 
         and:
         def module = mavenHttpRepo.module("group", "projectA", "1.1-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def artifact = module.artifact
         // Set the last modified to something that's not going to be anything “else”.
         // There are lots of dates floating around in a resolution and we want to make
         // sure we use this.
-        module.artifactFile.setLastModified(2000)
+        artifact.artifactFile.setLastModified(2000)
         module.pomFile.setLastModified(6000)
 
         when:
@@ -502,9 +504,9 @@ project('second') {
         module.expectPomGet()
         // TODO - should only ask for metadata once
         module.expectMetaDataGet()
-        module.expectArtifactHead()
-        module.expectArtifactSha1GetMissing()
-        module.getArtifact().expectGet()
+        artifact.expectHead()
+        artifact.expectSha1GetMissing()
+        artifact.expectGet()
 
         run "retrieve"
 
@@ -528,9 +530,10 @@ project('second') {
         module.expectPomGet()
         // TODO - should only ask for metadata once
         module.expectMetaDataGet()
-        module.expectArtifactHead()
-        module.expectArtifactSha1Get()
-        module.getArtifact().expectGet()
+        def artifact = module.artifact
+        artifact.expectHead()
+        artifact.expectSha1Get()
+        artifact.expectGet()
     }
 
     private expectChangedArtifactServed(MavenHttpModule module) {
@@ -538,9 +541,10 @@ project('second') {
         module.expectPomHead()
         // TODO - should only ask for metadata once
         module.expectMetaDataGet()
-        module.expectArtifactHead()
-        module.expectArtifactSha1Get()
-        module.getArtifact().expectGet()
+        def artifact = module.artifact
+        artifact.expectHead()
+        artifact.expectSha1Get()
+        artifact.expectGet()
     }
 
     private expectChangedProbe(MavenHttpModule module) {
@@ -548,14 +552,14 @@ project('second') {
         module.expectPomHead()
         // TODO - should only ask for metadata once
         module.expectMetaDataGet()
-        module.expectArtifactHead()
+        module.artifact.expectHead()
     }
-    
+
     private expectModuleMissing(MavenHttpModule module) {
         module.expectMetaDataGetMissing()
         module.expectPomGetMissing()
         // TODO - should only ask for metadata once
         module.expectMetaDataGetMissing()
-        module.expectArtifactHeadMissing()
+        module.artifact.expectHeadMissing()
     }
 }

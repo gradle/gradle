@@ -62,8 +62,8 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         projectB.expectPomGet()
-        projectB.expectArtifactHead()
-        projectB.expectArtifactSha1Get()
+        projectB.artifact.expectHead()
+        projectB.artifact.expectSha1Get()
 
         and:
         version current withGradleUserHomeDir userHome withTasks 'retrieve' run()

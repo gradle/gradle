@@ -34,9 +34,39 @@ class HttpArtifact extends HttpResource {
 
     }
 
+    void expectHead() {
+        server.expectHead("$moduleVersionPath/${getArtifactFile().name}", getArtifactFile())
+    }
+
+    void expectHeadMissing() {
+        server.expectHeadMissing("$moduleVersionPath/${getMissingArtifactName()}")
+    }
+
     void expectGet() {
         server.expectGet(getArtifactPath(), backingModule.getArtifactFile(options))
     }
+
+    void expectGetMissing() {
+        server.expectGetMissing("$moduleVersionPath/${getMissingArtifactName()}")
+    }
+
+    void expectSha1GetMissing() {
+        server.expectGetMissing("$moduleVersionPath/${missingArtifactName}.sha1")
+    }
+
+    void expectSha1Get() {
+        server.expectGet(getArtifactSha1Path(), backingModule.sha1File(getArtifactFile()))
+    }
+
+    TestFile getArtifactSha1File() {
+        backingModule.artifactSha1File
+    }
+
+    String getArtifactSha1Path() {
+        "${getArtifactPath()}.sha1"
+    }
+
+
 
     protected String getModuleVersionPath() {
         "${moduleRootPath}/${backingModule.version}"
@@ -49,4 +79,13 @@ class HttpArtifact extends HttpResource {
     TestFile getArtifactFile() {
         return backingModule.getArtifactFile(options)
     }
+
+    private String getMissingArtifactName() {
+        if (backingModule.version.endsWith("-SNAPSHOT")) {
+            return "${backingModule.artifactId}-${backingModule.version}${options["classifier"] ? "-" + options["classifier"] : ""}.jar"
+        } else {
+            return artifactFile.name
+        }
+    }
+
 }

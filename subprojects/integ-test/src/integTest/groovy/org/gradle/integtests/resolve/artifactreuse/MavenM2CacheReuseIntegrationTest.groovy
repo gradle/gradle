@@ -42,8 +42,8 @@ task retrieve(type: Sync) {
         and:
         module1.expectPomHead()
         module1.expectPomSha1Get()
-        module1.expectArtifactHead()
-        module1.expectArtifactSha1Get()
+        module1.artifact.expectHead()
+        module1.artifact.expectSha1Get()
 
         when:
         executer.withEnvironmentVars(M2_HOME: m2.globalMavenDirectory)

@@ -19,7 +19,6 @@
 package org.gradle.test.fixtures.maven
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
@@ -55,7 +54,7 @@ class MavenHttpModule implements MavenModule {
      * Adds an additional artifact to this module.
      * @param options Can specify any of: type or classifier
      */
-    HttpResource artifact(Map<String, ?> options) {
+    HttpArtifact artifact(Map<String, ?> options) {
         backingModule.artifact(options)
         def httpArtifact = new HttpArtifact(server, moduleRootPath, backingModule, options)
         httpArtifacts[artifactKey(options)] = httpArtifact;
@@ -246,48 +245,12 @@ class MavenHttpModule implements MavenModule {
         "$moduleVersionPath/$pomFile.name"
     }
 
-    void expectArtifactHead(Map options = [:]) {
-        server.expectHead("$moduleVersionPath/${getArtifactFile(options).name}", getArtifactFile(options))
-    }
-
-    void expectArtifactGetMissing(Map options = [:]) {
-        server.expectGetMissing("$moduleVersionPath/${getMissingArtifactName(options)}")
-    }
-
-    void expectArtifactHeadMissing(Map options = [:]) {
-        server.expectHeadMissing("$moduleVersionPath/${getMissingArtifactName(options)}")
-    }
-
-    void expectArtifactSha1Get(Map options = [:]) {
-        server.expectGet(getArtifactSha1Path(options), backingModule.sha1File(getArtifactFile(options)))
-    }
-
-    TestFile getArtifactSha1File() {
-        backingModule.artifactSha1File
-    }
-
-    String getArtifactSha1Path(Map options = [:]) {
-        "${getArtifactPath(options)}.sha1"
-    }
-
     TestFile getArtifactMd5File() {
         backingModule.artifactMd5File
     }
 
     String getArtifactMd5Path() {
         "${artifactPath}.md5"
-    }
-
-    void expectArtifactSha1GetMissing() {
-        server.expectGetMissing("$moduleVersionPath/${missingArtifactName}.sha1")
-    }
-
-    private String getMissingArtifactName(Map option = [:]) {
-        if (backingModule.version.endsWith("-SNAPSHOT")) {
-            return "${backingModule.artifactId}-${backingModule.version}${option["classifier"] ? "-" + option["classifier"] : ""}.jar"
-        } else {
-            return artifactFile.name
-        }
     }
 
     void expectArtifactPut(PasswordCredentials credentials) {
@@ -300,6 +263,14 @@ class MavenHttpModule implements MavenModule {
 
     void expectArtifactSha1Put(PasswordCredentials credentials) {
         expectArtifactSha1Put(200, credentials)
+    }
+
+    TestFile getArtifactSha1File() {
+        backingModule.artifactSha1File
+    }
+
+    String getArtifactSha1Path(Map options = [:]) {
+        "${getArtifactPath(options)}.sha1"
     }
 
     void expectArtifactSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {

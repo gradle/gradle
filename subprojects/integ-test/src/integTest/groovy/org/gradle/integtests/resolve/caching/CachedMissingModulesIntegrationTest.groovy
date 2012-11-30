@@ -91,8 +91,11 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo1Module = repo1.module("group", "projectA", "1.0")
+        def repo1Artifact = repo1Module.artifact
+
         def repo2 = mavenHttpRepo("repo2")
         def repo2Module = repo2.module("group", "projectA", "1.0")
+        def repo2Artifact = repo2Module.artifact
 
         buildFile << """
     repositories {
@@ -118,9 +121,9 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
 
         when:
         repo1Module.expectPomGetMissing()
-        repo1Module.expectArtifactHeadMissing()
+        repo1Artifact.expectHeadMissing()
         repo2Module.expectPomGetMissing()
-        repo2Module.expectArtifactHeadMissing()
+        repo2Artifact.expectHeadMissing()
 
         then:
         runAndFail 'retrieve'
@@ -128,10 +131,10 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         when:
         server.resetExpectations()
         repo1Module.expectPomGetMissing()
-        repo1Module.expectArtifactHeadMissing()
+        repo1Artifact.expectHeadMissing()
         repo2Module.publish()
         repo2Module.expectPomGet()
-        repo2Module.getArtifact().expectGet()
+        repo2Artifact.expectGet()
 
         then:
         run 'retrieve'
@@ -149,8 +152,10 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         server.start()
         def repo1 = mavenHttpRepo("repo1")
         def repo1Module = repo1.module("group", "projectA", "1.0")
+        def repo1Artifact = repo1Module.artifact
         def repo2 = mavenHttpRepo("repo2")
         def repo2Module = repo2.module("group", "projectA", "1.0")
+        def repo2Artifact = repo2Module.artifact
 
         settingsFile << "include 'subproject'"
         buildFile << """
@@ -195,9 +200,9 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         """
         when:
         repo1Module.expectPomGetMissing()
-        repo1Module.expectArtifactHeadMissing()
+        repo1Artifact.expectHeadMissing()
         repo2Module.expectPomGetMissing()
-        repo2Module.expectArtifactHeadMissing()
+        repo2Artifact.expectHeadMissing()
 
         then:
         run('resolveConfig1')
@@ -205,9 +210,9 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         when:
         server.resetExpectations()
         repo1Module.expectPomGetMissing()
-        repo1Module.expectArtifactHeadMissing()
+        repo1Artifact.expectHeadMissing()
         repo2Module.expectPomGetMissing()
-        repo2Module.expectArtifactHeadMissing()
+        repo2Artifact.expectHeadMissing()
 
         then:
         run "resolveConfig1", "resolveConfig2"
@@ -246,7 +251,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         when:
         repo2Module.publish()
         repo1Module.expectPomGetMissing()
-        repo1Module.expectArtifactHeadMissing()
+        repo1Module.artifact.expectHeadMissing()
 
         then:
         run 'retrieve'

@@ -55,19 +55,20 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
 
     def "does not re-download maven artifact downloaded from a different maven repository when sha1 matches"() {
         when:
-        def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
-        projectBRepo1.expectPomGet()
-        projectBRepo1.getArtifact().expectGet()
+        def projectBModuleRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
+        projectBModuleRepo1.expectPomGet()
+        projectBModuleRepo1.getArtifact().expectGet()
 
         then:
         succeedsWith 'mavenRepository1'
 
         when:
-        def projectBRepo2 = mavenRepo2.module('org.name', 'projectB', '1.0').publish()
-        projectBRepo2.expectPomHead()
-        projectBRepo2.expectPomSha1Get()
-        projectBRepo2.expectArtifactHead()
-        projectBRepo2.expectArtifactSha1Get()
+        def projectBModuleRepo2 = mavenRepo2.module('org.name', 'projectB', '1.0').publish()
+        def projectBArtifactRepo2 = projectBModuleRepo2.artifact
+        projectBModuleRepo2.expectPomHead()
+        projectBModuleRepo2.expectPomSha1Get()
+        projectBArtifactRepo2.expectHead()
+        projectBArtifactRepo2.expectSha1Get()
 
         then:
         succeedsWith 'mavenRepository2'
@@ -124,8 +125,9 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         when:
         def projectBRepo2 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
         projectBRepo2.expectPomGet()
-        projectBRepo2.expectArtifactHead()
-        projectBRepo2.expectArtifactSha1Get()
+        def projectBRepo2Artifact = projectBRepo2.artifact
+        projectBRepo2Artifact.expectHead()
+        projectBRepo2Artifact.expectSha1Get()
 
         then:
         succeedsWith 'mavenRepository1'
@@ -140,8 +142,8 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         def projectBRepo2 = mavenRepo2.module('org.name', 'projectB', '1.0').publish()
         projectBRepo2.expectPomHead()
         projectBRepo2.expectPomSha1Get()
-        projectBRepo2.expectArtifactHead()
-        projectBRepo2.expectArtifactSha1Get()
+        projectBRepo2.artifact.expectHead()
+        projectBRepo2.artifact.expectSha1Get()
 
         then:
         succeedsWith 'mavenRepository2'
@@ -161,8 +163,8 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         projectBRepo2.expectPomHead()
         projectBRepo2.expectPomSha1GetMissing()
         projectBRepo2.expectPomGet()
-        projectBRepo2.expectArtifactHead()
-        projectBRepo2.expectArtifactSha1GetMissing()
+        projectBRepo2.artifact.expectHead()
+        projectBRepo2.artifact.expectSha1GetMissing()
         projectBRepo2.getArtifact().expectGet()
 
         then:
@@ -183,9 +185,11 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         projectBRepo2.expectPomHead()
         projectBRepo2.expectPomSha1Get()
         projectBRepo2.expectPomGet()
-        projectBRepo2.expectArtifactHead()
-        projectBRepo2.expectArtifactSha1Get()
-        projectBRepo2.getArtifact().expectGet()
+
+        def projRepo2BArtifact= projectBRepo2.artifact
+        projRepo2BArtifact.expectHead()
+        projectBRepo2.artifact.expectSha1Get()
+        projRepo2BArtifact.expectGet()
 
         then:
         succeedsWith 'mavenRepository2'

@@ -66,8 +66,8 @@ task retrieve(type: Sync) {
         server.resetExpectations()
         projectB.expectPomHead()
         projectB.expectPomSha1Get()
-        projectB.expectArtifactHead()
-        projectB.expectArtifactSha1Get()
+        projectB.artifact.expectHead()
+        projectB.artifact.expectSha1Get()
 
         and:
         version current withGradleUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
@@ -112,7 +112,7 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         projectB.expectPomHead()
-        projectB.expectArtifactHead()
+        projectB.artifact.expectHead()
 
         and:
         version current withGradleUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
@@ -160,8 +160,8 @@ task retrieve(type: Sync) {
         httpRepo.expectMetaDataGet("org.name", "projectB")
         projectB.expectPomHead()
         projectB.expectPomSha1Get()
-        projectB.expectArtifactHead()
-        projectB.expectArtifactSha1Get()
+        projectB.artifact.expectHead()
+        projectB.artifact.expectSha1Get()
 
         and:
         version current withGradleUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()

@@ -66,7 +66,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         server.resetExpectations()
         module.expectMetaDataGet()
         module.expectMetaDataGet()
-        module.expectArtifactHead(classifier: "source")
+        sourceArtifact.expectHead()
         module.expectPomHead()
         then:
         run 'retrieve'
@@ -80,9 +80,9 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.expectPomSha1Get()
         module.expectPomHead()
         module.expectPomGet()
-        module.expectArtifactHead(classifier: "source")
-        module.getArtifact(classifier: "source").expectGet()
-        module.expectArtifactSha1Get(classifier: "source")
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGet()
+        sourceArtifact.expectSha1Get()
         then:
         run 'retrieve'
 

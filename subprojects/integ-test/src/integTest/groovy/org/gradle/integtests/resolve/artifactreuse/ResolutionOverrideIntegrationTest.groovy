@@ -62,6 +62,7 @@ task retrieve(type: Sync) {
 
         given:
         def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
+        def artifact = module.artifact
 
         buildFile << """
 repositories {
@@ -78,7 +79,7 @@ task showMissing << { println configurations.missing.files }
 
         when:
         module.expectPomGetMissing()
-        module.expectArtifactHeadMissing()
+        artifact.expectHeadMissing()
 
         then:
         fails("showMissing")
@@ -115,10 +116,11 @@ task retrieve(type: Sync) {
 
         and:
         def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
+        def artifact = module.artifact
 
         when:
         module.expectPomGet()
-        module.expectArtifactGetMissing()
+        artifact.expectGetMissing()
 
         then:
         fails "retrieve"
@@ -126,7 +128,7 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         module.expectPomHead()
-        module.getArtifact().expectGet()
+        artifact.expectGet()
 
         then:
         executer.withArguments("--refresh-dependencies")
