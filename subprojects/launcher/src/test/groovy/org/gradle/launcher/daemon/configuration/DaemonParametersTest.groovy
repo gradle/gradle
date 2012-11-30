@@ -246,4 +246,16 @@ class DaemonParametersTest extends Specification {
         then:
         !parameters.usingDefaultJvmArgs
     }
+
+    def "can configure debug mode"() {
+        when:
+        parameters.configureFrom((DaemonParameters.DEBUG_SYS_PROPERTY): flag)
+
+        then:
+        parameters.effectiveJvmArgs.contains("-Xdebug") == Boolean.parseBoolean(flag)
+        parameters.effectiveJvmArgs.contains("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005") == Boolean.parseBoolean(flag)
+
+        where:
+        flag << ["true", "false"]
+    }
 }

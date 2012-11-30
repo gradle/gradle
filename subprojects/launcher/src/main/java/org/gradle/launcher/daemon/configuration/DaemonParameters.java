@@ -42,6 +42,7 @@ public class DaemonParameters {
     public static final String JVM_ARGS_SYS_PROPERTY = "org.gradle.jvmargs";
     public static final String JAVA_HOME_SYS_PROPERTY = "org.gradle.java.home";
     public static final String DAEMON_SYS_PROPERTY = "org.gradle.daemon";
+    public static final String DEBUG_SYS_PROPERTY = "org.gradle.debug";
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     private final String uid;
     private File baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon");
@@ -204,6 +205,11 @@ public class DaemonParameters {
             } catch (JavaHomeException e) {
                 throw new GradleException(String.format("Java home supplied via '%s' seems to be invalid: %s", JAVA_HOME_SYS_PROPERTY, propertyValue));
             }
+        }
+
+        propertyValue = properties.get(DEBUG_SYS_PROPERTY);
+        if (propertyValue != null) {
+            jvmOptions.setDebug(propertyValue.toString().equalsIgnoreCase("true"));
         }
     }
 }
