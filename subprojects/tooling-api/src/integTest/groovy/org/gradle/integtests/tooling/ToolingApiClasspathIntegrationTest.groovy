@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
-import org.apache.commons.io.IOUtils
 
 class ToolingApiClasspathIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
