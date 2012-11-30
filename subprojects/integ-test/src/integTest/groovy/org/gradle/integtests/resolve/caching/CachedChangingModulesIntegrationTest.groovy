@@ -25,7 +25,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         server.start()
         def repo = mavenHttpRepo("repo")
         def module = repo.module("group", "projectA", "1.0-SNAPSHOT")
-        module.artifact(classifier: "source")
+        def sourceArtifact = module.artifact(classifier: "source")
 
         module.publish()
         buildFile << """
@@ -55,7 +55,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
 
         when:
         module.expectPomGet()
-        module.expectArtifactGet(classifier: "source")
+        sourceArtifact.expectGet()
         module.expectMetaDataGet()
         module.expectMetaDataGet()
 
@@ -81,7 +81,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.expectPomHead()
         module.expectPomGet()
         module.expectArtifactHead(classifier: "source")
-        module.expectArtifactGet(classifier: "source")
+        module.getArtifact(classifier: "source").expectGet()
         module.expectArtifactSha1Get(classifier: "source")
         then:
         run 'retrieve'
@@ -127,7 +127,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
 
         when:
         module.expectPomGet()
-        module.expectArtifactGet()
+        module.getArtifact().expectGet()
         module.expectMetaDataGet()
         module.expectMetaDataGet()
         then:

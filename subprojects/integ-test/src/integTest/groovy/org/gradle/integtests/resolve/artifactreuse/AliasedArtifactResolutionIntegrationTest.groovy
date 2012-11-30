@@ -57,7 +57,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
         projectBRepo1.expectPomGet()
-        projectBRepo1.expectArtifactGet()
+        projectBRepo1.getArtifact().expectGet()
 
         then:
         succeedsWith 'mavenRepository1'
@@ -97,7 +97,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
         projectBRepo1.expectPomGet()
-        projectBRepo1.expectArtifactGet()
+        projectBRepo1.getArtifact().expectGet()
 
         then:
         succeedsWith 'mavenRepository1'
@@ -151,7 +151,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
         projectBRepo1.expectPomGet()
-        projectBRepo1.expectArtifactGet()
+        projectBRepo1.getArtifact().expectGet()
 
         then:
         succeedsWith 'mavenRepository1'
@@ -163,7 +163,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         projectBRepo2.expectPomGet()
         projectBRepo2.expectArtifactHead()
         projectBRepo2.expectArtifactSha1GetMissing()
-        projectBRepo2.expectArtifactGet()
+        projectBRepo2.getArtifact().expectGet()
 
         then:
         succeedsWith 'mavenRepository2'
@@ -173,7 +173,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
         projectBRepo1.expectPomGet()
-        projectBRepo1.expectArtifactGet()
+        projectBRepo1.getArtifact().expectGet()
 
         then:
         succeedsWith 'mavenRepository1'
@@ -185,7 +185,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         projectBRepo2.expectPomGet()
         projectBRepo2.expectArtifactHead()
         projectBRepo2.expectArtifactSha1Get()
-        projectBRepo2.expectArtifactGet()
+        projectBRepo2.getArtifact().expectGet()
 
         then:
         succeedsWith 'mavenRepository2'

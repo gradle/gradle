@@ -426,12 +426,12 @@ project('second') {
         module.expectMetaDataGet()
         module.expectPomGet()
         module.expectMetaDataGet()
-        module.expectArtifactGet()
+        module.getArtifact().expectGet()
 
         module2.expectMetaDataGet()
         module2.expectArtifactHead()
         module2.expectArtifactSha1Get()
-        module2.expectArtifactGet()
+        module2.getArtifact().expectGet()
 
         then:
         run 'cleanup'
@@ -504,7 +504,7 @@ project('second') {
         module.expectMetaDataGet()
         module.expectArtifactHead()
         module.expectArtifactSha1GetMissing()
-        module.expectArtifactGet()
+        module.getArtifact().expectGet()
 
         run "retrieve"
 
@@ -518,7 +518,7 @@ project('second') {
         module.expectPomGet()
         // TODO - should only ask for metadata once
         module.expectMetaDataGet()
-        module.expectArtifactGet()
+        module.getArtifact().expectGet()
     }
 
     private expectChangedModuleServed(MavenHttpModule module) {
@@ -530,7 +530,7 @@ project('second') {
         module.expectMetaDataGet()
         module.expectArtifactHead()
         module.expectArtifactSha1Get()
-        module.expectArtifactGet()
+        module.getArtifact().expectGet()
     }
 
     private expectChangedArtifactServed(MavenHttpModule module) {
@@ -540,7 +540,7 @@ project('second') {
         module.expectMetaDataGet()
         module.expectArtifactHead()
         module.expectArtifactSha1Get()
-        module.expectArtifactGet()
+        module.getArtifact().expectGet()
     }
 
     private expectChangedProbe(MavenHttpModule module) {

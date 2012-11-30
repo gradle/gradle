@@ -86,7 +86,7 @@ task showMissing << { println configurations.missing.files }
         when:
         server.resetExpectations()
         module.expectPomGet()
-        module.expectArtifactGet()
+        module.getArtifact().expectGet()
 
         then:
         executer.withArguments("--refresh-dependencies")
@@ -126,7 +126,7 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         module.expectPomHead()
-        module.expectArtifactGet()
+        module.getArtifact().expectGet()
 
         then:
         executer.withArguments("--refresh-dependencies")

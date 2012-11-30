@@ -74,7 +74,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         repo2Module.publish()
         repo2.expectMetaDataGet("group", "projectA")
         repo2Module.expectPomGet()
-        repo2Module.expectArtifactGet()
+        repo2Module.getArtifact().expectGet()
 
         then:
         run 'retrieve'
@@ -131,7 +131,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         repo1Module.expectArtifactHeadMissing()
         repo2Module.publish()
         repo2Module.expectPomGet()
-        repo2Module.expectArtifactGet()
+        repo2Module.getArtifact().expectGet()
 
         then:
         run 'retrieve'
