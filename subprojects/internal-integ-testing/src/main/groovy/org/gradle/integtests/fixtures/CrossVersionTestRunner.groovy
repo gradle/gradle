@@ -22,7 +22,8 @@ import org.gradle.util.GradleVersion
  *
  * <p>Sets the {@link CrossVersionIntegrationSpec#previous} property of the test instance before executing it.
  *
- * <p>A test class can be annotated with {@link TargetVersions} to specify the set of versions the test is compatible with.
+ * <p>A test class can be annotated with {@link TargetVersions} to specify the set of versions the test is compatible with, and {@link IgnoreVersions} to specify the set of versions the
+ * test should not be run for.
  */
 class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
     CrossVersionTestRunner(Class<? extends CrossVersionIntegrationSpec> target) {
@@ -31,14 +32,51 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
 
     @Override
     protected void createExecutions() {
-        previous.each { add(new PreviousVersionExecution(it)) }
+        for (BasicGradleDistribution version : previous) {
+            add(new PreviousVersionExecution(version, isEnabled(version)))
+        }
+    }
+
+    protected boolean isEnabled(BasicGradleDistribution previousVersion) {
+        Closure ignoreVersions = getAnnotationClosure(target, IgnoreVersions, {})
+        if (ignoreVersions(previousVersion)) {
+            return false
+        }
+
+        def versionsAnnotation = target.getAnnotation(TargetVersions)
+        if (versionsAnnotation == null) {
+            return true
+        }
+
+        List<String> targetGradleVersions = versionsAnnotation.value()
+        for (String targetGradleVersion : targetGradleVersions) {
+            if (isMatching(targetGradleVersion, previousVersion.version)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private static boolean isMatching(String targetGradleVersion, String candidate) {
+        if (targetGradleVersion.endsWith('+')) {
+            def minVersion = targetGradleVersion.substring(0, targetGradleVersion.length() - 1)
+            return GradleVersion.version(minVersion) <= GradleVersion.version(candidate)
+        }
+        return targetGradleVersion == candidate
+    }
+
+    private static Closure getAnnotationClosure(Class target, Class annotation, Closure defaultValue) {
+        def a = target.getAnnotation(annotation)
+        a ? a.value().newInstance(target, target) : defaultValue
     }
 
     private static class PreviousVersionExecution extends AbstractMultiTestRunner.Execution {
         final BasicGradleDistribution previousVersion
+        final boolean enabled
 
-        PreviousVersionExecution(BasicGradleDistribution previousVersion) {
+        PreviousVersionExecution(BasicGradleDistribution previousVersion, boolean enabled) {
             this.previousVersion = previousVersion
+            this.enabled = enabled
         }
 
         @Override
@@ -51,36 +89,9 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
             target.previous = previousVersion
         }
 
-        private static <T> T getAnnotationValue(Class target, Class annotation, T defaultValue) {
-            def a = target.getAnnotation(annotation)
-            a? a.value() : defaultValue
-        }
-
-        private static Closure getAnnotationClosure(Class target, Class annotation, Closure defaultValue) {
-            def a = target.getAnnotation(annotation)
-            a? a.value().newInstance(target, target) : defaultValue
-        }
-
         @Override
         protected boolean isEnabled() {
-            List<String> targetGradleVersions = getAnnotationValue(target, TargetVersions, [])
-            Closure ignoreVersions = getAnnotationClosure(target, IgnoreVersions, {})
-
-            for (String targetGradleVersion: targetGradleVersions) {
-                def isIgnored = ignoreVersions(previousVersion)
-                if (isMatching(targetGradleVersion, previousVersion.version) && !isIgnored) {
-                    return true
-                }
-            }
-            return false
-        }
-        
-        private boolean isMatching(String targetGradleVersion, String candidate) {
-            if (targetGradleVersion.endsWith('+')) {
-                def minVersion = targetGradleVersion.substring(0, targetGradleVersion.length() - 1)
-                return GradleVersion.version(minVersion) <= GradleVersion.version(candidate)
-            }
-            return targetGradleVersion == candidate
+            return enabled
         }
     }
 }

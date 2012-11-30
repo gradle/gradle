@@ -16,9 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
 
-@TargetVersions("1.0+")
 class ResolveCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     def "can upgrade and downgrade Gradle version"() {
