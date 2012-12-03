@@ -25,11 +25,6 @@ libraries.ant = dependencies.module('org.apache.ant:ant:1.8.4') {
     dependency 'org.apache.ant:ant-launcher:1.8.4@jar'
 }
 
-//xml sax api+impl, not available < java6, shipped with java6+
-libraries.stax = dependencies.module('stax:stax:1.2.0') {
-    dependency 'stax:stax-api:1.0.1'
-}
-
 libraries.asm =  'org.ow2.asm:asm-all:4.0@jar'
 libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
 libraries.commons_io = dependencies.module(versions.commons_io)

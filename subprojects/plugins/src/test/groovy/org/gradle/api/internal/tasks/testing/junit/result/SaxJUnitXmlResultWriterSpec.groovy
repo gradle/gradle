@@ -16,19 +16,17 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
-import spock.lang.Shared
 import spock.lang.Specification
 
 import javax.xml.stream.XMLOutputFactory
 
 import static java.util.Arrays.asList
 import static java.util.Collections.emptyList
-import static org.gradle.api.tasks.testing.TestResult.ResultType.*
 import static org.hamcrest.Matchers.equalTo
+import static org.gradle.api.tasks.testing.TestResult.ResultType.*
 
 /**
  * by Szczepan Faber, created at: 11/16/12
@@ -38,8 +36,6 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
     private provider = Mock(TestResultsProvider)
     private generator = new SaxJUnitXmlResultWriter("localhost", provider, XMLOutputFactory.newInstance())
 
-    // XMLStreamWriter uses single quotes in the <xml> leading element on java 5
-    @Shared startQuoteChar = JavaVersion.current().java5 ? "'" : '"'
     private startTime = 1353344968049
 
     def "writes xml JUnit result"() {
@@ -71,7 +67,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
             .assertStderr(equalTo("err"))
 
         and:
-        sw.toString().startsWith """<?xml version=${startQuoteChar}1.0${startQuoteChar} encoding=${startQuoteChar}UTF-8${startQuoteChar}?>
+        sw.toString().startsWith """<?xml version="1.0" encoding="UTF-8"?>
   <testsuite name="com.foo.FooTest" tests="4" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
   <properties/>
     <testcase name="some test" classname="com.foo.FooTest" time="0.015"></testcase>
@@ -97,7 +93,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         generator.write("com.foo.FooTest", result, sw)
 
         then:
-        sw.toString() == """<?xml version=${startQuoteChar}1.0${startQuoteChar} encoding=${startQuoteChar}UTF-8${startQuoteChar}?>
+        sw.toString() == """<?xml version="1.0" encoding="UTF-8"?>
   <testsuite name="com.foo.FooTest" tests="1" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
   <properties/>
     <testcase name="some test" classname="com.foo.FooTest" time="0.2"></testcase>

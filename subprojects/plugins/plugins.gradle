@@ -40,8 +40,6 @@ dependencies {
     compile libraries.slf4j_api
     compile 'org.testng:testng:6.3.1'
 
-    compile libraries.stax //so that java5 can use xml stream writing
-
     provided files(jvm.toolsJar) // for SunJavaCompiler
 
     runtime libraries.commons_cli

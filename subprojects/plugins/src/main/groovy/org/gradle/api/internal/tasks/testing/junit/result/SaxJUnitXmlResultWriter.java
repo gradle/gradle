@@ -23,8 +23,6 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.TextUtil;
 
 import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -38,28 +36,27 @@ public class SaxJUnitXmlResultWriter {
 
     private final String hostName;
     private final TestResultsProvider testResultsProvider;
-    private final XMLOutputFactory xmlOutputFactory;
 
     public SaxJUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider, XMLOutputFactory xmlOutputFactory) {
         this.hostName = hostName;
         this.testResultsProvider = testResultsProvider;
-        this.xmlOutputFactory = xmlOutputFactory;
     }
 
-    public void write(String className, TestClassResult result, Writer output) throws IOException {
+    public void write(String className, TestClassResult result, Writer output) {
         try {
-            XMLStreamWriter writer = xmlOutputFactory.createXMLStreamWriter(output);
-            writer.writeStartDocument("UTF-8", "1.0");
+            SimpleXmlWriter writer = new SimpleXmlWriter(output);
+            writer.writeXmlDeclaration("UTF-8", "1.0");
             writer.writeCharacters("\n  ");
-            writer.writeStartElement("testsuite");
-            writer.writeAttribute("name", className);
-            writer.writeAttribute("tests", String.valueOf(result.getTestsCount()));
-            writer.writeAttribute("failures", String.valueOf(result.getFailuresCount()));
-            writer.writeAttribute("errors", "0");
-            writer.writeAttribute("timestamp", DateUtils.format(result.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN));
-            writer.writeAttribute("hostname", hostName);
-            writer.writeAttribute("time", String.valueOf(result.getDuration() / 1000.0));
+            writer.writeStartElement(new SimpleXmlWriter.Element("testsuite")
+                .attribute("name", className)
+                .attribute("tests", String.valueOf(result.getTestsCount()))
+                .attribute("failures", String.valueOf(result.getFailuresCount()))
+                .attribute("errors", "0")
+                .attribute("timestamp", DateUtils.format(result.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN))
+                .attribute("hostname", hostName)
+                .attribute("time", String.valueOf(result.getDuration() / 1000.0)));
 
+            //TODO SF the indentation and cdata processing belongs elsewhere
             writer.writeCharacters("\n  ");
             writer.writeEmptyElement("properties");
 
@@ -76,8 +73,7 @@ public class SaxJUnitXmlResultWriter {
             output.write("]]></system-err>\n");
 
             writer.writeEndElement();
-            writer.writeEndDocument();
-        } catch (XMLStreamException e) {
+        } catch (IOException e) {
             throw new RuntimeException("Problems writing the xml results for class: " + className, e);
         }
     }
@@ -88,20 +84,20 @@ public class SaxJUnitXmlResultWriter {
         }
     }
 
-    private void writeTests(XMLStreamWriter writer, Set<TestMethodResult> methodResults, String className) throws XMLStreamException {
+    private void writeTests(SimpleXmlWriter writer, Set<TestMethodResult> methodResults, String className) throws IOException {
         for (TestMethodResult methodResult : methodResults) {
             writer.writeCharacters("\n    ");
             String testCase = methodResult.result.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
-            writer.writeStartElement(testCase);
-            writer.writeAttribute("name", methodResult.name);
-            writer.writeAttribute("classname", className);
-            writer.writeAttribute("time", String.valueOf(methodResult.getDuration() / 1000.0));
+            writer.writeStartElement(new SimpleXmlWriter.Element(testCase)
+                    .attribute("name", methodResult.name)
+                    .attribute("classname", className)
+                    .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0)));
 
             for (Throwable failure : methodResult.result.getExceptions()) {
                 writer.writeCharacters("\n      ");
-                writer.writeStartElement("failure");
-                writer.writeAttribute("message", failureMessage(failure));
-                writer.writeAttribute("type", failure.getClass().getName());
+                writer.writeStartElement(new SimpleXmlWriter.Element("failure")
+                        .attribute("message", failureMessage(failure))
+                        .attribute("type", failure.getClass().getName()));
 
                 writer.writeCharacters(stackTrace(failure));
 

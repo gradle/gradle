@@ -54,7 +54,7 @@ public class NewJUnitXmlReportGenerator {
             File file = new File(testResultsDir, "TEST-" + className + ".xml");
             Writer output = null;
             try {
-                output = new BufferedWriter(new FileWriter(file));
+                output = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file)), "UTF-8");
                 saxWriter.write(className, result, output);
             } catch (IOException e) {
                 throw new GradleException("Problems writing xml test results to file: " + file, e);
