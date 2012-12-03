@@ -372,7 +372,7 @@ allprojects {
         def module = mavenHttpRepo("/repo", maven("repo1")).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         def module2 = mavenHttpRepo("/repo", maven("repo2")).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         module2.pomFile << '    ' // ensure it's a different length to the first one
-        def module2Artifact = module2.artifactFile
+        def module2Artifact = module2.artifact
         module2.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
 
         and:
@@ -474,6 +474,7 @@ project('second') {
         // sure we use this.
         module.artifactFile.setLastModified(2000)
         module.pomFile.setLastModified(6000)
+        def artifact = module.artifact
 
         when:
         expectModuleServed(module)
