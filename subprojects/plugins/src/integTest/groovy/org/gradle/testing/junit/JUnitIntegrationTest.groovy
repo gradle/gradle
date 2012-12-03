@@ -43,6 +43,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
         result.testClass('org.gradle.OkTest').assertTestPassed('ok')
         result.testClass('org.gradle.OkTest').assertStdout(containsString('This is test stdout'))
+        result.testClass('org.gradle.OkTest').assertStdout(containsString('non-asci char: ż'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('no EOL'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('class loaded'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('test constructed'))
@@ -78,6 +79,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.ASuite').assertStderr(containsString('sys err from another test method'))
         result.testClass('org.gradle.ASuite').assertStdout(containsString('This is other stdout'))
         result.testClass('org.gradle.ASuite').assertStdout(containsString('before suite class out'))
+        result.testClass('org.gradle.ASuite').assertStdout(containsString('non-asci char: ż'))
         result.testClass('org.gradle.ASuite').assertStderr(containsString('before suite class err'))
         result.testClass('org.gradle.ASuite').assertStdout(containsString('after suite class out'))
         result.testClass('org.gradle.ASuite').assertStderr(containsString('after suite class err'))
@@ -153,7 +155,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.BrokenTest')
                 .assertTestCount(2, 2, 0)
                 .assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
-                .assertTestFailed('broken', equalTo('java.lang.IllegalStateException'))
+                .assertTestFailed('broken', equalTo('java.lang.IllegalStateException: html: <> cdata: ]]>'))
         result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed('classMethod', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenAfterClass').assertTestFailed('classMethod', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
@@ -450,38 +452,4 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         testClass.assertStderr(containsText("thread 1 err"))
         testClass.assertStderr(containsText("thread 2 err"))
     }
-
-    @Test
-    void "produces encoded xml results"() {
-        file("build.gradle") << """
-            apply plugin: 'java'
-                repositories { mavenCentral() }
-                dependencies { testCompile 'junit:junit:4.10' }
-        """
-
-        file("src/test/java/EncodingTest.java") << """
-import org.junit.*;
-
-public class EncodingTest {
-    @Test public void encodesCdata() {
-        System.out.println("< html allowed, cdata closing token ]]> encoded!");
-        System.err.println("< html allowed, cdata closing token ]]> encoded!");
-    }
-    @Test public void encodesAttributeValues() {
-        throw new RuntimeException("html: <> cdata: ]]>");
-    }
-}
-"""
-        when:
-        executer.withTasks("test").runWithFailure()
-
-        then:
-        new JUnitTestExecutionResult(testDir)
-            .testClass("EncodingTest")
-            .assertTestPassed("encodesCdata")
-            .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))
-            .assertStdout(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
-            .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
-    }
-
 }

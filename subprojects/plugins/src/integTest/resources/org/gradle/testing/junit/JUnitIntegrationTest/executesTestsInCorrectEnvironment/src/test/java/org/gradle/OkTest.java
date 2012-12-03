@@ -73,6 +73,7 @@ public class OkTest {
 
         // check stdout and stderr and logging
         System.out.println("This is test stdout");
+        System.out.println("non-asci char: ż");
         System.out.print("no EOL");
         System.out.println();
         System.err.println("This is test stderr");
