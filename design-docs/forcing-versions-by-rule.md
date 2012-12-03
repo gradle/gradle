@@ -3,9 +3,10 @@ Manipulate the dependency metadata.
 # Primary use case
 
 - A set of inter-dependent libraries, developed, tested and published together are intended to work with a consistent, same version. If they are forming a classpath in a java project and one of the libraries from a set has a different version than others, certain ill symptomps are likely to occurr (compilation errors, test failures, other build-time errors). Some options:
-		- detect and blow up (implementable with the current API). Not very convenient because every detected conflict requires user intervention and declaring something in the build (for example a forced version).
-		- detect and choose highest requested, consistent versions for all libraries from the releasable unit.
-		- allow specifying forced version rule as oppose to specyfing the module explicitly as it is now.
+
+    - detect and blow up (implementable with the current API). Not very convenient because every detected conflict requires user intervention and declaring something in the build (for example a forced version).
+    - detect and choose highest requested, consistent versions for all libraries from the releasable unit.
+    - allow specifying forced version rule as oppose to specyfing the module explicitly as it is now.
 		
 # Other related use cases
 
