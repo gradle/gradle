@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.codehaus.groovy.runtime.DefaultGroovyMethodsSupport.closeQuietly;
+
 /**
  * by Szczepan Faber, created at: 11/19/12
  */
@@ -52,7 +54,7 @@ public class CachingFileWriter {
             }
             out.writeUTF(text);
         } catch (IOException e) {
-            IOUtils.closeQuietly(out);
+            cleanUp();
             throw new RuntimeException("Problems writing to file: " + file, e);
         }
     }
@@ -65,10 +67,19 @@ public class CachingFileWriter {
     }
 
     public void closeAll() {
-        for (Map.Entry<File, DataOutputStream> entry : openFiles.entrySet()) {
-            close(entry.getValue(), entry.getKey().toString());
+        try {
+            for (Map.Entry<File, DataOutputStream> entry : openFiles.entrySet()) {
+                close(entry.getValue(), entry.getKey().toString());
+            }
+        } finally {
+            openFiles.clear();
         }
-        openFiles.clear();
+    }
+
+    private void cleanUp() {
+        for (Closeable c : openFiles.values()) {
+            closeQuietly(c);
+        }
     }
 
     private void close(Closeable c, String displayName) {
@@ -76,6 +87,8 @@ public class CachingFileWriter {
             c.close();
         } catch (IOException e) {
             throw new RuntimeException("Problems closing " + displayName, e);
+        } finally {
+            cleanUp();
         }
     }
 }

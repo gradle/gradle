@@ -80,19 +80,6 @@ class TestReportDataCollectorSpec extends Specification {
         1 * collector.cachingFileWriter.closeAll()
     }
 
-    def "closes files after test"() {
-        collector.cachingFileWriter = Mock(CachingFileWriter)
-        def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-
-        when:
-        collector.afterTest(test, Mock(TestResult))
-
-        then:
-        1 * collector.cachingFileWriter.close(new File(temp.dir, "FooTest.stderr"))
-        1 * collector.cachingFileWriter.close(new File(temp.dir, "FooTest.stdout"))
-        0 * collector._
-    }
-
     def "keeps track of test results"() {
         def root = new DefaultTestSuiteDescriptor("1", "Suite")
         def clazz = new DecoratingTestDescriptor(new DefaultTestClassDescriptor("1.1", "FooTest"), root)

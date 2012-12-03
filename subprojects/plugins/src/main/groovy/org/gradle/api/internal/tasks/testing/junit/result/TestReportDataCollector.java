@@ -68,8 +68,6 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             }
 
             classResult.add(methodResult);
-            cachingFileWriter.close(outputsFile(testDescriptor.getClassName(), TestOutputEvent.Destination.StdOut));
-            cachingFileWriter.close(outputsFile(testDescriptor.getClassName(), TestOutputEvent.Destination.StdErr));
         }
     }
 
