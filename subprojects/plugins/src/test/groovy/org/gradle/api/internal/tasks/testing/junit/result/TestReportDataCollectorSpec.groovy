@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
-import org.gradle.api.tasks.testing.TestResult
+
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -127,8 +127,8 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
 
         then:
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr"), "err")
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stdout"), "out")
+        1 * collector.cachingFileWriter.writeUTF(new File(temp.dir, "FooTest.stderr"), "err")
+        1 * collector.cachingFileWriter.writeUTF(new File(temp.dir, "FooTest.stdout"), "out")
         0 * collector.cachingFileWriter._
     }
 
@@ -140,7 +140,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "hey ]]> foo"))
 
         then:
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr"), "hey ]]> foo")
+        1 * collector.cachingFileWriter.writeUTF(new File(temp.dir, "FooTest.stderr"), "hey ]]> foo")
     }
 
     def "provides outputs"() {

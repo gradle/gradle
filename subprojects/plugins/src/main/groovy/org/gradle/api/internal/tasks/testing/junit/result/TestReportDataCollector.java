@@ -78,7 +78,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             //we don't have a place for such output in any of the reports so skipping.
             return;
         }
-        cachingFileWriter.write(outputsFile(className, outputEvent.getDestination()), outputEvent.getMessage());
+        cachingFileWriter.writeUTF(outputsFile(className, outputEvent.getDestination()), outputEvent.getMessage());
     }
 
     private File outputsFile(String className, TestOutputEvent.Destination destination) {

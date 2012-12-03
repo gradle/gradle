@@ -34,19 +34,19 @@ class CachingFileWriterSpec extends Specification {
 
     def "keeps n files open"() {
         when:
-        writer.write(temp.file("1.txt"), "1")
+        writer.writeUTF(temp.file("1.txt"), "1")
 
         then:
         writer.openFiles.keySet()*.name == ["1.txt"]
 
         when:
-        writer.write(temp.file("2.txt"), "2")
+        writer.writeUTF(temp.file("2.txt"), "2")
 
         then:
         writer.openFiles.keySet()*.name == ["1.txt", "2.txt"]
 
         when:
-        writer.write(temp.file("3.txt"), "3")
+        writer.writeUTF(temp.file("3.txt"), "3")
 
         then:
         writer.openFiles.keySet()*.name == ["2.txt", "3.txt"]
@@ -60,13 +60,13 @@ class CachingFileWriterSpec extends Specification {
 
     def "writes to files"() {
         when:
-        writer.write(temp.file("1.txt"), "1")
-        writer.write(temp.file("2.txt"), "2")
-        writer.write(temp.file("3.txt"), "3")
-        writer.write(temp.file("4.txt"), "4")
-        writer.write(temp.file("1.txt"), "a")
-        writer.write(temp.file("2.txt"), "b")
-        writer.write(temp.file("3.txt"), "c")
+        writer.writeUTF(temp.file("1.txt"), "1")
+        writer.writeUTF(temp.file("2.txt"), "2")
+        writer.writeUTF(temp.file("3.txt"), "3")
+        writer.writeUTF(temp.file("4.txt"), "4")
+        writer.writeUTF(temp.file("1.txt"), "a")
+        writer.writeUTF(temp.file("2.txt"), "b")
+        writer.writeUTF(temp.file("3.txt"), "c")
 
         and:
         writer.close(temp.file("xxxx.txt"))

@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.*;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.codehaus.groovy.runtime.DefaultGroovyMethodsSupport.closeQuietly;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -37,8 +35,8 @@ public class CachingFileWriter {
         this.openFilesCount = openFilesCount;
     }
 
-    public void write(File file, String text) {
-        DataOutputStream out = null;
+    public void writeUTF(File file, String text) {
+        DataOutputStream out;
         try {
             if (openFiles.containsKey(file)) {
                 out = openFiles.get(file);
@@ -54,7 +52,7 @@ public class CachingFileWriter {
             }
             out.writeUTF(text);
         } catch (IOException e) {
-            cleanUp();
+            cleanUpQuietly();
             throw new RuntimeException("Problems writing to file: " + file, e);
         }
     }
@@ -62,7 +60,11 @@ public class CachingFileWriter {
     public void close(File file) {
         Closeable c = openFiles.remove(file);
         if (c != null) { //could be already closed
-            close(c, file.toString());
+            try {
+                close(c, file.toString());
+            } finally {
+                cleanUpQuietly();
+            }
         }
     }
 
@@ -72,14 +74,15 @@ public class CachingFileWriter {
                 close(entry.getValue(), entry.getKey().toString());
             }
         } finally {
-            openFiles.clear();
+            cleanUpQuietly();
         }
     }
 
-    private void cleanUp() {
-        for (Closeable c : openFiles.values()) {
-            closeQuietly(c);
+    private void cleanUpQuietly() {
+        for (OutputStream o : openFiles.values()) {
+            closeQuietly(o);
         }
+        openFiles.clear();
     }
 
     private void close(Closeable c, String displayName) {
@@ -87,8 +90,6 @@ public class CachingFileWriter {
             c.close();
         } catch (IOException e) {
             throw new RuntimeException("Problems closing " + displayName, e);
-        } finally {
-            cleanUp();
         }
     }
 }
