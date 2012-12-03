@@ -21,26 +21,15 @@ import org.gradle.util.TestFile
 
 abstract class HttpArtifact extends HttpResource {
 
-    HttpServer server
     String modulePath
-    final Map options
 
-    public HttpArtifact(HttpServer server, String modulePath, Map<String, ?> options = [:]) {
-        this.server = server
+    public HttpArtifact(HttpServer server, String modulePath) {
+        super(server)
         this.modulePath = modulePath
-        this.options = options
-    }
-
-    void expectHead() {
-        server.expectHead(getPath(), file)
     }
 
     void expectHeadMissing() {
         server.expectHeadMissing("$modulePath/${getMissingArtifactName()}")
-    }
-
-    void expectGet() {
-        server.expectGet(getPath(), file)
     }
 
     void expectGetMissing() {

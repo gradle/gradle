@@ -16,10 +16,24 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
 abstract class HttpResource {
-    abstract void expectGet();
+
+    protected HttpServer server
+
+    public HttpResource(HttpServer server){
+        this.server = server
+    }
+
+    void expectGet() {
+        server.expectGet(getPath(), file)
+    }
+
+    void expectHead() {
+        server.expectHead(getPath(), file)
+    }
 
     abstract void expectGetMissing();
 

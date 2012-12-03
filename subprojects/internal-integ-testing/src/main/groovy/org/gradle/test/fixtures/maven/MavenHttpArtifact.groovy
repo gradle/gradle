@@ -21,9 +21,11 @@ import org.gradle.util.TestFile
 
 class MavenHttpArtifact extends HttpArtifact {
     MavenFileModule backingModule;
+    final Map options
 
     public MavenHttpArtifact(HttpServer server, String modulePath, MavenFileModule backingModule, Map<String, ?> options = [:]) {
-        super(server, modulePath, options)
+        super(server, modulePath)
+        this.options = options
         this.backingModule = backingModule;
     }
 
