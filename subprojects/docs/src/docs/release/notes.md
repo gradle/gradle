@@ -87,6 +87,8 @@ As a workaround you can dynamically check if the AppleScriptEngine is available:
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+Dalibor Novak - `m2compatible` flag on PatternRepositoryLayout (GRADLE-1919)
+
 <!--
 * Some Person - fixed some issue (GRADLE-1234)
 -->
