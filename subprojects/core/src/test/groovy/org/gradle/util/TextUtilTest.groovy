@@ -78,6 +78,6 @@ class TextUtilTest extends Specification {
         text              | result
         ""                | ""
         "abc"             | "abc"
-        "abc]]>foo\n]]>"  | "abc]]&gt;foo\n]]&gt;"
+        "abc]]>foo\n]]>"  | "abc]]]]><![CDATA[>foo\n]]]]><![CDATA[>"
     }
 }

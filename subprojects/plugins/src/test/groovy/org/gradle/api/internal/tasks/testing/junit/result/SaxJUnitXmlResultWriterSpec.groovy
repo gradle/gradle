@@ -123,8 +123,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         //attribute and text is encoded:
         sw.toString().contains('message="java.lang.RuntimeException: &lt;&gt; encoded!" type="java.lang.RuntimeException">java.lang.RuntimeException: &lt;&gt; encoded!')
         //output encoded:
-        sw.toString().contains('<system-out><![CDATA[with CDATA end token: ]]&gt;]]></system-out>')
-        sw.toString().contains('<system-err><![CDATA[with CDATA end token: ]]&gt;]]></system-err>')
+        sw.toString().contains('<system-out><![CDATA[with CDATA end token: ]]]]><![CDATA[>]]></system-out>')
+        sw.toString().contains('<system-err><![CDATA[with CDATA end token: ]]]]><![CDATA[>]]></system-err>')
     }
-
 }

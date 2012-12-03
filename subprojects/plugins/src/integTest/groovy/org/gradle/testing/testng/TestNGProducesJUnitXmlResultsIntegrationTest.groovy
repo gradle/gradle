@@ -177,10 +177,10 @@ test {
             .assertTestCount(2, 1, 0)
             .assertTestPassed("encodesCdata")
             .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]> non-ascii: ż'))
-            .assertStdout(equalTo("""< html allowed, cdata closing token ]]&gt; encoded!
+            .assertStdout(equalTo("""< html allowed, cdata closing token ]]> encoded!
 no EOL, non-ascii char: ż
 xml entity: &amp;
 """))
-            .assertStderr(equalTo("< html allowed, cdata closing token ]]&gt; encoded!\n"))
+            .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
     }
 }
