@@ -28,10 +28,9 @@ import static org.gradle.logging.StyledTextOutput.Style.Info
  * by Szczepan Faber, created at: 9/20/12
  */
 class DependencyGraphRenderer {
-
-    GraphRenderer renderer
-    NodeRenderer nodeRenderer
-    boolean hasCyclicDependencies = false
+    private final GraphRenderer renderer
+    private final NodeRenderer nodeRenderer
+    private boolean hasCyclicDependencies
 
     DependencyGraphRenderer(GraphRenderer renderer, NodeRenderer nodeRenderer) {
         this.renderer = renderer
@@ -41,41 +40,41 @@ class DependencyGraphRenderer {
     void render(RenderableDependency root) {
         def visited = new HashSet<ModuleVersionIdentifier>()
         visited.add(root.getId())
-        renderChildren(root.getChildren(), visited);
+        renderChildren(root.getChildren(), visited)
     }
 
     private void renderChildren(Set<? extends RenderableDependency> children, Set<ModuleVersionIdentifier> visited) {
-        renderer.startChildren();
-        int i = 0;
+        renderer.startChildren()
+        def i = 0
         for (RenderableDependency child : children) {
-            boolean last = i++ == children.size() - 1;
-            render(child, last, visited);
+            boolean last = i++ == children.size() - 1
+            render(child, last, visited)
         }
-        renderer.completeChildren();
+        renderer.completeChildren()
     }
 
-    private void render(final RenderableDependency parent, boolean last, Set<ModuleVersionIdentifier> visited) {
-        def children = parent.getChildren();
-        boolean alreadyRendered = !visited.add(parent.getId())
+    private void render(final RenderableDependency node, boolean last, Set<ModuleVersionIdentifier> visited) {
+        def children = node.getChildren()
+        def alreadyRendered = !visited.add(node.getId())
         if (alreadyRendered) {
             hasCyclicDependencies = true
         }
 
         renderer.visit(new Action<StyledTextOutput>() {
-            public void execute(StyledTextOutput output) {
-                nodeRenderer.renderNode(output, parent, children, alreadyRendered);
+            void execute(StyledTextOutput output) {
+                nodeRenderer.renderNode(output, node, alreadyRendered)
             }
-        }, last);
+        }, last)
 
         if (!alreadyRendered) {
-            renderChildren(children, visited);
+            renderChildren(children, visited)
         }
     }
 
     void printLegend() {
         if (hasCyclicDependencies) {
             renderer.output.println()
-            renderer.output.withStyle(Info).println("(*) - dependencies omitted (listed previously)");
+            renderer.output.withStyle(Info).println("(*) - dependencies omitted (listed previously)")
         }
     }
 }
