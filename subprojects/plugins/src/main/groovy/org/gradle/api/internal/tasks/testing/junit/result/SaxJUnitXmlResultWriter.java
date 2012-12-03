@@ -20,12 +20,11 @@ import org.apache.tools.ant.util.DateUtils;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
-import javax.xml.stream.XMLOutputFactory;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.Set;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
  * by Szczepan Faber, created at: 11/13/12
@@ -35,14 +34,16 @@ public class SaxJUnitXmlResultWriter {
     private final String hostName;
     private final TestResultsProvider testResultsProvider;
 
-    public SaxJUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider, XMLOutputFactory xmlOutputFactory) {
+    public SaxJUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider) {
         this.hostName = hostName;
         this.testResultsProvider = testResultsProvider;
     }
 
-    public void write(String className, TestClassResult result, Writer output) {
+    public void write(String className, TestClassResult result, OutputStream output) {
+        OutputStreamWriter sw = null;
         try {
-            SimpleXmlWriter writer = new SimpleXmlWriter(output);
+            sw = new OutputStreamWriter(output, "UTF-8");
+            SimpleXmlWriter writer = new SimpleXmlWriter(sw);
             writer.writeXmlDeclaration("UTF-8", "1.0");
             writer.writeCharacters("\n  ");
             writer.writeStartElement(new SimpleXmlWriter.Element("testsuite")
@@ -72,8 +73,21 @@ public class SaxJUnitXmlResultWriter {
             writer.writeCharacters("\n");
 
             writer.writeEndElement();
+            sw.close();
         } catch (IOException e) {
             throw new RuntimeException("Problems writing the XML results for class: " + className, e);
+        } finally {
+            closeQuietly(sw);
+        }
+    }
+
+    String getXml(String className, TestClassResult result) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        write(className, result, out);
+        try {
+            return out.toString("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw throwAsUncheckedException(e);
         }
     }
 

@@ -20,8 +20,6 @@ import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
 import spock.lang.Specification
 
-import javax.xml.stream.XMLOutputFactory
-
 import static java.util.Arrays.asList
 import static java.util.Collections.emptyList
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
@@ -35,12 +33,11 @@ import static org.hamcrest.Matchers.equalTo
 class SaxJUnitXmlResultWriterSpec extends Specification {
 
     private provider = Mock(TestResultsProvider)
-    private generator = new SaxJUnitXmlResultWriter("localhost", provider, XMLOutputFactory.newInstance())
+    private generator = new SaxJUnitXmlResultWriter("localhost", provider)
 
     private startTime = 1353344968049
 
     def "writes xml JUnit result"() {
-        StringWriter sw = new StringWriter()
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 10, startTime + 25, 1, 1, 0, emptyList())))
         result.add(new TestMethodResult("some test two", new DefaultTestResult(SUCCESS, startTime + 15, startTime + 30, 1, 1, 0, emptyList())))
@@ -51,10 +48,10 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         provider.getOutputs("com.foo.FooTest", StdErr) >> ["err"]
 
         when:
-        generator.write("com.foo.FooTest", result, sw)
+        def xml = generator.getXml("com.foo.FooTest", result)
 
         then:
-        new JUnitTestClassExecutionResult(sw.toString(), "com.foo.FooTest")
+        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest")
             .assertTestCount(4, 1, 0)
             .assertTestFailed("some failing test", equalTo('java.lang.RuntimeException: Boo!'))
             .assertTestsSkipped("some skipped test")
@@ -65,7 +62,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
             .assertStderr(equalTo("err"))
 
         and:
-        sw.toString().startsWith """<?xml version="1.0" encoding="UTF-8"?>
+        xml.startsWith """<?xml version="1.0" encoding="UTF-8"?>
   <testsuite name="com.foo.FooTest" tests="4" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
   <properties/>
     <testcase name="some test" classname="com.foo.FooTest" time="0.015"></testcase>
@@ -73,7 +70,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
     <testcase name="some failing test" classname="com.foo.FooTest" time="0.01">
       <failure message="java.lang.RuntimeException: Boo!" type="java.lang.RuntimeException">java.lang.RuntimeException: Boo!"""
 
-        sw.toString().endsWith """</failure></testcase>
+        xml.endsWith """</failure></testcase>
     <ignored-testcase name="some skipped test" classname="com.foo.FooTest" time="0.01"></ignored-testcase>
   <system-out><![CDATA[1st output message
 2nd output message
@@ -83,16 +80,15 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
     }
 
     def "writes results with empty outputs"() {
-        StringWriter sw = new StringWriter()
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         provider.getOutputs(_, _) >> []
 
         when:
-        generator.write("com.foo.FooTest", result, sw)
+        def xml = generator.getXml("com.foo.FooTest", result)
 
         then:
-        sw.toString() == """<?xml version="1.0" encoding="UTF-8"?>
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
   <testsuite name="com.foo.FooTest" tests="1" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
   <properties/>
     <testcase name="some test" classname="com.foo.FooTest" time="0.2"></testcase>
@@ -102,20 +98,18 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
     }
 
     def "encodes xml"() {
-        StringWriter sw = new StringWriter()
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
-        provider.getOutputs(_, _) >> ["with CDATA end token: ]]>"]
+        provider.getOutputs(_, _) >> ["with CDATA end token: ]]>", " some ascii: ż"]
 
         when:
-        generator.write("com.foo.FooTest", result, sw)
+        def xml = generator.getXml("com.foo.FooTest", result)
 
         then:
-        println sw.toString()
         //attribute and text is encoded:
-        sw.toString().contains('message="java.lang.RuntimeException: &lt;&gt; encoded!" type="java.lang.RuntimeException">java.lang.RuntimeException: &lt;&gt; encoded!')
+        xml.contains('message="java.lang.RuntimeException: &lt;&gt; encoded!" type="java.lang.RuntimeException">java.lang.RuntimeException: &lt;&gt; encoded!')
         //output encoded:
-        sw.toString().contains('<system-out><![CDATA[with CDATA end token: ]]]]><![CDATA[>]]></system-out>')
-        sw.toString().contains('<system-err><![CDATA[with CDATA end token: ]]]]><![CDATA[>]]></system-err>')
+        xml.contains('<system-out><![CDATA[with CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-out>')
+        xml.contains('<system-err><![CDATA[with CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-err>')
     }
 }
