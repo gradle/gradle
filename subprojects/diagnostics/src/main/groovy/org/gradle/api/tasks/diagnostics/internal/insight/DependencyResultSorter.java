@@ -36,8 +36,7 @@ public class DependencyResultSorter {
      * If requested matches selected then it will override the version comparison
      * so that the dependency that was selected is more prominent.
      */
-    public static Collection<DependencyResult> sort(Collection<
-            DependencyResult> input) {
+    public static Collection<DependencyResult> sort(Collection<DependencyResult> input) {
         //dependencies with the same 'requested' should be presented in a single tree
         final Set<ModuleVersionSelector> uniqueRequested = new HashSet<ModuleVersionSelector>();
         List<DependencyResult> out = CollectionUtils.filter(input, new LinkedList<DependencyResult>(), new Spec<DependencyResult>() {
