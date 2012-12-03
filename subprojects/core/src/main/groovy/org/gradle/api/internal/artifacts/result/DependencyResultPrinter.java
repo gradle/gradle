@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.DependencyResult;
 
 /**
  * Created: 17/08/2012
  *
  * @author Szczepan Faber
  */
-public class ResolvedDependencyResultPrinter {
+public class DependencyResultPrinter {
 
-    public static String print(ResolvedDependencyResult result) {
+    public static String print(DependencyResult result) {
         if (!result.getRequested().matchesStrictly(result.getSelected().getId())) {
             return requested(result) + " -> " + result.getSelected().getId().getVersion();
         } else {
@@ -33,7 +33,7 @@ public class ResolvedDependencyResultPrinter {
         }
     }
 
-    private static String requested(ResolvedDependencyResult result) {
+    private static String requested(DependencyResult result) {
         return result.getRequested().getGroup() + ":" + result.getRequested().getName() + ":" + result.getRequested().getVersion();
     }
 }

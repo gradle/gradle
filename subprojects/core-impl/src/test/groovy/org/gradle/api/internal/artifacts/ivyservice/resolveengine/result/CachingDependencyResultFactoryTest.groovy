@@ -49,14 +49,15 @@ class CachingDependencyResultFactoryTest extends Specification {
 
     def "creates and caches unresolved dependencies"() {
         def fromModule = newModule('from')
+        def selectedModule = newModule('selected')
 
         when:
-        def dep = factory.createUnresolvedDependency(selector('requested'), fromModule, new RuntimeException("foo"))
-        def same = factory.createUnresolvedDependency(selector('requested'), fromModule, new RuntimeException("foo"))
+        def dep = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new RuntimeException("foo"))
+        def same = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new RuntimeException("foo"))
 
-        def differentRequested = factory.createUnresolvedDependency(selector('xxx'), fromModule, new RuntimeException("foo"))
-        def differentFrom = factory.createUnresolvedDependency(selector('requested'), newModule('xxx'), new RuntimeException("foo"))
-        def differentFailure = factory.createUnresolvedDependency(selector('requested'), fromModule, new RuntimeException("xxx"))
+        def differentRequested = factory.createUnresolvedDependency(selector('xxx'), fromModule, selectedModule, new RuntimeException("foo"))
+        def differentFrom = factory.createUnresolvedDependency(selector('requested'), newModule('xxx'), selectedModule, new RuntimeException("foo"))
+        def differentFailure = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new RuntimeException("xxx"))
 
         then:
         dep.is(same)

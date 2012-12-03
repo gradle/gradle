@@ -212,7 +212,7 @@ class ResolutionResultBuilderSpec extends Specification {
     }
 
     private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        def selection = failure != null ? null : new DummyModuleVersionSelection(selectedId: newId("x", selected, "1"), selectionReason: selectionReason)
+        def selection = new DummyModuleVersionSelection(selectedId: newId("x", selected, "1"), selectionReason: selectionReason)
         new DummyInternalDependencyResult(requested: newSelector("x", requested, "1"), selected: selection, failure: failure)
     }
 
@@ -244,7 +244,7 @@ class ResolutionResultBuilderSpec extends Specification {
         }
     }
 
-    class DummyModuleVersionSelection implements ModuleVersionSelection{
+    class DummyModuleVersionSelection implements ModuleVersionSelection {
         ModuleVersionIdentifier selectedId
         ModuleVersionSelectionReason selectionReason
     }

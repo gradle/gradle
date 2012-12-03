@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 
@@ -54,15 +54,25 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
             if (from == null) {
                 throw new IllegalStateException("Something went wrong with building the dependency graph. Module [" + id + "] should have been visited.");
             }
+            DefaultResolvedModuleVersionResult selected = createOrGet(d);
+            DependencyResult dependency;
             if (d.getFailure() != null) {
-                from.addDependency(dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getFailure()));
+                dependency = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, selected, d.getFailure());
             } else {
-                DefaultResolvedModuleVersionResult selected = createOrGet(d.getSelected().getSelectedId(), d.getSelected().getSelectionReason());
-                DependencyResult dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
-                from.addDependency(dependency);
-                selected.addDependent((ResolvedDependencyResult) dependency);
+                dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
+            }
+            from.addDependency(dependency);
+            if (selected != null) {
+                selected.addDependent(dependency);
             }
         }
+    }
+
+    @Nullable
+    private DefaultResolvedModuleVersionResult createOrGet(InternalDependencyResult dependency) {
+        ModuleVersionSelection selected = dependency.getSelected();
+        if (selected == null) { return null; }
+        return createOrGet(selected.getSelectedId(), selected.getSelectionReason());
     }
 
     private DefaultResolvedModuleVersionResult createOrGet(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {

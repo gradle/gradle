@@ -22,7 +22,7 @@ import spock.lang.Issue
 class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Ignore
     @Issue("GRADLE-2502")
-    public void "latest.integration selects highest version regardless of status"() {
+    def "latest.integration selects highest version regardless of status"() {
         given:
         buildFile << """
   repositories {
@@ -77,7 +77,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
     }
 
     @Issue("GRADLE-2502")
-    public void "latest.milestone selects highest version with milestone or release status"() {
+    def "latest.milestone selects highest version with milestone or release status"() {
         given:
         buildFile << """
   repositories {
@@ -94,7 +94,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
       into 'libs'
   }
   """
-
         when:
         runAndFail 'retrieve'
 
@@ -182,7 +181,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
     @Ignore
     @Issue("GRADLE-2502")
-    public void "version selector ending in + selects highest matching version"() {
+    def "version selector ending in + selects highest matching version"() {
         given:
         buildFile << """
   repositories {
@@ -240,7 +239,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
     @Ignore
     @Issue("GRADLE-2502")
-    public void "version range selects highest matching version"() {
+    def "version range selects highest matching version"() {
         given:
         buildFile << """
   repositories {
@@ -297,7 +296,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
     }
 
     @Issue("GRADLE-2502")
-    public void "can resolve dynamic version from different repositories"() {
+    def "can resolve dynamic version from different repositories"() {
         given:
         def repo1 = ivyRepo("ivyRepo1")
         def repo2 = ivyRepo("ivyRepo2")

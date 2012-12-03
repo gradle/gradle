@@ -20,17 +20,29 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
 /**
- * Represents the dependency result. An edge in the dependency graph. See also {@link ResolutionResult}.
+ * An edge in the dependency graph.
+ * Provides information on the requested and selected module version.
+ * Requested and selected version can differ for several reasons:
+ * conflict resolution, forcing of a version, use of a dynamic version.
+ * For information about those terms please refer to the user guide.
+ *
+ * @see ResolutionResult
  */
 @Incubating
 public interface DependencyResult {
-
     /**
      * Returns the requested module version.
      *
      * @return requested module version
      */
     ModuleVersionSelector getRequested();
+
+    /**
+     * Returns the selected module version.
+     *
+     * @return selected module version
+     */
+    ResolvedModuleVersionResult getSelected();
 
     /**
      * Returns the resolved dependent module version result that

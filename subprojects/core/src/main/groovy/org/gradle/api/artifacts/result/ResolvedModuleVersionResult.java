@@ -44,11 +44,11 @@ public interface ResolvedModuleVersionResult {
     Set<? extends DependencyResult> getDependencies();
 
     /**
-     * The dependents of the resolved module. See {@link ResolvedDependencyResult}.
+     * The dependents of the resolved module. See {@link DependencyResult}.
      *
      * @return dependents
      */
-    Set<? extends ResolvedDependencyResult> getDependents();
+    Set<? extends DependencyResult> getDependents();
 
     /**
      * Informs why this module version was selected.
