@@ -232,7 +232,7 @@ org:leaf:1.0 -> 2.0
 
         then:
         output.contains(toPlatformLineSeparators("""
-org:leaf:1.5 (forced)
+org:leaf:1.5 (forced) FAILED
 
 org:leaf:1.0 -> 1.5
 \\--- org:foo:1.0
@@ -318,7 +318,7 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains("No resolved dependencies matching given input were found")
+        output.contains("No dependencies matching given input were found")
     }
 
     def "informs that nothing matches the input dependency"() {
@@ -345,10 +345,10 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains("No resolved dependencies matching given input were found")
+        output.contains("No dependencies matching given input were found")
     }
 
-    def "deals with unresolved dependencies"() {
+    def "provides insight into unresolvable dependencies"() {
         given:
         mavenRepo.module("org", "top").dependsOn("middle").publish()
 
@@ -372,7 +372,11 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains("No resolved dependencies matching given input were found")
+        output.contains(toPlatformLineSeparators("""
+org:middle:1.0 FAILED
+\\--- org:top:1.0
+     \\--- conf
+"""))
     }
 
     def "deals with dependency cycles"() {

@@ -16,8 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
-
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.InvertedRenderableDependencyResult
@@ -31,21 +31,22 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
  */
 public class DependencyInsightReporter {
 
-    Collection<RenderableDependency> prepare(Collection<ResolvedDependencyResult> input) {
+    Collection<RenderableDependency> prepare(Collection<DependencyResult> input) {
         def out = new LinkedList<RenderableDependency>()
-        def sorted = ResolvedDependencyResultSorter.sort(input)
+        def sorted = DependencyResultSorter.sort(input)
 
         //remember if module id was annotated
         def annotated = new HashSet<ModuleVersionIdentifier>()
 
-        for (ResolvedDependencyResult dependency: sorted) {
+        for (DependencyResult dependency: sorted) {
             def description = null
             //add description only to the first module
             if (annotated.add(dependency.selected.id)) {
                 //add a heading dependency with the annotation if the dependency does not exist in the graph
                 if (!dependency.requested.matchesStrictly(dependency.selected.id)) {
                     def name = dependency.selected.id.group + ":" + dependency.selected.id.name + ":" + dependency.selected.id.version
-                    out << new SimpleDependency(name, describeReason(dependency.selected.selectionReason))
+                    out << new SimpleDependency(name, dependency.selected instanceof ResolvedDependencyResult,
+                            describeReason(dependency.selected.selectionReason))
                 } else {
                     description = describeReason(dependency.selected.selectionReason)
                 }

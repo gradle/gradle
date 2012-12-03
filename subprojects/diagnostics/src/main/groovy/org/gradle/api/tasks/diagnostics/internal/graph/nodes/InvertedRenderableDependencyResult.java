@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.DependencyResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -26,18 +26,18 @@ import java.util.Set;
  *
  * by Szczepan Faber, created at: 7/27/12
  */
-public class InvertedRenderableDependencyResult extends RenderableDependencyResult implements RenderableDependency {
+public class InvertedRenderableDependencyResult extends AbstractRenderableDependencyResult implements RenderableDependency {
 
-    public InvertedRenderableDependencyResult(ResolvedDependencyResult dependency, String description) {
+    public InvertedRenderableDependencyResult(DependencyResult dependency, String description) {
         super(dependency, description);
     }
 
     public Set<RenderableDependency> getChildren() {
         Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
-        for (ResolvedDependencyResult r : dependency.getSelected().getDependents()) {
+        for (DependencyResult d : dependency.getSelected().getDependents()) {
             //we want only the dependents that match the requested
-            if (r.getRequested().equals(this.dependency.getRequested())) {
-                out.add(new InvertedRenderableModuleResult(r.getFrom()));
+            if (d.getRequested().equals(dependency.getRequested())) {
+                out.add(new InvertedRenderableModuleResult(d.getFrom()));
             }
         }
 

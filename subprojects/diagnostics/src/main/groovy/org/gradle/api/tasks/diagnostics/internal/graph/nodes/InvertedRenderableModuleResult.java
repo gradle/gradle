@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 
 import java.util.LinkedHashSet;
@@ -36,8 +36,8 @@ public class InvertedRenderableModuleResult extends RenderableModuleResult imple
     }
 
     public Set<RenderableDependency> getChildren() {
-        return new LinkedHashSet(Collections2.transform(module.getDependents(), new Function<ResolvedDependencyResult, RenderableDependency>() {
-            public RenderableDependency apply(ResolvedDependencyResult input) {
+        return new LinkedHashSet<RenderableDependency>(Collections2.transform(module.getDependents(), new Function<DependencyResult, RenderableDependency>() {
+            public RenderableDependency apply(DependencyResult input) {
                 return new InvertedRenderableModuleResult(input.getFrom());
             }
         }));
