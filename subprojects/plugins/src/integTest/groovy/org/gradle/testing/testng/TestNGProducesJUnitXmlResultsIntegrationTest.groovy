@@ -110,10 +110,13 @@ import org.testng.annotations.*;
 public class EncodingTest {
     @Test public void encodesCdata() {
         System.out.println("< html allowed, cdata closing token ]]> encoded!");
+        System.out.print("no EOL, ");
+        System.out.println("non-ascii char: ż");
+        System.out.println("xml entity: &amp;");
         System.err.println("< html allowed, cdata closing token ]]> encoded!");
     }
     @Test public void encodesAttributeValues() {
-        throw new RuntimeException("html: <> cdata: ]]>");
+        throw new RuntimeException("html: <> cdata: ]]> non-ascii: ż");
     }
 }
 """
@@ -173,8 +176,11 @@ test {
         junitResult.testClass("org.EncodingTest")
             .assertTestCount(2, 1, 0)
             .assertTestPassed("encodesCdata")
-            .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))
-            .assertStdout(equalTo("< html allowed, cdata closing token ]]&gt; encoded!\n"))
+            .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]> non-ascii: ż'))
+            .assertStdout(equalTo("""< html allowed, cdata closing token ]]&gt; encoded!
+no EOL, non-ascii char: ż
+xml entity: &amp;
+"""))
             .assertStderr(equalTo("< html allowed, cdata closing token ]]&gt; encoded!\n"))
     }
 }
