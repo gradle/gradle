@@ -89,6 +89,8 @@ We would like to thank the following community members for making contributions 
 
 Dalibor Novak - `m2compatible` flag on PatternRepositoryLayout (GRADLE-1919)
 
+Brian Roberts, Tom Denley - Support multi-line JUnit test names (for better ScalaTest compatibility) (GRADLE-2572)
+
 <!--
 * Some Person - fixed some issue (GRADLE-1234)
 -->
