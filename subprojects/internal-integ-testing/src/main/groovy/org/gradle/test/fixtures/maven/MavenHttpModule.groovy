@@ -33,7 +33,6 @@ class MavenHttpModule implements MavenModule {
         this.backingModule = backingModule
         this.server = server
         this.moduleRootPath = "${repoRoot}/${backingModule.groupId.replace('.', '/')}/${backingModule.artifactId}"
-        this.httpArtifacts[artifactKey([:])] = new HttpArtifact(server, moduleRootPath, backingModule)
     }
 
     private String artifactKey(Map map) {
@@ -47,7 +46,7 @@ class MavenHttpModule implements MavenModule {
     }
 
     HttpArtifact getArtifact(Map options = [:]) {
-        httpArtifacts[artifactKey(options)]
+        return new HttpArtifact(server, moduleRootPath, backingModule, options)
     }
 
     /**
@@ -57,7 +56,6 @@ class MavenHttpModule implements MavenModule {
     HttpArtifact artifact(Map<String, ?> options) {
         backingModule.artifact(options)
         def httpArtifact = new HttpArtifact(server, moduleRootPath, backingModule, options)
-        httpArtifacts[artifactKey(options)] = httpArtifact;
         return httpArtifact
     }
 
