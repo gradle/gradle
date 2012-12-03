@@ -20,7 +20,6 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.gradle.integtests.fixtures.*
-import static org.hamcrest.Matchers.startsWith
 import org.junit.Before
 
 class IncrementalTestIntegrationTest {
@@ -35,8 +34,7 @@ class IncrementalTestIntegrationTest {
 
     @Test
     public void doesNotRunStaleTests() {
-        def failure = executer.withTasks('test').runWithFailure()
-        failure.assertThatCause(startsWith('There were failing tests.'))
+        executer.withTasks('test').runWithFailure().assertTestsFailed()
 
         distribution.testFile('src/test/java/Broken.java').assertIsFile().delete()
 

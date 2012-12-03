@@ -70,7 +70,7 @@ class TestNGIntegrationTest {
 
     @Test
     void groovyJdk15Failing() {
-        executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
+        executer.withTasks("test").runWithFailure().assertTestsFailed()
 
         def result = new TestNGExecutionResult(dist.testDir)
         result.assertTestClassesExecuted('org.gradle.BadTest')
@@ -88,7 +88,7 @@ class TestNGIntegrationTest {
 
     @Test
     void javaJdk14Failing() {
-        executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
+        executer.withTasks("test").runWithFailure().assertTestsFailed()
 
         def result = new TestNGExecutionResult(dist.testDir)
         result.assertTestClassesExecuted('org.gradle.BadTest')
@@ -103,7 +103,7 @@ class TestNGIntegrationTest {
     }
 
     private void doJavaJdk15Failing(String testNGVersion) {
-        def execution = executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertThatCause(startsWith('There were failing tests'))
+        executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertTestsFailed()
 
         def result = new TestNGExecutionResult(dist.testDir)
         result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite', 'org.gradle.TestWithBrokenMethodDependency')
