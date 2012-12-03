@@ -25,11 +25,11 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 11/19/12
  */
-class NewJUnitXmlReportGeneratorSpec extends Specification {
+class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     @Rule private TemporaryFolder temp = new TemporaryFolder()
     private resultsProvider = Mock(TestResultsProvider)
-    private generator = new NewJUnitXmlReportGenerator(temp.dir, resultsProvider)
+    private generator = new Binary2JUnitXmlReportGenerator(temp.dir, resultsProvider)
 
     def setup() {
         generator.saxWriter = Mock(SaxJUnitXmlResultWriter)

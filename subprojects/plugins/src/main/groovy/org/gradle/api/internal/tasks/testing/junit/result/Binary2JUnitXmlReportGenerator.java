@@ -30,14 +30,14 @@ import java.util.Map;
 /**
  * This will replace the existing report generator.
  */
-public class NewJUnitXmlReportGenerator {
+public class Binary2JUnitXmlReportGenerator {
 
     private final File testResultsDir;
     private final TestResultsProvider testResultsProvider;
     SaxJUnitXmlResultWriter saxWriter;
-    private final static Logger LOG = Logging.getLogger(NewJUnitXmlReportGenerator.class);
+    private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
-    public NewJUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider) {
+    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
         this.saxWriter = new SaxJUnitXmlResultWriter(getHostname(), testResultsProvider);

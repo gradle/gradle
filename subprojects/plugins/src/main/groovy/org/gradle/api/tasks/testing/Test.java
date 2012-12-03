@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.junit.result.NewJUnitXmlReportGenerator;
+import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
 import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
@@ -433,7 +433,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         testExecuter.execute(this, resultProcessor);
 
         if (testReportDataCollector != null) {
-            new NewJUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector).generate();
+            new Binary2JUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector).generate();
             getProject().delete(binaryResultsDir);
         }
 
