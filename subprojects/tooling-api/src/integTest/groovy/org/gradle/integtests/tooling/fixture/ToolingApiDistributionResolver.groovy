@@ -25,9 +25,9 @@ import org.gradle.api.internal.project.TopLevelBuildServiceRegistry
 import org.gradle.StartParameter
 import org.gradle.api.internal.project.GlobalServicesRegistry
 import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 
 class ToolingApiDistributionResolver {
-    public static final String TOOLING_API_FROM_TESTCLASSPATH = "org.gradle.integtest.toolingApiFromTestClasspath"
     private final DependencyResolutionServices resolutionServices
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final GradleDistribution currentGradleDistribution = new GradleDistribution()
@@ -59,7 +59,7 @@ class ToolingApiDistributionResolver {
     }
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
-        toolingApiVersion == currentGradleDistribution.version && System.getProperty(TOOLING_API_FROM_TESTCLASSPATH, "true") == "true"
+        toolingApiVersion == currentGradleDistribution.version && !GradleDistributionExecuter.systemPropertyExecuter.forks
     }
 
     private DependencyResolutionServices createResolutionServices() {

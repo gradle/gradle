@@ -19,17 +19,14 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.IgnoreIf
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 
+@IgnoreIf({ !GradleDistributionExecuter.systemPropertyExecuter.forks })
 class ToolingApiClasspathIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
-
-    def setup() {
-        System.setProperty(ToolingApiDistributionResolver.TOOLING_API_FROM_TESTCLASSPATH, "false")
-    }
 
     def "tooling api classpath contains only tooling-api jar and slf4j"() {
         when:

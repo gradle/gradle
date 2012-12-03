@@ -17,10 +17,6 @@ useTestFixtures()
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
-
-    doFirst {
-        systemProperties['org.gradle.integtest.toolingApiFromTestClasspath'] = 'true'
-    }
 }
 
 daemonIntegTest {
