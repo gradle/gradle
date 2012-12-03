@@ -23,6 +23,5 @@ import org.gradle.logging.StyledTextOutput
  * by Szczepan Faber, created at: 9/20/12
  */
 interface NodeRenderer {
-    void renderNode(StyledTextOutput output, RenderableDependency node,
-                    Set<RenderableDependency>children, boolean alreadyRendered);
+    void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered);
 }
