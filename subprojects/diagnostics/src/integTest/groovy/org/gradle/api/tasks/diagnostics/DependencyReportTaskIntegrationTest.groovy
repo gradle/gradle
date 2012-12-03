@@ -62,7 +62,7 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         output.contains "(*) - dependencies omitted (listed previously)"
     }
 
-    def "marks modules that can't be resolved"() {
+    def "marks modules that can't be resolved as 'FAILED'"() {
         given:
         mavenRepo.module("foo", "bar", 1.0).dependsOn("unknown").publish()
         mavenRepo.module("foo", "baz", 1.0).dependsOn("bar").publish()
@@ -89,6 +89,70 @@ foo
 \\--- foo:baz:1.0
      \\--- foo:bar:1.0
           \\--- foo:unknown:1.0 FAILED
+"""
+        ))
+    }
+
+    def "marks modules that can't be resolved after conflict resolution as 'FAILED'"() {
+        given:
+        mavenRepo.module("foo", "bar", 1.0).dependsOn("foo", "baz", "2.0").publish()
+        mavenRepo.module("foo", "baz", 1.0).publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations { config }
+            dependencies {
+              config 'foo:bar:1.0'
+              config 'foo:baz:1.0'
+            }
+        """
+
+        when:
+        executer.allowExtraLogging = false
+        run "dependencies"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+config
++--- foo:bar:1.0
+|    \\--- foo:baz:2.0 FAILED
+\\--- foo:baz:1.0 -> 2.0 FAILED
+"""
+        ))
+    }
+
+    def "marks modules that can't be resolved after forcing a different version as 'FAILED'"() {
+        given:
+        mavenRepo.module("foo", "bar", 1.0).dependsOn("foo", "baz", "1.0").publish()
+        mavenRepo.module("foo", "baz", 1.0).publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+              config {
+                resolutionStrategy {
+                  force('foo:baz:2.0')
+                }
+              }
+            }
+            dependencies {
+              config 'foo:bar:1.0'
+            }
+        """
+
+        when:
+        executer.allowExtraLogging = false
+        run "dependencies"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+config
+\\--- foo:bar:1.0
+     \\--- foo:baz:1.0 -> 2.0 FAILED
 """
         ))
     }
