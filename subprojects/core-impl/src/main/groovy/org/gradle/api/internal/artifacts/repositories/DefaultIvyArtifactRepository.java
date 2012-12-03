@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResol
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
 
@@ -41,15 +42,17 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
+    private final Instantiator instantiator;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder) {
+                                        LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, Instantiator instantiator) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.layout = new GradleRepositoryLayout();
+        this.instantiator = instantiator;
     }
 
     public DependencyResolver createResolver() {
@@ -101,11 +104,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     public void layout(String layoutName) {
         if ("maven".equals(layoutName)) {
-            layout = new MavenRepositoryLayout();
+            layout = instantiator.newInstance(MavenRepositoryLayout.class);
         } else if ("pattern".equals(layoutName)) {
-            layout = new PatternRepositoryLayout();
+            layout = instantiator.newInstance(PatternRepositoryLayout.class);
         } else {
-            layout = new GradleRepositoryLayout();
+            layout = instantiator.newInstance(GradleRepositoryLayout.class);
         }
     }
 

@@ -27,6 +27,7 @@ import org.gradle.api.internal.externalresource.transport.file.FileTransport
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
@@ -40,7 +41,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ProgressLoggerFactory progressLoggerFactory = Mock()
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
-            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder
+            fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, new DirectInstantiator()
     )
 
     def "cannot create a resolver for url with unknown scheme"() {
