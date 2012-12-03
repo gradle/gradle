@@ -348,7 +348,7 @@ org:leaf:2.0 -> 1.0
         output.contains("No dependencies matching given input were found")
     }
 
-    def "provides insight into unresolvable dependencies"() {
+    def "marks modules that can't be resolved as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("middle").publish()
 
@@ -374,6 +374,80 @@ org:leaf:2.0 -> 1.0
         then:
         output.contains(toPlatformLineSeparators("""
 org:middle:1.0 FAILED
+\\--- org:top:1.0
+     \\--- conf
+"""))
+    }
+
+    def "marks modules that can't be resolved after forcing a different version as 'FAILED'"() {
+        given:
+        mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
+        mavenRepo.module("org", "middle", 1.0).publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy {
+                        force "org:middle:2.0"
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                setDependencySpec { it.requested.name == 'middle' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:middle:2.0 (forced) FAILED
+
+org:middle:1.0 -> 2.0 FAILED
+\\--- org:top:1.0
+     \\--- conf
+"""))
+    }
+
+    def "marks modules that can't be resolved after conflict resolution as 'FAILED'"() {
+        given:
+        mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
+        mavenRepo.module("org", "middle", 1.0).publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+                conf 'org:middle:2.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                setDependencySpec { it.requested.name == 'middle' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:middle:2.0 (conflict resolution) FAILED
+\\--- conf
+
+org:middle:1.0 -> 2.0 FAILED
 \\--- org:top:1.0
      \\--- conf
 """))
