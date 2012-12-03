@@ -29,7 +29,6 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
  * by Szczepan Faber, created at: 8/22/12
  */
 class DependencyResultSorterSpec extends Specification {
-
     def "sorts"() {
         def d1 = newDependency(newSelector("org.gradle", "core", "2.0"), newId("org.gradle", "core", "2.0"))
         def d2 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"))
