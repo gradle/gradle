@@ -64,8 +64,8 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "marks modules that can't be resolved"() {
         given:
-        mavenRepo.module("foo", "bar", 1.0).dependsOn("i dont exist").publish()
-        mavenRepo.module("foo", "baz", 1.0).dependsOn("foo:bar:1.0").publish()
+        mavenRepo.module("foo", "bar", 1.0).dependsOn("unknown").publish()
+        mavenRepo.module("foo", "baz", 1.0).dependsOn("bar").publish()
 
         file("build.gradle") << """
             repositories {
@@ -87,7 +87,8 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 foo
 +--- i:dont:exist FAILED
 \\--- foo:baz:1.0
-     \\--- foo:foo:bar:1.0:1.0 FAILED
+     \\--- foo:bar:1.0
+          \\--- foo:unknown:1.0 FAILED
 """
         ))
     }
