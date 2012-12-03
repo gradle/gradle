@@ -79,9 +79,22 @@ class CachingFileWriterSpec extends Specification {
         writer.openFiles.isEmpty()
 
         and:
-        temp.file("1.txt").text == '1a'
-        temp.file("2.txt").text == '2b'
-        temp.file("3.txt").text == '3c'
-        temp.file("4.txt").text == '4'
+        read(temp.file("1.txt")) == '1a'
+        read(temp.file("2.txt")) == '2b'
+        read(temp.file("3.txt")) == '3c'
+        read(temp.file("4.txt")) == '4'
+    }
+
+    private String read(File f) {
+        def is = new DataInputStream(new FileInputStream(f));
+        def sb = new StringBuilder()
+        while (true) {
+            try {
+                sb.append(is.readUTF());
+            } catch (EOFException e) {
+                break;
+            }
+        }
+        sb
     }
 }

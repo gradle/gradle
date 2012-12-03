@@ -28,6 +28,7 @@ import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
+import org.gradle.api.Transformer
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -86,8 +87,8 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterTest(test, Mock(TestResult))
 
         then:
-        1 * collector.cachingFileWriter.close(new File(temp.dir, "FooTest.stderr.txt"))
-        1 * collector.cachingFileWriter.close(new File(temp.dir, "FooTest.stdout.txt"))
+        1 * collector.cachingFileWriter.close(new File(temp.dir, "FooTest.stderr"))
+        1 * collector.cachingFileWriter.close(new File(temp.dir, "FooTest.stdout"))
         0 * collector._
     }
 
@@ -138,8 +139,8 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
 
         then:
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr.txt"), "err")
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stdout.txt"), "out")
+        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr"), "err")
+        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stdout"), "out")
         0 * collector.cachingFileWriter._
     }
 
@@ -151,7 +152,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "hey ]]> foo"))
 
         then:
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr.txt"), "hey ]]&gt; foo")
+        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr"), "hey ]]> foo")
     }
 
     def "provides outputs"() {
@@ -161,7 +162,7 @@ class TestReportDataCollectorSpec extends Specification {
 
         when:
         collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "err"))
-        collector.onOutput(test, new DefaultTestOutputEvent(StdErr, " err2"))
+        collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "err2"))
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
         collector.onOutput(test3, new DefaultTestOutputEvent(StdOut, "out, don't show"))
 
@@ -169,11 +170,11 @@ class TestReportDataCollectorSpec extends Specification {
 
         then:
         StringWriter sw = new StringWriter()
-        collector.provideOutputs("FooTest", StdErr, sw)
-        sw.toString() == 'err err2'
+        collector.provideOutputs("FooTest", StdErr, sw, { " transformed: [" + it + "]" } as Transformer)
+        sw.toString() == ' transformed: [err] transformed: [err2]'
 
         StringWriter sw2 = new StringWriter()
-        collector.provideOutputs("FooTest", StdOut, sw2)
-        sw2.toString() == 'out'
+        collector.provideOutputs("FooTest", StdOut, sw2, { " transformed: [" + it + "]" } as Transformer)
+        sw2.toString() == ' transformed: [out]'
     }
 }

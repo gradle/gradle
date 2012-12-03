@@ -50,11 +50,11 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
         result.add(new TestMethodResult("some skipped test", new DefaultTestResult(SKIPPED, startTime + 35, startTime + 45, 1, 0, 1, asList())))
 
-        provider.provideOutputs("com.foo.FooTest", TestOutputEvent.Destination.StdOut, sw) >> {
+        provider.provideOutputs("com.foo.FooTest", TestOutputEvent.Destination.StdOut, sw, _) >> {
             sw.write("1st output message\n")
             sw.write("2nd output message\n")
         }
-        provider.provideOutputs("com.foo.FooTest", TestOutputEvent.Destination.StdErr, sw) >> { sw.write("err") }
+        provider.provideOutputs("com.foo.FooTest", TestOutputEvent.Destination.StdErr, sw, _) >> { sw.write("err") }
 
         when:
         generator.write("com.foo.FooTest", result, sw)
@@ -111,12 +111,20 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
 
+        provider.provideOutputs(_, _, sw, _) >> { args ->
+            sw.write(args[3].transform("with CDATA end token: ]]>"))
+        }
+
         when:
         generator.write("com.foo.FooTest", result, sw)
 
         then:
+        println sw.toString()
         //attribute and text is encoded:
         sw.toString().contains('message="java.lang.RuntimeException: &lt;&gt; encoded!" type="java.lang.RuntimeException">java.lang.RuntimeException: &lt;&gt; encoded!')
+        //output encoded:
+        sw.toString().contains('<system-out><![CDATA[with CDATA end token: ]]&gt;]]></system-out>')
+        sw.toString().contains('<system-err><![CDATA[with CDATA end token: ]]&gt;]]></system-err>')
     }
 
 }

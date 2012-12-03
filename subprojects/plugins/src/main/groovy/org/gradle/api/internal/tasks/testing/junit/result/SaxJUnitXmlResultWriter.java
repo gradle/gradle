@@ -17,8 +17,10 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.apache.tools.ant.util.DateUtils;
+import org.gradle.api.Transformer;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.util.TextUtil;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -65,18 +67,24 @@ public class SaxJUnitXmlResultWriter {
 
             writer.writeCharacters("\n  ");
             output.write("<system-out><![CDATA[");
-            testResultsProvider.provideOutputs(className, TestOutputEvent.Destination.StdOut, output);
+            testResultsProvider.provideOutputs(className, TestOutputEvent.Destination.StdOut, output, new EscapeCDATA());
             output.write("]]></system-out>");
 
             writer.writeCharacters("\n  ");
             output.write("<system-err><![CDATA[");
-            testResultsProvider.provideOutputs(className, TestOutputEvent.Destination.StdErr, output);
+            testResultsProvider.provideOutputs(className, TestOutputEvent.Destination.StdErr, output, new EscapeCDATA());
             output.write("]]></system-err>\n");
 
             writer.writeEndElement();
             writer.writeEndDocument();
         } catch (XMLStreamException e) {
             throw new RuntimeException("Problems writing the xml results for class: " + className, e);
+        }
+    }
+
+    public class EscapeCDATA implements Transformer<String, String> {
+        public String transform(String original) {
+            return TextUtil.escapeCDATA(original);
         }
     }
 

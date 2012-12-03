@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public class CachingFileWriter {
 
-    final LinkedHashMap<File, Writer> openFiles = new LinkedHashMap<File, Writer>();
+    final LinkedHashMap<File, DataOutputStream> openFiles = new LinkedHashMap<File, DataOutputStream>();
     private final int openFilesCount;
 
     public CachingFileWriter(int openFilesCount) {
@@ -36,21 +36,21 @@ public class CachingFileWriter {
     }
 
     public void write(File file, String text) {
-        Writer out = null;
+        DataOutputStream out = null;
         try {
             if (openFiles.containsKey(file)) {
                 out = openFiles.get(file);
             } else {
-                out = new BufferedWriter(new FileWriter(file, true));
+                out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, true)));
                 openFiles.put(file, out);
                 if (openFiles.size() > openFilesCount) {
                     //remove first
-                    Iterator<Map.Entry<File, Writer>> iterator = openFiles.entrySet().iterator();
+                    Iterator<Map.Entry<File, DataOutputStream>> iterator = openFiles.entrySet().iterator();
                     close(iterator.next().getValue(), file.toString());
                     iterator.remove();
                 }
             }
-            out.write(text);
+            out.writeUTF(text);
         } catch (IOException e) {
             IOUtils.closeQuietly(out);
             throw new RuntimeException("Problems writing to file: " + file, e);
@@ -58,22 +58,22 @@ public class CachingFileWriter {
     }
 
     public void close(File file) {
-        Writer w = openFiles.remove(file);
-        if (w != null) { //could be already closed
-            close(w, file.toString());
+        Closeable c = openFiles.remove(file);
+        if (c != null) { //could be already closed
+            close(c, file.toString());
         }
     }
 
     public void closeAll() {
-        for (Map.Entry<File, Writer> entry : openFiles.entrySet()) {
+        for (Map.Entry<File, DataOutputStream> entry : openFiles.entrySet()) {
             close(entry.getValue(), entry.getKey().toString());
         }
         openFiles.clear();
     }
 
-    private void close(Writer w, String displayName) {
+    private void close(Closeable c, String displayName) {
         try {
-            w.close();
+            c.close();
         } catch (IOException e) {
             throw new RuntimeException("Problems closing " + displayName, e);
         }

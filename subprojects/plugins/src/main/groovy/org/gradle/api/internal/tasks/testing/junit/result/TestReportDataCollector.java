@@ -17,14 +17,11 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Transformer;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.TextUtil;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,9 +78,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             //we don't have a place for such output in any of the reports so skipping.
             return;
         }
-        //the format is optimized for the junit xml results
-        String message = TextUtil.escapeCDATA(outputEvent.getMessage());
-        cachingFileWriter.write(outputsFile(className, outputEvent.getDestination()), message);
+        cachingFileWriter.write(outputsFile(className, outputEvent.getDestination()), outputEvent.getMessage());
     }
 
     private File outputsFile(String className, TestOutputEvent.Destination destination) {
@@ -91,22 +86,32 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     }
 
     private File standardErrorFile(String className) {
-        return new File(resultsDir, className + ".stderr.txt");
+        return new File(resultsDir, className + ".stderr");
     }
 
     private File standardOutputFile(String className) {
-        return new File(resultsDir, className + ".stdout.txt");
+        return new File(resultsDir, className + ".stdout");
     }
 
-    public void provideOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
+    public void provideOutputs(String className, TestOutputEvent.Destination destination,
+                               Writer writer, Transformer<String, String> transformer) {
         File file = outputsFile(className, destination);
         if (!file.exists()) {
             return; //test has no outputs
         }
-        FileInputStream in = null;
+        DataInputStream in = null;
         try {
-            in = new FileInputStream(file);
-            IOUtils.copy(in, writer);
+            in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+            while(true) {
+                String line;
+                try {
+                    line = in.readUTF();
+                } catch (EOFException e) {
+                    //finished reading..
+                    break;
+                }
+                writer.write(transformer.transform(line));
+            }
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
