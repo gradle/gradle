@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.internal.artifacts.version.LatestVersionSemanticComparator;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
@@ -29,18 +29,19 @@ import java.util.*;
  *
  * @author Szczepan Faber
  */
-public class ResolvedDependencyResultSorter {
+public class DependencyResultSorter {
 
     /**
      * sorts by group:name:version mostly.
      * If requested matches selected then it will override the version comparison
      * so that the dependency that was selected is more prominent.
      */
-    public static Collection<ResolvedDependencyResult> sort(Collection<ResolvedDependencyResult> input) {
+    public static Collection<DependencyResult> sort(Collection<
+            DependencyResult> input) {
         //dependencies with the same 'requested' should be presented in a single tree
         final Set<ModuleVersionSelector> uniqueRequested = new HashSet<ModuleVersionSelector>();
-        List<ResolvedDependencyResult> out = CollectionUtils.filter(input, new LinkedList<ResolvedDependencyResult>(), new Spec<ResolvedDependencyResult>() {
-            public boolean isSatisfiedBy(ResolvedDependencyResult element) {
+        List<DependencyResult> out = CollectionUtils.filter(input, new LinkedList<DependencyResult>(), new Spec<DependencyResult>() {
+            public boolean isSatisfiedBy(DependencyResult element) {
                 return uniqueRequested.add(element.getRequested());
             }
         });
@@ -48,11 +49,11 @@ public class ResolvedDependencyResultSorter {
         return out;
     }
 
-    private static class DependencyComparator implements Comparator<ResolvedDependencyResult> {
+    private static class DependencyComparator implements Comparator<DependencyResult> {
 
         private final LatestVersionSemanticComparator versionComparator = new LatestVersionSemanticComparator();
 
-        public int compare(ResolvedDependencyResult left, ResolvedDependencyResult right) {
+        public int compare(DependencyResult left, DependencyResult right) {
             int byGroup = left.getRequested().getGroup().compareTo(right.getRequested().getGroup());
             if (byGroup != 0) {
                 return byGroup;
