@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer;
@@ -82,13 +81,9 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
     public void completeConfiguration(Configuration configuration) {}
 
     public void render(Configuration configuration) throws IOException {
-        ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
         RenderableDependency root = new RenderableModuleResult(result.getRoot());
-
         renderNow(root);
-
-        resolvedConfiguration.rethrowFailure();
     }
 
     void renderNow(RenderableDependency root) {

@@ -62,7 +62,7 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         output.contains "(*) - dependencies omitted (listed previously)"
     }
 
-    def "renders even if resolution fails"() {
+    def "marks modules that can't be resolved"() {
         given:
         mavenRepo.module("foo", "bar", 1.0).dependsOn("i dont exist").publish()
         mavenRepo.module("foo", "baz", 1.0).dependsOn("foo:bar:1.0").publish()
@@ -80,13 +80,14 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.allowExtraLogging = false
-        runAndFail "dependencies"
+        run "dependencies"
 
         then:
-        errorOutput.contains('Could not resolve all dependencies')
         output.contains(toPlatformLineSeparators("""
 foo
++--- i:dont:exist FAILED
 \\--- foo:baz:1.0
+     \\--- foo:foo:bar:1.0:1.0 FAILED
 """
         ))
     }
@@ -270,8 +271,8 @@ rootProject.name = 'root'
 +--- bar:bar:5.0 -> 6.0
 |    \\--- foo:foo:3.0
 +--- bar:bar:6.0 (*)
-+--- foo:foo:1.0 -> 3.0 (*)
-\\--- foo:foo:2.0 -> 3.0 (*)
++--- foo:foo:1.0 -> 3.0
+\\--- foo:foo:2.0 -> 3.0
 """))
     }
 
@@ -379,7 +380,7 @@ rootProject.name = 'root'
 |    \\--- org:middle2:1.0
 |         +--- org:leaf3:1.0
 |         \\--- org:leaf4:1.0 -> 2.0
-\\--- org:leaf4:2.0 (*)
+\\--- org:leaf4:2.0
 """))
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -25,23 +24,20 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 7/27/12
  */
-public class RenderableDependencyResult extends AbstractRenderableDependencyResult implements RenderableDependency {
+public class RenderableDependencyResult extends AbstractRenderableDependencyResult {
 
-    public RenderableDependencyResult(ResolvedDependencyResult dependency) {
+    public RenderableDependencyResult(DependencyResult dependency) {
         this(dependency, null);
     }
 
-    public RenderableDependencyResult(ResolvedDependencyResult dependency, String description) {
+    public RenderableDependencyResult(DependencyResult dependency, String description) {
         super(dependency, description);
     }
 
     public Set<RenderableDependency> getChildren() {
         Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
         for (DependencyResult d : dependency.getSelected().getDependencies()) {
-            //TODO SF revisit when implementing the 'unresolved dependencies' story
-            if (d instanceof ResolvedDependencyResult) {
-                out.add(new RenderableDependencyResult((ResolvedDependencyResult) d));
-            }
+            out.add(new RenderableDependencyResult(d));
         }
         return out;
     }

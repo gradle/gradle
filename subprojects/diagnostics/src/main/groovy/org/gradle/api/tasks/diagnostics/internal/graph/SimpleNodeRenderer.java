@@ -19,15 +19,18 @@ package org.gradle.api.tasks.diagnostics.internal.graph;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.logging.StyledTextOutput;
 
+import static org.gradle.logging.StyledTextOutput.Style.Failure;
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
 /**
-* by Szczepan Faber, created at: 9/21/12
-*/
+ * by Szczepan Faber, created at: 9/21/12
+ */
 public class SimpleNodeRenderer implements NodeRenderer {
     public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
         output.text(node.getName());
-        if (alreadyRendered) {
+        if (!node.isResolvable()) {
+            output.withStyle(Failure).text(" FAILED");
+        } else if (alreadyRendered && !node.getChildren().isEmpty()) {
             output.withStyle(Info).text(" (*)");
         }
     }
