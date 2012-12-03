@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.util.TextUtil;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedList;
@@ -65,6 +67,22 @@ public class SimpleXmlWriter {
         write("</" + elements.removeLast() + ">");
     }
 
+    public void writeStartElement(String name) throws IOException {
+        writeStartElement(new Element(name));
+    }
+
+    public void writeCDATA(Iterable<String> contents) throws IOException {
+        write("<![CDATA[");
+        for (String content : contents) {
+            writeCDATAContent(content);
+        }
+        write("]]>");
+    }
+
+    private void writeCDATAContent(String cdata) throws IOException {
+        write(TextUtil.escapeCDATA(cdata));
+    }
+
     public static class Element {
 
         private final StringBuilder output;
@@ -83,7 +101,6 @@ public class SimpleXmlWriter {
         public String toXML() {
             return output.toString() + ">";
         }
-
     }
 
     private static String encodeXml(String value) {

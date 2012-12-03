@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
-import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
 import spock.lang.Specification
 
@@ -25,8 +24,10 @@ import javax.xml.stream.XMLOutputFactory
 
 import static java.util.Arrays.asList
 import static java.util.Collections.emptyList
-import static org.hamcrest.Matchers.equalTo
+import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
+import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.*
+import static org.hamcrest.Matchers.equalTo
 
 /**
  * by Szczepan Faber, created at: 11/16/12
@@ -46,11 +47,8 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
         result.add(new TestMethodResult("some skipped test", new DefaultTestResult(SKIPPED, startTime + 35, startTime + 45, 1, 0, 1, asList())))
 
-        provider.provideOutputs("com.foo.FooTest", TestOutputEvent.Destination.StdOut, sw, _) >> {
-            sw.write("1st output message\n")
-            sw.write("2nd output message\n")
-        }
-        provider.provideOutputs("com.foo.FooTest", TestOutputEvent.Destination.StdErr, sw, _) >> { sw.write("err") }
+        provider.getOutputs("com.foo.FooTest", StdOut) >> ["1st output message\n", "2nd output message\n"]
+        provider.getOutputs("com.foo.FooTest", StdErr) >> ["err"]
 
         when:
         generator.write("com.foo.FooTest", result, sw)
@@ -88,6 +86,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         StringWriter sw = new StringWriter()
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
+        provider.getOutputs(_, _) >> []
 
         when:
         generator.write("com.foo.FooTest", result, sw)
@@ -106,10 +105,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         StringWriter sw = new StringWriter()
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
-
-        provider.provideOutputs(_, _, sw, _) >> { args ->
-            sw.write(args[3].transform("with CDATA end token: ]]>"))
-        }
+        provider.getOutputs(_, _) >> ["with CDATA end token: ]]>"]
 
         when:
         generator.write("com.foo.FooTest", result, sw)

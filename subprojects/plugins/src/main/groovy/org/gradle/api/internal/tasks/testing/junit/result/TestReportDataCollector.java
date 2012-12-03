@@ -17,13 +17,15 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Transformer;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.internal.UncheckedException;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+
+import static java.util.Collections.emptySet;
 
 /**
  * by Szczepan Faber, created at: 11/13/12
@@ -93,33 +95,55 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         return new File(resultsDir, className + ".stdout");
     }
 
-    public void provideOutputs(String className, TestOutputEvent.Destination destination,
-                               Writer writer, Transformer<String, String> transformer) {
-        File file = outputsFile(className, destination);
-        if (!file.exists()) {
-            return; //test has no outputs
-        }
-        DataInputStream in = null;
-        try {
-            in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
-            while(true) {
-                String line;
-                try {
-                    line = in.readUTF();
-                } catch (EOFException e) {
-                    //finished reading..
-                    break;
-                }
-                writer.write(transformer.transform(line));
-            }
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            IOUtils.closeQuietly(in);
-        }
-    }
-
     public Map<String, TestClassResult> provideResults() {
         return results;
+    }
+
+    public Iterable<String> getOutputs(final String className, final TestOutputEvent.Destination destination) {
+        final File file = outputsFile(className, destination);
+        if (!file.exists()) {
+            return emptySet();
+        }
+        final Iterator<String> outputs = new OutputsIterator(file);
+        return new Iterable<String>() {
+            public Iterator<String> iterator() {
+                return outputs;
+            }
+        };
+    }
+
+    private static class OutputsIterator implements Iterator<String> {
+        DataInputStream in;
+        String line;
+
+        public OutputsIterator(File file) {
+            try {
+                in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        public boolean hasNext() {
+            try {
+                line = in.readUTF();
+                return true;
+            } catch (EOFException e) {
+                //finished reading...
+                IOUtils.closeQuietly(in);
+                return false;
+            } catch (IOException e) {
+                IOUtils.closeQuietly(in);
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        public String next() {
+            return line;
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 }

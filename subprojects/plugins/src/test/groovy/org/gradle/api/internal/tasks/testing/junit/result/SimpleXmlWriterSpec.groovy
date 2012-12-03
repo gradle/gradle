@@ -37,11 +37,13 @@ class SimpleXmlWriterSpec extends Specification {
         writer.writeEmptyElement("item")
         writer.writeStartElement(new SimpleXmlWriter.Element("item").attribute("size", "10m"))
         writer.writeCharacters("some chars")
+        writer.writeStartElement("foo")
+        writer.writeEndElement()
         writer.writeEndElement()
         writer.writeEndElement()
 
         then:
-        xml == '<?xml version="1.23" encoding="UTF-9"?><root items="9"><item/><item size="10m">some chars</item></root>'
+        xml == '<?xml version="1.23" encoding="UTF-9"?><root items="9"><item/><item size="10m">some chars<foo></foo></item></root>'
     }
 
     def "encodes for xml"() {
@@ -54,6 +56,20 @@ class SimpleXmlWriterSpec extends Specification {
 
         then:
         xml == '<root><item size="encoded: &amp;lt; &lt; &gt; &apos; &quot;">chars with interesting stuff: &amp;lt; &lt; &gt; &apos; &quot;</item></root>'
+    }
+
+    def "writes CDATA"() {
+        when:
+        writer.writeStartElement("root")
+        writer.writeStartElement("stuff")
+        writer.writeCDATA(['hey ', 'joe'])
+        writer.writeEndElement()
+        writer.writeCDATA(['encodes: ]]> '])
+        writer.writeCDATA(['html allowed: <>'])
+        writer.writeEndElement()
+
+        then:
+        xml == '<root><stuff><![CDATA[hey joe]]></stuff><![CDATA[encodes: ]]]]><![CDATA[> ]]><![CDATA[html allowed: <>]]></root>'
     }
 
     def "has basic stack validation"() {

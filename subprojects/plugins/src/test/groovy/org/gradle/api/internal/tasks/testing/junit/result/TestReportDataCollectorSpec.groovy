@@ -28,7 +28,8 @@ import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
-import org.gradle.api.Transformer
+
+import static com.google.common.collect.Lists.newLinkedList
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -169,12 +170,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(new DefaultTestSuiteDescriptor("1", "suite"), null) //force closing of files
 
         then:
-        StringWriter sw = new StringWriter()
-        collector.provideOutputs("FooTest", StdErr, sw, { " transformed: [" + it + "]" } as Transformer)
-        sw.toString() == ' transformed: [err] transformed: [err2]'
-
-        StringWriter sw2 = new StringWriter()
-        collector.provideOutputs("FooTest", StdOut, sw2, { " transformed: [" + it + "]" } as Transformer)
-        sw2.toString() == ' transformed: [out]'
+        newLinkedList(collector.getOutputs("FooTest", StdErr)) == ['err', 'err2']
+        newLinkedList(collector.getOutputs("FooTest", StdOut)) == ['out']
     }
 }

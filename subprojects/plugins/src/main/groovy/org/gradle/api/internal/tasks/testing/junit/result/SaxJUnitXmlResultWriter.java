@@ -17,10 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.apache.tools.ant.util.DateUtils;
-import org.gradle.api.Transformer;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.util.TextUtil;
 
 import javax.xml.stream.XMLOutputFactory;
 import java.io.IOException;
@@ -56,31 +54,26 @@ public class SaxJUnitXmlResultWriter {
                 .attribute("hostname", hostName)
                 .attribute("time", String.valueOf(result.getDuration() / 1000.0)));
 
-            //TODO SF the indentation and cdata processing belongs elsewhere
+            //TODO SF indentation belongs elsewhere
             writer.writeCharacters("\n  ");
             writer.writeEmptyElement("properties");
 
             writeTests(writer, result.getResults(), className);
 
             writer.writeCharacters("\n  ");
-            output.write("<system-out><![CDATA[");
-            testResultsProvider.provideOutputs(className, TestOutputEvent.Destination.StdOut, output, new EscapeCDATA());
-            output.write("]]></system-out>");
+            writer.writeStartElement("system-out");
+            writer.writeCDATA(testResultsProvider.getOutputs(className, TestOutputEvent.Destination.StdOut));
+            writer.writeEndElement();
 
             writer.writeCharacters("\n  ");
-            output.write("<system-err><![CDATA[");
-            testResultsProvider.provideOutputs(className, TestOutputEvent.Destination.StdErr, output, new EscapeCDATA());
-            output.write("]]></system-err>\n");
+            writer.writeStartElement("system-err");
+            writer.writeCDATA(testResultsProvider.getOutputs(className, TestOutputEvent.Destination.StdErr));
+            writer.writeEndElement();
+            writer.writeCharacters("\n");
 
             writer.writeEndElement();
         } catch (IOException e) {
-            throw new RuntimeException("Problems writing the xml results for class: " + className, e);
-        }
-    }
-
-    public class EscapeCDATA implements Transformer<String, String> {
-        public String transform(String original) {
-            return TextUtil.escapeCDATA(original);
+            throw new RuntimeException("Problems writing the XML results for class: " + className, e);
         }
     }
 
