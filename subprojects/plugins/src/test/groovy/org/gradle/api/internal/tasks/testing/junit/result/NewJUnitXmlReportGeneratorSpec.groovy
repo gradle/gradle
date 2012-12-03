@@ -43,7 +43,7 @@ class NewJUnitXmlReportGeneratorSpec extends Specification {
             .add(new TestMethodResult("bar", Mock(TestResult)))
             .add(new TestMethodResult("bar2", Mock(TestResult)))
 
-        resultsProvider.provideResults() >> ['FooTest': fooTest, 'BarTest': barTest]
+        resultsProvider.getResults() >> ['FooTest': fooTest, 'BarTest': barTest]
 
         when:
         generator.generate()
@@ -58,7 +58,7 @@ class NewJUnitXmlReportGeneratorSpec extends Specification {
         def fooTest = new TestClassResult(100)
                 .add(new TestMethodResult("foo", Mock(TestResult)))
 
-        resultsProvider.provideResults() >> ['FooTest': fooTest]
+        resultsProvider.getResults() >> ['FooTest': fooTest]
         generator.saxWriter.write('FooTest', fooTest, _) >> { throw new IOException("Boo!") }
 
         when:

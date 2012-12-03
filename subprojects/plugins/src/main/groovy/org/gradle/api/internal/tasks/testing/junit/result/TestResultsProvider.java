@@ -27,5 +27,5 @@ public interface TestResultsProvider {
 
     Iterable<String> getOutputs(String className, TestOutputEvent.Destination destination);
 
-    Map<String, TestClassResult> provideResults();
+    Map<String, TestClassResult> getResults();
 }

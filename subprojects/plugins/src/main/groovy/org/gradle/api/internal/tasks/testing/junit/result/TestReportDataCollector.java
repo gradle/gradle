@@ -95,7 +95,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         return new File(resultsDir, className + ".stdout");
     }
 
-    public Map<String, TestClassResult> provideResults() {
+    public Map<String, TestClassResult> getResults() {
         return results;
     }
 

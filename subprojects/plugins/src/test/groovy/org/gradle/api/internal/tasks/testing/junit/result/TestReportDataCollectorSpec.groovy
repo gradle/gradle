@@ -115,7 +115,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, asList(new RuntimeException("Boo!"))))
 
         then:
-        def results = collector.provideResults()
+        def results = collector.getResults()
         results.size() == 1
         def fooTest = results['FooTest']
         fooTest.startTime == 100

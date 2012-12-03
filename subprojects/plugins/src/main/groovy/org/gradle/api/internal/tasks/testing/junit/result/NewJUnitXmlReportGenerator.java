@@ -46,7 +46,7 @@ public class NewJUnitXmlReportGenerator {
 
     public void generate() {
         Clock clock = new Clock();
-        Map<String, TestClassResult> results = testResultsProvider.provideResults();
+        Map<String, TestClassResult> results = testResultsProvider.getResults();
         for (Map.Entry<String, TestClassResult> entry : results.entrySet()) {
             String className = entry.getKey();
             TestClassResult result = entry.getValue();
