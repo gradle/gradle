@@ -13,67 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
-import java.util.Set;
-
-/**
- * by Szczepan Faber, created at: 7/27/12
- */
 public abstract class AbstractRenderableDependencyResult implements RenderableDependency {
-
-    protected final ResolvedDependencyResult dependency;
+    protected final DependencyResult dependency;
     protected final String description;
 
-    public AbstractRenderableDependencyResult(ResolvedDependencyResult dependency, String description) {
+    public AbstractRenderableDependencyResult(DependencyResult dependency, @Nullable String description) {
         this.dependency = dependency;
         this.description = description;
-    }
-
-    public String getName() {
-        if (!requestedEqualsSelected(dependency)) {
-            return getVerboseName();
-        } else {
-            return requested();
-        }
-    }
-
-    private String getVerboseName() {
-        ModuleVersionSelector requested = dependency.getRequested();
-        ModuleVersionIdentifier selected = dependency.getSelected().getId();
-        if(!selected.getGroup().equals(requested.getGroup())) {
-            return requested() + " -> " + selected.getGroup() + ":" + selected.getName() + ":" + selected.getVersion();
-        } else if (!selected.getName().equals(requested.getName())) {
-            return requested() + " -> " + selected.getName() + ":" + selected.getVersion();
-        } else if (!selected.getVersion().equals(requested.getVersion())) {
-            return requested() + " -> " + selected.getVersion();
-        } else {
-            return requested();
-        }
-    }
-
-    private static boolean requestedEqualsSelected(ResolvedDependencyResult dependency) {
-        return dependency.getRequested().matchesStrictly(dependency.getSelected().getId());
-    }
-
-    private String requested() {
-        return dependency.getRequested().getGroup() + ":" + dependency.getRequested().getName() + ":" + dependency.getRequested().getVersion();
     }
 
     public ModuleVersionIdentifier getId() {
         return dependency.getSelected().getId();
     }
 
+    public String getName() {
+        if (requestedEqualsSelected()) {
+            return getSimpleName();
+        }
+        return getVerboseName();
+    }
+
+    public boolean isResolvable() {
+        return dependency instanceof ResolvedDependencyResult;
+    }
+
+    private boolean requestedEqualsSelected() {
+        return dependency.getRequested().matchesStrictly(dependency.getSelected().getId());
+    }
+
+    @Nullable
     public String getDescription() {
         return description;
     }
 
-    public abstract Set<RenderableDependency> getChildren();
+    private String getSimpleName() {
+        return dependency.getRequested().getGroup() + ":" + dependency.getRequested().getName() + ":" + dependency.getRequested().getVersion();
+    }
+
+    private String getVerboseName() {
+        ModuleVersionSelector requested = dependency.getRequested();
+        ModuleVersionIdentifier selected = dependency.getSelected().getId();
+        if(!selected.getGroup().equals(requested.getGroup())) {
+            return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getName() + ":" + selected.getVersion();
+        }
+        if (!selected.getName().equals(requested.getName())) {
+            return getSimpleName() + " -> " + selected.getName() + ":" + selected.getVersion();
+        }
+        if (!selected.getVersion().equals(requested.getVersion())) {
+            return getSimpleName() + " -> " + selected.getVersion();
+        }
+        return getSimpleName();
+    }
 
     @Override
     public String toString() {

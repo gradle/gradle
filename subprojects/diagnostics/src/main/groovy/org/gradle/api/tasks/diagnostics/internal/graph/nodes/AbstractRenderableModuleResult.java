@@ -44,6 +44,10 @@ public abstract class AbstractRenderableModuleResult implements RenderableDepend
         return null;
     }
 
+    public boolean isResolvable() {
+        return true; // TODO
+    }
+
     public abstract Set<RenderableDependency> getChildren();
 
     @Override

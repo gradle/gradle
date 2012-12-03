@@ -94,7 +94,7 @@ class AsciiDependencyReportRendererTest extends Specification {
     }
 
     def "informs if no dependencies"() {
-        def root = new SimpleDependency("root", "config")
+        def root = new SimpleDependency("root", true, "config")
 
         when:
         renderer.renderNow(root)

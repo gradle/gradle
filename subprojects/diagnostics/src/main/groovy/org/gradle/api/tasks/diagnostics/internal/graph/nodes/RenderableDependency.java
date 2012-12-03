@@ -27,5 +27,6 @@ public interface RenderableDependency {
     ModuleVersionIdentifier getId();
     String getName();
     String getDescription();
+    boolean isResolvable();
     Set<RenderableDependency> getChildren();
 }

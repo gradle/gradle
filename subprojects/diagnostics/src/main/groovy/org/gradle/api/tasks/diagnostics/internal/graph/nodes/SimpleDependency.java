@@ -27,15 +27,17 @@ public class SimpleDependency implements RenderableDependency {
 
     private final ModuleVersionIdentifier id;
     private final String name;
+    private final boolean resolvable;
     private final String description;
     private final Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>();
 
     public SimpleDependency(String name) {
-        this(name, null);
+        this(name, true, null);
     }
 
-    public SimpleDependency(String name, String description) {
+    public SimpleDependency(String name, boolean resolvable, String description) {
         this.name = name;
+        this.resolvable = resolvable;
         this.description = description;
         this.id = newId(name, name, "1.0");
     }
@@ -46,6 +48,10 @@ public class SimpleDependency implements RenderableDependency {
 
     public String getName() {
         return name;
+    }
+
+    public boolean isResolvable() {
+        return resolvable;
     }
 
     public String getDescription() {
