@@ -40,6 +40,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
@@ -54,6 +55,7 @@ import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.ConfigureUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -123,15 +125,15 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private long forkEvery;
     private int maxParallelForks = 1;
 
-    public Test() {
-        testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestListener.class);
-        testOutputListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestOutputListener.class);
-        textOutputFactory = getServices().get(StyledTextOutputFactory.class);
-        options = new DefaultJavaForkOptions(getServices().get(FileResolver.class));
+    @Inject
+    public Test(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory, FileResolver fileResolver,
+                Factory<WorkerProcessBuilder> processBuilderFactory, ActorFactory actorFactory, Instantiator instantiator) {
+        testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
+        testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
+        this.textOutputFactory = textOutputFactory;
+        options = new DefaultJavaForkOptions(fileResolver);
         options.setEnableAssertions(true);
-        testExecuter = new DefaultTestExecuter(getServices().getFactory(WorkerProcessBuilder.class), getServices().get(ActorFactory.class));
-
-        Instantiator instantiator = getServices().get(Instantiator.class);
+        testExecuter = new DefaultTestExecuter(processBuilderFactory, actorFactory);
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
     }
 
@@ -433,8 +435,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         testExecuter.execute(this, resultProcessor);
 
         if (testReportDataCollector != null) {
+            removeTestListener(testReportDataCollector);
+            removeTestOutputListener(testReportDataCollector);
             new Binary2JUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector).generate();
-            getProject().delete(binaryResultsDir);
         }
 
         testFramework.report();
