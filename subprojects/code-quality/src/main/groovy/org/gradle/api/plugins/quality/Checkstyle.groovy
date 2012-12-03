@@ -151,7 +151,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     /**
      * Whether or not rule violations are to be displayed on the console.
      */
-    boolean showViolations
+    boolean showViolations = true
 
     @TaskAction
     public void run() {
