@@ -16,6 +16,14 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.gradle.util.TestFile
+
 abstract class HttpResource {
     abstract void expectGet();
+
+    abstract void expectGetMissing();
+
+    abstract TestFile getFile();
+
+    abstract protected String getPath();
 }

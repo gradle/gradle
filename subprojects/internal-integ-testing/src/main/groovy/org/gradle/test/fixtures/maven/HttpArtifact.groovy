@@ -19,73 +19,53 @@ package org.gradle.test.fixtures.maven
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
-class HttpArtifact extends HttpResource {
+abstract class HttpArtifact extends HttpResource {
 
     HttpServer server
-    MavenFileModule backingModule
-    String moduleRootPath
+    String modulePath
     final Map options
 
-    public HttpArtifact(HttpServer server, String moduleRootPath, MavenFileModule backingModule, Map<String, ?> options = [:]) {
+    public HttpArtifact(HttpServer server, String modulePath, Map<String, ?> options = [:]) {
         this.server = server
-        this.moduleRootPath = moduleRootPath
-        this.backingModule = backingModule
+        this.modulePath = modulePath
         this.options = options
-
     }
 
     void expectHead() {
-        server.expectHead("$moduleVersionPath/${getArtifactFile().name}", getArtifactFile())
+        server.expectHead(getPath(), file)
     }
 
     void expectHeadMissing() {
-        server.expectHeadMissing("$moduleVersionPath/${getMissingArtifactName()}")
+        server.expectHeadMissing("$modulePath/${getMissingArtifactName()}")
     }
 
     void expectGet() {
-        server.expectGet(getArtifactPath(), backingModule.getArtifactFile(options))
+        server.expectGet(getPath(), file)
     }
 
     void expectGetMissing() {
-        server.expectGetMissing("$moduleVersionPath/${getMissingArtifactName()}")
+        server.expectGetMissing("$modulePath/${getMissingArtifactName()}")
     }
 
     void expectSha1GetMissing() {
-        server.expectGetMissing("$moduleVersionPath/${missingArtifactName}.sha1")
+        server.expectGetMissing("$modulePath/${missingArtifactName}.sha1")
     }
 
     void expectSha1Get() {
-        server.expectGet(getArtifactSha1Path(), backingModule.sha1File(getArtifactFile()))
-    }
-
-    TestFile getArtifactSha1File() {
-        backingModule.artifactSha1File
+        server.expectGet(getArtifactSha1Path(), getSha1File())
     }
 
     String getArtifactSha1Path() {
-        "${getArtifactPath()}.sha1"
+        "${getPath()}.sha1"
     }
 
-
-
-    protected String getModuleVersionPath() {
-        "${moduleRootPath}/${backingModule.version}"
+    protected String getPath() {
+        "${modulePath}/${file.name}"
     }
 
-    private String getArtifactPath() {
-        "$moduleVersionPath/${getArtifactFile().name}"
-    }
+    abstract File getSha1File();
 
-    TestFile getArtifactFile() {
-        return backingModule.getArtifactFile(options)
-    }
+    abstract TestFile getFile();
 
-    private String getMissingArtifactName() {
-        if (backingModule.version.endsWith("-SNAPSHOT")) {
-            return "${backingModule.artifactId}-${backingModule.version}${options["classifier"] ? "-" + options["classifier"] : ""}.jar"
-        } else {
-            return artifactFile.name
-        }
-    }
-
+    protected abstract String getMissingArtifactName();
 }

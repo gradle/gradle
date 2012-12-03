@@ -373,7 +373,7 @@ allprojects {
         def module2 = mavenHttpRepo("/repo", maven("repo2")).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         module2.pomFile << '    ' // ensure it's a different length to the first one
         def module2Artifact = module2.artifact
-        module2Artifact.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
+        module2Artifact.file << module2.artifactFile.bytes // ensure it's a different length to the first one
 
         and:
         settingsFile << "include 'first', 'second'"
@@ -473,7 +473,7 @@ project('second') {
         // Set the last modified to something that's not going to be anything “else”.
         // There are lots of dates floating around in a resolution and we want to make
         // sure we use this.
-        artifact.artifactFile.setLastModified(2000)
+        artifact.file.setLastModified(2000)
         module.pomFile.setLastModified(6000)
 
         when:

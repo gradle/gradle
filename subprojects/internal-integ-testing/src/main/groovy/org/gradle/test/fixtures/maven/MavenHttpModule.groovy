@@ -27,8 +27,6 @@ class MavenHttpModule implements MavenModule {
     private final String moduleRootPath
     private final MavenFileModule backingModule
 
-    private httpArtifacts = [:]
-
     MavenHttpModule(HttpServer server, String repoRoot, MavenFileModule backingModule) {
         this.backingModule = backingModule
         this.server = server
@@ -46,7 +44,7 @@ class MavenHttpModule implements MavenModule {
     }
 
     HttpArtifact getArtifact(Map options = [:]) {
-        return new HttpArtifact(server, moduleRootPath, backingModule, options)
+        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
     }
 
     /**
@@ -55,7 +53,7 @@ class MavenHttpModule implements MavenModule {
      */
     HttpArtifact artifact(Map<String, ?> options) {
         backingModule.artifact(options)
-        def httpArtifact = new HttpArtifact(server, moduleRootPath, backingModule, options)
+        def httpArtifact = new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
         return httpArtifact
     }
 
