@@ -23,36 +23,8 @@ import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 /**
  * by Szczepan Faber, created at: 7/26/12
  */
-public class DefaultResolvedDependencyResult implements ResolvedDependencyResult {
-
-    private final ModuleVersionSelector requested;
-    private final ResolvedModuleVersionResult selected;
-    private final ResolvedModuleVersionResult from;
-
+public class DefaultResolvedDependencyResult extends AbstractDependencyResult implements ResolvedDependencyResult {
     public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ResolvedModuleVersionResult selected, ResolvedModuleVersionResult from) {
-        assert requested != null;
-        assert selected != null;
-        assert from != null;
-
-        this.from = from;
-        this.requested = requested;
-        this.selected = selected;
-    }
-
-    public ModuleVersionSelector getRequested() {
-        return requested;
-    }
-
-    public ResolvedModuleVersionResult getSelected() {
-        return selected;
-    }
-
-    public ResolvedModuleVersionResult getFrom() {
-        return from;
-    }
-
-    @Override
-    public String toString() {
-        return ResolvedDependencyResultPrinter.print(this);
+        super(requested, selected, from);
     }
 }

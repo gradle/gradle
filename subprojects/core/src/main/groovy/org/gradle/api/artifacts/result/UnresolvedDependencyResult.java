@@ -19,7 +19,9 @@ package org.gradle.api.artifacts.result;
 import org.gradle.api.Incubating;
 
 /**
- * Unresolved dependency result
+ * A dependency that couldn't be resolved.
  */
 @Incubating
-public interface UnresolvedDependencyResult extends DependencyResult {}
+public interface UnresolvedDependencyResult extends DependencyResult {
+    Exception getFailure();
+}

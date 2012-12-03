@@ -18,27 +18,42 @@ package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
 /**
  * by Szczepan Faber, created at: 7/26/12
  */
-public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult implements UnresolvedDependencyResult {
-    private final Exception failure;
+public class AbstractDependencyResult implements DependencyResult {
 
-    public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, @Nullable ResolvedModuleVersionResult selected,
-                                             ResolvedModuleVersionResult from, Exception failure) {
-        super(requested, selected, from);
-        this.failure = failure;
+    private final ModuleVersionSelector requested;
+    private final ResolvedModuleVersionResult selected;
+    private final ResolvedModuleVersionResult from;
+
+    public AbstractDependencyResult(ModuleVersionSelector requested, @Nullable ResolvedModuleVersionResult selected, ResolvedModuleVersionResult from) {
+        assert requested != null;
+        assert from != null;
+
+        this.from = from;
+        this.requested = requested;
+        this.selected = selected;
     }
 
-    public Exception getFailure() {
-        return failure;
+    public ModuleVersionSelector getRequested() {
+        return requested;
+    }
+
+    @Nullable
+    public ResolvedModuleVersionResult getSelected() {
+        return selected;
+    }
+
+    public ResolvedModuleVersionResult getFrom() {
+        return from;
     }
 
     @Override
     public String toString() {
-        return super.toString() + " - " + failure.getMessage();
+        return DependencyResultPrinter.print(this);
     }
 }
