@@ -101,7 +101,7 @@ public class StartParameterResolutionOverride {
             result.failed(new ModuleVersionResolveException("No cached version available for offline mode"));
         }
 
-        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
+        public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
             result.failed(new ArtifactResolveException(artifact, "No cached version available for offline mode"));
         }
     }

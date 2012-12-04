@@ -16,15 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
-import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +55,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
             for (Throwable error : errors) {
                 LOGGER.debug("Discarding resolve failure.", error);
             }
-            result.resolved(latestResolved.getId(), latestResolved.getDescriptor(), latestResolved.repository);
+            result.resolved(latestResolved.getId(), latestResolved.getDescriptor(), new ModuleVersionRepositoryArtifactResolverAdapter(latestResolved.repository, latestResolved.moduleSource));
             return;
         }
         if (!errors.isEmpty()) {
@@ -112,7 +111,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
                     }
                     break;
                 case Resolved:
-                    ModuleResolution moduleResolution = new ModuleResolution(request.repository, request.descriptor);
+                    ModuleResolution moduleResolution = new ModuleResolution(request.repository, request.descriptor, request.moduleSource);
                     if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
                         return moduleResolution;
                     }
@@ -148,9 +147,25 @@ public class UserResolverChain implements DependencyToModuleResolver {
         return comparison < 0 ? two : one;
     }
 
+    private static class ModuleVersionRepositoryArtifactResolverAdapter implements ArtifactResolver {
+        private final ModuleVersionRepository delegate;
+        private final ModuleSource moduleSource;
+
+        public ModuleVersionRepositoryArtifactResolverAdapter(ModuleVersionRepository repository, ModuleSource moduleSource) {
+            this.delegate = repository;
+            this.moduleSource = moduleSource;
+        }
+
+        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
+            delegate.resolve(artifact, result, moduleSource);
+        }
+    }
+
     private static class RepositoryResolveState {
         final LocalAwareModuleVersionRepository repository;
         final DefaultBuildableModuleVersionDescriptor descriptor = new DefaultBuildableModuleVersionDescriptor();
+        ModuleSource moduleSource;
+
         boolean searchedLocally;
         boolean searchedRemotely;
 
@@ -169,6 +184,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
             if (descriptor.getState() == BuildableModuleVersionDescriptor.State.Failed) {
                 throw descriptor.getFailure();
             }
+            this.moduleSource = descriptor.getModuleSource();
         }
 
         public boolean canMakeFurtherAttempts() {
@@ -179,10 +195,12 @@ public class UserResolverChain implements DependencyToModuleResolver {
     private static class ModuleResolution implements ArtifactInfo {
         public final ModuleVersionRepository repository;
         public final ModuleVersionDescriptor module;
+        public final ModuleSource moduleSource;
 
-        public ModuleResolution(ModuleVersionRepository repository, ModuleVersionDescriptor module) {
+        public ModuleResolution(ModuleVersionRepository repository, ModuleVersionDescriptor module, ModuleSource moduleSource) {
             this.repository = repository;
             this.module = module;
+            this.moduleSource = moduleSource;
         }
 
         public ModuleRevisionId getId() throws ModuleVersionResolveException {

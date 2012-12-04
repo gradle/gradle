@@ -92,7 +92,8 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
                 break;
             case Resolved:
                 moduleResolutionCache.cacheModuleResolution(delegate, dependencyDescriptor.getDependencyRevisionId(), result.getId());
-                moduleDescriptorCache.cacheModuleDescriptor(delegate, result.getId(), result.getDescriptor(), isChangingDependency(dependencyDescriptor, result));
+                final ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.cacheModuleDescriptor(delegate, result.getId(), result.getDescriptor(), isChangingDependency(dependencyDescriptor, result));
+                result.resolved(result.getDescriptor(), result.isChanging(), new ModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule()));
                 break;
             case Failed:
                 break;
@@ -156,28 +157,26 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
         LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
         // TODO:DAZ Could provide artifact metadata and file here from artifactFileStore (it's not needed currently)
-        result.resolved(cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule());
+        result.resolved(cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule(), new ModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule()));
     }
 
     private boolean isChangingDependency(DependencyDescriptor descriptor, ModuleVersionDescriptor downloadedModule) {
         if (descriptor.isChanging()) {
             return true;
         }
-
         return downloadedModule.isChanging();
     }
 
-    public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
+    public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
         ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate, artifact.getId());
         // Look in the cache for this resolver
         CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
 
-        final ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(delegate, artifact.getModuleRevisionId());
-        final BigInteger descriptorHash = cachedModuleDescriptor == null ? BigInteger.valueOf(-1) : cachedModuleDescriptor.getDescriptorHash();
+        final BigInteger descriptorHash = moduleSource == null ? BigInteger.valueOf(-1) : moduleSource.getDescriptorHash();
         if (cached != null) {
             ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
             long age = timeProvider.getCurrentTime() - cached.getCachedAt();
-            boolean artifactBelongsToChangingModule = cachedModuleDescriptor != null ? cachedModuleDescriptor.isChangingModule() : true;
+            boolean artifactBelongsToChangingModule = moduleSource != null ? moduleSource.isChangingModule() : true;
             if (cached.isMissing()) {
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, artifactBelongsToChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
@@ -194,7 +193,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             }
         }
 
-        delegate.resolve(artifact, result);
+        delegate.resolve(artifact, result, null);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate);
 
         if (result.getFailure() instanceof ArtifactNotFoundException) {

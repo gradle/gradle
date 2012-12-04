@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import spock.lang.Specification
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
-import org.apache.ivy.plugins.resolver.ResolverSettings
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.plugins.version.VersionMatcher
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy
+import org.apache.ivy.plugins.resolver.ResolverSettings
+import org.apache.ivy.plugins.version.VersionMatcher
+import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
+import spock.lang.Specification
 
 class UserResolverChainTest extends Specification {
     final UserResolverChain resolver = new UserResolverChain()
@@ -33,6 +33,7 @@ class UserResolverChainTest extends Specification {
     final ModuleRevisionId resolvedId = descriptor.resolvedModuleRevisionId
     final BuildableModuleVersionResolveResult result = Mock()
     final VersionMatcher matcher = Stub()
+    final ModuleSource moduleSource = Stub()
 
     def setup() {
         dependency.dependencyRevisionId >> dependencyId
@@ -52,9 +53,12 @@ class UserResolverChainTest extends Specification {
 
         then:
         1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo)
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, rep ->
+            assert rep.delegate == repo
+            assert rep.moduleSource == moduleSource
+        }
 
         and:
         _ * repo.name >> "repo"
@@ -73,10 +77,12 @@ class UserResolverChainTest extends Specification {
         then:
         1 * repo.getLocalDependency(dependency, _)
         1 * repo.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo)
-
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, rep ->
+            assert rep.delegate == repo
+            assert rep.moduleSource == moduleSource
+        }
         and:
         _ * repo.name >> "repo"
         0 * repo._
@@ -96,9 +102,12 @@ class UserResolverChainTest extends Specification {
             result.probablyMissing()
         }
         1 * repo.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo)
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, rep ->
+            assert rep.delegate == repo
+            assert rep.moduleSource == moduleSource
+        }
 
         and:
         _ * repo.name >> "repo"
@@ -165,15 +174,18 @@ class UserResolverChainTest extends Specification {
 
         then:
         1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolve(descriptor("1.1"), true)
+            result.resolve(descriptor("1.1"), null)
         }
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(version2, true)
+            result.resolved(version2, true, moduleSource)
         }
         1 * repo3.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor("1.0"), true)
+            result.resolved(descriptor("1.0"), true, null)
         }
-        1 * result.resolved(version2.resolvedModuleRevisionId, version2, repo2)
+        1 * result.resolved(version2.resolvedModuleRevisionId, version2, _) >> {revision, descriptor, repo ->
+            assert repo.delegate == repo2
+            assert repo.moduleSource == moduleSource
+        }
 
         and:
         _ * repo1.name >> "repo1"
@@ -200,9 +212,12 @@ class UserResolverChainTest extends Specification {
 
         then:
         1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo1)
+        1 * result.resolved(resolvedId, descriptor, _) >> {revisionId, descriptor, repo ->
+            assert repo.delegate == repo1
+            assert repo.moduleSource == moduleSource
+        }
 
         and:
         _ * repo1.name >> "repo1"
@@ -229,9 +244,12 @@ class UserResolverChainTest extends Specification {
             result.missing()
         }
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo2)
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+            assert repo.delegate == repo2
+            assert repo.moduleSource == moduleSource
+        }
 
         and:
         _ * repo1.name >> "repo"
@@ -256,10 +274,12 @@ class UserResolverChainTest extends Specification {
             result.probablyMissing()
         }
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo2)
-
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+            assert repo.delegate == repo2
+            assert repo.moduleSource == moduleSource
+        }
         and:
         _ * repo1.name >> "repo"
         _ * repo2.name >> "repo"
@@ -284,10 +304,12 @@ class UserResolverChainTest extends Specification {
         }
         1 * repo2.getLocalDependency(dependency, _)
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo2)
-
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+            assert repo.delegate == repo2
+            assert repo.moduleSource == moduleSource
+        }
         and:
         _ * repo1.name >> "repo"
         _ * repo2.name >> "repo"
@@ -317,10 +339,12 @@ class UserResolverChainTest extends Specification {
             result.missing()
         }
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo2)
-
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+            assert repo.delegate == repo2
+            assert repo.moduleSource == moduleSource
+        }
         and:
         _ * repo1.name >> "repo"
         _ * repo2.name >> "repo"
@@ -347,9 +371,12 @@ class UserResolverChainTest extends Specification {
             result.probablyMissing()
         }
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo2)
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+            assert repo.delegate == repo2
+            assert repo.moduleSource == moduleSource
+        }
 
         and:
         _ * repo1.name >> "repo"
@@ -378,10 +405,12 @@ class UserResolverChainTest extends Specification {
             result.missing()
         }
         1 * repo1.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo1)
-
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+            assert repo.delegate == repo1
+            assert repo.moduleSource == moduleSource
+        }
         and:
         _ * repo1.name >> "repo"
         _ * repo2.name >> "repo"
@@ -405,9 +434,12 @@ class UserResolverChainTest extends Specification {
             throw new RuntimeException("broken")
         }
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo2)
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+            assert repo.delegate == repo2
+            assert repo.moduleSource == moduleSource
+        }
 
         and:
         _ * repo1.name >> "repo"
@@ -434,10 +466,12 @@ class UserResolverChainTest extends Specification {
         }
         1 * repo2.getLocalDependency(dependency, _)
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
-            result.resolved(descriptor, true)
+            result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, repo2)
-
+        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+            assert repo.delegate == repo2
+            assert repo.moduleSource == moduleSource
+        }
         and:
         _ * repo1.name >> "repo"
         _ * repo2.name >> "repo"

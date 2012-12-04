@@ -37,9 +37,9 @@ public interface BuildableModuleVersionDescriptor extends ModuleVersionDescripto
     ModuleVersionResolveException getFailure();
 
     /**
-     * Marks the module version as resolved, with the given meta-data.
+     * Marks the module version as resolved, with the given meta-data and provides the related CachedModuleDescriptor.
      */
-    void resolved(ModuleDescriptor descriptor, boolean changing);
+    void resolved(ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource);
 
     /**
      * Marks the resolve as failed with the given exception.

@@ -40,10 +40,10 @@ class CachingModuleVersionRepositoryTest extends Specification {
     ModuleDescriptorCache moduleDescriptorCache = Mock()
     CachedArtifactIndex artifactAtRepositoryCache = Mock()
     CachePolicy cachePolicy = Mock()
-    ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = Mock()
     CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache, cachePolicy, new TrueTimeProvider())
     ModuleRevisionId moduleRevisionId = Mock()
     int descriptorHash = 1234
+    ModuleSource moduleSource = Mock()
 
     @Unroll
     "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
@@ -55,25 +55,23 @@ class CachingModuleVersionRepositoryTest extends Specification {
         ArtifactRevisionId id = arid()
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey(realRepo, id)
 
-
         and:
         _ * artifact.getModuleRevisionId() >> moduleRevisionId;
-
-        _ * moduleDescriptorCache.getCachedModuleDescriptor(realRepo, moduleRevisionId) >> cachedModuleDescriptor
         _ * realRepo.isLocal() >> false
-        _ * cachedModuleDescriptor.getDescriptorHash() >> descriptorHash
+        _ * moduleSource.getDescriptorHash() >> descriptorHash
+        _ * moduleSource.isChangingModule() >> true
         _ * artifactAtRepositoryCache.lookup(atRepositoryKey) >> null
-        _ * realRepo.resolve(artifact, result)
+        _ * realRepo.resolve(artifact, result, null)
         _ * result.file >> file
         _ * result.externalResourceMetaData >> externalResourceMetaData
         _ * artifact.getId() >> id
 
         when:
-        repo.resolve(artifact, result)
+        repo.resolve(artifact, result, moduleSource)
 
         then:
         1 * artifactAtRepositoryCache.store(atRepositoryKey, file, descriptorHash)
-
+        0 * moduleDescriptorCache._
         where:
         lastModified << [new Date(), null]
     }

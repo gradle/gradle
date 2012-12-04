@@ -23,6 +23,8 @@ public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleV
     private ModuleDescriptor moduleDescriptor;
     private boolean changing;
     private State state = State.Unknown;
+    private ModuleSource moduleSource;
+
     private ModuleVersionResolveException failure;
 
     public void reset(State state) {
@@ -32,10 +34,11 @@ public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleV
         failure = null;
     }
 
-    public void resolved(ModuleDescriptor descriptor, boolean changing) {
+    public void resolved(ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource) {
         reset(State.Resolved);
         moduleDescriptor = descriptor;
         this.changing = changing;
+        this.moduleSource = moduleSource;
     }
 
     public void missing() {
@@ -88,5 +91,9 @@ public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleV
     public boolean isChanging() {
         assertResolved();
         return changing;
+    }
+
+    public ModuleSource getModuleSource() {
+        return moduleSource;
     }
 }

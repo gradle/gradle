@@ -81,15 +81,19 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }
 
-    public void cacheModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor, boolean isChanging) {
+    public CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor, boolean isChanging) {
+        ModuleDescriptorCacheEntry entry;
         if (moduleDescriptor == null) {
             LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", moduleRevisionId, isChanging);
-            getCache().put(createKey(repository, moduleRevisionId), createMissingEntry(isChanging));
+            entry = createMissingEntry(isChanging);
+            getCache().put(createKey(repository, moduleRevisionId), entry);
         } else {
             LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
             FileStoreEntry fileStoreEntry = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
-            getCache().put(createKey(repository, moduleRevisionId), createEntry(isChanging, fileStoreEntry.getSha1()));
+            entry = createEntry(isChanging, fileStoreEntry.getSha1());
+            getCache().put(createKey(repository, moduleRevisionId), entry);
         }
+        return new DefaultCachedModuleDescriptor(entry, null, timeProvider);
     }
 
     private RevisionKey createKey(ModuleVersionRepository resolver, ModuleRevisionId moduleRevisionId) {

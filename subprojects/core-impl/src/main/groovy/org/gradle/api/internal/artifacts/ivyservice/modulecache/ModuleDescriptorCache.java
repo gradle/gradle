@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepo
 import java.math.BigInteger;
 
 public interface ModuleDescriptorCache {
-    void cacheModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId resolvedModuleVersionId, ModuleDescriptor moduleDescriptor, boolean isChanging);
+    CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId resolvedModuleVersionId, ModuleDescriptor moduleDescriptor, boolean isChanging);
 
     CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleId);
 

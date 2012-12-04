@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 
 class DefaultBuildableModuleVersionDescriptorTest extends Specification {
     final DefaultBuildableModuleVersionDescriptor descriptor = new DefaultBuildableModuleVersionDescriptor()
+    ModuleSource moduleSource = Mock()
 
     def "has unknown state by default"() {
         expect:
@@ -61,13 +62,14 @@ class DefaultBuildableModuleVersionDescriptorTest extends Specification {
         def moduleDescriptor = Mock(ModuleDescriptor)
 
         when:
-        descriptor.resolved(moduleDescriptor, true)
+        descriptor.resolved(moduleDescriptor, true, moduleSource)
 
         then:
         descriptor.state == BuildableModuleVersionDescriptor.State.Resolved
         descriptor.failure == null
         descriptor.descriptor == moduleDescriptor
         descriptor.changing
+        descriptor.moduleSource == moduleSource
     }
 
     def "cannot get result when not resolved"() {

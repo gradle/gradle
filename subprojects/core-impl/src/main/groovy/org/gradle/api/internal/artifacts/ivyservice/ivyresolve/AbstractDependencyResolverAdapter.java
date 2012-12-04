@@ -70,7 +70,7 @@ public abstract class AbstractDependencyResolverAdapter implements ModuleVersion
                 result.missing();
             } else {
                 LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependencyDescriptor.getDependencyRevisionId(), getName());
-                result.resolved(revision.getDescriptor(), isChanging(revision));
+                result.resolved(revision.getDescriptor(), isChanging(revision), null);
             }
         } catch (ParseException e) {
             throw UncheckedException.throwAsUncheckedException(e);
