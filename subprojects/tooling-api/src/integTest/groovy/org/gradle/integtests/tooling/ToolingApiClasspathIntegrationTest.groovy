@@ -21,16 +21,13 @@ import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.IgnoreIf
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 
-@IgnoreIf({ !GradleDistributionExecuter.systemPropertyExecuter.forks })
 class ToolingApiClasspathIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
 
     def "tooling api classpath contains only tooling-api jar and slf4j"() {
         when:
-        ToolingApiDistributionResolver resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+        ToolingApiDistributionResolver resolver = new ToolingApiDistributionResolver().withDefaultRepository().withExternalToolingApiDistribution()
         ToolingApiDistribution resolve = resolver.resolve(distribution.getVersion())
         then:
         assert resolve != null

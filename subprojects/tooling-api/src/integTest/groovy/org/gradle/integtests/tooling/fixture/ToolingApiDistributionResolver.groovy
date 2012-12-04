@@ -16,21 +16,23 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.util.HelperUtil
-import org.gradle.api.internal.project.ProjectInternalServiceRegistry
-import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.StartParameter
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.project.TopLevelBuildServiceRegistry
-import org.gradle.StartParameter
+import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.project.GlobalServicesRegistry
+import org.gradle.api.internal.project.ProjectInternalServiceRegistry
+import org.gradle.api.internal.project.TopLevelBuildServiceRegistry
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.util.HelperUtil
 
 class ToolingApiDistributionResolver {
     private final DependencyResolutionServices resolutionServices
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final GradleDistribution currentGradleDistribution = new GradleDistribution()
+    private boolean useExternalToolingApiDistribution = false;
+
     ToolingApiDistributionResolver() {
         resolutionServices = createResolutionServices()
         resolutionServices.resolveRepositoryHandler.maven { url currentGradleDistribution.libsRepo.toURI().toURL() }
@@ -59,7 +61,9 @@ class ToolingApiDistributionResolver {
     }
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
-        toolingApiVersion == currentGradleDistribution.version && !GradleDistributionExecuter.systemPropertyExecuter.forks
+        !useExternalToolingApiDistribution &&
+        toolingApiVersion == currentGradleDistribution.version &&
+        GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded
     }
 
     private DependencyResolutionServices createResolutionServices() {
@@ -69,5 +73,10 @@ class ToolingApiDistributionResolver {
         TopLevelBuildServiceRegistry topLevelRegistry = new TopLevelBuildServiceRegistry(globalRegistry, startParameter)
         ProjectInternalServiceRegistry projectRegistry = new ProjectInternalServiceRegistry(topLevelRegistry, HelperUtil.createRootProject())
         projectRegistry.get(DependencyResolutionServices)
+    }
+
+    ToolingApiDistributionResolver withExternalToolingApiDistribution() {
+        this.useExternalToolingApiDistribution = true
+        this
     }
 }
