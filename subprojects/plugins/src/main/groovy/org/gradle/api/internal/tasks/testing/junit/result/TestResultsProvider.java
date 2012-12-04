@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
+import java.io.Reader;
 import java.util.Map;
 
 /**
@@ -25,7 +26,7 @@ import java.util.Map;
  */
 public interface TestResultsProvider {
 
-    Iterable<String> getOutputs(String className, TestOutputEvent.Destination destination);
+    Reader getOutputs(String className, TestOutputEvent.Destination destination);
 
     Map<String, TestClassResult> getResults();
 }

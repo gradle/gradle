@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
-
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -28,8 +27,6 @@ import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
-
-import static com.google.common.collect.Lists.newLinkedList
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -127,8 +124,8 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
 
         then:
-        1 * collector.cachingFileWriter.writeUTF(new File(temp.dir, "FooTest.stderr"), "err")
-        1 * collector.cachingFileWriter.writeUTF(new File(temp.dir, "FooTest.stdout"), "out")
+        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr"), "err")
+        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stdout"), "out")
         0 * collector.cachingFileWriter._
     }
 
@@ -140,7 +137,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "hey ]]> foo"))
 
         then:
-        1 * collector.cachingFileWriter.writeUTF(new File(temp.dir, "FooTest.stderr"), "hey ]]> foo")
+        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr"), "hey ]]> foo")
     }
 
     def "provides outputs"() {
@@ -157,7 +154,10 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(new DefaultTestSuiteDescriptor("1", "suite"), null) //force closing of files
 
         then:
-        newLinkedList(collector.getOutputs("FooTest", StdErr)) == ['err', 'err2']
-        newLinkedList(collector.getOutputs("FooTest", StdOut)) == ['out']
+        collector.getOutputs("FooTest", StdErr).text == 'errerr2'
+        collector.getOutputs("FooTest", StdOut).text == 'out'
+
+        collector.getOutputs("TestWithoutOutputs", StdErr) == null
+        collector.getOutputs("TestWithoutOutputs", StdOut) == null
     }
 }

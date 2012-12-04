@@ -33,29 +33,29 @@ public class CachingFileWriter {
 
     private final static Logger LOG = Logging.getLogger(CachingFileWriter.class);
 
-    final LinkedHashMap<File, DataOutputStream> openFiles = new LinkedHashMap<File, DataOutputStream>();
+    final LinkedHashMap<File, Writer> openFiles = new LinkedHashMap<File, Writer>();
     private final int openFilesCount;
 
     public CachingFileWriter(int openFilesCount) {
         this.openFilesCount = openFilesCount;
     }
 
-    public void writeUTF(File file, String text) {
-        DataOutputStream out;
+    public void write(File file, String text) {
+        Writer out;
         try {
             if (openFiles.containsKey(file)) {
                 out = openFiles.get(file);
             } else {
-                out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, true)));
+                out = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file, true)), "UTF-8");
                 openFiles.put(file, out);
                 if (openFiles.size() > openFilesCount) {
                     //remove first
-                    Iterator<Map.Entry<File, DataOutputStream>> iterator = openFiles.entrySet().iterator();
+                    Iterator<Map.Entry<File, Writer>> iterator = openFiles.entrySet().iterator();
                     close(iterator.next().getValue(), file.toString());
                     iterator.remove();
                 }
             }
-            out.writeUTF(text);
+            out.write(text);
         } catch (IOException e) {
             cleanUpQuietly();
             throw new RuntimeException("Problems writing to file: " + file, e);
@@ -76,7 +76,7 @@ public class CachingFileWriter {
 
     public void closeAll() {
         try {
-            for (Map.Entry<File, DataOutputStream> entry : openFiles.entrySet()) {
+            for (Map.Entry<File, Writer> entry : openFiles.entrySet()) {
                 close(entry.getValue(), entry.getKey().toString());
             }
         } catch (IOException e) {

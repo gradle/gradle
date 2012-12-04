@@ -63,12 +63,12 @@ public class SaxJUnitXmlResultWriter {
 
             writer.writeCharacters("\n  ");
             writer.writeStartElement("system-out");
-            writer.writeCDATA(testResultsProvider.getOutputs(className, TestOutputEvent.Destination.StdOut));
+            writeOutputs(writer, className, TestOutputEvent.Destination.StdOut);
             writer.writeEndElement();
 
             writer.writeCharacters("\n  ");
             writer.writeStartElement("system-err");
-            writer.writeCDATA(testResultsProvider.getOutputs(className, TestOutputEvent.Destination.StdErr));
+            writeOutputs(writer, className, TestOutputEvent.Destination.StdErr);
             writer.writeEndElement();
             writer.writeCharacters("\n");
 
@@ -78,6 +78,28 @@ public class SaxJUnitXmlResultWriter {
             throw new RuntimeException("Problems writing the XML results for class: " + className, e);
         } finally {
             closeQuietly(sw);
+        }
+    }
+
+    private void writeOutputs(SimpleXmlWriter writer, String className, TestOutputEvent.Destination destination) throws IOException {
+        Reader outputs = testResultsProvider.getOutputs(className, destination);
+        writer.writeStartCDATA();
+        if (outputs != null) {
+            writeCDATA(writer, outputs);
+        }
+        writer.writeEndCDATA();
+    }
+
+    private void writeCDATA(SimpleXmlWriter writer, Reader content) throws IOException {
+        try {
+            char[] buffer = new char[2048];
+            int read = content.read(buffer);
+            if (read < 0) {
+                return;
+            }
+            writer.writeCDATA(buffer, 0, read);
+        } finally {
+            content.close();
         }
     }
 

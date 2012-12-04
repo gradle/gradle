@@ -44,8 +44,8 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
         result.add(new TestMethodResult("some skipped test", new DefaultTestResult(SKIPPED, startTime + 35, startTime + 45, 1, 0, 1, asList())))
 
-        provider.getOutputs("com.foo.FooTest", StdOut) >> ["1st output message\n", "2nd output message\n"]
-        provider.getOutputs("com.foo.FooTest", StdErr) >> ["err"]
+        provider.getOutputs("com.foo.FooTest", StdOut) >> new StringReader("1st output message\n2nd output message\n")
+        provider.getOutputs("com.foo.FooTest", StdErr) >> new StringReader("err")
 
         when:
         def xml = generator.getXml("com.foo.FooTest", result)
@@ -82,7 +82,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
     def "writes results with empty outputs"() {
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
-        provider.getOutputs(_, _) >> []
+        provider.getOutputs(_, _) >> null
 
         when:
         def xml = generator.getXml("com.foo.FooTest", result)
@@ -100,7 +100,8 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
     def "encodes xml"() {
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
-        provider.getOutputs(_, _) >> ["with CDATA end token: ]]>", " some ascii: ż"]
+        provider.getOutputs(_, StdErr) >> new StringReader("with CDATA end token: ]]> some ascii: ż")
+        provider.getOutputs(_, StdOut) >> new StringReader("with CDATA end token: ]]> some ascii: ż")
 
         when:
         def xml = generator.getXml("com.foo.FooTest", result)

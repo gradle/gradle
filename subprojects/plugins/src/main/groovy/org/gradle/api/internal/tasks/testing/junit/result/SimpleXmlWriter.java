@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.gradle.util.TextUtil;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedList;
@@ -25,8 +23,7 @@ import java.util.LinkedList;
 import static org.apache.commons.lang.StringEscapeUtils.escapeXml;
 
 /**
- * Basic xml writer. Provides basic validation and encoding.
- * Does not validate tag names (and some other things, too).
+ * Basic xml writer. Provides basic validation and encoding. Does not validate tag names (and some other things, too).
  *
  * by Szczepan Faber, created at: 12/3/12
  */
@@ -81,21 +78,52 @@ public class SimpleXmlWriter {
         write(">");
     }
 
-    //startCDATA, end,
-    public void writeCDATA(Iterable<String> contents) throws IOException {
-        write("<![CDATA[");
-        for (String content : contents) {
-            writeCDATAContent(content);
-        }
-        write("]]>");
+    public void writeCDATA(char[] cdata) throws IOException {
+        writeCDATA(cdata, 0, cdata.length);
     }
 
-    private void writeCDATAContent(String cdata) throws IOException {
-        write(TextUtil.escapeCDATA(cdata));
+    public void writeCDATA(char[] cdata, int from, int to) throws IOException {
+        for (int i = from; i < to; i++) {
+            char c = cdata[i];
+            if (needsCDATAEscaping(c)) {
+                write("]]><![CDATA[>");
+            } else {
+                write(c);
+            }
+        }
+    }
+
+    int squareBrackets;
+
+    private boolean needsCDATAEscaping(char c) {
+        switch (c) {
+            case ']':
+                squareBrackets++;
+                return false;
+            case '>':
+                if (squareBrackets >= 2) {
+                    squareBrackets = 0;
+                    return true;
+                }
+                return false;
+            default:
+                squareBrackets = 0;
+                return false;
+        }
     }
 
     public Element element(String name) throws IOException {
         return new Element(name);
+    }
+
+    public void writeStartCDATA() throws IOException {
+        squareBrackets = 0;
+        write("<![CDATA[");
+
+    }
+
+    public void writeEndCDATA() throws IOException {
+        write("]]>");
     }
 
     public class Element {
@@ -120,6 +148,11 @@ public class SimpleXmlWriter {
         private void finished() throws IOException {
             write(">");
         }
+    }
+
+    private void write(char c) throws IOException {
+        output.write(c);
+        writtenAnything = true;
     }
 
     private void write(String message) throws IOException {

@@ -62,14 +62,48 @@ class SimpleXmlWriterSpec extends Specification {
         when:
         writer.writeStartElement("root")
         writer.writeStartElement("stuff")
-        writer.writeCDATA(['hey ', 'joe'])
+
+        writer.writeStartCDATA()
+        writer.writeCDATA('x hey x'.toCharArray(), 2, 6)
+        writer.writeCDATA('joe'.toCharArray())
+        writer.writeEndCDATA()
+
         writer.writeEndElement()
-        writer.writeCDATA(['encodes: ]]> '])
-        writer.writeCDATA(['html allowed: <>'])
+
+        writer.writeStartCDATA()
+        writer.writeCDATA('encodes: ]]> '.toCharArray())
+        writer.writeCDATA('html allowed: <>'.toCharArray())
+        writer.writeEndCDATA()
+
         writer.writeEndElement()
 
         then:
-        xml == '<root><stuff><![CDATA[hey joe]]></stuff><![CDATA[encodes: ]]]]><![CDATA[> ]]><![CDATA[html allowed: <>]]></root>'
+        xml == '<root><stuff><![CDATA[hey joe]]></stuff><![CDATA[encodes: ]]]]><![CDATA[> html allowed: <>]]></root>'
+    }
+
+    def "encodes CDATA when token on the border"() {
+        when:
+        //the end token is on the border of both char arrays
+        writer.writeCDATA('stuff ]]'.toCharArray())
+        writer.writeCDATA('> more stuff'.toCharArray())
+        then:
+        xml == 'stuff ]]]]><![CDATA[> more stuff'
+    }
+
+    def "does not encode CDATA when token separated in different CDATAs"() {
+        when:
+        //the end token is on the border of both char arrays
+
+        writer.writeStartCDATA();
+        writer.writeCDATA('stuff ]]'.toCharArray())
+        writer.writeEndCDATA();
+
+        writer.writeStartCDATA()
+        writer.writeCDATA('> more stuff'.toCharArray())
+        writer.writeEndCDATA();
+
+        then:
+        xml == '<![CDATA[stuff ]]]]><![CDATA[> more stuff]]>'
     }
 
     def "has basic stack validation"() {

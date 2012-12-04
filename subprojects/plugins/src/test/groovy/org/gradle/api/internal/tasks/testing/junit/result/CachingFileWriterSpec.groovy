@@ -34,19 +34,19 @@ class CachingFileWriterSpec extends Specification {
 
     def "keeps n files open"() {
         when:
-        writer.writeUTF(temp.file("1.txt"), "1")
+        writer.write(temp.file("1.txt"), "1")
 
         then:
         writer.openFiles.keySet()*.name == ["1.txt"]
 
         when:
-        writer.writeUTF(temp.file("2.txt"), "2")
+        writer.write(temp.file("2.txt"), "2")
 
         then:
         writer.openFiles.keySet()*.name == ["1.txt", "2.txt"]
 
         when:
-        writer.writeUTF(temp.file("3.txt"), "3")
+        writer.write(temp.file("3.txt"), "3")
 
         then:
         writer.openFiles.keySet()*.name == ["2.txt", "3.txt"]
@@ -60,13 +60,13 @@ class CachingFileWriterSpec extends Specification {
 
     def "writes to files"() {
         when:
-        writer.writeUTF(temp.file("1.txt"), "1")
-        writer.writeUTF(temp.file("2.txt"), "2")
-        writer.writeUTF(temp.file("3.txt"), "3")
-        writer.writeUTF(temp.file("4.txt"), "4")
-        writer.writeUTF(temp.file("1.txt"), "a")
-        writer.writeUTF(temp.file("2.txt"), "b")
-        writer.writeUTF(temp.file("3.txt"), "c")
+        writer.write(temp.file("1.txt"), "1")
+        writer.write(temp.file("2.txt"), "2")
+        writer.write(temp.file("3.txt"), "3")
+        writer.write(temp.file("4.txt"), "4")
+        writer.write(temp.file("1.txt"), "a")
+        writer.write(temp.file("2.txt"), "b")
+        writer.write(temp.file("3.txt"), "c")
 
         and:
         writer.close(temp.file("xxxx.txt"))
@@ -79,22 +79,9 @@ class CachingFileWriterSpec extends Specification {
         writer.openFiles.isEmpty()
 
         and:
-        read(temp.file("1.txt")) == '1a'
-        read(temp.file("2.txt")) == '2b'
-        read(temp.file("3.txt")) == '3c'
-        read(temp.file("4.txt")) == '4'
-    }
-
-    private String read(File f) {
-        def is = new DataInputStream(new FileInputStream(f));
-        def sb = new StringBuilder()
-        while (true) {
-            try {
-                sb.append(is.readUTF());
-            } catch (EOFException e) {
-                break;
-            }
-        }
-        sb
+        temp.file("1.txt").text == '1a'
+        temp.file("2.txt").text == '2b'
+        temp.file("3.txt").text == '3c'
+        temp.file("4.txt").text == '4'
     }
 }

@@ -16,16 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.apache.commons.io.IOUtils;
+import org.gradle.api.Nullable;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.internal.UncheckedException;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-
-import static java.util.Collections.emptySet;
 
 /**
  * by Szczepan Faber, created at: 11/13/12
@@ -78,7 +75,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             //we don't have a place for such output in any of the reports so skipping.
             return;
         }
-        cachingFileWriter.writeUTF(outputsFile(className, outputEvent.getDestination()), outputEvent.getMessage());
+        cachingFileWriter.write(outputsFile(className, outputEvent.getDestination()), outputEvent.getMessage());
     }
 
     private File outputsFile(String className, TestOutputEvent.Destination destination) {
@@ -97,51 +94,16 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         return results;
     }
 
-    public Iterable<String> getOutputs(final String className, final TestOutputEvent.Destination destination) {
+    @Nullable
+    public Reader getOutputs(final String className, final TestOutputEvent.Destination destination) {
         final File file = outputsFile(className, destination);
         if (!file.exists()) {
-            return emptySet();
+            return null;
         }
-        final Iterator<String> outputs = new OutputsIterator(file);
-        return new Iterable<String>() {
-            public Iterator<String> iterator() {
-                return outputs;
-            }
-        };
-    }
-
-    private static class OutputsIterator implements Iterator<String> {
-        DataInputStream in;
-        String line;
-
-        public OutputsIterator(File file) {
-            try {
-                in = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        public boolean hasNext() {
-            try {
-                line = in.readUTF();
-                return true;
-            } catch (EOFException e) {
-                //finished reading...
-                IOUtils.closeQuietly(in);
-                return false;
-            } catch (IOException e) {
-                IOUtils.closeQuietly(in);
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        public String next() {
-            return line;
-        }
-
-        public void remove() {
-            throw new UnsupportedOperationException();
+        try {
+            return new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), "UTF-8");
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }
