@@ -18,6 +18,8 @@ package org.gradle.internal
 
 import spock.lang.Specification
 
+import static org.gradle.internal.CompositeStoppable.closeable
+
 class CompositeStoppableTest extends Specification {
     private final CompositeStoppable stoppable = new CompositeStoppable()
 
@@ -131,6 +133,54 @@ class CompositeStoppableTest extends Specification {
 
         then:
         1 * a.stop()
+    }
+
+    def "can close closeables"() {
+        def a = Mock(Closeable)
+        def b = Mock(Closeable)
+
+        def closeable = closeable(a, b)
+
+        when:
+        closeable.close()
+
+        then:
+        1 * a.close()
+        1 * b.close()
+        0 * _._
+    }
+
+    def "closing propagates IOException"() {
+        def a = Mock(Closeable)
+        def b = Mock(Closeable)
+        def c = Mock(Closeable)
+
+        when:
+        closeable(a, b, c).close()
+
+        then:
+        def ex = thrown(IOException)
+        ex.message == 'Boo!'
+        1 * a.close() >> { throw new IOException("Boo!")}
+        1 * b.close() >> { throw new RuntimeException("Foo!")}
+        1 * c.close()
+        0 * _._
+    }
+
+    def "closing propagates RuntimeException"() {
+        def a = Mock(Closeable)
+        def b = Mock(Closeable)
+
+        when:
+        closeable(a, b).close()
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.message == 'Foo!'
+
+        1 * a.close() >> { throw new RuntimeException("Foo!")}
+        1 * b.close() >> { throw new IOException("Boo!")}
+        0 * _._
     }
 
     static class ClassWithCloseMethod {

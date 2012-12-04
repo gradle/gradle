@@ -41,6 +41,14 @@ public class CompositeStoppable implements Stoppable {
         return new CompositeStoppable().add(elements);
     }
 
+    public static CompositeStoppable closeable(Closeable... elements) {
+        return new CompositeStoppable().add(elements);
+    }
+
+    public static CompositeStoppable closeable(Iterable<Closeable> elements) {
+        return new CompositeStoppable().add(elements);
+    }
+
     public CompositeStoppable add(Iterable<?> elements) {
         for (Object element : elements) {
             this.elements.add(toStoppable(element));
@@ -127,7 +135,7 @@ public class CompositeStoppable implements Stoppable {
                     if (failure == null) {
                         failure = throwable;
                     } else {
-                        LOGGER.error(String.format("Could not stop %s.", element), throwable);
+                        LOGGER.debug(String.format("Could not stop %s.", element), throwable);
                     }
                 }
             }
@@ -137,6 +145,22 @@ public class CompositeStoppable implements Stoppable {
 
         if (failure != null) {
             throw UncheckedException.throwAsUncheckedException(failure);
+        }
+    }
+
+    /**
+     * Similar to stop() but forwards the IOException from Closeables.
+     *
+     * @throws IOException
+     */
+    public void close() throws IOException {
+        try {
+            stop();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof IOException) {
+                throw (IOException) e.getCause();
+            }
+            throw e;
         }
     }
 }

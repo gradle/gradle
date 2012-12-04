@@ -16,17 +16,22 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+
 import java.io.*;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.gradle.internal.CompositeStoppable.closeable;
 
 /**
  * by Szczepan Faber, created at: 11/19/12
  */
 public class CachingFileWriter {
+
+    private final static Logger LOG = Logging.getLogger(CachingFileWriter.class);
 
     final LinkedHashMap<File, DataOutputStream> openFiles = new LinkedHashMap<File, DataOutputStream>();
     private final int openFilesCount;
@@ -61,9 +66,10 @@ public class CachingFileWriter {
         Closeable c = openFiles.remove(file);
         if (c != null) { //could be already closed
             try {
-                close(c, file.toString());
-            } finally {
+                c.close();
+            } catch(IOException e) {
                 cleanUpQuietly();
+                throw new RuntimeException("Problems closing file: " + file, e);
             }
         }
     }
@@ -73,23 +79,29 @@ public class CachingFileWriter {
             for (Map.Entry<File, DataOutputStream> entry : openFiles.entrySet()) {
                 close(entry.getValue(), entry.getKey().toString());
             }
-        } finally {
+        } catch (IOException e) {
             cleanUpQuietly();
+            throw new RuntimeException("Problems closing all files.", e);
+        } finally {
+            openFiles.clear();
         }
     }
 
     private void cleanUpQuietly() {
-        for (OutputStream o : openFiles.values()) {
-            closeQuietly(o);
+        try {
+            closeable((Iterable) openFiles.values()).close();
+        } catch (IOException e) {
+            LOG.debug("Problems closing files", e);
+        } finally {
+            openFiles.clear();
         }
-        openFiles.clear();
     }
 
-    private void close(Closeable c, String displayName) {
+    private void close(Closeable c, String displayName) throws IOException {
         try {
             c.close();
         } catch (IOException e) {
-            throw new RuntimeException("Problems closing " + displayName, e);
+            throw new IOException("Problems closing file: " + displayName, e);
         }
     }
 }
