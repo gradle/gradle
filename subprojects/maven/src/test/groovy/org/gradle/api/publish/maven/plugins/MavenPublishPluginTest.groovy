@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.plugins
 
+import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.publish.PublishingExtension
@@ -49,6 +50,7 @@ class MavenPublishPluginTest extends Specification {
 
         then:
         project.tasks["publishMavenPublicationToMavenRepository"] != null
+        project.tasks["publishMavenPublicationToMavenLocal"] != null
     }
 
     def "default publication always has all visible config artifacts"() {
@@ -77,29 +79,37 @@ class MavenPublishPluginTest extends Specification {
         publishing.publications.maven
     }
 
+    def "task is created for publishing to mavenLocal"() {
+        expect:
+        publishTasks.size() == 1
+        publishTasks.first().name == "publishMavenPublicationToMavenLocal"
+        publishTasks.first().repository.name == "mavenLocalPublish"
+        publishTasks.first().repository.url == project.getServices().get(DependencyResolutionServices).baseRepositoryFactory.createMavenLocalRepository().url
+    }
+
     def "tasks are created for compatible publication / repo"() {
         expect:
-        publishTasks.empty
+        publishTasks.size() == 1
 
         when:
         def repo1 = publishing.repositories.maven { url "foo" }
 
         then:
-        publishTasks.size() == 1
-        publishTasks.first().repository.is(repo1)
-        publishTasks.first().name == "publishMavenPublicationToMavenRepository"
+        publishTasks.size() == 2
+        publishTasks.last().repository.is(repo1)
+        publishTasks.last().name == "publishMavenPublicationToMavenRepository"
 
         when:
         publishing.repositories.ivy {}
 
         then:
-        publishTasks.size() == 1
+        publishTasks.size() == 2
 
         when:
         def repo2 = publishing.repositories.maven { url "foo"; name "other" }
 
         then:
-        publishTasks.size() == 2
+        publishTasks.size() == 3
         publishTasks.last().repository.is(repo2)
         publishTasks.last().name == "publishMavenPublicationToOtherRepository"
     }
