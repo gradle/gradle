@@ -28,7 +28,6 @@ import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
-import org.gradle.util.Jvm
 
 @MinToolingApiVersion('1.0-milestone-9')
 @MinTargetGradleVersion('1.0-milestone-8')
@@ -110,7 +109,7 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     def "tooling api provided java home takes precedence over gradle.properties"() {
         File javaHome = AvailableJavaHomes.bestAlternative
         String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
-        File otherJava = org.gradle.internal.jvm.Jvm.current().getJavaHome()
+        File otherJava = getOtherJava()
         String otherJavaPath = TextUtil.escapeString(otherJava.canonicalPath)
         dist.file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
         dist.file('gradle.properties') << "org.gradle.java.home=$otherJavaPath"
@@ -127,5 +126,16 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         env != null
         env.java.javaHome == javaHome
         env.java.javaHome != otherJava
+    }
+
+    // We use different ways of resolving JVM depending on the Gradle version
+    // this is necessary as we moved the Jvm class and dont ship the org.gradle.util.Jvm class with the
+    // toolingApi jar
+    File getOtherJava() {
+        if (GradleVersion.current().compareTo(GradleVersion.version("1.0-milestone-9")) > 0) {
+            return org.gradle.internal.jvm.Jvm.current().getJavaHome()
+        } else {
+            return org.gradle.util.Jvm.current().getJavaHome();
+        }
     }
 }
