@@ -338,7 +338,15 @@ this, we will introduce a synthetic version for changing modules.
    when resolving the module metadata, to the `Artifact that will later be passed to `resolve()`.
 7. Change `CachePolicy.mustRefreshArtifact()` to expire a cached artifact if its descriptorHash != its owning module version's descriptorHash, except
    when offline.
-8. Change CachingModuleVersionRepository.lookupModuleInCache() so that it no longer calls expireArtifactsForChangingModule().
+8. Change `CachingModuleVersionRepository.lookupModuleInCache()` so that it no longer calls `expireArtifactsForChangingModule()`.
+9. Change `BuildableModuleVersionDescriptor.resolved()` so that an optional "module source" can be provided. Add a corresponding property. All callers
+   will use `null` for now.
+10. Change `CacheModuleVersionRepository` to use a "module source" that contains the information that it will later need to resolve the artifacts of
+    the module - the module descriptor and whether the module is changing or not.
+11. Change `ModuleVersionRepository.resolve()` to accept an additional "module source" parameter. Change all callers to use `null`. This will mean that
+    `ModuleVersionRepository` can no longer extend `ArtifactResolver` and that `UserResolverChain` will need to create an adapter.
+12. Change `UserResolverChain` to call `resolve()` with the "module source" specified in the resolve result.
+13. Change `CachingModuleVersionRepository.resolve()` to use the "module source" instead of loading the module descriptor.
 
 ### User-visible changes and backward-compatibility issues
 
@@ -348,13 +356,65 @@ this, we will introduce a synthetic version for changing modules.
 
 ### Integration test coverage
 
-* Will download changed version of ${name}-${classifier}.${ext} of changing module referenced with classifier
+* Will download changed version of ${name}-${classifier}.${ext} of changing module referenced with classifier.
 * Will download changed version of source jar of changing module referenced with type="source"
     * Verify that we will not download unchanged version of changing module
 * Verify that we recover from failed resolution of module after initial successful resolution
     * Failure cases are authorization error (401), server error (500) and connection exception
     * Will re-attempt download on subsequent resolve and recover
     * Will use previously cached version if run with --offline after failure
+
+# Download and parse `maven-metadata.xml` at most once when resolving Maven snapshot versions
+
+* GRADLE-2585.
+
+### Description
+
+Currently, the `maven-metadata.xml` for a version is downloaded and parsed:
+
+* Once when checking for a `pom.xml`
+* Once when checking for a JAR, in the case where the POM is missing.
+* Once for each artifact download.
+
+This a performance issue, in particular for IDE import, when a snapshot version is resolved multiple times, and multiple artifacts are downloaded. This
+is also a correctness issue, as `maven-metadata.xml` may be changed while resolving, meaning that mismatched POM and artifacts may be used.
+
+The goal is to parse the `maven-metadata.xml` exactly once per resolve, mapping the snapshot version to a timestamp version, then use this timestamp
+version internally to refer to the resolved version.
+
+### Implementation approach
+
+1. Change `MavenResolver` to override `getDependency()`.
+2. In `MavenResolver.getDependency()`, if the requested version is a snapshot:
+    1. Attempt to map the requested version to a timestamp version:
+        1. Attempt to download `maven-metadata.xml`.
+        2. If present, clone the dependency descriptor to add a `timestamp` extra property to the descriptor's `dependencyRevisionId`.
+3. Call `super.getDependency()` and return the result.
+4. Change `M2ResourcePattern.toPath()` to check for the `timestamp` extra property when building the artifact path, and substitute it into the pattern
+   if present.
+5. Change `MavenResolver.findIvyFileRef()` and`getArtifactRef()` so that they no longer does any special behaviour for snapshot versions.
+
+In theory, the `timestamp` property added in `getDependency()` will travel back to `getArtifactRef()` at this point.
+
+Some additional refactoring will be done to continue to move away from the Ivy contracts and domain objects:
+
+6. Increment the cache layout version in `DefaultCacheLockingManager`.
+7. Change `CachingModuleVersionRepository` so that when resolving the module meta-data, it takes the "module source" returned by
+   its delegate repository and stores it in the cached module descriptor entry.
+8. Change `CachingModuleVersionRepository` so that when resolving an artifact, it passes the "module source" to its delegate repository.
+9. Change `ExternalResourceResolver` to add `getDependency()` and `resolve()` methods that match those of `ModuleVersionRepository`. Change
+   `ExternalResourceResolverAdapter` to simply call these methods.
+10. Change `MavenResolver.getDependency()` to return a "module source" that includes the timestamp, when known, and to use this when resolving the
+    aritfacts.
+
+### User-visible changes and backward-compatibility issues
+
+None, except faster builds for those using snapshots.
+
+### Integration test coverage
+
+* Mostly removing a bunch of `expectMetaDataGet()` calls from various integration tests.
+* Check `maven-metadata.xml` is downloaded no more than once per build.
 
 # Correct naming of resolved native binaries
 
