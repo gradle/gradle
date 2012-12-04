@@ -18,6 +18,8 @@ package org.gradle.testing.testng
 import org.junit.Rule
 import org.junit.Test
 import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 /**
  * @author Tom Eyckmans

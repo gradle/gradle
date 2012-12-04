@@ -17,7 +17,7 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.IgnoreIf
-import static org.gradle.integtests.fixtures.GradleDistributionExecuter.getSystemPropertyExecuter
+import static org.gradle.integtests.fixtures.executer.GradleDistributionExecuter.getSystemPropertyExecuter
 
 /**
  * Verifies that Gradle doesn't pollute the system class loader.

@@ -17,10 +17,10 @@ package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.junit.Test
-import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 
 class IncrementalGroovyCompileIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()

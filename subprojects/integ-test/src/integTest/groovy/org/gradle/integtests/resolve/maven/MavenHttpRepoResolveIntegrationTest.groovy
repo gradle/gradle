@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.ProgressLoggingFixture
+import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.junit.Rule
 

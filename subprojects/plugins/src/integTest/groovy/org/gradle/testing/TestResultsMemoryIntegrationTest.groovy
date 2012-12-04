@@ -17,7 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 

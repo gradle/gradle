@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.util.TestFile
 import org.hamcrest.Matcher
 import org.junit.Test

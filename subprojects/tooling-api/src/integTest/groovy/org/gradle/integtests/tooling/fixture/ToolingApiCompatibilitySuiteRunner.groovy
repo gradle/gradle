@@ -17,7 +17,7 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
-import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.*
 

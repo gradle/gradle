@@ -23,8 +23,8 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.project.GlobalServicesRegistry
 import org.gradle.api.internal.project.ProjectInternalServiceRegistry
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.HelperUtil
 
 class ToolingApiDistributionResolver {

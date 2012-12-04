@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures;
+package org.gradle.integtests.fixtures.executer;
 
-import org.hamcrest.Matcher;
+import org.gradle.util.TestFile;
 
-public interface ExecutionFailure extends ExecutionResult {
-    ExecutionFailure assertHasLineNumber(int lineNumber);
+import java.io.File;
 
-    ExecutionFailure assertHasFileName(String filename);
+public interface ArtifactBuilder {
+    TestFile sourceFile(String path);
 
-    ExecutionFailure assertHasCause(String description);
+    TestFile resourceFile(String path);
 
-    ExecutionFailure assertThatCause(Matcher<String> matcher);
-
-    ExecutionFailure assertHasDescription(String context);
-
-    ExecutionFailure assertThatDescription(Matcher<String> matcher);
-
-    ExecutionFailure assertHasNoCause();
-
-    ExecutionFailure assertTestsFailed();
+    void buildJar(File jarFile);
 }

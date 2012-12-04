@@ -17,7 +17,7 @@
 
 package org.gradle.integtests.fixture
 
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.junit.Rule
 import spock.lang.Specification
 

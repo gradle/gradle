@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.gradle.util.Requires

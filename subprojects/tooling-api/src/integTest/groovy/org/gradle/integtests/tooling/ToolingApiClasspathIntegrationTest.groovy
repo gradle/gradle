@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.junit.Rule

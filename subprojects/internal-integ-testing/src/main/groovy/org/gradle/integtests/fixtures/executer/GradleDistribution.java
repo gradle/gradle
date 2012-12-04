@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures;
+package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;

@@ -21,6 +21,13 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.test.fixtures.maven.M2Installation
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 
 /**
  * Spockified version of AbstractIntegrationTest.

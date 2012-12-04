@@ -25,6 +25,8 @@ import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 
 public class JUnitIntegrationTest extends AbstractIntegrationTest {
     @Rule public final TestResources resources = new TestResources()

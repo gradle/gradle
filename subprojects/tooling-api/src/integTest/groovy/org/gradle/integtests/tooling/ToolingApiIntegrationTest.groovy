@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.UnsupportedVersionException
@@ -27,7 +27,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Issue
 import org.gradle.integtests.tooling.fixture.TextUtil
-import org.gradle.integtests.fixtures.GradleHandle
+import org.gradle.integtests.fixtures.executer.GradleHandle
 
 class ToolingApiIntegrationTest extends Specification {
     @Rule public final GradleDistribution dist = new GradleDistribution()

@@ -21,6 +21,9 @@ import org.gradle.integtests.fixtures.*
 import org.gradle.internal.SystemProperties
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 /**
  * @author Hans Dockter

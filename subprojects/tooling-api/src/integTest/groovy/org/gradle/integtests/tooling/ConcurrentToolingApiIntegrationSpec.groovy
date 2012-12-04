@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.ToolingApi

@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {

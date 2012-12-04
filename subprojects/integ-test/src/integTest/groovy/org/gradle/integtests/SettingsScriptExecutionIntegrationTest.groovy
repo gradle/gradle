@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.ArtifactBuilder
-import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.TestFile
 import org.junit.Test
 import static org.hamcrest.Matchers.*

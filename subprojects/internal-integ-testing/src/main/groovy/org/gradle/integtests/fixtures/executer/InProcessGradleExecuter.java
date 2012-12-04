@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures;
+package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;

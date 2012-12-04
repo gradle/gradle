@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Test

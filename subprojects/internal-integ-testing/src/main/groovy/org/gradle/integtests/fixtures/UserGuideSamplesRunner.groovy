@@ -30,6 +30,9 @@ import org.junit.runner.notification.RunNotifier
 
 import java.util.regex.Pattern
 import org.gradle.util.TextUtil
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 class UserGuideSamplesRunner extends Runner {
     private static final String NL = SystemProperties.lineSeparator

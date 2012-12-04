@@ -15,11 +15,11 @@
  */
 package org.gradle.groovy.compile
 
-import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 

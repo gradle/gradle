@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.openapi
 
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.runner.GradleRunnerFactory
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1

@@ -20,8 +20,8 @@ import org.gradle.foundation.ProjectView
 import org.gradle.foundation.TaskView
 import org.gradle.foundation.TestUtility
 import org.gradle.gradleplugin.foundation.GradlePluginLord
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.openapi.external.foundation.ProjectVersion1
 import org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapperVersion1

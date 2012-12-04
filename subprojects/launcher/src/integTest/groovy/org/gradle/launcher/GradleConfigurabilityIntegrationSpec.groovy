@@ -18,7 +18,7 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.util.Requires

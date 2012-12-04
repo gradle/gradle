@@ -17,8 +17,8 @@
 package org.gradle.integtests
 
 import java.util.jar.Manifest
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test

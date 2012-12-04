@@ -18,6 +18,10 @@ package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
 import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 public class PerformanceTestRunner {
 

@@ -16,8 +16,8 @@
 
 package org.gradle
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.TestFile

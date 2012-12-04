@@ -16,7 +16,7 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnexpectedBuildFailure
+import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import spock.lang.FailsWith
 import spock.lang.Ignore
 import spock.lang.Issue

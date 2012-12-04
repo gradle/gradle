@@ -18,7 +18,7 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.TextUtil
 import org.junit.Rule
 

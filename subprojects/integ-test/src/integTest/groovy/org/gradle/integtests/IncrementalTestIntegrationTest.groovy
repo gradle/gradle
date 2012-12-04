@@ -21,6 +21,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.gradle.integtests.fixtures.*
 import org.junit.Before
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 class IncrementalTestIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()

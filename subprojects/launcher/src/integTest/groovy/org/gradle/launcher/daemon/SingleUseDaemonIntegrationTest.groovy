@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 
 @IgnoreIf({ GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.daemon })
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {

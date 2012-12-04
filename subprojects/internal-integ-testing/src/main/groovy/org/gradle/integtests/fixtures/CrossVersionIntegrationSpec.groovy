@@ -21,6 +21,9 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.Specification
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 @RunWith(CrossVersionTestRunner)
 abstract class CrossVersionIntegrationSpec extends Specification {

@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.GradleHandle
+import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException

@@ -23,6 +23,9 @@ import org.gradle.integtests.fixtures.*
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 /**
  * @author Tom Eyckmans

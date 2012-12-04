@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution;
+import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 

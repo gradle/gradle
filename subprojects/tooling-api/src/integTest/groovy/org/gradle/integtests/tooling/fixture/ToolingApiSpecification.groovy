@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.tooling.GradleConnector
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties

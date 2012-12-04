@@ -16,8 +16,8 @@
 
 package org.gradle.peformance
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
 import org.junit.rules.ExternalResource

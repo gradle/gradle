@@ -17,13 +17,13 @@
 package org.gradle.launcher.daemon
 
 import ch.qos.logback.classic.Level
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.junit.Rule
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
-import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
+import static GradleDistributionExecuter.Executer.daemon
 
 /**
  * by Szczepan Faber, created at: 2/1/12

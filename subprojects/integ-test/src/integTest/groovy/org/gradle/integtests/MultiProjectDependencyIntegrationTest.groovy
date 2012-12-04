@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.hamcrest.Matchers.containsString
 import spock.lang.IgnoreIf
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 
 public class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
 

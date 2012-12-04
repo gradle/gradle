@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.caching
 
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import spock.lang.IgnoreIf
 

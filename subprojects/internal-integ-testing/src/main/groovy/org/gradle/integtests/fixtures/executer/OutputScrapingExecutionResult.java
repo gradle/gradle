@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures;
+package org.gradle.integtests.fixtures.executer;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;

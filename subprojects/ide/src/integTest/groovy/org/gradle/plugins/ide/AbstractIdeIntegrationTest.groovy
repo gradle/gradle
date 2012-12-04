@@ -18,7 +18,7 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.TestFile
 
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {

@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.openapi
 
-import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.util.ClasspathUtil

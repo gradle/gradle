@@ -19,6 +19,9 @@ import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 class SamplesToolingApiIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()

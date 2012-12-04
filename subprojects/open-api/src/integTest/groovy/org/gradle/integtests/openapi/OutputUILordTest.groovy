@@ -19,7 +19,7 @@ import java.awt.Font
 import java.util.concurrent.TimeUnit
 import javax.swing.UIManager
 
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.ui.OutputUILordVersion1
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1

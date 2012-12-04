@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JFrame
 import javax.swing.JLabel
 
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.ExternalUtility
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion2

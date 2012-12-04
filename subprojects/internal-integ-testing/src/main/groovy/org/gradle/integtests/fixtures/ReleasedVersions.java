@@ -17,6 +17,8 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.api.Transformer;
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution;
+import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.versions.VersionsInfo;
 import org.gradle.util.CollectionUtils;
 
