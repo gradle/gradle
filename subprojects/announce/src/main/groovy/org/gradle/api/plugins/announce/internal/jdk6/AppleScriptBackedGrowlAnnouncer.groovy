@@ -25,8 +25,11 @@ import javax.script.ScriptEngineManager
 class AppleScriptBackedGrowlAnnouncer extends Growl {
     private final IconProvider iconProvider
     private final ScriptEngine engine;
+
     AppleScriptBackedGrowlAnnouncer(IconProvider iconProvider) {
+        this.iconProvider = iconProvider;
         ScriptEngineManager mgr = new ScriptEngineManager();
+
         engine = mgr.getEngineByName("AppleScript");
         if (engine == null) {
             engine = mgr.getEngineByName("AppleScriptEngine");
