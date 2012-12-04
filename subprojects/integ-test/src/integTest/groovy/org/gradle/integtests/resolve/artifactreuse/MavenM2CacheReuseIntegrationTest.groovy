@@ -22,8 +22,8 @@ class MavenM2CacheReuseIntegrationTest extends AbstractDependencyResolutionTest 
     def "uses cached artifacts from maven local cache"() {
         given:
         def module1 = mavenHttpRepo.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
-        def m2 = new M2Installation(testDir).generateGlobalSettingsFile()
-        def module2 = m2.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+        def m2Installation = new M2Installation(testDir).generateGlobalSettingsFile()
+        def module2 = m2Installation.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
         server.start()
 
         buildFile.text = """
@@ -46,7 +46,7 @@ task retrieve(type: Sync) {
         module1.artifact.expectSha1Get()
 
         when:
-        executer.withEnvironmentVars(M2_HOME: m2.globalMavenDirectory)
+        using m2Installation
         run 'retrieve'
 
         then:

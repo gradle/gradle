@@ -17,11 +17,23 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.maven.M2Installation
+import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.junit.Rule
+import org.gradle.util.SetSystemProperties
 
 /**
  * Tests “simple” maven publishing scenarios
  */
 class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
+    @Rule SetSystemProperties sysProp = new SetSystemProperties()
+
+    M2Installation m2Installation;
+
+    def "setup"() {
+        m2Installation = new M2Installation(testDir)
+        using m2Installation
+    }
 
     def "can publish simple jar"() {
         given:
@@ -43,13 +55,10 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module('group', 'root', 1.0)
-        module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.pom')
-        with(module.pom) {
-            groupId == "group"
-            artifactId == "root"
-            version == "1.0"
-        }
+        modulePublished(mavenRepo, 'group', 'root', '1.0')
+
+        and:
+        modulePublished(m2Installation.mavenRepo(), 'group', 'root', '1.0')
     }
 
     def "can customise pom xml"() {
@@ -79,13 +88,20 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module('group', 'root', "foo")
-        module.assertArtifactsPublished('root-foo.jar', 'root-foo.pom')
-        with(module.pom) {
-            groupId == "group"
-            artifactId == "root"
-            version == "foo"
-        }
+        modulePublished(mavenRepo, 'group', 'root', 'foo')
+
+        and:
+        modulePublished(m2Installation.mavenRepo(), 'group', 'root', 'foo')
     }
 
+    def modulePublished(MavenFileRepository fileRepository, def group, def artifact, def expectedVersion) {
+        def module = fileRepository.module(group, artifact, expectedVersion);
+        module.assertArtifactsPublished("${artifact}-${expectedVersion}.jar", "${artifact}-${expectedVersion}.pom")
+        with(module.pom) {
+            assert groupId == group
+            assert artifactId == artifact
+            assert version == expectedVersion
+        }
+        true
+    }
 }

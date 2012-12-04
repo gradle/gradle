@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.Action
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.TestFile
@@ -86,6 +87,11 @@ class AbstractIntegrationSpec extends Specification {
 
     protected GradleExecuter withDebugLogging() {
         executer.withArguments("-d")
+    }
+
+    protected GradleExecuter using(Action<GradleExecuter> action) {
+        executer.beforeExecute(action)
+        executer
     }
 
     protected ExecutionResult succeeds(String... tasks) {

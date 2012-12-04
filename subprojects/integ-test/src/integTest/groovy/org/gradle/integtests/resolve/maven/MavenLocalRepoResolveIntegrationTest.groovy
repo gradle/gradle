@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.containsString
 class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
+    M2Installation m2Installation;
 
     public void setup() {
         requireOwnUserHomeDir()
@@ -42,15 +43,14 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
                     from configurations.compile
                     into 'build'
                 }"""
+
+        m2Installation = new M2Installation(testDir)
+        using m2Installation
     }
 
     public void "can resolve artifacts from local m2 when user settings.xml does not exist"() {
         given:
-        def m2 = localM2()
-        def moduleA = m2.mavenRepo().module('group', 'projectA', '1.2').publish()
-
-        and:
-        withM2(m2)
+        def moduleA = m2Installation.mavenRepo().module('group', 'projectA', '1.2').publish()
 
         when:
         run 'retrieve'
@@ -63,11 +63,8 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
     public void "can resolve artifacts from local m2 with custom local repository defined in user settings.xml"() {
         given:
         def artifactRepo = maven("artifactrepo")
-        def m2 = localM2().generateUserSettingsFile(artifactRepo)
+        m2Installation.generateUserSettingsFile(artifactRepo)
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
-
-        and:
-        withM2(m2)
 
         when:
         run 'retrieve'
@@ -79,11 +76,8 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
     public void "can resolve artifacts from local m2 with custom local repository defined in global settings.xml"() {
         given:
         def artifactRepo = maven("artifactrepo")
-        def m2 = localM2().generateGlobalSettingsFile(artifactRepo)
+        m2Installation.generateGlobalSettingsFile(artifactRepo)
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
-
-        and:
-        withM2(m2)
 
         when:
         run 'retrieve'
@@ -96,12 +90,9 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         given:
         def globalRepo = maven("globalArtifactRepo")
         def userRepo = maven("userArtifactRepo")
-        def m2 = localM2().generateGlobalSettingsFile(globalRepo).generateUserSettingsFile(userRepo)
+        m2Installation.generateGlobalSettingsFile(globalRepo).generateUserSettingsFile(userRepo)
         def moduleA = userRepo.module('group', 'projectA', '1.2').publish()
         globalRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
-
-        and:
-        withM2(m2)
 
         when:
         run 'retrieve'
@@ -112,22 +103,17 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
 
     public void "fail with meaningful error message if settings.xml is invalid"() {
         given:
-        def m2 = localM2()
-        m2.userSettingsFile << "invalid content"
-
-        and:
-        withM2(m2)
+        m2Installation.userSettingsFile << "invalid content"
 
         when:
         def failure = runAndFail('retrieve')
 
         then:
-        failure.assertThatCause(containsString(String.format("Non-parseable settings %s:", m2.userSettingsFile.absolutePath)));
+        failure.assertThatCause(containsString(String.format("Non-parseable settings %s:", m2Installation.userSettingsFile.absolutePath)));
     }
 
     public void "mavenLocal is ignored if no local maven repository exists"() {
         given:
-        def m2 = localM2()
         def anotherRepo = maven("another-local-repo")
         def moduleA = anotherRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
 
@@ -137,9 +123,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
             maven { url "${anotherRepo.uri}" }
         }
         """
-
-        and:
-        withM2(m2)
 
         when:
         run 'retrieve'
@@ -153,16 +136,5 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
         def artifactName = module.artifactFile.name
         buildDir.assertHasDescendants(artifactName)
         buildDir.file(artifactName).assertIsCopyOf(module.artifactFile)
-    }
-
-    def withM2(M2Installation m2) {
-        executer.withUserHomeDir(m2.userHomeDir)
-        if (m2.globalMavenDirectory?.exists()) {
-            executer.withEnvironmentVars(M2_HOME:m2.globalMavenDirectory.absolutePath)
-        }
-    }
-
-    M2Installation localM2() {
-        new M2Installation(testDir)
     }
 }
