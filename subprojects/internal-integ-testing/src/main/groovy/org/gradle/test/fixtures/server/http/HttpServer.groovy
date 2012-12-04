@@ -166,6 +166,7 @@ class HttpServer extends ExternalResource {
                 e.assertMet()
             }
         } finally {
+            realm = null
             failure = null
             expectedUserAgent = null
             expections.clear()
