@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<chapter id="feature_lifecycle">
+<appendix id="feature_lifecycle">
     <title>The Feature Lifecycle</title>
     <para>
         Gradle is under constant development and improvement. New versions are also delivered on a regular and frequent basis
@@ -129,4 +129,4 @@
             releases, but this is not guaranteed.
         </para>
     </section>
-</chapter>
+</appendix>
