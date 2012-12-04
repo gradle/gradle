@@ -36,6 +36,8 @@ public class SimpleXmlWriter {
     private final LinkedList<String> elements = new LinkedList<String>();
     private boolean writtenAnything;
 
+    //add tag name / attribute name validation
+
     public SimpleXmlWriter(Writer output) {
         this.output = output;
     }
@@ -44,33 +46,42 @@ public class SimpleXmlWriter {
         if (writtenAnything) {
             throw new IllegalStateException("Cannot write xml declaration! The xml is not empty and the xml declaration must be the very first tag.");
         }
-        write("<?xml version=\"" + ver + "\" encoding=\"" + encoding + "\"?>");
+        write("<?xml version=\"");
+        write(ver);
+        write("\" encoding=\"");
+        write(encoding);
+        write("\"?>");
     }
 
     public void writeCharacters(String characters) throws IOException {
-        write(encodeXml(characters));
+        writeEncoded(characters);
+    }
+
+    public void writeStartElement(String name) throws IOException {
+        writeStartElement(element(name));
     }
 
     public void writeStartElement(Element element) throws IOException {
-        write(element.toXML());
         elements.add(element.name);
+        element.finished();
     }
 
     public void writeEmptyElement(String name) throws IOException {
-        write("<" + name + "/>");
+        write("<");
+        write(name);
+        write("/>");
     }
 
     public void writeEndElement() throws IOException {
         if (elements.isEmpty()) {
             throw new IllegalStateException("Cannot write end element! There are no started elements.");
         }
-        write("</" + elements.removeLast() + ">");
+        write("</");
+        write(elements.removeLast());
+        write(">");
     }
 
-    public void writeStartElement(String name) throws IOException {
-        writeStartElement(new Element(name));
-    }
-
+    //startCDATA, end,
     public void writeCDATA(Iterable<String> contents) throws IOException {
         write("<![CDATA[");
         for (String content : contents) {
@@ -83,33 +94,43 @@ public class SimpleXmlWriter {
         write(TextUtil.escapeCDATA(cdata));
     }
 
-    public static class Element {
+    public Element element(String name) throws IOException {
+        return new Element(name);
+    }
 
-        private final StringBuilder output;
+    public class Element {
 
         private final String name;
-        public Element(String name) {
+
+        public Element(String name) throws IOException {
             this.name = name;
-            this.output = new StringBuilder("<").append(name);
+            write("<");
+            write(name);
         }
 
-        public Element attribute(String name, String value) {
-            output.append(" ").append(name).append("=\"").append(encodeXml(value)).append("\"");
+        public Element attribute(String name, String value) throws IOException {
+            write(" ");
+            write(name);
+            write("=\"");
+            writeEncoded(value);
+            write("\"");
             return this;
         }
 
-        public String toXML() {
-            return output.toString() + ">";
+        private void finished() throws IOException {
+            write(">");
         }
-    }
-
-    private static String encodeXml(String value) {
-        return escapeXml(value);
     }
 
     private void write(String message) throws IOException {
         assert message != null;
-        writtenAnything = true;
         output.write(message);
+        writtenAnything = true;
+    }
+
+    private void writeEncoded(String message) throws IOException {
+        assert message != null;
+        escapeXml(output, message);
+        writtenAnything = true;
     }
 }

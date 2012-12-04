@@ -46,7 +46,7 @@ public class SaxJUnitXmlResultWriter {
             SimpleXmlWriter writer = new SimpleXmlWriter(sw);
             writer.writeXmlDeclaration("UTF-8", "1.0");
             writer.writeCharacters("\n  ");
-            writer.writeStartElement(new SimpleXmlWriter.Element("testsuite")
+            writer.writeStartElement(writer.element("testsuite")
                 .attribute("name", className)
                 .attribute("tests", String.valueOf(result.getTestsCount()))
                 .attribute("failures", String.valueOf(result.getFailuresCount()))
@@ -95,14 +95,14 @@ public class SaxJUnitXmlResultWriter {
         for (TestMethodResult methodResult : methodResults) {
             writer.writeCharacters("\n    ");
             String testCase = methodResult.result.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
-            writer.writeStartElement(new SimpleXmlWriter.Element(testCase)
+            writer.writeStartElement(writer.element(testCase)
                     .attribute("name", methodResult.name)
                     .attribute("classname", className)
                     .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0)));
 
             for (Throwable failure : methodResult.result.getExceptions()) {
                 writer.writeCharacters("\n      ");
-                writer.writeStartElement(new SimpleXmlWriter.Element("failure")
+                writer.writeStartElement(writer.element("failure")
                         .attribute("message", failureMessage(failure))
                         .attribute("type", failure.getClass().getName()));
 

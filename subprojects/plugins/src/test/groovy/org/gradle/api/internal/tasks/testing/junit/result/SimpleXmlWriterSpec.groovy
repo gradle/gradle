@@ -33,9 +33,9 @@ class SimpleXmlWriterSpec extends Specification {
     def "writes basic xml"() {
         when:
         writer.writeXmlDeclaration("UTF-9", "1.23")
-        writer.writeStartElement(new SimpleXmlWriter.Element("root").attribute("items", "9"))
+        writer.writeStartElement(writer.element("root").attribute("items", "9"))
         writer.writeEmptyElement("item")
-        writer.writeStartElement(new SimpleXmlWriter.Element("item").attribute("size", "10m"))
+        writer.writeStartElement(writer.element("item").attribute("size", "10m"))
         writer.writeCharacters("some chars")
         writer.writeStartElement("foo")
         writer.writeEndElement()
@@ -48,8 +48,8 @@ class SimpleXmlWriterSpec extends Specification {
 
     def "encodes for xml"() {
         when:
-        writer.writeStartElement(new SimpleXmlWriter.Element("root"))
-        writer.writeStartElement(new SimpleXmlWriter.Element("item").attribute("size", "encoded: &lt; < > ' \""))
+        writer.writeStartElement("root")
+        writer.writeStartElement(writer.element("item").attribute("size", "encoded: &lt; < > ' \""))
         writer.writeCharacters("chars with interesting stuff: &lt; < > ' \"")
         writer.writeEndElement()
         writer.writeEndElement()
@@ -73,7 +73,7 @@ class SimpleXmlWriterSpec extends Specification {
     }
 
     def "has basic stack validation"() {
-        writer.writeStartElement(new SimpleXmlWriter.Element("root"))
+        writer.writeStartElement("root")
         writer.writeEndElement()
 
         when:
