@@ -102,7 +102,7 @@ public class CachingFileWriter {
             c.close();
         } catch (IOException e) {
             IOException ex = new IOException("Problems closing file: " + displayName);
-            ex.initCause(e);
+            ex.initCause(e); //java5 IOException does not have required constructor, hence initCause
             throw ex;
         }
     }
