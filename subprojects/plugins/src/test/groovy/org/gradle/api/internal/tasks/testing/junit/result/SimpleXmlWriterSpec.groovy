@@ -126,4 +126,22 @@ class SimpleXmlWriterSpec extends Specification {
         then:
         thrown(IllegalStateException)
     }
+
+    def "validates tag names"() {
+        when:
+        writer.writeStartElement("tag with space")
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message.contains("tag with space")
+    }
+
+    def "validates attribute names"() {
+        when:
+        writer.writeStartElement(writer.element("foo").attribute("attribute with space", "foo"))
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message.contains("attribute with space")
+    }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.apache.xerces.util.XMLChar;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedList;
@@ -23,7 +25,7 @@ import java.util.LinkedList;
 import static org.apache.commons.lang.StringEscapeUtils.escapeXml;
 
 /**
- * Basic xml writer. Provides basic validation and encoding. Does not validate tag names (and some other things, too).
+ * Basic xml writer. Encodes characters and CDATA. Provides only basic state validation.
  *
  * by Szczepan Faber, created at: 12/3/12
  */
@@ -131,12 +133,18 @@ public class SimpleXmlWriter {
         private final String name;
 
         public Element(String name) throws IOException {
+            if (!isValidXmlName(name)) {
+                throw new IllegalArgumentException("Invalid element name: " + name);
+            }
             this.name = name;
             write("<");
             write(name);
         }
 
         public Element attribute(String name, String value) throws IOException {
+            if (!isValidXmlName(name)) {
+                throw new IllegalArgumentException("Invalid attribute name: " + name);
+            }
             write(" ");
             write(name);
             write("=\"");
@@ -148,6 +156,10 @@ public class SimpleXmlWriter {
         private void finished() throws IOException {
             write(">");
         }
+    }
+
+    private static boolean isValidXmlName(String name) {
+        return XMLChar.isValidName(name);
     }
 
     private void write(char c) throws IOException {
