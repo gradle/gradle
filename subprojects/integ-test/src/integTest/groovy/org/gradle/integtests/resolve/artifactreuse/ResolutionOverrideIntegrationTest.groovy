@@ -50,6 +50,15 @@ task retrieve(type: Sync) {
         module.publishWithChangedContent()
 
         and:
+        server.resetExpectations()
+        module.expectPomHead()
+        module.expectPomSha1Get()
+        module.expectPomGet()
+        module.artifact.expectHead()
+        module.artifact.expectSha1Get()
+        module.artifact.expectGet()
+
+        and:
         executer.withArguments('--refresh-dependencies')
         succeeds 'retrieve'
         
