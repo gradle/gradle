@@ -101,7 +101,9 @@ public class CachingFileWriter {
         try {
             c.close();
         } catch (IOException e) {
-            throw new IOException("Problems closing file: " + displayName, e);
+            IOException ex = new IOException("Problems closing file: " + displayName);
+            ex.initCause(e);
+            throw ex;
         }
     }
 }
