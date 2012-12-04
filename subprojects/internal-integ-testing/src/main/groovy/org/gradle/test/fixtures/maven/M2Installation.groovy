@@ -18,11 +18,9 @@
 
 package org.gradle.test.fixtures.maven
 
-import org.gradle.api.Action
-import org.gradle.integtests.fixtures.GradleExecuter
 import org.gradle.util.TestFile
 
-class M2Installation implements Action<GradleExecuter> {
+class M2Installation {
     final TestFile userHomeDir
     final TestFile userM2Directory
     final TestFile userSettingsFile
@@ -54,12 +52,5 @@ class M2Installation implements Action<GradleExecuter> {
     <localRepository>${globalRepository.rootDir.absolutePath}</localRepository>
 </settings>"""
         return this
-    }
-
-    void execute(GradleExecuter executer) {
-        executer.withUserHomeDir(userHomeDir)
-        if (globalMavenDirectory?.exists()) {
-            executer.withEnvironmentVars(M2_HOME:globalMavenDirectory.absolutePath)
-        }
     }
 }

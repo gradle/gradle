@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.api.Action
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.test.fixtures.maven.M2Installation
 
 /**
  * Spockified version of AbstractIntegrationTest.
@@ -87,11 +87,6 @@ class AbstractIntegrationSpec extends Specification {
 
     protected GradleExecuter withDebugLogging() {
         executer.withArguments("-d")
-    }
-
-    protected GradleExecuter using(Action<GradleExecuter> action) {
-        executer.beforeExecute(action)
-        executer
     }
 
     protected ExecutionResult succeeds(String... tasks) {
@@ -178,6 +173,14 @@ class AbstractIntegrationSpec extends Specification {
             ivyRepo = new IvyFileRepository(file("ivy-repo"))
         }
         return ivyRepo
+    }
+
+    public GradleExecuter using(M2Installation m2) {
+        executer.withUserHomeDir(m2.userHomeDir)
+        if (m2.globalMavenDirectory?.exists()) {
+            executer.withEnvironmentVars(M2_HOME:m2.globalMavenDirectory.absolutePath)
+        }
+        executer
     }
 
     def createZip(String name, Closure cl) {
