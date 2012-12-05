@@ -67,6 +67,15 @@ class M2ResourcePatternTest extends Specification {
         pattern.toModuleVersionPath(artifact2) == 'prefix/org/group/projectA/1.2'
     }
 
+    def "can substitute revision in filename by timestamped version when provided"() {
+        def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
+        def artifact1 = new DefaultArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2-SNAPSHOT"), new Date(), "projectA", "ivy", "ivy", [timestamp: "1.2-20100101.120001-1"])
+        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2-SNAPSHOT"), new Date())
+        expect:
+        pattern.toPath(artifact1) == 'prefix/group/projectA/1.2-SNAPSHOT/projectA-1.2-20100101.120001-1.ivy'
+        pattern.toPath(artifact2) == 'prefix/org/group/projectA/1.2-SNAPSHOT/ivy-1.2-SNAPSHOT.xml'
+    }
+
     def "throws UnsupportedOperationException for non M2 compatible pattern"() {
         def pattern = new M2ResourcePattern("/non/m2/pattern")
 

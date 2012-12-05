@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
+import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
@@ -34,10 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.text.ParseException;
+import java.util.*;
 
 public class MavenResolver extends ExternalResourceResolver implements PatternBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
@@ -69,6 +68,26 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         setChangingPattern(".*-SNAPSHOT");
 
         updatePatterns();
+    }
+
+    @Override
+    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
+        if (isSnapshotVersion(dd)) {
+            final ModuleRevisionId dependencyRevisionId = dd.getDependencyRevisionId();
+            final String uniqueSnapshotVersion = findUniqueSnapshotVersion(dependencyRevisionId);
+            if (uniqueSnapshotVersion != null) {
+                Map<String, String> extraAttributes = new HashMap<String, String>(1);
+                extraAttributes.put("timestamp", uniqueSnapshotVersion);
+                final ModuleRevisionId newModuleRevisionId = ModuleRevisionId.newInstance(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision(), extraAttributes);
+                final DependencyDescriptor enrichedDependencyDescriptor = dd.clone(newModuleRevisionId);
+                return super.getDependency(enrichedDependencyDescriptor, data);
+            }
+        }
+        return super.getDependency(dd, data);
+    }
+
+    private boolean isSnapshotVersion(DependencyDescriptor dd) {
+        return dd.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT");
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {
@@ -106,15 +125,8 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
         if (isUsepoms()) {
             ModuleRevisionId moduleRevisionId = dd.getDependencyRevisionId();
-
-            if (moduleRevisionId.getRevision().endsWith("SNAPSHOT")) {
-                ResolvedResource resolvedResource = findSnapshotDescriptor(dd, data, moduleRevisionId, true);
-                if (resolvedResource != null) {
-                    return resolvedResource;
-                }
-            }
-
-            Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, data.getDate());
+            //we might need a own implementation of DefaultArtifact here as there is no way to pass extraAttributes AND isMetaData to DefaultArtifact
+            Artifact pomArtifact = new DefaultArtifact(moduleRevisionId, data.getDate(), moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
             ResourceMDParser parser = getRMDParser(dd, data);
             return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, parser, data.getDate(), true);
         }
@@ -122,25 +134,8 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return null;
     }
 
-    private ResolvedResource findSnapshotDescriptor(DependencyDescriptor dd, ResolveData data, ModuleRevisionId moduleRevisionId, boolean forDownload) {
-        String rev = findUniqueSnapshotVersion(moduleRevisionId);
-        if (rev != null) {
-            // here it would be nice to be able to store the resolved snapshot version, to avoid
-            // having to follow the same process to download artifacts
-            LOGGER.debug("[{}] {}", rev, moduleRevisionId);
-
-            // replace the revision token in file name with the resolved revision
-            String pattern = getWholePattern().replaceFirst("\\-\\[revision\\]", "-" + rev);
-            Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, data.getDate());
-            ResourcePattern resourcePattern = toResourcePattern(pattern);
-            return findResourceUsingPattern(moduleRevisionId, resourcePattern, pomArtifact, getRMDParser(dd, data), data.getDate(), forDownload);
-        }
-        return null;
-    }
-
     protected ResolvedResource getArtifactRef(Artifact artifact, Date date, boolean forDownload) {
         ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
-
         if (moduleRevisionId.getRevision().endsWith("SNAPSHOT")) {
             ResolvedResource resolvedResource = findSnapshotArtifact(artifact, date, moduleRevisionId, forDownload);
             if (resolvedResource != null) {

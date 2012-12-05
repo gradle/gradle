@@ -175,6 +175,7 @@ public class ExternalResourceResolver extends BasicResolver {
         DependencyDescriptor nsDd = dd;
         dd = toSystem(nsDd);
 
+        //TODO: check why we dont use our own ParserRegistry here.
         ModuleRevisionId mrid = dd.getDependencyRevisionId();
         ModuleDescriptorParser parser = ModuleDescriptorParserRegistry
                 .getInstance().getParser(mdRef.getResource());
@@ -239,18 +240,6 @@ public class ExternalResourceResolver extends BasicResolver {
                     + ": '" + md.getStatus() + "'");
             errors.append("bad status: '" + md.getStatus() + "'; ");
             ok = false;
-        }
-        for (Iterator it = mrid.getExtraAttributes().entrySet().iterator(); it.hasNext();) {
-            Map.Entry extra = (Map.Entry) it.next();
-            if (extra.getValue() != null && !extra.getValue().equals(
-                    md.getExtraAttribute((String) extra.getKey()))) {
-                String errorMsg = "bad " + extra.getKey() + " found in " + ivyRef.getResource()
-                        + ": expected='" + extra.getValue() + "' found='"
-                        + md.getExtraAttribute((String) extra.getKey()) + "'";
-                Message.error("\t" + getName() + ": " + errorMsg);
-                errors.append(errorMsg + ";");
-                ok = false;
-            }
         }
         if (!ok) {
             throw new ParseException("inconsistent module descriptor file found in '"
