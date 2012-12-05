@@ -55,6 +55,7 @@ Improve TestNG test execution/reporting
 
 -tweak performance tests
 -tests that don't have an associated method or class
+-start-time and duration reported for a class should include all setup and teardown
 
 ### Backwards compatibility:
 
@@ -97,5 +98,3 @@ However, the latter class is geared towards the JUnit model, where we receive no
 In TestNG, we only receive notification on entire suite start / end and then on each test method start / end.
 This means that with TestNG, the CaptureTestOutputTestResultProcessor is started only when the first test starts.
 We could possibly fix it by starting redirecting the output at suite start in the TestNG scenario.
-
-Check if
