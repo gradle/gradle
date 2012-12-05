@@ -15,19 +15,13 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.Action
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.test.fixtures.maven.M2Installation
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.ArtifactBuilder
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
+import org.gradle.integtests.fixtures.executer.*
 
 /**
  * Spockified version of AbstractIntegrationTest.
@@ -182,11 +176,8 @@ class AbstractIntegrationSpec extends Specification {
         return ivyRepo
     }
 
-    public GradleExecuter using(M2Installation m2) {
-        executer.withUserHomeDir(m2.userHomeDir)
-        if (m2.globalMavenDirectory?.exists()) {
-            executer.withEnvironmentVars(M2_HOME:m2.globalMavenDirectory.absolutePath)
-        }
+    public GradleExecuter using(Action<GradleExecuter> action) {
+        action.execute(executer)
         executer
     }
 
