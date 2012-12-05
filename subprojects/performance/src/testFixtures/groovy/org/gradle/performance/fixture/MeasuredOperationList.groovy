@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.peformance.fixture
+package org.gradle.performance.fixture
 
-import static org.gradle.peformance.fixture.PrettyCalculator.prettyBytes
-import static org.gradle.peformance.fixture.PrettyCalculator.prettyTime
+import static org.gradle.performance.fixture.PrettyCalculator.prettyBytes
+import static org.gradle.performance.fixture.PrettyCalculator.prettyTime
 
 /**
  * by Szczepan Faber, created at: 2/10/12

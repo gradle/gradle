@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
+package org.gradle.performance.fixture
 
-
-package org.gradle.peformance.fixture
-
-import static org.gradle.peformance.fixture.PrettyCalculator.*
+import static org.gradle.performance.fixture.PrettyCalculator.*
 
 /**
  * by Szczepan Faber, created at: 11/20/12

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.peformance.fixture
+package org.gradle.performance.fixture
 
 import spock.lang.Specification
 
-import static org.gradle.peformance.fixture.PrettyCalculator.percentChange
+import static org.gradle.performance.fixture.PrettyCalculator.percentChange
 
 /**
  * by Szczepan Faber, created at: 10/30/12

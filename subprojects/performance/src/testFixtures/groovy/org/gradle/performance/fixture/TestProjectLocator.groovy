@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.peformance.fixture
+package org.gradle.performance.fixture
 
 /**
  * by Szczepan Faber, created at: 2/10/12

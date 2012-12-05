@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.performance.fixture
 
-package org.gradle.peformance.fixture;
+import spock.lang.Specification
 
-import java.io.File;
+class UnitsTest extends Specification {
+    def "can compare units of same quantity"() {
+        def base = Units.base(Void.class, "base")
+        def units1 = base.times(12, "units1")
+        def units2 = base.times(33, "units2")
 
-/**
- * by Szczepan Faber, created at: 8/14/12
- */
-public interface DataCollector {
-
-    void collect(File testProjectDir, MeasuredOperation operation);
+        expect:
+        base < units1
+        base < units2
+        units1 > base
+        units1 < units2
+        units2 > base
+        units2 > units1
+    }
 }

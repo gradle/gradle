@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.peformance
+package org.gradle.performance
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter

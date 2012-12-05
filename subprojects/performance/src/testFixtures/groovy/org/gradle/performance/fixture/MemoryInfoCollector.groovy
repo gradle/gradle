@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.peformance.fixture
 
-import spock.lang.Specification
+package org.gradle.performance.fixture
 
-class UnitsTest extends Specification {
-    def "can compare units of same quantity"() {
-        def base = Units.base(Void.class, "base")
-        def units1 = base.times(12, "units1")
-        def units2 = base.times(33, "units2")
+/**
+ * by Szczepan Faber, created at: 8/14/12
+ */
+public class MemoryInfoCollector implements DataCollector {
 
-        expect:
-        base < units1
-        base < units2
-        units1 > base
-        units1 < units2
-        units2 > base
-        units2 > units1
+    String outputFileName
+
+    public void collect(File testProjectDir, MeasuredOperation operation) {
+        def file = new File(testProjectDir, outputFileName)
+        if (!file.exists()) {
+            throw new RuntimeException("Cannot find $file. Cannot collect memory information if the build hasn't produced one.")
+        }
+        long bytesConsumed = Long.parseLong(file.text)
+        operation.totalMemoryUsed = DataAmount.bytes(bytesConsumed)
     }
 }

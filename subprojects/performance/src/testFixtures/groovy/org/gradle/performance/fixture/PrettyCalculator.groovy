@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.peformance.fixture
+package org.gradle.performance.fixture
 
 import java.math.RoundingMode
 

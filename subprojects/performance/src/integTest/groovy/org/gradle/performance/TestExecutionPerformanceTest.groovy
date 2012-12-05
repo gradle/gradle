@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.peformance
+package org.gradle.performance
 
-import org.gradle.peformance.fixture.PerformanceTestRunner
+import org.gradle.performance.fixture.PerformanceTestRunner
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.peformance.fixture.DataAmount.kbytes
-import static org.gradle.peformance.fixture.Duration.millis
+import static org.gradle.performance.fixture.DataAmount.kbytes
+import static org.gradle.performance.fixture.Duration.millis
 
 /**
  * by Szczepan Faber, created at: 2/9/12

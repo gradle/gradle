@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.peformance.fixture
+package org.gradle.performance.fixture;
+
+import java.io.File;
 
 /**
  * by Szczepan Faber, created at: 8/14/12
  */
-public class MemoryInfoCollector implements DataCollector {
+public interface DataCollector {
 
-    String outputFileName
-
-    public void collect(File testProjectDir, MeasuredOperation operation) {
-        def file = new File(testProjectDir, outputFileName)
-        if (!file.exists()) {
-            throw new RuntimeException("Cannot find $file. Cannot collect memory information if the build hasn't produced one.")
-        }
-        long bytesConsumed = Long.parseLong(file.text)
-        operation.totalMemoryUsed = DataAmount.bytes(bytesConsumed)
-    }
+    void collect(File testProjectDir, MeasuredOperation operation);
 }

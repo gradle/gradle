@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.peformance.fixture
+package org.gradle.performance.fixture
 
 import spock.lang.Specification
 
-import static org.gradle.peformance.fixture.BaselineVersion.baseline
+import static org.gradle.performance.fixture.BaselineVersion.baseline
 
 class PerformanceResultsTest extends Specification {
     def PerformanceResults result = new PerformanceResults()

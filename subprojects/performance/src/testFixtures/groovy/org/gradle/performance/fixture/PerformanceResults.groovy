@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.peformance.fixture
+package org.gradle.performance.fixture
 
 import org.gradle.api.logging.Logging
 
-import static org.gradle.peformance.fixture.BaselineVersion.baseline
+import static org.gradle.performance.fixture.BaselineVersion.baseline
 
 public class PerformanceResults {
 
