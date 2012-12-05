@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
-import org.gradle.integtests.fixtures.executer.RuleHelper;
+import org.gradle.util.RuleHelper;
 import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;

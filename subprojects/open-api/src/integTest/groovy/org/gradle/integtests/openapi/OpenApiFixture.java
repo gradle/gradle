@@ -16,7 +16,7 @@
 package org.gradle.integtests.openapi;
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
-import org.gradle.integtests.fixtures.executer.RuleHelper;
+import org.gradle.util.RuleHelper;
 import org.gradle.internal.UncheckedException;
 import org.gradle.openapi.external.ui.DualPaneUIVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1;

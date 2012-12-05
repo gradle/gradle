@@ -20,6 +20,7 @@ import org.gradle.util.TestFile
 import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
+import org.gradle.util.RuleHelper
 
 class ProgressLoggingFixture implements MethodRule {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.executer;
+package org.gradle.util;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
