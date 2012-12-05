@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConflictResolution;
-import org.gradle.api.artifacts.ForcedModuleDetails;
+import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
@@ -38,10 +38,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private ConflictResolution conflictResolution = new LatestConflictResolution();
     private final DefaultCachePolicy cachePolicy = new DefaultCachePolicy();
 
-    private final ModuleForcingStrategy moduleForcingStrategy = new ModuleForcingStrategy();
+    private final ModuleMutationStrategy moduleMutationStrategy = new ModuleMutationStrategy();
 
     public Set<ModuleVersionSelector> getForcedModules() {
-        return moduleForcingStrategy.getForcedModules();
+        return moduleMutationStrategy.getForcedModules();
     }
 
     public ResolutionStrategy failOnVersionConflict() {
@@ -60,23 +60,22 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     public DefaultResolutionStrategy force(Object... forcedModuleNotations) {
         assert forcedModuleNotations != null : "forcedModuleNotations cannot be null";
         Set<ModuleVersionSelector> forcedModules = new ForcedModuleNotationParser().parseNotation(forcedModuleNotations);
-        this.moduleForcingStrategy.addModules(forcedModules);
+        this.moduleMutationStrategy.addModules(forcedModules);
         return this;
     }
 
-    //TODO SF unify adding rules with forced modules via the notation parser
-    public DefaultResolutionStrategy setForceRule(Action<ForcedModuleDetails> rule) {
-        this.moduleForcingStrategy.setRule(rule);
+    public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> action) {
+        this.moduleMutationStrategy.eachDependency(action);
         return this;
     }
 
-    public ModuleForcingStrategy getModuleForcingStrategy() {
-        return moduleForcingStrategy;
+    public ModuleMutationStrategy getModuleMutationStrategy() {
+        return moduleMutationStrategy;
     }
 
     public DefaultResolutionStrategy setForcedModules(Object ... forcedModuleNotations) {
         Set<ModuleVersionSelector> forcedModules = new ForcedModuleNotationParser().parseNotation(forcedModuleNotations);
-        this.moduleForcingStrategy.setModules(forcedModules);
+        this.moduleMutationStrategy.setModules(forcedModules);
         return this;
     }
 

@@ -47,5 +47,5 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      *
      * @return module forcing strategy
      */
-    ModuleForcingStrategy getModuleForcingStrategy();
+    ModuleMutationStrategy getModuleMutationStrategy();
 }

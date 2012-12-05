@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.forcing
 
 import org.gradle.api.Action
-import org.gradle.api.internal.artifacts.configurations.ModuleForcingStrategy
+import org.gradle.api.internal.artifacts.configurations.ModuleMutationStrategy
 import spock.lang.Specification
 
 import static java.util.Collections.emptySet
@@ -29,7 +29,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class ForcedModuleRulesFactorySpec extends Specification {
 
     private factory = new ForcedModuleRulesFactory()
-    private forcingStrategy = Mock(ModuleForcingStrategy)
+    private forcingStrategy = Mock(ModuleMutationStrategy)
 
     def "provides empty rules when input is empty"() {
         when:

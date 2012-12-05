@@ -31,14 +31,14 @@ class ForcedVersionsRuleSpec extends Specification {
         def forceModule2 = newSelector("org",  "module2", "1.0")
 
         when:
-        def details = new DefaultForcedModuleDetails(module)
+        def details = new DefaultForcedModuleDetails(requested)
         new ForcedVersionsRule([forceModule1, forceModule2]).execute(details)
 
         then:
         details.forcedVersion == forcedVersion
 
         where:
-        module                                 | forcedVersion
+        requested                              | forcedVersion
         newSelector("org",  "module2", "0.9")  | "1.0"
         newSelector("orgX", "module2", "0.9")  | null
         newSelector("org",  "moduleX", "0.9")  | null

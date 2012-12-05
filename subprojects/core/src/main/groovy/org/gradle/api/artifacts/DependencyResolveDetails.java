@@ -17,21 +17,28 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
  * Provides details about the candidate module
  * and provides means to force certain properties of the module.
  */
 @Incubating
-public interface ForcedModuleDetails {
+public interface DependencyResolveDetails {
 
     /**
      * The module, before it is resolved.
      */
-    ModuleVersionSelector getModule();
+    ModuleVersionSelector getRequested();
 
     /**
      * Forces version of the module.
      */
     void forceVersion(String version);
+
+    @Nullable
+    /**
+     * Returns forced version. Null means that no forced version was configured.
+     */
+    String getForcedVersion();
 }

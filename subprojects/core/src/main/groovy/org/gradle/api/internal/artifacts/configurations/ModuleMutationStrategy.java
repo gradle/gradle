@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ForcedModuleDetails;
+import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
 import java.util.LinkedHashSet;
@@ -26,16 +26,16 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 11/29/12
  */
-public class ModuleForcingStrategy {
+public class ModuleMutationStrategy {
 
     private Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
-    private Action<ForcedModuleDetails> rule;
+    private Action<? super DependencyResolveDetails> rule;
 
     public Set<ModuleVersionSelector> getForcedModules() {
         return forcedModules;
     }
 
-    public Action<ForcedModuleDetails> getRule() {
+    public Action<? super DependencyResolveDetails> getRule() {
         return rule;
     }
 
@@ -47,7 +47,7 @@ public class ModuleForcingStrategy {
         this.forcedModules = forcedModules;
     }
 
-    public void setRule(Action<ForcedModuleDetails> rule) {
+    public void eachDependency(Action<? super DependencyResolveDetails> rule) {
         this.rule = rule;
     }
 }

@@ -245,8 +245,8 @@ allprojects {
             }
 
             configurations.conf.resolutionStrategy {
-	            forceRule = {
-                    if (it.module.group == 'org.utils' && it.module.name != 'optional-lib') {
+	            eachDependency {
+                    if (it.requested.group == 'org.utils' && it.requested.name != 'optional-lib') {
                         it.forceVersion '1.5'
                     }
 	            }

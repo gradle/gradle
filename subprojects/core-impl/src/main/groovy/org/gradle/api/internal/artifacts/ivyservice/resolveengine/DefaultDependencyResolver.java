@@ -16,12 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ForcedModuleDetails;
+import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.ModuleForcingStrategy;
+import org.gradle.api.internal.artifacts.configurations.ModuleMutationStrategy;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
@@ -62,8 +62,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         dependencyResolver = new ClientModuleResolver(dependencyResolver);
         dependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver);
         DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, ivyAdapter.getResolveData().getSettings().getVersionMatcher());
-        ModuleForcingStrategy moduleForcingStrategy = configuration.getResolutionStrategy().getModuleForcingStrategy();
-        Set<Action<ForcedModuleDetails>> rules = forcedModuleRulesFactory.createRules(moduleForcingStrategy);
+        ModuleMutationStrategy moduleMutationStrategy = configuration.getResolutionStrategy().getModuleMutationStrategy();
+        Set<Action<? super DependencyResolveDetails>> rules = forcedModuleRulesFactory.createRules(moduleMutationStrategy);
         idResolver = new VersionForcingDependencyToModuleResolver(idResolver, rules);
 
         ModuleConflictResolver conflictResolver;

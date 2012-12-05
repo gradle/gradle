@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.forcing;
 
-import org.gradle.api.artifacts.ForcedModuleDetails;
+import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
 /**
 * by Szczepan Faber, created at: 11/29/12
 */
-public class DefaultForcedModuleDetails implements ForcedModuleDetails {
+public class DefaultForcedModuleDetails implements DependencyResolveDetails {
     private final ModuleVersionSelector module;
     private String forcedVersion;
 
@@ -30,7 +30,7 @@ public class DefaultForcedModuleDetails implements ForcedModuleDetails {
         this.module = module;
     }
 
-    public ModuleVersionSelector getModule() {
+    public ModuleVersionSelector getRequested() {
         return module;
     }
 

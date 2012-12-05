@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import spock.lang.Specification
 import org.gradle.api.Action
+import spock.lang.Specification
 
 class VersionForcingDependencyToModuleResolverTest extends Specification {
     final target = Mock(DependencyToModuleVersionIdResolver)
@@ -39,7 +39,7 @@ class VersionForcingDependencyToModuleResolverTest extends Specification {
 
         and:
         1 * target.resolve(dep) >> resolvedVersion
-        2 * rule.execute( {it.module.group == 'org' && it.module.name == 'module' && it.module.version == '1.0'} )
+        2 * rule.execute( {it.getRequested.group == 'org' && it.getRequested.name == 'module' && it.getRequested.version == '1.0'} )
         0 * target._
     }
 

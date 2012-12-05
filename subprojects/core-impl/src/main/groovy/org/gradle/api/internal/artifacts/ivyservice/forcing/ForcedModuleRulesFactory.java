@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.forcing;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ForcedModuleDetails;
-import org.gradle.api.internal.artifacts.configurations.ModuleForcingStrategy;
+import org.gradle.api.artifacts.DependencyResolveDetails;
+import org.gradle.api.internal.artifacts.configurations.ModuleMutationStrategy;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -28,11 +28,11 @@ import java.util.Set;
  * by Szczepan Faber, created at: 11/29/12
  */
 public class ForcedModuleRulesFactory {
-    public Set<Action<ForcedModuleDetails>> createRules(ModuleForcingStrategy strategy) {
+    public Set<Action<? super DependencyResolveDetails>> createRules(ModuleMutationStrategy strategy) {
         if (strategy.getForcedModules().isEmpty() && strategy.getRule() == null) {
             return Collections.emptySet();
         }
-        Set<Action<ForcedModuleDetails>> rules = new LinkedHashSet<Action<ForcedModuleDetails>>();
+        Set<Action<? super DependencyResolveDetails>> rules = new LinkedHashSet<Action<? super DependencyResolveDetails>>();
         if (!strategy.getForcedModules().isEmpty()) {
             rules.add(new ForcedVersionsRule(strategy.getForcedModules()));
         }

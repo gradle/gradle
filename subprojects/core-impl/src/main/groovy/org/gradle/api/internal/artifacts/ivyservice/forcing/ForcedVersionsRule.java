@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.forcing;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ForcedModuleDetails;
+import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import java.util.Map;
 /**
 * by Szczepan Faber, created at: 11/29/12
 */
-public class ForcedVersionsRule implements Action<ForcedModuleDetails> {
+public class ForcedVersionsRule implements Action<DependencyResolveDetails> {
 
     private final Map<String, String> forcedModules = new HashMap<String, String>();
 
@@ -36,10 +36,10 @@ public class ForcedVersionsRule implements Action<ForcedModuleDetails> {
         }
     }
 
-    public void execute(ForcedModuleDetails forcedModuleDetails) {
-        String key = key(forcedModuleDetails.getModule());
+    public void execute(DependencyResolveDetails dependencyResolveDetails) {
+        String key = key(dependencyResolveDetails.getRequested());
         if (forcedModules.containsKey(key)) {
-            forcedModuleDetails.forceVersion(forcedModules.get(key));
+            dependencyResolveDetails.forceVersion(forcedModules.get(key));
         }
     }
 
