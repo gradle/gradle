@@ -217,6 +217,10 @@ class MavenHttpModule implements MavenModule {
         server.expectGetMissing("$moduleVersionPath/$missingPomName")
     }
 
+    void expectPomGetBroken() {
+        server.expectGetBroken("$moduleVersionPath/$missingPomName")
+    }
+
     void expectPomHeadMissing() {
         server.expectHeadMissing("$moduleVersionPath/$missingPomName")
     }

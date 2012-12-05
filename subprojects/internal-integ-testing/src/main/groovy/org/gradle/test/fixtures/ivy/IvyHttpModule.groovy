@@ -88,8 +88,16 @@ class IvyHttpModule extends AbstractIvyModule {
         server.expectGetMissing("$prefix/$ivyFile.name")
     }
 
+    void expectIvyGetBroken() {
+        server.expectGetBroken("$prefix/$ivyFile.name")
+    }
+
     void expectIvyHead() {
         server.expectHead("$prefix/$ivyFile.name", ivyFile)
+    }
+
+    void expectIvyHeadBroken() {
+        server.expectHeadBroken("$prefix/$ivyFile.name")
     }
 
     void expectIvySha1Get() {
@@ -102,6 +110,14 @@ class IvyHttpModule extends AbstractIvyModule {
 
     void expectJarGet() {
         server.expectGet("$prefix/$jarFile.name", jarFile)
+    }
+
+    void expectJarGetMissing() {
+        server.expectGetMissing("$prefix/$jarFile.name")
+    }
+
+    void expectJarGetBroken() {
+        server.expectGetBroken("$prefix/$jarFile.name")
     }
 
     void expectJarHead() {

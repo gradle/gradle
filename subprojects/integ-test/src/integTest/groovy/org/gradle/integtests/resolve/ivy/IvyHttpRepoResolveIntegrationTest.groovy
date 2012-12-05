@@ -26,12 +26,12 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         server.start()
         given:
-        def module = ivyRepo().module('group', 'projectA', '1.2').publish()
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
         and:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "${ivyHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }
@@ -40,12 +40,14 @@ task listJars << {
 }
 """
         when:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        module.expectIvyGet()
+        module.expectJarGet()
+
         then:
         succeeds 'listJars'
         progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA/1.2/ivy-1.2.xml")
         progressLogger.downloadProgressLogged("http://localhost:${server.port}/repo/group/projectA/1.2/projectA-1.2.jar")
+
         when:
         server.resetExpectations()
         then:
@@ -55,12 +57,12 @@ task listJars << {
     public void "can resolve and cache artifact-only dependencies from an HTTP Ivy repository"() {
         server.start()
         given:
-        def module = ivyRepo().module('group', 'projectA', '1.2').publish()
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
         and:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "${ivyHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'group:projectA:1.2@jar' }
@@ -71,9 +73,8 @@ task listJars << {
 
 
         when:
-        // TODO: Should meta-data be fetched for an artifact-only dependency?
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        module.expectIvyGet()
+        module.expectJarGet()
 
         then:
         executer.withArgument("-i")
@@ -91,16 +92,19 @@ task listJars << {
     public void "can resolve and cache dependencies from multiple HTTP Ivy repositories"() {
         server.start()
         given:
-        def repo = ivyRepo()
-        def moduleA = repo.module('group', 'projectA').publish()
-        def moduleB = repo.module('group', 'projectB').publish()
-        def moduleC = repo.module('group', 'projectC').publish()
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+        def moduleA = repo1.module('group', 'projectA').publish()
+        def missingModuleB = repo1.module('group', 'projectB')
+        def moduleB = repo2.module('group', 'projectB').publish()
+        def brokenModuleC = repo1.module('group', 'projectC')
+        def moduleC = repo2.module('group', 'projectC').publish()
 
         and:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo1" }
-    ivy { url "http://localhost:${server.port}/repo2" }
+    ivy { url "${repo1.uri}" }
+    ivy { url "${repo2.uri}" }
 }
 configurations { compile }
 dependencies {
@@ -112,25 +116,29 @@ task listJars << {
 """
 
         when:
-        server.expectGet('/repo1/group/projectA/1.0/ivy-1.0.xml', moduleA.ivyFile)
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', moduleA.jarFile)
+        moduleA.expectIvyGet()
+        moduleA.expectJarGet()
 
         // Handles missing in repo1
-        server.expectGetMissing('/repo1/group/projectB/1.0/ivy-1.0.xml')
-        server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
+        missingModuleB.expectIvyGetMissing()
+        missingModuleB.expectJarHeadMissing()
 
-        server.expectGet('/repo2/group/projectB/1.0/ivy-1.0.xml', moduleB.ivyFile)
-        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', moduleB.jarFile)
+        moduleB.expectIvyGet()
+        moduleB.expectJarGet()
 
         // Handles from broken url in repo1 (but does not cache)
-        server.addBroken('/repo1/group/projectC')
-        server.expectGet('/repo2/group/projectC/1.0/ivy-1.0.xml', moduleC.ivyFile)
-        server.expectGet('/repo2/group/projectC/1.0/projectC-1.0.jar', moduleC.jarFile)
+        brokenModuleC.expectIvyGetBroken()
+
+        moduleC.expectIvyGet()
+        moduleC.expectJarGet()
+
         then:
         succeeds('listJars')
+
         when:
         server.resetExpectations()
-        server.addBroken('/repo1/group/projectC') // Will always re-attempt a broken repository
+        // Will always re-attempt a broken repository
+        brokenModuleC.expectIvyHeadBroken()
         // No extra calls for cached dependencies
 
         then:

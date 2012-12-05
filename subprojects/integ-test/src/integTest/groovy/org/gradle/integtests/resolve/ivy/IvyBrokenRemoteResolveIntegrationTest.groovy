@@ -16,10 +16,8 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.ivy.IvyFileModule
 
 import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.startsWith
 
 class IvyBrokenRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -27,30 +25,28 @@ class IvyBrokenRemoteResolveIntegrationTest extends AbstractDependencyResolution
         server.start()
 
         given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+        def moduleInRepo1 = repo1.module("group", "projectA", "1.2")
+        def moduleInRepo2 = repo2.module('group', 'projectA', '1.2').publish()
 
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo1"}
-    ivy { url "http://localhost:${server.port}/repo2"}
+    ivy { url "${repo1.uri}"}
+    ivy { url "${repo2.uri}"}
 }
 configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-if (project.hasProperty('doNotCacheChangingModules')) {
-    configurations.all {
-        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-    }
-}
 task showMissing << { println configurations.missing.files }
 """
 
         when:
-        expectMissingArtifact("repo1", module)
-        expectExistingArtifact("repo2", module)
+        moduleInRepo1.expectIvyGetMissing()
+        moduleInRepo1.expectJarHeadMissing()
+        moduleInRepo2.expectIvyGet()
+        moduleInRepo2.expectJarGet()
 
         then:
         succeeds("showMissing")
@@ -65,14 +61,12 @@ task showMissing << { println configurations.missing.files }
         server.start()
 
         given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.3')
-        module.publish()
+        def module = ivyHttpRepo.module('group', 'projectA', '1.3').publish()
 
         buildFile << """
 repositories {
     ivy {
-        url "http://localhost:${server.port}"
+        url "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -83,19 +77,19 @@ task showBroken << { println configurations.broken.files }
 """
 
         when:
-        server.addBroken('/')
+        module.expectIvyGetBroken()
         fails("showBroken")
 
         then:
         failure.assertHasDescription('Execution failed for task \':showBroken\'.')
         failure.assertHasCause('Could not resolve all dependencies for configuration \':broken\'.')
         failure.assertHasCause('Could not resolve group:group, module:projectA, version:1.3')
-        failure.assertHasCause("Could not GET 'http://localhost:${server.port}/group/projectA/1.3/ivy-1.3.xml'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not GET '${ivyHttpRepo.uri}/group/projectA/1.3/ivy-1.3.xml'. Received status code 500 from server: broken")
 
         when:
         server.resetExpectations()
-        server.expectGet('/group/projectA/1.3/ivy-1.3.xml', module.ivyFile)
-        server.expectGet('/group/projectA/1.3/projectA-1.3.jar', module.jarFile)
+        module.expectIvyGet()
+        module.expectJarGet()
 
         then:
         succeeds("showBroken")
@@ -108,7 +102,7 @@ task showBroken << { println configurations.broken.files }
         buildFile << """
 repositories {
     ivy {
-        url "http://localhost:${server.port}"
+        url "${ivyHttpRepo.uri}"
     }
 }
 configurations { compile }
@@ -122,12 +116,11 @@ task retrieve(type: Sync) {
 """
 
         and:
-        def module = ivyRepo().module('group', 'projectA', '1.2')
-        module.publish()
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
         when:
-        server.expectGet('/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGetMissing('/group/projectA/1.2/projectA-1.2.jar')
+        module.expectIvyGet()
+        module.expectJarGetMissing()
 
         then:
         fails "retrieve"
@@ -149,7 +142,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        url "http://localhost:${server.port}"
+        url "${ivyHttpRepo.uri}"
     }
 }
 configurations { compile }
@@ -163,34 +156,23 @@ task retrieve(type: Sync) {
 """
 
         and:
-        def module = ivyRepo().module('group', 'projectA', '1.2')
-        module.publish()
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
         when:
-        server.expectGet('/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.addBroken('/group/projectA/1.2/projectA-1.2.jar')
+        module.expectIvyGet()
+        module.expectJarGetBroken()
 
         then:
         fails "retrieve"
         failure.assertHasCause("Could not download artifact 'group:projectA:1.2@jar'")
-        failure.assertThatCause(startsWith("Could not GET"))
+        failure.assertHasCause("Could not GET '${ivyHttpRepo.uri}/group/projectA/1.2/projectA-1.2.jar'. Received status code 500 from server: broken")
 
         when:
         server.resetExpectations()
-        server.expectGet('/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        module.expectJarGet()
 
         then:
         succeeds "retrieve"
         file('libs').assertHasDescendants('projectA-1.2.jar')
-    }
-
-    def expectExistingArtifact(String repo, IvyFileModule module) {
-        server.expectGet("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/ivy-${module.getRevision()}.xml", module.ivyFile)
-        server.expectGet("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/${module.getModule()}-${module.getRevision()}.jar", module.jarFile)
-    }
-
-    def expectMissingArtifact(String repo, IvyFileModule module) {
-        server.expectGetMissing("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/ivy-${module.getRevision()}.xml")
-        server.expectHeadMissing("/${repo}/${module.getOrganisation()}/${module.getModule()}/${module.getRevision()}/${module.getModule()}-${module.getRevision()}.jar")
     }
 }

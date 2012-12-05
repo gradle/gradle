@@ -48,6 +48,14 @@ class IvyHttpRepository implements IvyRepository {
         server.expectGetDirectoryListing("$contextPath/$organisation/$module/", backingRepository.module(organisation, module, "1.0").moduleDir.parentFile)
     }
 
+    void expectDirectoryListGetMissing(String organisation, String module) {
+        server.expectGetMissing("$contextPath/$organisation/$module/")
+    }
+
+    void expectDirectoryListGetBroken(String organisation, String module) {
+        server.expectGetBroken("$contextPath/$organisation/$module/")
+    }
+
     IvyHttpModule module(String organisation, String module, Object revision = "1.0") {
         return new IvyHttpModule(server, "$contextPath/$organisation/$module/$revision", backingRepository.module(organisation, module, revision))
     }

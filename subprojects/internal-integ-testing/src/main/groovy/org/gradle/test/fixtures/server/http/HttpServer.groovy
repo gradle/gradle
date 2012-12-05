@@ -236,15 +236,14 @@ class HttpServer extends ExternalResource {
      * Adds a broken resource at the given URL.
      */
     void addBroken(String path) {
-        allow(path, true, null, new Action() {
-            String getDisplayName() {
-                return "return 500 broken"
-            }
+        allow(path, true, null, broken())
+    }
 
-            void handle(HttpServletRequest request, HttpServletResponse response) {
-                response.sendError(500, "broken")
-            }
-        })
+    /**
+     * Allows one GET request, which fails with a 500 status code
+     */
+    void expectGetBroken(String path) {
+        expect(path, false, ['GET'], broken())
     }
 
     /**
@@ -261,6 +260,13 @@ class HttpServer extends ExternalResource {
         expect(path, false, ['HEAD'], notFound())
     }
 
+    /**
+     * Allows one HEAD request for the given URL, which returns a 500 status code
+     */
+    void expectHeadBroken(String path) {
+        expect(path, false, ['HEAD'], broken())
+    }
+
     private Action notFound() {
         new Action() {
             String getDisplayName() {
@@ -269,6 +275,18 @@ class HttpServer extends ExternalResource {
 
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 response.sendError(404, "not found")
+            }
+        }
+    }
+
+    private Action broken() {
+        new Action() {
+            String getDisplayName() {
+                return "return 500 broken"
+            }
+
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.sendError(500, "broken")
             }
         }
     }

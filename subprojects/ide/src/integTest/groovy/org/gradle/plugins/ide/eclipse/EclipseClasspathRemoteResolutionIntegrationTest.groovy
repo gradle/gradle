@@ -20,11 +20,13 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.test.fixtures.maven.MavenHttpRepository
 
 class EclipseClasspathRemoteResolutionIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule public final HttpServer server = new HttpServer()
     @Rule public final TestResources testResources = new TestResources()
+    final def repo = new MavenHttpRepository(server, "/repo", mavenRepo)
 
     @Before
     void "setup"() {
@@ -34,21 +36,20 @@ class EclipseClasspathRemoteResolutionIntegrationTest extends AbstractEclipseInt
     @Test
     void "does not break when source or javadoc artifacts are missing or broken"() {
 //        given:
-        def projectA = mavenRepo.module('group', 'projectA', '1.0').publish()
-        def projectB = mavenRepo.module('group', 'projectB', '1.0').publish()
+        def projectA = repo.module('group', 'projectA', '1.0').publish()
+        def projectB = repo.module('group', 'projectB', '1.0').publish()
         server.start()
 
 //        when:
         server.resetExpectations()
-        server.expectGet('/repo/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectGet('/repo/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGetMissing('/repo/group/projectA/1.0/projectA-1.0-sources.jar')
-        server.expectGetMissing('/repo/group/projectA/1.0/projectA-1.0-javadoc.jar')
-        server.expectGet('/repo/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/repo/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
-        server.addBroken('/repo/group/projectB/1.0/projectB-1.0-sources.jar')
-        server.addBroken('/repo/group/projectB/1.0/projectB-1.0-javadoc.jar')
-
+        projectA.expectPomGet()
+        projectA.artifact.expectGet()
+        projectA.artifact(classifier: 'sources').expectGetMissing()
+        projectA.artifact(classifier: 'javadoc').expectGetMissing()
+        projectB.expectPomGet()
+        projectB.artifact.expectGet()
+        projectB.artifact(classifier: 'sources').expectGetBroken()
+        projectB.artifact(classifier: 'javadoc').expectGetBroken()
 
 //        and:
         def result = runEclipseTask """

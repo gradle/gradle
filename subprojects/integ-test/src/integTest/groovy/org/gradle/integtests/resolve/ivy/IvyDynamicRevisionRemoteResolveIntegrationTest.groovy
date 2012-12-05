@@ -340,7 +340,7 @@ task retrieve(type: Sync) {
         def projectA11 = repo2.module("group", "projectA", "1.1").publish()
 
         and: "projectA is broken in repo1"
-        server.addBroken("/repo1/group/projectA/")
+        repo1.expectDirectoryListGetBroken("group", "projectA")
         repo2.expectDirectoryListGet("group", "projectA")
         projectA11.expectIvyGet()
         projectA11.expectJarGet()
@@ -633,14 +633,15 @@ task retrieve(type: Sync) {
     public void "resolves dynamic version with 2 repositories where first repo results in 404 for directory listing"() {
         server.start()
         given:
-        def repo = ivyHttpRepo("repo2")
-        def moduleA = repo.module('group', 'projectA').publish()
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+        def moduleA = repo2.module('group', 'projectA').publish()
 
         and:
         buildFile << """
             repositories {
-                ivy { url "http://localhost:${server.port}/repo1" }
-                ivy { url "${repo.uri}" }
+                ivy { url "${repo1.uri}" }
+                ivy { url "${repo2.uri}" }
             }
             configurations { compile }
             dependencies {
@@ -652,10 +653,10 @@ task retrieve(type: Sync) {
             """
 
         when:
-        server.expectGetMissing('/repo1/group/projectA/')
+        repo1.expectDirectoryListGetMissing("group", "projectA")
         // TODO - should only list versions once
-        server.expectGetMissing('/repo1/group/projectA/')
-        repo.expectDirectoryListGet("group", "projectA")
+        repo1.expectDirectoryListGetMissing("group", "projectA")
+        repo2.expectDirectoryListGet("group", "projectA")
         moduleA.expectIvyGet()
         moduleA.expectJarGet()
 

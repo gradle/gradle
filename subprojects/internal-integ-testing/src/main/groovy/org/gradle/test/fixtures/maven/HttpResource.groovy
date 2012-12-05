@@ -31,6 +31,10 @@ abstract class HttpResource {
         server.expectGet(getPath(), file)
     }
 
+    void expectGetBroken() {
+        server.expectGetBroken(getPath())
+    }
+
     void expectHead() {
         server.expectHead(getPath(), file)
     }

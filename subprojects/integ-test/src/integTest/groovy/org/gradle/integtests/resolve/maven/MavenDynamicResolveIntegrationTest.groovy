@@ -143,7 +143,7 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
         projectA1.getArtifact().expectGet()
 
         repo2.expectMetaDataGet("group", "projectA")
-        server.addBroken('/repo2/group/projectA/1.5/projectA-1.5.pom')
+        projectA2.expectPomGetBroken()
 
         and:
         run 'retrieve'
@@ -155,7 +155,7 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
         server.resetExpectations()
         repo2.expectMetaDataGet("group", "projectA")
         projectA2.expectPomGet()
-        projectA2.getArtifact().expectGet()
+        projectA2.artifact.expectGet()
 
         and:
         run 'retrieve'
