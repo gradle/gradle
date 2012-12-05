@@ -23,28 +23,22 @@ class MavenParentPomResolveIntegrationTest extends AbstractDependencyResolutionT
         given:
         server.start()
 
-        def parentDep = mavenRepo().module("org", "parent_dep").publish()
-        def childDep = mavenRepo().module("org", "child_dep").publish()
+        def parentDep = mavenHttpRepo.module("org", "parent_dep", "1.2").publish()
+        def childDep = mavenHttpRepo.module("org", "child_dep", "1.7").publish()
 
-        def parent = mavenRepo().module("org", "parent")
-        parent.type = 'pom'
-        parent.dependsOn("parent_dep")
+        def parent = mavenHttpRepo.module("org", "parent", "1.0")
+        parent.hasPackaging('pom')
+        parent.dependsOn("org", "parent_dep", "1.2")
         parent.publish()
 
-        def child = mavenRepo().module("org", "child")
-        child.dependsOn("child_dep")
-        child.parentPomSection = """
-<parent>
-  <groupId>org</groupId>
-  <artifactId>parent</artifactId>
-  <version>1.0</version>
-</parent>
-"""
+        def child = mavenHttpRepo.module("org", "child", "1.0")
+        child.dependsOn("org", "child_dep", "1.7")
+        child.parent("org", "parent", "1.0")
         child.publish()
 
         buildFile << """
 repositories {
-    maven { url 'http://localhost:${server.port}/repo1' }
+    maven { url '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
@@ -55,48 +49,47 @@ task retrieve(type: Sync) {
 """
 
         when:
-        server.expectGet('/repo1/org/child/1.0/child-1.0.pom', child.pomFile)
-        server.expectGet('/repo1/org/parent/1.0/parent-1.0.pom', parent.pomFile)
+        child.expectPomGet()
+        parent.expectPomGet()
 
         // Will always check for a default artifact with a module with 'pom' packaging
-        server.expectHeadMissing('/repo1/org/parent/1.0/parent-1.0.jar')
+        // TODO - should not make this request
+        parent.artifact.expectHeadMissing()
 
-        server.expectGet('/repo1/org/child/1.0/child-1.0.jar', child.artifactFile)
+        child.artifact.expectGet()
 
-        server.expectGet('/repo1/org/parent_dep/1.0/parent_dep-1.0.pom', parentDep.pomFile)
-        server.expectGet('/repo1/org/parent_dep/1.0/parent_dep-1.0.jar', parentDep.artifactFile)
-        server.expectGet('/repo1/org/child_dep/1.0/child_dep-1.0.pom', childDep.pomFile)
-        server.expectGet('/repo1/org/child_dep/1.0/child_dep-1.0.jar', childDep.artifactFile)
+        parentDep.expectPomGet()
+        parentDep.artifact.expectGet()
+        childDep.expectPomGet()
+        childDep.artifact.expectGet()
 
         and:
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants('child-1.0.jar', 'parent_dep-1.0.jar', 'child_dep-1.0.jar')
+        file('libs').assertHasDescendants('child-1.0.jar', 'parent_dep-1.2.jar', 'child_dep-1.7.jar')
     }
 
     def "looks for parent pom in different repository"() {
         given:
         server.start()
+        def repo1 = mavenHttpRepo("repo1")
+        def repo2 = mavenHttpRepo("repo2")
 
-        def parent = mavenRepo().module("org", "parent")
-        parent.type = 'pom'
-        parent.publish()
+        def parentInRepo1 = repo1.module("org", "parent")
 
-        def child = mavenRepo().module("org", "child")
-        child.parentPomSection = """
-<parent>
-  <groupId>org</groupId>
-  <artifactId>parent</artifactId>
-  <version>1.0</version>
-</parent>
-"""
+        def parentInRepo2 = repo2.module("org", "parent")
+        parentInRepo2.hasPackaging('pom')
+        parentInRepo2.publish()
+
+        def child = repo1.module("org", "child")
+        child.parent("org", "parent", "1.0")
         child.publish()
 
         buildFile << """
 repositories {
-    maven { url 'http://localhost:${server.port}/repo1' }
-    maven { url 'http://localhost:${server.port}/repo2' }
+    maven { url '${repo1.uri}' }
+    maven { url '${repo2.uri}' }
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
@@ -107,13 +100,15 @@ task retrieve(type: Sync) {
 """
 
         when:
-        server.expectGet('/repo1/org/child/1.0/child-1.0.pom', child.pomFile)
-        server.expectGet('/repo1/org/child/1.0/child-1.0.jar', child.artifactFile)
+        child.expectPomGet()
+        child.artifact.expectGet()
 
-        server.expectGetMissing('/repo1/org/parent/1.0/parent-1.0.pom')
-        server.expectHeadMissing('/repo1/org/parent/1.0/parent-1.0.jar')
-        server.expectGet('/repo2/org/parent/1.0/parent-1.0.pom', parent.pomFile)
-        server.expectHead('/repo2/org/parent/1.0/parent-1.0.jar', parent.artifactFile)
+        parentInRepo1.expectPomGetMissing()
+        parentInRepo1.artifact.expectHeadMissing()
+
+        parentInRepo2.expectPomGet()
+         // TODO - should not make this request
+        parentInRepo2.artifact.expectHeadMissing()
 
         and:
         run 'retrieve'

@@ -108,6 +108,10 @@ class IvyHttpModule extends AbstractIvyModule {
         server.expectHead("$prefix/$jarFile.name", jarFile)
     }
 
+    void expectJarHeadMissing() {
+        server.expectHeadMissing("$prefix/$jarFile.name")
+    }
+
     void expectJarSha1Get() {
         server.expectGet("$prefix/${jarFile.name}.sha1", backingModule.sha1File(jarFile))
     }

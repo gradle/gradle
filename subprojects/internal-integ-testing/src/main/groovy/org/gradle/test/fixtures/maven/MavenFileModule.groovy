@@ -26,7 +26,7 @@ class MavenFileModule implements MavenModule {
     final String groupId
     final String artifactId
     final String version
-    String parentPomSection
+    private String parentPomSection
     String type = 'jar'
     String packaging
     private final List dependencies = []
@@ -43,7 +43,18 @@ class MavenFileModule implements MavenModule {
         this.version = version
     }
 
-    MavenFileModule dependsOn(String ... dependencyArtifactIds) {
+    MavenFileModule parent(String group, String artifactId, String version) {
+        parentPomSection = """
+<parent>
+  <groupId>${group}</groupId>
+  <artifactId>${artifactId}</artifactId>
+  <version>${version}</version>
+</parent>
+"""
+        return this
+    }
+
+    MavenFileModule dependsOn(String... dependencyArtifactIds) {
         for (String id : dependencyArtifactIds) {
             dependsOn(groupId, id, '1.0')
         }
@@ -52,6 +63,11 @@ class MavenFileModule implements MavenModule {
 
     MavenFileModule dependsOn(String group, String artifactId, String version, String type = null) {
         this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type]
+        return this
+    }
+
+    MavenFileModule hasPackaging(String packaging) {
+        this.packaging = packaging
         return this
     }
 
@@ -248,7 +264,7 @@ class MavenFileModule implements MavenModule {
                             }
                         } else {
                             versions {
-                                allVersions.each{currVersion ->
+                                allVersions.each {currVersion ->
                                     version(currVersion)
                                 }
                             }

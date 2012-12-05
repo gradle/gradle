@@ -38,21 +38,20 @@ public class ClientModuleDependenciesResolveIntegrationTest extends AbstractDepe
 
     @Test
     public void "uses metadata from Client Module and looks up artifact in declared repositories"() {
-        distribution.requireOwnUserHomeDir()
         given:
-        def repo = ivyRepo()
-        def projectA = repo.module('group', 'projectA', '1.2')
-        def projectB = repo.module('group', 'projectB', '1.3')
-        projectA.publish()
-        projectB.publish()
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+        def projectAInRepo1 = repo1.module('group', 'projectA', '1.2')
+        def projectAInRepo2 = repo2.module('group', 'projectA', '1.2').publish()
+        def projectB = repo1.module('group', 'projectB', '1.3').publish()
 
         server.start()
 
         and:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
-    ivy { url "http://localhost:${server.port}/repo2" }
+    ivy { url "${repo1.uri}" }
+    ivy { url "${repo2.uri}" }
 }
 configurations { compile }
 dependencies {
@@ -64,20 +63,22 @@ task listJars << {
     assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.3.jar']
 }
 """
-        server.expectGet('/repo/group/projectB/1.3/ivy-1.3.xml', projectB.ivyFile)
-        server.expectGetMissing('/repo/group/projectA/1.2/ivy-1.2.xml')
-        server.expectHeadMissing('/repo/group/projectA/1.2/projectA-1.2.jar')
-        server.expectGet('/repo2/group/projectA/1.2/ivy-1.2.xml', projectA.ivyFile)
-        server.expectGet('/repo2/group/projectA/1.2/projectA-1.2.jar', projectA.jarFile)
-        server.expectGet('/repo/group/projectB/1.3/projectB-1.3.jar', projectB.jarFile)
 
-        expect:
+        when:
+        projectB.expectIvyGet()
+        projectB.expectJarGet()
+        projectAInRepo1.expectIvyGetMissing()
+        projectAInRepo1.expectJarHeadMissing()
+        projectAInRepo2.expectIvyGet()
+        projectAInRepo2.expectJarGet()
+
+        then:
         succeeds('listJars')
 
-//        given:
+        when:
         server.resetExpectations()
 
-//        expect:
+        then:
         succeeds('listJars')
     }
 }

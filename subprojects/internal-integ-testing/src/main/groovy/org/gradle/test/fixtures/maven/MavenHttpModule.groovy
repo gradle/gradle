@@ -33,12 +33,6 @@ class MavenHttpModule implements MavenModule {
         this.moduleRootPath = "${repoRoot}/${backingModule.groupId.replace('.', '/')}/${backingModule.artifactId}"
     }
 
-    private String artifactKey(Map map) {
-        String classifier = map.classifier ?: "_";
-        String type = map.type ?: "_";
-        classifier + ":" + type
-    }
-
     protected String getModuleVersionPath() {
         "${moduleRootPath}/${backingModule.version}"
     }
@@ -72,8 +66,18 @@ class MavenHttpModule implements MavenModule {
         return this
     }
 
-    MavenModule dependsOn(String group, String artifactId, String version) {
+    MavenModule parent(String group, String artifactId, String version) {
+        backingModule.parent(group, artifactId, version)
+        return this
+    }
+
+    MavenHttpModule dependsOn(String group, String artifactId, String version) {
         backingModule.dependsOn(group, artifactId, version)
+        return this
+    }
+
+    MavenModule hasPackaging(String packaging) {
+        backingModule.hasPackaging(packaging)
         return this
     }
 

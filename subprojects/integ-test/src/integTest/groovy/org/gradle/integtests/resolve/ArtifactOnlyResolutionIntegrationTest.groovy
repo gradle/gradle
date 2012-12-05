@@ -15,27 +15,22 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.maven.MavenHttpModule
 import org.junit.Rule
 
-class ArtifactOnlyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final HttpServer server = new HttpServer()
+class ArtifactOnlyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule public final TestResources resources = new TestResources();
 
-    MavenModule projectA
+    MavenHttpModule projectA
 
     def "setup"() {
-        requireOwnUserHomeDir()
-
-        projectA = mavenRepo.module('group', 'projectA').publish()
+        projectA = mavenHttpRepo.module('group', 'projectA').publish()
         server.start()
 
         buildFile << """
 repositories {
-    maven { url 'http://localhost:${server.port}/repo1' }
+    maven { url '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies {
@@ -51,8 +46,8 @@ task retrieve(type: Sync) {
 
     def "can resolve and cache artifact-only dependencies from a HTTP repository"() {
         when:
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        projectA.expectPomGet()
+        projectA.artifact.expectGet()
 
         and:
         run 'retrieve'
@@ -66,9 +61,9 @@ task retrieve(type: Sync) {
 
     def "can resolve and cache artifact-only dependencies from a HTTP repository with no descriptor"() {
         when:
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom')
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        projectA.expectPomGetMissing()
+        projectA.artifact.expectHead()
+        projectA.artifact.expectGet()
 
         and:
         run 'retrieve'
