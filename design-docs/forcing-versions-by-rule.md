@@ -41,6 +41,7 @@ This way libraries from a releasable unit can be forced to use a consistent vers
 - rule that affects a set of modules
 - rule that affects multiple modules
 - multiple rules
+- ResolutionResult api must consider versions forced by rule
 
 ## Story: allow substitution of group and module
 
