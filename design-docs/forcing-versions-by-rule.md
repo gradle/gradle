@@ -6,7 +6,7 @@ Manipulate the dependency metadata.
 
     - detect and blow up (implementable with the current API). Not very convenient because every detected conflict requires user intervention and declaring something in the build (for example a forced version).
     - detect and choose highest requested, consistent versions for all libraries from the releasable unit.
-    - allow specifying forced version rule as oppose to specyfing the module explicitly as it is now.
+    - allow specifying forced version rule as oppose to specifying the module explicitly as it is now.
 		
 # Other related use cases
 
@@ -22,8 +22,9 @@ This way libraries from a releasable unit can be forced to use a consistent vers
 ### User visible changes
 
 - new api methods in the resolutionStrategy type.
-- can specify the forced versions by passing an Action object
-- Action receives some context object that contains asked module (for example ModuleVersionSelector) and something kind of target module (for example ConfigurableModuleVersionSelector).
+- can specify an action that gets executed for each dependency, before resolution.
+- Action receives a 'details' object that contains asked module (for example ModuleVersionSelector)
+ and provides some way to force the version.
 - the current implementation of forcedVersions should use this api
 - the api should be designed in the way we can increment to a more robust solution. For example, forced version action can receive an information about current candidates, etc.
 
