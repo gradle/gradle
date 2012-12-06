@@ -20,21 +20,22 @@ import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.ReflectiveEnvironment;
 
 import java.io.File;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     //for updates to private JDK caches of the environment state
     private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
 
     public boolean maybeSetEnvironment(Map<String, String> source) {
-        Map<String, String> currentEnv = System.getenv();
-        Iterable<String> names = new LinkedList<String>(currentEnv.keySet());
-        for (String name : names) {
-            removeEnvironmentVariable(name);
+        Set<String> newKeys = source.keySet();
+        for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
+            if (!newKeys.contains(entry.getKey())) {
+                removeEnvironmentVariable(entry.getKey());
+            }
         }
-        for (String key : source.keySet()) {
-            setEnvironmentVariable(key, source.get(key));
+        for (Map.Entry<String, String> entry : source.entrySet()) {
+            setEnvironmentVariable(entry.getKey(), entry.getValue());
         }
         return true;
     }

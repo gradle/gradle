@@ -41,11 +41,7 @@ public class LibCBackedProcessEnvironment extends AbstractProcessEnvironment {
     }
 
     public void removeNativeEnvironmentVariable(String name) {
-        try {
-            libc.unsetenv(name);
-        } catch (LastErrorException lastErrorException) {
-            throw new NativeIntegrationException(String.format("Could not unset environment variable '%s'. errno: %d", name, lastErrorException.getErrorCode()));
-        }
+        setNativeEnvironmentVariable(name, "");
     }
 
     public void setNativeProcessDir(File dir) {
