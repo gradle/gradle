@@ -20,8 +20,6 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
@@ -54,19 +52,17 @@ import static org.gradle.util.CollectionUtils.inject;
 @Incubating
 public class MavenPublishPlugin implements Plugin<Project> {
 
+    public static final String INSTALL_TO_MAVEN_LOCAL_TASK_NAME = "installToMavenLocal";
+
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
-    private final BaseRepositoryFactory repositoryFactory;
 
     @Inject
-    public MavenPublishPlugin(
-            Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices
-    ) {
+    public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
-        this.repositoryFactory = dependencyResolutionServices.getBaseRepositoryFactory();
     }
 
     public void apply(Project project) {
@@ -85,7 +81,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         // Create publish tasks automatically for any Maven publication and repository combinations
         Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
-        MavenPublishDynamicTaskCreator publishTaskCreator = new MavenPublishDynamicTaskCreator(tasks, publishLifecycleTask, repositoryFactory);
+        Task installToMavenLocalTask = tasks.add(INSTALL_TO_MAVEN_LOCAL_TASK_NAME);
+        MavenPublishDynamicTaskCreator publishTaskCreator = new MavenPublishDynamicTaskCreator(tasks, publishLifecycleTask, installToMavenLocalTask);
         publishTaskCreator.monitor(extension.getPublications(), extension.getRepositories());
     }
 

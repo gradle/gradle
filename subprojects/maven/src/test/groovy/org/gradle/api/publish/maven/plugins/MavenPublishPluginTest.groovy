@@ -22,11 +22,13 @@ import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication
 import org.gradle.api.publish.maven.internal.MavenPublicationInternal
+
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.War
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
+import org.gradle.api.publish.maven.tasks.InstallToMavenLocal
 
 class MavenPublishPluginTest extends Specification {
 
@@ -50,7 +52,7 @@ class MavenPublishPluginTest extends Specification {
 
         then:
         project.tasks["publishMavenPublicationToMavenRepository"] != null
-        project.tasks["publishMavenPublicationToMavenLocal"] != null
+        project.tasks["installMavenPublicationToMavenLocal"] != null
     }
 
     def "default publication always has all visible config artifacts"() {
@@ -81,21 +83,33 @@ class MavenPublishPluginTest extends Specification {
 
     def "task is created for publishing to mavenLocal"() {
         expect:
+        mavenInstallTasks.size() == 1
+        mavenInstallTasks.first().name == "installMavenPublicationToMavenLocal"
+        mavenInstallTasks.first().repository.name == "mavenLocalInstall"
+        mavenInstallTasks.first().repository.url == project.getServices().get(DependencyResolutionServices).baseRepositoryFactory.createMavenLocalRepository().url
+    }
+
+    def "can explicitly add mavenLocal as a publishing repository"() {
+        when:
+        def mavenLocal = publishing.repositories.mavenLocal()
+
+        then:
         publishTasks.size() == 1
-        publishTasks.first().name == "publishMavenPublicationToMavenLocal"
-        publishTasks.first().repository.name == "mavenLocalPublish"
-        publishTasks.first().repository.url == project.getServices().get(DependencyResolutionServices).baseRepositoryFactory.createMavenLocalRepository().url
+        publishTasks.first().repository.is(mavenLocal)
+
+        mavenInstallTasks.size() == 1
+        publishTasks.first().repository.url == mavenInstallTasks.first().repository.url
     }
 
     def "tasks are created for compatible publication / repo"() {
         expect:
-        publishTasks.size() == 1
+        publishTasks.size() == 0
 
         when:
         def repo1 = publishing.repositories.maven { url "foo" }
 
         then:
-        publishTasks.size() == 2
+        publishTasks.size() == 1
         publishTasks.last().repository.is(repo1)
         publishTasks.last().name == "publishMavenPublicationToMavenRepository"
 
@@ -103,19 +117,25 @@ class MavenPublishPluginTest extends Specification {
         publishing.repositories.ivy {}
 
         then:
-        publishTasks.size() == 2
+        publishTasks.size() == 1
 
         when:
         def repo2 = publishing.repositories.maven { url "foo"; name "other" }
 
         then:
-        publishTasks.size() == 3
+        publishTasks.size() == 2
         publishTasks.last().repository.is(repo2)
         publishTasks.last().name == "publishMavenPublicationToOtherRepository"
     }
 
+    List<InstallToMavenLocal> getMavenInstallTasks() {
+        project.tasks.withType(InstallToMavenLocal).sort { it.name }
+    }
+
     List<PublishToMavenRepository> getPublishTasks() {
-        project.tasks.withType(PublishToMavenRepository).sort { it.name }
+        def allTasks = project.tasks.withType(PublishToMavenRepository).sort { it.name }
+        allTasks.removeAll(mavenInstallTasks)
+        return allTasks
     }
 
     def "publication identity is live wrt project properties"() {

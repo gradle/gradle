@@ -22,9 +22,8 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
-import org.gradle.api.internal.artifacts.mvnsettings.CannotLocateLocalMavenRepositoryException;
 import org.gradle.api.publish.PublicationContainer;
+import org.gradle.api.publish.maven.tasks.InstallToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
 import org.gradle.api.tasks.TaskContainer;
 
@@ -34,12 +33,12 @@ public class MavenPublishDynamicTaskCreator {
 
     final private TaskContainer tasks;
     private final Task publishLifecycleTask;
-    private final BaseRepositoryFactory baseRepositoryFactory;
+    private final Task installToMavenLocalTask;
 
-    public MavenPublishDynamicTaskCreator(TaskContainer tasks, Task publishLifecycleTask, BaseRepositoryFactory baseRepositoryFactory) {
+    public MavenPublishDynamicTaskCreator(TaskContainer tasks, Task publishLifecycleTask, Task installToMavenLocalTask) {
         this.tasks = tasks;
         this.publishLifecycleTask = publishLifecycleTask;
-        this.baseRepositoryFactory = baseRepositoryFactory;
+        this.installToMavenLocalTask = installToMavenLocalTask;
     }
 
     public void monitor(final PublicationContainer publications, final ArtifactRepositoryContainer repositories) {
@@ -49,16 +48,16 @@ public class MavenPublishDynamicTaskCreator {
         mavenPublications.all(new Action<MavenPublicationInternal>() {
             public void execute(MavenPublicationInternal publication) {
                 for (MavenArtifactRepository repository : mavenRepositories) {
-                    maybeCreate(publication, repository);
+                    maybeCreatePublishTask(publication, repository);
                 }
-                createPublishLocalTask(publication);
+                createInstallTask(publication);
             }
         });
 
         mavenRepositories.all(new Action<MavenArtifactRepository>() {
             public void execute(MavenArtifactRepository repository) {
                 for (MavenPublicationInternal publication : mavenPublications) {
-                    maybeCreate(publication, repository);
+                    maybeCreatePublishTask(publication, repository);
                 }
             }
         });
@@ -68,14 +67,19 @@ public class MavenPublishDynamicTaskCreator {
         //       (though this is a violation of the Named contract)
     }
 
-    private void maybeCreate(MavenPublicationInternal publication, MavenArtifactRepository repository) {
+    private void maybeCreatePublishTask(MavenPublicationInternal publication, MavenArtifactRepository repository) {
         String publicationName = publication.getName();
         String repositoryName = repository.getName();
 
         String publishTaskName = calculatePublishTaskName(publicationName, repositoryName);
         if (tasks.findByName(publishTaskName) == null) {
-            createPublishTask(publishTaskName, publication, repository,
-                    String.format("Publishes Maven publication '%s' to Maven repository '%s'", publicationName, repositoryName));
+            PublishToMavenRepository publishTask = tasks.add(publishTaskName, PublishToMavenRepository.class);
+            publishTask.setPublication(publication);
+            publishTask.setRepository(repository);
+            publishTask.setGroup("publishing");
+            publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven repository '%s'", publicationName, repositoryName));
+
+            publishLifecycleTask.dependsOn(publishTask);
         }
     }
 
@@ -83,32 +87,19 @@ public class MavenPublishDynamicTaskCreator {
         return String.format("publish%sPublicationTo%sRepository", capitalize(publicationName), capitalize(repositoryName));
     }
 
-    private void createPublishLocalTask(MavenPublicationInternal publication) {
+    private void createInstallTask(MavenPublicationInternal publication) {
         String publicationName = publication.getName();
-        String publishLocalTaskName = calculatePublishLocalTaskName(publicationName);
-        try {
-            MavenArtifactRepository mavenLocalRepository = baseRepositoryFactory.createMavenLocalRepository();
-            mavenLocalRepository.setName("mavenLocalPublish");
-            // TODO:DAZ Should this be part of the "publish" lifecycle task?
-            createPublishTask(publishLocalTaskName, publication, mavenLocalRepository,
-                    String.format("Publishes Maven publication '%s' to Maven Local repository", publicationName));
-        } catch (CannotLocateLocalMavenRepositoryException e) {
-            // TODO:DAZ What do we want to do here? What about if the maven local repo directory doesn't exist?
-            // TODO:DAZ Sad-day tests for this
-        }
+        String installTaskName = calculateInstallTaskName(publicationName);
+
+        InstallToMavenLocal installTask = tasks.add(installTaskName, InstallToMavenLocal.class);
+        installTask.setPublication(publication);
+        installTask.setGroup("publishing");
+        installTask.setDescription(String.format("Installs Maven publication '%s' to Maven Local repository", publicationName));
+
+        installToMavenLocalTask.dependsOn(installTask);
     }
 
-    private String calculatePublishLocalTaskName(String publicationName) {
-        return String.format("publish%sPublicationToMavenLocal", capitalize(publicationName));
-    }
-
-    private void createPublishTask(String publishTaskName, MavenPublicationInternal publication, MavenArtifactRepository repository, String description) {
-        PublishToMavenRepository publishTask = tasks.add(publishTaskName, PublishToMavenRepository.class);
-        publishTask.setPublication(publication);
-        publishTask.setRepository(repository);
-        publishTask.setGroup("publishing");
-        publishTask.setDescription(description);
-
-        publishLifecycleTask.dependsOn(publishTask);
+    private String calculateInstallTaskName(String publicationName) {
+        return String.format("install%sPublicationToMavenLocal", capitalize(publicationName));
     }
 }
