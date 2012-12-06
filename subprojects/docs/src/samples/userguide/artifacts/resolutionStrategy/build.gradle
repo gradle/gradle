@@ -9,3 +9,13 @@ configurations.all {
     resolutionStrategy.cacheChangingModulesFor 30, 'days'
 }
 //END SNIPPET changing-module-cache-control
+
+//START SNIPPET releasable-unit
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.gradle') {
+            details.forceVersion '1.4'
+        }
+    }
+}
+//END SNIPPET releasable-unit

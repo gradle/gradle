@@ -840,6 +840,44 @@ someroot/[artifact]-[revision].[ext]
                     <para>All of the artifacts for the module are then requested from the <emphasis>same repository</emphasis> that was chosen in the process above.</para>
                 </listitem>
             </itemizedlist>
+
+        <section id='sec:dependency_metadata_manipulation'>
+            <title>Manipulating the dependency metadata during the resolution process</title>
+            <para>Gradle's dependency resolution engine will eventually offer a complete access to the
+                dependency tree during the resolution, allowing any kind of manipulation.
+                We want to get there incrementally, by solving one by one all the important use cases raised by our users.
+                Currently, it is possible to manipulate the dependency metadata in following ways:
+            </para>
+            <section id='sec:forcing_modules'>
+                <title>Forcing certain module versions</title>
+                    <para>It is possible to configure dependency resolution to use a specific version for given dependency (transitive or not).
+                    The dependency is identified by group and name.
+                    This feature is useful when tackling version conflicts - for more information see <xref linkend='sub:version_conflicts'/>.
+                    Another interesting use case that drives this feature is dealing with rogue metadata of transitive dependencies.
+                    Imagine a transitive dependency that is pulled onto your classpath. This dependency has poor quality metadata
+                    that leads to some problems at dependency resolution time.
+                    However, there is a new version of this dependency available, a version with improved metadata information.
+                    Using forced modules, you can force a better version of this dependency and hence avoid the problem.
+                    For an example, see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
+                </para>
+            </section>
+            <section id='sec:dependency_resolve_actions'>
+                <title>Dependency resolve actions</title>
+                    <para>A dependency resolve action is executed for each resolved dependency and offers ways
+                    to manipulate the dependency metadata when the dependency is resolved.
+                    This feature is incubating, not entire dependency metadata can be manipulated at this time.
+                    At the moment, the dependency resolve action can be used to manipulate the dependency version.</para>
+                    <para>One of the use cases that was driving this feature was the requirement
+                    of resolving all dependencies from a single releasable unit with the same consistent version.
+                    Lets consider that the releasable unit is a set of libraries that are built, tested and published together.
+                    Lets imagine that the releasable unit are all libraries that have 'org.gradle' group and we want them to use a consistent version:
+                    <sample id="releasable-unit" dir="userguide/artifacts/resolutionStrategy" title="Forcing consistent version for a group of libraries">
+                        <sourcefile file="build.gradle" snippet="releasable-unit"/>
+                    </sample>
+                    </para>
+                    For more information and code samples see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
+            </section>
+        </section>
     </section>
     <section id='sec:dependency_cache'>
         <title>The dependency cache</title>

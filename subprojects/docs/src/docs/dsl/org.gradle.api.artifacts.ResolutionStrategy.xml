@@ -32,6 +32,9 @@
             <tr>
                 <td>cacheChangingModulesFor</td>
             </tr>
+            <tr>
+                <td>eachDependency</td>
+            </tr>
         </table>
     </section>
 </section>
