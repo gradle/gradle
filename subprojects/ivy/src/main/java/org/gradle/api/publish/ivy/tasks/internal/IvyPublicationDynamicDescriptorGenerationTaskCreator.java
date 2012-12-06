@@ -55,7 +55,7 @@ public class IvyPublicationDynamicDescriptorGenerationTaskCreator {
         ConventionMapping descriptorTaskConventionMapping = new DslObject(descriptorTask).getConventionMapping();
         descriptorTaskConventionMapping.map("destination", new Callable<Object>() {
             public Object call() throws Exception {
-                return publication.getDescriptor().getFile();
+                return publication.getDescriptorFile();
             }
         });
         descriptorTaskConventionMapping.map("module", new Callable<Object>() {

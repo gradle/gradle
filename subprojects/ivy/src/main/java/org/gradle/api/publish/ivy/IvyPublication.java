@@ -21,6 +21,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.api.publish.Publication;
 
+import java.io.File;
+
 /**
  * An {@code IvyPublication} is the representation/configuration of how Gradle should publish something in Ivy format.
  *
@@ -99,5 +101,22 @@ public interface IvyPublication extends Publication {
      * @param configure The configuration action.
      */
     void descriptor(Action<? super IvyModuleDescriptor> configure);
+
+    /**
+     * The generated descriptor file.
+     *
+     * This file will only exist <b>after</b> the publishing task that publishing the publication this descriptor is part of.
+     *
+     * @return The generated descriptor file
+     */
+    File getDescriptorFile();
+
+    /**
+     * Sets where the descriptor file should be generated.
+     *
+     * @param descriptorFile The new location to generate the descriptor to
+     */
+    void setDescriptorFile(File descriptorFile);
+
 
 }

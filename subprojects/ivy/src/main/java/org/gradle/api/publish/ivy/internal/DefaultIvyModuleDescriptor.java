@@ -23,12 +23,9 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.listener.ActionBroadcast;
 
-import java.io.File;
-
 public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
     private final ActionBroadcast<XmlProvider> xmlActions = new ActionBroadcast<XmlProvider>();
-    private File file;
 
     private final DefaultTaskDependency builtBy;
 
@@ -38,14 +35,6 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
     public void withXml(Action<? super XmlProvider> action) {
         xmlActions.add(action);
-    }
-
-    public File getFile() {
-        return file;
-    }
-
-    public void setFile(File descriptorFile) {
-        this.file = descriptorFile;
     }
 
     public Action<XmlProvider> getXmlAction() {

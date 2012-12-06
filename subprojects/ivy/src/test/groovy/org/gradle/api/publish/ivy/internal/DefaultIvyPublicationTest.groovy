@@ -41,7 +41,7 @@ class DefaultIvyPublicationTest extends Specification {
         project.configurations { conf1 }
         project.artifacts { conf1 file1 }
         def p = publication(project.configurations.conf1)
-        p.descriptor.file = descriptorFile1
+        p.descriptorFile = descriptorFile1
 
         then:
         p.publishableFiles.files == [file1, descriptorFile1] as Set
@@ -52,7 +52,7 @@ class DefaultIvyPublicationTest extends Specification {
         project.configurations { conf2 }
         project.artifacts { conf2 file2 }
         p = publication(project.configurations.conf1, project.configurations.conf2)
-        p.descriptor.file = descriptorFile2
+        p.descriptorFile = descriptorFile2
 
         then:
         p.publishableFiles.files == [file1, file2, descriptorFile2] as Set
@@ -98,7 +98,7 @@ class DefaultIvyPublicationTest extends Specification {
         def p = publication(project.configurations.conf1)
 
         then:
-        p.descriptor.file == null
+        p.descriptorFile == null
         p.publishableFiles.files == [file1] as Set
     }
 }

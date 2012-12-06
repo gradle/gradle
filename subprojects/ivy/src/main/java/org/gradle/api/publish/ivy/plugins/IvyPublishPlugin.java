@@ -28,7 +28,6 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
-import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
 import org.gradle.api.publish.ivy.tasks.internal.IvyPublicationDynamicDescriptorGenerationTaskCreator;
 import org.gradle.api.publish.ivy.tasks.internal.IvyPublishDynamicTaskCreator;
 import org.gradle.api.publish.plugins.PublishingPlugin;
@@ -95,10 +94,9 @@ public class IvyPublishPlugin implements Plugin<Project> {
                 name, instantiator, configurations, dependencyMetaDataProvider, fileResolver, project.getTasks()
         );
 
-        IvyModuleDescriptorInternal descriptor = publication.getDescriptor();
-        DslObject descriptorDslObject = new DslObject(descriptor);
-        ConventionMapping descriptorConventionMapping = descriptorDslObject.getConventionMapping();
-        descriptorConventionMapping.map("file", new Callable<Object>() {
+        DslObject publicationDslObject = new DslObject(publication);
+        ConventionMapping descriptorConventionMapping = publicationDslObject.getConventionMapping();
+        descriptorConventionMapping.map("descriptorFile", new Callable<Object>() {
             public Object call() throws Exception {
                 return new File(project.getBuildDir(), "publications/" + publication.getName() + "/ivy.xml");
             }

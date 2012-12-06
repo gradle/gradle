@@ -46,6 +46,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final Set<? extends Configuration> configurations;
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
+    private File descriptorFile;
 
     public DefaultIvyPublication(
             String name, Instantiator instantiator, Set<? extends Configuration> configurations,
@@ -71,6 +72,14 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         configure.execute(descriptor);
     }
 
+    public File getDescriptorFile() {
+        return descriptorFile;
+    }
+
+    public void setDescriptorFile(File descriptorFile) {
+        this.descriptorFile = descriptorFile;
+    }
+
     public FileCollection getPublishableFiles() {
         ConfigurableFileCollection files = new DefaultConfigurableFileCollection("publication artifacts", fileResolver, taskResolver);
         files.from(new Callable<Set<FileCollection>>() {
@@ -84,7 +93,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         });
         files.from(new Callable<File>() {
             public File call() throws Exception {
-                return descriptor.getFile();
+                return descriptorFile;
             }
         });
         files.builtBy(descriptor.getBuildDependencies());
@@ -99,7 +108,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(getModule(), getFlattenedConfigurations(), descriptor.getFile());
+        return new IvyNormalizedPublication(getModule(), getFlattenedConfigurations(), getDescriptorFile());
     }
 
     public Module getModule() {
