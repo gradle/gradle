@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve;
-
+package org.gradle.integtests.resolve
 
 import org.junit.Test
 
@@ -22,20 +21,6 @@ import org.junit.Test
  * @author Hans Dockter
  */
 public class ClientModuleDependenciesResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    @Test
-    public void testResolve() {
-        when:
-        // the actual testing is done in the build script.
-        File projectDir = new File(distribution.getSamplesDir(), "clientModuleDependencies/shared");
-        then:
-        executer.inDirectory(projectDir).withTasks("testDeps").run();
-
-        when:
-        projectDir = new File(distribution.getSamplesDir(), "clientModuleDependencies/api");
-        then:
-        executer.inDirectory(projectDir).withTasks("testDeps").run();
-    }
-
     @Test
     public void "uses metadata from Client Module and looks up artifact in declared repositories"() {
         given:
