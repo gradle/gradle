@@ -58,7 +58,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         modulePublished(mavenRepo, 'group', 'root', '1.0')
 
         when:
-        succeeds 'installToMavenLocal'
+        succeeds 'publishToMavenLocal'
 
         then:
         modulePublished(m2Installation.mavenRepo(), 'group', 'root', '1.0')
@@ -94,7 +94,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         modulePublished(mavenRepo, 'group', 'root', 'foo')
 
         when:
-        succeeds 'installToMavenLocal'
+        succeeds 'publishToMavenLocal'
 
         then:
         modulePublished(m2Installation.mavenRepo(), 'group', 'root', 'foo')

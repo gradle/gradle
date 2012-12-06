@@ -26,7 +26,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication;
-import org.gradle.api.publish.maven.internal.MavenInstallDynamicTaskCreator;
+import org.gradle.api.publish.maven.internal.MavenPublishLocalDynamicTaskCreator;
 import org.gradle.api.publish.maven.internal.MavenPublishDynamicTaskCreator;
 import org.gradle.api.publish.maven.internal.ModuleBackedMavenProjectIdentity;
 import org.gradle.api.publish.plugins.PublishingPlugin;
@@ -53,7 +53,7 @@ import static org.gradle.util.CollectionUtils.inject;
 @Incubating
 public class MavenPublishPlugin implements Plugin<Project> {
 
-    public static final String INSTALL_TO_MAVEN_LOCAL_TASK_NAME = "installToMavenLocal";
+    public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
@@ -86,9 +86,9 @@ public class MavenPublishPlugin implements Plugin<Project> {
         publishTaskCreator.monitor(extension.getPublications(), extension.getRepositories());
 
         // Create install tasks automatically for any Maven publication
-        Task installToMavenLocalTask = tasks.add(INSTALL_TO_MAVEN_LOCAL_TASK_NAME);
-        MavenInstallDynamicTaskCreator installTaskCreator = new MavenInstallDynamicTaskCreator(tasks, installToMavenLocalTask);
-        installTaskCreator.monitor(extension.getPublications());
+        Task publishLocalLifecycleTask = tasks.add(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
+        MavenPublishLocalDynamicTaskCreator publishLocalTaskCreator = new MavenPublishLocalDynamicTaskCreator(tasks, publishLocalLifecycleTask);
+        publishLocalTaskCreator.monitor(extension.getPublications());
     }
 
     private MavenPublication createPublication(final String name, final Project project, final Set<? extends Configuration> configurations) {

@@ -28,16 +28,16 @@ import org.gradle.logging.LoggingManagerInternal;
 import javax.inject.Inject;
 
 /**
- * Installs a {@link org.gradle.api.publish.maven.MavenPublication} to the Maven Local repository.
+ * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to the Maven Local repository.
  *
  * @since 1.4
  */
 @Incubating
-public class InstallToMavenLocal extends PublishToMavenRepository {
+public class PublishToMavenLocal extends PublishToMavenRepository {
     private final BaseRepositoryFactory baseRepositoryFactory;
 
     @Inject
-    public InstallToMavenLocal(ArtifactPublicationServices publicationServices, Factory<LoggingManagerInternal> loggingManagerFactory,
+    public PublishToMavenLocal(ArtifactPublicationServices publicationServices, Factory<LoggingManagerInternal> loggingManagerFactory,
                                FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices) {
         super(publicationServices, loggingManagerFactory, fileResolver);
         this.baseRepositoryFactory = dependencyResolutionServices.getBaseRepositoryFactory();
@@ -46,12 +46,12 @@ public class InstallToMavenLocal extends PublishToMavenRepository {
     @Override
     public MavenArtifactRepository getRepository() {
         MavenArtifactRepository mavenLocalRepository = baseRepositoryFactory.createMavenLocalRepository();
-        mavenLocalRepository.setName("mavenLocalInstall");
+        mavenLocalRepository.setName("mavenLocalPublish");
         return mavenLocalRepository;
     }
 
     @Override
     public void setRepository(MavenArtifactRepository repository) {
-        throw new UnsupportedOperationException("Cannot override repository for installing to mavenLocal");
+        throw new UnsupportedOperationException("Cannot override mavenLocal repository");
     }
 }
