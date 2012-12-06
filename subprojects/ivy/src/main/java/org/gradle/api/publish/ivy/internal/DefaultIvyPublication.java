@@ -53,11 +53,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver, TaskResolver taskResolver
     ) {
         this.name = name;
-        this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, taskResolver);
         this.configurations = configurations;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
+        this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, taskResolver, this);
     }
 
     public String getName() {

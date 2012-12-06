@@ -58,14 +58,9 @@ public class IvyPublicationDynamicDescriptorGenerationTaskCreator {
                 return publication.getDescriptorFile();
             }
         });
-        descriptorTaskConventionMapping.map("module", new Callable<Object>() {
+        descriptorTaskConventionMapping.map("descriptor", new Callable<Object>() {
             public Object call() throws Exception {
-                return publication.getModule();
-            }
-        });
-        descriptorTaskConventionMapping.map("configurations", new Callable<Object>() {
-            public Object call() throws Exception {
-                return publication.getConfigurations().iterator().next().getAll();
+                return publication.getDescriptor();
             }
         });
         descriptorTaskConventionMapping.map("xmlAction", new Callable<Object>() {

@@ -18,19 +18,32 @@ package org.gradle.api.publish.ivy.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.listener.ActionBroadcast;
 
+import java.util.Set;
+
 public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
     private final ActionBroadcast<XmlProvider> xmlActions = new ActionBroadcast<XmlProvider>();
-
+    private final IvyPublicationInternal ivyPublication;
     private final DefaultTaskDependency builtBy;
 
-    public DefaultIvyModuleDescriptor(TaskResolver taskResolver) {
+    public DefaultIvyModuleDescriptor(TaskResolver taskResolver, IvyPublicationInternal ivyPublication) {
         builtBy = new DefaultTaskDependency(taskResolver);
+        this.ivyPublication = ivyPublication;
+    }
+
+    public Module getModule() {
+        return ivyPublication.getModule();
+    }
+
+    public Set<? extends Configuration> getConfigurations() {
+        return ivyPublication.getConfigurations();
     }
 
     public void withXml(Action<? super XmlProvider> action) {

@@ -17,24 +17,20 @@
 package org.gradle.api.publish.ivy.tasks;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
-import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Module;
+import org.gradle.api.*;
 import org.gradle.api.internal.XmlTransformer;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.publish.ivy.IvyModuleDescriptor;
+import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Set;
 
 /**
  * Generates an Ivy XML Module Descriptor file.
@@ -44,8 +40,7 @@ import java.util.Set;
 @Incubating
 public class GenerateIvyDescriptor extends DefaultTask {
 
-    private Module module;
-    private Set<? extends Configuration> configurations;
+    private IvyModuleDescriptor descriptor;
 
     private Action<? super XmlProvider> xmlAction;
     private Object destination;
@@ -63,29 +58,16 @@ public class GenerateIvyDescriptor extends DefaultTask {
     }
 
     /**
-     * The module the descriptor represents.
+     * The module descriptor metadata.
      *
-     * @return The module the descriptor represents
+     * @return The module descriptor.
      */
-    public Module getModule() {
-        return module;
+    public IvyModuleDescriptor getDescriptor() {
+        return descriptor;
     }
 
-    public void setModule(Module module) {
-        this.module = module;
-    }
-
-    /**
-     * The configurations that are part of the descriptor.
-     *
-     * @return The configurations that are part of the descriptor
-     */
-    public Set<? extends Configuration> getConfigurations() {
-        return configurations;
-    }
-
-    public void setConfigurations(Set<? extends Configuration> configurations) {
-        this.configurations = configurations;
+    public void setDescriptor(IvyModuleDescriptor descriptor) {
+        this.descriptor = descriptor;
     }
 
     /**
@@ -125,9 +107,29 @@ public class GenerateIvyDescriptor extends DefaultTask {
             xmlTransformer.addAction(xmlAction);
         }
 
+        IvyModuleDescriptorInternal descriptorInternal = toIvyModuleDescriptorInternal(getDescriptor());
+
         ModuleDescriptorConverter moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(getConfigurations(), getModule());
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(descriptorInternal.getConfigurations(), descriptorInternal.getModule());
         IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
         ivyModuleDescriptorWriter.write(moduleDescriptor, getDestination(), xmlTransformer);
     }
+
+
+    private static IvyModuleDescriptorInternal toIvyModuleDescriptorInternal(IvyModuleDescriptor ivyModuleDescriptor) {
+        if (ivyModuleDescriptor == null) {
+            return null;
+        } else if (ivyModuleDescriptor instanceof IvyModuleDescriptorInternal) {
+            return (IvyModuleDescriptorInternal) ivyModuleDescriptor;
+        } else {
+            throw new InvalidUserDataException(
+                    String.format(
+                            "ivyModuleDescriptor implementations must implement the '%s' interface, implementation '%s' does not",
+                            IvyModuleDescriptorInternal.class.getName(),
+                            ivyModuleDescriptor.getClass().getName()
+                    )
+            );
+        }
+    }
+
 }
