@@ -21,10 +21,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
-import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -171,11 +170,8 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         return getInProgressMarkerFile(file).exists();
     }
 
-    private DirectoryFileTree findFiles(String pattern) {
-        DirectoryFileTree fileTree = new DirectoryFileTree(baseDir);
-        PatternFilterable patternSet = new PatternSet();
-        patternSet.include(pattern);
-        return fileTree.filter(patternSet);
+    private MinimalFileTree findFiles(String pattern) {
+        return new SingleIncludePatternFileTree(baseDir, pattern);
     }
 
     protected FileStoreEntry entryAt(File file) {
