@@ -41,10 +41,10 @@ import java.util.concurrent.TimeUnit;
  *     forcedModules = ['asm:asm-all:3.3.1']
  *
  *     // add a dependency resolve action
- *     eachDependency { DependencyResolveDetails it ->
+ *     eachDependency { DependencyResolveDetails details ->
  *       //forcing version for all libraries with 'org.gradle' group
- *       if (it.requested.group == 'org.gradle') {
- *           it.forceVersion'1.4'
+ *       if (details.requested.group == 'org.gradle') {
+ *           details.forceVersion'1.4'
  *       }
  *     }
  *
@@ -134,10 +134,11 @@ public interface ResolutionStrategy {
      * Example:
      * <pre autoTested=''>
      * configurations.all {
-     *   eachDependency { DependencyResolveDetails it ->
-     *   //forcing version for all libraries with 'org.gradle' group
-     *   if (it.requested.group == 'org.gradle') {
-     *     it.forceVersion '1.4'
+     *   eachDependency { DependencyResolveDetails details ->
+     *     //forcing version for all libraries with 'org.gradle' group
+     *     if (details.requested.group == 'org.gradle') {
+     *       details.forceVersion '1.4'
+     *     }
      *   }
      *   eachDependency {
      *     //multiple actions can be specified
