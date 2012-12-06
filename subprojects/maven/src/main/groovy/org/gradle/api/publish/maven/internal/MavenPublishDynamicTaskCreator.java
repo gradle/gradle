@@ -23,7 +23,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.PublicationContainer;
-import org.gradle.api.publish.maven.tasks.InstallToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
 import org.gradle.api.tasks.TaskContainer;
 
@@ -33,12 +32,10 @@ public class MavenPublishDynamicTaskCreator {
 
     final private TaskContainer tasks;
     private final Task publishLifecycleTask;
-    private final Task installToMavenLocalTask;
 
-    public MavenPublishDynamicTaskCreator(TaskContainer tasks, Task publishLifecycleTask, Task installToMavenLocalTask) {
+    public MavenPublishDynamicTaskCreator(TaskContainer tasks, Task publishLifecycleTask) {
         this.tasks = tasks;
         this.publishLifecycleTask = publishLifecycleTask;
-        this.installToMavenLocalTask = installToMavenLocalTask;
     }
 
     public void monitor(final PublicationContainer publications, final ArtifactRepositoryContainer repositories) {
@@ -50,7 +47,6 @@ public class MavenPublishDynamicTaskCreator {
                 for (MavenArtifactRepository repository : mavenRepositories) {
                     maybeCreatePublishTask(publication, repository);
                 }
-                createInstallTask(publication);
             }
         });
 
@@ -85,21 +81,5 @@ public class MavenPublishDynamicTaskCreator {
 
     private String calculatePublishTaskName(String publicationName, String repositoryName) {
         return String.format("publish%sPublicationTo%sRepository", capitalize(publicationName), capitalize(repositoryName));
-    }
-
-    private void createInstallTask(MavenPublicationInternal publication) {
-        String publicationName = publication.getName();
-        String installTaskName = calculateInstallTaskName(publicationName);
-
-        InstallToMavenLocal installTask = tasks.add(installTaskName, InstallToMavenLocal.class);
-        installTask.setPublication(publication);
-        installTask.setGroup("publishing");
-        installTask.setDescription(String.format("Installs Maven publication '%s' to Maven Local repository", publicationName));
-
-        installToMavenLocalTask.dependsOn(installTask);
-    }
-
-    private String calculateInstallTaskName(String publicationName) {
-        return String.format("install%sPublicationToMavenLocal", capitalize(publicationName));
     }
 }

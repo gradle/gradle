@@ -26,6 +26,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication;
+import org.gradle.api.publish.maven.internal.MavenInstallDynamicTaskCreator;
 import org.gradle.api.publish.maven.internal.MavenPublishDynamicTaskCreator;
 import org.gradle.api.publish.maven.internal.ModuleBackedMavenProjectIdentity;
 import org.gradle.api.publish.plugins.PublishingPlugin;
@@ -81,9 +82,13 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         // Create publish tasks automatically for any Maven publication and repository combinations
         Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
-        Task installToMavenLocalTask = tasks.add(INSTALL_TO_MAVEN_LOCAL_TASK_NAME);
-        MavenPublishDynamicTaskCreator publishTaskCreator = new MavenPublishDynamicTaskCreator(tasks, publishLifecycleTask, installToMavenLocalTask);
+        MavenPublishDynamicTaskCreator publishTaskCreator = new MavenPublishDynamicTaskCreator(tasks, publishLifecycleTask);
         publishTaskCreator.monitor(extension.getPublications(), extension.getRepositories());
+
+        // Create install tasks automatically for any Maven publication
+        Task installToMavenLocalTask = tasks.add(INSTALL_TO_MAVEN_LOCAL_TASK_NAME);
+        MavenInstallDynamicTaskCreator installTaskCreator = new MavenInstallDynamicTaskCreator(tasks, installToMavenLocalTask);
+        installTaskCreator.monitor(extension.getPublications());
     }
 
     private MavenPublication createPublication(final String name, final Project project, final Set<? extends Configuration> configurations) {
