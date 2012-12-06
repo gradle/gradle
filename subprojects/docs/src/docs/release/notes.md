@@ -39,9 +39,14 @@ The following are the new incubating features or changes to existing incubating 
 
 ## Deprecations
 
-### Task configuration after execution of task has been started.
+### Certain task configuration after execution of task has been started.
 
-The configuration of a task, whose execution has already started, has been deprecated. This includes:
+Changing certain task configuration does not make sense when the task is already being executed.
+For example, imagine that at execution time, the task adds yet another doFirst {} action.
+The task is already being executed so adding a *before* action is too late and it is probably a user mistake.
+In order to provide quicker and higher quality feedback on user mistakes
+we want to prevent configuring certain task properties when the task is already being executed.
+For backwards compatibility reasons, certain task configuration is deprecated. This includes:
 
 * Mutating Task.getActions()
 * Calling Task.setActions()
