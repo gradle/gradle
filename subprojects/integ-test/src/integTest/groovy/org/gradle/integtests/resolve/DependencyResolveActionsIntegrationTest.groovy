@@ -152,4 +152,44 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
     }
+
+    void "can unforce the version"()
+    {
+        mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
+        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
+
+        mavenRepo.module("org.utils", "api", '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+
+        buildFile << """
+            configurations { conf }
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                conf 'org.utils:impl:1.3'
+            }
+
+            configurations.conf.resolutionStrategy {
+                force("org.utils:impl:1.5", "org.utils:api:1.5")
+
+	            eachDependency {
+                    it.forceVersion null
+	            }
+	        }
+
+	        task check << {
+	            configurations.conf.incoming.resolutionResult.allDependencies {
+	                assert it.selected.id.version == '1.3'
+	            }
+	        }
+"""
+
+        when:
+        run("check")
+
+        then:
+        noExceptionThrown()
+    }
 }

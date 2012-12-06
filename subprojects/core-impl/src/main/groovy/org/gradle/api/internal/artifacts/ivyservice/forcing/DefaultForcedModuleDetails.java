@@ -35,7 +35,6 @@ public class DefaultForcedModuleDetails implements DependencyResolveDetails {
     }
 
     public void forceVersion(String version) {
-        assert version != null: "Forced version cannot be null";
         this.forcedVersion = version;
     }
 
