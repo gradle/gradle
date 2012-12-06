@@ -181,6 +181,45 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "actions are applied after forced modules"()
+    {
+        mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
+        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
+
+        mavenRepo.module("org.utils", "api", '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+
+        buildFile << """
+            $repo
+
+            dependencies {
+                conf 'org.utils:impl:1.3'
+            }
+
+            configurations.conf.resolutionStrategy {
+                force("org.utils:impl:1.5", "org.utils:api:1.5")
+
+	            eachDependency {
+                    assert it.forcedVersion == '1.5'
+                    it.forceVersion '1.3'
+	            }
+	        }
+
+	        task check << {
+	            configurations.conf.incoming.resolutionResult.allDependencies {
+	                assert it.selected.id.version == '1.3'
+	            }
+	        }
+"""
+
+        when:
+        run("check")
+
+        then:
+        noExceptionThrown()
+    }
+
+
     void "actions triggered exactly once per the same dependency"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
