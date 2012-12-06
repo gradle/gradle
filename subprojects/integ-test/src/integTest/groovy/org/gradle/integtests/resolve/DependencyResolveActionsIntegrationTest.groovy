@@ -37,10 +37,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         //however due to the conflict resolution, org.utils:api:1.5 and org.utils.impl:1.3 are resolved.
 
         buildFile << """
-            configurations { conf }
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            $repo
 
             dependencies {
                 conf 'org.stuff:foo:2.0', 'org.utils:impl:1.3', 'org.utils:optional-lib:5.0'
@@ -74,10 +71,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.stuff", "foo", '2.0').dependsOn('org.utils', 'impl', '1.3') publish()
 
         buildFile << """
-            configurations { conf }
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            $repo
 
             dependencies {
                 conf 'org.stuff:foo:2.0'
@@ -115,10 +109,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
         buildFile << """
-            configurations { conf }
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            $repo
 
             dependencies {
                 conf 'org.utils:impl:1.3'
@@ -162,10 +153,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
         buildFile << """
-            configurations { conf }
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            $repo
 
             dependencies {
                 conf 'org.utils:impl:1.3'
@@ -191,5 +179,61 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    void "actions triggered exactly once per the same dependency"()
+    {
+        mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.3').publish()
+
+        mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+
+        mavenRepo.module("org.stuff", "foo", '2.0').dependsOn('org.utils', 'api', '1.5').publish()
+        mavenRepo.module("org.stuff", "bar", '2.0').dependsOn('org.utils', 'impl', '1.3').publish()
+
+        /*
+        dependencies:
+
+        impl:1.3->api:1.3
+        foo->api:1.5
+        bar->impl:1.3(*)->api:1.3(*)
+
+        * - should be excluded as it was already visited
+        */
+
+        buildFile << """
+            $repo
+
+            dependencies {
+                conf 'org.utils:impl:1.3', 'org.stuff:foo:2.0', 'org.stuff:bar:2.0'
+            }
+
+            List requested = []
+
+            configurations.conf.resolutionStrategy {
+	            eachDependency {
+                    requested << "\$it.requested.name:\$it.requested.version"
+	            }
+	        }
+
+	        task check << {
+                configurations.conf.resolve()
+                assert requested == ['impl:1.3', 'foo:2.0', 'bar:2.0', 'api:1.3', 'api:1.5']
+	        }
+"""
+
+        when:
+        run("check")
+
+        then:
+        noExceptionThrown()
+    }
+
+    String getRepo() {
+        """configurations { conf }
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }"""
     }
 }
