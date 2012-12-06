@@ -40,6 +40,14 @@ import java.util.concurrent.TimeUnit;
  *     //  *replace existing forced modules with new ones:
  *     forcedModules = ['asm:asm-all:3.3.1']
  *
+ *     // add a dependency resolve action
+ *     eachDependency { DependencyResolveDetails it ->
+ *       //forcing version for all libraries with 'org.gradle' group
+ *       if (it.requested.group == 'org.gradle') {
+ *           it.forceVersion'1.4'
+ *       }
+ *     }
+ *
  *     // cache dynamic versions for 10 minutes
  *     cacheDynamicVersionsFor 10, 'minutes'
  *     // don't cache changing modules at all
@@ -120,14 +128,30 @@ public interface ResolutionStrategy {
     Set<ModuleVersionSelector> getForcedModules();
 
     /**
-     * Configures a forcing modules rule
-     * @param action
+     * Adds a dependency resolve action that is triggered for every dependency (including transitive)
+     * when the configuration is being resolved. The action receives an instance of {@link DependencyResolveDetails}
+     * that can be used to find out what dependency is being resolved and to influence the resolution process.
+     * Example:
+     * <pre autoTested=''>
+     * configurations.all {
+     *   eachDependency { DependencyResolveDetails it ->
+     *   //forcing version for all libraries with 'org.gradle' group
+     *   if (it.requested.group == 'org.gradle') {
+     *     it.forceVersion '1.4'
+     *   }
+     *   eachDependency {
+     *     //multiple actions can be specified
+     *   }
+     * }
+     * </pre>
+     *
+     * The actions are evaluated in order they are declared. Actions are evaluated after forced modules are applied (see {@link #force(Object...)}
      *
      * @return this
+     * @since 1.4
      */
     @Incubating
     ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> action);
-    //after forced modules, the rule acts on the forced module
 
     /**
      * Sets the length of time that dynamic versions will be cached, with units expressed as a String.
