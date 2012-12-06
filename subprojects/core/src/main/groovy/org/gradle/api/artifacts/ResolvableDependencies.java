@@ -87,6 +87,7 @@ public interface ResolvableDependencies {
      * that gives access to the graph of the resolved dependencies.
      *
      * @return the resolution result
+     * @since 1.3
      */
     @Incubating
     ResolutionResult getResolutionResult();
