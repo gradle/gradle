@@ -24,6 +24,8 @@ import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.externalresource.local.AbstractLocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -40,8 +42,6 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
 
     private static Transformer<Factory<List<File>>, ArtifactRevisionId> createProducer(final File baseDir, final String pattern) {
         return new Transformer<Factory<List<File>>, ArtifactRevisionId>() {
-            DirectoryFileTree fileTree = new DirectoryFileTree(baseDir);
-
             private String getArtifactPattern(ArtifactRevisionId artifactId) {
                 String substitute = pattern;
                 // Need to handle organisation values that have been munged for m2compatible
@@ -53,11 +53,9 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
                 return substitute;
             }
 
-            private DirectoryFileTree getMatchingFiles(ArtifactRevisionId artifact) {
+            private MinimalFileTree getMatchingFiles(ArtifactRevisionId artifact) {
                 String patternString = getArtifactPattern(artifact);
-                PatternFilterable pattern = new PatternSet();
-                pattern.include(patternString);
-                return fileTree.filter(pattern);
+                return new SingleIncludePatternFileTree(baseDir, patternString);
             }
 
             public Factory<List<File>> transform(final ArtifactRevisionId artifactId) {
