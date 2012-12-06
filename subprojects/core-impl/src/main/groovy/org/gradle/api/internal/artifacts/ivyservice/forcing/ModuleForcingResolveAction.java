@@ -26,11 +26,11 @@ import java.util.Map;
 /**
 * by Szczepan Faber, created at: 11/29/12
 */
-public class ForcedVersionsRule implements Action<DependencyResolveDetails> {
+public class ModuleForcingResolveAction implements Action<DependencyResolveDetails> {
 
     private final Map<String, String> forcedModules = new HashMap<String, String>();
 
-    public ForcedVersionsRule(Iterable<? extends ModuleVersionSelector> forcedModules) {
+    public ModuleForcingResolveAction(Iterable<? extends ModuleVersionSelector> forcedModules) {
         for (ModuleVersionSelector module : forcedModules) {
             this.forcedModules.put(key(module), module.getVersion());
         }

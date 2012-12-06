@@ -23,7 +23,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 /**
  * by Szczepan Faber, created at: 11/29/12
  */
-class ForcedVersionsRuleSpec extends Specification {
+class ModuleForcingResolveActionSpec extends Specification {
 
     def "forces modules"() {
         given:
@@ -32,7 +32,7 @@ class ForcedVersionsRuleSpec extends Specification {
 
         when:
         def details = new DefaultForcedModuleDetails(requested)
-        new ForcedVersionsRule([forceModule1, forceModule2]).execute(details)
+        new ModuleForcingResolveAction([forceModule1, forceModule2]).execute(details)
 
         then:
         details.forcedVersion == forcedVersion

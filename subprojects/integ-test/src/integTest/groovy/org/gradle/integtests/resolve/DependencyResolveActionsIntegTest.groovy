@@ -24,7 +24,7 @@ import org.junit.Test
 class DependencyResolveActionsIntegTest extends AbstractIntegrationTest {
 
     @Test
-    void "forces modules by rule"()
+    void "forces modules by action"()
     {
         repo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         repo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
