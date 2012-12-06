@@ -42,22 +42,6 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
 
     private static Transformer<Factory<List<File>>, ArtifactRevisionId> createProducer(final File baseDir, final String pattern) {
         return new Transformer<Factory<List<File>>, ArtifactRevisionId>() {
-            private String getArtifactPattern(ArtifactRevisionId artifactId) {
-                String substitute = pattern;
-                // Need to handle organisation values that have been munged for m2compatible
-                substitute = IvyPatternHelper.substituteToken(substitute, "organisation", artifactId.getModuleRevisionId().getOrganisation().replace('/', '.'));
-                substitute = IvyPatternHelper.substituteToken(substitute, "organisation-path", artifactId.getModuleRevisionId().getOrganisation().replace('.', '/'));
-
-                Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
-                substitute = IvyPatternHelper.substitute(substitute, dummyArtifact);
-                return substitute;
-            }
-
-            private MinimalFileTree getMatchingFiles(ArtifactRevisionId artifact) {
-                String patternString = getArtifactPattern(artifact);
-                return new SingleIncludePatternFileTree(baseDir, patternString);
-            }
-
             public Factory<List<File>> transform(final ArtifactRevisionId artifactId) {
                 return new Factory<List<File>>() {
                     public List<File> create() {
@@ -72,6 +56,22 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
                         return files;
                     }
                 };
+            }
+
+            private MinimalFileTree getMatchingFiles(ArtifactRevisionId artifact) {
+                String patternString = getArtifactPattern(artifact);
+                return new SingleIncludePatternFileTree(baseDir, patternString);
+            }
+
+            private String getArtifactPattern(ArtifactRevisionId artifactId) {
+                String substitute = pattern;
+                // Need to handle organisation values that have been munged for m2compatible
+                substitute = IvyPatternHelper.substituteToken(substitute, "organisation", artifactId.getModuleRevisionId().getOrganisation().replace('/', '.'));
+                substitute = IvyPatternHelper.substituteToken(substitute, "organisation-path", artifactId.getModuleRevisionId().getOrganisation().replace('.', '/'));
+
+                Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
+                substitute = IvyPatternHelper.substitute(substitute, dummyArtifact);
+                return substitute;
             }
         };
     }
