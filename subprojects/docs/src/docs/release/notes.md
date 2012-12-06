@@ -6,6 +6,15 @@ Here are the new features introduced in this Gradle release.
 ### Example new and noteworthy
 -->
 
+### Easier to embed Gradle via [Tooling API](userguide/embedding.html)
+
+We continuously look for ways to improve the experience of embedding Gradle.
+The standard way to embed Gradle, [The Tooling API](userguide/embedding.html) used to ship in multiple jars, including some 3rd party libraries.
+In Gradle 1.4 we refactored the publication and packaging of the Tooling API. The Tooling API is now shipped in a single jar.
+All you need to work with the Tooling API is the tooling api jar and slf4j.
+Furthermore, we repackaged the Tooling API's 3rd party transitive dependencies to avoid conflicts
+with different versions you might already have on your classpath. Happy embedding!Now go and embed Gradle!
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -19,11 +28,9 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
-### Repackaged Tooling API
-
-We refactored the publication and packaging of the Tooling API. The Tooling API is now shipped in a single jar.
-All you need to work with the Tooling API is the tooling api jar and slf4j. Furthermore we repackaged the transitive dependencies to avoid conflicts
-with other libraries on your classpath.
+<!--
+### Example promoted
+-->
 
 ## Incubating features
 
