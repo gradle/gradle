@@ -120,15 +120,13 @@ task retrieve(type: Sync) {
         and: "Server provides projectB with artifact in repo2"
         repo1ProjectB.expectMetaDataGet()
         repo1ProjectB.expectPomGet()
-        // TODO - should fetch this once
-        repo1ProjectB.expectMetaDataGet()
 
         server.expectGetMissing("/repo1/org/gradle/projectB/1.0-SNAPSHOT/${repo1ProjectB.artifactFile.name}")
-        server.expectGetMissing("/repo1/org/gradle/projectB/1.0-SNAPSHOT/projectB-1.0-SNAPSHOT.jar")
+//        server.expectGetMissing("/repo1/org/gradle/projectB/1.0-SNAPSHOT/projectB-1.0-SNAPSHOT.jar")
 
-        // TODO: This is not correct - should be looking for jar with unique version to fetch snapshot
-        server.expectGet("/repo2/org/gradle/projectB/1.0-SNAPSHOT/projectB-1.0-SNAPSHOT.jar", repo2ProjectB.artifactFile)
-//        server.expectGet("/repo2/org/gradle/projectB/1.0-SNAPSHOT/${repo2ProjectB.artifactFile.name}", repo2ProjectB.artifactFile)
+//        // TODO: This is not correct - should be looking for jar with unique version to fetch snapshot
+//        server.expectGet("/repo2/org/gradle/projectB/1.0-SNAPSHOT/projectB-1.0-SNAPSHOT.jar", repo2ProjectB.artifactFile)
+        server.expectGet("/repo2/org/gradle/projectB/1.0-SNAPSHOT/${repo2ProjectB.artifactFile.name}", repo2ProjectB.artifactFile)
 
         and: "We resolve dependencies"
         run 'retrieve'
@@ -426,10 +424,8 @@ project('second') {
         when: "Module is requested once"
         module.expectMetaDataGet()
         module.expectPomGet()
-        module.expectMetaDataGet()
         module.artifact.expectGet()
 
-        module2.expectMetaDataGet()
         module2Artifact.expectHead()
         module2Artifact.expectSha1Get()
         module2Artifact.expectGet()
@@ -502,8 +498,6 @@ project('second') {
         module.expectPomHead()
         module.expectPomSha1GetMissing()
         module.expectPomGet()
-        // TODO - should only ask for metadata once
-        module.expectMetaDataGet()
         artifact.expectHead()
         artifact.expectSha1GetMissing()
         artifact.expectGet()
@@ -518,8 +512,6 @@ project('second') {
     private expectModuleServed(MavenHttpModule module) {
         module.expectMetaDataGet()
         module.expectPomGet()
-        // TODO - should only ask for metadata once
-        module.expectMetaDataGet()
         module.artifact.expectGet()
     }
 
@@ -528,8 +520,6 @@ project('second') {
         module.expectPomHead()
         module.expectPomSha1Get()
         module.expectPomGet()
-        // TODO - should only ask for metadata once
-        module.expectMetaDataGet()
         def artifact = module.artifact
         artifact.expectHead()
         artifact.expectSha1Get()
@@ -539,8 +529,6 @@ project('second') {
     private expectChangedArtifactServed(MavenHttpModule module) {
         module.expectMetaDataGet()
         module.expectPomHead()
-        // TODO - should only ask for metadata once
-        module.expectMetaDataGet()
         def artifact = module.artifact
         artifact.expectHead()
         artifact.expectSha1Get()
@@ -550,16 +538,12 @@ project('second') {
     private expectChangedProbe(MavenHttpModule module) {
         module.expectMetaDataGet()
         module.expectPomHead()
-        // TODO - should only ask for metadata once
-        module.expectMetaDataGet()
         module.artifact.expectHead()
     }
 
     private expectModuleMissing(MavenHttpModule module) {
         module.expectMetaDataGetMissing()
         module.expectPomGetMissing()
-        // TODO - should only ask for metadata once
-        module.expectMetaDataGetMissing()
         module.artifact.expectHeadMissing()
     }
 }

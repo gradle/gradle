@@ -57,14 +57,12 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.expectPomGet()
         sourceArtifact.expectGet()
         module.expectMetaDataGet()
-        module.expectMetaDataGet()
 
         then:
         run 'retrieve'
 
         when:
         server.resetExpectations()
-        module.expectMetaDataGet()
         module.expectMetaDataGet()
         sourceArtifact.expectHead()
         module.expectPomHead()
@@ -75,7 +73,6 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.publishWithChangedContent()
         server.resetExpectations()
 
-        module.expectMetaDataGet()
         module.expectMetaDataGet()
         module.expectPomSha1Get()
         module.expectPomHead()

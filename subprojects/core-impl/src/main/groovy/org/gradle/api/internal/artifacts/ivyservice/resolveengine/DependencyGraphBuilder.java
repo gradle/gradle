@@ -696,7 +696,9 @@ public class DependencyGraphBuilder {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
                 for (String config : heirarchy) {
                     for (Artifact artifact : descriptor.getArtifacts(config)) {
-                        artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, moduleRevision.resolver.resolve().getArtifactResolver()));
+                        final Artifact artifact1 = DefaultArtifact.cloneWithAnotherMrid(artifact, descriptor.getResolvedModuleRevisionId());
+//                        MDArtifact mdArtifact = new (descriptor, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getUrl(), descriptor.getResolvedModuleRevisionId().getExtraAttributes());
+                        artifacts.add(resolvedArtifactFactory.create(getResult(), artifact1, moduleRevision.resolver.resolve().getArtifactResolver()));
                     }
                 }
             }

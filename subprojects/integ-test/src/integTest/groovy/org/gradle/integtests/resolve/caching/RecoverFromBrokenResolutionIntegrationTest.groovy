@@ -114,7 +114,6 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
         when:
         server.resetExpectations()
         server.expectGet('/repo/group/projectA/1.0-SNAPSHOT/maven-metadata.xml', 'username', 'password', module.metaDataFile)
-        server.expectGet('/repo/group/projectA/1.0-SNAPSHOT/maven-metadata.xml', 'username', 'password', module.metaDataFile)
         server.expectGet("/repo/group/projectA/1.0-SNAPSHOT/${module.pomFile.name}", 'username', 'password', module.pomFile)
         server.expectGet("/repo/group/projectA/1.0-SNAPSHOT/${module.artifactFile.name}", 'username', 'password', module.artifactFile)
 
@@ -137,10 +136,9 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
 
 
     def moduleAvailableViaHttp() {
+        module.expectMetaDataGet()
         module.expectPomGet()
         module.getArtifact().expectGet()
-        module.expectMetaDataGet()
-        module.expectMetaDataGet()
     }
 
     private MavenHttpModule modulePublished() {

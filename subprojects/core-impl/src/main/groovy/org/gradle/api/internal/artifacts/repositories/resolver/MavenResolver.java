@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
@@ -80,7 +81,10 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
                 extraAttributes.put("timestamp", uniqueSnapshotVersion);
                 final ModuleRevisionId newModuleRevisionId = ModuleRevisionId.newInstance(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision(), extraAttributes);
                 final DependencyDescriptor enrichedDependencyDescriptor = dd.clone(newModuleRevisionId);
-                return super.getDependency(enrichedDependencyDescriptor, data);
+                final ResolvedModuleRevision dependency = super.getDependency(enrichedDependencyDescriptor, data);
+                final ModuleDescriptor descriptor = dependency.getDescriptor();
+                descriptor.setResolvedModuleRevisionId(newModuleRevisionId);
+                return dependency;
             }
         }
         return super.getDependency(dd, data);
@@ -136,12 +140,6 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
 
     protected ResolvedResource getArtifactRef(Artifact artifact, Date date, boolean forDownload) {
         ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
-        if (moduleRevisionId.getRevision().endsWith("SNAPSHOT")) {
-            ResolvedResource resolvedResource = findSnapshotArtifact(artifact, date, moduleRevisionId, forDownload);
-            if (resolvedResource != null) {
-                return resolvedResource;
-            }
-        }
         ResourceMDParser parser = getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId());
         return findResourceUsingPatterns(moduleRevisionId, getArtifactPatterns(), artifact, parser, date, forDownload);
     }
