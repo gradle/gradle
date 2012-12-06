@@ -43,10 +43,6 @@ public class ForcedVersionsRule implements Action<DependencyResolveDetails> {
         }
     }
 
-    Map<String, String> getForcedModules() {
-        return forcedModules;
-    }
-
     private String key(ModuleVersionSelector module) {
         return module.getGroup() + ":" + module.getName();
     }

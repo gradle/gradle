@@ -22,11 +22,13 @@ import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.DefaultCachePolicy;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -35,13 +37,14 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
+    private Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
+    private Set<Action<? super DependencyResolveDetails>> dependencyResolveActions = new LinkedHashSet<Action<? super DependencyResolveDetails>>();
+
     private ConflictResolution conflictResolution = new LatestConflictResolution();
     private final DefaultCachePolicy cachePolicy = new DefaultCachePolicy();
 
-    private final ModuleMutationStrategy moduleMutationStrategy = new ModuleMutationStrategy();
-
     public Set<ModuleVersionSelector> getForcedModules() {
-        return moduleMutationStrategy.getForcedModules();
+        return forcedModules;
     }
 
     public ResolutionStrategy failOnVersionConflict() {
@@ -59,23 +62,23 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public DefaultResolutionStrategy force(Object... forcedModuleNotations) {
         assert forcedModuleNotations != null : "forcedModuleNotations cannot be null";
-        Set<ModuleVersionSelector> forcedModules = new ForcedModuleNotationParser().parseNotation(forcedModuleNotations);
-        this.moduleMutationStrategy.addModules(forcedModules);
+        Set<ModuleVersionSelector> modules = new ForcedModuleNotationParser().parseNotation(forcedModuleNotations);
+        this.forcedModules.addAll(modules);
         return this;
     }
 
     public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> action) {
-        this.moduleMutationStrategy.eachDependency(action);
+        dependencyResolveActions.add(action);
         return this;
     }
 
-    public ModuleMutationStrategy getModuleMutationStrategy() {
-        return moduleMutationStrategy;
+    public Action<DependencyResolveDetails> getDependencyResolveAction() {
+        return Actions.composite(dependencyResolveActions);
     }
 
     public DefaultResolutionStrategy setForcedModules(Object ... forcedModuleNotations) {
         Set<ModuleVersionSelector> forcedModules = new ForcedModuleNotationParser().parseNotation(forcedModuleNotations);
-        this.moduleMutationStrategy.setModules(forcedModules);
+        this.forcedModules = forcedModules;
         return this;
     }
 

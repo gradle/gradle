@@ -29,7 +29,7 @@ class VersionForcingDependencyToModuleResolverTest extends Specification {
     def "passes through dependency when it does not match any rule"() {
         def dep = dependency('org', 'module', '1.0')
         def rule = Mock(Action)
-        def resolver = new VersionForcingDependencyToModuleResolver(target, [rule, rule])
+        def resolver = new VersionForcingDependencyToModuleResolver(target, rule)
 
         when:
         def result = resolver.resolve(dep)
@@ -39,18 +39,17 @@ class VersionForcingDependencyToModuleResolverTest extends Specification {
 
         and:
         1 * target.resolve(dep) >> resolvedVersion
-        2 * rule.execute( {it.getRequested.group == 'org' && it.getRequested.name == 'module' && it.getRequested.version == '1.0'} )
+        1 * rule.execute( {it.requested.group == 'org' && it.requested.name == 'module' && it.requested.version == '1.0'} )
         0 * target._
     }
 
-    def "replaces dependency according to first matching rule"() {
+    def "replaces dependency by action"() {
         def dep = dependency('org', 'module', '0.5')
         def modified = dependency('org', 'module', '1.0')
 
-        def force1 = { it.forceVersion("1.0") } as Action
-        def force2 = { it.forceVersion("2.0") } as Action
+        def force = { it.forceVersion("1.0") } as Action
 
-        def resolver = new VersionForcingDependencyToModuleResolver(target, [force1, force2])
+        def resolver = new VersionForcingDependencyToModuleResolver(target, force)
 
         when:
         ForcedModuleVersionIdResolveResult result = resolver.resolve(dep)

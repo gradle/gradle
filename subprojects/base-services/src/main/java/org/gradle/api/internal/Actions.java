@@ -49,10 +49,21 @@ public abstract class Actions {
      * @param <T> The type of the object that action is for
      * @return The composite action.
      */
+    public static <T> Action<T> composite(Iterable<Action<? super T>> actions) {
+        return new CompositeAction<T>(actions);
+    }
+
+    /**
+     * Creates an action that will call each of the given actions in order.
+     *
+     * @param actions The actions to make a composite of.
+     * @param <T> The type of the object that action is for
+     * @return The composite action.
+     */
     public static <T> Action<T> composite(Action<? super T>... actions) {
         final List<Action<? super T>> actionsCopy = new ArrayList<Action<? super T>>(actions.length);
         Collections.addAll(actionsCopy, actions);
-        return new CompositeAction<T>(actionsCopy);
+        return composite(actionsCopy);
    }
 
     private static class CompositeAction<T> implements Action<T> {

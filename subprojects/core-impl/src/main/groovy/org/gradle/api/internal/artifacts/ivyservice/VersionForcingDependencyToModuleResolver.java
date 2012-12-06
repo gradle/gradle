@@ -26,25 +26,23 @@ import org.gradle.api.internal.artifacts.ivyservice.forcing.DefaultForcedModuleD
 
 public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionIdResolver resolver;
-    private final Iterable<Action<? super DependencyResolveDetails>> rules;
+    private Action<DependencyResolveDetails> action;
 
-    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Iterable<Action<? super DependencyResolveDetails>> rules) {
+    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Action<DependencyResolveDetails> action) {
         this.resolver = resolver;
-        this.rules = rules;
+        this.action = action;
     }
 
     public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        for (Action<? super DependencyResolveDetails> rule : rules) {
-            ModuleVersionSelector module = new DefaultModuleVersionSelector(dependencyDescriptor.getDependencyRevisionId().getOrganisation(), dependencyDescriptor.getDependencyRevisionId().getName(), dependencyDescriptor.getDependencyRevisionId().getRevision());
-            DefaultForcedModuleDetails details = new DefaultForcedModuleDetails(module);
-            rule.execute(details);
-            if (details.getForcedVersion() != null) {
-                ModuleId moduleId = new ModuleId(details.getRequested().getGroup(), details.getRequested().getName());
-                ModuleRevisionId revisionId = new ModuleRevisionId(moduleId, details.getForcedVersion());
-                DependencyDescriptor descriptor = dependencyDescriptor.clone(revisionId);
-                ModuleVersionIdResolveResult result = resolver.resolve(descriptor);
-                return new ForcedModuleVersionIdResolveResult(result);
-            }
+        ModuleVersionSelector module = new DefaultModuleVersionSelector(dependencyDescriptor.getDependencyRevisionId().getOrganisation(), dependencyDescriptor.getDependencyRevisionId().getName(), dependencyDescriptor.getDependencyRevisionId().getRevision());
+        DefaultForcedModuleDetails details = new DefaultForcedModuleDetails(module);
+        action.execute(details);
+        if (details.getForcedVersion() != null) {
+            ModuleId moduleId = new ModuleId(details.getRequested().getGroup(), details.getRequested().getName());
+            ModuleRevisionId revisionId = new ModuleRevisionId(moduleId, details.getForcedVersion());
+            DependencyDescriptor descriptor = dependencyDescriptor.clone(revisionId);
+            ModuleVersionIdResolveResult result = resolver.resolve(descriptor);
+            return new ForcedModuleVersionIdResolveResult(result);
         }
         return resolver.resolve(dependencyDescriptor);
     }

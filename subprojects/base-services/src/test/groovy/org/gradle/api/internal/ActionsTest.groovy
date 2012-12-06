@@ -60,6 +60,17 @@ class ActionsTest extends Specification {
         1 * action.execute(2)
     }
 
+    def "composite actions"() {
+        def actions = [Mock(Action), Mock(Action)]
+
+        when:
+        composite(actions).execute("foo")
+
+        then:
+        actions.each { 1 * it.execute("foo") }
+        0 * _._
+    }
+
     def "cast before"() {
         given:
         def action = Mock(Action)
