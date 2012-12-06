@@ -259,7 +259,6 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-
     void "actions triggered exactly once per the same dependency"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
@@ -307,6 +306,36 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    void "runtime exception when evaluating action yields decent exception"()
+    {
+        mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.3').publish()
+
+        buildFile << """
+            $repo
+
+            dependencies {
+                conf 'org.utils:impl:1.3'
+            }
+
+            configurations.conf.resolutionStrategy {
+	            eachDependency {
+                    it.forceVersion '1.3' //happy
+	            }
+                eachDependency {
+                    throw new RuntimeException("Unhappy :(")
+	            }
+	        }
+"""
+
+        when:
+        def failure = runAndFail("dependencies", "-s")
+
+        then:
+        failure.assertHasCause("Problems executing resolve action for dependency: org.utils:impl:1.3")
+        failure.error.contains("Unhappy :(")
     }
 
     String getRepo() {

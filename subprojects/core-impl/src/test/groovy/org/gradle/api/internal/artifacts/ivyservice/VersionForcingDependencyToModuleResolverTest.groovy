@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import spock.lang.Specification
 
 class VersionForcingDependencyToModuleResolverTest extends Specification {
@@ -62,6 +63,19 @@ class VersionForcingDependencyToModuleResolverTest extends Specification {
         1 * dep.clone(new ModuleRevisionId(new ModuleId('org', 'module'), '1.0')) >> modified
         1 * target.resolve(modified) >> resolvedVersion
         0 * target._
+    }
+
+    def "explosive action yields decent exception"() {
+        def dep = dependency('org', 'module', '0.5')
+        def force = { throw new RuntimeException("Boo!") } as Action
+        def resolver = new VersionForcingDependencyToModuleResolver(target, force)
+
+        when:
+        resolver.resolve(dep)
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message == "Problems executing resolve action for dependency: org:module:0.5"
     }
 
     def dependency(String group, String module, String version) {

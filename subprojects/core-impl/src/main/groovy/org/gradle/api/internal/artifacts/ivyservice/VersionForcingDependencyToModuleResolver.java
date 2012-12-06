@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -36,7 +37,12 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
     public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
         ModuleVersionSelector module = new DefaultModuleVersionSelector(dependencyDescriptor.getDependencyRevisionId().getOrganisation(), dependencyDescriptor.getDependencyRevisionId().getName(), dependencyDescriptor.getDependencyRevisionId().getRevision());
         DefaultForcedModuleDetails details = new DefaultForcedModuleDetails(module);
-        action.execute(details);
+        try {
+            action.execute(details);
+        } catch (RuntimeException e) {
+            throw new GradleException("Problems executing resolve action for dependency: "
+                    + module.getGroup() + ":" + module.getName() + ":" + module.getVersion(), e);
+        }
         if (details.getForcedVersion() != null) {
             ModuleId moduleId = new ModuleId(details.getRequested().getGroup(), details.getRequested().getName());
             ModuleRevisionId revisionId = new ModuleRevisionId(moduleId, details.getForcedVersion());
