@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.forcing;
+package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,15 +29,23 @@ import java.util.Map;
 */
 public class ModuleForcingResolveAction implements Action<DependencyResolveDetails> {
 
-    private final Map<String, String> forcedModules = new HashMap<String, String>();
+    private final Map<String, String> forcedModules;
 
-    public ModuleForcingResolveAction(Iterable<? extends ModuleVersionSelector> forcedModules) {
-        for (ModuleVersionSelector module : forcedModules) {
-            this.forcedModules.put(key(module), module.getVersion());
+    public ModuleForcingResolveAction(Collection<? extends ModuleVersionSelector> forcedModules) {
+        if (!forcedModules.isEmpty()) {
+            this.forcedModules = new HashMap<String, String>();
+            for (ModuleVersionSelector module : forcedModules) {
+                this.forcedModules.put(key(module), module.getVersion());
+            }
+        } else {
+            this.forcedModules = null;
         }
     }
 
     public void execute(DependencyResolveDetails dependencyResolveDetails) {
+        if (forcedModules == null) {
+            return;
+        }
         String key = key(dependencyResolveDetails.getRequested());
         if (forcedModules.containsKey(key)) {
             dependencyResolveDetails.forceVersion(forcedModules.get(key));

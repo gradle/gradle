@@ -22,11 +22,11 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 /**
 * by Szczepan Faber, created at: 11/29/12
 */
-public class DefaultForcedModuleDetails implements DependencyResolveDetails {
+public class DefaultDependencyResolveDetails implements DependencyResolveDetails {
     private final ModuleVersionSelector module;
     private String forcedVersion;
 
-    public DefaultForcedModuleDetails(ModuleVersionSelector module) {
+    public DefaultDependencyResolveDetails(ModuleVersionSelector module) {
         this.module = module;
     }
 

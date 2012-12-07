@@ -17,7 +17,11 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 
+import org.gradle.api.Action
+import org.gradle.api.artifacts.DependencyResolveDetails
 import spock.lang.Specification
+
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 /**
  * by Szczepan Faber, created at: 11/2/11
@@ -58,5 +62,68 @@ public class DefaultResolutionStrategyTest extends Specification {
         versions.size() == 2
         versions[0].group == 'hello'
         versions[1].group == 'g'
+    }
+
+    def "provides no op resolve action when no actions or forced modules configured"() {
+        given:
+        def details = Mock(DependencyResolveDetails)
+
+        when:
+        strategy.dependencyResolveAction.execute(details)
+
+        then:
+        0 * details._
+    }
+
+    def "provides dependency resolve action that forces modules"() {
+        given:
+        strategy.force 'org:bar:1.0', 'org:foo:2.0'
+        def details = Mock(DependencyResolveDetails)
+
+        when:
+        strategy.dependencyResolveAction.execute(details)
+
+        then:
+        1 * details.getRequested() >> newSelector("org", "foo", "1.0")
+        1 * details.forceVersion("2.0")
+        0 * details._
+    }
+
+    def "provides dependency resolve action that orderly aggregates user specified actions"() {
+        given:
+        strategy.eachDependency({ it.forceVersion("1.0") } as Action)
+        strategy.eachDependency({ it.forceVersion("2.0") } as Action)
+        def details = Mock(DependencyResolveDetails)
+
+        when:
+        strategy.dependencyResolveAction.execute(details)
+
+        then:
+        1 * details.forceVersion("1.0")
+        then:
+        1 * details.forceVersion("2.0")
+        0 * details._
+    }
+
+    def "provides dependency resolve action with forced modules first and then user specified actions"() {
+        given:
+        strategy.force 'org:bar:1.0', 'org:foo:2.0'
+        strategy.eachDependency({ it.forceVersion("5.0") } as Action)
+        strategy.eachDependency({ it.forceVersion("6.0") } as Action)
+
+        def details = Mock(DependencyResolveDetails)
+
+        when:
+        strategy.dependencyResolveAction.execute(details)
+
+        then: //forced modules:
+        1 * details.requested >> newSelector("org", "foo", "1.0")
+        1 * details.forceVersion("2.0")
+
+        then: //user actions, in order:
+        1 * details.forceVersion("5.0")
+        then:
+        1 * details.forceVersion("6.0")
+        0 * details._
     }
 }

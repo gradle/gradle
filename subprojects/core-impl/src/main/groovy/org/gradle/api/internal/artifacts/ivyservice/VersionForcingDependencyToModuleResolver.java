@@ -23,7 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.forcing.DefaultForcedModuleDetails;
+import org.gradle.api.internal.artifacts.ivyservice.forcing.DefaultDependencyResolveDetails;
 
 public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionIdResolver resolver;
@@ -36,7 +36,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
 
     public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
         ModuleVersionSelector module = new DefaultModuleVersionSelector(dependencyDescriptor.getDependencyRevisionId().getOrganisation(), dependencyDescriptor.getDependencyRevisionId().getName(), dependencyDescriptor.getDependencyRevisionId().getRevision());
-        DefaultForcedModuleDetails details = new DefaultForcedModuleDetails(module);
+        DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails(module);
         try {
             action.execute(details);
         } catch (RuntimeException e) {

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.forcing
+package org.gradle.api.internal.artifacts.configurations
 
+import org.gradle.api.internal.artifacts.ivyservice.forcing.DefaultDependencyResolveDetails
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -31,7 +32,7 @@ class ModuleForcingResolveActionSpec extends Specification {
         def forceModule2 = newSelector("org",  "module2", "1.0")
 
         when:
-        def details = new DefaultForcedModuleDetails(requested)
+        def details = new DefaultDependencyResolveDetails(requested)
         new ModuleForcingResolveAction([forceModule1, forceModule2]).execute(details)
 
         then:
@@ -42,5 +43,14 @@ class ModuleForcingResolveActionSpec extends Specification {
         newSelector("org",  "module2", "0.9")  | "1.0"
         newSelector("orgX", "module2", "0.9")  | null
         newSelector("org",  "moduleX", "0.9")  | null
+    }
+
+    def "does not force anything when input empty"() {
+        def details = new DefaultDependencyResolveDetails(newSelector("org",  "foo", "1.0"))
+        when:
+        new ModuleForcingResolveAction([]).execute(details)
+
+        then:
+        details.forcedVersion == null
     }
 }

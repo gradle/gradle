@@ -28,9 +28,12 @@ import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflict
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.DefaultCachePolicy;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static org.gradle.util.GUtil.flattenElements;
 
 /**
  * by Szczepan Faber, created at: 10/7/11
@@ -73,7 +76,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public Action<DependencyResolveDetails> getDependencyResolveAction() {
-        return Actions.composite(dependencyResolveActions);
+        Collection allActions = flattenElements(new ModuleForcingResolveAction(forcedModules), dependencyResolveActions);
+        return Actions.composite(allActions);
     }
 
     public DefaultResolutionStrategy setForcedModules(Object ... forcedModuleNotations) {
