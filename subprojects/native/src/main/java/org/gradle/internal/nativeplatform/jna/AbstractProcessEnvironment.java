@@ -24,7 +24,6 @@ import org.gradle.internal.nativeplatform.ReflectiveEnvironment;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     //for updates to private JDK caches of the environment state
