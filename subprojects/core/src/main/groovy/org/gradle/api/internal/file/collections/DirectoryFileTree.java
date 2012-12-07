@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 
 /**
  * Directory walker supporting {@link Spec}s for includes and excludes.
- * The file system is traversed breadth first - all files in a directory will be
+ * The file system is traversed in depth-first prefix order - all files in a directory will be
  * visited before any child directory is visited.
  *
  * A file or directory will only be visited if it matches all includes and no
@@ -51,7 +51,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     private final File dir;
     private PatternSet patternSet;
-    private boolean depthFirst;
+    private boolean postfix;
 
     public DirectoryFileTree(File dir) {
         this(dir, new PatternSet());
@@ -163,7 +163,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         // now handle dirs
         for (int i = 0; !stopFlag.get() && i < dirs.size(); i++) {
             FileVisitDetails dir = dirs.get(i);
-            if (depthFirst) {
+            if (postfix) {
                 walkDir(dir.getFile(), dir.getRelativePath(), visitor, spec, stopFlag);
                 visitor.visitDir(dir);
             } else {
@@ -177,8 +177,13 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         return spec.isSatisfiedBy(element);
     }
 
+    /**
+     * Traverse directories (but not files) in postfix rather than prefix order.
+     *
+     * @return {@code this}
+     */
     public DirectoryFileTree depthFirst() {
-        depthFirst = true;
+        postfix = true;
         return this;
     }
 }
