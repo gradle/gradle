@@ -43,7 +43,7 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
     }
 
     public Set<? extends Configuration> getConfigurations() {
-        return ivyPublication.getConfigurations();
+        return ivyPublication.asNormalisedPublication().getConfigurations();
     }
 
     public void withXml(Action<? super XmlProvider> action) {
