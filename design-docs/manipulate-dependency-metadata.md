@@ -42,11 +42,16 @@ This way libraries from a releasable unit can be forced to use a consistent vers
 - rule that affects multiple modules
 - multiple rules
 - ResolutionResult api must consider versions forced by rule
+- Decent error message when a rule fails
 
 ## Story: allow substitution of group and module
 
-For example, allow `groovy-all` to be replaced with `groovy`.
+For example, allow `groovy-all` to be replaced with `groovy`, or 'log4j' with 'log4j-over-slf4j'.
 
 ## Story: allow custom dynamic version scheme
 
 For example, allow `default` or `null` to be used as the version in dependency notation, and allow a rule to map this to some version selector.
+
+## Story: declarative substitution of group and module
+
+Allow substitutions to be expressed declaratively, rather than imperatively as a rule.
