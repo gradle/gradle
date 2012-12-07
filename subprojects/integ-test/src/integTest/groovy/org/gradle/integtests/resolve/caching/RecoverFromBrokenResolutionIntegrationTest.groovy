@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenHttpModule
+import org.hamcrest.Matchers
 
 class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -66,13 +67,22 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
         then:
         fails 'retrieve'
 
+        and:
+        //TODO should expose the failed task in the error message like
+        //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
+        //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertThatCause(Matchers.containsString("Received status code 500 from server: broken"))
+
+
         when:
         server.resetExpectations()
         then:
         executer.withArgument("--offline")
         run 'retrieve'
+        and:
+        file('libs/projectA-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifact.file)
     }
-
 
     def "can run offline mode after connection problem with repo url"() {
         given:
@@ -95,15 +105,25 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
 
         when:
         server.resetExpectations()
+        int port = server.port
         server.stop()
         then:
         fails 'retrieve'
+
+        and:
+        //TODO should expose the failed task in the error message like
+        //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
+        //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertThatCause(Matchers.containsString("Connection to http://localhost:${port} refused"))
 
         when:
         server.resetExpectations()
         then:
         executer.withArgument("--offline")
         run 'retrieve'
+        and:
+        file('libs/projectA-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifact.file)
     }
 
     def "can run offline mode after authentication fails on remote repo"() {
@@ -127,11 +147,20 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
         then:
         fails 'retrieve'
 
+        and:
+        //TODO should expose the failed task in the error message like
+        //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
+        //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertThatCause(Matchers.containsString("Received status code 401 from server: Unauthorized"))
+
         when:
         server.resetExpectations()
         then:
         executer.withArgument("--offline")
         run 'retrieve'
+        and:
+        file('libs/projectA-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifact.file)
     }
 
 
