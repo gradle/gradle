@@ -50,7 +50,7 @@ configurations {
 }
 
 dependencies {
-    userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.9.1'
+    userGuideTask 'xalan:xalan:2.7.1', libraries.xerces
     userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
         dependency 'itext:itext:2.0.8@jar'
     }

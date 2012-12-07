@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
 configurations {
     reports
 }
@@ -49,7 +51,7 @@ dependencies {
     testCompile libraries.log4j_to_slf4j
     testCompile libraries.jcl_to_slf4j
 
-    testRuntime "xerces:xercesImpl:2.9.1"
+    testRuntime libraries.xerces
     testRuntime project(":diagnostics")
 
     testFixturesCompile project(":internalTesting")
@@ -58,6 +60,8 @@ dependencies {
     integTestCompile project(":internalIntegTesting")
 
     reports 'css3-pie:css3-pie:1.0beta3'
+
+    provided libraries.xerces
 }
 
 useTestFixtures()
