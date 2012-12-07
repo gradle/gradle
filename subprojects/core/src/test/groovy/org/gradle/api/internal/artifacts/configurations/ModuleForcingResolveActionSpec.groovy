@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
-import org.gradle.api.internal.artifacts.ivyservice.forcing.DefaultDependencyResolveDetails
+import org.gradle.api.internal.artifacts.ivyservice.DefaultDependencyResolveDetails
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
