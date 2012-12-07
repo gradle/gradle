@@ -8,8 +8,7 @@
                 </tr>
             </thead>
             <tr><td>destination</td></tr>
-            <tr><td>module</td></tr>
-            <tr><td>configurations</td></tr>
+            <tr><td>descriptor</td></tr>
         </table>
     </section>
     <section>
