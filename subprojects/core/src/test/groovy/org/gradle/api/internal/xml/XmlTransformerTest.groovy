@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal
+package org.gradle.api.internal.xml
 
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
+import org.gradle.api.internal.DomNode
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 

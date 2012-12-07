@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.internal.XmlTransformer;
+import org.gradle.api.internal.xml.XmlTransformer;
 
 import java.io.File;
 

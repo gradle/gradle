@@ -26,7 +26,7 @@ import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ErroringAction;
-import org.gradle.api.internal.XmlTransformer;
+import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.util.TextUtil;
 
 import java.io.File;

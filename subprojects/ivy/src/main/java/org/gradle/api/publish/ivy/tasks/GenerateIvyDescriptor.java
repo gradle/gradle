@@ -18,7 +18,7 @@ package org.gradle.api.publish.ivy.tasks;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.*;
-import org.gradle.api.internal.XmlTransformer;
+import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;

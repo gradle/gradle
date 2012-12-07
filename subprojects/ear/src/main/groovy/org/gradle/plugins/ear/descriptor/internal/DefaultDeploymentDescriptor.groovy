@@ -22,7 +22,7 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.internal.DomNode
 import org.gradle.api.internal.ErroringAction
 import org.gradle.api.internal.IoActions
-import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule

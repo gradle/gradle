@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.internal.generator
 
-import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TextUtil
 import org.junit.Rule

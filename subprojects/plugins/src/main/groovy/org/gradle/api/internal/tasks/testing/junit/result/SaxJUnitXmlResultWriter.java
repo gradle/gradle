@@ -73,11 +73,9 @@ public class SaxJUnitXmlResultWriter {
             writer.writeCharacters("\n");
 
             writer.writeEndElement();
-            sw.close();
+            sw.flush();
         } catch (IOException e) {
             throw new RuntimeException("Problems writing the XML results for class: " + className, e);
-        } finally {
-            closeQuietly(sw);
         }
     }
 

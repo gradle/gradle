@@ -29,7 +29,7 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.IoActions;
-import org.gradle.api.internal.XmlTransformer;
+import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.listener.ActionBroadcast;
 

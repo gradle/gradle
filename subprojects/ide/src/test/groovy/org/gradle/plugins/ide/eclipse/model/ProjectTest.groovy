@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 
-import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
