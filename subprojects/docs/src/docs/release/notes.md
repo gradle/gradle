@@ -87,7 +87,9 @@ As a workaround you can dynamically check if the AppleScriptEngine is available:
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-Dalibor Novak - `m2compatible` flag on PatternRepositoryLayout (GRADLE-1919)
+James Bengeyfield - `showViolations` flag for `Checkstyle` task (GRADLE-1656)
+
+Dalibor Novak - `m2compatible` flag on `PatternRepositoryLayout` (GRADLE-1919)
 
 Brian Roberts, Tom Denley - Support multi-line JUnit test names (for better ScalaTest compatibility) (GRADLE-2572)
 
