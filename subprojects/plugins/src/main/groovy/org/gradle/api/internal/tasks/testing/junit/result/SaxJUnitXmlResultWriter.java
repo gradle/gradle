@@ -23,7 +23,6 @@ import org.gradle.api.tasks.testing.TestResult;
 import java.io.*;
 import java.util.Set;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
