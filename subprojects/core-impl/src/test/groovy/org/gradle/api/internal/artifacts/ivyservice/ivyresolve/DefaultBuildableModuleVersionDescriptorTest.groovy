@@ -120,4 +120,39 @@ class DefaultBuildableModuleVersionDescriptorTest extends Specification {
         then:
         thrown(IllegalStateException)
     }
+
+    def "cannot get ModuleSource when failed"() {
+        given:
+        def failure = new ModuleVersionResolveException("broken")
+        descriptor.failed(failure)
+
+        when:
+        descriptor.getModuleSource()
+
+        then:
+        ModuleVersionResolveException e = thrown()
+        e == failure
+    }
+
+    def "cannot get ModuleSource when missing"() {
+        given:
+        descriptor.missing()
+
+        when:
+        descriptor.getModuleSource()
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "cannot get ModuleSource when probably missing"() {
+        given:
+        descriptor.probablyMissing()
+
+        when:
+        descriptor.getModuleSource()
+
+        then:
+        thrown(IllegalStateException)
+    }
 }

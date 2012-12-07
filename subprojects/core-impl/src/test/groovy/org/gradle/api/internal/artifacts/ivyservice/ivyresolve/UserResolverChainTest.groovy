@@ -33,7 +33,7 @@ class UserResolverChainTest extends Specification {
     final ModuleRevisionId resolvedId = descriptor.resolvedModuleRevisionId
     final BuildableModuleVersionResolveResult result = Mock()
     final VersionMatcher matcher = Stub()
-    final ModuleSource moduleSource = Stub()
+    final ModuleSource moduleSource = Mock()
 
     def setup() {
         dependency.dependencyRevisionId >> dependencyId

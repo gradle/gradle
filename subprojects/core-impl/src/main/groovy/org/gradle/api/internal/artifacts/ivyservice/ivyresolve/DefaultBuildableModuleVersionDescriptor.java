@@ -94,6 +94,7 @@ public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleV
     }
 
     public ModuleSource getModuleSource() {
+        assertResolved();
         return moduleSource;
     }
 }

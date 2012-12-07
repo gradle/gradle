@@ -184,7 +184,9 @@ public class UserResolverChain implements DependencyToModuleResolver {
             if (descriptor.getState() == BuildableModuleVersionDescriptor.State.Failed) {
                 throw descriptor.getFailure();
             }
-            this.moduleSource = descriptor.getModuleSource();
+            if(descriptor.getState() == BuildableModuleVersionDescriptor.State.Resolved){
+                this.moduleSource = descriptor.getModuleSource();
+            }
         }
 
         public boolean canMakeFurtherAttempts() {
