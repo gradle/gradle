@@ -38,6 +38,7 @@ class AbstractRenderableDependencyResultSpec extends Specification {
         dep(requested, newModule('org.mockito', 'mockito-core', '2.0')).name == 'org.mockito:mockito-core:1.0 -> 2.0'
         dep(requested, newModule('org.mockito', 'mockito', '1.0')).name == 'org.mockito:mockito-core:1.0 -> mockito:1.0'
         dep(requested, newModule('com.mockito', 'mockito', '2.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
+        dep(requested, null).name == 'org.mockito:mockito-core:1.0'
     }
 
     private RenderableDependency dep(ModuleVersionSelector requested, ResolvedModuleVersionResult selected) {
