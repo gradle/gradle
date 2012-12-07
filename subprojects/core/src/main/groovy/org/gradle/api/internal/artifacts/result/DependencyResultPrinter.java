@@ -26,14 +26,14 @@ import org.gradle.api.artifacts.result.DependencyResult;
 public class DependencyResultPrinter {
 
     public static String print(DependencyResult result) {
-        if (!result.getRequested().matchesStrictly(result.getSelected().getId())) {
-            return requested(result) + " -> " + result.getSelected().getId().getVersion();
+        if (result.getSelected() != null && !result.getRequested().matchesStrictly(result.getSelected().getId())) {
+            return printRequested(result) + " -> " + result.getSelected().getId().getVersion();
         } else {
-            return requested(result);
+            return printRequested(result);
         }
     }
 
-    private static String requested(DependencyResult result) {
+    private static String printRequested(DependencyResult result) {
         return result.getRequested().getGroup() + ":" + result.getRequested().getName() + ":" + result.getRequested().getVersion();
     }
 }
