@@ -20,8 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
- * Provides details about the candidate module
- * and provides means to force certain properties of the module.
+ * Provides details about a dependency when it is resolved.
+ * Provides means to manipulate dependency metadata when it is resolved.
  */
 @Incubating
 public interface DependencyResolveDetails {
