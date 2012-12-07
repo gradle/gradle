@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.junit.result;
+package org.gradle.api.internal.xml;
 
 import org.apache.xerces.util.XMLChar;
 
