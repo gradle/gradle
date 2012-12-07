@@ -22,42 +22,39 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import java.util.Set;
 
 /**
- * Resolved module version result is a node in the resolved dependency graph.
- * Contains the identifier of the module and the dependencies.
+ * A node in the resolved dependency graph.
+ * Contains the identifier of the module and its dependencies.
  */
 @Incubating
 public interface ResolvedModuleVersionResult {
 
     /**
-     * The identifier of the resolved module.
+     * Returns the identifier of the resolved module.
      *
-     * @return identifier
+     * @return the identifier of the resolved module
      */
     ModuleVersionIdentifier getId();
 
     /**
-     * The dependencies of the resolved module. See {@link DependencyResult}.
+     * Returns the dependencies of the resolved module.
      * Includes resolved and unresolved dependencies (if any).
      *
-     * @return dependencies
+     * @return the dependencies of the resolved module
      */
     Set<? extends DependencyResult> getDependencies();
 
     /**
-     * The dependents of the resolved module. See {@link DependencyResult}.
+     * Returns the dependents of the resolved module.
      *
-     * @return dependents
+     * @return the dependents of the resolved module
      */
     Set<? extends DependencyResult> getDependents();
 
     /**
-     * Informs why this module version was selected.
-     * Useful information if during the dependency resolution multiple candidate versions were found
-     * and one of them was selected as a part of conflict resolution.
-     * Informs if a version was forced during the resolution process.
-     * See {@link ModuleVersionSelectionReason}
+     * Returns the reason for selecting the module.
+     * Useful if multiple candidate versions were found during dependency resolution.
      *
-     * @return information why this module version was selected.
+     * @return the reason for selecting the module
      */
     ModuleVersionSelectionReason getSelectionReason();
 }
