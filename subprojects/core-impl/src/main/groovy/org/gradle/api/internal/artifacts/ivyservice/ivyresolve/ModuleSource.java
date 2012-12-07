@@ -18,20 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import java.math.BigInteger;
 
-public class ModuleSource {
-    private final BigInteger descriptorHash;
-    private final boolean changingModule;
+public interface ModuleSource {
 
-    public ModuleSource(BigInteger descriptorHash, boolean changingModule) {
-        this.descriptorHash = descriptorHash;
-        this.changingModule = changingModule;
-    }
+    BigInteger getDescriptorHash();
 
-    public BigInteger getDescriptorHash() {
-        return descriptorHash;
-    }
-
-    public boolean isChangingModule() {
-        return changingModule;
-    }
+    boolean isChangingModule();
 }
+
+
