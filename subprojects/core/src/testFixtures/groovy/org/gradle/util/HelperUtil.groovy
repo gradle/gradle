@@ -50,7 +50,21 @@ class HelperUtil {
          return createTask(type, createRootProject())
      }
 
-     static <T extends Task> T createTask(Class<T> type, ProjectInternal project) {
+     static <T extends Task> T createTask(Class<T> type, Map taskFields) {
+         def task = createTask(type, createRootProject())
+         hackInTaskProperties(type, task, taskFields)
+         return task
+     }
+
+    private static void hackInTaskProperties(Class type, Task task, Map args) {
+        args.each { k, v ->
+            def field = type.getDeclaredField(k)
+            field.setAccessible(true)
+            field.set(task, v)
+        }
+    }
+
+    static <T extends Task> T createTask(Class<T> type, ProjectInternal project) {
          return createTask(type, project, 'name')
      }
 

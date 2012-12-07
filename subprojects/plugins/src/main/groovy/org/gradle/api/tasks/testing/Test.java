@@ -62,6 +62,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Arrays.asList;
+
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
  * The sample below shows various configuration options.
@@ -432,11 +434,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestResultProcessor resultProcessor = new TestListenerAdapter(
                 getTestListenerBroadcaster().getSource(), testOutputListenerBroadcaster.getSource());
 
-        testExecuter.execute(this, resultProcessor);
+        try {
+            testExecuter.execute(this, resultProcessor);
+        } finally {
+            testListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector, testCountLogger));
+            testOutputListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector));
+        }
 
         if (testReportDataCollector != null) {
-            removeTestListener(testReportDataCollector);
-            removeTestOutputListener(testReportDataCollector);
             new Binary2JUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector).generate();
         }
 
