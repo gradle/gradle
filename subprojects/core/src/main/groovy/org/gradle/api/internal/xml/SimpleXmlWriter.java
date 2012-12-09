@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.xml;
 
-import org.apache.xerces.util.XMLChar;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedList;
@@ -134,7 +132,7 @@ public class SimpleXmlWriter {
 
         public Element(String name) throws IOException {
             if (!isValidXmlName(name)) {
-                throw new IllegalArgumentException("Invalid element name: " + name);
+                throw new IllegalArgumentException(String.format("Invalid element name: '%s'", name));
             }
             this.name = name;
             write("<");
@@ -143,7 +141,7 @@ public class SimpleXmlWriter {
 
         public Element attribute(String name, String value) throws IOException {
             if (!isValidXmlName(name)) {
-                throw new IllegalArgumentException("Invalid attribute name: " + name);
+                throw new IllegalArgumentException(String.format("Invalid attribute name: '%s'", name));
             }
             write(" ");
             write(name);
@@ -159,7 +157,86 @@ public class SimpleXmlWriter {
     }
 
     private static boolean isValidXmlName(String name) {
-        return XMLChar.isValidName(name);
+        int length = name.length();
+        if (length == 0) {
+            return false;
+        }
+        char ch = name.charAt(0);
+        if (!isValidNameStartChar(ch)) {
+            return false;
+        }
+        for (int i = 1; i < length; i++) {
+            ch = name.charAt(i);
+            if (!isValidNameChar(ch)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isValidNameChar(char ch) {
+        if (isValidNameStartChar(ch)) {
+            return true;
+        }
+        if (ch >= '0' && ch <= '9') {
+            return true;
+        }
+        if (ch == '-' || ch == '.' || ch == '\u00b7') {
+            return true;
+        }
+        if (ch >= '\u0300' && ch <= '\u036f') {
+            return true;
+        }
+        if (ch >= '\u203f' && ch <= '\u2040') {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isValidNameStartChar(char ch) {
+        if (ch >= 'A' && ch <= 'Z') {
+            return true;
+        }
+        if (ch >= 'a' && ch <= 'z') {
+            return true;
+        }
+        if (ch == ':' || ch == '_') {
+            return true;
+        }
+        if (ch >= '\u00c0' && ch <= '\u00d6') {
+            return true;
+        }
+        if (ch >= '\u00d8' && ch <= '\u00f6') {
+            return true;
+        }
+        if (ch >= '\u00f8' && ch <= '\u02ff') {
+            return true;
+        }
+        if (ch >= '\u0370' && ch <= '\u037d') {
+            return true;
+        }
+        if (ch >= '\u037f' && ch <= '\u1fff') {
+            return true;
+        }
+        if (ch >= '\u200c' && ch <= '\u200d') {
+            return true;
+        }
+        if (ch >= '\u2070' && ch <= '\u218f') {
+            return true;
+        }
+        if (ch >= '\u2c00' && ch <= '\u2fef') {
+            return true;
+        }
+        if (ch >= '\u3001' && ch <= '\ud7ff') {
+            return true;
+        }
+        if (ch >= '\uf900' && ch <= '\ufdcf') {
+            return true;
+        }
+        if (ch >= '\ufdf0' && ch <= '\ufffd') {
+            return true;
+        }
+        return false;
     }
 
     private void write(char c) throws IOException {

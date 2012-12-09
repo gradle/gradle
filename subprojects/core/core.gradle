@@ -60,8 +60,6 @@ dependencies {
     integTestCompile project(":internalIntegTesting")
 
     reports 'css3-pie:css3-pie:1.0beta3'
-
-    provided libraries.xerces
 }
 
 useTestFixtures()

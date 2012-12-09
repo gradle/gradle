@@ -72,13 +72,14 @@ class SimpleXmlWriterSpec extends Specification {
 
         writer.writeStartCDATA()
         writer.writeCDATA('encodes: ]]> '.toCharArray())
-        writer.writeCDATA('html allowed: <>'.toCharArray())
+        writer.writeCDATA('does not encode: ]] '.toCharArray())
+        writer.writeCDATA('html allowed: <> &amp;'.toCharArray())
         writer.writeEndCDATA()
 
         writer.writeEndElement()
 
         then:
-        xml == '<root><stuff><![CDATA[hey joe]]></stuff><![CDATA[encodes: ]]]]><![CDATA[> html allowed: <>]]></root>'
+        xml == '<root><stuff><![CDATA[hey joe]]></stuff><![CDATA[encodes: ]]]]><![CDATA[> does not encode: ]] html allowed: <> &amp;]]></root>'
     }
 
     def "encodes CDATA when token on the border"() {
@@ -127,21 +128,49 @@ class SimpleXmlWriterSpec extends Specification {
         thrown(IllegalStateException)
     }
 
+    def "allows valid tag names"() {
+        when:
+        writer.writeStartElement(name)
+
+        then:
+        notThrown(IllegalArgumentException)
+
+        where:
+        name << ["name", "NAME", "with-dashes", "with.dots", "with123digits", ":", "_", "\u037f\u0300"]
+    }
+
     def "validates tag names"() {
         when:
-        writer.writeStartElement("tag with space")
+        writer.writeStartElement(name)
 
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message.contains("tag with space")
+        ex.message == "Invalid element name: '$name'"
+
+        where:
+        name << ["tag with space", "", "-invalid-start-char", "  ", "912", "\u00d7"]
+    }
+
+    def "allows valid attribute names"() {
+        when:
+        writer.writeStartElement(writer.element("foo").attribute(name, "foo"))
+
+        then:
+        notThrown(IllegalArgumentException)
+
+        where:
+        name << ["name", "NAME", "with-dashes", "with.dots", "with123digits", ":", "_", "\u037f\u0300"]
     }
 
     def "validates attribute names"() {
         when:
-        writer.writeStartElement(writer.element("foo").attribute("attribute with space", "foo"))
+        writer.writeStartElement(writer.element("foo").attribute(name, "foo"))
 
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message.contains("attribute with space")
+        ex.message == "Invalid attribute name: '$name'"
+
+        where:
+        name << ["attribute with space", "", "-invalid-start-char", "  ", "912", "\u00d7"]
     }
 }
