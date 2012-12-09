@@ -17,7 +17,7 @@ class DistZipIntegrationTest extends AbstractIntegrationSpec {
 		}
 		and:
 		buildFile << """
-		apply plugin:'java-library'
+		apply plugin:'jvm-library'
             distribution{
 				name ='SuperApp'
 			}
@@ -31,7 +31,7 @@ class DistZipIntegrationTest extends AbstractIntegrationSpec {
 		then:
 		def expandDir = file('expanded')
 		file('build/distributions/SuperApp.zip').unzipTo(expandDir)
-		expandDir.assertHasDescendants('lib/a.jar', 'dist/file1.txt', 'dist/dir2/file2.txt','canCreateADistributionWithSrcDistRuntime.jar')
+		expandDir.assertHasDescendants('lib/a.jar', 'file1.txt', 'dir2/file2.txt','canCreateADistributionWithSrcDistRuntime.jar')
 	}
 	
 	def canCreateADistributionIncludingOtherFile() {
@@ -53,7 +53,7 @@ class DistZipIntegrationTest extends AbstractIntegrationSpec {
 		}
 		and:
 		buildFile << """
-		apply plugin:'java-library'
+		apply plugin:'jvm-library'
             distribution{
 				name ='SuperApp'
 			}

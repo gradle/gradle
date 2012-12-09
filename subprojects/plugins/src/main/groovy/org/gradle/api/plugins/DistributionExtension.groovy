@@ -4,11 +4,11 @@ package org.gradle.api.plugins
  * Extension for {@link JavaLibraryPlugin }
  * 
  *  
- * <p>The extension for the java library plugin.</p>
+ * <p>The extension for the jvm-library plugin.</p>
  * <p>
  * Use this class to configure the name of the distribution.
  * <pre autoTested=''>
- * apply plugin: 'java-library'
+ * apply plugin: 'jvm-library'
  *
  * distribution {
  *   name = 'my-name'

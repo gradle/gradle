@@ -1,0 +1,83 @@
+<!--
+  ~ Copyright 2011 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='jvmLibrary_plugin'>
+    <title>The JVM Library Plugin</title>
+    <para>The Gradle jvm library plugin extends the language plugins with common library related tasks.
+	It allows bundling library for the jvm.
+	</para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the jvm library plugin, include in your build script:</para>
+        <sample id="usejvmLibraryPlugin" dir="jvmLibrary" title="Using the jvm library plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <para>To define the name for the distribution you have to set the <literal>name</literal> property as shown below</para>
+        <sample id="useApplicationPlugin" dir="jvmLibrary" title="Configure the distribution name">
+            <sourcefile file="build.gradle" snippet="name-conf"/>
+        </sample>
+
+         <para>The plugin build a distribution for your library. The distribution will package up the runtime dependencies of the library
+		All files stored in <filename>src/dist</filename> will be added to the root of the archive
+            distribution. You can run <userinput>gradle distZip</userinput> to create a
+            ZIP containing the distribution.
+        </para>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The JVM Library plugin adds the following tasks to the project.</para>
+        <table>
+            <title>JVM library plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+		<tr>
+                <td>
+                    <literal>distZip</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
+                <td>Creates a full distribution ZIP archive including runtime libraries.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+            <title>Extension properties</title>
+            <para>The JVM library plugin add an extension to the project, which you can use to configure its behaviour. See <apilink class="org.gradle.api.Project"/>.
+            </para>
+    </section>
+    
+    <section id="jvm_library_distribution_resources">
+            <title>Including other resources in the distribution</title>
+	    <para>
+		All of the files from the <filename>src/dist</filename> directory are copied. To include any static files in the 
+                distribution, simply arrange them in the <filename>src/dist</filename> directory, or add it to the task
+            </para>
+            <sample id="includeTaskOutputInApplicationDistribution" dir="jvmLibrary" title="Include files in the distribution">
+                <sourcefile file="build.gradle" snippet="distribution-spec"/>
+            </sample>
+    </section>
+    
+</chapter>
