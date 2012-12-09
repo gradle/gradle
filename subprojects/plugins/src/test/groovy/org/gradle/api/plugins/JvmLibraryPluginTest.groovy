@@ -20,12 +20,11 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-import org.gradle.api.file.CopySpec
 import org.junit.Test;
 
-class JavaLibraryPluginTest extends Specification {
+class JvmLibraryPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject();
-    private final JavaLibraryPlugin plugin = new JavaLibraryPlugin();
+    private final JvmLibraryPlugin plugin = new JvmLibraryPlugin();
 
     def "applies JavaPlugin and adds convention object with default values"() {
         when:
@@ -45,7 +44,7 @@ class JavaLibraryPluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def task = project.tasks[JavaLibraryPlugin.TASK_DIST_ZIP_NAME]
+        def task = project.tasks[JvmLibraryPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
         task.archiveName == "${project.distribution.name}.zip"
     }
@@ -56,7 +55,7 @@ class JavaLibraryPluginTest extends Specification {
         project.distribution.name = "SuperApp";
 
         then:
-        def distZipTask = project.tasks[JavaLibraryPlugin.TASK_DIST_ZIP_NAME]
+        def distZipTask = project.tasks[JvmLibraryPlugin.TASK_DIST_ZIP_NAME]
         distZipTask.archiveName == "SuperApp.zip"
     }
 	

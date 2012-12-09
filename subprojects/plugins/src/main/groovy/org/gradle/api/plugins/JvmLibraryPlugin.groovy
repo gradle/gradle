@@ -2,7 +2,6 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.tasks.bundling.Zip;
 
 /**
@@ -11,8 +10,8 @@ import org.gradle.api.tasks.bundling.Zip;
  * @author scogneau
  *
  */
-class JavaLibraryPlugin implements Plugin<Project>{
-	static final String JAVA_LIBRARY_PLUGIN_NAME = "java-library"
+class JvmLibraryPlugin implements Plugin<Project>{
+	static final String JAVA_LIBRARY_PLUGIN_NAME = "jvm-library"
 	static final String JAVA_LIBRARY_GROUP = JAVA_LIBRARY_PLUGIN_NAME
 	static final String TASK_DIST_ZIP_NAME = "distZip"
 	
@@ -36,7 +35,7 @@ class JavaLibraryPlugin implements Plugin<Project>{
 	
 	private void addDistZipTask(){
 		def distZipTask = project.tasks.add(TASK_DIST_ZIP_NAME, Zip)
-		distZipTask.description = "Bundles the project as a java library."
+		distZipTask.description = "Bundles the project as a jvm library."
 		distZipTask.group = JAVA_LIBRARY_GROUP
 		distZipTask.conventionMapping.baseName = {extension.name }
 		def baseDir = { distZipTask.archiveName - ".zip" }

@@ -42,7 +42,7 @@
     <plugin id="application" description="Application Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ApplicationPluginConvention"/>
     </plugin>
-    <plugin id="java-library" description="Java Library Plugin">
+    <plugin id="jvm-library" description="Jvm Library Distribution Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.DistributionExtension"/>
     </plugin>
     <plugin id="signing" description="Signing Plugin">
