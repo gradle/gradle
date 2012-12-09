@@ -113,6 +113,11 @@ public class JettyPlugin implements Plugin<Project> {
                         return getWarConvention(project).getWebAppDir();
                     }
                 });
+                jettyRun.getConventionMapping().map("additionalWebAppDirs", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return getWarConvention(project).getAdditionalWebAppDirs();
+                    }
+                });
             }
         });
 

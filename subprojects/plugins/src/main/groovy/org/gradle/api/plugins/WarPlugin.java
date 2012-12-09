@@ -53,6 +53,11 @@ public class WarPlugin implements Plugin<Project> {
                         return pluginConvention.getWebAppDir();
                     }
                 });
+                task.from(new Callable() {
+                    public Object call() throws Exception {
+                        return pluginConvention.getAdditionalWebAppDirs();
+                    }
+                });
                 task.dependsOn(new Callable() {
                     public Object call() throws Exception {
                         return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(

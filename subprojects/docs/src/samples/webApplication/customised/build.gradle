@@ -30,14 +30,33 @@ dependencies {
     moreLibs ":otherLib:1.0"
 }
 
+// ------  War plugin configuration  ---------
+
+webAppDirName = 'src/customWebapp'
+additionalWebAppDirs = [file('src/extraWebapp')] // adds extra directories containing webapp resources. (Accessible when running jettyRun and will be added to webapp)
+
 war {
-    from 'src/rootContent' // adds a file-set to the root of the archive
+    from 'src/rootContent' // adds a file-set to the root of the archive (Not available in jettyRun, only jettyRunWar and built webapp)
     webInf { from 'src/additionalWebInf' } // adds a file-set to the WEB-INF dir.
     classpath fileTree('additionalLibs') // adds a file-set to the WEB-INF/lib dir.
     classpath configurations.moreLibs // adds a configuration to the WEB-INF/lib dir.
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
 // END SNIPPET customization
+
+// ------  Jetty plugin configuration  ---------
 stopKey = 'foo'
 stopPort = 9451
 httpPort = 8080
+
+jettyRun {
+  // scanPatterns can select specific files to monitor for changes
+  scanPatterns = [
+    new org.gradle.api.plugins.jetty.ScanTargetPattern(
+      directory:file('src/rootContent'),
+      includes: ['**/*.txt'],
+      excludes: ['**/Test*'])]
+  // scanTargets monitor directories and all files within recursively
+  scanTargets = [file('src/extraWebapp')]
+  scanIntervalSeconds = 5 // perform scan every 5 seconds.  Must be set to enable scanning
+}

@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.Collections;
 
 /**
  * <p>Deploys an exploded web application to an embedded Jetty web container. Does not require that the web application
@@ -78,6 +79,11 @@ public class JettyRun extends AbstractJettyRunTask {
      * Root directory for all html/jsp etc files.
      */
     private File webAppSourceDirectory;
+
+    /**
+     * Additional directories containing webapp html/jsp etc files. Optional.
+     */
+    private Set<File> additionalWebAppDirs;
 
     /**
      * List of files or directories to additionally periodically scan for changes. Optional.
@@ -119,6 +125,22 @@ public class JettyRun extends AbstractJettyRunTask {
             }
         } catch (IOException e) {
             throw new InvalidUserDataException("Webapp source directory does not exist", e);
+        }
+        try {
+            final Set<File> additionalDirs = getAdditionalWebAppDirs();
+            if (additionalDirs != null) {
+                for(File additionalDir : additionalDirs) {
+                    if ((additionalDir == null) || !additionalDir.exists()) {
+                        throw new InvalidUserDataException("Extra webapp source directory "
+                                + (additionalDir == null ? "null" : additionalDir.getCanonicalPath())
+                                + " does not exist");
+                    } else {
+                        logger.info("Extra webapp source directory = " + additionalDir.getCanonicalPath());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new InvalidUserDataException("Extra webapp source directory does not exist", e);
         }
 
         // check reload mechanic
@@ -185,9 +207,25 @@ public class JettyRun extends AbstractJettyRunTask {
             getWebAppConfig().setClassPathFiles(getClassPathFiles());
         }
         if (getWebAppConfig().getWar() == null) {
-            getWebAppConfig().setWar(getWebAppSourceDirectory().getCanonicalPath());
+            logger.info("Webapp directory = " + getWebAppSourceDirectory().getCanonicalPath());
+            final Set<File> additionalDirs = getAdditionalWebAppDirs();
+            if(additionalDirs == null || additionalDirs.isEmpty()) {
+                getWebAppConfig().setWar(getWebAppSourceDirectory().getCanonicalPath());
+            } else {
+                ResourceCollection rc = new ResourceCollection();
+                int size = additionalDirs.size() + 1;
+                Resource[] resources = new Resource[size];
+                resources[0] = Resource.newResource(getWebAppSourceDirectory().toURI().toURL());
+                int i = 1;
+                for (File file: additionalDirs) {
+                    resources[i] = Resource.newResource(file.toURI().toURL());
+                    logger.info("Adding extra webapp source directory: " + file.getCanonicalPath());
+                    i++;
+                }
+                rc.setResources(resources);
+                getWebAppConfig().setBaseResource(rc);
+            }
         }
-        logger.info("Webapp directory = " + getWebAppSourceDirectory().getCanonicalPath());
 
         getWebAppConfig().configure();
     }
@@ -272,12 +310,20 @@ public class JettyRun extends AbstractJettyRunTask {
                 Resource resource = getWebAppConfig().getBaseResource();
                 ResourceCollection rc = new ResourceCollection();
                 if (resource == null) {
-                    // nothing configured, so we automagically enable the overlays                    
-                    int size = overlays.size() + 1;
+                    // nothing configured, so we automagically enable the overlays
+                    Set<File> additionalDirs = getAdditionalWebAppDirs()==null ? Collections.<File>emptySet() : getAdditionalWebAppDirs();
+                    int extrasSize = additionalDirs.size();
+                    int size = overlays.size() + extrasSize + 1;
                     Resource[] resources = new Resource[size];
                     resources[0] = Resource.newResource(getWebAppSourceDirectory().toURI().toURL());
-                    for (int i = 1; i < size; i++) {
-                        resources[i] = overlays.get(i - 1);
+                    int i = 1;
+                    for (File dir: additionalDirs) {
+                        resources[i] = Resource.newResource(dir.toURI().toURL());
+                        logger.info("Adding extra webapp source directory: " + dir.getCanonicalPath());
+                        i++;
+                    }
+                    for (; i < size; i++) {
+                        resources[i] = overlays.get(i - extrasSize + 1);
                         logger.info("Adding overlay: " + resources[i]);
                     }
                     rc.setResources(resources);
@@ -392,6 +438,21 @@ public class JettyRun extends AbstractJettyRunTask {
         this.webAppSourceDirectory = webAppSourceDirectory;
     }
 
+    /**
+     * <p>Returns Set of additional directories containing webapp html/jsp etc files (additional to webAppSourceDirectory).</p>
+     */
+    public Set<File> getAdditionalWebAppDirs() {
+        return additionalWebAppDirs;
+    }
+
+    public void setAdditionalWebAppDirs(Set<File> additionalWebAppDirs) {
+        this.additionalWebAppDirs = additionalWebAppDirs;
+    }
+
+    /**
+     * Returns List of files or directories to additionally periodically scan for changes.
+     * scanIntervalSeconds must be non-zero and reload must be 'automatic' for scanning to be enabled
+     */
     public File[] getScanTargets() {
         return scanTargets;
     }
@@ -425,7 +486,24 @@ public class JettyRun extends AbstractJettyRunTask {
     public void setClassPathFiles(List<File> classPathFiles) {
         this.classPathFiles = classPathFiles;
     }
-
+    /**
+     * <p>Returns list of directories with ant-style &lt;include&gt; and &lt;exclude&gt; patterns for extra targets to periodically
+     * scan for changes. Can be used instead of, or in conjunction with &lt;scanTargets&gt;.</p>
+     *
+     * <p>scanIntervalSeconds must be non-zero and reload must be automatic for scanning to be enabled.</p>
+     *
+     * <p>Example usage:
+     * <code><pre>
+     * import org.gradle.api.plugins.jetty.*
+     * jettyRun {
+     *     def scanPattern = new ScanTargetPattern(
+     *     directory:file('extras'),
+     *     includes: ['*.html'],
+     *     excludes: ['Test*'])
+     *     scanPatterns = [scanPattern]
+     * }
+     * </pre></code></p>
+     */
     public ScanTargetPattern[] getScanTargetPatterns() {
         return scanTargetPatterns;
     }

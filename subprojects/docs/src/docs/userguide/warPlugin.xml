@@ -145,6 +145,20 @@
                     The web application source directory.
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <literal>additionalWebAppDirs</literal>
+                </td>
+                <td>
+                    <classname>Set&lt;File></classname>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.
+                </td>
+                <td>
+                    <filename>Empty Set</filename>
+                </td>
+                <td>
+                    The additional directories containing web application resources.  Useful when some resources are generated, like for GWT or special configurations for development.
+                </td>
+            </tr>
         </table>
 
         <para>These properties are provided by a <apilink class="org.gradle.api.plugins.WarPluginConvention"/>
