@@ -43,6 +43,16 @@ This way libraries from a releasable unit can be forced to use a consistent vers
 - multiple rules
 - ResolutionResult api must consider versions forced by rule
 - Decent error message when a rule fails
+- Using rule to blacklist a version:
+    - project has a direct dependency on lib-a:1.2
+    - project has a transitive dependency on lib-a:1.3
+    - use a rule to replace lib-a:1.2 with lib-a-1.2.1
+    - expect that lib-a:1.3 is used with selection reason 'conflict resolution'
+- Using rule to blacklist a version:
+    - project has a direct dependency on lib-a:1.2
+    - project has a transitive dependency on lib-a:1.3
+    - use a rule to replace lib-a:1.2 with lib-a-1.4
+    - expect that lib-a:1.4 is used with selection reason 'conflict resolution' and 'forced'
 
 ## Story: allow substitution of group and module
 
