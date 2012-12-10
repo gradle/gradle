@@ -104,9 +104,6 @@ public class NativeServices extends DefaultServiceRegistry {
             return new UnsupportedEnvironment();
         }
 
-        if (get(Jvm.class).isIbmJvm()) {
-            return new TemporaryIbmProcessEnvironment(environment);
-        }
         return environment;
     }
 
