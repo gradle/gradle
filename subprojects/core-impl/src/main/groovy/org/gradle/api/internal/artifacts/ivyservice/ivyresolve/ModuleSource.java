@@ -16,13 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import java.math.BigInteger;
-
 public interface ModuleSource {
-
-    BigInteger getDescriptorHash();
-
-    boolean isChangingModule();
 }
 
 

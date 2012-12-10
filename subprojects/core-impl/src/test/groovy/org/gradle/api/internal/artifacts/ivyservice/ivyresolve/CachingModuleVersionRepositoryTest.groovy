@@ -43,7 +43,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
     CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache, cachePolicy, new TrueTimeProvider())
     ModuleRevisionId moduleRevisionId = Mock()
     int descriptorHash = 1234
-    ModuleSource moduleSource = Mock()
+    CachingModuleVersionRepository.CachingModuleSource moduleSource = Mock()
 
     @Unroll
     "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
