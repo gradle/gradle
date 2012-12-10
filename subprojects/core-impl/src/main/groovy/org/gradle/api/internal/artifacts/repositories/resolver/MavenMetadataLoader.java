@@ -19,10 +19,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.XMLHelper;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.externalresource.transport.http.HttpRequestException;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -46,12 +44,6 @@ class MavenMetadataLoader {
         MavenMetadata metadata = new MavenMetadata();
         try {
             parseMavenMetadataInfo(metadataLocation, metadata);
-        } catch (ResourceException e) {
-            throw e;
-        } catch (HttpRequestException e) {
-            throw new ResourceException(String.format("%s. %s.", e.getMessage(), e.getCause().getMessage()), e);
-        } catch (UncheckedIOException e) {
-            throw new ResourceException(e.getMessage(), e);
         } catch (Exception e) {
             throw new ResourceException(String.format("Unable to load Maven meta-data from %s.", metadataLocation), e);
         }

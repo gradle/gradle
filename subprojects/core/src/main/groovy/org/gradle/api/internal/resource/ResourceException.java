@@ -17,7 +17,9 @@
 package org.gradle.api.internal.resource;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.Contextual;
 
+@Contextual
 public class ResourceException extends GradleException {
     public ResourceException(String message) {
         super(message);
