@@ -166,7 +166,7 @@ class IvyFileModule extends AbstractIvyModule {
         return this
     }
 
-    private TestFile file(artifact) {
+    TestFile file(artifact) {
         return moduleDir.file("${artifact.name}-${revision}${artifact.classifier ? '-' + artifact.classifier : ''}.${artifact.type}")
     }
 

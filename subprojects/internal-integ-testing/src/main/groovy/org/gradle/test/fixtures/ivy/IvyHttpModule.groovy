@@ -141,12 +141,29 @@ class IvyHttpModule extends AbstractIvyModule {
         server.expectGet("$prefix/$artifactFile.name", artifactFile)
     }
 
+    void expectArtifactGet(Map options) {
+        def mappedOptions = [name: options.name ?: module, type: options.type ?: 'jar', classifier: options.classifier ?: null]
+        def artifactFile = backingModule.file(mappedOptions)
+        server.expectGet("$prefix/$artifactFile.name", artifactFile)
+    }
+
     void expectPut(String username, String password, File dir, String... artifactNames) {
         artifactNames.each {
             server.expectPut("$prefix/$it", username, password, new File(dir, it))
         }
     }
 
+    void expectArtifactHead(Map options) {
+        def mappedOptions = [name: options.name ?: module, type: options.type ?: 'jar', classifier: options.classifier ?: null]
+        def artifactFile = backingModule.file(mappedOptions)
+        server.expectHead("$prefix/$artifactFile.name", artifactFile)
+    }
+
+    void expectArtifactSha1Get(Map options) {
+        def mappedOptions = [name: options.name ?: module, type: options.type ?: 'jar', classifier: options.classifier ?: null]
+        def artifactFile = backingModule.file(mappedOptions)
+        server.expectGet("$prefix/${artifactFile.name}.sha1", backingModule.sha1File(artifactFile))
+    }
 }
 
 

@@ -17,14 +17,17 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import spock.lang.Unroll
 
 public class CachedChangingModulesIntegrationTest extends AbstractDependencyResolutionTest {
 
-    def "can cache and refresh artifacts with a classifier"() {
+    @Unroll
+    def "can cache and refresh #descr versioned maven artifacts with a classifier"() {
         given:
         server.start()
         def repo = mavenHttpRepo("repo")
         def module = repo.module("group", "projectA", "1.0-SNAPSHOT")
+        if (nonunique) module.withNonUniqueSnapshots()
         def sourceArtifact = module.artifact(classifier: "source")
 
         module.publish()
@@ -80,6 +83,80 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         sourceArtifact.expectHead()
         sourceArtifact.expectGet()
         sourceArtifact.expectSha1Get()
+        then:
+        run 'retrieve'
+
+        when:
+        module.publishWithChangedContent()
+        server.resetExpectations()
+        then:
+        executer.withArgument("--offline")
+        run 'retrieve'
+
+        where:
+        nonunique  |   descr
+        true       |   "non uniuqe"
+        false      |   "unique"
+    }
+
+
+    def "can cache and refresh ivy changing artifacts with a classifier"() {
+        given:
+        server.start()
+        def repo = ivyHttpRepo("repo")
+        def module = repo.module("group", "projectA", "1.0")
+        module.artifact(classifier: "source")
+
+        module.publish()
+        buildFile << """
+          repositories {
+              ivy {
+                  name 'repo'
+                  url '${repo.uri}'
+              }
+          }
+          configurations {
+              compile
+          }
+
+          configurations.all {
+              resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+          }
+
+          dependencies {
+                compile group: "group", name: "projectA", version: "1.0", classifier: "source", changing: true
+          }
+
+          task retrieve(type: Sync) {
+              into 'libs'
+              from configurations.compile
+          }
+          """
+        when:
+        module.expectIvyGet()
+        module.expectArtifactGet(name: "projectA", classifier: "source")
+
+        then:
+        run 'retrieve'
+
+        when:
+        server.resetExpectations()
+        module.expectIvyHead()
+        module.expectArtifactHead(name: "projectA", classifier: 'source')
+        then:
+        run 'retrieve'
+
+        when:
+        module.publishWithChangedContent()
+        server.resetExpectations()
+        module.expectIvyHead()
+        module.expectArtifactHead(name: "projectA", classifier: 'source')
+
+        module.expectIvySha1Get()
+        module.expectIvyGet()
+        module.expectArtifactGet(name: "projectA", classifier: 'source')
+        module.expectArtifactSha1Get(name: "projectA", classifier: 'source')
+
         then:
         run 'retrieve'
 
