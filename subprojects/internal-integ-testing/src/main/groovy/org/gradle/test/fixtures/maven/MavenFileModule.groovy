@@ -136,15 +136,19 @@ class MavenFileModule implements MavenModule {
     }
 
     TestFile getArtifactFile(Map options = [:]) {
+        if (version.endsWith("-SNAPSHOT") && !metaDataFile.exists() && uniqueSnapshots) {
+            def artifact = toArtifact(options)
+            return moduleDir.file("${artifactId}-${version}${artifact.classifier ? "-${artifact.classifier}" : ""}.${artifact.type}")
+        }
         return artifactFile(options)
     }
 
     TestFile getArtifactSha1File() {
-        return getSha1File(getArtifactFile())
+        return getSha1File(artifactFile)
     }
 
     TestFile getArtifactMd5File() {
-        return getMd5File(getArtifactFile())
+        return getMd5File(artifactFile)
     }
 
     TestFile artifactFile(Map<String, ?> options) {

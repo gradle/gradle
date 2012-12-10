@@ -38,7 +38,7 @@ class MavenHttpModule implements MavenModule {
     }
 
     HttpArtifact getArtifact(Map options = [:]) {
-        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
+        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", this, options)
     }
 
     /**
@@ -47,8 +47,7 @@ class MavenHttpModule implements MavenModule {
      */
     HttpArtifact artifact(Map<String, ?> options) {
         backingModule.artifact(options)
-        def httpArtifact = new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
-        return httpArtifact
+        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", this, options)
     }
 
     MavenHttpModule publish() {
@@ -226,7 +225,7 @@ class MavenHttpModule implements MavenModule {
     }
 
     void expectPomSha1Get() {
-        server.expectGet("$moduleVersionPath/${pomFile.name}.sha1", backingModule.sha1File(pomFile))
+        server.expectGet("$moduleVersionPath/${pomFile.name}.sha1", backingModule.getSha1File(pomFile))
     }
 
     void expectPomSha1GetMissing() {

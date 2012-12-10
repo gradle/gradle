@@ -20,10 +20,10 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
 class MavenHttpArtifact extends HttpArtifact {
-    MavenFileModule backingModule;
-    final Map options
+    private final MavenHttpModule backingModule;
+    private final Map options
 
-    public MavenHttpArtifact(HttpServer server, String modulePath, MavenFileModule backingModule, Map<String, ?> options = [:]) {
+    public MavenHttpArtifact(HttpServer server, String modulePath, MavenHttpModule backingModule, Map<String, ?> options = [:]) {
         super(server, modulePath)
         this.options = options
         this.backingModule = backingModule;
@@ -31,18 +31,10 @@ class MavenHttpArtifact extends HttpArtifact {
 
     @Override
     File getSha1File() {
-        backingModule.sha1File(getFile());
+        backingModule.sha1File(file);
     }
 
     TestFile getFile() {
         return backingModule.getArtifactFile(options)
-    }
-
-    protected String getMissingArtifactName() {
-        if (backingModule.version.endsWith("-SNAPSHOT")) {
-            return "${backingModule.artifactId}-${backingModule.version}${options["classifier"] ? "-" + options["classifier"] : ""}.jar"
-        } else {
-            return file.name
-        }
     }
 }

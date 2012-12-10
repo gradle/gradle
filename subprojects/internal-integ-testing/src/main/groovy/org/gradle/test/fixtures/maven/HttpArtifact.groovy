@@ -29,19 +29,19 @@ abstract class HttpArtifact extends HttpResource {
     }
 
     void expectHeadMissing() {
-        server.expectHeadMissing("$modulePath/${getMissingArtifactName()}")
+        server.expectHeadMissing(path)
     }
 
     void expectGetMissing() {
-        server.expectGetMissing("$modulePath/${getMissingArtifactName()}")
+        server.expectGetMissing(path)
     }
 
     void expectSha1GetMissing() {
-        server.expectGetMissing("$modulePath/${missingArtifactName}.sha1")
+        server.expectGetMissing("${path}.sha1")
     }
 
     void expectSha1Get() {
-        server.expectGet(getArtifactSha1Path(), getSha1File())
+        server.expectGet(artifactSha1Path, sha1File)
     }
 
     String getArtifactSha1Path() {
@@ -55,6 +55,4 @@ abstract class HttpArtifact extends HttpResource {
     abstract File getSha1File();
 
     abstract TestFile getFile();
-
-    protected abstract String getMissingArtifactName();
 }

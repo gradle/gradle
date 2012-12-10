@@ -120,13 +120,8 @@ task retrieve(type: Sync) {
         and: "Server provides projectB with artifact in repo2"
         repo1ProjectB.expectMetaDataGet()
         repo1ProjectB.expectPomGet()
-
-        server.expectGetMissing("/repo1/org/gradle/projectB/1.0-SNAPSHOT/${repo1ProjectB.artifactFile.name}")
-//        server.expectGetMissing("/repo1/org/gradle/projectB/1.0-SNAPSHOT/projectB-1.0-SNAPSHOT.jar")
-
-//        // TODO: This is not correct - should be looking for jar with unique version to fetch snapshot
-//        server.expectGet("/repo2/org/gradle/projectB/1.0-SNAPSHOT/projectB-1.0-SNAPSHOT.jar", repo2ProjectB.artifactFile)
-        server.expectGet("/repo2/org/gradle/projectB/1.0-SNAPSHOT/${repo2ProjectB.artifactFile.name}", repo2ProjectB.artifactFile)
+        repo1ProjectB.artifact.expectGetMissing()
+        repo2ProjectB.artifact.expectGet()
 
         and: "We resolve dependencies"
         run 'retrieve'
@@ -187,7 +182,9 @@ task retrieve(type: Sync) {
 
         when: "Change the snapshot artifacts directly: do not change the pom"
         uniqueVersionModule.artifactFile << 'more content'
+        uniqueVersionModule.backingModule.sha1File(uniqueVersionModule.artifactFile)
         nonUniqueVersionModule.artifactFile << 'more content'
+        nonUniqueVersionModule.backingModule.sha1File(nonUniqueVersionModule.artifactFile)
 
         and: "No server requests"
         expectChangedArtifactServed(uniqueVersionModule)
@@ -370,9 +367,9 @@ allprojects {
         def module = mavenHttpRepo("/repo", maven("repo1")).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         def module2 = mavenHttpRepo("/repo", maven("repo2")).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         module2.pomFile << '    ' // ensure it's a different length to the first one
-        def module2Artifact = module2.artifact
+        module2.backingModule.sha1File(module2.pomFile)
         module2.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
-
+        module2.backingModule.sha1File(module2.artifactFile)
         and:
         settingsFile << "include 'first', 'second'"
         buildFile << """
@@ -426,9 +423,9 @@ project('second') {
         module.expectPomGet()
         module.artifact.expectGet()
 
-        module2Artifact.expectHead()
-        module2Artifact.expectSha1Get()
-        module2Artifact.expectGet()
+        module2.artifact.expectHead()
+        module2.artifact.expectSha1Get()
+        module2.artifact.expectGet()
 
         then:
         run 'cleanup'
