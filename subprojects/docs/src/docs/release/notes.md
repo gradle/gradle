@@ -27,6 +27,13 @@ All you need to work with the Tooling API is the tooling api jar and slf4j.
 Furthermore, we repackaged the Tooling API's 3rd party transitive dependencies to avoid conflicts
 with different versions you might already have on your classpath. Happy embedding!Now go and embed Gradle!
 
+### Dependency resolution improvements
+
+- GRADLE-2175 - Source, javadoc and classifier artifacts from Maven snapshots are correctly treated as changing.
+- GRADLE-2364 - `--offline` works after resolving against a broken repository.
+- GRADLE-2185 - Fewer HTTP requests when resolving Maven snapshots.
+- GRADLE-1919 - Added `m2Compatible` option.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
