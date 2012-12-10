@@ -163,7 +163,7 @@ public class DirectoryFileTreeTest {
             inSequence(visiting);
         }});
 
-        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock()).depthFirst();
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock()).postfix();
         fileTree.visit(visitor);
     }
 

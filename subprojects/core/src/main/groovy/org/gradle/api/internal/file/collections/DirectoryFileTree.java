@@ -182,7 +182,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
      *
      * @return {@code this}
      */
-    public DirectoryFileTree depthFirst() {
+    public DirectoryFileTree postfix() {
         postfix = true;
         return this;
     }
