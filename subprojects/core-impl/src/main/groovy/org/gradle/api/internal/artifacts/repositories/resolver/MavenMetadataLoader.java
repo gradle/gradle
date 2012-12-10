@@ -44,6 +44,8 @@ class MavenMetadataLoader {
         MavenMetadata metadata = new MavenMetadata();
         try {
             parseMavenMetadataInfo(metadataLocation, metadata);
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new ResourceException(String.format("Unable to load Maven meta-data from %s.", metadataLocation), e);
         }
