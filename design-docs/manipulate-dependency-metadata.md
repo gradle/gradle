@@ -43,6 +43,11 @@ This way libraries from a releasable unit can be forced to use a consistent vers
 - multiple rules
 - ResolutionResult api must consider versions forced by rule
 - Decent error message when a rule fails
+
+## Story: allow a module version to be blacklisted by 'rule'
+
+### Test coverage
+
 - Using rule to blacklist a version:
     - project has a direct dependency on lib-a:1.2
     - project has a transitive dependency on lib-a:1.3
@@ -62,6 +67,6 @@ For example, allow `groovy-all` to be replaced with `groovy`, or 'log4j' with 'l
 
 For example, allow `default` or `null` to be used as the version in dependency notation, and allow a rule to map this to some version selector.
 
-## Story: declarative substitution of group and module
+## Story: declarative substitution of group, module and version
 
-Allow substitutions to be expressed declaratively, rather than imperatively as a rule.
+Allow some substitutions to be expressed declaratively, rather than imperatively as a rule.
