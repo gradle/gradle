@@ -31,8 +31,9 @@ with different versions you might already have on your classpath. Happy embeddin
 
 - GRADLE-2175 - Source, javadoc and classifier artifacts from Maven snapshots are correctly treated as changing.
 - GRADLE-2364 - `--offline` works after resolving against a broken repository.
-- GRADLE-2185 - Fewer HTTP requests when resolving Maven snapshots.
+- GRADLE-2185 - Faster resolution of Maven snapshots.
 - GRADLE-1919 - Added `m2Compatible` option.
+- GRADLE-2546 - Faster searching for local candidates.
 
 ## Promoted features
 
