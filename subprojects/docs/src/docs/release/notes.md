@@ -35,6 +35,30 @@ with different versions you might already have on your classpath. Happy embeddin
 - GRADLE-1919 - Added `m2Compatible` option.
 - GRADLE-2546 - Faster searching for local candidates.
 
+### Improvements to dependency resolution reports
+
+Dependency resolution reports now show dependencies that couldn't be resolved. Here is an example for the `dependencies` task:
+
+    compile - Classpath for compiling the sources.
+    \--- foo:bar:1.0
+         \--- foo:baz:2.0 FAILED
+
+The `FAILED` marker indicates that `foo:baz:2.0`, which is depended upon by `foo:bar:1.0`, couldn't be resolved.
+
+A similar improvement has been made to the `dependencyInsight` task:
+
+    foo:baz:2.0 (forced) FAILED
+
+    foo:baz:1.0 -> 2.0 FAILED
+    \--- foo:bar:1.0
+         \--- compile
+
+In this example, `foo:baz` was forced to version `2.0`, but that version couldn't be resolved.
+
+<!--
+### Example new and noteworthy
+-->
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
