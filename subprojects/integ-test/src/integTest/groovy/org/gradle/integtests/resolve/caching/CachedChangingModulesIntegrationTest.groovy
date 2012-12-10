@@ -27,7 +27,9 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         server.start()
         def repo = mavenHttpRepo("repo")
         def module = repo.module("group", "projectA", "1.0-SNAPSHOT")
-        if (nonunique) module.withNonUniqueSnapshots()
+        if (nonunique) {
+            module.withNonUniqueSnapshots()
+        }
         def sourceArtifact = module.artifact(classifier: "source")
 
         module.publish()
