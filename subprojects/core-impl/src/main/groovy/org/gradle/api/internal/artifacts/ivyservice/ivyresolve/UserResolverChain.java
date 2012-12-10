@@ -111,7 +111,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
                     }
                     break;
                 case Resolved:
-                    ModuleResolution moduleResolution = new ModuleResolution(request.repository, request.descriptor, request.moduleSource);
+                    ModuleResolution moduleResolution = new ModuleResolution(request.repository, request.descriptor, request.descriptor.getModuleSource());
                     if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
                         return moduleResolution;
                     }
@@ -164,7 +164,6 @@ public class UserResolverChain implements DependencyToModuleResolver {
     private static class RepositoryResolveState {
         final LocalAwareModuleVersionRepository repository;
         final DefaultBuildableModuleVersionDescriptor descriptor = new DefaultBuildableModuleVersionDescriptor();
-        ModuleSource moduleSource;
 
         boolean searchedLocally;
         boolean searchedRemotely;
@@ -183,9 +182,6 @@ public class UserResolverChain implements DependencyToModuleResolver {
             }
             if (descriptor.getState() == BuildableModuleVersionDescriptor.State.Failed) {
                 throw descriptor.getFailure();
-            }
-            if(descriptor.getState() == BuildableModuleVersionDescriptor.State.Resolved){
-                this.moduleSource = descriptor.getModuleSource();
             }
         }
 
