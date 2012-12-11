@@ -30,8 +30,8 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     @Rule public final GradleDistribution distribution = new GradleDistribution();
     public final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution);
 
-    @ClassRule public static final GradleDistribution sharedDistribution = new GradleDistribution();
-    private static final GradleDistributionExecuter sharedExecuter = new GradleDistributionExecuter(sharedDistribution);
+    @ClassRule public static final GradleDistribution SHARED_DISTRIBUTION = new GradleDistribution();
+    private static final GradleDistributionExecuter SHARED_EXECUTER = new GradleDistributionExecuter(SHARED_DISTRIBUTION);
 
     protected boolean useSharedFixture;
 
@@ -41,11 +41,11 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     private IvyFileRepository ivyRepo;
 
     protected GradleDistribution getDistribution() {
-        return useSharedFixture ? sharedDistribution : distribution;
+        return useSharedFixture ? SHARED_DISTRIBUTION : distribution;
     }
 
     protected GradleDistributionExecuter getExecuter() {
-        return useSharedFixture ? sharedExecuter : executer;
+        return useSharedFixture ? SHARED_EXECUTER : executer;
     }
 
     protected void setupSharedFixture() {}
