@@ -95,15 +95,28 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-1811")
     public void canGenerateTheIvyXmlWithoutPublishing() {
         given:
+        def module = ivyRepo.module("org.gradle", "generateIvy", "2")
+
         settingsFile << "rootProject.name = 'generateIvy'"
-        buildFile << '''
+        buildFile << """
             apply plugin: 'java'
             apply plugin: 'ivy-publish'
+
+            version = '2'
+            group = 'org.gradle'
+
+            publishing {
+                repositories {
+                    ivy {
+                        url "${ivyRepo.uri}"
+                    }
+                }
+            }
 
             generateIvyModuleDescriptor {
                 destination = 'generated-ivy.xml'
             }
-        '''
+        """
 
         when:
         succeeds 'generateIvyModuleDescriptor'
@@ -116,5 +129,8 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
             ext == 'jar'
             conf == ['archives', 'runtime']
         }
+
+        and:
+        module.ivyFile.assertDoesNotExist()
     }
 }
