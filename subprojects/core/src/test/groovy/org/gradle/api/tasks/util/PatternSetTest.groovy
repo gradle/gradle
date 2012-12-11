@@ -68,15 +68,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
     @Test void createsSpecForEmptyPatternSet() {
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertTrue(spec.isSatisfiedBy(element(true, 'b')))
-    }
-
-    private FileTreeElement element(boolean isFile = true, String... elements) {
-        [
-                getRelativePath: { return new RelativePath(isFile, elements) },
-                getFile: { return new File(elements.join('/')) }
-        ] as FileTreeElement
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertTrue(spec.isSatisfiedBy(file('b')))
     }
 
     @Test void createsSpecForIncludePatterns() {
@@ -84,9 +77,9 @@ class PatternSetTest extends AbstractTestForPatternSet {
         patternSet.include '*b*'
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertTrue(spec.isSatisfiedBy(element(true, 'b')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertTrue(spec.isSatisfiedBy(file('b')))
+        assertFalse(spec.isSatisfiedBy(file('c')))
     }
 
     @Test void createsSpecForExcludePatterns() {
@@ -94,9 +87,9 @@ class PatternSetTest extends AbstractTestForPatternSet {
         patternSet.exclude '*c*'
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('b')))
+        assertFalse(spec.isSatisfiedBy(file('c')))
     }
 
     @Test void createsSpecForIncludeAndExcludePatterns() {
@@ -104,27 +97,27 @@ class PatternSetTest extends AbstractTestForPatternSet {
         patternSet.exclude '*b*'
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'ab')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'ba')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('ab')))
+        assertFalse(spec.isSatisfiedBy(file('ba')))
+        assertFalse(spec.isSatisfiedBy(file('c')))
+        assertFalse(spec.isSatisfiedBy(file('b')))
     }
 
     @Test void createsSpecForIncludeSpecs() {
         patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('b')))
     }
 
     @Test void createsSpecForExcludeSpecs() {
         patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('b')))
     }
 
     @Test void createsSpecForIncludeAndExcludeSpecs() {
@@ -132,26 +125,26 @@ class PatternSetTest extends AbstractTestForPatternSet {
         patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'ab')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('ab')))
+        assertFalse(spec.isSatisfiedBy(file('b')))
+        assertFalse(spec.isSatisfiedBy(file('c')))
     }
 
     @Test void createsSpecForIncludeClosure() {
         patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('b')))
     }
 
     @Test void createsSpecForExcludeClosure() {
         patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('b')))
     }
 
     @Test void createsSpecForIncludeAndExcludeClosures() {
@@ -159,9 +152,9 @@ class PatternSetTest extends AbstractTestForPatternSet {
         patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'ab')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('ab')))
+        assertFalse(spec.isSatisfiedBy(file('c')))
     }
 
     @Test void isCaseSensitiveByDefault() {
@@ -169,10 +162,10 @@ class PatternSetTest extends AbstractTestForPatternSet {
         patternSet.exclude '*b*'
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'A')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'Ab')))
-        assertTrue(spec.isSatisfiedBy(element(true, 'aB')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('A')))
+        assertFalse(spec.isSatisfiedBy(file('Ab')))
+        assertTrue(spec.isSatisfiedBy(file('aB')))
     }
 
     @Test void createsSpecForCaseInsensitivePatternSet() {
@@ -181,10 +174,10 @@ class PatternSetTest extends AbstractTestForPatternSet {
         patternSet.caseSensitive = false
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'A')))
-        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'AB')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'bA')))
+        assertTrue(spec.isSatisfiedBy(file('A')))
+        assertTrue(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('AB')))
+        assertFalse(spec.isSatisfiedBy(file('bA')))
     }
 
     @Test void createIntersectPatternSet() {
@@ -199,25 +192,25 @@ class PatternSetTest extends AbstractTestForPatternSet {
         intersection.exclude { FileTreeElement element -> element.file.name.contains('4') }
         Spec<FileTreeElement> spec = intersection.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element(true, 'ac')))
-        assertTrue(spec.isSatisfiedBy(element(true, '13')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(element(true, '1')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
-        assertFalse(spec.isSatisfiedBy(element(true, '3')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'acb')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'acd')))
-        assertFalse(spec.isSatisfiedBy(element(true, '132')))
-        assertFalse(spec.isSatisfiedBy(element(true, '132')))
+        assertTrue(spec.isSatisfiedBy(file('ac')))
+        assertTrue(spec.isSatisfiedBy(file('13')))
+        assertFalse(spec.isSatisfiedBy(file('a')))
+        assertFalse(spec.isSatisfiedBy(file('1')))
+        assertFalse(spec.isSatisfiedBy(file('c')))
+        assertFalse(spec.isSatisfiedBy(file('3')))
+        assertFalse(spec.isSatisfiedBy(file('acb')))
+        assertFalse(spec.isSatisfiedBy(file('acd')))
+        assertFalse(spec.isSatisfiedBy(file('132')))
+        assertFalse(spec.isSatisfiedBy(file('132')))
     }
 
     @Test void globalExcludes() {
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertFalse(spec.isSatisfiedBy(element(false, '.svn')))
-        assertFalse(spec.isSatisfiedBy(element(true, '.svn', 'abc')))
-        assertFalse(spec.isSatisfiedBy(element(false, 'a', 'b', '.svn')))
-        assertFalse(spec.isSatisfiedBy(element(true, 'a', 'b', '.svn', 'c')))
+        assertFalse(spec.isSatisfiedBy(dir('.svn')))
+        assertFalse(spec.isSatisfiedBy(file('.svn', 'abc')))
+        assertFalse(spec.isSatisfiedBy(dir('a', 'b', '.svn')))
+        assertFalse(spec.isSatisfiedBy(file('a', 'b', '.svn', 'c')))
     }
 
     @Issue("GRADLE-2566")
@@ -230,9 +223,9 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(element("aaa")))
-        assertTrue(spec.isSatisfiedBy(element("bbb")))
-        assertFalse(spec.isSatisfiedBy(element("ccc")))
+        assertTrue(spec.isSatisfiedBy(file("aaa")))
+        assertTrue(spec.isSatisfiedBy(file("bbb")))
+        assertFalse(spec.isSatisfiedBy(file("ccc")))
     }
 
     @Issue("GRADLE-2566")
@@ -245,8 +238,23 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
         Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertFalse(spec.isSatisfiedBy(element("aaa")))
-        assertFalse(spec.isSatisfiedBy(element("bbb")))
-        assertTrue(spec.isSatisfiedBy(element("ccc")))
+        assertFalse(spec.isSatisfiedBy(file("aaa")))
+        assertFalse(spec.isSatisfiedBy(file("bbb")))
+        assertTrue(spec.isSatisfiedBy(file("ccc")))
+    }
+
+    private FileTreeElement element(boolean isFile, String... elements) {
+        [
+                getRelativePath: { return new RelativePath(isFile, elements) },
+                getFile: { return new File(elements.join('/')) }
+        ] as FileTreeElement
+    }
+
+    private FileTreeElement file(String... elements) {
+        element(true, elements)
+    }
+
+    private FileTreeElement dir(String... elements) {
+        element(false, elements)
     }
 }
