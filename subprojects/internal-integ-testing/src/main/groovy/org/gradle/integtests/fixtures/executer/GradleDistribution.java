@@ -23,6 +23,8 @@ import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestFileContext;
 import org.junit.rules.MethodRule;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
@@ -31,7 +33,7 @@ import java.io.File;
 /**
  * Provides access to a Gradle distribution for integration testing.
  */
-public class GradleDistribution implements MethodRule, TestFileContext, BasicGradleDistribution {
+public class GradleDistribution implements MethodRule, TestRule, TestFileContext, BasicGradleDistribution {
     private static final TestFile USER_HOME_DIR;
     private static final TestFile GRADLE_HOME_DIR;
     private static final TestFile SAMPLES_DIR;
@@ -122,6 +124,10 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
 
     public Statement apply(Statement base, FrameworkMethod method, Object target) {
         return temporaryFolder.apply(base, method, target);
+    }
+
+    public Statement apply(Statement base, Description description) {
+        return temporaryFolder.apply(base, description);
     }
 
     private static TestFile file(String propertyName, String defaultFile) {
