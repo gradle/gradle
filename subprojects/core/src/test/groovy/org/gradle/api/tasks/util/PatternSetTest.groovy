@@ -20,6 +20,7 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
 import org.junit.Test
+import spock.lang.Issue
 
 import static org.gradle.util.Matchers.strictlyEqual
 import static org.hamcrest.Matchers.*
@@ -71,7 +72,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertTrue(spec.isSatisfiedBy(element(true, 'b')))
     }
 
-    private FileTreeElement element(boolean isFile, String... elements) {
+    private FileTreeElement element(boolean isFile = true, String... elements) {
         [
                 getRelativePath: { return new RelativePath(isFile, elements) },
                 getFile: { return new File(elements.join('/')) }
@@ -217,5 +218,35 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, '.svn', 'abc')))
         assertFalse(spec.isSatisfiedBy(element(false, 'a', 'b', '.svn')))
         assertFalse(spec.isSatisfiedBy(element(true, 'a', 'b', '.svn', 'c')))
+    }
+
+    @Issue("GRADLE-2566")
+    @Test void canUseGStringsAsIncludes() {
+        def a = "a*"
+        def b = "b*"
+
+        patternSet.includes = ["$a"]
+        patternSet.include("$b")
+
+        Spec<FileTreeElement> spec = patternSet.asSpec
+
+        assertTrue(spec.isSatisfiedBy(element("aaa")))
+        assertTrue(spec.isSatisfiedBy(element("bbb")))
+        assertFalse(spec.isSatisfiedBy(element("ccc")))
+    }
+
+    @Issue("GRADLE-2566")
+    @Test void canUseGStringsAsExcludes() {
+        def a = "a"
+        def b = "b"
+
+        patternSet.excludes = ["${a}*"]
+        patternSet.exclude("${b}*")
+
+        Spec<FileTreeElement> spec = patternSet.asSpec
+
+        assertFalse(spec.isSatisfiedBy(element("aaa")))
+        assertFalse(spec.isSatisfiedBy(element("bbb")))
+        assertTrue(spec.isSatisfiedBy(element("ccc")))
     }
 }
