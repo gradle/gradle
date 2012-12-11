@@ -51,5 +51,8 @@ public class VersionSelectionReasons {
         public String getDescription() {
             return description;
         }
+
+        //TODO At some point we want to provide information if version was requested in the graph.
+        //Perhaps a method like isRequested(). Not requested means that some particular version was forced but no dependency have requested this version.
     }
 }
