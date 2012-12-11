@@ -160,7 +160,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return this;
     }
 
-    public PatternSet include(Iterable<String> includes) {
+    public PatternSet include(Iterable includes) {
         // handles GStrings
         for (Object include : includes) {
             this.includes.add(include.toString());
@@ -213,7 +213,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return this;
     }
 
-    public PatternSet exclude(Iterable<String> excludes) {
+    public PatternSet exclude(Iterable excludes) {
         // handles GStrings
         for (Object exclude : excludes) {
             this.excludes.add(exclude.toString());
