@@ -56,6 +56,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
 
         then:
         modulePublished(mavenRepo, 'group', 'root', '1.0')
+        moduleNotPublished(m2Installation.mavenRepo(), 'group', 'root', '1.0')
 
         when:
         succeeds 'publishToMavenLocal'
@@ -92,6 +93,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
 
         then:
         modulePublished(mavenRepo, 'group', 'root', 'foo')
+        moduleNotPublished(m2Installation.mavenRepo(), 'group', 'root', '1.0')
 
         when:
         succeeds 'publishToMavenLocal'
@@ -109,5 +111,10 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
             assert version == expectedVersion
         }
         true
+    }
+
+    def moduleNotPublished(MavenFileRepository fileRepository, def group, def artifact, def expectedVersion) {
+        def module = fileRepository.module(group, artifact, expectedVersion);
+        module.pomFile.assertDoesNotExist()
     }
 }
