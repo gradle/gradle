@@ -105,100 +105,193 @@ For a library or application, Gradle will build a native package that can be use
 
 More info in the [forum ticket](http://forums.gradle.org/gradle/topics/modeling_the_java_application_development_domain).
 
-# User visible changes
-
-Several new plugins will be added:
-
-## `jvm-library` plugin
-
-A base plugin that adds the capability to build JVM based libraries. Does not imply an implementation language. This plugin will provide some way to
-define one or more JVM libraries. This plugin will add rules that, given a JVM library definition, know how to build and publish the JAR and API
-documentation for the library.
-
-You would use this plugin in combination with one or more language plugins to build and publish JVM based libraries from your project.
-
-## `distribution` plugin
-
-A base plugin that adds the capability to build distributions. This plugin will add rules that, given a distribution definition, know how to build, install
-and publish the distribution.
-
-## `java-library` plugin
-
-An opinionated plugin that uses the `jvm-library` plugin to define a single `main` library, implemented in Java, and to be published to a repository.
-
-## `jvm-application` plugin
-
-A base plugin that adds the capability to build JVM based applications. Does not imply an implementation language. This plugin will provide some way to
-define one ore more JVM applications. This plugin will add rules that, given a JVM application definition, know how to build and publish the launcher
-scripts, JAR and install image for the application.
-
-You would use this plugin in combination with one or more language plugins to build and publish JVM based applications from your project.
-
-## `java-application` plugin
-
-An opinionated plugin that uses the `jvm-application` plugin to define a single `main` application, implemented in Java, and to be published to a
-repository.
-
 # Implementation Plan
 
-## Introduce a `java-library` plugin
+## Introduce a `java-library-distribution` plugin
 
 An opinionated plugin that adds a single distribution that
 
-    - 'java-library' plugin
-        - applies 'java' plugin
-        - adds 'distZip' task
-            - packages up the jar and runtime dependencies of the library as a Zip.
-            - include contents of src/dist
-        - adds 'distribution' extension
-            - has 'name' property that is used to configure the 'baseName' of the distZip task.
+- 'java-library-distribution' plugin
+    - applies 'java' plugin
+    - adds 'distZip' task
+        - packages up the jar and runtime dependencies of the library as a ZIP.
+        - include contents of `src/dist`
+    - adds 'distribution' extension
+        - has 'name' property that is used to configure the 'baseName' of the distZip task.
 
-## DSL:
+### DSL:
 
-    apply plugin: 'java-library'
-    //applies 'java' plugin
+    apply plugin: 'java-library-distribution' // implies 'java' plugin
 
     distribution {
-      name = 'someName'
+        name = 'someName'
     }
 
     distZip {  //type: Zip
-      from { ... }
+        from { ... }
     }
 
-## Sad day cases
+### Integration test coverage
 
-- works if src/dist does not exist
-- works if only 'java-library' is specified and nothing else (e.g. sensible defaults are used for the distro name, etc.)
-- does not crash if distribution.name is configured to null
-
-# Integration test coverage
-
+- add an integ test that extends `WellBehavedPluginTest` to pick up some basic verification of the plugin.
 - add an integ test that runs task to build up a distro that:
     - has some stuff in src/dist
-    - includes some runtime dependency that is declared
-    - uses the name of the distribution.name for the distro name
+    - includes some runtime dependency that is declared.
+    - uses the name of the distribution.name for the distro name.
+- add an integ test that covers:
+    - produces a distribution when src/dist does not exist.
+    - works if only `java-library-distribution` is applied and nothing else (e.g. sensible defaults are used for the distro name, etc.)
+    - does not crash if distribution.name is configured to null
 
-# Implementation approach
-
-## Unit testing
+### Implementation approach
 
 - add unit tests for the plugin, validate all the features (separate tests) declared in 'user visible changes' section.
+- documentation
+    - add new plugin chapter and hook it up to the user guide
+    - add the xml for the new extension object
+    - new extension object should have a javadoc with small code sample (using our 'autoTested').
+        - say, apply plugin and configure the distribution.name
+    - link the new extension from plugins.xml
 
-## Documentation
+## Introduce a basic `distribution` plugin
 
-- add new plugin chapter and hook it up to the user guide
-- add the xml for the new extension object
-- new extension object should have a javadoc with small code sample (using our 'autoTested').
-    - say, apply plugin and configure the distribution.name
-- link the new extension from plugins.xml
+Extract a general-purpose `distribution` plugin out of the `java-library-distribution` plugin.
 
-# Next steps
+1. Add a `distribution` plugin.
+2. Add a `Distribution` type that extends `Named` plus implementation.
+3. Add a `DistributionsContainer` type that extends `NamedDomainObjectContainer<Distribution>` plus implementation.
+4. Change the `distribution` plugin to add this container as an extension called `distributions`.
+5. Change the `distribution` plugin to add a single instance called 'main' to this container.
+7. Change the `java-library-distribution` plugin to apply the `distribution` plugin.
+8. Change the `distribution` plugin to add a ZIP task for each distribution in the container.
+    - For the `main` distribution, this should be called `distZip`
+    - For other distributions, this should be caled `${dist.name}DistZip`.
+9. Change the `java-library-distribution` plugin to no longer add a `distZip` task, but instead to configure the `distZip`
+   task instance that is added by the `distribution` plugin.
+
+### DSL
+
+To generate a distribution for a Java library:
+
+    apply plugin: 'java-library-distribution` // implies `java` and `distribution` plugins
+
+    distribution {
+        name = 'someName'
+    }
+
+    distZip {
+        from { ... }
+    }
+
+To generate an arbitrary distribution:
+
+    apply plugin: 'distribution'
+
+    distZip {
+        from { ... }
+    }
+
+To generate multiple distributions:
+
+    apply plugin: 'distribution'
+
+    distributions {
+        custom
+    }
+
+    distZip {
+        from { ... }
+    }
+
+    customDistZip {
+        from { ... }
+    }
+
+## Allow customisation of the `distribution` plugin
+
+Allow the distributions defined by the `distribution` to be configured, and remove the configuration options from the `java-library-distribution` plugin.
+
+1. Change the `Distribution` type to add a `baseName` property. This should default to:
+    - `project.name` for the `main` distribution.
+    - `$project.name-${dist.name}` for other distributions.
+2. Change the `distribution` plugin to configure the dist zip task to add `into {$dist.baseName}`. Remove the corresponding configuration from the `java-library-distribution`
+    plugin and remove the `name` property from the `distribution` extension.
+3. Change the `Distribution` type to add a `contents` property of type `CopySpec`. This should default to:
+    - from `src/${dist.name}/dist`
+4. Change the `distribution` plugin to configure the dist zip task to add `from $dist.contents`.
+5. Change the `java-library-distribution` plugin to configure the main distribution's `contents` property instead of the dist zip task.
+6. Change the `java-library-distribution` plugin so that it no longer adds the `distribution` extension, and remove the implementation.
+
+### DSL
+
+To generate a distribution for a Java library:
+
+    apply plugin: 'java-library-distribution` // implies `java` and `distribution` plugins
+
+    distributions {
+        main {
+            baseName = 'someName'
+            contents {
+                from { ... }
+            }
+        }
+    }
+
+To generate an arbitrary distribution:
+
+    apply plugin: 'distribution'
+
+    distributions {
+        main {
+            baseName = 'someName'
+            contents {
+                from { ... }
+            }
+        }
+    }
+
+To generate multiple distributions:
+
+    apply plugin: 'distribution'
+
+    distributions {
+        custom {
+            contents {
+                from { ... }
+            }
+        }
+    }
+
+## Allow distributions to be installed
+
+1. Change the `distribution` plugin to add an install task of type `Sync`.
+    - called `installDist` for the `main` distributions.
+    - called `install${dist.name}Dist` for other distributions.
+    - installs `dist.contents` into `$buildDir/install/${dist.baseName}`.
+
+## Share distribution definitions with the `application` plugin
+
+1. Change the `application` plugin to apply the `distribution` plugin.
+    - When `applicationPluginConvention.applicationName` is set, set the `main` distribution's `baseName` property.
+    - Configures the `main` distribution's `contents` to add `from applicationPluginConvention.applicationDistribution`.
+    - No longer adds the `distZip` task.
+
+## Generate a TAR distribution
+
+1. Change the `distribution` plugin to add a TAR task for each distribution, configured in a similar way to the ZIP task.
+
+## Deprecate distribution configuration from the `application` plugin
+
+1. Deprecate and later remove `ApplicationPluginConvention.applicationName` and `applicationDistribution`
+2. Deprecate and later remove the `installApp` task.
+
+# Later steps
 
 Only after above is completed & integrated with the master we want to design and implement the following:
 
-- Generate a Tar distribution as well.
-- Share configuration and tasks with the application plugin, by extracting a common 'dist' plugin out of the application plugin.
+- Make the library plugin agnostic of implementation language.
+- Build a distribution by bundling other projects.
+- Add a source set for the extra files to include in a distribution.
 - (Very advanced) Allow the distributions to be published instead of the jar.
     This would need to mess with the generated pom.xml/ivy.xml to remove the dependency declarations
     for those dependencies that have been bundled in the distribution.
