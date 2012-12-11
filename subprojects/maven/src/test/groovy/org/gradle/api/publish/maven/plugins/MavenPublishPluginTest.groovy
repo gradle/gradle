@@ -15,21 +15,19 @@
  */
 
 package org.gradle.api.publish.maven.plugins
-
+import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication
 import org.gradle.api.publish.maven.internal.MavenPublicationInternal
-
+import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.War
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-
-import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 
 class MavenPublishPluginTest extends Specification {
 
@@ -86,7 +84,7 @@ class MavenPublishPluginTest extends Specification {
         expect:
         publishLocalTasks.size() == 1
         publishLocalTasks.first().name == "publishMavenPublicationToMavenLocal"
-        publishLocalTasks.first().repository.name == "mavenLocalPublish"
+        publishLocalTasks.first().repository.name == ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME
         publishLocalTasks.first().repository.url == project.getServices().get(DependencyResolutionServices).baseRepositoryFactory.createMavenLocalRepository().url
     }
 

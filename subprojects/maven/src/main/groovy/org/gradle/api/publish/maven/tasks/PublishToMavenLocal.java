@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
@@ -46,7 +47,7 @@ public class PublishToMavenLocal extends PublishToMavenRepository {
     @Override
     public MavenArtifactRepository getRepository() {
         MavenArtifactRepository mavenLocalRepository = baseRepositoryFactory.createMavenLocalRepository();
-        mavenLocalRepository.setName("mavenLocalPublish");
+        mavenLocalRepository.setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME);
         return mavenLocalRepository;
     }
 
