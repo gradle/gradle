@@ -24,6 +24,10 @@
                 <td>ruleSetFiles</td>
                 <td><literal>[]</literal></td>
             </tr>
+            <tr>
+                <td>targetJdk</td>
+                <td><literal>current java version</literal></td>
+            </tr>
         </table>
     </section>
     <section>
