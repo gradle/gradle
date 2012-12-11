@@ -128,6 +128,45 @@ class SimpleXmlWriterSpec extends Specification {
         thrown(IllegalStateException)
     }
 
+    def "closes tags"() {
+        def sw = new StringWriter()
+        def writer = new SimpleXmlWriter(sw)
+
+        when:
+        writer.writeStartElement("root")
+        action.call(writer)
+
+        then:
+        assert sw.toString().startsWith("<root>") //is closed with '>'
+
+        where:
+        action << [{it.writeStartElement("foo")},
+                    {it.writeStartCDATA()},
+                    {it.writeCharacters("bar")},
+                    {it.writeEndElement()},
+                    {it.writeEmptyElement("baz")}]
+    }
+
+    def "closes attributed tags"() {
+        def sw = new StringWriter()
+        def writer = new SimpleXmlWriter(sw)
+
+        when:
+        writer.writeStartElement("root")
+        writer.attribute("foo", '115')
+        action.call(writer)
+
+        then:
+        assert sw.toString().startsWith('<root foo="115">') //is closed with '>'
+
+        where:
+        action << [{it.writeStartElement("foo")},
+                    {it.writeStartCDATA()},
+                    {it.writeCharacters("bar")},
+                    {it.writeEndElement()},
+                    {it.writeEmptyElement("baz")}]
+    }
+
     def "allows valid tag names"() {
         when:
         writer.writeStartElement(name)

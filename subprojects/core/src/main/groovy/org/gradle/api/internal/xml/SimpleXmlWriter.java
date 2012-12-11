@@ -56,7 +56,6 @@ public class SimpleXmlWriter {
 
     private void maybeFinishElement() throws IOException {
         if (startElement) {
-            //TODO SF more coverage
             write(">");
             startElement = false;
         }
