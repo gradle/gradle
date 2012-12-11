@@ -20,19 +20,48 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository;
 import org.gradle.test.fixtures.maven.MavenFileRepository;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestFileContext;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 
 import java.io.File;
 
 public abstract class AbstractIntegrationTest implements TestFileContext {
     @Rule public final GradleDistribution distribution = new GradleDistribution();
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter();
+    private final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution);
+
+    @ClassRule public static final GradleDistribution sharedDistribution = new GradleDistribution();
+    private static final GradleDistributionExecuter sharedExecuter = new GradleDistributionExecuter(sharedDistribution);
+
+    protected boolean useSharedFixture;
+
+    private static boolean setupSharedFixtureRun;
 
     private MavenFileRepository mavenRepo;
     private IvyFileRepository ivyRepo;
 
+    protected GradleDistribution getDistribution() {
+        return useSharedFixture ? sharedDistribution : distribution;
+    }
+
+    protected GradleDistributionExecuter getExecuter() {
+        return useSharedFixture ? sharedExecuter : executer;
+    }
+
+    protected void setupSharedFixture() {}
+
+    @Before
+    public void doSetupSharedFixture() {
+        if (!setupSharedFixtureRun) {
+            useSharedFixture = true;
+            setupSharedFixture();
+            useSharedFixture = false;
+            setupSharedFixtureRun = true;
+        }
+    }
+
     public TestFile getTestDir() {
-        return distribution.getTestDir();
+        return getDistribution().getTestDir();
     }
 
     public TestFile file(Object... path) {
@@ -48,20 +77,20 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     }
 
     protected GradleExecuter inDirectory(File directory) {
-        return executer.inDirectory(directory);
+        return getExecuter().inDirectory(directory);
     }
 
     protected GradleExecuter usingBuildFile(File file) {
-        return executer.usingBuildScript(file);
+        return getExecuter().usingBuildScript(file);
     }
 
     protected GradleExecuter usingProjectDir(File projectDir) {
-        return executer.usingProjectDirectory(projectDir);
+        return getExecuter().usingProjectDirectory(projectDir);
     }
 
     protected ArtifactBuilder artifactBuilder() {
-        GradleDistributionExecuter gradleExecuter = distribution.executer();
-        gradleExecuter.withGradleUserHomeDir(distribution.getUserHomeDir());
+        GradleDistributionExecuter gradleExecuter = getDistribution().executer();
+        gradleExecuter.withGradleUserHomeDir(getDistribution().getUserHomeDir());
         return new GradleBackedArtifactBuilder(gradleExecuter, getTestDir().file("artifacts"));
     }
 
