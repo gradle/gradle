@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.tasks
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
