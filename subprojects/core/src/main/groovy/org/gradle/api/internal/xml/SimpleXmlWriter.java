@@ -32,8 +32,7 @@ public class SimpleXmlWriter {
     private final Writer output;
     private final LinkedList<String> elements = new LinkedList<String>();
     private boolean writtenAnything;
-
-    //add tag name / attribute name validation
+    private boolean startElement;
 
     public SimpleXmlWriter(Writer output) {
         this.output = output;
@@ -51,31 +50,45 @@ public class SimpleXmlWriter {
     }
 
     public void writeCharacters(String characters) throws IOException {
-        writeEncoded(characters);
+        maybeFinishElement();
+        writeXmlEncoded(characters);
     }
 
-    public void writeStartElement(String name) throws IOException {
-        writeStartElement(element(name));
+    private void maybeFinishElement() throws IOException {
+        if (startElement) {
+            //TODO SF more coverage
+            write(">");
+            startElement = false;
+        }
     }
 
-    public void writeStartElement(Element element) throws IOException {
-        elements.add(element.name);
-        element.finished();
-    }
-
-    public void writeEmptyElement(String name) throws IOException {
+    public SimpleXmlWriter writeStartElement(String name) throws IOException {
+        if (!isValidXmlName(name)) {
+            throw new IllegalArgumentException(String.format("Invalid element name: '%s'", name));
+        }
+        maybeFinishElement();
+        startElement = true;
+        elements.add(name);
         write("<");
         write(name);
-        write("/>");
+        return this;
     }
 
     public void writeEndElement() throws IOException {
         if (elements.isEmpty()) {
             throw new IllegalStateException("Cannot write end element! There are no started elements.");
         }
+        maybeFinishElement();
         write("</");
         write(elements.removeLast());
         write(">");
+    }
+
+    public void writeEmptyElement(String name) throws IOException {
+        maybeFinishElement();
+        write("<");
+        write(name);
+        write("/>");
     }
 
     public void writeCDATA(char[] cdata) throws IOException {
@@ -112,48 +125,30 @@ public class SimpleXmlWriter {
         }
     }
 
-    public Element element(String name) throws IOException {
-        return new Element(name);
-    }
-
     public void writeStartCDATA() throws IOException {
+        maybeFinishElement();
         squareBrackets = 0;
         write("<![CDATA[");
-
     }
 
     public void writeEndCDATA() throws IOException {
         write("]]>");
     }
 
-    public class Element {
-
-        private final String name;
-
-        public Element(String name) throws IOException {
-            if (!isValidXmlName(name)) {
-                throw new IllegalArgumentException(String.format("Invalid element name: '%s'", name));
-            }
-            this.name = name;
-            write("<");
-            write(name);
+    public SimpleXmlWriter attribute(String name, String value) throws IOException {
+        if (!isValidXmlName(name)) {
+            throw new IllegalArgumentException(String.format("Invalid attribute name: '%s'", name));
+        }
+        if (!startElement) {
+            throw new IllegalStateException("Cannot write attribute [" + name + ":" + value + "]. You should write start element first.");
         }
 
-        public Element attribute(String name, String value) throws IOException {
-            if (!isValidXmlName(name)) {
-                throw new IllegalArgumentException(String.format("Invalid attribute name: '%s'", name));
-            }
-            write(" ");
-            write(name);
-            write("=\"");
-            writeEncoded(value);
-            write("\"");
-            return this;
-        }
-
-        private void finished() throws IOException {
-            write(">");
-        }
+        write(" ");
+        write(name);
+        write("=\"");
+        writeXmlEncoded(value);
+        write("\"");
+        return this;
     }
 
     private static boolean isValidXmlName(String name) {
@@ -250,7 +245,7 @@ public class SimpleXmlWriter {
         writtenAnything = true;
     }
 
-    private void writeEncoded(String message) throws IOException {
+    private void writeXmlEncoded(String message) throws IOException {
         assert message != null;
         escapeXml(output, message);
         writtenAnything = true;

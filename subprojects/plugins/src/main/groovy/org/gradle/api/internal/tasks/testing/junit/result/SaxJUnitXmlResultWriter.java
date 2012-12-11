@@ -46,14 +46,14 @@ public class SaxJUnitXmlResultWriter {
             SimpleXmlWriter writer = new SimpleXmlWriter(sw);
             writer.writeXmlDeclaration("UTF-8", "1.0");
             writer.writeCharacters("\n  ");
-            writer.writeStartElement(writer.element("testsuite")
+            writer.writeStartElement("testsuite")
                 .attribute("name", className)
                 .attribute("tests", String.valueOf(result.getTestsCount()))
                 .attribute("failures", String.valueOf(result.getFailuresCount()))
                 .attribute("errors", "0")
                 .attribute("timestamp", DateUtils.format(result.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN))
                 .attribute("hostname", hostName)
-                .attribute("time", String.valueOf(result.getDuration() / 1000.0)));
+                .attribute("time", String.valueOf(result.getDuration() / 1000.0));
 
             //TODO SF indentation belongs elsewhere
             writer.writeCharacters("\n  ");
@@ -115,16 +115,16 @@ public class SaxJUnitXmlResultWriter {
         for (TestMethodResult methodResult : methodResults) {
             writer.writeCharacters("\n    ");
             String testCase = methodResult.result.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
-            writer.writeStartElement(writer.element(testCase)
+            writer.writeStartElement(testCase)
                     .attribute("name", methodResult.name)
                     .attribute("classname", className)
-                    .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0)));
+                    .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0));
 
             for (Throwable failure : methodResult.result.getExceptions()) {
                 writer.writeCharacters("\n      ");
-                writer.writeStartElement(writer.element("failure")
+                writer.writeStartElement("failure")
                         .attribute("message", failureMessage(failure))
-                        .attribute("type", failure.getClass().getName()));
+                        .attribute("type", failure.getClass().getName());
 
                 writer.writeCharacters(stackTrace(failure));
 

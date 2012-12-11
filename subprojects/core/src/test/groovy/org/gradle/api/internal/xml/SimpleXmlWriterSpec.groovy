@@ -33,9 +33,9 @@ class SimpleXmlWriterSpec extends Specification {
     def "writes basic xml"() {
         when:
         writer.writeXmlDeclaration("UTF-9", "1.23")
-        writer.writeStartElement(writer.element("root").attribute("items", "9"))
+        writer.writeStartElement("root").attribute("items", "9")
         writer.writeEmptyElement("item")
-        writer.writeStartElement(writer.element("item").attribute("size", "10m"))
+        writer.writeStartElement("item").attribute("size", "10m")
         writer.writeCharacters("some chars")
         writer.writeStartElement("foo")
         writer.writeEndElement()
@@ -49,7 +49,7 @@ class SimpleXmlWriterSpec extends Specification {
     def "encodes for xml"() {
         when:
         writer.writeStartElement("root")
-        writer.writeStartElement(writer.element("item").attribute("size", "encoded: &lt; < > ' \""))
+        writer.writeStartElement("item").attribute("size", "encoded: &lt; < > ' \"")
         writer.writeCharacters("chars with interesting stuff: &lt; < > ' \"")
         writer.writeEndElement()
         writer.writeEndElement()
@@ -72,7 +72,7 @@ class SimpleXmlWriterSpec extends Specification {
 
         writer.writeStartCDATA()
         writer.writeCDATA('encodes: ]]> '.toCharArray())
-        writer.writeCDATA('does not encode: ]] '.toCharArray())
+        writer.writeCDATA('does not encode: ]] '.toCharArray())      
         writer.writeCDATA('html allowed: <> &amp;'.toCharArray())
         writer.writeEndCDATA()
 
@@ -153,7 +153,7 @@ class SimpleXmlWriterSpec extends Specification {
 
     def "allows valid attribute names"() {
         when:
-        writer.writeStartElement(writer.element("foo").attribute(name, "foo"))
+        writer.writeStartElement("foo").attribute(name, "foo")
 
         then:
         notThrown(IllegalArgumentException)
@@ -164,7 +164,7 @@ class SimpleXmlWriterSpec extends Specification {
 
     def "validates attribute names"() {
         when:
-        writer.writeStartElement(writer.element("foo").attribute(name, "foo"))
+        writer.writeStartElement("foo").attribute(name, "foo")
 
         then:
         def ex = thrown(IllegalArgumentException)
