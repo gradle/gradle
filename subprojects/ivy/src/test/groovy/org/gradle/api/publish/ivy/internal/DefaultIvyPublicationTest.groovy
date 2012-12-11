@@ -71,7 +71,7 @@ class DefaultIvyPublicationTest extends Specification {
         def p = publication(project.configurations.conf1)
 
         then:
-        p.buildDependencies.getDependencies(dummyTask) == [task1] as Set
+        p.publishableFiles.buildDependencies.getDependencies(dummyTask) == [task1] as Set
 
         when:
         def task2 = project.tasks.add("task2", Jar)
@@ -80,14 +80,14 @@ class DefaultIvyPublicationTest extends Specification {
         p = publication(project.configurations.conf1, project.configurations.conf2)
 
         then:
-        p.buildDependencies.getDependencies(dummyTask) == [task1, task2] as Set
+        p.publishableFiles.buildDependencies.getDependencies(dummyTask) == [task1, task2] as Set
 
         when:
         def task3 = project.tasks.add("task3")
-        p.descriptor.builtBy(task3)
+        p.descriptorFileBuiltBy(task3)
 
         then:
-        p.buildDependencies.getDependencies(dummyTask) == [task1, task2, task3] as Set
+        p.publishableFiles.buildDependencies.getDependencies(dummyTask) == [task1, task2, task3] as Set
     }
 
     def "can get publishable files when no descriptor file set"() {

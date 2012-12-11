@@ -15,8 +15,6 @@
  */
 
 package org.gradle.api.publish.ivy.tasks.internal
-
-import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyModuleDescriptor
@@ -52,22 +50,21 @@ class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specifica
         descriptorGeneratorTasks.size() == 0
 
         when:
-        publishing.publications.add(ivyPublication("ivy"))
+        publishing.publications.add(ivyPublication("ivy", "generateIvyModuleDescriptor"))
 
         then:
         descriptorGeneratorTasks.size() == 1
         GenerateIvyDescriptor task = project.tasks.generateIvyModuleDescriptor
         task.group == "publishing"
         task.description != null
-        publishing.publications.ivy.descriptor.buildDependencies.getDependencies(null) == [task] as Set
 
         when:
-        publishing.publications.add(ivyPublication("other"))
+        publishing.publications.add(ivyPublication("other", "generateOtherIvyModuleDescriptor"))
 
         then:
         descriptorGeneratorTasks.size() == 2
         def task2 = project.tasks.generateOtherIvyModuleDescriptor
-        publishing.publications.other.descriptor.buildDependencies.getDependencies(null) == [task2] as Set
+        task2.group == "publishing"
     }
 
     Publication publication(String name) {
@@ -76,15 +73,12 @@ class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specifica
         }
     }
 
-    IvyPublication ivyPublication(String name) {
-        def taskDependency = new DefaultTaskDependency(project.tasks)
-        IvyModuleDescriptor moduleDescriptor = Mock(IvyModuleDescriptorInternal) {
-            builtBy(*_) >> { taskDependency.add(it) }
-            getBuildDependencies() >> taskDependency
-        }
+    IvyPublication ivyPublication(String name, String generatorTaskName) {
+        IvyModuleDescriptor moduleDescriptor = Mock(IvyModuleDescriptorInternal)
         Mock(IvyPublicationInternal) {
             getName() >> name
             getDescriptor() >> moduleDescriptor
+            1 * descriptorFileBuiltBy({it.name == generatorTaskName})
         }
     }
 

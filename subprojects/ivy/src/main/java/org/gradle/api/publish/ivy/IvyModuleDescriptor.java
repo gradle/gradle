@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
-import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.HasInternalProtocol;
@@ -33,7 +32,7 @@ import org.gradle.api.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface IvyModuleDescriptor extends Buildable {
+public interface IvyModuleDescriptor {
 
     /**
      * Allow configuration of the descriptor, after it has been generated according to the input data.

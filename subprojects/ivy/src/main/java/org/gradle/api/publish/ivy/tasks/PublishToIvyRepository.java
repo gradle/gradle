@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy.tasks;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
@@ -56,15 +55,6 @@ public class PublishToIvyRepository extends DefaultTask {
             public FileCollection call() throws Exception {
                 IvyPublicationInternal publicationInternal = getPublicationInternal();
                 return publicationInternal == null ? null : publicationInternal.getPublishableFiles();
-            }
-        });
-
-        // Allow the publication to have its dependencies fulfilled
-        // There may be dependencies that aren't about creating files and not covered above
-        dependsOn(new Callable<Buildable>() {
-            public Buildable call() throws Exception {
-                IvyPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal;
             }
         });
 

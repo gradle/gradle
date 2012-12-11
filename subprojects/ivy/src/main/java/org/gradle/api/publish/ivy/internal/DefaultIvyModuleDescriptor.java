@@ -20,9 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.listener.ActionBroadcast;
 
 import java.util.Set;
@@ -31,10 +28,8 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
     private final ActionBroadcast<XmlProvider> xmlActions = new ActionBroadcast<XmlProvider>();
     private final IvyPublicationInternal ivyPublication;
-    private final DefaultTaskDependency builtBy;
 
-    public DefaultIvyModuleDescriptor(TaskResolver taskResolver, IvyPublicationInternal ivyPublication) {
-        builtBy = new DefaultTaskDependency(taskResolver);
+    public DefaultIvyModuleDescriptor(IvyPublicationInternal ivyPublication) {
         this.ivyPublication = ivyPublication;
     }
 
@@ -52,13 +47,5 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
     public Action<XmlProvider> getXmlAction() {
         return xmlActions;
-    }
-
-    public void builtBy(Object... tasks) {
-        builtBy.add(tasks);
-    }
-
-    public TaskDependency getBuildDependencies() {
-        return builtBy;
     }
 }

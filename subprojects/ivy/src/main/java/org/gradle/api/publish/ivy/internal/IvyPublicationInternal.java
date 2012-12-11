@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy.internal;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.file.FileCollection;
@@ -24,7 +23,7 @@ import org.gradle.api.publish.ivy.IvyPublication;
 
 import java.util.Set;
 
-public interface IvyPublicationInternal extends IvyPublication, Buildable {
+public interface IvyPublicationInternal extends IvyPublication {
 
     IvyModuleDescriptorInternal getDescriptor();
 
@@ -35,4 +34,6 @@ public interface IvyPublicationInternal extends IvyPublication, Buildable {
     IvyNormalizedPublication asNormalisedPublication();
 
     Set<? extends Configuration> getConfigurations();
+
+    void descriptorFileBuiltBy(Object descriptorFileBuilder);
 }

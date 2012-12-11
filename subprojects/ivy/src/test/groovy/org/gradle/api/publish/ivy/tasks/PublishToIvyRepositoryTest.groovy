@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.publish.ivy.tasks
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -23,7 +22,6 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -59,26 +57,17 @@ class PublishToIvyRepositoryTest extends Specification {
         notThrown(Exception)
     }
 
-    def "the dependencies of the publication are dependencies of the task"() {
+    def "the publishableFiles of the publication are inputs of the task"() {
         given:
-        Task otherTask = project.task("other")
         def publishableFiles = project.files("a", "b", "c")
 
         publication.getPublishableFiles() >> publishableFiles
-        publication.getBuildDependencies() >> {
-            new TaskDependency() {
-                Set<? extends Task> getDependencies(Task task) {
-                    [otherTask] as Set
-                }
-            }
-        }
 
         when:
         publish.publication = publication
 
         then:
         publish.inputs.files.files == publishableFiles.files
-        publish.taskDependencies.getDependencies(publish) == [otherTask] as Set
     }
 
     PublishToIvyRepository createPublish(String name) {

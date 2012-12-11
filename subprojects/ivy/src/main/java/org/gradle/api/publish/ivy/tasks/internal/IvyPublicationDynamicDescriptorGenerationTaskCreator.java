@@ -68,7 +68,8 @@ public class IvyPublicationDynamicDescriptorGenerationTaskCreator {
                 return publication.getDescriptor().getXmlAction();
             }
         });
-        publication.getDescriptor().builtBy(descriptorTask);
+
+        publication.descriptorFileBuiltBy(descriptorTask);
     }
 
     private String calculateDescriptorTaskName(String publicationName) {

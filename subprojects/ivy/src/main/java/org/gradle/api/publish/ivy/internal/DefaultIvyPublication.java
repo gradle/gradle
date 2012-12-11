@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -46,6 +45,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final Set<? extends Configuration> configurations;
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
+    private final DefaultTaskDependency artifactsBuiltBy;
+
     private File descriptorFile;
 
     public DefaultIvyPublication(
@@ -57,7 +58,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
-        this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, taskResolver, this);
+        this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, this);
+        this.artifactsBuiltBy = new DefaultTaskDependency(taskResolver);
     }
 
     public String getName() {
@@ -80,6 +82,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.descriptorFile = descriptorFile;
     }
 
+    public void descriptorFileBuiltBy(Object descriptorFileBuilder) {
+        artifactsBuiltBy.add(descriptorFileBuilder);
+    }
+
     public FileCollection getPublishableFiles() {
         ConfigurableFileCollection files = new DefaultConfigurableFileCollection("publication artifacts", fileResolver, taskResolver);
         files.from(new Callable<Set<FileCollection>>() {
@@ -96,15 +102,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 return descriptorFile;
             }
         });
-        files.builtBy(descriptor.getBuildDependencies());
+        files.builtBy(artifactsBuiltBy);
         return files;
-    }
-
-    public TaskDependency getBuildDependencies() {
-        DefaultTaskDependency taskDependency = new DefaultTaskDependency(taskResolver);
-        taskDependency.add(getPublishableFiles().getBuildDependencies());
-        taskDependency.add(descriptor.getBuildDependencies());
-        return taskDependency;
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {

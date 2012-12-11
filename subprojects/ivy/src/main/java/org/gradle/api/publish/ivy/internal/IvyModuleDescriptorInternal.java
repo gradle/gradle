@@ -32,6 +32,4 @@ public interface IvyModuleDescriptorInternal extends IvyModuleDescriptor {
 
     Action<XmlProvider> getXmlAction();
 
-    void builtBy(Object... tasks);
-
 }
