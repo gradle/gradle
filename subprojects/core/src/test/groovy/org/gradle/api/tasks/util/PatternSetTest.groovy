@@ -28,18 +28,14 @@ import static org.junit.Assert.*
 class PatternSetTest extends AbstractTestForPatternSet {
     PatternSet patternSet = new PatternSet()
 
-    PatternSet getPatternSet() {
-        patternSet
-    }
-
-    @Test public void testConstructionFromMap() {
+    @Test void testConstructionFromMap() {
         Map map = [includes: [TEST_PATTERN_1], excludes: [TEST_PATTERN_2]]
         PatternFilterable patternSet = new PatternSet(map)
         assertThat(patternSet.includes, equalTo([TEST_PATTERN_1] as Set))
         assertThat(patternSet.excludes, equalTo([TEST_PATTERN_2] as Set))
     }
 
-    @Test public void patternSetsAreEqualWhenAllPropertiesAreEqual() {
+    @Test void patternSetsAreEqualWhenAllPropertiesAreEqual() {
         assertThat(new PatternSet(), strictlyEqual(new PatternSet()))
         assertThat(new PatternSet(caseSensitive: false), strictlyEqual(new PatternSet(caseSensitive: false)))
         assertThat(new PatternSet(includes: ['i']), strictlyEqual(new PatternSet(includes: ['i'])))
@@ -53,7 +49,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertThat(new PatternSet(excludes: ['e']), not(equalTo(new PatternSet(excludes: ['other']))))
     }
 
-    @Test public void canCopyFromAnotherPatternSet() {
+    @Test void canCopyFromAnotherPatternSet() {
         PatternSet other = new PatternSet()
         other.include 'a', 'b'
         other.exclude 'c'
@@ -68,7 +64,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertThat(patternSet.excludeSpecs, equalTo(other.excludeSpecs))
     }
 
-    @Test public void createsSpecForEmptyPatternSet() {
+    @Test void createsSpecForEmptyPatternSet() {
         Spec<FileTreeElement> spec = patternSet.asSpec
 
         assertTrue(spec.isSatisfiedBy(element(true, 'a')))
@@ -82,7 +78,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         ] as FileTreeElement
     }
 
-    @Test public void createsSpecForIncludePatterns() {
+    @Test void createsSpecForIncludePatterns() {
         patternSet.include '*a*'
         patternSet.include '*b*'
         Spec<FileTreeElement> spec = patternSet.asSpec
@@ -92,7 +88,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'c')))
     }
 
-    @Test public void createsSpecForExcludePatterns() {
+    @Test void createsSpecForExcludePatterns() {
         patternSet.exclude '*b*'
         patternSet.exclude '*c*'
         Spec<FileTreeElement> spec = patternSet.asSpec
@@ -102,7 +98,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'c')))
     }
 
-    @Test public void createsSpecForIncludeAndExcludePatterns() {
+    @Test void createsSpecForIncludeAndExcludePatterns() {
         patternSet.include '*a*'
         patternSet.exclude '*b*'
         Spec<FileTreeElement> spec = patternSet.asSpec
@@ -114,7 +110,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'b')))
     }
 
-    @Test public void createsSpecForIncludeSpecs() {
+    @Test void createsSpecForIncludeSpecs() {
         patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
         Spec<FileTreeElement> spec = patternSet.asSpec
 
@@ -122,7 +118,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'b')))
     }
 
-    @Test public void createsSpecForExcludeSpecs() {
+    @Test void createsSpecForExcludeSpecs() {
         patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
         Spec<FileTreeElement> spec = patternSet.asSpec
 
@@ -130,7 +126,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'b')))
     }
 
-    @Test public void createsSpecForIncludeAndExcludeSpecs() {
+    @Test void createsSpecForIncludeAndExcludeSpecs() {
         patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
         patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
         Spec<FileTreeElement> spec = patternSet.asSpec
@@ -141,7 +137,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'c')))
     }
 
-    @Test public void createsSpecForIncludeClosure() {
+    @Test void createsSpecForIncludeClosure() {
         patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
         Spec<FileTreeElement> spec = patternSet.asSpec
 
@@ -149,7 +145,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'b')))
     }
 
-    @Test public void createsSpecForExcludeClosure() {
+    @Test void createsSpecForExcludeClosure() {
         patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
         Spec<FileTreeElement> spec = patternSet.asSpec
 
@@ -157,7 +153,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'b')))
     }
 
-    @Test public void createsSpecForIncludeAndExcludeClosures() {
+    @Test void createsSpecForIncludeAndExcludeClosures() {
         patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
         patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
         Spec<FileTreeElement> spec = patternSet.asSpec
@@ -167,7 +163,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'c')))
     }
 
-    @Test public void isCaseSensitiveByDefault() {
+    @Test void isCaseSensitiveByDefault() {
         patternSet.include '*a*'
         patternSet.exclude '*b*'
         Spec<FileTreeElement> spec = patternSet.asSpec
@@ -178,7 +174,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertTrue(spec.isSatisfiedBy(element(true, 'aB')))
     }
 
-    @Test public void createsSpecForCaseInsensitivePatternSet() {
+    @Test void createsSpecForCaseInsensitivePatternSet() {
         patternSet.include '*a*'
         patternSet.exclude '*b*'
         patternSet.caseSensitive = false
@@ -190,7 +186,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, 'bA')))
     }
 
-    @Test public void createIntersectPatternSet() {
+    @Test void createIntersectPatternSet() {
         patternSet.include '*a*'
         patternSet.include { FileTreeElement element -> element.file.name.contains('1') }
         patternSet.exclude '*b*'
@@ -214,7 +210,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(element(true, '132')))
     }
 
-    @Test public void globalExcludes() {
+    @Test void globalExcludes() {
         Spec<FileTreeElement> spec = patternSet.asSpec
 
         assertFalse(spec.isSatisfiedBy(element(false, '.svn')))
