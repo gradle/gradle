@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.externalresource.local.ivy;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.externalresource.local.AbstractLocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
@@ -33,11 +33,11 @@ import java.util.List;
 
 public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ArtifactRevisionId> {
 
-    public PatternBasedLocallyAvailableResourceFinder(File baseDir, String pattern) {
+    public PatternBasedLocallyAvailableResourceFinder(File baseDir, ResourcePattern pattern) {
         super(createProducer(baseDir, pattern));
     }
 
-    private static Transformer<Factory<List<File>>, ArtifactRevisionId> createProducer(final File baseDir, final String pattern) {
+    private static Transformer<Factory<List<File>>, ArtifactRevisionId> createProducer(final File baseDir, final ResourcePattern pattern) {
         return new Transformer<Factory<List<File>>, ArtifactRevisionId>() {
             public Factory<List<File>> transform(final ArtifactRevisionId artifactId) {
                 return new Factory<List<File>>() {
@@ -61,14 +61,8 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
             }
 
             private String getArtifactPattern(ArtifactRevisionId artifactId) {
-                String substitute = pattern;
-                // Need to handle organisation values that have been munged for m2compatible
-                substitute = IvyPatternHelper.substituteToken(substitute, "organisation", artifactId.getModuleRevisionId().getOrganisation().replace('/', '.'));
-                substitute = IvyPatternHelper.substituteToken(substitute, "organisation-path", artifactId.getModuleRevisionId().getOrganisation().replace('.', '/'));
-
                 Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
-                substitute = IvyPatternHelper.substitute(substitute, dummyArtifact);
-                return substitute;
+                return pattern.toPath(dummyArtifact);
             }
         };
     }
