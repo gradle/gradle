@@ -28,7 +28,7 @@ import java.io.File;
 
 public abstract class AbstractIntegrationTest implements TestFileContext {
     @Rule public final GradleDistribution distribution = new GradleDistribution();
-    private final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution);
+    public final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution);
 
     @ClassRule public static final GradleDistribution sharedDistribution = new GradleDistribution();
     private static final GradleDistributionExecuter sharedExecuter = new GradleDistributionExecuter(sharedDistribution);
