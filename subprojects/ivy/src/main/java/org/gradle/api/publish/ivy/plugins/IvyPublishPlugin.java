@@ -21,10 +21,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
@@ -36,9 +34,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * Configures the project to publish a “main” IvyPublication to a “main” IvyArtifactRepository.
@@ -79,7 +75,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         TaskContainer tasks = project.getTasks();
 
         // Create generate descriptor tasks
-        IvyPublicationDynamicDescriptorGenerationTaskCreator descriptorGenerationTaskCreator = new IvyPublicationDynamicDescriptorGenerationTaskCreator(tasks);
+        IvyPublicationDynamicDescriptorGenerationTaskCreator descriptorGenerationTaskCreator = new IvyPublicationDynamicDescriptorGenerationTaskCreator(project);
         descriptorGenerationTaskCreator.monitor(extension.getPublications());
 
         // Create publish tasks automatically for any Ivy publication and repository combinations
@@ -89,19 +85,9 @@ public class IvyPublishPlugin implements Plugin<Project> {
     }
 
     private IvyPublication createPublication(String name, final Project project, Set<? extends Configuration> configurations) {
-        final DefaultIvyPublication publication = instantiator.newInstance(
+        return instantiator.newInstance(
                 DefaultIvyPublication.class,
                 name, instantiator, configurations, dependencyMetaDataProvider, fileResolver, project.getTasks()
         );
-
-        DslObject publicationDslObject = new DslObject(publication);
-        ConventionMapping descriptorConventionMapping = publicationDslObject.getConventionMapping();
-        descriptorConventionMapping.map("descriptorFile", new Callable<Object>() {
-            public Object call() throws Exception {
-                return new File(project.getBuildDir(), "publications/" + publication.getName() + "/ivy.xml");
-            }
-        });
-
-        return publication;
     }
 }

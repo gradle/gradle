@@ -29,7 +29,7 @@ import spock.lang.Specification
 class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specification {
 
     def project = HelperUtil.createRootProject()
-    def creator = new IvyPublicationDynamicDescriptorGenerationTaskCreator(project.tasks)
+    def creator = new IvyPublicationDynamicDescriptorGenerationTaskCreator(project)
     PublishingExtension publishing
 
     def setup() {
@@ -50,7 +50,7 @@ class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specifica
         descriptorGeneratorTasks.size() == 0
 
         when:
-        publishing.publications.add(ivyPublication("ivy", "generateIvyModuleDescriptor"))
+        publishing.publications.add(ivyPublication("ivy"))
 
         then:
         descriptorGeneratorTasks.size() == 1
@@ -59,7 +59,7 @@ class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specifica
         task.description != null
 
         when:
-        publishing.publications.add(ivyPublication("other", "generateOtherIvyModuleDescriptor"))
+        publishing.publications.add(ivyPublication("other"))
 
         then:
         descriptorGeneratorTasks.size() == 2
@@ -73,12 +73,12 @@ class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specifica
         }
     }
 
-    IvyPublication ivyPublication(String name, String generatorTaskName) {
+    IvyPublication ivyPublication(String name) {
         IvyModuleDescriptor moduleDescriptor = Mock(IvyModuleDescriptorInternal)
         Mock(IvyPublicationInternal) {
             getName() >> name
             getDescriptor() >> moduleDescriptor
-            1 * descriptorFileBuiltBy({it.name == generatorTaskName})
+            1 * setDescriptorArtifact({it.file.path.contains name})
         }
     }
 

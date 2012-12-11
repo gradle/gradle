@@ -17,23 +17,24 @@
 package org.gradle.api.publish.ivy.tasks.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor;
-import org.gradle.api.tasks.TaskContainer;
 
+import java.io.File;
 import java.util.concurrent.Callable;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 public class IvyPublicationDynamicDescriptorGenerationTaskCreator {
 
-    final private TaskContainer tasks;
+    private final Project project;
 
-    public IvyPublicationDynamicDescriptorGenerationTaskCreator(TaskContainer tasks) {
-        this.tasks = tasks;
+    public IvyPublicationDynamicDescriptorGenerationTaskCreator(Project project) {
+        this.project = project;
     }
 
     public void monitor(PublicationContainer publications) {
@@ -48,14 +49,14 @@ public class IvyPublicationDynamicDescriptorGenerationTaskCreator {
         String publicationName = publication.getName();
 
         String descriptorTaskName = calculateDescriptorTaskName(publicationName);
-        GenerateIvyDescriptor descriptorTask = tasks.add(descriptorTaskName, GenerateIvyDescriptor.class);
+        GenerateIvyDescriptor descriptorTask = project.getTasks().add(descriptorTaskName, GenerateIvyDescriptor.class);
         descriptorTask.setGroup("publishing");
         descriptorTask.setDescription(String.format("Generates the Ivy Module Descriptor XML file for publication '%s'", publication.getName()));
 
         ConventionMapping descriptorTaskConventionMapping = new DslObject(descriptorTask).getConventionMapping();
         descriptorTaskConventionMapping.map("destination", new Callable<Object>() {
             public Object call() throws Exception {
-                return publication.getDescriptorFile();
+                return new File(project.getBuildDir(), "publications/" + publication.getName() + "/ivy.xml");
             }
         });
         descriptorTaskConventionMapping.map("descriptor", new Callable<Object>() {
@@ -69,7 +70,7 @@ public class IvyPublicationDynamicDescriptorGenerationTaskCreator {
             }
         });
 
-        publication.descriptorFileBuiltBy(descriptorTask);
+        publication.setDescriptorArtifact(descriptorTask.getDescriptorArtifact());
     }
 
     private String calculateDescriptorTaskName(String publicationName) {

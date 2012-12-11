@@ -20,12 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.internal.reflect.Instantiator;
@@ -45,9 +45,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final Set<? extends Configuration> configurations;
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
-    private final DefaultTaskDependency artifactsBuiltBy;
-
-    private File descriptorFile;
+    private PublishArtifact descriptorArtifact;
 
     public DefaultIvyPublication(
             String name, Instantiator instantiator, Set<? extends Configuration> configurations,
@@ -59,7 +57,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, this);
-        this.artifactsBuiltBy = new DefaultTaskDependency(taskResolver);
     }
 
     public String getName() {
@@ -74,18 +71,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         configure.execute(descriptor);
     }
 
-    public File getDescriptorFile() {
-        return descriptorFile;
-    }
-
-    public void setDescriptorFile(File descriptorFile) {
-        this.descriptorFile = descriptorFile;
-    }
-
-    public void descriptorFileBuiltBy(Object descriptorFileBuilder) {
-        artifactsBuiltBy.add(descriptorFileBuilder);
-    }
-
     public FileCollection getPublishableFiles() {
         ConfigurableFileCollection files = new DefaultConfigurableFileCollection("publication artifacts", fileResolver, taskResolver);
         files.from(new Callable<Set<FileCollection>>() {
@@ -97,12 +82,14 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 });
             }
         });
-        files.from(new Callable<File>() {
-            public File call() throws Exception {
-                return descriptorFile;
-            }
-        });
-        files.builtBy(artifactsBuiltBy);
+        if (descriptorArtifact != null) {
+            files.from(new Callable<File>() {
+                public File call() throws Exception {
+                    return getDescriptorFile();
+                }
+            });
+            files.builtBy(descriptorArtifact);
+        }
         return files;
     }
 
@@ -120,6 +107,14 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public Set<? extends Configuration> getConfigurations() {
         return configurations;
+    }
+
+    public void setDescriptorArtifact(PublishArtifact descriptorArtifact) {
+        this.descriptorArtifact = descriptorArtifact;
+    }
+
+    private File getDescriptorFile() {
+        return descriptorArtifact.getFile();
     }
 
     // Flattens each of the given configurations to include any parents, visible or not.

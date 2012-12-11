@@ -18,19 +18,23 @@ package org.gradle.api.publish.ivy.tasks;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.*;
-import org.gradle.api.internal.xml.XmlTransformer;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.TaskDependency;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Date;
 
 /**
  * Generates an Ivy XML Module Descriptor file.
@@ -41,6 +45,7 @@ import java.io.File;
 public class GenerateIvyDescriptor extends DefaultTask {
 
     private IvyModuleDescriptor descriptor;
+    private final PublishArtifact descriptorArtifact;
 
     private Action<? super XmlProvider> xmlAction;
     private Object destination;
@@ -55,6 +60,8 @@ public class GenerateIvyDescriptor extends DefaultTask {
 
         // Never up to date; we don't understand the data structures.
         getOutputs().upToDateWhen(Specs.satisfyNone());
+
+        this.descriptorArtifact = new IvyDescriptorArtifact();
     }
 
     /**
@@ -99,6 +106,10 @@ public class GenerateIvyDescriptor extends DefaultTask {
         this.xmlAction = xmlAction;
     }
 
+    public PublishArtifact getDescriptorArtifact() {
+        return descriptorArtifact;
+    }
+
     @TaskAction
     public void doGenerate() {
         XmlTransformer xmlTransformer = new XmlTransformer();
@@ -132,4 +143,40 @@ public class GenerateIvyDescriptor extends DefaultTask {
         }
     }
 
+    private class IvyDescriptorArtifact implements PublishArtifact {
+        private final DefaultTaskDependency dependency;
+
+        public IvyDescriptorArtifact() {
+            this.dependency = new DefaultTaskDependency();
+            this.dependency.add(GenerateIvyDescriptor.this);
+        }
+
+        public String getName() {
+            return "ivy";
+        }
+
+        public String getExtension() {
+            return "xml";
+        }
+
+        public String getType() {
+            return "xml";
+        }
+
+        public String getClassifier() {
+            return null;
+        }
+
+        public File getFile() {
+            return getDestination();
+        }
+
+        public Date getDate() {
+            return null;
+        }
+
+        public TaskDependency getBuildDependencies() {
+            return dependency;
+        }
+    }
 }
