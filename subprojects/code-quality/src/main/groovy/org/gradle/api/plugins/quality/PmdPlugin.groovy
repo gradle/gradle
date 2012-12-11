@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 
@@ -51,6 +52,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             toolVersion = "4.3"
             ruleSets = ["basic"]
             ruleSetFiles = project.files()
+            targetJdk = JavaVersion.current().toString()
         }
         return extension
     }
@@ -70,7 +72,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSets = { extension.ruleSets }
             ruleSetFiles = { extension.ruleSetFiles }
             ignoreFailures = { extension.ignoreFailures }
-
+            targetJdk = { extension.targetJdk }
             task.reports.all { report ->
                 report.conventionMapping.with {
                     enabled = { true }
