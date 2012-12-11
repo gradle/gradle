@@ -17,6 +17,7 @@
 package org.gradle.util;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class RuleHelper {
         List<T> matches = new ArrayList<T>();
         for (Class<?> cl = target.getClass(); cl != Object.class; cl = cl.getSuperclass()) {
             for (Field field : cl.getDeclaredFields()) {
-                if (type.isAssignableFrom(field.getType())) {
+                if (!Modifier.isStatic(field.getModifiers()) && type.isAssignableFrom(field.getType())) {
                     field.setAccessible(true);
                     try {
                         matches.add(type.cast(field.get(target)));
