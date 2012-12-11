@@ -18,11 +18,14 @@ package org.gradle.plugins.ide.eclipse
 import org.junit.Test
 import spock.lang.Issue
 
-// TODO: run prepareWebProject() only once per class for performance reasons (not as simply as it seems)
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
+    void setupSharedFixture() {
+        generateEclipseFilesForWebProject()
+    }
+
     @Test
     void projectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
-        prepareWebProject()
+        useSharedFixture = true
 
         hasUtilityFacet("java1")
         hasUtilityFacet("java2")
@@ -31,7 +34,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void projectDependenciesOfWebProjectHaveNecessaryNaturesAdded() {
-        prepareWebProject()
+        useSharedFixture = true
 
         hasNecessaryNaturesAdded("java1")
         hasNecessaryNaturesAdded("java2")
@@ -40,7 +43,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void projectDependenciesOfWebProjectHaveNecessaryBuildersAdded() {
-        prepareWebProject()
+        useSharedFixture = true
 
         hasNecessaryBuildersAdded("java1")
         hasNecessaryBuildersAdded("java2")
@@ -49,7 +52,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void projectDependenciesOfWebProjectHaveTrimmedDownComponentSettingsFile() {
-        prepareWebProject()
+        useSharedFixture = true
 
         hasTrimmedDownComponentSettingsFile("java1", "src/main/java", "src/main/resources")
         hasTrimmedDownComponentSettingsFile("java2", "src/main/java", "src/main/resources")
@@ -58,7 +61,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void jarDependenciesOfUtilityProjectsAreFlaggedAsRuntimeDependency() {
-        prepareWebProject()
+        useSharedFixture = true
 
         def classpath = parseClasspathFile(project: "java1")
 
@@ -72,7 +75,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void allProjectDependenciesOfWebProjectAreAddedAsRuntimeDependencies() {
-        prepareWebProject()
+        useSharedFixture = true
 
         def projectModules = parseComponentFile(project: "web", print: true)
 
@@ -84,6 +87,8 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     @Issue("GRADLE-1415")
     void canUseSelfResolvingFiles() {
+        useSharedFixture = false
+
         def buildFile = """
 apply plugin: "war"
 apply plugin: "eclipse"
@@ -104,9 +109,23 @@ dependencies {
         libEntriesInClasspathFileHaveFilenames("foo.jar")
     }
 
-    private prepareWebProject() {
+    @Test
+    @Issue("GRADLE-2526")
+    void overwritesDependentModules() {
+        useSharedFixture = false
+
+        generateEclipseFilesForWebProject()
+        def projectModules = parseComponentFile(project: "web")
+        assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
+
+        generateEclipseFilesForWebProject("1.2.3")
+        def projectModules2 = parseComponentFile(project: "web")
+        assert getHandleFilenames(projectModules2) == ["java1", "java2", "groovy", "myartifact-1.2.3.jar", "myartifactdep-1.0.jar"] as Set
+    }
+
+    private generateEclipseFilesForWebProject(myArtifactVersion = "1.0") {
         def repoDir = file("repo")
-        maven(repoDir).module("mygroup", "myartifact").dependsOn("myartifactdep").publish()
+        maven(repoDir).module("mygroup", "myartifact", myArtifactVersion).dependsOn("myartifactdep").publish()
         maven(repoDir).module("mygroup", "myartifactdep").publish()
 
         def settingsFile = file("settings.gradle")
@@ -132,7 +151,7 @@ repositories {
 dependencies {
     compile project(":java1")
     compile project(":groovy")
-    runtime "mygroup:myartifact:1.0"
+    runtime "mygroup:myartifact:$myArtifactVersion"
 }
         """
 
@@ -149,7 +168,7 @@ repositories {
 
 dependencies {
     compile project(":java2")
-    runtime "mygroup:myartifact:1.0"
+    runtime "mygroup:myartifact:$myArtifactVersion"
 }
         """
 
@@ -165,7 +184,7 @@ repositories {
 }
 
 dependencies {
-    runtime "mygroup:myartifact:1.0"
+    runtime "mygroup:myartifact:$myArtifactVersion"
 }
         """
 

@@ -70,9 +70,9 @@ class WtpComponent extends XmlPersistableConfigurationObject {
         "defaultWtpComponent.xml"
     }
 
-    void configure(String deployName, String contextPath, List wbModuleEntries) {
-        this.wbModuleEntries.addAll(wbModuleEntries)
-        this.wbModuleEntries.unique()
+    void configure(String deployName, String contextPath, List newEntries) {
+        def entriesToBeKept = this.wbModuleEntries.findAll { !(it instanceof WbDependentModule) }
+        this.wbModuleEntries = (entriesToBeKept + newEntries).unique()
         if (deployName) {
             this.deployName = deployName
         }
