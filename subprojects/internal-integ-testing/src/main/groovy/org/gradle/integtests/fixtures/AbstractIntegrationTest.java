@@ -20,7 +20,6 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository;
 import org.gradle.test.fixtures.maven.MavenFileRepository;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestFileContext;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 
@@ -35,8 +34,6 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
 
     protected boolean useSharedFixture;
 
-    private static boolean setupSharedFixtureRun;
-
     private MavenFileRepository mavenRepo;
     private IvyFileRepository ivyRepo;
 
@@ -46,18 +43,6 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
 
     protected GradleDistributionExecuter getExecuter() {
         return useSharedFixture ? SHARED_EXECUTER : executer;
-    }
-
-    protected void setupSharedFixture() {}
-
-    @Before
-    public void doSetupSharedFixture() {
-        if (!setupSharedFixtureRun) {
-            useSharedFixture = true;
-            setupSharedFixture();
-            useSharedFixture = false;
-            setupSharedFixtureRun = true;
-        }
     }
 
     public TestFile getTestDir() {
