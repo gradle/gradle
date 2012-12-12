@@ -28,9 +28,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * Displays the dependency tree for a project. Can be configured to output to a file, and to optionally output a
- * graphviz compatible "dot" graph. An instance of this type is used when you execute the {@code dependencies} task from
- * the command-line.
+ * Displays the dependency tree for a project. An instance of this type is used when you
+ * execute the {@code dependencies} task from the command-line.
  *
  * @author Phil Messenger
  */
