@@ -111,13 +111,13 @@ More info in the [forum ticket](http://forums.gradle.org/gradle/topics/modeling_
 
 An opinionated plugin that adds a single distribution that
 
-- 'java-library-distribution' plugin
-    - applies 'java' plugin
-    - adds 'distZip' task
+- `java-library-distribution` plugin
+    - applies `java` plugin
+    - adds `distZip` task
         - packages up the jar and runtime dependencies of the library as a ZIP.
         - include contents of `src/dist`
-    - adds 'distribution' extension
-        - has 'name' property that is used to configure the 'baseName' of the distZip task.
+    - adds `distribution` extension
+        - has `name` property that is used to configure the `baseName` of the `distZip` task.
 
 ### DSL:
 
@@ -158,15 +158,15 @@ An opinionated plugin that adds a single distribution that
 Extract a general-purpose `distribution` plugin out of the `java-library-distribution` plugin.
 
 1. Add a `distribution` plugin.
-2. Add a `Distribution` type that extends `Named` plus implementation.
-3. Add a `DistributionsContainer` type that extends `NamedDomainObjectContainer<Distribution>` plus implementation.
+2. Add a `Distribution` type that extends `Named` plus implementation class.
+3. Add a `DistributionsContainer` type that extends `NamedDomainObjectContainer<Distribution>` plus implementation class.
 4. Change the `distribution` plugin to add this container as an extension called `distributions`.
-5. Change the `distribution` plugin to add a single instance called 'main' to this container.
+5. Change the `distribution` plugin to add a single instance called `main` to this container.
 7. Change the `java-library-distribution` plugin to apply the `distribution` plugin.
 8. Change the `distribution` plugin to add a ZIP task for each distribution in the container.
     - For the `main` distribution, this should be called `distZip`
     - For other distributions, this should be caled `${dist.name}DistZip`.
-9. Change the `java-library-distribution` plugin to no longer add a `distZip` task, but instead to configure the `distZip`
+9. Change the `java-library-distribution` plugin so that it no longer add a `distZip` task, but instead configures the `distZip`
    task instance that is added by the `distribution` plugin.
 
 ### DSL
@@ -207,9 +207,11 @@ To generate multiple distributions:
         from { ... }
     }
 
+Running `gradle distZip customDistZip` will create the distribution ZIP files.
+
 ## Allow customisation of the `distribution` plugin
 
-Allow the distributions defined by the `distribution` to be configured, and remove the configuration options from the `java-library-distribution` plugin.
+Allow the distributions defined by the `distribution` to be configured and remove the configuration options from the `java-library-distribution` plugin.
 
 1. Change the `Distribution` type to add a `baseName` property. This should default to:
     - `project.name` for the `main` distribution.
@@ -292,6 +294,6 @@ Only after above is completed & integrated with the master we want to design and
 - Make the library plugin agnostic of implementation language.
 - Build a distribution by bundling other projects.
 - Add a source set for the extra files to include in a distribution.
-- (Very advanced) Allow the distributions to be published instead of the jar.
+- (Very advanced) Allow the distributions to be published, instead of or as well as the jar.
     This would need to mess with the generated pom.xml/ivy.xml to remove the dependency declarations
     for those dependencies that have been bundled in the distribution.
