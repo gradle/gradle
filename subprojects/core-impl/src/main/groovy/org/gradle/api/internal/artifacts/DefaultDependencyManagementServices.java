@@ -22,9 +22,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.*;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
@@ -61,6 +59,7 @@ import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.cache.CacheRepository;
+import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -310,11 +309,16 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         public ConfigurationContainerInternal getConfigurationContainer() {
             if (configurationContainer == null) {
-                Instantiator instantiator = parent.get(Instantiator.class);
+                final Instantiator instantiator = parent.get(Instantiator.class);
                 ArtifactDependencyResolver dependencyResolver = createDependencyResolver(getResolveRepositoryHandler());
+                Factory<ResolutionStrategyInternal> resolutionStrategyFactory = new Factory<ResolutionStrategyInternal>() {
+                    public ResolutionStrategyInternal create() {
+                        return instantiator.newInstance(DefaultResolutionStrategy.class);
+                    }
+                };
                 configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
                         dependencyResolver, instantiator, domainObjectContext, parent.get(ListenerManager.class),
-                        dependencyMetaDataProvider);
+                        dependencyMetaDataProvider, resolutionStrategyFactory);
             }
             return configurationContainer;
         }

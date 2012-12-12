@@ -29,6 +29,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Factory;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.HelperUtil;
@@ -57,7 +58,11 @@ public class DefaultConfigurationTest {
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
-    private DefaultResolutionStrategy resolutionStrategy = new DefaultResolutionStrategy();
+    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory = new Factory<ResolutionStrategyInternal>() {
+        public ResolutionStrategyInternal create() {
+            return new DefaultResolutionStrategy();
+        }
+    };
     private DefaultConfiguration configuration;
     private DependencyResolutionListener dependencyResolutionBroadcast = context.mock(DependencyResolutionListener.class);
     private ListenerBroadcast resolutionListenerBroadcast = context.mock(ListenerBroadcast.class); 
@@ -352,11 +357,11 @@ public class DefaultConfigurationTest {
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy);
+        return new DefaultConfiguration(confName, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategyFactory);
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
-        return new DefaultConfiguration(path, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy);
+        return new DefaultConfiguration(path, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategyFactory);
     }
 
     @SuppressWarnings("unchecked")

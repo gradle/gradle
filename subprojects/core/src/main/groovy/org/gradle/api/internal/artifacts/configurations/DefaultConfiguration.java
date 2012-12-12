@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Factory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
@@ -54,6 +55,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ArtifactDependencyResolver dependencyResolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
+    private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
@@ -68,19 +70,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Object lock = new Object();
     private State state = State.UNRESOLVED;
     private ResolverResults cachedResolverResults;
-    private final DefaultResolutionStrategy resolutionStrategy;
+    private final ResolutionStrategyInternal resolutionStrategy;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager,
-                                DependencyMetaDataProvider metaDataProvider, DefaultResolutionStrategy resolutionStrategy) {
+                                DependencyMetaDataProvider metaDataProvider,
+                                Factory<ResolutionStrategyInternal> resolutionStrategyFactory) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.dependencyResolver = dependencyResolver;
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
-        assert resolutionStrategy != null : "Cannot create configuration with null resolutionStrategy";
-        this.resolutionStrategy = resolutionStrategy;
+        this.resolutionStrategyFactory = resolutionStrategyFactory;
+        this.resolutionStrategy = resolutionStrategyFactory.create();
 
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
@@ -362,7 +365,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy);
+                configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategyFactory);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -407,7 +410,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolutionListenerBroadcast.getSource();
     }
 
-    public DefaultResolutionStrategy getResolutionStrategy() {
+    public ResolutionStrategyInternal getResolutionStrategy() {
         return resolutionStrategy;
     }
 
