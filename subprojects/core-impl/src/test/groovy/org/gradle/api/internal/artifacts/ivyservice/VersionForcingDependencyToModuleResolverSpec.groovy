@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
-import org.gradle.api.GradleException
 import spock.lang.Specification
 
 class VersionForcingDependencyToModuleResolverSpec extends Specification {
@@ -65,18 +64,45 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         0 * target._
     }
 
-    def "explosive action yields decent exception"() {
-        def dep = dependency('org', 'module', '0.5')
+    def "explosive action yields failure result that provides context"() {
         def force = { throw new Error("Boo!") } as Action
         def resolver = new VersionForcingDependencyToModuleResolver(target, force)
 
         when:
-        resolver.resolve(dep)
+        def result = resolver.resolve(dependency('org', 'module', '0.5'))
 
         then:
-        def ex = thrown(GradleException)
-        ex.message == "Problems executing resolve action for dependency: org:module:0.5"
-        ex.cause.message == 'Boo!'
+        result.failure.message == "Problems executing resolve action for dependency: org:module:0.5"
+        result.failure.cause.message == 'Boo!'
+    }
+
+    def "failed result uses correct exception"() {
+        def force = { throw new Error("Boo!") } as Action
+        def resolver = new VersionForcingDependencyToModuleResolver(target, force)
+        def result = resolver.resolve(dependency('org', 'module', '0.5'))
+
+        when:
+        result.getId()
+        then:
+        def ex = thrown(ModuleVersionResolveException)
+        ex == result.failure
+
+        when:
+        result.getSelectionReason()
+        then:
+        def ex2 = thrown(ModuleVersionResolveException)
+        ex2 == result.failure
+
+        when:
+        def resolveResult = result.resolve()
+        then:
+        resolveResult.failure == result.failure
+
+        when:
+        resolveResult.getId()
+        then:
+        def ex3 = thrown(ModuleVersionResolveException)
+        ex3 == result.failure
     }
 
     def dependency(String group, String module, String version) {

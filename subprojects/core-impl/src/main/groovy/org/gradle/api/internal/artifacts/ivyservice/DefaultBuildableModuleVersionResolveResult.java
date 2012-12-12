@@ -25,9 +25,10 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
     private ModuleVersionResolveException failure;
     private ArtifactResolver artifactResolver;
 
-    public void failed(ModuleVersionResolveException failure) {
+    public DefaultBuildableModuleVersionResolveResult failed(ModuleVersionResolveException failure) {
         moduleDescriptor = null;
         this.failure = failure;
+        return this;
     }
 
     public void notFound(ModuleRevisionId moduleRevisionId) {

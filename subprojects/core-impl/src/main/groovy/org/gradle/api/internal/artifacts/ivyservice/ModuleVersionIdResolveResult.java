@@ -39,8 +39,9 @@ public interface ModuleVersionIdResolveResult {
 
     /**
      * @return why given id was selected
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
-    IdSelectionReason getSelectionReason();
+    IdSelectionReason getSelectionReason() throws ModuleVersionResolveException;
 
     public static enum IdSelectionReason {
         requested, forced

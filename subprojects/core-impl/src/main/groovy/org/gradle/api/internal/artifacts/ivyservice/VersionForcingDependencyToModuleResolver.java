@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -39,8 +38,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
         try {
             action.execute(details);
         } catch (Throwable e) {
-            throw new GradleException("Problems executing resolve action for dependency: "
-                    + module.getGroup() + ":" + module.getName() + ":" + module.getVersion(), e);
+            return new FailedDependencyResolveActionResult(module, e);
         }
         if (details.getForcedVersion() != null) {
             ModuleId moduleId = new ModuleId(details.getRequested().getGroup(), details.getRequested().getName());
@@ -50,5 +48,31 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
             return new ForcedModuleVersionIdResolveResult(result);
         }
         return resolver.resolve(dependencyDescriptor);
+    }
+
+    private class FailedDependencyResolveActionResult implements ModuleVersionIdResolveResult {
+
+        private final ModuleVersionResolveException failure;
+
+        public FailedDependencyResolveActionResult(ModuleVersionSelector module, Throwable problem) {
+            this.failure = new ModuleVersionResolveException("Problems executing resolve action for dependency: "
+                    + module.getGroup() + ":" + module.getName() + ":" + module.getVersion(), problem);
+        }
+
+        public ModuleVersionResolveException getFailure() {
+            return failure;
+        }
+
+        public ModuleRevisionId getId() throws ModuleVersionResolveException {
+            throw failure;
+        }
+
+        public ModuleVersionResolveResult resolve() {
+            return new DefaultBuildableModuleVersionResolveResult().failed(failure);
+        }
+
+        public IdSelectionReason getSelectionReason() {
+            throw failure;
+        }
     }
 }

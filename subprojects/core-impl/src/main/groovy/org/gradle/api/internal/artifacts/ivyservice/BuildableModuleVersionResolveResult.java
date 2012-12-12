@@ -28,7 +28,7 @@ public interface BuildableModuleVersionResolveResult extends ModuleVersionResolv
     /**
      * Marks the resolve as failed with the given exception.
      */
-    void failed(ModuleVersionResolveException failure);
+    DefaultBuildableModuleVersionResolveResult failed(ModuleVersionResolveException failure);
 
     /**
      * Marks the module version as not found.
