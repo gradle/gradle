@@ -2,22 +2,6 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Hooking into the dependency resolution
-
-In order to make Gradle's dependency resolution even more robust
-we added a new way of influencing the dependency resolution process.
-Since Gradle 1.4 it is possible to specify *dependency resolve actions*.
-An action is executed for each resolved dependency and offers ways
-to manipulate the dependency metadata before the dependency is resolved.
-
-The feature is incubating for now and not entire dependency metadata can be manipulated at this time.
-We are very keen on your feedback and we will definitely grow this feature,
-allowing more metadata to be manipulated, and more dependency resolution corner cases solved.
-Even though dependency resolve actions are lower level hooks
-in future we will use them to provide many high level features in Gradle's dependency engine.
-
-For more information, including the code sample, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_actions).
-
 ### Easier to embed Gradle via [Tooling API](userguide/embedding.html)
 
 We continuously look for ways to improve the experience of embedding Gradle.
@@ -125,6 +109,22 @@ By giving early access to new features, real world feedback can be incorporated 
 See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the new incubating features or changes to existing incubating features in this Gradle release.
+
+### Hooking into the dependency resolution
+
+In order to make Gradle's dependency resolution even more robust
+we added a new way of influencing the dependency resolution process.
+Since Gradle 1.4 it is possible to specify *dependency resolve actions*.
+An action is executed for each resolved dependency and offers ways
+to manipulate the dependency metadata before the dependency is resolved.
+
+The feature is incubating for now and not entire dependency metadata can be manipulated at this time.
+We are very keen on your feedback and we will definitely grow this feature,
+allowing more metadata to be manipulated, and more dependency resolution corner cases solved.
+Even though dependency resolve actions are lower level hooks
+in future we will use them to provide many high level features in Gradle's dependency engine.
+
+For more information, including the code sample, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_actions).
 
 ### Generate ivy.xml without publishing
 
