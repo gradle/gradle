@@ -84,9 +84,27 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the new incubating features or changes to existing incubating features in this Gradle release.
 
-<!--
-### Example incubating feature
--->
+### Generate ivy.xml without publishing
+
+The 'ivy-publish' plugin introduces a new GenerateIvyDescriptor task, which permits the generation of the ivy.xml metadata file without also publishing
+your module to an ivy repository. The task name for the default ivy publication is 'generateIvyModuleDescriptor'.
+
+The GenerateIvyDescriptor task also allows the location of the generated ivy descriptor file to changed from it's default location at `build/publications/ivy/ivy.xml`.
+This is done by setting the `destination` property of the task:
+
+    apply plugin: "ivy-publish"
+
+    group = 'group'
+    version = '1.0'
+
+    // … declare dependencies and other config on how to build
+
+    generateIvyModuleDescriptor {
+        destination = 'generated-ivy.xml'
+    }
+
+Executing `gradle generateIvyModuleDescriptor` will result in the ivy module descriptor being written to the file specified. This task is automatically wired
+into the respective PublishToIvyRepository tasks, so you do not need to explicitly call this task to publish your module.
 
 ## Deprecations
 
@@ -138,6 +156,11 @@ As a workaround you can dynamically check if the AppleScriptEngine is available:
     ScriptEngineManager mgr = new ScriptEngineManager();
     ScriptEngine engine = mgr.getEngineByName("AppleScript");
     boolean isAppleScriptAvailable = engine != null;
+
+### IvyPublication (incubating) no longer has `descriptorFile` property
+
+In v1.3 it was possible to set the `descriptorFile` property on an IvyPublication object. This property has been removed with the introduction of the new
+GenerateIvyDescriptor task. To specify where the ivy.xml file should be generated, set the `destination` property of the GenerateIvyDescriptor task.
 
 ## External contributions
 

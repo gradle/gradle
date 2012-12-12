@@ -53,6 +53,9 @@
                 Establish a rule to automatically create an <apilink class="org.gradle.api.publish.ivy.tasks.PublishToIvyRepository" /> task for each Ivy publishing repository added
                 (see <xref linkend="publishing_ivy:repositories"/>)
             </listitem>
+            <listitem>
+                Create a task named 'generateIvyDescriptor' of type <apilink class="org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor" />.
+            </listitem>
         </itemizedlist>
         <para>
             The “<literal>publishing</literal>” plugin creates an extension on the project named “<literal>publishing</literal>” of type <apilink class="org.gradle.api.publish.PublishingExtension"/>.
@@ -180,6 +183,28 @@
             <output args='publish'/>
         </sample>
     </section>
+    </section>
+    <section id="publishing_ivy:descriptor">
+        <title>Generating the Ivy module descriptor file</title>
+        <para>
+            Sometimes you want to generate the Ivy module descriptor file (normally <literal>ivy.xml</literal>) without publishing your module to an Ivy
+            repository. For this purpose, the <literal>ivy-publish</literal> plugin automatically wires in one <literal>GenerateIvyDescriptor</literal> task
+            for each registered <apilink class="org.gradle.api.publish.ivy.IvyPublication" />.
+        </para>
+        <para>
+            In the default case of a single <literal>IvyPublication</literal> named 'ivy', the <literal>ivy-publish</literal> plugin
+            will create a single task named <literal>generateIvyModuleDescriptor</literal>.
+            Where more than one publication is present, additional tasks will be created using the naming pattern
+            <literal>generate«<emphasis>NAME OF PUBLICATION</emphasis>»IvyModuleDescriptor</literal>. Thus if there is one publication named 'other' in addition
+            to the default publication, there will be 2 tasks created: <literal>generateIvyModuleDescriptor</literal> and <literal>generateOtherIvyModuleDescriptor</literal>.
+        </para>
+        <para>
+            You can specify where the generated Ivy file will be located by setting the <literal>destination</literal> property on the generate task.
+            By default this file is generated to <literal>build/publications/«<emphasis>NAME OF PUBLICATION</emphasis>»/ivy.xml</literal>.
+        </para>
+        <sample dir="ivypublish-new" id="generateIvyModuleDescriptor" title="Generating the Ivy module descriptor file">
+            <sourcefile file="build.gradle" snippet="generate" />
+        </sample>
     </section>
     <section>
         <title>Future features</title>

@@ -77,6 +77,20 @@ import org.gradle.api.publish.Publication;
  * All {@link org.gradle.api.publish.ivy.tasks.PublishToIvyRepository} tasks added by this plugin automatically become dependencies of this
  * lifecycle task, which means that often the most convenient way to publish your project is to just run the “{@code publish}” task.
  *
+ * <h4>Generating the ivy module descriptor</h4>
+ *
+ * A {@link org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor} task will be created for each {@code IvyPublication} in {@code publishing.publications}.
+ * Each {@code GenerateIvyTask} is automatically a dependency of the respective {@code PublishToIvyRepository} task, so this task is only required for
+ * generating the ivy.xml file without also publishing your module.
+ *
+ * <pre autoTested="true">
+ * apply plugin: 'ivy-publish'
+
+ * generateIvyModuleDescriptor {
+ *     destination = file('generated-ivy.xml') // Override the default file that will contain the descriptor
+ * }
+ * </pre>
+ *
  * @since 1.3
  */
 @Incubating

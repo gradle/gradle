@@ -58,3 +58,8 @@ publishing {
 // END SNIPPET repositories
 // END SNIPPET descriptor-mod
 // END SNIPPET input
+// START SNIPPET generate
+generateIvyModuleDescriptor {
+    destination = file('generated-ivy.xml')
+}
+// END SNIPPET generate
