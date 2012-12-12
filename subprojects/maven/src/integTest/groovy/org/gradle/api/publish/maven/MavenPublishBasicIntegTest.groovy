@@ -93,7 +93,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
 
         then:
         modulePublished(mavenRepo, 'group', 'root', 'foo')
-        moduleNotPublished(m2Installation.mavenRepo(), 'group', 'root', '1.0')
+        moduleNotPublished(m2Installation.mavenRepo(), 'group', 'root', 'foo')
 
         when:
         succeeds 'publishToMavenLocal'
