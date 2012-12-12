@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.filestore.FileStoreEntry;
@@ -81,7 +82,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }
 
-    public CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor, boolean isChanging) {
+    public CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor, ModuleSource moduleSource, boolean isChanging) {
         ModuleDescriptorCacheEntry entry;
         if (moduleDescriptor == null) {
             LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", moduleRevisionId, isChanging);
@@ -90,7 +91,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         } else {
             LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
             FileStoreEntry fileStoreEntry = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
-            entry = createEntry(isChanging, fileStoreEntry.getSha1());
+            entry = createEntry(isChanging, fileStoreEntry.getSha1(), moduleSource);
             getCache().put(createKey(repository, moduleRevisionId), entry);
         }
         return new DefaultCachedModuleDescriptor(entry, null, timeProvider);
@@ -101,11 +102,11 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     }
 
     private ModuleDescriptorCacheEntry createMissingEntry(boolean changing) {
-        return new ModuleDescriptorCacheEntry(changing, true, timeProvider, BigInteger.ZERO);
+        return new ModuleDescriptorCacheEntry(changing, true, timeProvider, BigInteger.ZERO, null);
     }
 
-    private ModuleDescriptorCacheEntry createEntry(boolean changing, HashValue moduleDescriptorHash) {
-        return new ModuleDescriptorCacheEntry(changing, false, timeProvider, moduleDescriptorHash.asBigInteger());
+    private ModuleDescriptorCacheEntry createEntry(boolean changing, HashValue moduleDescriptorHash, ModuleSource moduleSource) {
+        return new ModuleDescriptorCacheEntry(changing, false, timeProvider, moduleDescriptorHash.asBigInteger(), moduleSource);
     }
 
     private static class RevisionKey implements Serializable {

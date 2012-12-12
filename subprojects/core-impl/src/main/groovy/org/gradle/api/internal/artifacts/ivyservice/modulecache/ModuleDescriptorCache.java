@@ -18,12 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 
 import java.math.BigInteger;
 
 public interface ModuleDescriptorCache {
-    CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId resolvedModuleVersionId, ModuleDescriptor moduleDescriptor, boolean isChanging);
+    CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId resolvedModuleVersionId, ModuleDescriptor moduleDescriptor, ModuleSource moduleSource, boolean isChanging);
 
     CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleId);
 
@@ -39,5 +40,7 @@ public interface ModuleDescriptorCache {
         BigInteger getDescriptorHash();
 
         boolean isMissing();
+
+        ModuleSource getModuleSource();
     }
 }

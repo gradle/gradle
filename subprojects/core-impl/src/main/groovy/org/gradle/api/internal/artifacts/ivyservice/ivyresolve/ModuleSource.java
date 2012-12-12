@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-public interface ModuleSource {
+import java.io.Serializable;
+
+public interface ModuleSource extends Serializable {
 }
 
 

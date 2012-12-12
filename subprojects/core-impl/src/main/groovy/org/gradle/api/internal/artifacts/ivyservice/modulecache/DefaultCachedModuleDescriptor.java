@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.internal.TimeProvider;
 
 import java.io.Serializable;
@@ -26,19 +27,25 @@ import java.math.BigInteger;
 
 class DefaultCachedModuleDescriptor implements ModuleDescriptorCache.CachedModuleDescriptor, Serializable {
     private final ModuleDescriptor moduleDescriptor;
+    private final ModuleSource moduleSource;
     private final BigInteger descriptorHash;
     private final boolean isChangingModule;
     private final long ageMillis;
 
     public DefaultCachedModuleDescriptor(ModuleDescriptorCacheEntry entry, ModuleDescriptor moduleDescriptor, TimeProvider timeProvider) {
         this.moduleDescriptor = moduleDescriptor;
+        this.moduleSource = entry.moduleSource;
         this.isChangingModule = entry.isChanging;
         this.descriptorHash = entry.moduleDescriptorHash;
-        ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
+        this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
     }
 
     public boolean isMissing() {
         return moduleDescriptor == null;
+    }
+
+    public ModuleSource getModuleSource() {
+        return moduleSource;
     }
 
     public ResolvedModuleVersion getModuleVersion() {

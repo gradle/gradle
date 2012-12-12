@@ -18,15 +18,14 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.util.Message;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionDescriptor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
@@ -36,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.text.ParseException;
 import java.util.*;
 
 public class MavenResolver extends ExternalResourceResolver implements PatternBasedResolver {
@@ -71,23 +69,33 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         updatePatterns();
     }
 
-    @Override
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
+    public void getDependency(DependencyDescriptor dd, BuildableModuleVersionDescriptor result) {
         if (isSnapshotVersion(dd)) {
-            final ModuleRevisionId dependencyRevisionId = dd.getDependencyRevisionId();
-            final String uniqueSnapshotVersion = findUniqueSnapshotVersion(dependencyRevisionId);
-            if (uniqueSnapshotVersion != null) {
-                Map<String, String> extraAttributes = new HashMap<String, String>(1);
-                extraAttributes.put("timestamp", uniqueSnapshotVersion);
-                final ModuleRevisionId newModuleRevisionId = ModuleRevisionId.newInstance(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision(), extraAttributes);
-                final DependencyDescriptor enrichedDependencyDescriptor = dd.clone(newModuleRevisionId);
-                final ResolvedModuleRevision dependency = super.getDependency(enrichedDependencyDescriptor, data);
-                final ModuleDescriptor descriptor = dependency.getDescriptor();
-                descriptor.setResolvedModuleRevisionId(newModuleRevisionId);
-                return dependency;
-            }
+            getSnapshotDependency(dd, result);
+        }else{
+            super.getDependency(dd, result);
         }
-        return super.getDependency(dd, data);
+    }
+
+    private void getSnapshotDependency(DependencyDescriptor dd, BuildableModuleVersionDescriptor result) {
+        final ModuleRevisionId dependencyRevisionId = dd.getDependencyRevisionId();
+        final String uniqueSnapshotVersion = findUniqueSnapshotVersion(dependencyRevisionId);
+        if (uniqueSnapshotVersion != null) {
+            DependencyDescriptor enrichedDependencyDescriptor = enrichDependencyDescriptorWithSnapshotVersionInfo(dd, dependencyRevisionId, uniqueSnapshotVersion);
+            super.getDependency(enrichedDependencyDescriptor, result);
+            if(result.getState()==BuildableModuleVersionDescriptor.State.Resolved){
+                result.resolved(result.getDescriptor(), result.isChanging(), new TimestampedModuleSource(uniqueSnapshotVersion));
+            }
+        }else{
+            super.getDependency(dd, result);
+        }
+    }
+
+    private DependencyDescriptor enrichDependencyDescriptorWithSnapshotVersionInfo(DependencyDescriptor dd, ModuleRevisionId dependencyRevisionId, String uniqueSnapshotVersion) {
+        Map<String, String> extraAttributes = new HashMap<String, String>(1);
+        extraAttributes.put("timestamp", uniqueSnapshotVersion);
+        final ModuleRevisionId newModuleRevisionId = ModuleRevisionId.newInstance(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision(), extraAttributes);
+        return dd.clone(newModuleRevisionId);
     }
 
     private boolean isSnapshotVersion(DependencyDescriptor dd) {
@@ -130,9 +138,9 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         if (isUsepoms()) {
             ModuleRevisionId moduleRevisionId = dd.getDependencyRevisionId();
             //we might need a own implementation of DefaultArtifact here as there is no way to pass extraAttributes AND isMetaData to DefaultArtifact
-            Artifact pomArtifact = new DefaultArtifact(moduleRevisionId, data.getDate(), moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
+            Artifact pomArtifact = new DefaultArtifact(moduleRevisionId, null, moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
             ResourceMDParser parser = getRMDParser(dd, data);
-            return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, parser, data.getDate(), true);
+            return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, parser, null, true);
         }
 
         return null;

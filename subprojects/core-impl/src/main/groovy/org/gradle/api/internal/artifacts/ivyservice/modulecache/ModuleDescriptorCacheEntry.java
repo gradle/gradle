@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.internal.TimeProvider;
 
 import java.io.Serializable;
@@ -24,11 +25,13 @@ class ModuleDescriptorCacheEntry implements Serializable {
     public boolean isChanging;
     public boolean isMissing;
     public long createTimestamp;
+    public ModuleSource moduleSource;
     public BigInteger moduleDescriptorHash;
 
-    ModuleDescriptorCacheEntry(boolean isChanging, boolean isMissing, TimeProvider timeProvider, BigInteger moduleDescriptorHash) {
+    ModuleDescriptorCacheEntry(boolean isChanging, boolean isMissing, TimeProvider timeProvider, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
         this.isChanging = isChanging;
         this.isMissing = isMissing;
+        this.moduleSource = moduleSource;
         this.createTimestamp = timeProvider.getCurrentTime();
         this.moduleDescriptorHash = moduleDescriptorHash;
     }

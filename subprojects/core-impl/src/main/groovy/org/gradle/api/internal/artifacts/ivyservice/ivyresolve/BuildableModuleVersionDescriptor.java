@@ -56,4 +56,10 @@ public interface BuildableModuleVersionDescriptor extends ModuleVersionDescripto
      */
     void probablyMissing();
 
+    /**
+     * The ModuleSource of the buildable result
+     */
+    public ModuleSource getModuleSource();
+
+
 }

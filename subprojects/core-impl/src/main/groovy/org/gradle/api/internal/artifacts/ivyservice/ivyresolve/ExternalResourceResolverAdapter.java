@@ -16,11 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
-
-import java.io.File;
 
 /**
  * A {@link ModuleVersionRepository} wrapper around an {@link ExternalResourceResolver}.
@@ -33,17 +31,11 @@ public class ExternalResourceResolverAdapter extends AbstractDependencyResolverA
         this.resolver = resolver;
     }
 
+    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+        resolver.getDependency(dependencyDescriptor, result);
+    }
+
     public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        EnhancedArtifactDownloadReport artifactDownloadReport = resolver.download(artifact);
-        if (downloadFailed(artifactDownloadReport)) {
-            result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getFailure()));
-            return;
-        }
-        File localFile = artifactDownloadReport.getLocalFile();
-        if (localFile != null) {
-            result.resolved(localFile);
-        } else {
-            result.notFound(artifact);
-        }
+        resolver.resolve(artifact, result, moduleSource);
     }
 }

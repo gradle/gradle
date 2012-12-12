@@ -44,6 +44,8 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.Message;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
@@ -53,7 +55,9 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFi
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +99,22 @@ public class ExternalResourceResolver extends BasicResolver {
 
     protected ExternalResourceRepository getRepository() {
         return repository;
+    }
+
+    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+        ResolveData resolveData = IvyContextualiser.getIvyContext().getResolveData();
+        try {
+            ResolvedModuleRevision revision = getDependency(dependencyDescriptor, resolveData);
+            if (revision == null) {
+                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dependencyDescriptor.getDependencyRevisionId(), getName());
+                result.missing();
+            } else {
+                LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependencyDescriptor.getDependencyRevisionId(), getName());
+                result.resolved(revision.getDescriptor(), isChanging(revision), new TimestampedModuleSource(null));
+            }
+        } catch (ParseException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data)
@@ -165,7 +185,6 @@ public class ExternalResourceResolver extends BasicResolver {
                         this, this, systemMd, toSystem(rmr.getReport()), isForce());
             }
         }
-
         return rmr;
     }
 
@@ -430,8 +449,44 @@ public class ExternalResourceResolver extends BasicResolver {
         }
     }
 
+    public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+        EnhancedArtifactDownloadReport artifactDownloadReport = null;
+
+        final TimestampedModuleSource timestampedModuleSource = (TimestampedModuleSource) moduleSource;
+        final String timestampedVersion = timestampedModuleSource.getTimestampedVersion();
+        if (timestampedVersion != null) {
+            artifactDownloadReport = downloadTimestampedVersion(artifact, timestampedVersion);
+        } else {
+            artifactDownloadReport = download(artifact);
+        }
+
+        if (downloadFailed(artifactDownloadReport)) {
+            result.failed(new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getFailure()));
+            return;
+        }
+        File localFile = artifactDownloadReport.getLocalFile();
+        if (localFile != null) {
+            result.resolved(localFile);
+        } else {
+            result.notFound(artifact);
+        }
+    }
+
+    private EnhancedArtifactDownloadReport downloadTimestampedVersion(Artifact artifact, String timestampedVersion) {
+        EnhancedArtifactDownloadReport artifactDownloadReport;
+        final ModuleRevisionId artifactModuleRevisionId = artifact.getModuleRevisionId();
+        final ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(artifactModuleRevisionId.getOrganisation(),
+                                                                               artifactModuleRevisionId.getName(),
+                                                                               artifactModuleRevisionId.getRevision(),
+                                                                               WrapUtil.toMap("timestamp", timestampedVersion));
+        final Artifact artifactWithResolvedModuleRevisionId = DefaultArtifact.cloneWithAnotherMrid(artifact, moduleRevisionId);
+        artifactDownloadReport = download(artifactWithResolvedModuleRevisionId);
+        return artifactDownloadReport;
+    }
+
     public EnhancedArtifactDownloadReport download(Artifact artifact) {
         RepositoryCacheManager cacheManager = getRepositoryCacheManager();
+
         return (EnhancedArtifactDownloadReport) cacheManager.download(artifact, artifactResourceResolver, resourceDownloader, new CacheDownloadOptions());
     }
 
@@ -623,5 +678,28 @@ public class ExternalResourceResolver extends BasicResolver {
 
     protected ResourcePattern toResourcePattern(String pattern) {
         return isM2compatible() ? new M2ResourcePattern(pattern) : new IvyResourcePattern(pattern);
+    }
+
+    protected boolean downloadFailed(ArtifactDownloadReport artifactReport) {
+        return artifactReport.getDownloadStatus() == DownloadStatus.FAILED
+                && !artifactReport.getDownloadDetails().equals(ArtifactDownloadReport.MISSING_ARTIFACT);
+    }
+
+    private boolean isChanging(ResolvedModuleRevision resolvedModuleRevision) {
+        return new ChangingModuleDetector(this).isChangingModule(resolvedModuleRevision.getDescriptor());
+    }
+
+    protected static class TimestampedModuleSource implements ModuleSource{
+        public String getTimestampedVersion() {
+            return timestampedVersion;
+        }
+
+        private final String timestampedVersion;
+
+        public TimestampedModuleSource(String uniqueSnapshotVersion) {
+            this.timestampedVersion = uniqueSnapshotVersion;
+        }
+
+
     }
 }
