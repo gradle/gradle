@@ -68,7 +68,7 @@ libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:ht
     dependency "org.apache.httpcomponents:httpcore:4.2.2@jar"
     dependency libraries.jcl_to_slf4j
     dependency "commons-codec:commons-codec:1.6@jar"
-    dependency "org.samba.jcifs:jcifs:1.3.17"
+    dependency "org.samba.jcifs:jcifs:1.3.17@jar"
 }
 
 libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-tasks:2.1.3") {
@@ -76,15 +76,14 @@ libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-task
 }
 
 libraries += [
-        ant_junit: 'org.apache.ant:ant-junit:1.8.4@jar',
         ant_antlr: 'org.apache.ant:ant-antlr:1.8.4@jar',
         antlr: 'antlr:antlr:2.7.7@jar',
         dom4j: 'dom4j:dom4j:1.6.1@jar',
         guava: 'com.google.guava:guava:11.0.2@jar',
-        jsr305: 'com.google.code.findbugs:jsr305:1.3.9',
+        jsr305: 'com.google.code.findbugs:jsr305:1.3.9@jar',
         groovy: 'org.codehaus.groovy:groovy-all:1.8.6@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
-        jcip: "net.jcip:jcip-annotations:1.0",
+        jcip: "net.jcip:jcip-annotations:1.0@jar",
         jna: 'net.java.dev.jna:jna:3.2.7@jar',
         junit: 'junit:junit:4.10',
         xmlunit: 'xmlunit:xmlunit:1.3',
