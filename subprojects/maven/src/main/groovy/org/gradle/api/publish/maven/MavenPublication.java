@@ -22,7 +22,26 @@ import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.api.publish.Publication;
 
 /**
- * A publication in the Maven format.
+ * A {@code MavenPublication} is the representation/configuration of how Gradle should publish something in Maven format.
+ *
+ * The "{@code maven-publish}" plugin creates one {@code MavenPublication} named "{@code maven}" in the project's
+ * {@code publishing.publications} container. This publication is configured to publish all of the project's
+ * <i>visible</i> configurations (i.e. {@link org.gradle.api.Project#getConfigurations()}).
+ * <p>
+ * The Maven POM identifying attributes are mapped as follows:
+ * <ul>
+ * <li>{@code groupId} - {@code project.group}</li>
+ * <li>{@code artifactId} - {@code project.name}</li>
+ * <li>{@code version} - {@code project.version}</li>
+ * </ul>
+ * <p>
+ * The ability to add multiple publications and finely configure publications will be added in future Gradle versions.
+ *
+ * <h4>Customising the publication prior to publishing</h4>
+ *
+ * It is possible to modify the generated POM prior to publication. This is done using the {@link MavenPom#withXml(org.gradle.api.Action)} method
+ * of the POM returned via the {@link #getPom()} method, or directly by an action (or closure) passed into {@link #pom(org.gradle.api.Action)}.
+ *
  *
  * @since 1.4
  */
@@ -30,8 +49,20 @@ import org.gradle.api.publish.Publication;
 @HasInternalProtocol
 public interface MavenPublication extends Publication {
 
+    /**
+     * The POM that will be published.
+     *
+     * @return The POM that will be published.
+     */
     MavenPom getPom();
 
+    /**
+     * Configures the POM that will be published.
+     *
+     * The supplied action will be executed against the {@link #getPom()} result. This method also accepts a closure argument, by type coercion.
+     *
+     * @param configure The configuration action.
+     */
     void pom(Action<? super MavenPom> configure);
 
 }

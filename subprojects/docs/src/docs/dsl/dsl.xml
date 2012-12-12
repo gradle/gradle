@@ -161,16 +161,22 @@
                 <td>org.gradle.api.plugins.ExtensionAware</td>
             </tr>
             <tr>
-                <td>org.gradle.api.publish.PublishingExtension</td>
+                <td>org.gradle.api.plugins.ExtraPropertiesExtension</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.ExtraPropertiesExtension</td>
+                <td>org.gradle.api.publish.PublishingExtension</td>
             </tr>
             <tr>
                 <td>org.gradle.api.publish.ivy.IvyPublication</td>
             </tr>
             <tr>
                 <td>org.gradle.api.publish.ivy.IvyModuleDescriptor</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPublication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPom</td>
             </tr>
         </table>
     </section>
@@ -299,6 +305,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.publish.ivy.tasks.PublishToIvyRepository</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.tasks.PublishToMavenRepository</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.scala.ScalaCompile</td>

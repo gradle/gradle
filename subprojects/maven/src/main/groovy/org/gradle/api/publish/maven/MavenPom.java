@@ -24,12 +24,41 @@ import org.gradle.api.internal.HasInternalProtocol;
 /**
  * The POM for a Maven publication.
  *
+ * The {@link #withXml(org.gradle.api.Action)} method can be used to modify the descriptor after it has been generated according to the publication data.
+ *
  * @since 1.4
  */
 @Incubating
 @HasInternalProtocol
 public interface MavenPom {
 
+    /**
+     * Allows configuration of the POM, after it has been generated according to the input data.
+     *
+     * <pre autoTested="true">
+     * apply plugin: "maven-publish"
+     *
+     * publishing {
+     *   publications {
+     *     maven.pom.withXml {
+     *       asNode().appendNode('description', 'A demonstration of maven pom customisation')
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
+     * Note that due to Gradle's internal type conversion system, you can pass a Groovy closure to this method and
+     * it will be automatically converted to an {@code Action}.
+     * <p>
+     * Each action/closure passed to this method will be stored as a callback, and executed when the publication
+     * that this descriptor is attached to is published.
+     * <p>
+     * For details on the structure of the XML to be modified, see <a href="http://maven.apache.org/pom.html">the POM reference</a>.
+     *
+     * @param action The configuration action.
+     * @see MavenPublication
+     * @see XmlProvider
+     */
     void withXml(Action<? super XmlProvider> action);
 
 }
