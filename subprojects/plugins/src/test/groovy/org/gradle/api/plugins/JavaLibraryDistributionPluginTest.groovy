@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,13 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-import org.junit.Test;
 
-class JvmLibraryPluginTest extends Specification {
+class JavaLibraryDistributionPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject();
-    private final JvmLibraryPlugin plugin = new JvmLibraryPlugin();
+    private final JavaLibraryDistributionPlugin plugin = new JavaLibraryDistributionPlugin();
 
     def "applies JavaPlugin and adds convention object with default values"() {
         when:
@@ -44,7 +42,7 @@ class JvmLibraryPluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def task = project.tasks[JvmLibraryPlugin.TASK_DIST_ZIP_NAME]
+        def task = project.tasks[JavaLibraryDistributionPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
         task.archiveName == "${project.distribution.name}.zip"
     }
@@ -55,7 +53,7 @@ class JvmLibraryPluginTest extends Specification {
         project.distribution.name = "SuperApp";
 
         then:
-        def distZipTask = project.tasks[JvmLibraryPlugin.TASK_DIST_ZIP_NAME]
+        def distZipTask = project.tasks[JavaLibraryDistributionPlugin.TASK_DIST_ZIP_NAME]
         distZipTask.archiveName == "SuperApp.zip"
     }
 	
