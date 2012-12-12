@@ -58,8 +58,8 @@ class CachingModuleVersionRepositoryTest extends Specification {
         and:
         _ * artifact.getModuleRevisionId() >> moduleRevisionId;
         _ * realRepo.isLocal() >> false
-        _ * moduleSource.getDescriptorHash() >> descriptorHash
-        _ * moduleSource.isChangingModule() >> true
+        _ * moduleSource.descriptorHash >> descriptorHash
+        _ * moduleSource.isChangingModule >> true
         _ * artifactAtRepositoryCache.lookup(atRepositoryKey) >> null
         _ * realRepo.resolve(artifact, result, null)
         _ * result.file >> file

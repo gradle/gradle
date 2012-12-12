@@ -68,7 +68,7 @@ class ModuleDescriptorStoreTest extends Specification {
         when:
         store.putModuleDescriptor(repository, moduleDescriptor);
         then:
-        1 * pathKeyFileStore.add("module-metadata/org.test/testArtifact/1.0/repositoryId.ivy.xml", _) >> {path, action ->
+        1 * pathKeyFileStore.add("module-metadata/org.test/testArtifact/1.0/repositoryId.ivy.xml", _) >> { path, action ->
             action.execute(descriptorFile); fileStoreEntry
         };
         1 * ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorFile)
