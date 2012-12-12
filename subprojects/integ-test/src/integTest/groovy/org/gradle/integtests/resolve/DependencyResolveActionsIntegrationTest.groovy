@@ -328,10 +328,12 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                     throw new RuntimeException("Unhappy :(")
 	            }
 	        }
+
+            task resolveNow << { configurations.conf.resolve() }
 """
 
         when:
-        def failure = runAndFail("dependencies", "-s")
+        def failure = runAndFail("resolveNow")
 
         then:
         failure.assertHasCause("Problems executing resolve action for dependency: org.utils:impl:1.3")

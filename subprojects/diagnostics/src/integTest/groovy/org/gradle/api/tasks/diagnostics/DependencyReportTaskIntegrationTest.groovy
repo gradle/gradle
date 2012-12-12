@@ -660,4 +660,34 @@ conf2
 
         !output.contains("conf1")
     }
+
+    @Ignore //TODO exposes NPE problem with dependency report
+    void "runtime exception when evaluating action yields decent exception"()
+    {
+        mavenRepo.module("org.utils", "impl", '1.3').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations { conf }
+
+            dependencies {
+                conf 'org.utils:impl:1.3'
+            }
+
+            configurations.conf.resolutionStrategy {
+                eachDependency {
+                    throw new RuntimeException("Ka-booom!")
+	            }
+	        }
+"""
+
+        when:
+        def failure = runAndFail("dependencies", "-s")
+
+        then:
+        failure.error.contains("Ka-booom!")
+    }
 }
