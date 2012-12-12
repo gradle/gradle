@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;

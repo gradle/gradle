@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 
 import org.gradle.api.Action
@@ -26,7 +26,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 /**
  * by Szczepan Faber, created at: 11/2/11
  */
-public class DefaultResolutionStrategyTest extends Specification {
+public class DefaultResolutionStrategySpec extends Specification {
 
     def strategy = new DefaultResolutionStrategy()
 

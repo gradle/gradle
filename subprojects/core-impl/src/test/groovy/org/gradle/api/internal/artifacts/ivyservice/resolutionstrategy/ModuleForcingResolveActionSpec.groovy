@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations
+package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
 import org.gradle.api.artifacts.DependencyResolveDetails
 import spock.lang.Specification

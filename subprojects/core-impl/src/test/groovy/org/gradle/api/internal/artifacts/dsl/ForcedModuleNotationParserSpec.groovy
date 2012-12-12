@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.api.internal.artifacts.dsl;
 
 
 import org.gradle.api.InvalidUserDataException
@@ -23,7 +23,7 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 10/14/11
  */
-public class ForcedModuleNotationParserTest extends Specification {
+public class ForcedModuleNotationParserSpec extends Specification {
 
     def "understands group:name:version notation"() {
         when:

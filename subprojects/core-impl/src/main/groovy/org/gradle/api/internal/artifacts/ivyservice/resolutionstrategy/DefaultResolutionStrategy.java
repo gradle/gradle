@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConflictResolution;
@@ -23,10 +23,9 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.Actions;
-import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
-import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.DefaultCachePolicy;
+import org.gradle.api.internal.artifacts.dsl.ForcedModuleNotationParser;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;

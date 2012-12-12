@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAdapter;
@@ -27,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

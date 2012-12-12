@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations.conflicts;
+package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.artifacts.ConflictResolution;
 
 /**
- * Latest resolution strategy
+ * Strict type, allows configuring (forcing) certain dependency versions using dependency notation
  * <p>
  * by Szczepan Faber, created at: 10/5/11
  */
-public class LatestConflictResolution implements ConflictResolution {
+public class StrictConflictResolution implements ConflictResolution {
 }

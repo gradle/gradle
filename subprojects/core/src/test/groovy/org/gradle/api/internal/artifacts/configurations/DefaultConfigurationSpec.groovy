@@ -291,7 +291,7 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def "uses factory to create instance of resolution strategy"() {
-        def strategy = new DefaultResolutionStrategy()
+        def strategy = Mock(ResolutionStrategyInternal)
 
         when:
         def conf = conf()
@@ -308,7 +308,7 @@ class DefaultConfigurationSpec extends Specification {
         def copy = conf.copy()
 
         then:
-        resolutionStrategyFactory.create() >> { new DefaultResolutionStrategy() }
+        resolutionStrategyFactory.create() >> { Mock(ResolutionStrategyInternal) }
         conf.resolutionStrategy != copy.resolutionStrategy
     }
 }

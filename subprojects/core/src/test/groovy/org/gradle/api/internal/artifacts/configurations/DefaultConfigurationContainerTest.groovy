@@ -45,11 +45,10 @@ class DefaultConfigurationContainerTest {
     private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     private ArtifactDependencyResolver dependencyResolver = context.mock(ArtifactDependencyResolver)
-    private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class)
     private ListenerManager listenerManager = context.mock(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class)
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory = { new DefaultResolutionStrategy() } as Factory
+    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory = { } as Factory
     private DefaultConfigurationContainer configurationHandler = instantiator.newInstance(DefaultConfigurationContainer.class,
             dependencyResolver, instantiator, { name -> name } as DomainObjectContext,
             listenerManager, metaDataProvider, resolutionStrategyFactory)

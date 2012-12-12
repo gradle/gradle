@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations.dynamicversion;
+package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.cache.*;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
 import java.io.File;
 import java.util.ArrayList;

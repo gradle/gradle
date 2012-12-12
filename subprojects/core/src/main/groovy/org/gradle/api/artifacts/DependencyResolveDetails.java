@@ -36,6 +36,11 @@ public interface DependencyResolveDetails {
      */
     void forceVersion(String version);
 
+    //TODO SF:
+    //useVersion()
+    //ModuleVersionSelector getTarget();
+    //last rule wins,
+
     @Nullable
     /**
      * Returns forced version. Null means that no forced version was configured.

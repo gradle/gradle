@@ -20,10 +20,10 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
-import org.gradle.api.internal.artifacts.configurations.DefaultResolutionStrategy
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.cache.CacheRepository

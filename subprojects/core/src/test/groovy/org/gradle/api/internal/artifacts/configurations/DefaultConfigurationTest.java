@@ -58,11 +58,7 @@ public class DefaultConfigurationTest {
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
-    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory = new Factory<ResolutionStrategyInternal>() {
-        public ResolutionStrategyInternal create() {
-            return new DefaultResolutionStrategy();
-        }
-    };
+    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory = context.mock(Factory.class);
     private DefaultConfiguration configuration;
     private DependencyResolutionListener dependencyResolutionBroadcast = context.mock(DependencyResolutionListener.class);
     private ListenerBroadcast resolutionListenerBroadcast = context.mock(ListenerBroadcast.class); 
@@ -77,6 +73,8 @@ public class DefaultConfigurationTest {
             will(returnValue(dependencyResolutionBroadcast));
             allowing(dependencyResolutionBroadcast).afterResolve(with(any(ResolvableDependencies.class)));
             allowing(dependencyResolutionBroadcast).beforeResolve(with(any(ResolvableDependencies.class)));
+            allowing(resolutionStrategyFactory).create();
+            will(returnValue(null));
         }});
         configuration = createNamedConfiguration("path", "name");
     }
