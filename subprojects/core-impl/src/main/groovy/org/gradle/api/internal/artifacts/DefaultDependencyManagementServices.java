@@ -311,16 +311,20 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             if (configurationContainer == null) {
                 final Instantiator instantiator = parent.get(Instantiator.class);
                 ArtifactDependencyResolver dependencyResolver = createDependencyResolver(getResolveRepositoryHandler());
-                Factory<ResolutionStrategyInternal> resolutionStrategyFactory = new Factory<ResolutionStrategyInternal>() {
-                    public ResolutionStrategyInternal create() {
-                        return instantiator.newInstance(DefaultResolutionStrategy.class);
-                    }
-                };
                 configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
                         dependencyResolver, instantiator, domainObjectContext, parent.get(ListenerManager.class),
-                        dependencyMetaDataProvider, resolutionStrategyFactory);
+                        dependencyMetaDataProvider, createResolutionStrategyFactory());
             }
             return configurationContainer;
+        }
+
+        public Factory<ResolutionStrategyInternal> createResolutionStrategyFactory() {
+            final Instantiator instantiator = parent.get(Instantiator.class);
+            return new Factory<ResolutionStrategyInternal>() {
+                public ResolutionStrategyInternal create() {
+                    return instantiator.newInstance(DefaultResolutionStrategy.class);
+                }
+            };
         }
 
         public DependencyHandler getDependencyHandler() {

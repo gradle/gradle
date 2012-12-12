@@ -19,6 +19,8 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.internal.Factory;
 
 public interface DependencyResolutionServices {
     RepositoryHandler getResolveRepositoryHandler();
@@ -32,4 +34,6 @@ public interface DependencyResolutionServices {
     ArtifactPublicationServices createArtifactPublicationServices();
 
     BaseRepositoryFactory getBaseRepositoryFactory();
+
+    Factory<ResolutionStrategyInternal> createResolutionStrategyFactory();
 }

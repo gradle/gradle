@@ -20,6 +20,7 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.api.internal.artifacts.configurations.DefaultResolutionStrategy
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -81,29 +82,38 @@ class DefaultDependencyManagementServicesTest extends Specification {
 
     def "can create dependency resolution services"() {
         given:
-        _ * parent.get(Instantiator.class) >> instantiator
-        _ * parent.get(StartParameter.class) >> startParameter
-        1 * instantiator.newInstance(DefaultRepositoryHandler.class, _, _) >> repositoryHandler
-        1 * instantiator.newInstance(DefaultConfigurationContainer.class, !null, instantiator,
-                domainObjectContext, listenerManager, dependencyMetaDataProvider) >> configurationContainer
+        _ * parent.get(Instantiator) >> instantiator
+        _ * parent.get(StartParameter) >> startParameter
+        1 * instantiator.newInstance(DefaultRepositoryHandler, _, _) >> repositoryHandler
+        1 * instantiator.newInstance(DefaultConfigurationContainer, !null, instantiator,
+                domainObjectContext, listenerManager, dependencyMetaDataProvider, _ as Factory) >> configurationContainer
+        def strategy = new DefaultResolutionStrategy()
+        instantiator.newInstance(DefaultResolutionStrategy) >> strategy
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
 
         then:
-        resolutionServices.resolveRepositoryHandler != null
-        resolutionServices.configurationContainer != null
-        resolutionServices.dependencyHandler != null
-        resolutionServices.artifactHandler != null
-        resolutionServices.createArtifactPublicationServices() != null
+        resolutionServices.resolveRepositoryHandler
+        resolutionServices.configurationContainer
+        resolutionServices.dependencyHandler
+        resolutionServices.artifactHandler
+        resolutionServices.createArtifactPublicationServices()
+        resolutionServices.createResolutionStrategyFactory()
+
+        when:
+        def createdStrategy = resolutionServices.createResolutionStrategyFactory().create()
+
+        then:
+        createdStrategy == strategy
     }
 
     def "publish services provide a repository handler"() {
         DefaultRepositoryHandler publishRepositoryHandler = Mock()
 
         given:
-        _ * parent.get(Instantiator.class) >> instantiator
-        _ * instantiator.newInstance(DefaultRepositoryHandler.class, _, _) >> publishRepositoryHandler
+        _ * parent.get(Instantiator) >> instantiator
+        _ * instantiator.newInstance(DefaultRepositoryHandler, _, _) >> publishRepositoryHandler
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
