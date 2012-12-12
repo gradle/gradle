@@ -17,15 +17,13 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.tasks.CommandLineOption;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Displays the dependency tree for a project. An instance of this type is used when you
@@ -69,7 +67,7 @@ public class DependencyReportTask extends AbstractReportTask {
     }
 
     /**
-     * Returns the configurations to generate the report for. Default to all configurations of this task's containing
+     * Returns the configurations to generate the report for. Defaults to all configurations of this task's containing
      * project.
      *
      * @return the configurations.
@@ -85,5 +83,15 @@ public class DependencyReportTask extends AbstractReportTask {
      */
     public void setConfigurations(Set<Configuration> configurations) {
         this.configurations = configurations;
+    }
+
+    /**
+     * Sets the single configuration (by name) to generate the report for.
+     *
+     * @param configurationName name of the configuration to generate the report for
+     */
+    @CommandLineOption(options = "configuration", description = "The configuration to generate the report for.")
+    public void setConfiguration(String configurationName) {
+        this.configurations = Collections.singleton(getProject().getConfigurations().getByName(configurationName));
     }
 }

@@ -15,19 +15,21 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.HelperUtil
+
 import spock.lang.Specification
 
-public class DependencyReportTaskTest extends Specification {
-
+class DependencyReportTaskTest extends Specification {
     private Project project = new ProjectBuilder().build()
-    private DependencyReportTask task = HelperUtil.createTask(DependencyReportTask.class);
+    private DependencyReportTask task = HelperUtil.createTask(DependencyReportTask.class, project)
     private DependencyReportRenderer renderer = Mock(DependencyReportRenderer)
+    private Configuration conf1 = project.configurations.add("conf1")
+    private Configuration conf2 = project.configurations.add("conf2")
 
     void setup() {
         task.renderer = renderer
@@ -41,27 +43,23 @@ public class DependencyReportTaskTest extends Specification {
         task.configurations == null
     }
 
-    def "uses project configurations"() {
-        given:
-        def bConf = project.configurations.add("b-conf")
-        def aConf = project.configurations.add("a-conf")
-
+    def "renders all configurations in the project"() {
         when:
         task.generate(project)
 
-        then: 1 * renderer.startConfiguration(aConf)
-        then: 1 * renderer.render(aConf)
-        then: 1 * renderer.completeConfiguration(aConf)
+        then: 1 * renderer.startConfiguration(conf1)
+        then: 1 * renderer.render(conf1)
+        then: 1 * renderer.completeConfiguration(conf1)
 
 
-        then: 1 * renderer.startConfiguration(bConf)
-        then: 1 * renderer.render(bConf)
-        then: 1 * renderer.completeConfiguration(bConf)
+        then: 1 * renderer.startConfiguration(conf2)
+        then: 1 * renderer.render(conf2)
+        then: 1 * renderer.completeConfiguration(conf2)
 
         0 * renderer._
     }
 
-    def "uses specific configurations"() {
+    def "rendering can be limited to specific configurations"() {
         given:
         project.configurations.add("a")
         def bConf = project.configurations.add("b")
@@ -75,5 +73,17 @@ public class DependencyReportTaskTest extends Specification {
         1 * renderer.render(bConf)
         1 * renderer.completeConfiguration(bConf)
         0 * renderer._
+    }
+
+    def "rendering can be limited to a single configuration, specified by name"() {
+        given:
+        project.configurations.add("a")
+        def bConf = project.configurations.add("b")
+
+        when:
+        task.configuration = "b"
+
+        then:
+        task.configurations == [bConf] as Set
     }
 }

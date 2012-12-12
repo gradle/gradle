@@ -621,4 +621,43 @@ rootProject.name = 'root'
         succeeds "dependencies"
     }
 
+    def "report can be limited to a single configuration via command-line parameter"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+        mavenRepo.module("org", "leaf3").publish()
+        mavenRepo.module("org", "leaf4").publish()
+
+        mavenRepo.module("org", "toplevel1").dependsOn('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "toplevel2").dependsOn('leaf3', 'leaf4').publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf1
+                conf2
+            }
+
+            dependencies {
+                conf1 'org:toplevel1:1.0'
+                conf2 'org:toplevel2:1.0'
+            }
+        """
+
+        when:
+        run "dependencies", "--configuration", "conf2"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+conf2
+\\--- org:toplevel2:1.0
+     +--- org:leaf3:1.0
+     \\--- org:leaf4:1.0
+"""))
+
+        !output.contains("conf1")
+    }
 }
