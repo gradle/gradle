@@ -68,9 +68,8 @@ public class TextUtil {
     }
 
     /**
-     * <p>Escapes the toString() representation of {@code obj} for use in a literal string.</p>
-     *
-     * <p>This is useful for interpolating variables into script strings, as well as in other situations.</p>
+     * Escapes the toString() representation of {@code obj} for use in a literal string.
+     * This is useful for interpolating variables into script strings, as well as in other situations.
      */
     public static String escapeString(Object obj) {
         return obj == null ? null : StringEscapeUtils.escapeJava(obj.toString());
@@ -111,7 +110,7 @@ public class TextUtil {
     }
 
     /**
-     * makes sure the input can be written to CDATA section of the xml
+     * Makes sure the input can be written to CDATA section of the xml.
      */
     public static String escapeCDATA(String input) {
         return input.replaceAll("]]>", "]]]]><![CDATA[>");
