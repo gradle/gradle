@@ -313,7 +313,10 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
+        settingsFile << "rootProject.name = 'root'"
         buildFile << """
+            version = 1.0
+
             $repo
 
             dependencies {
@@ -336,8 +339,13 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail("resolveNow")
 
         then:
-        failure.assertHasCause("Problems executing resolve action for dependency: org.utils:impl:1.3")
-        failure.error.contains("Unhappy :(")
+        failure.dependencyResolutionFailure
+                .assertFailedConfiguration(":conf")
+                .assertRequiredBy(":root:1.0")
+
+        failure
+            .assertHasCause("Problems executing resolve action for dependency: org.utils:impl:1.3")
+            .assertHasCause("Unhappy :(")
     }
 
     String getRepo() {

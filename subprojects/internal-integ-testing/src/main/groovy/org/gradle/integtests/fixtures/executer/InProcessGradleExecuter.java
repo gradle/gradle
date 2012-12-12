@@ -388,5 +388,9 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             new DetailedExecutionFailure(this).assertTestsFailed();
             return this;
         }
+
+        public DependencyResolutionFailure getDependencyResolutionFailure() {
+            return new DependencyResolutionFailure(this);
+        }
     }
 }
