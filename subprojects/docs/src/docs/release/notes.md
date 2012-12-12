@@ -27,6 +27,48 @@ All you need to work with the Tooling API is the tooling api jar and slf4j.
 Furthermore, we repackaged the Tooling API's 3rd party transitive dependencies to avoid conflicts
 with different versions you might already have on your classpath. Happy embedding!Now go and embed Gradle!
 
+### [Java Library Distribution Plugin](userguide/javaLibraryDistributionPlugin.html)
+
+The Java library distribution allows bundling library for the jvm in a simple manner.
+
+Let's walk through a small example. Let's assume we have a project with the following layout:
+
+    MyLibrary
+    |____build.gradle
+    |____libs // a folder with third party libs
+    | |____a.jar
+    |____src
+    | |____main
+    | | |____java
+    | | | |____SomeLibrary.java
+    | |____dist // files you want in your distribution zip
+    | | |____dir2
+    | | | |____file2.txt
+    | | |____file1.txt
+
+In the past you have to declare a custom task that puts all the things you want to ship in one zip file. From now on, you just have to apply the Java Library Distribution Plugin:
+
+    apply plugin:'java-library-distribution'
+
+    dependencies{
+        runtime files('libs/a.jar')
+    }
+
+    distribution{
+	    name = 'MyLibraryDistribution'
+    }
+
+This adds your library, the third party dependencies your project depend on, and all content of your src/dist folder into a zip file named `MyLibraryDistribution`.
+
+To customize the your distribution you can easily configure the introduced `distZip` task:
+
+    distZip{
+        from('aFile')
+    	from('anotherFile'){
+    		into('dist')
+    	}
+    }
+
 ### Dependency resolution improvements
 
 - GRADLE-2175 - Source, javadoc and classifier artifacts from Maven snapshots are correctly treated as changing.
@@ -207,6 +249,8 @@ GenerateIvyDescriptor task. To specify where the ivy.xml file should be generate
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
+
+Sébastien Cogneau - Contributing the `java-library-distribution` plugin
 
 James Bengeyfield - `showViolations` flag for `Checkstyle` task (GRADLE-1656)
 
