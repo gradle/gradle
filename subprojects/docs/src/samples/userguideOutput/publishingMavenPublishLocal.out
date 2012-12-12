@@ -1,0 +1,10 @@
+:compileJava
+:processResources UP-TO-DATE
+:classes
+:jar
+:publishMavenPublicationToMavenLocal
+:publishToMavenLocal
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

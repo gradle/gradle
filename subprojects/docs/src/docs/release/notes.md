@@ -106,6 +106,48 @@ This is done by setting the `destination` property of the task:
 Executing `gradle generateIvyModuleDescriptor` will result in the ivy module descriptor being written to the file specified. This task is automatically wired
 into the respective PublishToIvyRepository tasks, so you do not need to explicitly call this task to publish your module.
 
+### The new maven-publish plugin
+
+Continuing our work to improve the way that Gradle models and publishes your build artifacts, we have introduced the new 'maven-publish' plugin.
+This plugin is the companion to the 'ivy-publish' plugin that was introduced in Gradle 1.3, but handles publishing modules to Maven repositories.
+
+In the simplest case, publishing to a Maven repository looks like…
+
+    apply plugin: "maven-publish"
+
+    group = 'group'
+    version = '1.0'
+
+    // … declare dependencies and other config on how to build
+
+    publishing {
+        repositories {
+            maven {
+                url "http://mycompany.org/repo"
+            }
+        }
+    }
+
+To publish, you simply run the `publish` task. The `pom` file will be generated and the main artifact uploaded to the declared repository.
+To publish to your local Maven repository (ie 'mvn install') simply run the `publishToMavenLocal` task. You do not need to have `mavenLocal` in your
+`publishing.repositories` section.
+
+To modify the generated `pom` file, you can use a programmatic hook that modifies the descriptor content as XML.
+
+    publications {
+        maven {
+            pom.withXml {
+                asNode().appendNode('description', 'A demonstration of maven pom customisation')
+            }
+        }
+    }
+
+In this example we are adding a 'description' element for the generated POM. With this hook, you can modify any aspect of the pom.
+For example, you could replace the version range for a dependency with the actual version used to produce the build.
+This allows the pom file to describe how the module should be consumed, rather than be a description of how the module was built.
+
+For more information on the new publishing mechanism, see the [new User Guide chapter](userguide/publishing_maven.html).
+
 ## Deprecations
 
 ### Certain task configuration after execution of task has been started.

@@ -86,6 +86,7 @@
     <xi:include href='embedding.xml'/>
     <xi:include href='comparingBuilds.xml'/>
     <xi:include href='publishingIvy.xml'/>
+    <xi:include href='publishingMaven.xml'/>
     <!-- this is generated -->
     <xi:include href='../../../build/src/samplesList.xml'/>
     <xi:include href='potentialTraps.xml'/>
