@@ -24,6 +24,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
     String getPluginId() {
         "java-library-distribution"
     }
+
     def canCreateADistributionWithSrcDistRuntime() {
         given:
         createDir('libs') {
@@ -52,6 +53,41 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         def expandDir = file('expanded')
         file('build/distributions/SuperApp.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants('lib/a.jar', 'file1.txt', 'dir2/file2.txt', 'canCreateADistributionWithSrcDistRuntime.jar')
+    }
+
+    def canCreateADistributionWithReasonableDefaults() {
+        given:
+        createDir('libs') {
+            file 'a.jar'
+        }
+        settingsFile << "rootProject.name = 'DefaultJavaDistribution'"
+        and:
+        buildFile << """
+        apply plugin:'java-library-distribution'
+        dependencies {
+            runtime files('libs/a.jar')
+        }
+        """
+        when:
+        run 'distZip'
+
+        then:
+        def expandDir = file('expanded')
+        file('build/distributions/DefaultJavaDistribution.zip').unzipTo(expandDir)
+        expandDir.assertHasDescendants('lib/a.jar', 'DefaultJavaDistribution.jar')
+    }
+
+    def doesNotCrashWithNullConfiguredDistributionName() {
+        when:
+        buildFile << """
+            apply plugin:'java-library-distribution'
+            distribution{
+                name = null
+            }
+            """
+        then:
+        run 'distZip'
+        file('build/distributions/.zip').assertIsFile()
     }
 
     def canCreateADistributionIncludingOtherFile() {

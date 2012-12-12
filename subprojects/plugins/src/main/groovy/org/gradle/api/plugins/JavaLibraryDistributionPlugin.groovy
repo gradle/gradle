@@ -54,7 +54,6 @@ class JavaLibraryDistributionPlugin implements Plugin<Project> {
         distZipTask.description = "Bundles the project as a java library distribution."
         distZipTask.group = JAVA_LIBRARY_GROUP
         distZipTask.conventionMapping.baseName = { extension.name }
-        def baseDir = { distZipTask.archiveName - ".zip" }
         def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]
         distZipTask.with {
             from(jar)
