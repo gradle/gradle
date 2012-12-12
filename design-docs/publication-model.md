@@ -396,13 +396,19 @@ TBD
 
 In this step, the POM generation for a publication is moved out of the `publish` tasks and into a separate task.
 
-1. Add `GeneratePomFile` task type. Takes a `Pom` as input and generated a `pom.xml` from this.
-2. The `maven-publish` task adds a rule to define a `generate${publication}MetaData` task for each publication of type `MavenPublication` that is added to
+1. Add `GenerateMavenPom` task type. Takes a `MavenPom` instance and `destination` file as input. Generates a `pom.xml` from this.
+2. The `maven-publish` task adds a rule to define a `generate${publication}Pom` task for each publication of type `MavenPublication` that is added to
    the publications container.
+3. Provide a PublishArtifact as output that is added to the `publishableFiles` of the respective `MavenPublication`.
+4. Change `MavenPublicationInternal` so it is not Buildable. All dependency wiring is done via `getPublishableArtifacts`.
+5. Update DSL docs for new task
+6. Update user guide to mention how to generate the POM file for a publication
 
-Running `gradle generateMavenMetaData` would generate the `pom.xml` for the default Maven publication.
+Running `gradle generateMavenPom` would generate the `pom.xml` for the default Maven publication.
 
 ### Test cases
+
+TBD
 
 ## Customising the Maven and Ivy publication identifier
 
