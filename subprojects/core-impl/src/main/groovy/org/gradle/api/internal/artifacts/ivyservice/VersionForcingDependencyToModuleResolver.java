@@ -38,7 +38,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
         DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails(module);
         try {
             action.execute(details);
-        } catch (RuntimeException e) {
+        } catch (Throwable e) {
             throw new GradleException("Problems executing resolve action for dependency: "
                     + module.getGroup() + ":" + module.getName() + ":" + module.getVersion(), e);
         }

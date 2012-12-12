@@ -22,7 +22,7 @@ import org.gradle.api.Action
 import org.gradle.api.GradleException
 import spock.lang.Specification
 
-class VersionForcingDependencyToModuleResolverTest extends Specification {
+class VersionForcingDependencyToModuleResolverSpec extends Specification {
     final target = Mock(DependencyToModuleVersionIdResolver)
     final resolvedVersion = Mock(ModuleVersionIdResolveResult)
     final forced = new ModuleRevisionId(new ModuleId('group', 'module'), 'forced')
@@ -67,7 +67,7 @@ class VersionForcingDependencyToModuleResolverTest extends Specification {
 
     def "explosive action yields decent exception"() {
         def dep = dependency('org', 'module', '0.5')
-        def force = { throw new RuntimeException("Boo!") } as Action
+        def force = { throw new Error("Boo!") } as Action
         def resolver = new VersionForcingDependencyToModuleResolver(target, force)
 
         when:
@@ -76,6 +76,7 @@ class VersionForcingDependencyToModuleResolverTest extends Specification {
         then:
         def ex = thrown(GradleException)
         ex.message == "Problems executing resolve action for dependency: org:module:0.5"
+        ex.cause.message == 'Boo!'
     }
 
     def dependency(String group, String module, String version) {
