@@ -261,7 +261,6 @@ It should be possible to implement this as an adapter over the existing MavenPom
 * A `withXml` action can be used to modify the generated `pom.xml`.
 * Decent error message when the `withXml` action fails.
 * Descriptor contains non-ascii characters.
-* Copy existing Maven publication tests and rework to use `maven-publish` plugin.
 
 ## Allow Ivy module descriptor to be generated without publishing to a repository
 
@@ -370,6 +369,7 @@ Note that there are several breaking changes here:
   another build.
 * Add a cross-version test that verifies a Java project published by the current version of Gradle can be consumed by a previous version of Gradle,
   and vice versa.
+* Copy existing Maven publication tests for java libraries and rework to use `maven-publish` plugin.
 
 ## Disallow publication to Ivy or Maven repositories when group or version has not been specified
 
@@ -381,12 +381,19 @@ TBD
 
 ## Allow other types of components to be published
 
-* Maven publish fails when using 'war' plugin or 'ear' + 'war' plugin, due to duplicate main artifact.
+* Add a DSL for specifying exactly which components should be published. By default no components will be published.
+* Maven publish fails when attempting to publish multiple components.
 * No pom published when using 'cpp-lib' plugin, due to no main artifact.
 * Publishing War project -> only runtime configuration should be included.
 * Publishing Ear project -> only runtime configuration should be included.
 * Publishing C++ Exe project -> only runtime configuration should be included.
 * Publishing C++ Lib project -> only runtime and headers configurations should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
+
+### Tests
+
+* Copy existing Maven publication tests for non-java projects and rework to use `maven-publish` plugin.
+* Lots more TBD
+
 
 ## Some fixes
 
