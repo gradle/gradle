@@ -134,7 +134,7 @@ your module to an ivy repository. The task name for the default ivy publication 
 The GenerateIvyDescriptor task also allows the location of the generated ivy descriptor file to changed from it's default location at `build/publications/ivy/ivy.xml`.
 This is done by setting the `destination` property of the task:
 
-    apply plugin: "ivy-publish"
+    apply plugin: 'ivy-publish'
 
     group = 'group'
     version = '1.0'
@@ -155,7 +155,7 @@ This plugin is the companion to the 'ivy-publish' plugin that was introduced in 
 
 In the simplest case, publishing to a Maven repository looks like…
 
-    apply plugin: "maven-publish"
+    apply plugin: 'maven-publish'
 
     group = 'group'
     version = '1.0'
@@ -165,7 +165,7 @@ In the simplest case, publishing to a Maven repository looks like…
     publishing {
         repositories {
             maven {
-                url "http://mycompany.org/repo"
+                url 'http://mycompany.org/repo'
             }
         }
     }

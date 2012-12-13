@@ -36,8 +36,8 @@ publishing {
         ivy {
             url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
             credentials {
-                username "user1"
-                password "secret"
+                username 'user1'
+                password 'secret'
             }
         }
     }
