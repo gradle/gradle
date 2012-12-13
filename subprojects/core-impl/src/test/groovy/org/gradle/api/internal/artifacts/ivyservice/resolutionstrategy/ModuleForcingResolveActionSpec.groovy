@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
-import org.gradle.api.artifacts.DependencyResolveDetails
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -39,7 +38,7 @@ class ModuleForcingResolveActionSpec extends Specification {
 
         then:
         1 * details.getRequested() >> requested
-        1 * details.forceVersion(forcedVersion, VersionSelectionReasons.FORCED)
+        1 * details.useVersion(forcedVersion, VersionSelectionReasons.FORCED)
         0 * details._
 
         where:

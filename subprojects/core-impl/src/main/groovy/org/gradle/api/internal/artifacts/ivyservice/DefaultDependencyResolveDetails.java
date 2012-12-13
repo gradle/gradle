@@ -21,37 +21,49 @@ import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
+
 /**
 * by Szczepan Faber, created at: 11/29/12
 */
 public class DefaultDependencyResolveDetails implements DependencyResolveDetailsInternal {
-    private final ModuleVersionSelector module;
-    private String forcedVersion;
+    private final ModuleVersionSelector requested;
     private ModuleVersionSelectionReason selectionReason;
+    private ModuleVersionSelector target;
 
-    public DefaultDependencyResolveDetails(ModuleVersionSelector module) {
-        this.module = module;
+    public DefaultDependencyResolveDetails(ModuleVersionSelector requested) {
+        this.requested = requested;
+        this.target = requested;
     }
 
     public ModuleVersionSelector getRequested() {
-        return module;
+        return requested;
     }
 
-    public void forceVersion(String version) {
-        forceVersion(version, VersionSelectionReasons.SELECTED_BY_ACTION);
+    public void useVersion(String version) {
+        useVersion(version, VersionSelectionReasons.SELECTED_BY_ACTION);
     }
 
-    public void forceVersion(String version, ModuleVersionSelectionReason selectionReason) {
-        this.forcedVersion = version;
+    public void useVersion(String version, ModuleVersionSelectionReason selectionReason) {
+        assert selectionReason != null;
+        if (version == null) {
+            throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
+        }
+        if (!version.equals(target.getVersion())) {
+            target = newSelector(target.getGroup(), target.getName(), version);
+        }
         this.selectionReason = selectionReason;
     }
 
-    public String getForcedVersion() {
-        return forcedVersion;
+    public ModuleVersionSelectionReason getSelectionReason() {
+        return selectionReason;
     }
 
-    public ModuleVersionSelectionReason getSelectionReason() {
-        assert forcedVersion != null;
-        return selectionReason;
+    public ModuleVersionSelector getTarget() {
+        return target;
+    }
+
+    public boolean isUpdated() {
+        return selectionReason != null;
     }
 }

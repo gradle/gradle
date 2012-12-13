@@ -17,33 +17,39 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 /**
  * Provides details about a dependency when it is resolved.
  * Provides means to manipulate dependency metadata when it is resolved.
+ *
+ * @since 1.4
  */
 @Incubating
 public interface DependencyResolveDetails {
 
     /**
      * The module, before it is resolved.
+     * The requested module does not change even if there are multiple dependency resolve actions
+     * that manipulate the dependency metadata.
      */
     ModuleVersionSelector getRequested();
 
     /**
-     * Forces version of the module.
+     * Allows to override the version when the dependency {@link #getRequested()} is resolved.
+     * Can be used to select a version that is different than requested.
+     * Forcing modules via {@link ResolutionStrategy#force(Object...)} uses this capability.
+     * Configuring a version different than requested will cause {@link #getTarget()} method
+     * return a target module with updated target version.
+     *
+     * It is valid to configure the same version as requested.
+     *
+     * @param version to use when resolving this dependency, cannot be null
      */
-    void forceVersion(String version);
+    void useVersion(String version);
 
-    //TODO SF:
-    //useVersion()
-    //ModuleVersionSelector getTarget();
-    //last rule wins,
-
-    @Nullable
     /**
-     * Returns forced version. Null means that no forced version was configured.
+     * The target module selector used to resolve the dependency.
+     * Never returns null. Target module is updated when methods like {@link #useVersion(String)} are used.
      */
-    String getForcedVersion();
+    ModuleVersionSelector getTarget();
 }

@@ -49,7 +49,7 @@ public class ModuleForcingResolveAction implements Action<DependencyResolveDetai
         }
         String key = key(details.getRequested());
         if (forcedModules.containsKey(key)) {
-            details.forceVersion(forcedModules.get(key), VersionSelectionReasons.FORCED);
+            details.useVersion(forcedModules.get(key), VersionSelectionReasons.FORCED);
         }
     }
 

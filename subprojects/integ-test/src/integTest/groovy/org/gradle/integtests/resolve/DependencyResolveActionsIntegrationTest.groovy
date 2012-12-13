@@ -46,7 +46,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
 	            eachDependency {
                     if (it.requested.group == 'org.utils' && it.requested.name != 'optional-lib') {
-                        it.forceVersion '1.5'
+                        it.useVersion '1.5'
                     }
 	            }
 	            failOnVersionConflict()
@@ -80,7 +80,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
 	            eachDependency {
                     if (it.requested.group == 'org.utils') {
-                        it.forceVersion '1.5'
+                        it.useVersion '1.5'
                     }
 	            }
 	        }
@@ -101,7 +101,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "all actions are executed and last one wins"()
+    void "all actions are executed orderly and last one wins"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
@@ -118,16 +118,18 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 
             configurations.conf.resolutionStrategy {
 	            eachDependency {
-	                assert it.forcedVersion == null
-                    it.forceVersion '1.4'
+	                assert it.target == it.requested
+                    it.useVersion '1.4'
 	            }
 	            eachDependency {
-	                assert it.forcedVersion == '1.4'
-                    it.forceVersion '1.5'
+	                assert it.target.version == '1.4'
+	                assert it.target.name == it.requested.name
+	                assert it.target.group == it.requested.group
+                    it.useVersion '1.5'
 	            }
 	            eachDependency {
-	                assert it.forcedVersion == '1.5'
-	                //leave the forced version intact
+	                assert it.target.version == '1.5'
+	                //don't change the version
 	            }
 	        }
 
@@ -166,7 +168,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 force("org.utils:impl:1.5", "org.utils:api:1.5")
 
 	            eachDependency {
-                    it.forceVersion null
+                    it.useVersion it.requested.version
 	            }
 	        }
 
@@ -175,8 +177,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	                assert it.selected.id.version == '1.3'
                     def reason = it.selected.selectionReason
                     assert !reason.forced
-                    //assert !reason.selectedByAction
-                    //TODO SF above will work when the refactorings are finished
+                    assert reason.selectedByAction
 	            }
 	        }
 """
@@ -207,8 +208,8 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 force("org.utils:impl:1.5", "org.utils:api:1.5")
 
 	            eachDependency {
-                    assert it.forcedVersion == '1.5'
-                    it.forceVersion '1.3'
+                    assert it.target.version == '1.5'
+                    it.useVersion '1.3'
 	            }
 	        }
 
@@ -249,8 +250,8 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 
 	            eachDependency {
                     if (it.requested.name == 'api') {
-                        assert it.forcedVersion == null
-                        it.forceVersion '1.5'
+                        assert it.target == it.requested
+                        it.useVersion '1.5'
                     }
 	            }
 	        }
@@ -346,7 +347,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 
             configurations.conf.resolutionStrategy {
 	            eachDependency {
-                    it.forceVersion '1.3' //happy
+                    it.useVersion '1.3' //happy
 	            }
                 eachDependency {
                     throw new RuntimeException("Unhappy :(")
@@ -367,6 +368,41 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         failure
             .assertHasCause("Problems executing resolve action for dependency: org.utils:impl:1.3")
             .assertHasCause("Unhappy :(")
+    }
+
+    void "configuring null version is not allowed"()
+    {
+        mavenRepo.module("org.utils", "api", '1.3').publish()
+
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            version = 1.0
+
+            $repo
+
+            dependencies {
+                conf 'org.utils:api:1.3'
+            }
+
+            configurations.conf.resolutionStrategy {
+	            eachDependency {
+                    it.useVersion null
+	            }
+	        }
+
+            task resolveNow << { configurations.conf.resolve() }
+"""
+
+        when:
+        def failure = runAndFail("resolveNow")
+
+        then:
+        failure.dependencyResolutionFailure
+                .assertFailedConfiguration(":conf")
+                .assertRequiredBy(":root:1.0")
+
+        failure
+            .assertHasCause("Configuring the dependency resolve details with 'null' version is not allowed")
     }
 
     String getRepo() {

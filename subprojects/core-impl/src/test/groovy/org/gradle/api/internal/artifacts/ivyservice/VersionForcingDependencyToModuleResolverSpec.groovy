@@ -48,7 +48,7 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         def dep = dependency('org', 'module', '0.5')
         def modified = dependency('org', 'module', '1.0')
 
-        def force = { it.forceVersion("1.0") } as Action
+        def force = { it.useVersion("1.0") } as Action
 
         def resolver = new VersionForcingDependencyToModuleResolver(target, force)
 

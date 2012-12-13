@@ -41,9 +41,9 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
         } catch (Throwable e) {
             return new FailedDependencyResolveActionResult(module, e);
         }
-        if (details.getForcedVersion() != null) {
-            ModuleId moduleId = new ModuleId(details.getRequested().getGroup(), details.getRequested().getName());
-            ModuleRevisionId revisionId = new ModuleRevisionId(moduleId, details.getForcedVersion());
+        if (details.isUpdated()) {
+            ModuleId moduleId = new ModuleId(details.getTarget().getGroup(), details.getTarget().getName());
+            ModuleRevisionId revisionId = new ModuleRevisionId(moduleId, details.getTarget().getVersion());
             DependencyDescriptor descriptor = dependencyDescriptor.clone(revisionId);
             ModuleVersionIdResolveResult result = resolver.resolve(descriptor);
             return new SubstitutedModuleVersionIdResolveResult(result, details.getSelectionReason());

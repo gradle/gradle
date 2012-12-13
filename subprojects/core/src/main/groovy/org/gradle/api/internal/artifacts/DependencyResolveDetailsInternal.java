@@ -24,6 +24,6 @@ import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
  */
 public interface DependencyResolveDetailsInternal extends DependencyResolveDetails {
 
-    void forceVersion(String version, ModuleVersionSelectionReason selectionReason);
+    void useVersion(String version, ModuleVersionSelectionReason selectionReason);
 
 }

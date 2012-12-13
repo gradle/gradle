@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 
 import org.gradle.api.Action
-import org.gradle.api.artifacts.DependencyResolveDetails
+
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -87,31 +87,31 @@ public class DefaultResolutionStrategySpec extends Specification {
 
         then:
         1 * details.getRequested() >> newSelector("org", "foo", "1.0")
-        1 * details.forceVersion("2.0", VersionSelectionReasons.FORCED)
+        1 * details.useVersion("2.0", VersionSelectionReasons.FORCED)
         0 * details._
     }
 
     def "provides dependency resolve action that orderly aggregates user specified actions"() {
         given:
-        strategy.eachDependency({ it.forceVersion("1.0") } as Action)
-        strategy.eachDependency({ it.forceVersion("2.0") } as Action)
+        strategy.eachDependency({ it.useVersion("1.0") } as Action)
+        strategy.eachDependency({ it.useVersion("2.0") } as Action)
         def details = Mock(DependencyResolveDetailsInternal)
 
         when:
         strategy.dependencyResolveAction.execute(details)
 
         then:
-        1 * details.forceVersion("1.0")
+        1 * details.useVersion("1.0")
         then:
-        1 * details.forceVersion("2.0")
+        1 * details.useVersion("2.0")
         0 * details._
     }
 
     def "provides dependency resolve action with forced modules first and then user specified actions"() {
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
-        strategy.eachDependency({ it.forceVersion("5.0") } as Action)
-        strategy.eachDependency({ it.forceVersion("6.0") } as Action)
+        strategy.eachDependency({ it.useVersion("5.0") } as Action)
+        strategy.eachDependency({ it.useVersion("6.0") } as Action)
 
         def details = Mock(DependencyResolveDetailsInternal)
 
@@ -120,12 +120,12 @@ public class DefaultResolutionStrategySpec extends Specification {
 
         then: //forced modules:
         1 * details.requested >> newSelector("org", "foo", "1.0")
-        1 * details.forceVersion("2.0", VersionSelectionReasons.FORCED)
+        1 * details.useVersion("2.0", VersionSelectionReasons.FORCED)
 
         then: //user actions, in order:
-        1 * details.forceVersion("5.0")
+        1 * details.useVersion("5.0")
         then:
-        1 * details.forceVersion("6.0")
+        1 * details.useVersion("6.0")
         0 * details._
     }
 }
