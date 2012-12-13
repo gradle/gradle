@@ -16,8 +16,9 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.hamcrest.Matchers;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
+
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
