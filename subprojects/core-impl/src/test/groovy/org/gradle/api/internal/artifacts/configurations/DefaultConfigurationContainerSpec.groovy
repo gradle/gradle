@@ -30,8 +30,6 @@ import spock.lang.Specification
  */
 public class DefaultConfigurationContainerSpec extends Specification {
     private static final String TEST_DESCRIPTION = "testDescription";
-    private static final Closure TEST_CLOSURE = HelperUtil.createSetterClosure("Description", TEST_DESCRIPTION);
-    private static final String TEST_NAME = "testName";
 
     private ArtifactDependencyResolver dependencyResolver = Mock()
     private Instantiator instantiator = Mock()
