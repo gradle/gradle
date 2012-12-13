@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.artifacts;
 
 /**
- * The identifier of a module version.
+ * The identifier of a module.
  */
-public interface ModuleVersionIdentifier extends ModuleIdentifier {
+public interface ModuleIdentifier {
 
     /**
-     * The version of the module
+     * The group of the module.
      *
-     * @return module version
+     * @return module group
      */
-    String getVersion();
+    String getGroup();
+
+    /**
+     * The name of the module.
+     *
+     * @return module name
+     */
+    String getName();
 }

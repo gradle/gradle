@@ -16,9 +16,10 @@
 package org.gradle.api.internal.artifacts
 
 import spock.lang.Specification
+
 import static org.gradle.util.Matchers.strictlyEqual
 
-class DefaultModuleVersionIdentifierTest extends Specification {
+class DefaultModuleVersionIdentifierSpec extends Specification {
     def "has useful toString()"() {
         def module = new DefaultModuleVersionIdentifier("group", "module", "version")
 

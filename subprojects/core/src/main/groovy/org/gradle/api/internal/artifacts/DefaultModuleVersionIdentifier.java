@@ -19,25 +19,24 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
-    private final String group;
-    private final String name;
+
+    private final DefaultModuleIdentifier id;
     private final String version;
 
     public DefaultModuleVersionIdentifier(String group, String name, String version) {
         assert group != null : "group cannot be null";
         assert name != null : "name cannot be null";
         assert version != null : "version cannot be null";
-        this.group = group;
-        this.name = name;
+        this.id = new DefaultModuleIdentifier(group, name);
         this.version = version;
     }
 
     public String getGroup() {
-        return group;
+        return id.getGroup();
     }
 
     public String getName() {
-        return name;
+        return id.getName();
     }
 
     public String getVersion() {
@@ -46,7 +45,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
 
     @Override
     public String toString() {
-        return String.format("{group: %s, module: %s, version: %s}", group, name, version);
+        return String.format("{group: %s, module: %s, version: %s}", id.getGroup(), id.getName(), version);
     }
 
     @Override
@@ -58,10 +57,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
             return false;
         }
         DefaultModuleVersionIdentifier other = (DefaultModuleVersionIdentifier) obj;
-        if (!group.equals(other.group)) {
-            return false;
-        }
-        if (!name.equals(other.name)) {
+        if (!id.equals(other.id)) {
             return false;
         }
         if (!version.equals(other.version)) {
@@ -72,7 +68,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
 
     @Override
     public int hashCode() {
-        return group.hashCode() ^ name.hashCode() ^ version.hashCode();
+        return id.hashCode() ^ version.hashCode();
     }
 
     public static ModuleVersionIdentifier newId(Module module) {

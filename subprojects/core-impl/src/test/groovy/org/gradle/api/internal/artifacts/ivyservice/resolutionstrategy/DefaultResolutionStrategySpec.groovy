@@ -18,12 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 
 import org.gradle.api.Action
-
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
 /**
  * by Szczepan Faber, created at: 11/2/11
@@ -86,7 +85,7 @@ public class DefaultResolutionStrategySpec extends Specification {
         strategy.dependencyResolveAction.execute(details)
 
         then:
-        1 * details.getRequested() >> newSelector("org", "foo", "1.0")
+        _ * details.getRequested() >> newSelector("org", "foo", "1.0")
         1 * details.useVersion("2.0", VersionSelectionReasons.FORCED)
         0 * details._
     }
@@ -119,7 +118,7 @@ public class DefaultResolutionStrategySpec extends Specification {
         strategy.dependencyResolveAction.execute(details)
 
         then: //forced modules:
-        1 * details.requested >> newSelector("org", "foo", "1.0")
+        _ * details.requested >> newSelector("org", "foo", "1.0")
         1 * details.useVersion("2.0", VersionSelectionReasons.FORCED)
 
         then: //user actions, in order:

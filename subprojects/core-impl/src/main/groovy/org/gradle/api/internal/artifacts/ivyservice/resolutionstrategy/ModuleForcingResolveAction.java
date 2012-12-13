@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
@@ -30,13 +32,13 @@ import java.util.Map;
 */
 public class ModuleForcingResolveAction implements Action<DependencyResolveDetailsInternal> {
 
-    private final Map<String, String> forcedModules;
+    private final Map<ModuleIdentifier, String> forcedModules;
 
     public ModuleForcingResolveAction(Collection<? extends ModuleVersionSelector> forcedModules) {
         if (!forcedModules.isEmpty()) {
-            this.forcedModules = new HashMap<String, String>();
+            this.forcedModules = new HashMap<ModuleIdentifier, String>();
             for (ModuleVersionSelector module : forcedModules) {
-                this.forcedModules.put(key(module), module.getVersion());
+                this.forcedModules.put(new DefaultModuleIdentifier(module.getGroup(), module.getName()), module.getVersion());
             }
         } else {
             this.forcedModules = null;
@@ -47,13 +49,9 @@ public class ModuleForcingResolveAction implements Action<DependencyResolveDetai
         if (forcedModules == null) {
             return;
         }
-        String key = key(details.getRequested());
+        ModuleIdentifier key = new DefaultModuleIdentifier(details.getRequested().getGroup(), details.getRequested().getName());
         if (forcedModules.containsKey(key)) {
             details.useVersion(forcedModules.get(key), VersionSelectionReasons.FORCED);
         }
-    }
-
-    private String key(ModuleVersionSelector module) {
-        return module.getGroup() + ":" + module.getName();
     }
 }

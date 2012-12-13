@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
 /**
  * by Szczepan Faber, created at: 11/29/12
@@ -29,41 +29,55 @@ class ModuleForcingResolveActionSpec extends Specification {
 
     def "forces modules"() {
         given:
-        def forceModule1 = newSelector("org",  "module1", "1.0")
-        def forceModule2 = newSelector("org",  "module2", "1.0")
         def details = Mock(DependencyResolveDetailsInternal)
 
         when:
-        new ModuleForcingResolveAction([forceModule1, forceModule2]).execute(details)
+        new ModuleForcingResolveAction([
+            newSelector("org",  "module1", "1.0"),
+            newSelector("org",  "module2", "2.0"),
+            //exotic module with colon in the name
+            newSelector("org",  "module:with:colon", "3.0"),
+            newSelector("org:with:colon",  "module2", "4.0")
+        ]).execute(details)
 
         then:
-        1 * details.getRequested() >> requested
+        _ * details.getRequested() >> requested
         1 * details.useVersion(forcedVersion, VersionSelectionReasons.FORCED)
         0 * details._
 
         where:
-        requested                              | forcedVersion
-        newSelector("org",  "module2", "0.9")  | "1.0"
-        newSelector("org",  "module2", "2.0")  | "1.0"
+        requested                                        | forcedVersion
+        newSelector("org",  "module2", "0.9")            | "2.0"
+        newSelector("org",  "module2", "2.1")            | "2.0"
+        newSelector("org",  "module:with:colon", "2.0")  | "3.0"
+        newSelector("org:with:colon",  "module2", "5.0") | "4.0"
     }
 
     def "does not force modules if they dont match"() {
         given:
-        def forceModule1 = newSelector("org",  "module1", "1.0")
-        def forceModule2 = newSelector("org",  "module2", "1.0")
         def details = Mock(DependencyResolveDetailsInternal)
 
         when:
-        new ModuleForcingResolveAction([forceModule1, forceModule2]).execute(details)
+        new ModuleForcingResolveAction([
+            newSelector("org",  "module1", "1.0"),
+            newSelector("org",  "module2", "2.0"),
+            newSelector("org",  "module:with:colon", "3.0"),
+            newSelector("org:with:colon",  "module2", "4.0")
+        ]).execute(details)
 
         then:
-        1 * details.getRequested() >> requested
+        _ * details.getRequested() >> requested
         0 * details._
 
         where:
-        requested                              | forcedVersion
-        newSelector("orgX", "module2", "0.9")  | null
-        newSelector("org",  "moduleX", "2.9")  | null
+        requested << [
+            newSelector("orgX", "module2", "0.9"),
+            newSelector("org",  "moduleX", "2.9"),
+            newSelector("orgX",  "module:with:colon", "2.9"),
+            newSelector("org:with:colon",  "moduleX", "2.9"),
+            newSelector("org:with",  "colon:module2", "2.9"),
+            newSelector("org",  "with:colon:module2", "2.9"),
+        ]
     }
 
     def "does not force anything when input empty"() {
