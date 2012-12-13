@@ -21,7 +21,7 @@ package org.gradle.api.internal.artifacts
 import spock.lang.Specification
 import org.gradle.util.Matchers
 
-class ResolvedConfigurationIdentifierTest extends Specification {
+class ResolvedConfigurationIdentifierSpec extends Specification {
     def equalsAndHashCode() {
         when:
         ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier('group', 'name', 'version', 'config')
