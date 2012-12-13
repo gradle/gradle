@@ -18,6 +18,7 @@ package org.gradle.api.plugins.scala;
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
@@ -27,12 +28,20 @@ import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.api.tasks.JavaExec
 
+import java.util.regex.Pattern
+
 class ScalaBasePlugin implements Plugin<Project> {
     // public configurations
     static final String SCALA_TOOLS_CONFIGURATION_NAME = "scalaTools"
     static final String ZINC_CONFIGURATION_NAME = "zinc"
 
+    private static final String DEFAULT_ZINC_VERSION = "0.2.0"
+    private static final Pattern SCALA_LIBRARY_JAR_PATTERN = Pattern.compile("scala-library-(\\d.*).jar")
+
+    private Project project
+
     void apply(Project project) {
+        this.project = project
         def javaPlugin = project.plugins.apply(JavaBasePlugin.class)
 
         project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME)
@@ -42,12 +51,12 @@ class ScalaBasePlugin implements Plugin<Project> {
                 .setVisible(false)
                 .setDescription("The Zinc incremental compiler to be used for this Scala project.")
 
-        configureCompileDefaults(project, javaPlugin)
-        configureSourceSetDefaults(project, javaPlugin)
-        configureScaladoc(project)
+        configureCompileDefaults(javaPlugin)
+        configureSourceSetDefaults(javaPlugin)
+        configureScaladoc()
     }
 
-    private void configureSourceSetDefaults(Project project, JavaBasePlugin javaPlugin) {
+    private void configureSourceSetDefaults(JavaBasePlugin javaPlugin) {
         project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all { SourceSet sourceSet ->
             sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, project.fileResolver)
             sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala")}
@@ -55,12 +64,12 @@ class ScalaBasePlugin implements Plugin<Project> {
             sourceSet.allSource.source(sourceSet.scala)
             sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
 
-            configureScalaCompile(project, javaPlugin, sourceSet)
-            configureScalaConsole(project, sourceSet)
+            configureScalaCompile(javaPlugin, sourceSet)
+            configureScalaConsole(sourceSet)
         }
     }
 
-    private void configureScalaCompile(Project project, JavaBasePlugin javaPlugin, SourceSet sourceSet) {
+    private void configureScalaCompile(JavaBasePlugin javaPlugin, SourceSet sourceSet) {
         def taskName = sourceSet.getCompileTaskName('scala')
         def scalaCompile = project.tasks.add(taskName, ScalaCompile)
         scalaCompile.dependsOn sourceSet.compileJavaTaskName
@@ -84,7 +93,7 @@ class ScalaBasePlugin implements Plugin<Project> {
         }
     }
 
-    private void configureScalaConsole(Project project, SourceSet sourceSet) {
+    private void configureScalaConsole(SourceSet sourceSet) {
         def taskName = sourceSet.getTaskName("scala", "Console")
         def scalaConsole = project.tasks.add(taskName, JavaExec)
         scalaConsole.dependsOn(sourceSet.runtimeClasspath)
@@ -96,14 +105,24 @@ class ScalaBasePlugin implements Plugin<Project> {
         scalaConsole.conventionMapping.jvmArgs = { ["-classpath", sourceSet.runtimeClasspath.asPath] }
     }
 
-    private void configureCompileDefaults(final Project project, JavaBasePlugin javaPlugin) {
+    private void configureCompileDefaults(JavaBasePlugin javaPlugin) {
         project.tasks.withType(ScalaCompile.class) { ScalaCompile compile ->
-            compile.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
+            compile.conventionMapping.scalaClasspath = {
+                def classpath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
+                if (classpath.dependencies.empty) {
+                    def scalaVersion = sniffScalaVersion(compile.classpath)
+                    if (scalaVersion != null) {
+                        classpath = project.configurations.detachedConfiguration(
+                                new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion))
+                    }
+                }
+                classpath
+            }
             compile.conventionMapping.zincClasspath = {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
                 if (!compile.scalaCompileOptions.useAnt && config.dependencies.empty) {
                     project.dependencies {
-                        zinc("com.typesafe.zinc:zinc:0.2.0")
+                        zinc("com.typesafe.zinc:zinc:$DEFAULT_ZINC_VERSION")
                     }
                 }
                 config
@@ -111,7 +130,17 @@ class ScalaBasePlugin implements Plugin<Project> {
         }
     }
 
-    private void configureScaladoc(final Project project) {
+    private String sniffScalaVersion(Iterable<File> classpath) {
+        for (file in classpath) {
+            def matcher = SCALA_LIBRARY_JAR_PATTERN.matcher(file.name)
+            if (matcher.matches()) {
+                return matcher.group(1)
+            }
+        }
+        return null
+    }
+
+    private void configureScaladoc() {
         project.getTasks().withType(ScalaDoc.class) {ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
             scalaDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }

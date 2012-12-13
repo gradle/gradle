@@ -52,6 +52,21 @@ public class ScalaBasePluginTest {
         assertTrue(configuration.transitive)
     }
 
+    @Test void defaultsScalaClasspathToScalaToolsConfigurationIfTheLatterIsNonEmpty() {
+        scalaPlugin.apply(project)
+        project.sourceSets.add('custom')
+        def configuration = project.configurations.scalaTools
+        project.dependencies {
+            scalaTools "org.scala-lang:scala-compiler:2.10"
+        }
+        def task = project.tasks.compileCustomScala
+        assertSame(configuration, task.scalaClasspath)
+    }
+
+    // see ScalaBasePluginIntegrationTest
+    @Test void defaultsScalaClasspathToInferredScalaCompilerDependencyIfScalaToolsConfigurationIsEmpty() {
+    }
+
     @Test void addsZincConfigurationToTheProject() {
         scalaPlugin.apply(project)
         def configuration = project.configurations.getByName(ScalaBasePlugin.ZINC_CONFIGURATION_NAME)
