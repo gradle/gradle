@@ -93,6 +93,18 @@ class MavenFileModule implements MavenModule {
         return this;
     }
 
+    void assertNotPublished() {
+        pomFile.assertDoesNotExist()
+    }
+
+    void assertPublishedAsJavaModule() {
+        assert pomFile.assertExists()
+        assert pom.groupId == groupId
+        assert pom.artifactId == artifactId
+        assert pom.version == version
+        assertArtifactsPublished("${artifactId}-${version}.jar", "${artifactId}-${version}.pom")
+    }
+
     /**
      * Asserts that exactly the given artifacts have been deployed, along with their checksum files
      */

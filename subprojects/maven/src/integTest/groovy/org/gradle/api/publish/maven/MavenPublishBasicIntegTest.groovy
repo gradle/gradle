@@ -28,11 +28,13 @@ import org.gradle.util.SetSystemProperties
 class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
-    M2Installation m2Installation;
+    M2Installation m2Installation
+    MavenFileRepository m2Repo
 
     def "setup"() {
         m2Installation = new M2Installation(testDir)
         using m2Installation
+        m2Repo = m2Installation.mavenRepo()
     }
 
     def "can publish simple jar"() {
@@ -55,14 +57,14 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        modulePublished(mavenRepo, 'group', 'root', '1.0')
-        moduleNotPublished(m2Installation.mavenRepo(), 'group', 'root', '1.0')
+        mavenRepo.module('group', 'root', '1.0').assertPublishedAsJavaModule()
+        m2Repo.module('group', 'root', '1.0').assertNotPublished()
 
         when:
         succeeds 'publishToMavenLocal'
 
         then:
-        modulePublished(m2Installation.mavenRepo(), 'group', 'root', '1.0')
+        m2Repo.module('group', 'root', '1.0').assertPublishedAsJavaModule()
     }
 
     def "can customise pom xml"() {
@@ -92,29 +94,13 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        modulePublished(mavenRepo, 'group', 'root', 'foo')
-        moduleNotPublished(m2Installation.mavenRepo(), 'group', 'root', 'foo')
+        mavenRepo.module('group', 'root', 'foo').assertPublishedAsJavaModule()
+        m2Repo.module('group', 'root', 'foo').assertNotPublished()
 
         when:
         succeeds 'publishToMavenLocal'
 
         then:
-        modulePublished(m2Installation.mavenRepo(), 'group', 'root', 'foo')
-    }
-
-    def modulePublished(MavenFileRepository fileRepository, def group, def artifact, def expectedVersion) {
-        def module = fileRepository.module(group, artifact, expectedVersion);
-        module.assertArtifactsPublished("${artifact}-${expectedVersion}.jar", "${artifact}-${expectedVersion}.pom")
-        with(module.pom) {
-            assert groupId == group
-            assert artifactId == artifact
-            assert version == expectedVersion
-        }
-        true
-    }
-
-    def moduleNotPublished(MavenFileRepository fileRepository, def group, def artifact, def expectedVersion) {
-        def module = fileRepository.module(group, artifact, expectedVersion);
-        module.pomFile.assertDoesNotExist()
+        m2Repo.module('group', 'root', 'foo').assertPublishedAsJavaModule()
     }
 }

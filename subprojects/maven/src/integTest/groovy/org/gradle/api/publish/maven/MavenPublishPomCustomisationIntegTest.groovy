@@ -61,14 +61,9 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
 
         then:
         def module = mavenRepo.module('group', 'root', 'foo')
-        module.assertArtifactsPublished("root-foo.jar", "root-foo.pom")
-        with(module.pom) {
-            groupId == 'group'
-            artifactId == 'root'
-            version == 'foo'
-            description == 'custom-description'
-            scopes.runtime.assertDependsOn("junit", "junit", "4.1")
-        }
+        module.assertPublishedAsJavaModule()
+        module.pom.description == 'custom-description'
+        module.pom.scopes.runtime.assertDependsOn("junit", "junit", "4.1")
     }
 
     def "has reasonable error message when withXml fails"() {
