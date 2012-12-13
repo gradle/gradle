@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
 import org.gradle.api.artifacts.DependencyResolveDetails
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
@@ -27,7 +26,6 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
  */
 class ModuleForcingResolveActionSpec extends Specification {
 
-    @Unroll
     def "forces modules"() {
         given:
         def forceModule1 = newSelector("org",  "module1", "1.0")
@@ -39,18 +37,33 @@ class ModuleForcingResolveActionSpec extends Specification {
 
         then:
         1 * details.getRequested() >> requested
-        if (forcedVersion) {
-            1 * details.forceVersion(forcedVersion)
-        } else {
-            0 * details.forceVersion(_)
-        }
+        1 * details.forceVersion(forcedVersion)
         0 * details._
 
         where:
         requested                              | forcedVersion
         newSelector("org",  "module2", "0.9")  | "1.0"
+        newSelector("org",  "module2", "2.0")  | "1.0"
+    }
+
+    def "does not force modules if they dont match"() {
+        given:
+        def forceModule1 = newSelector("org",  "module1", "1.0")
+        def forceModule2 = newSelector("org",  "module2", "1.0")
+        def details = Mock(DependencyResolveDetails)
+
+        when:
+        new ModuleForcingResolveAction([forceModule1, forceModule2]).execute(details)
+
+        then:
+        1 * details.getRequested() >> requested
+        0 * details.forceVersion(_)
+        0 * details._
+
+        where:
+        requested                              | forcedVersion
         newSelector("orgX", "module2", "0.9")  | null
-        newSelector("org",  "moduleX", "0.9")  | null
+        newSelector("org",  "moduleX", "2.9")  | null
     }
 
     def "does not force anything when input empty"() {
