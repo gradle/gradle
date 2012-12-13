@@ -37,9 +37,17 @@ class JavaLibraryDistributionPlugin implements Plugin<Project> {
     public void apply(Project project) {
         this.project = project
         project.plugins.apply(JavaPlugin)
-
         addPluginExtension()
         addDistZipTask()
+        addValidation()
+    }
+
+    void addValidation() {
+        project.afterEvaluate {
+            if (project.distribution.name == null) {
+                throw new IllegalArgumentException("Distribution name must not be null! Check your configuration of the java-library-distribution plugin.")
+            }
+        }
     }
 
     private void addPluginExtension() {
@@ -63,5 +71,4 @@ class JavaLibraryDistributionPlugin implements Plugin<Project> {
             }
         }
     }
-
 }

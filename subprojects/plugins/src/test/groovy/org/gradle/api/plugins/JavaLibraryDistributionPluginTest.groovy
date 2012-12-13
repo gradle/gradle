@@ -35,8 +35,6 @@ class JavaLibraryDistributionPluginTest extends Specification {
 
     }
 
-
-
     def "adds distZip task to project"() {
         when:
         plugin.apply(project)
@@ -56,6 +54,4 @@ class JavaLibraryDistributionPluginTest extends Specification {
         def distZipTask = project.tasks[JavaLibraryDistributionPlugin.TASK_DIST_ZIP_NAME]
         distZipTask.archiveName == "SuperApp.zip"
     }
-	
-    
 }

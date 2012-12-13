@@ -18,6 +18,8 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
+import static org.hamcrest.Matchers.containsString
+
 class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 
     @Override
@@ -36,6 +38,8 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
                 file 'file2.txt'
             }
         }
+        and:
+        settingsFile << "rootProject.name='canCreateADistributionWithSrcDistRuntime'"
         and:
         buildFile << """
 		apply plugin:'java-library-distribution'
@@ -77,7 +81,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         expandDir.assertHasDescendants('lib/a.jar', 'DefaultJavaDistribution.jar')
     }
 
-    def doesNotCrashWithNullConfiguredDistributionName() {
+    def failWithNullConfiguredDistributionName() {
         when:
         buildFile << """
             apply plugin:'java-library-distribution'
@@ -86,8 +90,8 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
             }
             """
         then:
-        run 'distZip'
-        file('build/distributions/.zip').assertIsFile()
+        runAndFail 'distZip'
+        failure.assertThatDescription(containsString("Distribution name must not be null! Check your configuration of the java-library-distribution plugin."))
     }
 
     def canCreateADistributionIncludingOtherFile() {
@@ -107,6 +111,8 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         createDir('other2') {
             file 'file4.txt'
         }
+        and:
+        settingsFile << "rootProject.name='canCreateADistributionIncludingOtherFile'"
         and:
         buildFile << """
 		apply plugin:'java-library-distribution'
