@@ -22,7 +22,9 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.version.VersionMatcher;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 /**
  * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionIdResolver} implementation which returns lazy resolvers that don't actually retrieve module descriptors until
@@ -103,8 +105,8 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return resolveResult;
         }
 
-        public IdSelectionReason getSelectionReason() {
-            return IdSelectionReason.requested;
+        public ModuleVersionSelectionReason getSelectionReason() {
+            return VersionSelectionReasons.REQUESTED;
         }
 
         private void checkDescriptor(ModuleDescriptor descriptor) {

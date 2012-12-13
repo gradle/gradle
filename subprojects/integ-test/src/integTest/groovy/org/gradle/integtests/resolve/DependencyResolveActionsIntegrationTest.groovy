@@ -89,7 +89,8 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	            def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
 	            assert deps*.selected.id.name == ['foo', 'impl', 'api']
 	            assert deps*.selected.id.version == ['2.0', '1.5', '1.5']
-	            assert deps*.selected.selectionReason.forced == [false, true, true]
+	            assert deps*.selected.selectionReason.forced         == [false, false, false]
+	            assert deps*.selected.selectionReason.selectedByAction == [false, true, true]
 	        }
 """
 
@@ -133,6 +134,8 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	        task check << {
 	            configurations.conf.incoming.resolutionResult.allDependencies {
 	                assert it.selected.id.version == '1.5'
+	                assert it.selected.selectionReason.selectedByAction
+	                assert it.selected.selectionReason.description == 'selected by action'
 	            }
 	        }
 """
@@ -170,6 +173,10 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	        task check << {
 	            configurations.conf.incoming.resolutionResult.allDependencies {
 	                assert it.selected.id.version == '1.3'
+                    def reason = it.selected.selectionReason
+                    assert !reason.forced
+                    //assert !reason.selectedByAction
+                    //TODO SF above will work when the refactorings are finished
 	            }
 	        }
 """
@@ -208,6 +215,9 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	        task check << {
 	            configurations.conf.incoming.resolutionResult.allDependencies {
 	                assert it.selected.id.version == '1.3'
+                    def reason = it.selected.selectionReason
+                    assert !reason.forced
+                    assert reason.selectedByAction
 	            }
 	        }
 """
@@ -246,8 +256,19 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-	            configurations.conf.incoming.resolutionResult.allDependencies {
-	                assert it.selected.id.version == '1.5'
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                assert deps.find {
+                    it.selected.id.name == 'impl' &&
+                    it.selected.id.version == '1.5' &&
+                    it.selected.selectionReason.forced &&
+                    !it.selected.selectionReason.selectedByAction
+                }
+
+                assert deps.find {
+	                it.selected.id.name == 'api' &&
+                    it.selected.id.version == '1.5' &&
+                    !it.selected.selectionReason.forced &&
+                    it.selected.selectionReason.selectedByAction
 	            }
 	        }
 """

@@ -17,16 +17,19 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 
 /**
  * by Szczepan Faber, created at: 8/29/12
  */
-class ForcedModuleVersionIdResolveResult implements ModuleVersionIdResolveResult {
+class SubstitutedModuleVersionIdResolveResult implements ModuleVersionIdResolveResult {
 
     final ModuleVersionIdResolveResult result;
+    private final ModuleVersionSelectionReason selectionReason;
 
-    public ForcedModuleVersionIdResolveResult(ModuleVersionIdResolveResult result) {
+    public SubstitutedModuleVersionIdResolveResult(ModuleVersionIdResolveResult result, ModuleVersionSelectionReason selectionReason) {
         this.result = result;
+        this.selectionReason = selectionReason;
     }
 
     public ModuleVersionResolveException getFailure() {
@@ -41,7 +44,7 @@ class ForcedModuleVersionIdResolveResult implements ModuleVersionIdResolveResult
         return result.resolve();
     }
 
-    public IdSelectionReason getSelectionReason() {
-        return IdSelectionReason.forced;
+    public ModuleVersionSelectionReason getSelectionReason() {
+        return selectionReason;
     }
 }

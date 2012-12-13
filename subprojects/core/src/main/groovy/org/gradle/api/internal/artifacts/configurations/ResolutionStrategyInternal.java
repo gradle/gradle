@@ -17,9 +17,9 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConflictResolution;
-import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
@@ -47,5 +47,5 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     /**
      * @return the dependency resolve action (may aggregate multiple actions)
      */
-    Action<DependencyResolveDetails> getDependencyResolveAction();
+    Action<DependencyResolveDetailsInternal> getDependencyResolveAction();
 }

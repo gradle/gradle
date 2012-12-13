@@ -19,15 +19,16 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 
 public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionIdResolver resolver;
-    private Action<DependencyResolveDetails> action;
+    private Action<DependencyResolveDetailsInternal> action;
 
-    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Action<DependencyResolveDetails> action) {
+    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Action<DependencyResolveDetailsInternal> action) {
         this.resolver = resolver;
         this.action = action;
     }
@@ -45,7 +46,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
             ModuleRevisionId revisionId = new ModuleRevisionId(moduleId, details.getForcedVersion());
             DependencyDescriptor descriptor = dependencyDescriptor.clone(revisionId);
             ModuleVersionIdResolveResult result = resolver.resolve(descriptor);
-            return new ForcedModuleVersionIdResolveResult(result);
+            return new SubstitutedModuleVersionIdResolveResult(result, details.getSelectionReason());
         }
         return resolver.resolve(dependencyDescriptor);
     }
@@ -71,7 +72,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
             return new DefaultBuildableModuleVersionResolveResult().failed(failure);
         }
 
-        public IdSelectionReason getSelectionReason() {
+        public ModuleVersionSelectionReason getSelectionReason() {
             throw failure;
         }
     }

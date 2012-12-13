@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 
 public interface ModuleVersionIdResolveResult {
     /**
@@ -41,10 +42,5 @@ public interface ModuleVersionIdResolveResult {
      * @return why given id was selected
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
-    IdSelectionReason getSelectionReason() throws ModuleVersionResolveException;
-
-    public static enum IdSelectionReason {
-        requested, forced
-        //TODO SF consider changing to an interface with isForced()
-    }
+    ModuleVersionSelectionReason getSelectionReason() throws ModuleVersionResolveException;
 }

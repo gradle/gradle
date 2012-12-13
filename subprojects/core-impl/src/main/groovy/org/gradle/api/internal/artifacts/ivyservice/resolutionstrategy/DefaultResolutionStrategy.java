@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.Actions;
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.dsl.ForcedModuleNotationParser;
@@ -74,7 +75,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    public Action<DependencyResolveDetails> getDependencyResolveAction() {
+    public Action<DependencyResolveDetailsInternal> getDependencyResolveAction() {
         Collection allActions = flattenElements(new ModuleForcingResolveAction(forcedModules), dependencyResolveActions);
         return Actions.composite(allActions);
     }

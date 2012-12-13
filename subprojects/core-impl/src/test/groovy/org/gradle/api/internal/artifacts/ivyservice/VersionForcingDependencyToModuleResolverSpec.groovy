@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
 import spock.lang.Specification
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
 class VersionForcingDependencyToModuleResolverSpec extends Specification {
     final target = Mock(DependencyToModuleVersionIdResolver)
@@ -52,11 +53,11 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         def resolver = new VersionForcingDependencyToModuleResolver(target, force)
 
         when:
-        ForcedModuleVersionIdResolveResult result = resolver.resolve(dep)
+        SubstitutedModuleVersionIdResolveResult result = resolver.resolve(dep)
 
         then:
         result.result == resolvedVersion
-        result.selectionReason == ModuleVersionIdResolveResult.IdSelectionReason.forced
+        result.selectionReason == VersionSelectionReasons.SELECTED_BY_ACTION
 
         and:
         1 * dep.clone(new ModuleRevisionId(new ModuleId('org', 'module'), '1.0')) >> modified

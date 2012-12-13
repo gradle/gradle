@@ -16,15 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 /**
 * by Szczepan Faber, created at: 11/29/12
 */
-public class DefaultDependencyResolveDetails implements DependencyResolveDetails {
+public class DefaultDependencyResolveDetails implements DependencyResolveDetailsInternal {
     private final ModuleVersionSelector module;
     private String forcedVersion;
+    private ModuleVersionSelectionReason selectionReason;
 
     public DefaultDependencyResolveDetails(ModuleVersionSelector module) {
         this.module = module;
@@ -35,10 +38,20 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     }
 
     public void forceVersion(String version) {
+        forceVersion(version, VersionSelectionReasons.SELECTED_BY_ACTION);
+    }
+
+    public void forceVersion(String version, ModuleVersionSelectionReason selectionReason) {
         this.forcedVersion = version;
+        this.selectionReason = selectionReason;
     }
 
     public String getForcedVersion() {
         return forcedVersion;
+    }
+
+    public ModuleVersionSelectionReason getSelectionReason() {
+        assert forcedVersion != null;
+        return selectionReason;
     }
 }

@@ -20,6 +20,8 @@ import org.gradle.api.Incubating;
 
 /**
  * Answers the question why given module version was selected during the dependency resolution
+ *
+ * @since 1.3
  */
 @Incubating
 public interface ModuleVersionSelectionReason {
@@ -38,6 +40,14 @@ public interface ModuleVersionSelectionReason {
      * about conflict resolution and includes means to configure it.
      */
     boolean isConflictResolution();
+
+    /**
+     * Informs whether the module was selected by an dependency resolve action.
+     * Users can configure dependency resolve actions via {@link org.gradle.api.artifacts.ResolutionStrategy#eachDependency(org.gradle.api.Action)}
+     *
+     * @since 1.4
+     */
+    boolean isSelectedByAction();
 
     /**
      * Describes this selection reason.

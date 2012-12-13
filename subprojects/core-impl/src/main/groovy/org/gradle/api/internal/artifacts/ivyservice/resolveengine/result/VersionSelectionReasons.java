@@ -22,20 +22,23 @@ import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
  * by Szczepan Faber, created at: 10/1/12
  */
 public class VersionSelectionReasons {
-    public static final ModuleVersionSelectionReason REQUESTED = new DefaultModuleVersionSelectionReason(false, false, "requested");
-    public static final ModuleVersionSelectionReason ROOT = new DefaultModuleVersionSelectionReason(false, false, "root");
-    public static final ModuleVersionSelectionReason FORCED = new DefaultModuleVersionSelectionReason(true, false, "forced");
-    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION = new DefaultModuleVersionSelectionReason(false, true, "conflict resolution");
+    public static final ModuleVersionSelectionReason REQUESTED = new DefaultModuleVersionSelectionReason(false, false, false, "requested");
+    public static final ModuleVersionSelectionReason ROOT = new DefaultModuleVersionSelectionReason(false, false, false, "root");
+    public static final ModuleVersionSelectionReason FORCED = new DefaultModuleVersionSelectionReason(true, false, false, "forced");
+    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION = new DefaultModuleVersionSelectionReason(false, true, false, "conflict resolution");
+    public static final ModuleVersionSelectionReason SELECTED_BY_ACTION = new DefaultModuleVersionSelectionReason(false, false, true, "selected by action");
 
     private static class DefaultModuleVersionSelectionReason implements ModuleVersionSelectionReason {
 
         private final boolean forced;
         private final boolean conflictResolution;
+        private final boolean selectedByAction;
         private final String description;
 
-        private DefaultModuleVersionSelectionReason(boolean forced, boolean conflictResolution, String description) {
+        private DefaultModuleVersionSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByAction, String description) {
             this.forced = forced;
             this.conflictResolution = conflictResolution;
+            this.selectedByAction = selectedByAction;
             assert description != null;
             this.description = description;
         }
@@ -46,6 +49,10 @@ public class VersionSelectionReasons {
 
         public boolean isConflictResolution() {
             return conflictResolution;
+        }
+
+        public boolean isSelectedByAction() {
+            return selectedByAction;
         }
 
         public String getDescription() {

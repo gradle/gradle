@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.DependencyResolveDetails
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
 /**
  * by Szczepan Faber, created at: 11/2/11
@@ -66,7 +68,7 @@ public class DefaultResolutionStrategySpec extends Specification {
 
     def "provides no op resolve action when no actions or forced modules configured"() {
         given:
-        def details = Mock(DependencyResolveDetails)
+        def details = Mock(DependencyResolveDetailsInternal)
 
         when:
         strategy.dependencyResolveAction.execute(details)
@@ -78,14 +80,14 @@ public class DefaultResolutionStrategySpec extends Specification {
     def "provides dependency resolve action that forces modules"() {
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
-        def details = Mock(DependencyResolveDetails)
+        def details = Mock(DependencyResolveDetailsInternal)
 
         when:
         strategy.dependencyResolveAction.execute(details)
 
         then:
         1 * details.getRequested() >> newSelector("org", "foo", "1.0")
-        1 * details.forceVersion("2.0")
+        1 * details.forceVersion("2.0", VersionSelectionReasons.FORCED)
         0 * details._
     }
 
@@ -93,7 +95,7 @@ public class DefaultResolutionStrategySpec extends Specification {
         given:
         strategy.eachDependency({ it.forceVersion("1.0") } as Action)
         strategy.eachDependency({ it.forceVersion("2.0") } as Action)
-        def details = Mock(DependencyResolveDetails)
+        def details = Mock(DependencyResolveDetailsInternal)
 
         when:
         strategy.dependencyResolveAction.execute(details)
@@ -111,14 +113,14 @@ public class DefaultResolutionStrategySpec extends Specification {
         strategy.eachDependency({ it.forceVersion("5.0") } as Action)
         strategy.eachDependency({ it.forceVersion("6.0") } as Action)
 
-        def details = Mock(DependencyResolveDetails)
+        def details = Mock(DependencyResolveDetailsInternal)
 
         when:
         strategy.dependencyResolveAction.execute(details)
 
         then: //forced modules:
         1 * details.requested >> newSelector("org", "foo", "1.0")
-        1 * details.forceVersion("2.0")
+        1 * details.forceVersion("2.0", VersionSelectionReasons.FORCED)
 
         then: //user actions, in order:
         1 * details.forceVersion("5.0")

@@ -17,8 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,7 +28,7 @@ import java.util.Map;
 /**
 * by Szczepan Faber, created at: 11/29/12
 */
-public class ModuleForcingResolveAction implements Action<DependencyResolveDetails> {
+public class ModuleForcingResolveAction implements Action<DependencyResolveDetailsInternal> {
 
     private final Map<String, String> forcedModules;
 
@@ -42,13 +43,13 @@ public class ModuleForcingResolveAction implements Action<DependencyResolveDetai
         }
     }
 
-    public void execute(DependencyResolveDetails dependencyResolveDetails) {
+    public void execute(DependencyResolveDetailsInternal details) {
         if (forcedModules == null) {
             return;
         }
-        String key = key(dependencyResolveDetails.getRequested());
+        String key = key(details.getRequested());
         if (forcedModules.containsKey(key)) {
-            dependencyResolveDetails.forceVersion(forcedModules.get(key));
+            details.forceVersion(forcedModules.get(key), VersionSelectionReasons.FORCED);
         }
     }
 

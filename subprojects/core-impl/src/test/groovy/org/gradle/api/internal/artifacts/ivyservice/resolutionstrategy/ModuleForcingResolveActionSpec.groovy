@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.DependencyResolveDetails
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
 /**
  * by Szczepan Faber, created at: 11/29/12
@@ -30,14 +32,14 @@ class ModuleForcingResolveActionSpec extends Specification {
         given:
         def forceModule1 = newSelector("org",  "module1", "1.0")
         def forceModule2 = newSelector("org",  "module2", "1.0")
-        def details = Mock(DependencyResolveDetails)
+        def details = Mock(DependencyResolveDetailsInternal)
 
         when:
         new ModuleForcingResolveAction([forceModule1, forceModule2]).execute(details)
 
         then:
         1 * details.getRequested() >> requested
-        1 * details.forceVersion(forcedVersion)
+        1 * details.forceVersion(forcedVersion, VersionSelectionReasons.FORCED)
         0 * details._
 
         where:
@@ -50,14 +52,13 @@ class ModuleForcingResolveActionSpec extends Specification {
         given:
         def forceModule1 = newSelector("org",  "module1", "1.0")
         def forceModule2 = newSelector("org",  "module2", "1.0")
-        def details = Mock(DependencyResolveDetails)
+        def details = Mock(DependencyResolveDetailsInternal)
 
         when:
         new ModuleForcingResolveAction([forceModule1, forceModule2]).execute(details)
 
         then:
         1 * details.getRequested() >> requested
-        0 * details.forceVersion(_)
         0 * details._
 
         where:
@@ -67,7 +68,7 @@ class ModuleForcingResolveActionSpec extends Specification {
     }
 
     def "does not force anything when input empty"() {
-        def details = Mock(DependencyResolveDetails)
+        def details = Mock(DependencyResolveDetailsInternal)
 
         when:
         new ModuleForcingResolveAction([]).execute(details)
