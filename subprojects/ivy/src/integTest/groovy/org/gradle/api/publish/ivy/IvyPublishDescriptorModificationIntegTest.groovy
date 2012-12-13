@@ -79,6 +79,28 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
         asXml(module.ivyFile).info[0].@revision == "3"
     }
 
+    def "produces sensible error when withXML fails"() {
+        when:
+        buildFile << """
+            publishing {
+                publications {
+                    ivy {
+                        descriptor {
+                            withXml {
+                                asNode().foo = "3"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("Could not apply withXml() to Ivy module descriptor")
+        failure.assertHasCause("No such property: foo for class: groovy.util.Node")
+    }
+
     GPathResult asXml(File file) {
         new XmlSlurper().parse(file)
     }
