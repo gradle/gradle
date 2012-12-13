@@ -120,6 +120,10 @@ class HttpServer extends ExternalResource {
             server.removeConnector(connector)
             throw e
         }
+        def localPort = connector.localPort
+        if (localPort <= 0) {
+            throw new AssertionError("SocketConnector.localPort returned $localPort after starting server");
+        }
     }
 
     void stop() {
