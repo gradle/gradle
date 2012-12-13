@@ -21,6 +21,7 @@ class MavenPom {
     String artifactId
     String version
     String packaging
+    String description
     final Map<String, MavenScope> scopes = [:]
 
     MavenPom(File pomFile) {
@@ -30,6 +31,7 @@ class MavenPom {
         artifactId = pom.artifactId[0]?.text()
         version = pom.version[0]?.text()
         packaging = pom.packaging[0]?.text()
+        description = pom.description[0]?.text()
 
         pom.dependencies.dependency.each { dep ->
             def scopeElement = dep.scope

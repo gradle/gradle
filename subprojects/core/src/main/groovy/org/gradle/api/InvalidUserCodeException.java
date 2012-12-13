@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.UserCodeAction;
-import org.gradle.api.XmlProvider;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.api.internal.Contextual;
 
-public class DefaultMavenPom implements MavenPomInternal {
-
-    private final ActionBroadcast<XmlProvider> xmlAction = new ActionBroadcast<XmlProvider>();
-
-    public void withXml(Action<? super XmlProvider> action) {
-        xmlAction.add(new UserCodeAction<XmlProvider>("Could not apply withXml() to generated POM", action));
+/**
+ * A <code>InvalidUserCodeException</code> is thrown when user-provided code cannot be executed.
+ */
+@Contextual
+public class InvalidUserCodeException extends GradleException {
+    public InvalidUserCodeException() {
     }
 
-    public Action<XmlProvider> getXmlAction() {
-        return xmlAction;
+    public InvalidUserCodeException(String message) {
+        super(message);
     }
 
+    public InvalidUserCodeException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

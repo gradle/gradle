@@ -16,23 +16,20 @@
 
 <chapter id="publishing_maven">
     <title>Maven Publishing (new)</title>
-    <section>
-        <title>Introduction</title>
-        <note>
-            <para>
-                This chapter describes the new <emphasis>incubating</emphasis> Maven publishing support introduced in Gradle 1.4.
-                If you are looking for documentation on the 'traditional' Maven publishing support please see <xref linkend="artifact_management"/>.
-            </para>
-            <para>
-                This chapter is a work in progress, and is not comprehensive or complete.
-                It is expected that you understand the concepts in <xref linkend="publishing_ivy"/> before reading this chapter.
-            </para>
-        </note>
+    <note>
         <para>
-            This chapter describes how to publish build artifacts to a <ulink url="http://maven.apache.org/">Apache Maven</ulink> Repository.
-            A module published to a Maven repository can be consumed by Maven, Gradle (see <xref linkend="dependency_management" />) and other tools that understand the Maven repository format.
+            This chapter describes the new <emphasis>incubating</emphasis> Maven publishing support introduced in Gradle 1.4.
+            If you are looking for documentation on the 'traditional' Maven publishing support please see <xref linkend="artifact_management"/>.
         </para>
-    </section>
+        <para>
+            This chapter is a work in progress, and is not comprehensive or complete.
+            It is expected that you understand the concepts in <xref linkend="publishing_ivy"/> before reading this chapter.
+        </para>
+    </note>
+    <para>
+        This chapter describes how to publish build artifacts to a <ulink url="http://maven.apache.org/">Apache Maven</ulink> Repository.
+        A module published to a Maven repository can be consumed by Maven, Gradle (see <xref linkend="dependency_management" />) and other tools that understand the Maven repository format.
+    </para>
     <section>
         <title>The <literal>maven-publish</literal> Plugin</title>
         <para>

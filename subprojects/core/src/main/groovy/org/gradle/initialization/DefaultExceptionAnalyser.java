@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.GradleScriptException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.Contextual;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.LocationAwareException;
@@ -46,7 +47,7 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
     }
 
     public Throwable transform(Throwable exception) {
-        Throwable actualException = findDeepest(exception);
+        Throwable actualException = findMostRelevantCause(exception);
         if (actualException == null) {
             return exception;
         }
@@ -85,14 +86,15 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
         return new LocationAwareException(actualException, target, source, lineNumber);
     }
 
-    private Throwable findDeepest(Throwable exception) {
+    private Throwable findMostRelevantCause(Throwable exception) {
+        // TODO: fix the way we work out which exception is important: TaskExecutionException is not always the most helpful
         Throwable locationAware = null;
         Throwable result = null;
         Throwable contextMatch = null;
         for (Throwable current = exception; current != null; current = current.getCause()) {
             if (current instanceof LocationAwareException) {
                 locationAware = current;
-            } else if (current instanceof GradleScriptException || current instanceof TaskExecutionException) {
+            } else if (current instanceof GradleScriptException || current instanceof TaskExecutionException || current instanceof InvalidUserCodeException) {
                 result = current;
             } else if (contextMatch == null && current.getClass().getAnnotation(Contextual.class) != null) {
                 contextMatch = current;

@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
@@ -42,10 +43,11 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
     }
 
     public void withXml(Action<? super XmlProvider> action) {
-        xmlActions.add(action);
+        xmlActions.add(new UserCodeAction<XmlProvider>("Could not apply withXml() to Ivy module descriptor", action));
     }
 
     public Action<XmlProvider> getXmlAction() {
         return xmlActions;
     }
+
 }
