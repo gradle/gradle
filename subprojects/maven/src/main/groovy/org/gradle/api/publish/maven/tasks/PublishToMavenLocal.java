@@ -50,9 +50,4 @@ public class PublishToMavenLocal extends PublishToMavenRepository {
         mavenLocalRepository.setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME);
         return mavenLocalRepository;
     }
-
-    @Override
-    public void setRepository(MavenArtifactRepository repository) {
-        throw new UnsupportedOperationException("Cannot override mavenLocal repository");
-    }
 }
