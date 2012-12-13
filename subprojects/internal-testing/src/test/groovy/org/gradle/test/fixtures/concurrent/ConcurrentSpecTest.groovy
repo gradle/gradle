@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.test.fixtures.concurrent
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
 class ConcurrentSpecTest extends ConcurrentSpec {
-    def "can test that an action happens asynchronously"() {
+    def "can use instants to test that an action happens asynchronously"() {
         Worker worker = new Worker(executor)
 
         given:
@@ -40,7 +40,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         instant.queued < instant.actionCompleted
     }
 
-    def "can test that an action happens while another is blocked"() {
+    def "can use instants to test that an action happens while another is blocked"() {
         Worker worker = new Worker(executor)
 
         given:
@@ -63,7 +63,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         instant.action2Completed < instant.action1Completed
     }
 
-    def "can test method blocks until action is complete"() {
+    def "can use instants to test that a method blocks until action is complete"() {
         Worker worker = new Worker(executor)
 
         given:
@@ -83,7 +83,25 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         instant.stopped > instant.actionCompleted
     }
 
-    def "can test method blocks for a certain time"() {
+    def "can use operation to test that a method blocks until action is complete"() {
+        Worker worker = new Worker(executor)
+
+        given:
+        def action = {
+            thread.block()
+            instant.actionCompleted
+        }
+
+        when:
+        operation.runAndWait {
+            worker.run(action, 10)
+        }
+
+        then:
+        operation.runAndWait.end > instant.actionCompleted
+    }
+
+    def "can use instants to test that method blocks for a certain time"() {
         Worker worker = new Worker(executor)
 
         given:
@@ -100,7 +118,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         instant.end - instant.start in approx(2000)
     }
 
-    def "fails when test method does not block for expected time"() {
+    def "fails when method does not block for expected time"() {
         Worker worker = new Worker(executor)
 
         given:
