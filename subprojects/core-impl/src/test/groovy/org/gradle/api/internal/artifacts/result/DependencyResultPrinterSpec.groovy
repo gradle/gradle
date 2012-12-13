@@ -23,10 +23,9 @@ import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-
 import spock.lang.Specification
 
-class DependencyResultPrinterTest extends Specification {
+class DependencyResultPrinterSpec extends Specification {
     def "prints requested version if no version was selected"() {
         def dependency = new SimpleUnresolvedDependencyResult(
                 requested: new DefaultModuleVersionSelector("group", "name", "version"),
