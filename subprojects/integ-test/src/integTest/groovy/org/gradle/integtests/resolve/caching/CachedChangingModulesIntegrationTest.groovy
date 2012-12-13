@@ -17,19 +17,14 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import spock.lang.Unroll
 
 public class CachedChangingModulesIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Unroll
-    def "can cache and refresh #descr versioned maven artifacts with a classifier"() {
+    def "can cache and refresh unique versioned maven artifacts with a classifier"() {
         given:
         server.start()
         def repo = mavenHttpRepo("repo")
         def module = repo.module("group", "projectA", "1.0-SNAPSHOT")
-        if (nonunique) {
-            module.withNonUniqueSnapshots()
-        }
         def sourceArtifact = module.artifact(classifier: "source")
 
         module.publish()
@@ -94,13 +89,78 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         then:
         executer.withArgument("--offline")
         run 'retrieve'
-
-        where:
-        nonunique  |   descr
-        true       |   "non uniuqe"
-        false      |   "unique"
     }
 
+    def "can cache and refresh non unique versioned maven artifacts with a classifier"() {
+        given:
+        server.start()
+        def repo = mavenHttpRepo("repo")
+        def module = repo.module("group", "projectA", "1.0-SNAPSHOT").withNonUniqueSnapshots()
+        def sourceArtifact = module.artifact(classifier: "source")
+
+        module.publish()
+        buildFile << """
+        repositories {
+            maven {
+                name 'repo'
+                url '${repo.uri}'
+            }
+        }
+        configurations {
+            compile
+        }
+
+        configurations.all {
+            resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+        }
+
+        dependencies {
+            compile 'group:projectA:1.0-SNAPSHOT:source'
+        }
+
+        task retrieve(type: Sync) {
+            into 'libs'
+            from configurations.compile
+        }
+        """
+
+        when:
+        module.expectPomGet()
+        sourceArtifact.expectGet()
+        module.expectMetaDataGetMissing()
+
+        then:
+        run 'retrieve'
+
+        when:
+        server.resetExpectations()
+        module.expectMetaDataGetMissing()
+        sourceArtifact.expectHead()
+        module.expectPomHead()
+        then:
+        run 'retrieve'
+
+        when:
+        module.publishWithChangedContent()
+        server.resetExpectations()
+
+        module.expectMetaDataGetMissing()
+        module.expectPomSha1Get()
+        module.expectPomHead()
+        module.expectPomGet()
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGet()
+        sourceArtifact.expectSha1Get()
+        then:
+        run 'retrieve'
+
+        when:
+        module.publishWithChangedContent()
+        server.resetExpectations()
+        then:
+        executer.withArgument("--offline")
+        run 'retrieve'
+    }
 
     def "can cache and refresh ivy changing artifacts with a classifier"() {
         given:

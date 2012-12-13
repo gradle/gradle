@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.caching
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenHttpModule
 import org.hamcrest.Matchers
-import spock.lang.Unroll
 
 class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -32,24 +31,23 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
 
     private void buildFileWithSnapshotDependency() {
         buildFile << """
+            configurations {
+                compile
+            }
 
-                       configurations {
-                           compile
-                       }
+            configurations.all {
+                resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+            }
 
-                       configurations.all {
-                           resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-                       }
+            dependencies {
+                compile 'group:projectA:1.0-SNAPSHOT'
+            }
 
-                       dependencies {
-                           compile 'group:projectA:1.0-SNAPSHOT'
-                       }
-
-                       task retrieve(type: Sync) {
-                           into 'libs'
-                           from configurations.compile
-                       }
-                       """
+            task retrieve(type: Sync) {
+                into 'libs'
+                from configurations.compile
+            }
+            """
     }
 
     def "can run offline mode after hitting broken repo url"() {
@@ -87,12 +85,11 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
         file('libs/projectA-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifact.file)
     }
 
-    @Unroll
-    def "can run offline mode after connection problem with repo url (using #descr snapshot version)"() {
+    def "can run offline mode after connection problem with repo url using unique snapshot version"() {
         given:
         buildFileWithSnapshotDependency()
         noAuthorizationRepo()
-        publishedMavenModule(withNonUniqueVersion)
+        publishedMavenModule()
 
         when:
         moduleAvailableViaHttp()
@@ -121,11 +118,41 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
         run 'retrieve'
         and:
         file('libs/projectA-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifact.file)
+    }
 
-        where:
-        withNonUniqueVersion    | descr
-        true                    | "non unique"
-        false                   | "unique"
+    def "can run offline mode after connection problem with repo url using non unique snapshot version"() {
+        given:
+        buildFileWithSnapshotDependency()
+        noAuthorizationRepo()
+        publishedMavenModule(true)
+
+        when:
+        moduleAvailableViaHttpWithoutMetaData()
+
+        then:
+        run 'retrieve'
+
+        when:
+        server.resetExpectations()
+        int port = server.port
+        server.stop()
+        then:
+        fails 'retrieve'
+
+        and:
+        //TODO should expose the failed task in the error message like
+        //failure.assertHasDescription('Execution failed for task \':retrieve\'.')
+        //failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertThatCause(Matchers.containsString("Connection to http://localhost:${port} refused"))
+
+        when:
+        server.resetExpectations()
+        then:
+        executer.withArgument("--offline")
+        run 'retrieve'
+        and:
+        file('libs/projectA-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifact.file)
     }
 
     def "can run offline mode after authentication fails on remote repo"() {
@@ -230,6 +257,13 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
         module.expectPomGet()
         module.getArtifact().expectGet()
     }
+
+    def moduleAvailableViaHttpWithoutMetaData() {
+        module.expectMetaDataGetMissing()
+        module.expectPomGet()
+        module.getArtifact().expectGet()
+    }
+
 
     private MavenHttpModule publishedMavenModule(withNonUniqueVersion = false) {
         module = repo.module("group", "projectA", "1.0-SNAPSHOT")
