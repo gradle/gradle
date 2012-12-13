@@ -1,21 +1,21 @@
 // START SNIPPET use-plugin
-apply plugin:'java-library-distribution'
+apply plugin: 'java-library-distribution'
 // END SNIPPET use-plugin
 
 version = '1.0.0'
 
 // START SNIPPET name-conf
-distribution{
-	name = 'my-name'
+distribution {
+    name = 'my-name'
 }
 // END SNIPPET name-conf
 
 // START SNIPPET custom-distZip
-distZip{
-	from('oneFile') //Copy to the root of the distribution
-	from('secondFile'){
-		into('dist') // Copy to the dist directory
-	}
+distZip {
+    from('oneFile') //Copy to the root of the distribution
+    from('secondFile') {
+        into('dist') // Copy to the dist directory
+    }
 }
 // END SNIPPET custom-distZip
 
