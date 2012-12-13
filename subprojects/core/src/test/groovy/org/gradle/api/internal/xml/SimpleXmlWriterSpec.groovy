@@ -137,7 +137,7 @@ class SimpleXmlWriterSpec extends Specification {
         action.call(writer)
 
         then:
-        assert sw.toString().startsWith("<root>") //is closed with '>'
+        sw.toString().startsWith("<root>") //is closed with '>'
 
         where:
         action << [{it.writeStartElement("foo")},
@@ -157,7 +157,7 @@ class SimpleXmlWriterSpec extends Specification {
         action.call(writer)
 
         then:
-        assert sw.toString().startsWith('<root foo="115">') //is closed with '>'
+        sw.toString().startsWith('<root foo="115">') //is closed with '>'
 
         where:
         action << [{it.writeStartElement("foo")},
