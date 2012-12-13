@@ -686,6 +686,8 @@ task checkDeps << {
         executer.withTasks("checkDeps").withArguments('-s').run()
     }
 
+    //TODO SF add coverage with conflicting forced modules
+
     def getRepo() {
         return maven(file("repo"))
     }
