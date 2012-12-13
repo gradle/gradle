@@ -33,15 +33,19 @@ import java.net.URI;
 public class FileTransport implements RepositoryTransport {
     private final String name;
     private final RepositoryCacheManager repositoryCacheManager;
-    private final TemporaryFileProvider temporaryFileProvider;
+    private final ExternalResourceRepository repository;
 
     public FileTransport(String name, RepositoryCacheManager repositoryCacheManager, TemporaryFileProvider temporaryFileProvider) {
         this.name = name;
         this.repositoryCacheManager = repositoryCacheManager;
-        this.temporaryFileProvider = temporaryFileProvider;
+        repository = createRepository(temporaryFileProvider);
     }
 
     public ExternalResourceRepository getRepository() {
+        return repository;
+    }
+
+    public ExternalResourceRepository createRepository(TemporaryFileProvider temporaryFileProvider) {
         FileResourceConnector connector = new FileResourceConnector();
         return new DefaultExternalResourceRepository(name, connector, connector, connector, temporaryFileProvider, new NoOpCacheAwareExternalResourceAccessor(connector));
     }
