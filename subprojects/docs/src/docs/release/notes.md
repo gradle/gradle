@@ -13,7 +13,7 @@ with different versions you might already have on your classpath. Happy embeddin
 
 ### [Java Library Distribution Plugin](userguide/javaLibraryDistributionPlugin.html)
 
-The Java library distribution allows bundling library for the jvm in a simple manner.
+Sébastien Cogneau contributed this plugin that allows bundling library for the jvm in a simple manner.
 
 Let's walk through a small example. Let's assume we have a project with the following layout:
 
