@@ -33,6 +33,7 @@ Improve TestNG test execution/reporting
 
 -change the testReport default value to 'true'
 -change the testNGOptions.useDefaultListeners default value to 'false'
+-deprecate testNGOptions.useDefaultListeners
 -there is a way to *only* generate the old reports
     -generation of new xml results is configurable (atm, it isn't)
 -update the documentation and release notes accordingly
@@ -64,6 +65,7 @@ Improve TestNG test execution/reporting
 ## Story: html test report generation is efficient
 
 -html report is generated from the binary format, not from xml results
+-separate Test report generation from TestFramework
 
 ## Story: html test report shows output per test
 

@@ -303,8 +303,8 @@ This story starts to introduce some component-specific publication.
    component instance is present. Add the appropriate methods to `ComponentInternal` to allow the component instance to specify which dependencies
    should be included so that the Maven publish plugin does not have any knowledge of the Java plugin.
 8. Change the Ivy publish plugin to include dependencies declared in `configurations.runtime.allDependencies` in the `runtime` configuration in the
-   generated descriptor. Also include a `default` configuration that extends `runtime`. As for the Maven publishing, the Ivy publish plugin should have
-   no knowledge of the Java plugin.
+   generated descriptor. Also include a `default` configuration that extends `runtime`. No other configurations should be included in the generated descriptor.
+   As for the Maven publishing, the Ivy publish plugin should have no knowledge of the Java plugin.
 5. Change the Maven publish plugin to include no dependencies in the generated POM when the `java` plugin has not been applied.
 6. Change the Maven publish plugin to include the dependencies from the `runtime` configuration in the generated POM when the `java` plugin has been applied.
 7. Publishing Java project -> only runtime and default configurations should be included.
