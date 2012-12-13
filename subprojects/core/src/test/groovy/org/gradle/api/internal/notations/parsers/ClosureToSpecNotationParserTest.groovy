@@ -22,7 +22,7 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 10/12/12
  */
-class ClosureToSpecNotationParserSpec extends Specification {
+class ClosureToSpecNotationParserTest extends Specification {
 
     private ClosureToSpecNotationParser parser = new ClosureToSpecNotationParser()
 
