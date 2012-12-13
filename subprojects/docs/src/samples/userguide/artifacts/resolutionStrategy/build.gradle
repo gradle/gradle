@@ -14,7 +14,7 @@ configurations.all {
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.group == 'org.gradle') {
-            details.forceVersion '1.4'
+            details.useVersion '1.4'
         }
     }
 }
