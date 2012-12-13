@@ -35,7 +35,7 @@ class ExternalResourceResolverTest extends Specification {
     LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder = Mock()
     BuildableArtifactResolveResult result = Mock()
     Artifact artifact = Mock()
-    ExternalResourceResolver.TimestampedModuleSource moduleSource = Mock()
+    MavenResolver.TimestampedModuleSource moduleSource = Mock()
     EnhancedArtifactDownloadReport downloadReport = Mock()
 
     ExternalResourceResolver resolver

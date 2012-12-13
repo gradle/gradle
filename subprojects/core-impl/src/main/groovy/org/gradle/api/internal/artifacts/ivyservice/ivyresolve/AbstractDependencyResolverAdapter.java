@@ -15,21 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.report.ArtifactDownloadReport;
-import org.apache.ivy.core.report.DownloadStatus;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
-import org.gradle.internal.UncheckedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.text.ParseException;
 
 public abstract class AbstractDependencyResolverAdapter implements ModuleVersionRepository {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDependencyResolverAdapter.class);
     private final DependencyResolverIdentifier identifier;
     protected final DependencyResolver resolver;
 
@@ -53,31 +42,5 @@ public abstract class AbstractDependencyResolverAdapter implements ModuleVersion
 
     public boolean isLocal() {
         return resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager;
-    }
-
-    protected boolean downloadFailed(ArtifactDownloadReport artifactReport) {
-        // Ivy reports FAILED with MISSING_ARTIFACT message when the artifact doesn't exist.
-        return artifactReport.getDownloadStatus() == DownloadStatus.FAILED
-                && !artifactReport.getDownloadDetails().equals(ArtifactDownloadReport.MISSING_ARTIFACT);
-    }
-
-    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
-        ResolveData resolveData = IvyContextualiser.getIvyContext().getResolveData();
-        try {
-            ResolvedModuleRevision revision = resolver.getDependency(dependencyDescriptor, resolveData);
-            if (revision == null) {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dependencyDescriptor.getDependencyRevisionId(), getName());
-                result.missing();
-            } else {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependencyDescriptor.getDependencyRevisionId(), getName());
-                result.resolved(revision.getDescriptor(), isChanging(revision), null);
-            }
-        } catch (ParseException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private boolean isChanging(ResolvedModuleRevision resolvedModuleRevision) {
-        return new ChangingModuleDetector(resolver).isChangingModule(resolvedModuleRevision.getDescriptor());
     }
 }

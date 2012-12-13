@@ -26,11 +26,15 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,6 +106,31 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         return dd.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT");
     }
 
+    protected EnhancedArtifactDownloadReport download(Artifact artifact, ModuleSource moduleSource) {
+        EnhancedArtifactDownloadReport artifactDownloadReport;
+
+        if (moduleSource instanceof TimestampedModuleSource) {
+            TimestampedModuleSource timestampedModuleSource = (TimestampedModuleSource) moduleSource;
+            String timestampedVersion = timestampedModuleSource.getTimestampedVersion();
+            artifactDownloadReport = downloadTimestampedVersion(artifact, timestampedVersion);
+        } else {
+            artifactDownloadReport = download(artifact);
+        }
+        return artifactDownloadReport;
+    }
+
+    private EnhancedArtifactDownloadReport downloadTimestampedVersion(Artifact artifact, String timestampedVersion) {
+        EnhancedArtifactDownloadReport artifactDownloadReport;
+        final ModuleRevisionId artifactModuleRevisionId = artifact.getModuleRevisionId();
+        final ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(artifactModuleRevisionId.getOrganisation(),
+                                                                               artifactModuleRevisionId.getName(),
+                                                                               artifactModuleRevisionId.getRevision(),
+                                                                               WrapUtil.toMap("timestamp", timestampedVersion));
+        final Artifact artifactWithResolvedModuleRevisionId = DefaultArtifact.cloneWithAnotherMrid(artifact, moduleRevisionId);
+        artifactDownloadReport = download(artifactWithResolvedModuleRevisionId);
+        return artifactDownloadReport;
+    }
+
     public void addArtifactLocation(URI baseUri, String pattern) {
         if (pattern != null && pattern.length() > 0) {
             throw new IllegalArgumentException("Maven Resolver only supports a single pattern. It cannot be provided on a per-location basis.");
@@ -134,11 +163,12 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         setArtifactPatterns(artifactPatterns);
     }
 
-    public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
+    public ResolvedResource findIvyFileRef(DependencyDescriptor dd) {
         if (isUsepoms()) {
             ModuleRevisionId moduleRevisionId = dd.getDependencyRevisionId();
             //we might need a own implementation of DefaultArtifact here as there is no way to pass extraAttributes AND isMetaData to DefaultArtifact
             Artifact pomArtifact = new DefaultArtifact(moduleRevisionId, null, moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
+            ResolveData data = IvyContextualiser.getIvyContext().getResolveData();
             ResourceMDParser parser = getRMDParser(dd, data);
             return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, parser, null, true);
         }
@@ -253,6 +283,18 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     public void setM2compatible(boolean compatible) {
         if (!compatible) {
             throw new IllegalArgumentException("Cannot set m2compatible = false on mavenRepo.");
+        }
+    }
+
+    protected static class TimestampedModuleSource implements ModuleSource{
+        public String getTimestampedVersion() {
+            return timestampedVersion;
+        }
+
+        private final String timestampedVersion;
+
+        public TimestampedModuleSource(String uniqueSnapshotVersion) {
+            this.timestampedVersion = uniqueSnapshotVersion;
         }
     }
 }
