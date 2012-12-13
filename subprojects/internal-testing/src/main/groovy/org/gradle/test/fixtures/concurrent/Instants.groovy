@@ -20,7 +20,7 @@ package org.gradle.test.fixtures.concurrent
  * A dynamic collection of {@link NamedInstant} objects. When a property of this object is accessed from a test thread, a new instant is defined. When
  * accessed from the main thread, queries an existing instant, asserting that it exists.
  */
-class Instants {
+class Instants implements InstantFactory {
     private final Object lock = new Object()
     private final Map<String, NamedInstant> timePoints = [:]
     private final TestExecutor executor
@@ -44,24 +44,35 @@ class Instants {
 
     def getProperty(String name) {
         def testThread = executor.testThread
+        if (testThread) {
+            return now(name)
+        } else {
+            return get(name)
+        }
+    }
+
+    NamedInstant get(String name) {
         synchronized (lock) {
             def time = timePoints[name]
-            if (testThread) {
-                if (time != null) {
-                    throw new IllegalStateException("Instant '$name' has already been defined by another test thread.")
-                }
-                def now = System.nanoTime()
-                time = new NamedInstant(name, now, timePoints.size())
-                timePoints[name] = time
-                lock.notifyAll()
-                println "* instant $name reached"
-                return time
-            } else {
-                if (time == null) {
-                    throw new IllegalStateException("Instant '$name' has not been defined by any test thread.")
-                }
-                return time
+            if (time == null) {
+                throw new IllegalStateException("Instant '$name' has not been defined by any test thread.")
             }
+            return time
+        }
+    }
+
+    NamedInstant now(String name) {
+        synchronized (lock) {
+            def time = timePoints[name]
+            if (time != null) {
+                throw new IllegalStateException("Instant '$name' has already been defined by another test thread.")
+            }
+            def now = System.nanoTime()
+            time = new NamedInstant(name, now, timePoints.size())
+            timePoints[name] = time
+            lock.notifyAll()
+            println "* instant $name reached"
+            return time
         }
     }
 }

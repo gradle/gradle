@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.test.fixtures.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -51,7 +49,7 @@ class ConcurrentSpec extends Specification {
      *
      * @see NamedOperation
      */
-    final Operations operation = new Operations()
+    final Operations operation = new Operations(instant)
 
     /**
      * An object that allows control over the current thread.
@@ -78,21 +76,22 @@ class ConcurrentSpec extends Specification {
 
     /**
      * Executes the given action and then blocks until all test threads have completed. The action may define instants for later querying outside the block.
-     * This method also defines an implicit 'start' instant immediately before the closure is executed, and an implicit 'end' instant immediately after the closure
-     * completes.
      */
     void async(Runnable action) {
         Date timeout = new Date(System.currentTimeMillis() + 20000)
         executor.start()
-        executor.execute {
-            instant.start
-            try {
-                action.run()
-            } finally {
-                instant.end
-            }
+        try {
+            executor.execute(action)
+        } finally {
+            executor.stop(timeout)
         }
-        executor.stop(timeout)
+    }
+
+    /**
+     * Starts a test thread that will run the given action. The action may define instants for later querying.
+     */
+    void start(Runnable action) {
+        executor.execute(action)
     }
 
     /**

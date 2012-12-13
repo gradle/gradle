@@ -94,7 +94,8 @@ class ConcurrentSpecTest extends ConcurrentSpec {
 
         when:
         operation.runAndWait {
-            worker.run(action, 10)
+            worker.runLater(action)
+            worker.stop()
         }
 
         then:
@@ -111,11 +112,30 @@ class ConcurrentSpecTest extends ConcurrentSpec {
 
         when:
         async {
+            instant.start
             worker.run(action, 2)
+            instant.end
         }
 
         then:
         instant.end - instant.start in approx(2000)
+    }
+
+    def "can use operation to test that method blocks for a certain time"() {
+        Worker worker = new Worker(executor)
+
+        given:
+        def action = {
+            thread.blockUntil.timesOut
+        }
+
+        when:
+        operation.timesOut {
+            worker.run(action, 2)
+        }
+
+        then:
+        operation.timesOut.duration in approx(2000)
     }
 
     def "fails when method does not block for expected time"() {
@@ -123,32 +143,51 @@ class ConcurrentSpecTest extends ConcurrentSpec {
 
         given:
         def action = {
-            thread.blockUntil.end
+            thread.blockUntil.runAndWait
         }
 
         when:
-        async {
+        operation.runAndWait {
             worker.run(action, 2)
         }
         def failure = null
         try {
-            assert instant.end - instant.start in approx(5000)
+            assert operation.runAndWait.duration in approx(5000)
         } catch (AssertionError e) {
             failure = e
         }
 
         then:
         failure != null
-        failure.message.contains('instant.end - instant.start in approx(5000)')
+        failure.message.contains('operation.runAndWait.duration in approx(5000)')
     }
 
-    def "an implicit start and time point is added"() {
+    def "can use instants to test that method executes one thing at a time"() {
+        Synchronizer synchronizer = new Synchronizer()
+
         given:
-        async {
+        def action1 = {
+            instant.action1Start
+            thread.block()
+            instant.action1End
+        }
+        def action2 = {
+            instant.action2Start
         }
 
-        expect:
-        instant.end > instant.start
+        when:
+        start {
+            synchronizer.runNow(action1)
+        }
+        async {
+            thread.blockUntil.action1Start
+            synchronizer.runNow(action2)
+            instant.end
+        }
+
+        then:
+        instant.action2Start > instant.action1End
+        instant.end > instant.action2Start
     }
 
     def "cannot query instant that has not been defined in test thread"() {
@@ -158,6 +197,37 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         then:
         IllegalStateException e = thrown()
         e.message == "Instant 'unknown' has not been defined by any test thread."
+    }
+
+    def "cannot query operation that has not been defined in test thread"() {
+        when:
+        operation.unknown
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Operation 'unknown' has not been defined by any test thread."
+    }
+
+    def "cannot query operation end time while it is running"() {
+        when:
+        operation.doStuff {
+            operation.doStuff.end
+        }
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Operation 'doStuff' has not completed yet."
+    }
+
+    def "cannot query operation duration while it is running"() {
+        when:
+        operation.doStuff {
+            operation.doStuff.duration
+        }
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Operation 'doStuff' has not completed yet."
     }
 
     def "can use test threads to define instants outside of an async { } block"() {
@@ -188,6 +258,14 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         then:
         RuntimeException e = thrown()
         e == failure
+    }
+
+    def "defines implicit instant for operation end point"() {
+        when:
+        operation.thing {}
+
+        then:
+        instant.thing == operation.thing.end
     }
 
     static class Worker {
@@ -236,4 +314,9 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         }
     }
 
+    static class Synchronizer {
+        synchronized void runNow(Runnable runnable) {
+            runnable.run()
+        }
+    }
 }

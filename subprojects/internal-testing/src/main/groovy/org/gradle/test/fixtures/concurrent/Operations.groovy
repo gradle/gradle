@@ -18,16 +18,34 @@ package org.gradle.test.fixtures.concurrent
 
 /**
  * A dynamic collection of {@link NamedOperation} instances. When a method is called that takes a single Runnable as parameter, a new operation is defined.
- * When a property is accessed, queries an existing operation, asserting that it exists.
+ * When a property is accessed, queries an existing operation, asserting that it exists. For example:
+ *
+ * <pre>
+ *  when:
+ *  // runs the given closure and defines operation 'doStuff'
+ *  operation.doStuff {
+ *      // do some test action
+ *  }
+ *
+ *  then:
+ *  // query
+ *  operation.doStuff.end > operation.doStuff.start
+ *  instant.doStuff == operation.doStuff.end
+ * </pre>
  */
 class Operations {
+    private final InstantFactory instantFactory
     private final Object lock = new Object()
     private final Map<String, NamedOperation> operations = [:]
+
+    Operations(InstantFactory instantFactory) {
+        this.instantFactory = instantFactory
+    }
 
     public def propertyMissing(String name) {
         synchronized (lock) {
             if (!operations.containsKey(name)) {
-                throw new IllegalStateException("Operation $name has not been defined by any test thread.")
+                throw new IllegalStateException("Operation '$name' has not been defined by any test thread.")
             }
             return operations[name]
         }
@@ -41,7 +59,7 @@ class Operations {
         def operation
         synchronized (lock) {
             if (operations.containsKey(name)) {
-                throw new IllegalStateException("Operation $name has already been defined.")
+                throw new IllegalStateException("Operation '$name' has already been defined.")
             }
             operation = new NamedOperation(name)
             operations[name] = operation
@@ -50,7 +68,7 @@ class Operations {
         try {
             action.run()
         } finally {
-            operation.completed()
+            operation.completed(instantFactory.now(operation.name))
         }
     }
 }

@@ -39,12 +39,16 @@ class NamedOperation {
     Instant getEnd() {
         def instant = end.get()
         if (instant == null) {
-            throw new IllegalStateException("Operation $name has not completed yet.")
+            throw new IllegalStateException("Operation '$name' has not completed yet.")
         }
         return instant
     }
 
-    void completed() {
-        end.compareAndSet(null, new Instant(System.nanoTime()))
+    Duration getDuration() {
+        return getEnd() - start
+    }
+
+    void completed(Instant when) {
+        end.compareAndSet(null, when)
     }
 }
