@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.RelativePathSpec;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
+import org.gradle.api.internal.notations.parsers.CharSequenceNotationParser;
 import org.gradle.api.specs.*;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate;
@@ -161,9 +162,9 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public PatternSet include(Iterable includes) {
-        // handles GStrings
+        CharSequenceNotationParser parser = new CharSequenceNotationParser();
         for (Object include : includes) {
-            this.includes.add(include.toString());
+            this.includes.add(parser.parseNotation(include));
         }
         return this;
     }
@@ -214,9 +215,9 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public PatternSet exclude(Iterable excludes) {
-        // handles GStrings
+        CharSequenceNotationParser parser = new CharSequenceNotationParser();
         for (Object exclude : excludes) {
-            this.excludes.add(exclude.toString());
+            this.excludes.add(parser.parseNotation(exclude));
         }
         return this;
     }
