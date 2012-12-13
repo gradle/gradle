@@ -66,6 +66,46 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         module.pom.scopes.runtime.assertDependsOn("junit", "junit", "4.1")
     }
 
+    def "pom can contain non-ascii characters"() {
+        // Group and Artifact do not permit non-ascii characters
+        def groupId = 'group'
+        def artifactId = 'artifact'
+
+        // Try version & description with non-ascii characters
+        def version = 'version-₦ガき∆'
+        def description = 'description-ç√∫'
+
+        given:
+        settingsFile << "rootProject.name = '${artifactId}'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = '${groupId}'
+            version = '${version}'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven {
+                        pom.withXml {
+                            asNode().appendNode('description', "${description}")
+                        }
+                    }
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module(groupId, artifactId, version)
+        module.assertPublishedAsJavaModule()
+        module.pom.description == description
+    }
+
     def "has reasonable error message when withXml fails"() {
         given:
         settingsFile << "rootProject.name = 'root'"
