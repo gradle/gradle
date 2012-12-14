@@ -110,4 +110,36 @@ task check << {
         failureHasCause("Could not download artifact 'group:module:1.2@jar'")
         failureHasCause("invalid sha1: expected=1234 computed=5b253435f362abf1a12197966e332df7d2b153f5")
     }
+
+    def "can configure resolver to fail when descriptor is not present"() {
+        server.start()
+
+        given:
+        def module = mavenHttpRepo.module("group", "module", "1.2").publish()
+
+        buildFile << """
+repositories {
+    def repo = mavenRepo url: '${mavenHttpRepo.uri}'
+    repo.descriptor = "required"
+}
+
+configurations {
+    check
+}
+
+dependencies {
+    check 'group:module:1.2'
+}
+
+task check << {
+    configurations.check.files
+}
+"""
+        and:
+        module.expectPomGetMissing()
+
+        expect:
+        fails 'check'
+        failureHasCause("Could not find group:group, module:module, version:1.2.")
+    }
 }

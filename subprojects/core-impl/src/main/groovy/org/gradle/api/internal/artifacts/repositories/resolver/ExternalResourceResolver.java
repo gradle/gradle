@@ -110,30 +110,12 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
     }
 
     public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
-        try {
-            ResolvedModuleRevision revision = doGetDependency(dependencyDescriptor);
-            if (revision == null) {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dependencyDescriptor.getDependencyRevisionId(), getName());
-                result.missing();
-            } else {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependencyDescriptor.getDependencyRevisionId(), getName());
-                result.resolved(revision.getDescriptor(), isChanging(revision.getDescriptor()), null);
-            }
-        } catch (ParseException e) {
-            result.failed(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), e));
-        }
-    }
+        DependencyDescriptor nsDd = fromSystem(dependencyDescriptor);
 
-    public ResolvedModuleRevision doGetDependency(DependencyDescriptor dd)
-            throws ParseException {
-        DependencyDescriptor systemDd = dd;
-        DependencyDescriptor nsDd = fromSystem(dd);
-
-        ModuleRevisionId systemMrid = systemDd.getDependencyRevisionId();
+        ModuleRevisionId systemMrid = dependencyDescriptor.getDependencyRevisionId();
         ModuleRevisionId nsMrid = nsDd.getDependencyRevisionId();
 
         boolean isDynamic = getVersionMatcher().isDynamic(systemMrid);
-        ResolvedModuleRevision rmr = null;
 
         ResolvedResource ivyRef = findIvyFileRef(nsDd);
 
@@ -142,44 +124,37 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
         ModuleDescriptor systemMd;
         if (ivyRef == null) {
             if (!isAllownomd()) {
-                LOGGER.debug("No ivy file found for {}", systemMrid);
-                return null;
+                LOGGER.debug("No ivy file found for module '{}' in repository '{}'.", systemMrid, getName());
+                result.missing();
+                return;
             }
-            nsMd = DefaultModuleDescriptor.newDefaultInstance(nsMrid, nsDd
-                    .getAllDependencyArtifacts());
+            nsMd = DefaultModuleDescriptor.newDefaultInstance(nsMrid, nsDd.getAllDependencyArtifacts());
             ResolvedResource artifactRef = findFirstArtifactRef(nsMd);
             if (artifactRef == null) {
-                LOGGER.debug("No ivy file nor artifact found for {}", systemMrid);
-                return null;
+                LOGGER.debug("No ivy file nor artifact found for module '{}' in repository '{}'.", systemMrid, getName());
+                result.missing();
             } else {
                 long lastModified = artifactRef.getLastModified();
                 if (lastModified != 0 && nsMd instanceof DefaultModuleDescriptor) {
                     ((DefaultModuleDescriptor) nsMd).setLastModified(lastModified);
                 }
-                Message.verbose("\t" + getName() + ": no ivy file found for " + systemMrid
-                        + ": using default data");
+                LOGGER.debug("No ivy file found for module '{}' in repository '{}', using default data instead.", systemMrid, getName());
                 if (isDynamic) {
-                    nsMd.setResolvedModuleRevisionId(ModuleRevisionId.newInstance(nsMrid,
-                            artifactRef.getRevision()));
+                    nsMd.setResolvedModuleRevisionId(ModuleRevisionId.newInstance(nsMrid, artifactRef.getRevision()));
                 }
                 systemMd = toSystem(nsMd);
-                MetadataArtifactDownloadReport madr =
-                        new MetadataArtifactDownloadReport(systemMd.getMetadataArtifact());
-                madr.setDownloadStatus(DownloadStatus.NO);
-                madr.setSearched(true);
-                rmr = new ResolvedModuleRevision(this, this, systemMd, madr, isForce());
+                result.resolved(systemMd, isChanging(systemMd), null);
             }
         } else {
-            if (ivyRef instanceof MDResolvedResource) {
-                rmr = ((MDResolvedResource) ivyRef).getResolvedModuleRevision();
-            }
-            if (rmr == null) {
-                rmr = parse(ivyRef, systemDd);
-            }
-            if (!rmr.getReport().isDownloaded()
-                    && rmr.getReport().getLocalFile() != null) {
-                return rmr;
-            } else {
+            try {
+                ResolvedModuleRevision rmr = null;
+                if (ivyRef instanceof MDResolvedResource) {
+                    rmr = ((MDResolvedResource) ivyRef).getResolvedModuleRevision();
+                }
+                if (rmr == null) {
+                    rmr = parse(ivyRef, dependencyDescriptor);
+                }
+
                 nsMd = rmr.getDescriptor();
 
                 // check descriptor data is in sync with resource revision and names
@@ -188,11 +163,12 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
                     checkDescriptorConsistency(systemMrid, systemMd, ivyRef);
                     checkDescriptorConsistency(nsMrid, nsMd, ivyRef);
                 }
-                rmr = new ResolvedModuleRevision(
-                        this, this, systemMd, toSystem(rmr.getReport()), isForce());
+                LOGGER.debug("Ivy file found for module '{}' in repository '{}'.", systemMrid, getName());
+                result.resolved(systemMd, isChanging(systemMd), null);
+            } catch (ParseException e) {
+                result.failed(new ModuleVersionResolveException(systemMrid, e));
             }
         }
-        return rmr;
     }
 
     protected VersionMatcher getVersionMatcher() {
@@ -626,7 +602,7 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
 
         ExternalResource checksumResource = repository.getResource(resource.getName() + "." + algorithm);
         if (checksumResource != null && checksumResource.exists()) {
-            Message.debug(algorithm + " file found for " + resource + ": checking...");
+            LOGGER.debug(algorithm + " file found for " + resource + ": checking...");
             File csFile = File.createTempFile("ivytmp", algorithm);
             try {
                 get(checksumResource, csFile);
@@ -695,17 +671,8 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
     }
 
     public void dumpSettings() {
-        super.dumpSettings();
-        Message.debug("\t\tm2compatible: " + isM2compatible());
-        Message.debug("\t\tivy patterns:");
-        for (String p : getIvyPatterns()) {
-            Message.debug("\t\t\t" + p);
-        }
-        Message.debug("\t\tartifact patterns:");
-        for (String p : getArtifactPatterns()) {
-            Message.debug("\t\t\t" + p);
-        }
-        Message.debug("\t\trepository: " + repository);
+        // this is not used
+        throw new UnsupportedOperationException();
     }
 
     public boolean isM2compatible() {
