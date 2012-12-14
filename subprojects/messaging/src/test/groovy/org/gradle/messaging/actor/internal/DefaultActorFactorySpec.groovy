@@ -170,15 +170,16 @@ class DefaultActorFactorySpec extends ConcurrentSpec {
         operation.dispatch {
             proxy.doStuff('param')
         }
+        thread.blockUntil.actionFinished
 
         then:
         1 * target.doStuff('param') >> {
             thread.block()
-            instant.finished
+            instant.actionFinished
         }
 
         and:
-        operation.dispatch.end < instant.finished
+        operation.dispatch.end < instant.actionFinished
     }
 
     def nonBlockingActorPropagatesMethodFailuresOnStop() {
