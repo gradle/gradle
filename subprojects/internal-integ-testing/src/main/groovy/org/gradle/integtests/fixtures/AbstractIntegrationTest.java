@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import com.google.common.collect.Sets;
 import org.gradle.integtests.fixtures.executer.*;
 import org.gradle.test.fixtures.ivy.IvyFileRepository;
 import org.gradle.test.fixtures.maven.MavenFileRepository;
@@ -23,11 +24,9 @@ import org.gradle.util.TestFileContext;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 
 import java.io.File;
+import java.util.Set;
 
 public abstract class AbstractIntegrationTest implements TestFileContext {
     @Rule public final GradleDistribution distribution = new GradleDistribution();
@@ -36,7 +35,7 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     @ClassRule public static final GradleDistribution SHARED_DISTRIBUTION = new GradleDistribution();
     private static final GradleDistributionExecuter SHARED_EXECUTER = new GradleDistributionExecuter(SHARED_DISTRIBUTION);
 
-    @ClassRule public static final PerClassState PER_CLASS_STATE = new PerClassState();
+    private static final Set<Class<?>> SHARED_BUILD_RUN_CLASSES = Sets.newHashSet();
 
     protected boolean useSharedBuild;
 
@@ -55,11 +54,10 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
 
     @Before
     public void doRunSharedBuild() {
-        if (!PER_CLASS_STATE.sharedBuildRun) {
+        if (SHARED_BUILD_RUN_CLASSES.add(getClass())) {
             useSharedBuild = true;
             runSharedBuild();
             useSharedBuild = false;
-            PER_CLASS_STATE.sharedBuildRun = true;
         }
     }
 
@@ -125,13 +123,5 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
             ivyRepo = new IvyFileRepository(file("ivy-repo"));
         }
         return ivyRepo;
-    }
-
-    private static class PerClassState implements TestRule {
-        boolean sharedBuildRun;
-
-        public Statement apply(Statement base, Description description) {
-            return base;
-        }
     }
 }
