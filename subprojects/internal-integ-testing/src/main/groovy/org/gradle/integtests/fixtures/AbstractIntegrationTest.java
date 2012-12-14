@@ -36,7 +36,7 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     @ClassRule public static final GradleDistribution SHARED_DISTRIBUTION = new GradleDistribution();
     private static final GradleDistributionExecuter SHARED_EXECUTER = new GradleDistributionExecuter(SHARED_DISTRIBUTION);
 
-    @ClassRule public static final PerClassState perClassState = new PerClassState();
+    @ClassRule public static final PerClassState PER_CLASS_STATE = new PerClassState();
 
     protected boolean useSharedBuild;
 
@@ -55,11 +55,11 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
 
     @Before
     public void doRunSharedBuild() {
-        if (!perClassState.sharedBuildRun) {
+        if (!PER_CLASS_STATE.sharedBuildRun) {
             useSharedBuild = true;
             runSharedBuild();
             useSharedBuild = false;
-            perClassState.sharedBuildRun = true;
+            PER_CLASS_STATE.sharedBuildRun = true;
         }
     }
 
