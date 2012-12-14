@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -64,7 +65,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
             return failure;
         }
 
-        public ModuleRevisionId getId() throws ModuleVersionResolveException {
+        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
             throw failure;
         }
 

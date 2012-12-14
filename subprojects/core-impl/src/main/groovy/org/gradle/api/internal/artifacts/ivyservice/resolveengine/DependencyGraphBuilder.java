@@ -427,7 +427,8 @@ public class DependencyGraphBuilder {
         public ResolveState(ModuleDescriptor rootModule, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver, ResolveData resolveData) {
             this.resolver = resolver;
             this.resolveData = resolveData;
-            DefaultModuleRevisionResolveState rootVersion = getRevision(rootModule.getModuleRevisionId());
+            final ModuleRevisionId moduleRevisionId = rootModule.getModuleRevisionId();
+            DefaultModuleRevisionResolveState rootVersion = getRevision(new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision()));
             rootVersion.setDescriptor(rootModule);
             root = getConfigurationNode(rootVersion, rootConfigurationName);
             root.moduleRevision.module.select(root.moduleRevision);
@@ -443,8 +444,8 @@ public class DependencyGraphBuilder {
             return module;
         }
 
-        public DefaultModuleRevisionResolveState getRevision(ModuleRevisionId moduleRevisionId) {
-            ModuleRevisionId id = new ModuleRevisionId(new ModuleId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName()), moduleRevisionId.getRevision());
+        public DefaultModuleRevisionResolveState getRevision(ModuleVersionIdentifier moduleVersionIdentifier) {
+            ModuleRevisionId id = new ModuleRevisionId(new ModuleId(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName()), moduleVersionIdentifier.getVersion());
             return getModule(id.getModuleId()).getVersion(id);
         }
 

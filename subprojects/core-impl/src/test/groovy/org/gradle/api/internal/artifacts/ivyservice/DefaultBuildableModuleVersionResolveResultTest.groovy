@@ -96,12 +96,19 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     }
 
     def "failure is null when successfully resolved"() {
+        setup:
+        ModuleRevisionId moduleRevisionId = Mock()
+        1 * moduleRevisionId.organisation >> "group"
+        1 * moduleRevisionId.name >> "name"
+        1 * moduleRevisionId.revision >> "1.0"
+
         when:
-        result.resolved(Mock(ModuleRevisionId), Mock(ModuleDescriptor), Mock(ArtifactResolver))
+        result.resolved(moduleRevisionId, Mock(ModuleDescriptor), Mock(ArtifactResolver))
 
         then:
         result.failure == null
     }
+
 
     def "fails with a not found exception when not found"() {
         when:

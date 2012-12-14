@@ -22,7 +22,9 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.version.VersionMatcher;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
@@ -72,8 +74,9 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             this.dependencyDescriptor = dependencyDescriptor;
         }
 
-        public ModuleRevisionId getId() throws ModuleVersionResolveException {
-            return dependencyDescriptor.getDependencyRevisionId();
+        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
+            final ModuleRevisionId dependencyRevisionId = dependencyDescriptor.getDependencyRevisionId();
+            return new DefaultModuleVersionIdentifier(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
         }
 
         public ModuleVersionResolveException getFailure() {
@@ -149,7 +152,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
         }
 
         @Override
-        public ModuleRevisionId getId() throws ModuleVersionResolveException {
+        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
             return resolve().getId();
         }
 

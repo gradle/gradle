@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 public interface ModuleVersionResolveResult {
     /**
@@ -25,7 +25,7 @@ public interface ModuleVersionResolveResult {
      *
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
-    ModuleRevisionId getId() throws ModuleVersionResolveException;
+    ModuleVersionIdentifier getId() throws ModuleVersionResolveException;
 
     /**
      * Returns the descriptor for this module version.

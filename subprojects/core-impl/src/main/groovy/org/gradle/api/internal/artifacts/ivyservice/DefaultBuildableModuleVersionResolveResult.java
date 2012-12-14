@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
-    private ModuleRevisionId moduleRevisionId;
+    private ModuleVersionIdentifier moduleVersionIdentifier;
     private ModuleDescriptor moduleDescriptor;
     private ModuleVersionResolveException failure;
     private ArtifactResolver artifactResolver;
@@ -36,14 +38,14 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
     }
 
     public void resolved(ModuleRevisionId moduleRevisionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
-        this.moduleRevisionId = moduleRevisionId;
+        this.moduleVersionIdentifier = toModuleVersionIdentifier(moduleRevisionId);
         this.moduleDescriptor = descriptor;
         this.artifactResolver = artifactResolver;
     }
 
     public void setMetaData(ModuleRevisionId moduleRevisionId, ModuleDescriptor descriptor) {
         assertResolved();
-        this.moduleRevisionId = moduleRevisionId;
+        this.moduleVersionIdentifier = toModuleVersionIdentifier(moduleRevisionId);
         this.moduleDescriptor = descriptor;
     }
 
@@ -52,9 +54,9 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         this.artifactResolver = artifactResolver;
     }
 
-    public ModuleRevisionId getId() throws ModuleVersionResolveException {
+    public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
         assertResolved();
-        return moduleRevisionId;
+        return moduleVersionIdentifier;
     }
 
     public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
@@ -70,6 +72,10 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
     public ModuleVersionResolveException getFailure() {
         assertHasResult();
         return failure;
+    }
+
+    private ModuleVersionIdentifier toModuleVersionIdentifier(ModuleRevisionId moduleRevisionId) {
+        return new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
     }
 
     private void assertResolved() {

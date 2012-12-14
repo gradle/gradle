@@ -36,7 +36,9 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def idResolveResult = resolver.resolve(dependency)
 
         then:
-        idResolveResult.id == dependency.dependencyRevisionId
+        idResolveResult.id.group == module.moduleRevisionId.organisation
+        idResolveResult.id.name == module.moduleRevisionId.name
+        idResolveResult.id.version == module.moduleRevisionId.revision
 
         and:
         0 * target._
@@ -45,7 +47,10 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def moduleResolveResult = idResolveResult.resolve()
 
         then:
-        moduleResolveResult.id == module.moduleRevisionId
+        moduleResolveResult.id.group == module.moduleRevisionId.organisation
+        moduleResolveResult.id.name == module.moduleRevisionId.name
+        moduleResolveResult.id.version == module.moduleRevisionId.revision
+
         moduleResolveResult.descriptor == module
 
         1 * target.resolve(dependency, _) >> { args -> args[1].resolved(module.moduleRevisionId, module, Mock(ArtifactResolver))}
@@ -64,7 +69,9 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def id = idResolveResult.id
 
         then:
-        id == module.moduleRevisionId
+        id.group == module.moduleRevisionId.organisation
+        id.name == module.moduleRevisionId.name
+        id.version == module.moduleRevisionId.revision
 
         and:
         1 * target.resolve(dependency, _) >> { args -> args[1].resolved(module.moduleRevisionId, module, Mock(ArtifactResolver))}

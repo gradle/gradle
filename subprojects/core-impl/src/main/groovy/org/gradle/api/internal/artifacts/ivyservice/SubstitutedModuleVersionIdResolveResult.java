@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 
 /**
@@ -36,7 +36,7 @@ class SubstitutedModuleVersionIdResolveResult implements ModuleVersionIdResolveR
         return result.getFailure();
     }
 
-    public ModuleRevisionId getId() throws ModuleVersionResolveException {
+    public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
         return result.getId();
     }
 
