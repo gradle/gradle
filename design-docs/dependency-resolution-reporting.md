@@ -162,6 +162,9 @@ For all other problems, the task should continue to fail as it does now.
     * The unresolved dependency is rendered in the appropriate location in the tree. The output should show the user which version actually could not
       be resolved, as above.
     * The build does not fail.
+* A build that declares a dependency on multiple dynamic versions (eg 1.2+, latest.integration), none of which exist.
+* A build that declares a dependency on a static version (eg 1.2.), but a force rule replaces this with a dynamic version (e.g. 1.2+), for which no matches exist.
+    * The dependency should be rendered as something like: `foo:bar:1.2 -> 1.2+ FAILED`
 
 ### Implementation approach
 
