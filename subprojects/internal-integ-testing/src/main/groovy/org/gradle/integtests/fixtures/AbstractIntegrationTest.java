@@ -20,8 +20,12 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository;
 import org.gradle.test.fixtures.maven.MavenFileRepository;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestFileContext;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 import java.io.File;
 
@@ -32,17 +36,31 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     @ClassRule public static final GradleDistribution SHARED_DISTRIBUTION = new GradleDistribution();
     private static final GradleDistributionExecuter SHARED_EXECUTER = new GradleDistributionExecuter(SHARED_DISTRIBUTION);
 
-    protected boolean useSharedFixture;
+    @ClassRule public static final PerClassState perClassState = new PerClassState();
+
+    protected boolean useSharedBuild;
 
     private MavenFileRepository mavenRepo;
     private IvyFileRepository ivyRepo;
 
     protected GradleDistribution getDistribution() {
-        return useSharedFixture ? SHARED_DISTRIBUTION : distribution;
+        return useSharedBuild ? SHARED_DISTRIBUTION : distribution;
     }
 
     protected GradleDistributionExecuter getExecuter() {
-        return useSharedFixture ? SHARED_EXECUTER : executer;
+        return useSharedBuild ? SHARED_EXECUTER : executer;
+    }
+
+    protected void runSharedBuild() {}
+
+    @Before
+    public void doRunSharedBuild() {
+        if (!perClassState.sharedBuildRun) {
+            useSharedBuild = true;
+            runSharedBuild();
+            useSharedBuild = false;
+            perClassState.sharedBuildRun = true;
+        }
     }
 
     public TestFile getTestDir() {
@@ -107,5 +125,13 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
             ivyRepo = new IvyFileRepository(file("ivy-repo"));
         }
         return ivyRepo;
+    }
+
+    private static class PerClassState implements TestRule {
+        boolean sharedBuildRun;
+
+        public Statement apply(Statement base, Description description) {
+            return base;
+        }
     }
 }

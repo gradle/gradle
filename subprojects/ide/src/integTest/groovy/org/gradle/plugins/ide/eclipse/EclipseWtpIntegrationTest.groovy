@@ -15,24 +15,17 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.junit.Before
 import org.junit.Test
 import spock.lang.Issue
 
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
-    private static boolean setupSharedFixtureRun
-
-    @Before
-    void setupSharedFixture() {
-        useSharedFixture = true
-        if (!setupSharedFixtureRun) {
-            generateEclipseFilesForWebProject()
-            setupSharedFixtureRun = true
-        }
+    void runSharedBuild() {
+        generateEclipseFilesForWebProject()
     }
 
     @Test
     void projectDependenciesOfWebProjectAreMarkedAsJstUtilityProjects() {
+        useSharedBuild = true;
         hasUtilityFacet("java1")
         hasUtilityFacet("java2")
         hasUtilityFacet("groovy")
@@ -40,6 +33,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void projectDependenciesOfWebProjectHaveNecessaryNaturesAdded() {
+        useSharedBuild = true;
         hasNecessaryNaturesAdded("java1")
         hasNecessaryNaturesAdded("java2")
         hasNecessaryNaturesAdded("groovy")
@@ -47,6 +41,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void projectDependenciesOfWebProjectHaveNecessaryBuildersAdded() {
+        useSharedBuild = true;
         hasNecessaryBuildersAdded("java1")
         hasNecessaryBuildersAdded("java2")
         hasNecessaryBuildersAdded("groovy")
@@ -54,6 +49,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void projectDependenciesOfWebProjectHaveTrimmedDownComponentSettingsFile() {
+        useSharedBuild = true;
         hasTrimmedDownComponentSettingsFile("java1", "src/main/java", "src/main/resources")
         hasTrimmedDownComponentSettingsFile("java2", "src/main/java", "src/main/resources")
         hasTrimmedDownComponentSettingsFile("groovy", "src/main/java", "src/main/groovy", "src/main/resources")
@@ -61,6 +57,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void jarDependenciesOfUtilityProjectsAreFlaggedAsRuntimeDependency() {
+        useSharedBuild = true;
         def classpath = parseClasspathFile(project: "java1")
 
         def firstLevelDep = classpath.classpathentry.find { it.@path.text().endsWith("myartifact-1.0.jar") }
@@ -73,6 +70,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void allProjectDependenciesOfWebProjectAreAddedAsRuntimeDependencies() {
+        useSharedBuild = true;
         def projectModules = parseComponentFile(project: "web", print: true)
 
 		assert getDeployName(projectModules) == "web"
@@ -83,7 +81,7 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     @Issue("GRADLE-1415")
     void canUseSelfResolvingFiles() {
-        useSharedFixture = false
+        useSharedBuild = false
 
         def buildFile = """
 apply plugin: "war"
@@ -108,7 +106,7 @@ dependencies {
     @Test
     @Issue("GRADLE-2526")
     void overwritesDependentModules() {
-        useSharedFixture = false
+        useSharedBuild = false
 
         generateEclipseFilesForWebProject()
         def projectModules = parseComponentFile(project: "web")
