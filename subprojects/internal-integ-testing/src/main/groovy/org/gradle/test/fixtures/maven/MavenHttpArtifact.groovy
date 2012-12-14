@@ -31,7 +31,12 @@ class MavenHttpArtifact extends HttpArtifact {
 
     @Override
     File getSha1File() {
-        backingModule.sha1File(file);
+        backingModule.sha1File(file)
+    }
+
+    @Override
+    File getMd5File() {
+        backingModule.md5File(file)
     }
 
     TestFile getFile() {

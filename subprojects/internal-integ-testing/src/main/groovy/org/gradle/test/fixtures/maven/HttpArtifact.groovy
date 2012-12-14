@@ -41,11 +41,11 @@ abstract class HttpArtifact extends HttpResource {
     }
 
     void expectSha1Get() {
-        server.expectGet(artifactSha1Path, sha1File)
+        server.expectGet("${path}.sha1", sha1File)
     }
 
-    String getArtifactSha1Path() {
-        "${getPath()}.sha1"
+    void expectMd5Get() {
+        server.expectGet("${path}.md5", md5File)
     }
 
     protected String getPath() {
@@ -53,6 +53,8 @@ abstract class HttpArtifact extends HttpResource {
     }
 
     abstract File getSha1File();
+
+    abstract File getMd5File();
 
     abstract TestFile getFile();
 }

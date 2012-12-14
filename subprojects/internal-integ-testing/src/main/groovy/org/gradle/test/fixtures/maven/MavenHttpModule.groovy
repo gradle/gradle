@@ -232,6 +232,10 @@ class MavenHttpModule implements MavenModule {
         server.expectGetMissing("$moduleVersionPath/${missingPomName}.sha1")
     }
 
+    void expectPomMd5Get() {
+        server.expectGet("$moduleVersionPath/${pomFile.name}.md5", backingModule.getMd5File(pomFile))
+    }
+
     private String getMissingPomName() {
         if (backingModule.version.endsWith("-SNAPSHOT")) {
             return "${backingModule.artifactId}-${backingModule.version}.pom"

@@ -40,10 +40,12 @@ import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.BasicResolver;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.MDResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.plugins.version.VersionMatcher;
+import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
@@ -66,7 +68,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 
-public class ExternalResourceResolver extends BasicResolver {
+public class ExternalResourceResolver extends BasicResolver implements DependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private List<String> ivyPatterns = new ArrayList<String>();
@@ -130,7 +132,7 @@ public class ExternalResourceResolver extends BasicResolver {
         ModuleRevisionId systemMrid = systemDd.getDependencyRevisionId();
         ModuleRevisionId nsMrid = nsDd.getDependencyRevisionId();
 
-        boolean isDynamic = getSettings().getVersionMatcher().isDynamic(systemMrid);
+        boolean isDynamic = getVersionMatcher().isDynamic(systemMrid);
         ResolvedModuleRevision rmr = null;
 
         ResolvedResource ivyRef = findIvyFileRef(nsDd);
@@ -193,6 +195,10 @@ public class ExternalResourceResolver extends BasicResolver {
         return rmr;
     }
 
+    protected VersionMatcher getVersionMatcher() {
+        return getSettings().getVersionMatcher();
+    }
+
     private ResolvedModuleRevision parse(final ResolvedResource mdRef, DependencyDescriptor dd) throws ParseException {
         return parse(mdRef, dd, IvyContextualiser.getIvyContext().getResolveData());
     }
@@ -213,7 +219,7 @@ public class ExternalResourceResolver extends BasicResolver {
         ModuleRevisionId resolvedMrid = mrid;
 
         // first check if this dependency has not yet been resolved
-        if (getSettings().getVersionMatcher().isDynamic(mrid)) {
+        if (getVersionMatcher().isDynamic(mrid)) {
             resolvedMrid = ModuleRevisionId.newInstance(mrid, mdRef.getRevision());
         }
 
@@ -253,7 +259,7 @@ public class ExternalResourceResolver extends BasicResolver {
         if (ivyRef.getRevision() != null && !ivyRef.getRevision().startsWith("working@")) {
             ModuleRevisionId expectedMrid = ModuleRevisionId
                     .newInstance(mrid, ivyRef.getRevision());
-            if (!getSettings().getVersionMatcher().accept(expectedMrid, md)) {
+            if (!getVersionMatcher().accept(expectedMrid, md)) {
                 Message.error("\t" + getName() + ": bad revision found in " + ivyRef.getResource()
                         + ": expected='" + ivyRef.getRevision() + " found='"
                         + md.getModuleRevisionId().getRevision() + "'");
@@ -348,7 +354,7 @@ public class ExternalResourceResolver extends BasicResolver {
     protected ResolvedResource findResourceUsingPatterns(ModuleRevisionId moduleRevision, List<String> patternList, Artifact artifact, ResourceMDParser rmdparser, Date date, boolean forDownload) {
         List<ResolvedResource> resolvedResources = new ArrayList<ResolvedResource>();
         Set<String> foundRevisions = new HashSet<String>();
-        boolean dynamic = getSettings().getVersionMatcher().isDynamic(moduleRevision);
+        boolean dynamic = getVersionMatcher().isDynamic(moduleRevision);
         for (String pattern : patternList) {
             ResourcePattern resourcePattern = toResourcePattern(pattern);
             ResolvedResource rres = findResourceUsingPattern(moduleRevision, resourcePattern, artifact, rmdparser, date, forDownload);
@@ -380,7 +386,7 @@ public class ExternalResourceResolver extends BasicResolver {
 
     public ResolvedResource findLatestResource(ModuleRevisionId mrid, VersionList versions, ResourceMDParser rmdparser, Date date, ResourcePattern pattern, Artifact artifact, boolean forDownload) {
         String name = getName();
-        VersionMatcher versionMatcher = getSettings().getVersionMatcher();
+        VersionMatcher versionMatcher = getVersionMatcher();
         List<String> sorted = versions.sortLatestFirst(getLatestStrategy());
         for (String version : sorted) {
             ModuleRevisionId foundMrid = ModuleRevisionId.newInstance(mrid, version);
@@ -427,7 +433,7 @@ public class ExternalResourceResolver extends BasicResolver {
     }
 
     protected ResolvedResource findResourceUsingPattern(ModuleRevisionId moduleRevisionId, ResourcePattern pattern, Artifact artifact, ResourceMDParser resourceParser, Date date, boolean forDownload) {
-        VersionMatcher versionMatcher = getSettings().getVersionMatcher();
+        VersionMatcher versionMatcher = getVersionMatcher();
         if (!versionMatcher.isDynamic(moduleRevisionId)) {
             return findStaticResourceUsingPattern(moduleRevisionId, pattern, artifact, forDownload);
         } else {
@@ -600,6 +606,39 @@ public class ExternalResourceResolver extends BasicResolver {
             externalResource.close();
         }
         return destination.length();
+    }
+
+    @Override
+    protected long getAndCheck(Resource resource, File dest) throws IOException {
+        long size = get(resource, dest);
+        String[] checksums = getChecksumAlgorithms();
+        boolean checked = false;
+        for (int i = 0; i < checksums.length && !checked; i++) {
+            checked = check(resource, dest, checksums[i]);
+        }
+        return size;
+    }
+
+    private boolean check(Resource resource, File dest, String algorithm) throws IOException {
+        if (!ChecksumHelper.isKnownAlgorithm(algorithm)) {
+            throw new IllegalArgumentException("Unknown checksum algorithm: " + algorithm);
+        }
+
+        ExternalResource checksumResource = repository.getResource(resource.getName() + "." + algorithm);
+        if (checksumResource != null && checksumResource.exists()) {
+            Message.debug(algorithm + " file found for " + resource + ": checking...");
+            File csFile = File.createTempFile("ivytmp", algorithm);
+            try {
+                get(checksumResource, csFile);
+                ChecksumHelper.check(dest, csFile, algorithm);
+                Message.verbose(algorithm + " OK for " + resource);
+                return true;
+            } finally {
+                csFile.delete();
+            }
+        } else {
+            return false;
+        }
     }
 
     public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
