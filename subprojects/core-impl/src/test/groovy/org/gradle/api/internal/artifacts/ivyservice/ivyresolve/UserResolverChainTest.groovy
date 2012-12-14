@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy
 import org.apache.ivy.plugins.resolver.ResolverSettings
 import org.apache.ivy.plugins.version.VersionMatcher
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import spock.lang.Specification
 
@@ -36,6 +37,9 @@ class UserResolverChainTest extends Specification {
     final ModuleSource moduleSource = Mock()
 
     def setup() {
+        _ * dependencyId.organisation >> "group"
+        _ * dependencyId.name >> "project"
+        _ * dependencyId.revision >> "1.0"
         dependency.dependencyRevisionId >> dependencyId
         def settings = Stub(ResolverSettings)
         _ * settings.versionMatcher >> matcher
@@ -55,7 +59,7 @@ class UserResolverChainTest extends Specification {
         1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, rep ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, rep ->
             assert rep.delegate == repo
             assert rep.moduleSource == moduleSource
         }
@@ -79,7 +83,7 @@ class UserResolverChainTest extends Specification {
         1 * repo.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, rep ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, rep ->
             assert rep.delegate == repo
             assert rep.moduleSource == moduleSource
         }
@@ -104,7 +108,7 @@ class UserResolverChainTest extends Specification {
         1 * repo.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, rep ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, rep ->
             assert rep.delegate == repo
             assert rep.moduleSource == moduleSource
         }
@@ -127,7 +131,12 @@ class UserResolverChainTest extends Specification {
         1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
-        1 * result.notFound(dependencyId)
+        1 * result.notFound(_ as ModuleVersionIdentifier) >> { ModuleVersionIdentifier mdV ->
+            assert mdV.group == "group"
+            assert mdV.name == "project"
+            assert mdV.version == "1.0"
+
+        }
 
         and:
         _ * repo.name >> "repo"
@@ -150,7 +159,11 @@ class UserResolverChainTest extends Specification {
         1 * repo.getDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
-        1 * result.notFound(dependencyId)
+        1 * result.notFound(_ as ModuleVersionIdentifier) >> { ModuleVersionIdentifier moduleVersionIdentifier ->
+            assert moduleVersionIdentifier.group == "group"
+            assert moduleVersionIdentifier.name == "project"
+            assert moduleVersionIdentifier.version == "1.0"
+        }
 
         and:
         _ * repo.name >> "repo"
@@ -182,7 +195,7 @@ class UserResolverChainTest extends Specification {
         1 * repo3.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor("1.0"), true, null)
         }
-        1 * result.resolved(version2.resolvedModuleRevisionId, version2, _) >> {revision, descriptor, repo ->
+        1 * result.resolved(version2.resolvedModuleRevisionId, version2, _) >> { revision, descriptor, repo ->
             assert repo.delegate == repo2
             assert repo.moduleSource == moduleSource
         }
@@ -214,7 +227,7 @@ class UserResolverChainTest extends Specification {
         1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {revisionId, descriptor, repo ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { revisionId, descriptor, repo ->
             assert repo.delegate == repo1
             assert repo.moduleSource == moduleSource
         }
@@ -246,7 +259,7 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
             assert repo.delegate == repo2
             assert repo.moduleSource == moduleSource
         }
@@ -276,7 +289,7 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
             assert repo.delegate == repo2
             assert repo.moduleSource == moduleSource
         }
@@ -306,7 +319,7 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
             assert repo.delegate == repo2
             assert repo.moduleSource == moduleSource
         }
@@ -341,7 +354,7 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
             assert repo.delegate == repo2
             assert repo.moduleSource == moduleSource
         }
@@ -373,7 +386,7 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
             assert repo.delegate == repo2
             assert repo.moduleSource == moduleSource
         }
@@ -407,7 +420,7 @@ class UserResolverChainTest extends Specification {
         1 * repo1.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
             assert repo.delegate == repo1
             assert repo.moduleSource == moduleSource
         }
@@ -436,7 +449,7 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
             assert repo.delegate == repo2
             assert repo.moduleSource == moduleSource
         }
@@ -468,7 +481,7 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> {resolvedId, descr, repo ->
+        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
             assert repo.delegate == repo2
             assert repo.moduleSource == moduleSource
         }
@@ -499,7 +512,7 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
-        1 * result.failed({it.cause == failure})
+        1 * result.failed({ it.cause == failure })
 
         and:
         _ * repo1.name >> "repo"
@@ -529,7 +542,7 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
-        1 * result.failed({it.cause == failure})
+        1 * result.failed({ it.cause == failure })
 
         and:
         _ * repo1.name >> "repo"

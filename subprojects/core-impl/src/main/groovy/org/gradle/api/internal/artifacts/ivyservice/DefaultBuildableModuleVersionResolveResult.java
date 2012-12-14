@@ -33,8 +33,9 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         return this;
     }
 
-    public void notFound(ModuleRevisionId moduleRevisionId) {
-        failed(new ModuleVersionNotFoundException(moduleRevisionId));
+
+    public void notFound(ModuleVersionIdentifier moduleVersionIdentifier) {
+        failed(new ModuleVersionNotFoundException(moduleVersionIdentifier));
     }
 
     public void resolved(ModuleRevisionId moduleRevisionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {

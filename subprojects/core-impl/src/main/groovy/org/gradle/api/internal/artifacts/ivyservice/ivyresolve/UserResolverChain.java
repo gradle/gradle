@@ -23,6 +23,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,8 @@ public class UserResolverChain implements DependencyToModuleResolver {
     }
 
     public void resolve(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionResolveResult result) {
-        LOGGER.debug("Attempting to resolve module '{}' using repositories {}", dependencyDescriptor.getDependencyRevisionId(), moduleVersionRepositoryNames);
+        final ModuleRevisionId dependencyRevisionId = dependencyDescriptor.getDependencyRevisionId();
+        LOGGER.debug("Attempting to resolve module '{}' using repositories {}", dependencyRevisionId, moduleVersionRepositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
         final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
         if (latestResolved != null) {
@@ -59,9 +61,10 @@ public class UserResolverChain implements DependencyToModuleResolver {
             return;
         }
         if (!errors.isEmpty()) {
-            result.failed(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), errors));
+            result.failed(new ModuleVersionResolveException(dependencyRevisionId, errors));
         } else {
-            result.notFound(dependencyDescriptor.getDependencyRevisionId());
+            final DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
+            result.notFound(moduleVersionIdentifier);
         }
     }
 

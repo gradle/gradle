@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 public interface BuildableModuleVersionResolveResult extends ModuleVersionResolveResult {
     /**
@@ -33,7 +34,7 @@ public interface BuildableModuleVersionResolveResult extends ModuleVersionResolv
     /**
      * Marks the module version as not found.
      */
-    void notFound(ModuleRevisionId moduleRevisionId);
+    void notFound(ModuleVersionIdentifier moduleVersionIdentifier);
 
     /**
      * Replaces the meta-data in the result. Result must already be resolved.
