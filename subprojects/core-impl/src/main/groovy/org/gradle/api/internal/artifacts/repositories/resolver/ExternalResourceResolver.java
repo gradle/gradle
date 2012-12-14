@@ -175,19 +175,19 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
         return getSettings().getVersionMatcher();
     }
 
-    private ResolvedModuleRevision parse(final ResolvedResource mdRef, DependencyDescriptor dd) throws ParseException {
-        return parse(mdRef, dd, IvyContextualiser.getIvyContext().getResolveData());
-    }
-
     @Override
     public ResolvedModuleRevision parse(ResolvedResource mdRef, DependencyDescriptor dd, ResolveData data) throws ParseException {
+        // this is not used
+        throw new UnsupportedOperationException();
+    }
+
+    private ResolvedModuleRevision parse(final ResolvedResource mdRef, DependencyDescriptor dd) throws ParseException {
         DependencyDescriptor nsDd = dd;
         dd = toSystem(nsDd);
 
         //TODO: check why we don't use our own ParserRegistry here.
         ModuleRevisionId mrid = dd.getDependencyRevisionId();
-        ModuleDescriptorParser parser = ModuleDescriptorParserRegistry
-                .getInstance().getParser(mdRef.getResource());
+        ModuleDescriptorParser parser = ModuleDescriptorParserRegistry.getInstance().getParser(mdRef.getResource());
         if (parser == null) {
             throw new RuntimeException("no module descriptor parser available for " + mdRef.getResource());
         }
@@ -263,8 +263,8 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
 
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd) {
         ModuleRevisionId mrid = dd.getDependencyRevisionId();
-        ResolveData data = IvyContextualiser.getIvyContext().getResolveData();
-        return findResourceUsingPatterns(mrid, ivyPatterns, DefaultArtifact.newIvyArtifact(mrid, null), getRMDParser(dd, data), null, true);
+        Artifact artifact = DefaultArtifact.newIvyArtifact(mrid, null);
+        return findResourceUsingPatterns(mrid, ivyPatterns, artifact, getRMDParser(dd), null, true);
     }
 
     @Override
@@ -307,19 +307,42 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
     }
 
     protected ResolvedResource getArtifactRef(Artifact artifact, Date date, boolean forDownload) {
-        ModuleRevisionId mrid = artifact.getModuleRevisionId();
-        return findResourceUsingPatterns(mrid, artifactPatterns, artifact,
-                getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId()), date, forDownload);
+        ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
+        ResourceMDParser parser = getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId());
+        return findResourceUsingPatterns(moduleRevisionId, getArtifactPatterns(), artifact, parser, date, forDownload);
+    }
+
+    protected ResourceMDParser getRMDParser(final DependencyDescriptor dd, final ResolveData data) {
+        // this is not used
+        throw new UnsupportedOperationException();
+    }
+
+    protected ResourceMDParser getRMDParser(final DependencyDescriptor dd) {
+        return new ResourceMDParser() {
+            public MDResolvedResource parse(Resource resource, String rev) {
+                try {
+                    ResolvedModuleRevision rmr = ExternalResourceResolver.this.parse(new ResolvedResource(resource, rev), dd);
+                    if (rmr == null) {
+                        return null;
+                    } else {
+                        return new MDResolvedResource(resource, rev, rmr);
+                    }
+                } catch (ParseException e) {
+                    Message.warn("Failed to parse the file '" + resource + "': "
+                            + e.getMessage());
+                    return null;
+                }
+            }
+
+        };
     }
 
     protected ResourceMDParser getDefaultRMDParser(final ModuleId mid) {
         return new ResourceMDParser() {
             public MDResolvedResource parse(Resource resource, String rev) {
-                DefaultModuleDescriptor md =
-                        DefaultModuleDescriptor.newDefaultInstance(new ModuleRevisionId(mid, rev));
+                DefaultModuleDescriptor md = DefaultModuleDescriptor.newDefaultInstance(new ModuleRevisionId(mid, rev));
                 md.setStatus("integration");
-                MetadataArtifactDownloadReport madr =
-                        new MetadataArtifactDownloadReport(md.getMetadataArtifact());
+                MetadataArtifactDownloadReport madr = new MetadataArtifactDownloadReport(md.getMetadataArtifact());
                 madr.setDownloadStatus(DownloadStatus.NO);
                 madr.setSearched(true);
                 return new MDResolvedResource(resource, rev, new ResolvedModuleRevision(ExternalResourceResolver.this, ExternalResourceResolver.this, md, madr, isForce()));

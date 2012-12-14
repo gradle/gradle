@@ -20,12 +20,10 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -165,18 +163,11 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             ModuleRevisionId moduleRevisionId = dd.getDependencyRevisionId();
             //we might need a own implementation of DefaultArtifact here as there is no way to pass extraAttributes AND isMetaData to DefaultArtifact
             Artifact pomArtifact = new DefaultArtifact(moduleRevisionId, null, moduleRevisionId.getName(), "pom", "pom", moduleRevisionId.getExtraAttributes());
-            ResolveData data = IvyContextualiser.getIvyContext().getResolveData();
-            ResourceMDParser parser = getRMDParser(dd, data);
+            ResourceMDParser parser = getRMDParser(dd);
             return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, parser, null, true);
         }
 
         return null;
-    }
-
-    protected ResolvedResource getArtifactRef(Artifact artifact, Date date, boolean forDownload) {
-        ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
-        ResourceMDParser parser = getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId());
-        return findResourceUsingPatterns(moduleRevisionId, getArtifactPatterns(), artifact, parser, date, forDownload);
     }
 
     private String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {

@@ -142,4 +142,70 @@ task check << {
         fails 'check'
         failureHasCause("Could not find group:group, module:module, version:1.2.")
     }
+
+    def "can configure resolver to ignore poms"() {
+        server.start()
+
+        given:
+        def module = mavenHttpRepo.module("group", "module", "1.2").publish()
+
+        buildFile << """
+repositories {
+    def repo = mavenRepo url: '${mavenHttpRepo.uri}'
+    repo.usepoms = false
+}
+
+configurations {
+    check
+}
+
+dependencies {
+    check 'group:module:1.2'
+}
+
+task check << {
+    configurations.check.files*.name == 'module-1.2.jar'
+}
+"""
+        and:
+        // TODO - do not need this head request
+        module.artifact.expectHead()
+        module.artifact.expectGet()
+
+        expect:
+        succeeds "check"
+    }
+
+    def "can configure resolver to ignore maven-metadata.xml when resolving snapshots"() {
+        server.start()
+
+        given:
+        def module = mavenHttpRepo.module("group", "module", "1.2-SNAPSHOT").withNonUniqueSnapshots().publish()
+
+        buildFile << """
+repositories {
+    def repo = mavenRepo url: '${mavenHttpRepo.uri}'
+    repo.useMavenMetadata = false
+}
+
+configurations {
+    check
+}
+
+dependencies {
+    check 'group:module:1.2-SNAPSHOT'
+}
+
+task check << {
+    configurations.check.files*.name == 'module-1.2-SNAPSHOT.jar'
+}
+"""
+        and:
+        module.expectPomGet()
+        module.artifact.expectGet()
+
+        expect:
+        executer.withDeprecationChecksDisabled()
+        succeeds "check"
+    }
 }
