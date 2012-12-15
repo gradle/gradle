@@ -1,7 +1,12 @@
 package org.gradle.messaging.remote.internal.hub
 
 import org.gradle.api.Action
+import org.gradle.messaging.remote.internal.Connection
+import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
+import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+
+import java.util.concurrent.CopyOnWriteArraySet
 
 class MessageHubTest extends ConcurrentSpec {
     final Action<Throwable> errorHandler = Mock()
@@ -42,7 +47,139 @@ class MessageHubTest extends ConcurrentSpec {
         dispatcher.dispatch("message 2")
     }
 
-    def "queued messages are asynchronously forwarded to rejected message listener when stop requested"() {
+    def "messages are dispatched asynchronously to connection"() {
+        Connection<InterHubMessage> connection = Mock()
+
+        given:
+        hub.addConnection(connection)
+
+        when:
+        operation.dispatch {
+            hub.getOutgoing("channel1", String).dispatch("message1")
+            hub.getOutgoing("channel1", String).dispatch("message2")
+            hub.getOutgoing("channel2", Long).dispatch(12)
+        }
+        thread.blockUntil.longDispatched
+
+        then:
+        1 * connection.dispatch({ it.payload == "message1" }) >> {
+            thread.blockUntil.dispatch
+            instant.message1Dispatched
+        }
+        1 * connection.dispatch({ it.payload == "message2" }) >> {
+            instant.message2Dispatched
+        }
+        1 * connection.dispatch({ it.payload == 12 }) >> {
+            instant.longDispatched
+        }
+        0 * _._
+
+        and:
+        operation.dispatch.end < instant.message1Dispatched
+        instant.message1Dispatched < instant.message2Dispatched
+        instant.message2Dispatched < instant.longDispatched
+    }
+
+    def "queued messages are dispatched asynchronously to connection when connection is added"() {
+        Connection<InterHubMessage> connection = Mock()
+
+        given:
+        hub.getOutgoing("channel1", String).dispatch("message1")
+        hub.getOutgoing("channel1", String).dispatch("message2")
+        hub.getOutgoing("channel2", Long).dispatch(12)
+
+        when:
+        operation.connection {
+            hub.addConnection(connection)
+        }
+        thread.blockUntil.longDispatched
+
+        then:
+        1 * connection.dispatch({ it.payload == "message1" }) >> {
+            thread.blockUntil.connection
+            instant.message1Dispatched
+        }
+        1 * connection.dispatch({ it.payload == "message2" }) >> {
+            instant.message2Dispatched
+        }
+        1 * connection.dispatch({ it.payload == 12 }) >> {
+            instant.longDispatched
+        }
+        0 * _._
+
+        and:
+        operation.connection.end < instant.message1Dispatched
+        instant.message1Dispatched < instant.message2Dispatched
+        instant.message2Dispatched < instant.longDispatched
+    }
+
+    def "stop blocks until messages dispatched to connection"() {
+        Connection<InterHubMessage> connection = Mock()
+
+        given:
+        hub.addConnection(connection)
+
+        when:
+        hub.getOutgoing("channel1", String).dispatch("message1")
+        hub.getOutgoing("channel1", String).dispatch("message2")
+        hub.getOutgoing("channel2", Long).dispatch(12)
+        hub.stop()
+
+        then:
+        1 * connection.dispatch({ it.payload == "message1" })
+        1 * connection.dispatch({ it.payload == "message2" })
+        1 * connection.dispatch({ it.payload == 12 })
+        0 * _._
+    }
+
+    def "each message is dispatched to exactly one connection"() {
+        def messages = new CopyOnWriteArraySet()
+        Connection<InterHubMessage> connection1 = Mock()
+        Connection<InterHubMessage> connection2 = Mock()
+
+        given:
+        connection1.dispatch(_) >> { ChannelMessage message ->
+            messages.add(message.payload)
+        }
+        connection2.dispatch(_) >> { ChannelMessage message ->
+            messages.add(message.payload)
+        }
+
+        and:
+        hub.addConnection(connection1)
+        hub.addConnection(connection2)
+
+        when:
+        def dispatcher = hub.getOutgoing("channel", Long)
+        20.times { dispatcher.dispatch(it) }
+        hub.stop()
+
+        then:
+        messages == ((0..19) as Set)
+    }
+
+    def "stops dispatching messages to failed connection"() {
+        Connection<InterHubMessage> connection = Mock()
+        def dispatch = hub.getOutgoing("channel", String)
+        def failure = new RuntimeException()
+
+        given:
+        dispatch.dispatch("message 1")
+        dispatch.dispatch("message 2")
+
+        when:
+        hub.addConnection(connection)
+        hub.stop()
+
+        then:
+        1 * connection.dispatch({it.payload == "message 1"}) >> {
+            throw failure
+        }
+        1 * errorHandler.execute(failure)
+        0 * _._
+    }
+
+    def "queued messages are dispatched asynchronously to rejected message listener when stop requested and no connection available"() {
         RejectedMessageListener listener = Mock()
 
         given:
@@ -101,7 +238,7 @@ class MessageHubTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "stops dispatching rejected messages to failed rejected message listener"() {
+    def "stops dispatching rejected messages to failed handler"() {
         RejectedMessageListener listener = Mock()
         def dispatch = hub.getOutgoing("channel", String)
         def failure = new RuntimeException()
@@ -175,6 +312,16 @@ class MessageHubTest extends ConcurrentSpec {
         then:
         IllegalStateException e = thrown()
         e.message == 'Cannot add handler, as <hub> has been stopped.'
+    }
+
+    def "cannot add connection after stop started"() {
+        when:
+        hub.requestStop()
+        hub.addConnection(Mock(Connection))
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot add connection, as <hub> has been stopped.'
     }
 
     def "can stop and request stop do nothing when already stopped"() {
