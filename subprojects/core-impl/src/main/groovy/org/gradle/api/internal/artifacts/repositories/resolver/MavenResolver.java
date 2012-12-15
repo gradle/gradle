@@ -60,7 +60,6 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         this.transport = transport;
         this.root = transport.convertToPath(rootUri);
 
-        setDescriptor(DESCRIPTOR_OPTIONAL);
         super.setM2compatible(true);
 
         // SNAPSHOT revisions are changing revisions

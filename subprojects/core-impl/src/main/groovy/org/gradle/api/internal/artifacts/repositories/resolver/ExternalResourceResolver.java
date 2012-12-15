@@ -39,6 +39,7 @@ import org.apache.ivy.plugins.parser.ModuleDescriptorParserRegistry;
 import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.MDResolvedResource;
@@ -49,7 +50,10 @@ import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingModuleDetector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.MetaDataOnlyExternalResource;
@@ -68,12 +72,17 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 
-public class ExternalResourceResolver extends BasicResolver implements DependencyResolver {
+public class ExternalResourceResolver extends AbstractResolver implements DependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private List<String> ivyPatterns = new ArrayList<String>();
     private List<String> artifactPatterns = new ArrayList<String>();
     private boolean m2compatible;
+    private boolean checkconsistency = true;
+    private boolean allownomd = true;
+    private boolean force;
+    private String checksums;
+
     private final ExternalResourceRepository repository;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     protected VersionLister versionLister;
@@ -99,11 +108,14 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
     }
 
+    public String toString() {
+        return getName();
+    }
+
     protected ExternalResourceRepository getRepository() {
         return repository;
     }
 
-    @Override
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
         // This is not used
         throw new UnsupportedOperationException();
@@ -173,12 +185,6 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
 
     protected VersionMatcher getVersionMatcher() {
         return getSettings().getVersionMatcher();
-    }
-
-    @Override
-    public ResolvedModuleRevision parse(ResolvedResource mdRef, DependencyDescriptor dd, ResolveData data) throws ParseException {
-        // this is not used
-        throw new UnsupportedOperationException();
     }
 
     private ResolvedModuleRevision parse(final ResolvedResource mdRef, DependencyDescriptor dd) throws ParseException {
@@ -267,12 +273,6 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
         return findResourceUsingPatterns(mrid, ivyPatterns, artifact, getRMDParser(dd), null, true);
     }
 
-    @Override
-    protected ResolvedResource findFirstArtifactRef(ModuleDescriptor md, DependencyDescriptor dd, ResolveData data) {
-        // This is not used
-        throw new UnsupportedOperationException();
-    }
-
     protected ResolvedResource findFirstArtifactRef(ModuleDescriptor md) {
         for (String configuration : md.getConfigurationsNames()) {
             for (Artifact artifact : md.getArtifacts(configuration)) {
@@ -301,7 +301,6 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
         return null;
     }
 
-    @Override
     protected ResolvedResource getArtifactRef(Artifact artifact, Date date) {
         return getArtifactRef(artifact, date, true);
     }
@@ -310,11 +309,6 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
         ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
         ResourceMDParser parser = getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId());
         return findResourceUsingPatterns(moduleRevisionId, getArtifactPatterns(), artifact, parser, date, forDownload);
-    }
-
-    protected ResourceMDParser getRMDParser(final DependencyDescriptor dd, final ResolveData data) {
-        // this is not used
-        throw new UnsupportedOperationException();
     }
 
     protected ResourceMDParser getRMDParser(final DependencyDescriptor dd) {
@@ -496,7 +490,6 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
         return (EnhancedArtifactDownloadReport) cacheManager.download(artifact, artifactResourceResolver, resourceDownloader, new CacheDownloadOptions());
     }
 
-    @Override
     public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
         // This is never used
         throw new UnsupportedOperationException();
@@ -550,16 +543,6 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
         throw new UnsupportedOperationException();
     }
 
-    protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
-    protected Resource getResource(String source) throws IOException {
-        // This is never used
-        throw new UnsupportedOperationException();
-    }
-
     protected Resource getResource(String source, Artifact target, boolean forDownload) {
         try {
             if (forDownload) {
@@ -607,8 +590,7 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
         return destination.length();
     }
 
-    @Override
-    protected long getAndCheck(Resource resource, File dest) throws IOException {
+    private long getAndCheck(Resource resource, File dest) throws IOException {
         long size = get(resource, dest);
         String[] checksums = getChecksumAlgorithms();
         boolean checked = false;
@@ -665,10 +647,6 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
         repository.put(src, destination);
     }
 
-    protected Collection findNames(Map tokenValues, String token) {
-        throw new UnsupportedOperationException();
-    }
-
     public void addIvyPattern(String pattern) {
         ivyPatterns.add(pattern);
     }
@@ -704,6 +682,73 @@ public class ExternalResourceResolver extends BasicResolver implements Dependenc
 
     public void setM2compatible(boolean compatible) {
         m2compatible = compatible;
+    }
+
+    public boolean isCheckconsistency() {
+        return checkconsistency;
+    }
+
+    public void setCheckconsistency(boolean checkConsistency) {
+        checkconsistency = checkConsistency;
+    }
+
+    public void setForce(boolean force) {
+        this.force = force;
+    }
+
+    public boolean isForce() {
+        return force;
+    }
+
+    public boolean isAllownomd() {
+        return allownomd;
+    }
+
+    public void setAllownomd(boolean b) {
+        Message.deprecated(
+            "allownomd is deprecated, please use descriptor=\""
+            + (b ? BasicResolver.DESCRIPTOR_OPTIONAL : BasicResolver.DESCRIPTOR_REQUIRED) + "\" instead");
+        allownomd = b;
+    }
+
+    /**
+     * Sets the module descriptor presence rule.
+     * Should be one of {@link BasicResolver#DESCRIPTOR_REQUIRED} or {@link BasicResolver#DESCRIPTOR_OPTIONAL}.
+     *
+     * @param descriptorRule the descriptor rule to use with this resolver.
+     */
+    public void setDescriptor(String descriptorRule) {
+        if (BasicResolver.DESCRIPTOR_REQUIRED.equals(descriptorRule)) {
+          allownomd = false;
+        } else if (BasicResolver.DESCRIPTOR_OPTIONAL.equals(descriptorRule)) {
+          allownomd = true;
+        } else {
+            throw new IllegalArgumentException(
+                "unknown descriptor rule '" + descriptorRule
+                + "'. Allowed rules are: "
+                + Arrays.asList(new String[] {BasicResolver.DESCRIPTOR_REQUIRED, BasicResolver.DESCRIPTOR_OPTIONAL}));
+        }
+    }
+
+    public String[] getChecksumAlgorithms() {
+        if (checksums == null) {
+            return new String[0];
+        }
+        // csDef is a comma separated list of checksum algorithms to use with this resolver
+        // we parse and return it as a String[]
+        String[] checksums = this.checksums.split(",");
+        List<String> algos = new ArrayList<String>();
+        for (int i = 0; i < checksums.length; i++) {
+            String cs = checksums[i].trim();
+            if (!"".equals(cs) && !"none".equals(cs)) {
+                algos.add(cs);
+            }
+        }
+        return algos.toArray(new String[algos.size()]);
+    }
+
+    public void setChecksums(String checksums) {
+        this.checksums = checksums;
     }
 
     protected ResourcePattern toResourcePattern(String pattern) {
