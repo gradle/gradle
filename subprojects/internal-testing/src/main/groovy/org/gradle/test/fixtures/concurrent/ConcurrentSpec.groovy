@@ -34,15 +34,12 @@ import java.util.concurrent.Executor
  * what you think you are testing.
  */
 class ConcurrentSpec extends Specification {
-    private final TestExecutor executor = new TestExecutor()
-    private final TestExecutorFactory executorFactory = new TestExecutorFactory(executor)
-
     /**
      * An object that allows instants to be defined and queried.
      *
      * @see NamedInstant
      */
-    final Instants instant = new Instants(executor)
+    final Instants instant = new Instants()
 
     /**
      * An object that allows operations to be defined and queried.
@@ -55,6 +52,9 @@ class ConcurrentSpec extends Specification {
      * An object that allows control over the current thread.
      */
     final TestThread thread = new TestThread(instant)
+
+    private final TestExecutor executor = new TestExecutor(instant)
+    private final TestExecutorFactory executorFactory = new TestExecutorFactory(executor)
 
     /**
      * Returns an Executor that should be used for running asynchronous actions.

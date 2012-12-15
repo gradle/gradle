@@ -20,34 +20,51 @@ package org.gradle.test.fixtures.concurrent
  * A dynamic collection of {@link NamedInstant} objects. When a property of this object is accessed from a test thread, a new instant is defined. When
  * accessed from the main thread, queries an existing instant, asserting that it exists.
  */
-class Instants implements InstantFactory {
+class Instants implements InstantFactory, TestThreadListener {
     private final Object lock = new Object()
     private final Map<String, NamedInstant> timePoints = [:]
-    private final TestExecutor executor
-
-    Instants(TestExecutor executor) {
-        this.executor = executor
-    }
+    private final Set<Thread> testThreads = new HashSet<Thread>()
 
     @Override
     String toString() {
         return "instants"
     }
 
+    void threadStarted(Thread thread) {
+        synchronized (lock) {
+            testThreads.add(thread)
+        }
+    }
+
+    void threadFinished(Thread thread) {
+        synchronized (lock) {
+            testThreads.remove(thread)
+            lock.notifyAll()
+        }
+    }
+
     void waitFor(String name) {
         synchronized (lock) {
             while (!timePoints.containsKey(name)) {
+                if (testThreads.empty) {
+                    throw new IllegalStateException("Cannot wait for instant '$name', as it has not been defined and no test threads are currently running.")
+                }
+                if (testThreads.size() == 1 && testThreads.contains(Thread.currentThread())) {
+                    throw new IllegalStateException("Cannot wait for instant '$name', as it has not been defined and no other test threads are currently running.")
+                }
                 lock.wait()
             }
         }
     }
 
     def getProperty(String name) {
-        def testThread = executor.testThread
-        if (testThread) {
-            return now(name)
-        } else {
-            return get(name)
+        synchronized (lock) {
+            def testThread = testThreads.contains(Thread.currentThread())
+            if (testThread) {
+                return now(name)
+            } else {
+                return get(name)
+            }
         }
     }
 

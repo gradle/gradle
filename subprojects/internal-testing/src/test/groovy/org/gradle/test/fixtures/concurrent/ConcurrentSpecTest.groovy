@@ -246,6 +246,34 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         instant.actionExecuted
     }
 
+    def "fails when waiting for an instant and no other test threads are running"() {
+        when:
+        thread.blockUntil.unknown
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Cannot block until instant 'unknown', as it has not been defined and no test threads are currently running."
+
+        when:
+        async {
+            thread.blockUntil.unknown
+        }
+
+        then:
+        e = thrown()
+        e.message == "Cannot block until instant 'unknown', as it has not been defined and no other test threads are currently running."
+
+        when:
+        start {
+            thread.blockUntil.unknown
+        }
+        async { }
+
+        then:
+        e = thrown()
+        e.message == "Cannot block until instant 'unknown', as it has not been defined and no other test threads are currently running."
+    }
+
     def "async { } block rethrows test thread failures"() {
         def worker = new Worker(executor)
         def failure = new RuntimeException()
