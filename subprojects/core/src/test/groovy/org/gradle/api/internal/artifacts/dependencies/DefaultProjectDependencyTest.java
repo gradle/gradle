@@ -160,7 +160,6 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     private Task taskInTargetProject(final String name) {
         final Task task = context.mock(Task.class, name);
         context.checking(new Expectations(){{
-            allowing(dependencyProjectStub).evaluate();
             allowing(dependencyProjectTaskContainerStub).getByName(name);
             will(returnValue(task));
         }});
