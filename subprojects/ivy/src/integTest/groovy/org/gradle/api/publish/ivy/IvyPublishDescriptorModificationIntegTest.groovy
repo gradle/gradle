@@ -96,7 +96,8 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Could not apply withXml() to Ivy module descriptor")
+        failure.assertHasDescription("Execution failed for task ':generateIvyModuleDescriptor'")
+        failure.assertHasCause("Could not apply withXml() to Ivy module descriptor")
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
     }
 }
