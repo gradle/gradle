@@ -19,7 +19,19 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public class ProjectEvaluationConfigurer implements Action<ProjectInternal> {
+
     public void execute(ProjectInternal projectInternal) {
-        projectInternal.evaluate();
+        //TODO SF this logic belongs elsewhere, better support of the system property
+        String prop = projectInternal.getGradle().getStartParameter().getSystemPropertiesArgs().get("org.gradle.configuration.ondemand");
+        if ("true".equals(prop)) {
+            //if experimental configuration on demand is 'on', we'll only evaluate the root project.
+            //remaining projects are evaluated on demand
+            if (projectInternal.getPath().equals(":")) {
+                projectInternal.evaluate();
+            }
+        } else {
+            //the default behavior, evaluate the project as requested
+            projectInternal.evaluate();
+        }
     }
 }

@@ -46,6 +46,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     protected BuildExecuter createBuildExecuter() {
         return new DefaultBuildExecuter(
                 asList(new DefaultTasksBuildExecutionAction(),
+                        new TaskNameDrivenProjectEvaluator(),
                         new ExcludedTaskFilteringBuildConfigurationAction(),
                         new TaskNameResolvingBuildConfigurationAction()),
                 asList(new DryRunBuildExecutionAction(),
