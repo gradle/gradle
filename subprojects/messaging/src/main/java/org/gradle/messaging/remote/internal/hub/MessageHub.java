@@ -1,3 +1,19 @@
+/*
+ * Copyright 2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.gradle.messaging.remote.internal.hub;
 
 import org.gradle.api.Action;
@@ -56,21 +72,33 @@ public class MessageHub implements AsyncStoppable {
     }
 
     /**
-     * Adds a handler for messages on the given channel. The handler may implement {@link RejectedMessageListener} to receive notifications of outgoing messages that cannot be sent on the given
-     * channel.
+     * Adds a handler for messages on the given channel. The handler may implement any of the following:
      *
-     * <p>The given handler does not need to be thread-safe, and is notified by at most one thread at a time.</p>
+     * <ul>
+     *
+     * <li>{@link Dispatch} to handle incoming messages received from any connections attached to this hub. Each incoming message is passed to exactly one handler associated to the given channel.
+     * </li>
+     *
+     * <li>{@link RejectedMessageListener} to receive notifications of outgoing messages that cannot be sent on the given channel.</li>
+     *
+     * <li>{@link HubStateListener} to receive notifications of state changes to this hub.</li>
+     *
+     * </ul>
+     *
+     * <p>The given handler does not need to be thread-safe, and is notified by at most one thread at a time. Multiple handlers can be added for a given channel.</p>
+     *
+     * <p>NOTE: If any method of the handler fails with an exception, the handler is discarded and will receive no further notifications.</p>
      */
     public void addHandler(String channelName, Object handler) {
         lock.lock();
         try {
             assertRunning("add handler");
 
-            RejectedMessageListener listener;
+            RejectedMessageListener rejectedMessageListener;
             if (handler instanceof RejectedMessageListener) {
-                listener = (RejectedMessageListener) handler;
+                rejectedMessageListener = (RejectedMessageListener) handler;
             } else {
-                listener = DISCARD;
+                rejectedMessageListener = DISCARD;
             }
             Dispatch<Object> dispatch;
             if (handler instanceof Dispatch) {
@@ -78,9 +106,15 @@ public class MessageHub implements AsyncStoppable {
             } else {
                 dispatch = DISCARD;
             }
+            HubStateListener stateListener;
+            if (handler instanceof HubStateListener) {
+                stateListener = (HubStateListener) handler;
+            } else {
+                stateListener = DISCARD;
+            }
             ChannelIdentifier identifier = new ChannelIdentifier(channelName);
             EndPointQueue queue = incomingQueue.getChannel(identifier).newEndpoint();
-            workers.execute(new Handler(queue, dispatch, listener));
+            workers.execute(new Handler(queue, dispatch, rejectedMessageListener, stateListener));
         } finally {
             lock.unlock();
         }
@@ -93,6 +127,7 @@ public class MessageHub implements AsyncStoppable {
         lock.lock();
         try {
             assertRunning("add connection");
+            incomingQueue.queue(new ConnectionEstablished());
             EndPointQueue queue = outgoingQueue.newEndpoint();
             workers.execute(new ConnectionDispatch(connection, queue));
             workers.execute(new ConnectionReceive(connection));
@@ -112,7 +147,7 @@ public class MessageHub implements AsyncStoppable {
      *
      * <ul>
      *
-     * <li>Stops accepting any further outgoing message.</li>
+     * <li>Stops accepting any further outgoing messages.</li>
      *
      * <li>If no connections are available, dispatches queued messages to any handlers that implement {@link RejectedMessageListener}.</li>
      *
@@ -208,11 +243,17 @@ public class MessageHub implements AsyncStoppable {
         }
     }
 
-    private static class Discard implements Dispatch<Object>, RejectedMessageListener {
+    private static class Discard implements Dispatch<Object>, RejectedMessageListener, HubStateListener {
         public void dispatch(Object message) {
         }
 
         public void messageDiscarded(Object message) {
+        }
+
+        public void onConnect() {
+        }
+
+        public void onDisconnect() {
         }
     }
 
@@ -302,11 +343,13 @@ public class MessageHub implements AsyncStoppable {
         private final EndPointQueue queue;
         private final Dispatch<Object> dispatch;
         private final RejectedMessageListener listener;
+        private final HubStateListener stateListener;
 
-        public Handler(EndPointQueue queue, Dispatch<Object> dispatch, RejectedMessageListener listener) {
+        public Handler(EndPointQueue queue, Dispatch<Object> dispatch, RejectedMessageListener listener, HubStateListener stateListener) {
             this.queue = queue;
             this.dispatch = dispatch;
             this.listener = listener;
+            this.stateListener = stateListener;
         }
 
         public void run() {
@@ -326,9 +369,13 @@ public class MessageHub implements AsyncStoppable {
                         if (message instanceof ChannelMessage) {
                             ChannelMessage channelMessage = (ChannelMessage) message;
                             dispatch.dispatch(channelMessage.getPayload());
-                        } else {
+                        } else if (message instanceof RejectedMessage) {
                             RejectedMessage rejectedMessage = (RejectedMessage) message;
                             listener.messageDiscarded(rejectedMessage.getPayload());
+                        } else if (message instanceof ConnectionEstablished) {
+                            stateListener.onConnect();
+                        } else {
+                            throw new IllegalArgumentException(String.format("Don't know how to handle message %s", message));
                         }
                     }
                     messages.clear();

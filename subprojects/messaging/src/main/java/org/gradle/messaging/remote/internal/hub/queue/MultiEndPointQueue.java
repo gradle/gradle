@@ -1,3 +1,19 @@
+/*
+ * Copyright 2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.gradle.messaging.remote.internal.hub.queue;
 
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
@@ -11,19 +27,18 @@ public class MultiEndPointQueue {
     private final List<InterHubMessage> queue = new ArrayList<InterHubMessage>();
     private final List<EndPointQueue> waiting = new ArrayList<EndPointQueue>();
     private final Lock lock;
+    private InterHubMessage mostRecentStateful;
 
     public MultiEndPointQueue(Lock lock) {
         this.lock = lock;
     }
 
     public void queue(InterHubMessage message) {
-        System.out.println(String.format("=== %s queued: %s", this, message));
         queue.add(message);
         flush();
     }
 
     public void empty(EndPointQueue endPointQueue) {
-        System.out.println(String.format("=== %s waiting: %s", this, endPointQueue));
         waiting.add(endPointQueue);
         flush();
     }
@@ -39,29 +54,41 @@ public class MultiEndPointQueue {
         EndPointQueue selected = waiting.isEmpty() ? null : waiting.get(0);
         while (!queue.isEmpty()) {
             InterHubMessage message = queue.get(0);
-            if (message.isBroadcast()) {
-                System.out.println(String.format("=== %s broadcasting: %s", this, message));
-                for (EndPointQueue endpoint : endpoints) {
-                    endpoint.put(message);
-                }
-                queue.remove(0);
-                waiting.clear();
-                continue;
+            switch (message.getDelivery()) {
+                case Stateful:
+                case AllHandlers:
+                    if (endpoints.isEmpty()) {
+                        return;
+                    }
+                    if (message.getDelivery() == InterHubMessage.Delivery.Stateful) {
+                        mostRecentStateful = message;
+                    }
+                    for (EndPointQueue endpoint : endpoints) {
+                        endpoint.put(message);
+                    }
+                    queue.remove(0);
+                    waiting.clear();
+                    continue;
+                case SingleHandler:
+                    if (selected == null) {
+                        return;
+                    }
+                    queue.remove(0);
+                    waiting.remove(selected);
+                    selected.put(message);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown delivery type: " + message.getDelivery());
             }
-            if (selected == null) {
-                System.out.println(String.format("=== %s nothing waiting for: %s", this, message));
-                break;
-            }
-            System.out.println(String.format("=== %s unicasting: %s", this, message));
-            queue.remove(0);
-            waiting.remove(selected);
-            selected.put(message);
         }
     }
 
     public EndPointQueue newEndpoint() {
         EndPointQueue endPointQueue = new EndPointQueue(this, lock.newCondition());
         endpoints.add(endPointQueue);
+        if (mostRecentStateful != null) {
+            endPointQueue.put(mostRecentStateful);
+        }
         return endPointQueue;
     }
 }

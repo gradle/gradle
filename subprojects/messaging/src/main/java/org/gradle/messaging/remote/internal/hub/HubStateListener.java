@@ -17,11 +17,16 @@
 package org.gradle.messaging.remote.internal.hub;
 
 /**
- * A listener which receives messages that cannot be delivered for some reason.
+ * A listener that is notified of changes in the state of a message hub.
  */
-public interface RejectedMessageListener {
+public interface HubStateListener {
     /**
-     * Called when the given message cannot be delivered for some reason.
+     * Called when a connection is attached to the hub.
      */
-    void messageDiscarded(Object message);
+    void onConnect();
+
+    /**
+     * Called when a connection is detached from the hub.
+     */
+    void onDisconnect();
 }

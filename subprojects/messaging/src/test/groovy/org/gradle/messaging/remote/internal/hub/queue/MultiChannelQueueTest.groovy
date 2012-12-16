@@ -69,7 +69,6 @@ class MultiChannelQueueTest extends AbstractQueueTest {
         def id2 = new ChannelIdentifier("channel2")
         def message1 = new ChannelMessage(id1, "message 1")
         def message2 = broadcast()
-        def message3 = new ChannelMessage(id2, "message 2")
 
         given:
         def endpoint1 = queue.getChannel(id1).newEndpoint()
@@ -80,12 +79,35 @@ class MultiChannelQueueTest extends AbstractQueueTest {
         def messages2 = []
         queue.queue(message1)
         queue.queue(message2)
-        queue.queue(message3)
         endpoint1.take(messages1)
         endpoint2.take(messages2)
 
         then:
         messages1 == [message1, message2]
-        messages2 == [message2, message3]
+        messages2 == [message2]
+    }
+
+    def "forwards most recent stateful broadcast message to all new queues"() {
+        def id1 = new ChannelIdentifier("channel1")
+        def message1 = stateful()
+        def message2 = new ChannelMessage(id1, "message 2")
+        def message3 = stateful()
+
+        given:
+        queue.queue(message1)
+        queue.queue(message2)
+
+        when:
+        def endpoint1 = queue.getChannel(id1).newEndpoint()
+        queue.queue(message3)
+        def endpoint2 = queue.getChannel(id1).newEndpoint()
+        def messages1 = []
+        def messages2 = []
+        endpoint1.take(messages1)
+        endpoint2.take(messages2)
+
+        then:
+        messages1 == [message1, message2, message3]
+        messages2 == [message3]
     }
 }

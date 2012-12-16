@@ -107,4 +107,24 @@ class MultiEndPointQueueTest extends AbstractQueueTest {
         messages1 == [message]
         messages2 == [message]
     }
+
+    def "buffers messages when there are no endpoints"() {
+        given:
+        def message1 = broadcast()
+        def message2 = unicast()
+        def message3 = unicast()
+
+        and:
+        queue.queue(message1)
+        queue.queue(message2)
+        queue.queue(message3)
+
+        when:
+        def endpoint = queue.newEndpoint()
+        def messages = []
+        endpoint.take(messages)
+
+        then:
+        messages == [message1, message2, message3]
+    }
 }

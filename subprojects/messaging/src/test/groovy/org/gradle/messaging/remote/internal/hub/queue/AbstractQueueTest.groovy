@@ -16,14 +16,21 @@ abstract class AbstractQueueTest extends Specification {
 
     def unicast() {
         InterHubMessage message = Stub() {
-            isBroadcast() >> false
+            getDelivery() >> InterHubMessage.Delivery.SingleHandler
         }
         return message
     }
 
     def broadcast() {
         InterHubMessage message = Stub() {
-            isBroadcast() >> true
+            getDelivery() >> InterHubMessage.Delivery.AllHandlers
+        }
+        return message
+    }
+
+    def stateful() {
+        InterHubMessage message = Stub() {
+            getDelivery() >> InterHubMessage.Delivery.Stateful
         }
         return message
     }
