@@ -1,7 +1,9 @@
 package org.gradle.messaging.remote.internal.hub
 
 import org.gradle.api.Action
+import org.gradle.messaging.dispatch.Dispatch
 import org.gradle.messaging.remote.internal.Connection
+import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -47,7 +49,7 @@ class MessageHubTest extends ConcurrentSpec {
         dispatcher.dispatch("message 2")
     }
 
-    def "messages are dispatched asynchronously to connection"() {
+    def "outgoing messages are dispatched asynchronously to connection"() {
         Connection<InterHubMessage> connection = Mock()
 
         given:
@@ -80,7 +82,7 @@ class MessageHubTest extends ConcurrentSpec {
         instant.message2Dispatched < instant.longDispatched
     }
 
-    def "queued messages are dispatched asynchronously to connection when connection is added"() {
+    def "queued outgoing messages are dispatched asynchronously to connection when connection is added"() {
         Connection<InterHubMessage> connection = Mock()
 
         given:
@@ -105,6 +107,7 @@ class MessageHubTest extends ConcurrentSpec {
         1 * connection.dispatch({ it.payload == 12 }) >> {
             instant.longDispatched
         }
+        1 * connection.receive() >> null
         0 * _._
 
         and:
@@ -113,7 +116,7 @@ class MessageHubTest extends ConcurrentSpec {
         instant.message2Dispatched < instant.longDispatched
     }
 
-    def "stop blocks until messages dispatched to connection"() {
+    def "stop blocks until all outgoing messages dispatched to connection"() {
         Connection<InterHubMessage> connection = Mock()
 
         given:
@@ -132,7 +135,7 @@ class MessageHubTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "each message is dispatched to exactly one connection"() {
+    def "each outgoing message is dispatched to exactly one connection"() {
         def messages = new CopyOnWriteArraySet()
         Connection<InterHubMessage> connection1 = Mock()
         Connection<InterHubMessage> connection2 = Mock()
@@ -158,7 +161,7 @@ class MessageHubTest extends ConcurrentSpec {
         messages == ((0..19) as Set)
     }
 
-    def "stops dispatching messages to failed connection"() {
+    def "stops dispatching outgoing messages to failed connection"() {
         Connection<InterHubMessage> connection = Mock()
         def dispatch = hub.getOutgoing("channel", String)
         def failure = new RuntimeException()
@@ -172,14 +175,55 @@ class MessageHubTest extends ConcurrentSpec {
         hub.stop()
 
         then:
-        1 * connection.dispatch({it.payload == "message 1"}) >> {
+        1 * connection.dispatch({ it.payload == "message 1" }) >> {
             throw failure
         }
+        1 * connection.receive() >> null
         1 * errorHandler.execute(failure)
         0 * _._
     }
 
-    def "queued messages are dispatched asynchronously to rejected message listener when stop requested and no connection available"() {
+    def "incoming messages are dispatched asynchronously to handler"() {
+        Connection<InterHubMessage> connection = Mock()
+        Dispatch<String> handler = Mock()
+
+        given:
+        hub.addHandler("channel", handler)
+
+        when:
+        hub.addConnection(connection)
+        thread.blockUntil.message2Received
+
+        then:
+        1 * connection.receive() >> new ChannelMessage(new ChannelIdentifier("channel"), "message 1")
+        1 * connection.receive() >> {
+            thread.blockUntil.message1Received
+            new ChannelMessage(new ChannelIdentifier("channel"), "message 2")
+        }
+        1 * connection.receive() >> null
+        1 * handler.dispatch("message 1") >> {
+            instant.message1Received
+            thread.block()
+        }
+        1 * handler.dispatch("message 2") >> {
+            instant.message2Received
+        }
+        0 * _._
+    }
+
+    def "queued incoming messages are dispatched when handler added"() {
+        expect: false
+    }
+
+    def "stop blocks until queued incoming messages handled"() {
+        expect: false
+    }
+
+    def "queued incoming messages are dispatched asynchronously to rejected message listener when stop requested and no handler available"() {
+        expect: false
+    }
+
+    def "queued outgoing messages are dispatched asynchronously to rejected message listener when stop requested and no connection available"() {
         RejectedMessageListener listener = Mock()
 
         given:
@@ -209,7 +253,7 @@ class MessageHubTest extends ConcurrentSpec {
         instant.message1Handled < instant.message2Handled
     }
 
-    def "rejected message listener is not notified when no queued messages at stop requested"() {
+    def "rejected message listener is not notified when no queued outgoing messages when stop requested"() {
         RejectedMessageListener listener = Mock()
 
         given:
@@ -222,7 +266,7 @@ class MessageHubTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "rejected message listener is notified only of rejected messages on associated channel"() {
+    def "rejected message listener is notified only of rejected outgoing messages on associated channel"() {
         RejectedMessageListener listener = Mock()
 
         given:
@@ -238,7 +282,7 @@ class MessageHubTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "stops dispatching rejected messages to failed handler"() {
+    def "stops dispatching rejected outgoing messages to failed listener"() {
         RejectedMessageListener listener = Mock()
         def dispatch = hub.getOutgoing("channel", String)
         def failure = new RuntimeException()
@@ -259,7 +303,7 @@ class MessageHubTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "only handlers that implement RejectedMessageListener are notified of rejected messages"() {
+    def "only handlers that implement RejectedMessageListener are notified of rejected outgoing messages"() {
         RejectedMessageListener listener1 = Mock()
         RejectedMessageListener listener2 = Mock()
 
@@ -278,7 +322,7 @@ class MessageHubTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "cannot dispatch messages after stop requested"() {
+    def "cannot dispatch outgoing messages after stop requested"() {
         given:
         def dispatcher = hub.getOutgoing("channel", String)
 
@@ -324,7 +368,7 @@ class MessageHubTest extends ConcurrentSpec {
         e.message == 'Cannot add connection, as <hub> has been stopped.'
     }
 
-    def "can stop and request stop do nothing when already stopped"() {
+    def "stop and request stop do nothing when already stopped"() {
         when:
         hub.stop()
         hub.stop()

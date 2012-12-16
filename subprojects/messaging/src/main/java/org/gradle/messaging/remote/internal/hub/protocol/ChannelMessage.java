@@ -9,6 +9,16 @@ public class ChannelMessage extends InterHubMessage {
         this.payload = payload;
     }
 
+    @Override
+    public boolean isBroadcast() {
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[channel: %s, payload: %s]", channel, payload);
+    }
+
     public ChannelIdentifier getChannel() {
         return channel;
     }

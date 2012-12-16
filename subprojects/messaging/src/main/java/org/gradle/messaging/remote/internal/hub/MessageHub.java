@@ -1,18 +1,18 @@
 package org.gradle.messaging.remote.internal.hub;
 
 import org.gradle.api.Action;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier;
-import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage;
-import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
+import org.gradle.messaging.remote.internal.hub.protocol.*;
+import org.gradle.messaging.remote.internal.hub.queue.EndPointQueue;
+import org.gradle.messaging.remote.internal.hub.queue.MultiChannelQueue;
+import org.gradle.messaging.remote.internal.hub.queue.MultiEndPointQueue;
 
-import java.util.*;
-import java.util.concurrent.locks.Condition;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -22,14 +22,18 @@ import java.util.concurrent.locks.ReentrantLock;
 public class MessageHub implements AsyncStoppable {
     private enum State {Running, Stopping, Stopped}
 
-    private static final Object END_OF_STREAM = new Object();
+    private static final Discard DISCARD = new Discard();
     private final StoppableExecutor workers;
     private final String displayName;
     private final Action<? super Throwable> errorHandler;
     private final Lock lock = new ReentrantLock();
     private State state = State.Running;
-    private final OutgoingQueue outgoingQueue = new OutgoingQueue();
+    private final IncomingQueue incomingQueue = new IncomingQueue(lock);
+    private final OutgoingQueue outgoingQueue = new OutgoingQueue(incomingQueue, lock);
 
+    /**
+     * @param errorHandler Notified when some asynch. activity fails. Must be thread-safe.
+     */
     public MessageHub(String displayName, ExecutorFactory executorFactory, Action<? super Throwable> errorHandler) {
         this.displayName = displayName;
         this.errorHandler = errorHandler;
@@ -62,13 +66,21 @@ public class MessageHub implements AsyncStoppable {
         try {
             assertRunning("add handler");
 
-            if (!(handler instanceof RejectedMessageListener)) {
-                return;
+            RejectedMessageListener listener;
+            if (handler instanceof RejectedMessageListener) {
+                listener = (RejectedMessageListener) handler;
+            } else {
+                listener = DISCARD;
             }
-            RejectedMessageListener listener = (RejectedMessageListener) handler;
-            EndpointQueue queue = new EndpointQueue(lock.newCondition());
-            outgoingQueue.addIncomingHandler(queue);
-            workers.execute(new Handler(new ChannelIdentifier(channelName), queue, listener));
+            Dispatch<Object> dispatch;
+            if (handler instanceof Dispatch) {
+                dispatch = (Dispatch) handler;
+            } else {
+                dispatch = DISCARD;
+            }
+            ChannelIdentifier identifier = new ChannelIdentifier(channelName);
+            EndPointQueue queue = incomingQueue.getChannel(identifier).newEndpoint();
+            workers.execute(new Handler(queue, dispatch, listener));
         } finally {
             lock.unlock();
         }
@@ -81,8 +93,9 @@ public class MessageHub implements AsyncStoppable {
         lock.lock();
         try {
             assertRunning("add connection");
-            outgoingQueue.connected();
-            workers.execute(new ConnectionDispatch(connection));
+            EndPointQueue queue = outgoingQueue.newEndpoint();
+            workers.execute(new ConnectionDispatch(connection, queue));
+            workers.execute(new ConnectionReceive(connection));
         } finally {
             lock.unlock();
         }
@@ -113,6 +126,7 @@ public class MessageHub implements AsyncStoppable {
             }
             try {
                 outgoingQueue.requestStop();
+                incomingQueue.requestStop();
             } finally {
                 state = State.Stopping;
             }
@@ -151,114 +165,110 @@ public class MessageHub implements AsyncStoppable {
     /**
      * NOTE: must be holding lock to use this class.
      */
-    private static class EndpointQueue {
-        private final List<Object> queue = new ArrayList<Object>();
-        private final Condition condition;
+    private static class OutgoingQueue extends MultiEndPointQueue {
+        private boolean connected;
+        private final IncomingQueue incomingQueue;
 
-        private EndpointQueue(Condition condition) {
-            this.condition = condition;
+        private OutgoingQueue(IncomingQueue incomingQueue, Lock lock) {
+            super(lock);
+            this.incomingQueue = incomingQueue;
         }
 
-        /**
-         * Pass a collection whose last element is {@link #END_OF_STREAM} to mark the end of the queue.
-         */
-        void put(Collection<?> messages) {
-            queue.addAll(messages);
-            if (!queue.isEmpty()) {
-                condition.signalAll();
-            }
-        }
-
-        /**
-         * Last element will be {@link #END_OF_STREAM} when end of queue has been reached.
-         */
-        void take(Collection<Object> drainTo) {
-            while (queue.isEmpty()) {
-                try {
-                    condition.await();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
+        void requestStop() {
+            if (!connected) {
+                List<InterHubMessage> rejected = new ArrayList<InterHubMessage>();
+                drain(rejected);
+                for (InterHubMessage message : rejected) {
+                    if (message instanceof ChannelMessage) {
+                        ChannelMessage channelMessage = (ChannelMessage) message;
+                        incomingQueue.queue(new RejectedMessage(channelMessage.getChannel(), channelMessage.getPayload()));
+                    }
                 }
             }
-            drainTo.addAll(queue);
-            queue.clear();
+            queue(new EndOfStream());
+        }
+
+        @Override
+        public EndPointQueue newEndpoint() {
+            this.connected = true;
+            return super.newEndpoint();
         }
     }
 
     /**
      * NOTE: must be holding lock to use this class.
      */
-    private static class OutgoingQueue {
-        private boolean connected;
-        private boolean stopping;
-        private final List<ChannelMessage> queue = new ArrayList<ChannelMessage>();
-        private final Set<EndpointQueue> incomingHandlers = new HashSet<EndpointQueue>();
-
-        void dispatch(ChannelMessage message) {
-            queue.add(message);
+    private static class IncomingQueue extends MultiChannelQueue {
+        private IncomingQueue(Lock lock) {
+            super(lock);
         }
 
-        void requestStop() {
-            stopping = true;
-            try {
-                if (!connected) {
-                    for (EndpointQueue handler : incomingHandlers) {
-                        handler.put(queue);
-                        handler.put(Collections.singleton(END_OF_STREAM));
-                    }
-                    queue.clear();
+        public void requestStop() {
+            queue(new EndOfStream());
+        }
+    }
+
+    private static class Discard implements Dispatch<Object>, RejectedMessageListener {
+        public void dispatch(Object message) {
+        }
+
+        public void messageDiscarded(Object message) {
+        }
+    }
+
+    private class ConnectionReceive implements Runnable {
+        private final Connection<InterHubMessage> connection;
+
+        public ConnectionReceive(Connection<InterHubMessage> connection) {
+            this.connection = connection;
+        }
+
+        public void run() {
+            while (true) {
+                InterHubMessage message = connection.receive();
+                if (message == null) {
+                    return;
                 }
-            } finally {
-                incomingHandlers.clear();
+                lock.lock();
+                try {
+                    incomingQueue.queue(message);
+                } finally {
+                    lock.unlock();
+                }
             }
-        }
-
-        void connected() {
-            this.connected = true;
-        }
-
-        void take(Collection<Object> drainTo) {
-            drainTo.addAll(queue);
-            if (stopping) {
-                drainTo.add(END_OF_STREAM);
-            }
-            queue.clear();
-        }
-
-        void addIncomingHandler(EndpointQueue queue) {
-            incomingHandlers.add(queue);
         }
     }
 
     private class ConnectionDispatch implements Runnable {
         private final Connection<InterHubMessage> connection;
+        private final EndPointQueue queue;
 
-        private ConnectionDispatch(Connection<InterHubMessage> connection) {
+        private ConnectionDispatch(Connection<InterHubMessage> connection, EndPointQueue queue) {
             this.connection = connection;
+            this.queue = queue;
         }
 
         public void run() {
-            List<Object> messages = new ArrayList<Object>();
-            while (true) {
-                lock.lock();
-                try {
-                    outgoingQueue.take(messages);
-                } finally {
-                    lock.unlock();
-                }
-                for (Object message : messages) {
-                    if (message == END_OF_STREAM) {
-                        return;
-                    }
-                    InterHubMessage channelMessage = (InterHubMessage) message;
+            try {
+                List<InterHubMessage> messages = new ArrayList<InterHubMessage>();
+                while (true) {
+                    lock.lock();
                     try {
-                        connection.dispatch(channelMessage);
-                    } catch (Throwable t) {
-                        errorHandler.execute(t);
-                        return;
+                        queue.take(messages);
+                    } finally {
+                        lock.unlock();
                     }
+                    for (Object message : messages) {
+                        if (message instanceof EndOfStream) {
+                            return;
+                        }
+                        InterHubMessage channelMessage = (InterHubMessage) message;
+                        connection.dispatch(channelMessage);
+                    }
+                    messages.clear();
                 }
-                messages.clear();
+            } catch (Throwable t) {
+                errorHandler.execute(t);
             }
         }
     }
@@ -281,7 +291,7 @@ public class MessageHub implements AsyncStoppable {
             lock.lock();
             try {
                 assertRunning("dispatch message");
-                outgoingQueue.dispatch(new ChannelMessage(channelIdentifier, message));
+                outgoingQueue.queue(new ChannelMessage(channelIdentifier, message));
             } finally {
                 lock.unlock();
             }
@@ -289,41 +299,42 @@ public class MessageHub implements AsyncStoppable {
     }
 
     private class Handler implements Runnable {
-        private final ChannelIdentifier channelIdentifier;
-        private final EndpointQueue queue;
+        private final EndPointQueue queue;
+        private final Dispatch<Object> dispatch;
         private final RejectedMessageListener listener;
 
-        public Handler(ChannelIdentifier channelIdentifier, EndpointQueue queue, RejectedMessageListener listener) {
-            this.channelIdentifier = channelIdentifier;
+        public Handler(EndPointQueue queue, Dispatch<Object> dispatch, RejectedMessageListener listener) {
             this.queue = queue;
+            this.dispatch = dispatch;
             this.listener = listener;
         }
 
         public void run() {
-            List<Object> messages = new ArrayList<Object>();
-            while (true) {
-                lock.lock();
-                try {
-                    queue.take(messages);
-                } finally {
-                    lock.unlock();
-                }
-                for (Object message : messages) {
-                    if (message == END_OF_STREAM) {
-                        return;
-                    }
-                    ChannelMessage channelMessage = (ChannelMessage) message;
-                    if (!channelMessage.getChannel().equals(channelIdentifier)) {
-                        continue;
-                    }
+            try {
+                List<InterHubMessage> messages = new ArrayList<InterHubMessage>();
+                while (true) {
+                    lock.lock();
                     try {
-                        listener.messageDiscarded(channelMessage.getPayload());
-                    } catch (Throwable t) {
-                        errorHandler.execute(t);
-                        return;
+                        queue.take(messages);
+                    } finally {
+                        lock.unlock();
                     }
+                    for (InterHubMessage message : messages) {
+                        if (message instanceof EndOfStream) {
+                            return;
+                        }
+                        if (message instanceof ChannelMessage) {
+                            ChannelMessage channelMessage = (ChannelMessage) message;
+                            dispatch.dispatch(channelMessage.getPayload());
+                        } else {
+                            RejectedMessage rejectedMessage = (RejectedMessage) message;
+                            listener.messageDiscarded(rejectedMessage.getPayload());
+                        }
+                    }
+                    messages.clear();
                 }
-                messages.clear();
+            } catch (Throwable t) {
+                errorHandler.execute(t);
             }
         }
     }

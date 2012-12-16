@@ -1,4 +1,5 @@
 package org.gradle.messaging.remote.internal.hub.protocol;
 
-public class InterHubMessage {
+public abstract class InterHubMessage {
+    public abstract boolean isBroadcast();
 }
