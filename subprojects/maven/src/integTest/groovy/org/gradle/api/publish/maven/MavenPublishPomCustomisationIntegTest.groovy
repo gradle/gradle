@@ -67,7 +67,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
     }
 
     def "pom can contain non-ascii characters"() {
-        // Group and Artifact do not permit non-ascii characters
+        // Group and Artifact are restricted to [A-Za-z0-9_\\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
         def groupId = 'group'
         def artifactId = 'artifact'
 
