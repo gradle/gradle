@@ -22,16 +22,14 @@
             If you are looking for documentation on the “traditional” Ivy publishing support please see <xref linkend="artifact_management"/>.
         </para>
     </note>
-    <section>
-        <para>
-            This chapter describes how to publish build artifacts in the <ulink url="http://ant.apache.org/ivy/">Apache Ivy</ulink> format, usually to a repository
-            for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy <firstterm>module descriptor</firstterm>
-            that describes the artifacts and the dependencies of the artifacts, if any.
-        </para>
-        <para>
-            A published Ivy module can be consumed by Gradle (see <xref linkend="dependency_management" />) and other tools that understand the Ivy format.
-        </para>
-    </section>
+    <para>
+        This chapter describes how to publish build artifacts in the <ulink url="http://ant.apache.org/ivy/">Apache Ivy</ulink> format, usually to a repository
+        for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy <firstterm>module descriptor</firstterm>
+        that describes the artifacts and the dependencies of the artifacts, if any.
+    </para>
+    <para>
+        A published Ivy module can be consumed by Gradle (see <xref linkend="dependency_management" />) and other tools that understand the Ivy format.
+    </para>
     <section>
         <title>The “<literal>ivy-publish</literal>” Plugin</title>
         <para>
@@ -188,7 +186,7 @@
         <title>Generating the Ivy module descriptor file</title>
         <para>
             Sometimes you want to generate the Ivy module descriptor file (normally <literal>ivy.xml</literal>) without publishing your module to an Ivy
-            repository. For this purpose, the <literal>ivy-publish</literal> plugin automatically wires in one <literal>GenerateIvyDescriptor</literal> task
+            repository. For this purpose, the <literal>ivy-publish</literal> plugin automatically wires in one <apilink class="org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor" /> task
             for each registered <apilink class="org.gradle.api.publish.ivy.IvyPublication" />.
         </para>
         <para>
