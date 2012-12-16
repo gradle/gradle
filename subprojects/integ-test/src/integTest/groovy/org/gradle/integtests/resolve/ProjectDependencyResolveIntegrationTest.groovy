@@ -290,7 +290,7 @@ project('c') {
         succeeds ":b:copyZip"
         
         then:
-        ":b:copyZip" in  nonSkippedTasks 
+        ":b:copyZip" in nonSkippedTasks
         
         and:
         file("b/build/copied/a-1.0.zip").exists()

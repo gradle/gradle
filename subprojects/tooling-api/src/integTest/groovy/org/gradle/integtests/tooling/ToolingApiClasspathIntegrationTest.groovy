@@ -29,10 +29,10 @@ class ToolingApiClasspathIntegrationTest extends Specification {
         when:
         ToolingApiDistributionResolver resolver = new ToolingApiDistributionResolver().withDefaultRepository().withExternalToolingApiDistribution()
         ToolingApiDistribution resolve = resolver.resolve(distribution.getVersion())
+
         then:
-        assert resolve != null
-        assert resolve.classpath.files.size() == 2
-        assert resolve.classpath.files.any {it.name ==~ /slf4j-api-.*\.jar/}
-        assert resolve.classpath.files.find {it.name ==~ /gradle-tooling-api.*\.jar/}.size() < 1.5 * 1024 * 1024
+        resolve.classpath.files.size() == 2
+        resolve.classpath.files.any {it.name ==~ /slf4j-api-.*\.jar/}
+        resolve.classpath.files.find {it.name ==~ /gradle-tooling-api.*\.jar/}.size() < 1.5 * 1024 * 1024
     }
 }

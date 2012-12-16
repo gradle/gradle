@@ -57,12 +57,12 @@ public class Binary2JUnitXmlReportGenerator {
                 saxWriter.write(className, result, output);
                 output.close();
             } catch (IOException e) {
-                throw new GradleException("Problems writing xml test results to file: " + file, e);
+                throw new GradleException("Problems writing XML test results to file: " + file, e);
             } finally {
                 IOUtils.closeQuietly(output);
             }
         }
-        LOG.info("Finished generating test xml results (" + clock.getTime() + ")");
+        LOG.info("Finished generating test XML results (" + clock.getTime() + ")");
     }
 
     private static String getHostname() {
