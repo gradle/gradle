@@ -133,4 +133,46 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
         and:
         module.ivyFile.assertDoesNotExist()
     }
+
+    def "can publish with non-ascii characters"() {
+        def organisation = 'group-©®ø¨π'
+        def moduleName = 'artifact-å®†??'
+        def version = 'version-???∆'
+        def description = 'description-ç√∫'
+
+        given:
+        settingsFile << "rootProject.name = '${moduleName}'"
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
+
+            group = '${organisation}'
+            version = '${version}'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy {
+                        descriptor.withXml {
+                            asNode().info[0].appendNode('description', "${description}")
+                        }
+                    }
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module(organisation, moduleName, version)
+        def ivyXmlInfo = module.ivyXml.info[0]
+        ivyXmlInfo.@organisation == organisation
+        ivyXmlInfo.@module == moduleName
+        ivyXmlInfo.@revision == version
+        ivyXmlInfo.description == description
+    }
+
+
 }

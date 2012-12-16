@@ -15,6 +15,7 @@
  */
 package org.gradle.test.fixtures.ivy
 
+import groovy.util.slurpersupport.GPathResult
 import org.apache.ivy.core.IvyPatternHelper
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.util.TestFile
@@ -84,6 +85,10 @@ class IvyFileModule extends AbstractIvyModule {
     TestFile getIvyFile() {
         def path = IvyPatternHelper.substitute(ivyPattern, ModuleRevisionId.newInstance(organisation, module, revision))
         return moduleDir.file(path)
+    }
+
+    GPathResult getIvyXml() {
+        new XmlSlurper().parse(ivyFile)
     }
 
     TestFile getJarFile() {
