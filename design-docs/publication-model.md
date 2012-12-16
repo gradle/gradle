@@ -166,7 +166,6 @@ at this point to start pulling descriptor generation up, so that it can eventual
 * Multi-project build with project dependencies that is published to an Ivy repository can be successfully resolved by another build.
 * A `withXml` action can be used to modify the generated `ivy.xml`.
 * Decent error message when the `withXml` action fails.
-* Decent error message when no repository has been specified for the `publishIvy` task.
 * Descriptor contains non-ascii characters.
 
 ## Customising Maven descriptor XML
@@ -371,9 +370,13 @@ Note that there are several breaking changes here:
   and vice versa.
 * Copy existing Maven publication tests for java libraries and rework to use `maven-publish` plugin.
 
-## Disallow publication to Ivy or Maven repositories when group or version has not been specified
+## Validate publication coordinates
 
-TBD
+Validate the following prior to publication:
+
+* The groupId, artifactId and version specified for a Maven publication are non-empty strings.
+* The groupId and artifactId specified for a Maven publication match the regexp `[A-Za-z0-9_\\-.]+` (see `DefaultModelValidator` in Maven source)
+* The organisation, module and revision specified for an Ivy publication are non-empty strings.
 
 ## Warn when no repository of the appropriate type has been specified
 
@@ -394,10 +397,11 @@ TBD
 * Copy existing Maven publication tests for non-java projects and rework to use `maven-publish` plugin.
 * Lots more TBD
 
-
 ## Some fixes
 
 * Publishing to Ivy uses archivesBaseName for archive names.
+* Honour changes to the {organisation, module, revision} made by an ivy.xml XML hook
+* Honour changes to the {group, artifact, version} made by a pom.xml XML hook
 
 ## Allow Maven POM to be generated without publishing to a repository
 
