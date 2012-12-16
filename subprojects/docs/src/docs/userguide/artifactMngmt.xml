@@ -15,6 +15,15 @@
   -->
 <chapter id="artifact_management">
     <title>Publishing artifacts</title>
+    <note>
+        <para>
+            This chapter describes the <emphasis>original</emphasis> publishing mechanism available in Gradle 1.0: in Gradle 1.3 a new mechanism for publishing was introduced.
+            While this new mechanism is <emphasis>incubating</emphasis> and not yet complete, it introduces some new concepts and features that do (and will) make Gradle publishing even more powerful.
+        </para>
+        <para>
+            You can read about the new publishing plugins in <xref linkend="publishing_ivy"/> and <xref linkend="publishing_maven"/>.
+        </para>
+    </note>
     <section>
         <title>Introduction</title>
         <para>This chapter is about how you declare the outgoing artifacts of your project, and how to work with
