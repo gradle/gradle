@@ -111,8 +111,11 @@ task sayHearthyGoodbye << {
                 url.text
                 return
             } catch (ConnectException e) {
-                Thread.sleep(200)
+                // continue
+            } catch (FileNotFoundException e) {
+                // continue
             }
+            Thread.sleep(200)
         }
         throw new RuntimeException("Timeout waiting for jetty to become available.")
     }
