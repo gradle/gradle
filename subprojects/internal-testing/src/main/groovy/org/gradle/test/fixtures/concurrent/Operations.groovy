@@ -37,8 +37,10 @@ class Operations {
     private final InstantFactory instantFactory
     private final Object lock = new Object()
     private final Map<String, NamedOperation> operations = [:]
+    private final OperationListener listener
 
-    Operations(InstantFactory instantFactory) {
+    Operations(InstantFactory instantFactory, OperationListener listener) {
+        this.listener = listener
         this.instantFactory = instantFactory
     }
 
@@ -64,11 +66,12 @@ class Operations {
             operation = new NamedOperation(name)
             operations[name] = operation
         }
-
+        listener.operationStarted()
         try {
             action.run()
         } finally {
             operation.completed(instantFactory.now(operation.name))
+            listener.operationFinished()
         }
     }
 }

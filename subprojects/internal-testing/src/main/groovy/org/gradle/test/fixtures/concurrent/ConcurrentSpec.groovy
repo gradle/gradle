@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
 import spock.lang.Specification
+import spock.lang.Timeout
 
 import java.util.concurrent.Executor
 
@@ -33,6 +34,7 @@ import java.util.concurrent.Executor
  * <p>NOTE: Be careful when using this class with Spock mock objects, as these mocks perform some synchronisation of their own. This means that you may not be testing
  * what you think you are testing.
  */
+@Timeout(60)
 class ConcurrentSpec extends Specification {
     /**
      * An object that allows instants to be defined and queried.
@@ -46,7 +48,7 @@ class ConcurrentSpec extends Specification {
      *
      * @see NamedOperation
      */
-    final Operations operation = new Operations(instant)
+    final Operations operation = new Operations(instant, instant)
 
     /**
      * An object that allows control over the current thread.

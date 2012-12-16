@@ -252,7 +252,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Cannot block until instant 'unknown', as it has not been defined and no test threads are currently running."
+        e.message == "Cannot wait for instant 'unknown', as it has not been defined and no test threads are currently running."
 
         when:
         async {
@@ -261,7 +261,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
 
         then:
         e = thrown()
-        e.message == "Cannot block until instant 'unknown', as it has not been defined and no other test threads are currently running."
+        e.message == "Cannot wait for instant 'unknown', as it has not been defined and no other test threads are currently running."
 
         when:
         start {
@@ -271,7 +271,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
 
         then:
         e = thrown()
-        e.message == "Cannot block until instant 'unknown', as it has not been defined and no other test threads are currently running."
+        e.message == "Cannot wait for instant 'unknown', as it has not been defined and no other test threads are currently running."
     }
 
     def "async { } block rethrows test thread failures"() {
