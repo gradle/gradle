@@ -143,7 +143,7 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
                 String dependency = "org.codehaus.groovy:" + groovyJar.group(1) + ":" + groovyJar.group(2);
                 if (groovyJar.group(3) != null) {
                     dependency += ":indy";
-                };
+                }
                 groovyClasspath = project.getConfigurations().detachedConfiguration(project.getDependencies().create(dependency));
             }
         }
