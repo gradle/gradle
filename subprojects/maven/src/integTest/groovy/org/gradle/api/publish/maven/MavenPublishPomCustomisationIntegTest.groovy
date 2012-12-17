@@ -49,7 +49,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                             def dependency = asNode().appendNode('dependencies').appendNode('dependency')
                             dependency.appendNode('groupId', 'junit')
                             dependency.appendNode('artifactId', 'junit')
-                            dependency.appendNode('version', '4.1')
+                            dependency.appendNode('version', '4.11')
                             dependency.appendNode('scope', 'runtime')
                         }
                     }
@@ -63,7 +63,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         def module = mavenRepo.module('group', 'root', 'foo')
         module.assertPublishedAsJavaModule()
         module.parsedPom.description == 'custom-description'
-        module.parsedPom.scopes.runtime.assertDependsOn("junit", "junit", "4.1")
+        module.parsedPom.scopes.runtime.assertDependsOn("junit", "junit", "4.11")
     }
 
     def "pom can contain non-ascii characters"() {

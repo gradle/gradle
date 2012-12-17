@@ -156,7 +156,7 @@ repositories { mavenCentral() }
 dependencies {
     compile gradleApi()
     groovy localGroovy()
-    testCompile 'junit:junit:4.8.2'
+    testCompile 'junit:junit:4.11'
 }
 """
 
@@ -197,7 +197,7 @@ repositories { mavenCentral() }
 dependencies {
     compile gradleApi()
     groovy localGroovy()
-    testCompile 'junit:junit:4.8.2'
+    testCompile 'junit:junit:4.11'
 }
 """
 

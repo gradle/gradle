@@ -18,9 +18,9 @@ dependencies {
     compile "commons-httpclient:commons-httpclient:3.0"
     compile "commons-codec:commons-codec:1.2"
     compile "org.slf4j:jcl-over-slf4j:1.6.6"
-    compile "org.codehaus.groovy:groovy:1.8.8"
+    compile "org.codehaus:groovy:groovy-all:2.0.5"
     compile "commons-codec:commons-codec:1.2"
-    testCompile 'junit:junit:4.8.2'
+    testCompile 'junit:junit:4.11'
     testCompile 'org.testng:testng:6.4'
     runtime 'com.googlecode:reflectasm:1.01'
 
@@ -36,14 +36,13 @@ test {
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    groovy 'org.codehaus.groovy:groovy:1.8.8'
+    compile 'org.codehaus:groovy:groovy-all:2.0.5'
 }
 <% } %>
 
 <% if (scalaProject) { %>
 apply plugin: 'scala'
 dependencies {
-    scalaTools 'org.scala-lang:scala-compiler:2.9.2'
     compile 'org.scala-lang:scala-library:2.9.2'
 }
 tasks.withType(ScalaCompile) {

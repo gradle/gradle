@@ -63,7 +63,7 @@ project(':api') {
 description = 'The shared API for the application'
 // END SNIPPET project-description
     dependencies {
-        compile "org.codehaus.groovy:groovy-all:1.8.8"
+        compile "org.codehaus.groovy:groovy-all:2.0.5"
     }
 }
 

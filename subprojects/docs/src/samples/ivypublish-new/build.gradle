@@ -8,7 +8,7 @@ version = '1.0'
 group = 'org.gradle.test'
 
 dependencies {
-   compile 'junit:junit:4.8.2', project(':subproject')
+   compile 'junit:junit:4.11', project(':subproject')
 }
 
 repositories {

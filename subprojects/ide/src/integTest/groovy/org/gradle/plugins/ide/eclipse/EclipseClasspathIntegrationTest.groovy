@@ -648,8 +648,6 @@ repositories {
 }
 
 dependencies {
-    scalaTools "org.scala-lang:scala-compiler:2.9.2"
-
     compile "org.scala-lang:scala-library:2.9.2"
     runtime "org.scala-lang:scala-swing:2.9.1"
     testCompile "org.scala-lang:scala-dbc:2.9.0"

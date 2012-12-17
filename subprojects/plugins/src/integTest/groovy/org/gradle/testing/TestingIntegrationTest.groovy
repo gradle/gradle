@@ -33,7 +33,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile "junit:junit:4.8.2" }
+            dependencies { testCompile "junit:junit:4.11" }
         """
 
         and:

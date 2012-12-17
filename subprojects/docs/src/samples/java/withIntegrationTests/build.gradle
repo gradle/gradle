@@ -12,8 +12,8 @@ sourceSets {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.8.2'
-    integrationTestCompile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    testCompile 'junit:junit:4.11'
+    integrationTestCompile 'commons-collections:commons-collections:3.2'
     integrationTestCompile sourceSets.main.output
     integrationTestCompile configurations.testCompile
     integrationTestCompile sourceSets.test.output

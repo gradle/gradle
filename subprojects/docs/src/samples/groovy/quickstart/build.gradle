@@ -9,9 +9,9 @@ repositories {
 }
 
 dependencies {
-    groovy group: 'org.codehaus.groovy', name: 'groovy', version: '1.7.10'
+    compile 'org.codehaus.groovy:groovy-all:2.0.5'
 // END SNIPPET groovy-dependency
-    testCompile group: 'junit', name: 'junit', version: '4.8.2'
+    testCompile 'junit:junit:4.11'
 // START SNIPPET groovy-dependency
 }
 // END SNIPPET groovy-dependency
