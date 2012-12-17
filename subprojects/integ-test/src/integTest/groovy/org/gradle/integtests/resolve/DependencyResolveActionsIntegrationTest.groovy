@@ -368,39 +368,6 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 .assertFailedDependencyRequiredBy(":root:1.0")
     }
 
-    void "configuring null version is not allowed"()
-    {
-        mavenRepo.module("org.utils", "api", '1.3').publish()
-
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            version = 1.0
-
-            $repo
-
-            dependencies {
-                conf 'org.utils:api:1.3'
-            }
-
-            configurations.conf.resolutionStrategy {
-	            eachDependency {
-                    it.useVersion null
-	            }
-	        }
-
-            task resolveNow << { configurations.conf.resolve() }
-"""
-
-        when:
-        def failure = runAndFail("resolveNow")
-
-        then:
-        failure.dependencyResolutionFailure
-                .assertFailedConfiguration(":conf")
-                .assertHasCause("Configuring the dependency resolve details with 'null' version is not allowed")
-                .assertFailedDependencyRequiredBy(":root:1.0")
-    }
-
     String getRepo() {
         """configurations { conf }
         repositories {
