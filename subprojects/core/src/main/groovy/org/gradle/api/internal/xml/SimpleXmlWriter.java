@@ -17,13 +17,13 @@
 package org.gradle.api.internal.xml;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.LinkedList;
 
-import static org.apache.commons.lang.StringEscapeUtils.escapeXml;
-
 /**
- * Basic xml writer. Encodes characters and CDATA. Provides only basic state validation.
+ * Basic XML writer. Encodes characters and CDATA. Provides only basic state validation.
  *
  * by Szczepan Faber, created at: 12/3/12
  */
@@ -31,17 +31,15 @@ public class SimpleXmlWriter {
 
     private final Writer output;
     private final LinkedList<String> elements = new LinkedList<String>();
-    private boolean writtenAnything;
     private boolean startElement;
+    private int squareBrackets;
 
-    public SimpleXmlWriter(Writer output) {
-        this.output = output;
+    public SimpleXmlWriter(OutputStream output) throws IOException {
+        this.output = new OutputStreamWriter(output, "UTF-8");
+        writeXmlDeclaration("UTF-8", "1.0");
     }
 
-    public void writeXmlDeclaration(String encoding, String ver) throws IOException {
-        if (writtenAnything) {
-            throw new IllegalStateException("Cannot write xml declaration! The xml is not empty and the xml declaration must be the very first tag.");
-        }
+    private void writeXmlDeclaration(String encoding, String ver) throws IOException {
         write("<?xml version=\"");
         write(ver);
         write("\" encoding=\"");
@@ -81,6 +79,9 @@ public class SimpleXmlWriter {
         write("</");
         write(elements.removeLast());
         write(">");
+        if (elements.isEmpty()) {
+            output.flush();
+        }
     }
 
     public void writeEmptyElement(String name) throws IOException {
@@ -104,8 +105,6 @@ public class SimpleXmlWriter {
             }
         }
     }
-
-    int squareBrackets;
 
     private boolean needsCDATAEscaping(char c) {
         switch (c) {
@@ -235,18 +234,29 @@ public class SimpleXmlWriter {
 
     private void write(char c) throws IOException {
         output.write(c);
-        writtenAnything = true;
     }
 
     private void write(String message) throws IOException {
         assert message != null;
         output.write(message);
-        writtenAnything = true;
     }
 
-    private void writeXmlEncoded(String message) throws IOException {
+    private void writeXmlEncoded(CharSequence message) throws IOException {
         assert message != null;
-        escapeXml(output, message);
-        writtenAnything = true;
+        int len = message.length();
+        for (int i = 0; i < len; i++) {
+            char ch = message.charAt(i);
+            if (ch == '<') {
+                write("&lt;");
+            } else if (ch == '>') {
+                write("&gt;");
+            } else if (ch == '&') {
+                write("&amp;");
+            } else if (ch == '"') {
+                write("&quot;");
+            } else {
+                write(ch);
+            }
+        }
     }
 }

@@ -18,21 +18,26 @@ package org.gradle.api.internal.xml
 
 import spock.lang.Specification
 
+import javax.xml.parsers.DocumentBuilderFactory
+
 /**
  * by Szczepan Faber, created at: 12/3/12
  */
 class SimpleXmlWriterSpec extends Specification {
 
-    private sw = new StringWriter()
+    private sw = new ByteArrayOutputStream()
     private writer = new SimpleXmlWriter(sw)
 
     String getXml() {
-        sw.toString()
+        def text = sw.toString("UTF-8")
+        println "TEXT {$text}"
+        def document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(sw.toByteArray()))
+        assert document
+        return text
     }
 
     def "writes basic xml"() {
         when:
-        writer.writeXmlDeclaration("UTF-9", "1.23")
         writer.writeStartElement("root").attribute("items", "9")
         writer.writeEmptyElement("item")
         writer.writeStartElement("item").attribute("size", "10m")
@@ -43,19 +48,29 @@ class SimpleXmlWriterSpec extends Specification {
         writer.writeEndElement()
 
         then:
-        xml == '<?xml version="1.23" encoding="UTF-9"?><root items="9"><item/><item size="10m">some chars<foo></foo></item></root>'
+        xml == '<?xml version="1.0" encoding="UTF-8"?><root items="9"><item/><item size="10m">some chars<foo></foo></item></root>'
     }
 
     def "encodes for xml"() {
         when:
         writer.writeStartElement("root")
         writer.writeStartElement("item").attribute("size", "encoded: &lt; < > ' \"")
-        writer.writeCharacters("chars with interesting stuff: &lt; < > ' \"")
+        writer.writeCharacters("chars with interesting stuff: &lt; < > ' \" ]]>")
         writer.writeEndElement()
         writer.writeEndElement()
 
         then:
-        xml == '<root><item size="encoded: &amp;lt; &lt; &gt; &apos; &quot;">chars with interesting stuff: &amp;lt; &lt; &gt; &apos; &quot;</item></root>'
+        xml.contains('<item size="encoded: &amp;lt; &lt; &gt; \' &quot;">chars with interesting stuff: &amp;lt; &lt; &gt; \' &quot; ]]&gt;</item>')
+    }
+
+    def "encodes non-ascii characters"() {
+        when:
+        writer.writeStartElement("\u0200").attribute("\u0201", "\u0202")
+        writer.writeCharacters("\u0203")
+        writer.writeEndElement()
+
+        then:
+        xml.contains('<\u0200 \u0201="\u0202">\u0203</\u0200>')
     }
 
     def "writes CDATA"() {
@@ -79,21 +94,28 @@ class SimpleXmlWriterSpec extends Specification {
         writer.writeEndElement()
 
         then:
-        xml == '<root><stuff><![CDATA[hey joe]]></stuff><![CDATA[encodes: ]]]]><![CDATA[> does not encode: ]] html allowed: <> &amp;]]></root>'
+        xml.contains('<stuff><![CDATA[hey joe]]></stuff><![CDATA[encodes: ]]]]><![CDATA[> does not encode: ]] html allowed: <> &amp;]]>')
     }
 
     def "encodes CDATA when token on the border"() {
         when:
         //the end token is on the border of both char arrays
+        writer.writeStartElement('root')
+        writer.writeStartCDATA()
         writer.writeCDATA('stuff ]]'.toCharArray())
         writer.writeCDATA('> more stuff'.toCharArray())
+        writer.writeEndCDATA()
+        writer.writeEndElement()
+
         then:
-        xml == 'stuff ]]]]><![CDATA[> more stuff'
+        xml.contains('<![CDATA[stuff ]]]]><![CDATA[> more stuff]]>')
     }
 
     def "does not encode CDATA when token separated in different CDATAs"() {
         when:
         //the end token is on the border of both char arrays
+
+        writer.writeStartElement('root')
 
         writer.writeStartCDATA();
         writer.writeCDATA('stuff ]]'.toCharArray())
@@ -103,8 +125,10 @@ class SimpleXmlWriterSpec extends Specification {
         writer.writeCDATA('> more stuff'.toCharArray())
         writer.writeEndCDATA();
 
+        writer.writeEndElement()
+
         then:
-        xml == '<![CDATA[stuff ]]]]><![CDATA[> more stuff]]>'
+        xml.contains('<root><![CDATA[stuff ]]]]><![CDATA[> more stuff]]></root>')
     }
 
     def "has basic stack validation"() {
@@ -118,52 +142,38 @@ class SimpleXmlWriterSpec extends Specification {
         thrown(IllegalStateException)
     }
 
-    def "allows xml declaration at the beginning only"() {
-        writer.writeXmlDeclaration("utf-8", "1.0")
-
-        when:
-        writer.writeXmlDeclaration("utf-8", "1.0")
-
-        then:
-        thrown(IllegalStateException)
-    }
-
     def "closes tags"() {
-        def sw = new StringWriter()
-        def writer = new SimpleXmlWriter(sw)
-
         when:
         writer.writeStartElement("root")
         action.call(writer)
+        writer.writeEndElement()
 
         then:
-        sw.toString().startsWith("<root>") //is closed with '>'
+        sw.toString().contains("<root>") //is closed with '>'
 
         where:
-        action << [{it.writeStartElement("foo")},
+        action << [{it.writeStartElement("foo"); it.writeEndElement()},
                     {it.writeStartCDATA()},
                     {it.writeCharacters("bar")},
-                    {it.writeEndElement()},
+                    {},
                     {it.writeEmptyElement("baz")}]
     }
 
     def "closes attributed tags"() {
-        def sw = new StringWriter()
-        def writer = new SimpleXmlWriter(sw)
-
         when:
         writer.writeStartElement("root")
         writer.attribute("foo", '115')
         action.call(writer)
+        writer.writeEndElement()
 
         then:
-        sw.toString().startsWith('<root foo="115">') //is closed with '>'
+        sw.toString().contains('<root foo="115">') //is closed with '>'
 
         where:
-        action << [{it.writeStartElement("foo")},
+        action << [{it.writeStartElement("foo"); it.writeEndElement()},
                     {it.writeStartCDATA()},
                     {it.writeCharacters("bar")},
-                    {it.writeEndElement()},
+                    {},
                     {it.writeEmptyElement("baz")}]
     }
 

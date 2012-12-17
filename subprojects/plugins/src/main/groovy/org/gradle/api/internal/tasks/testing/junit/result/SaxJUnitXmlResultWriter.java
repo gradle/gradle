@@ -39,11 +39,8 @@ public class SaxJUnitXmlResultWriter {
     }
 
     public void write(String className, TestClassResult result, OutputStream output) {
-        OutputStreamWriter sw;
         try {
-            sw = new OutputStreamWriter(output, "UTF-8");
-            SimpleXmlWriter writer = new SimpleXmlWriter(sw);
-            writer.writeXmlDeclaration("UTF-8", "1.0");
+            SimpleXmlWriter writer = new SimpleXmlWriter(output);
             writer.writeCharacters("\n  ");
             writer.writeStartElement("testsuite")
                 .attribute("name", className)
@@ -72,7 +69,6 @@ public class SaxJUnitXmlResultWriter {
             writer.writeCharacters("\n");
 
             writer.writeEndElement();
-            sw.flush();
         } catch (IOException e) {
             throw new UncheckedIOException("Problems writing the XML results for class: " + className, e);
         }
