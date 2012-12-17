@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.AbstractMultiCauseException;
 import org.gradle.api.internal.Contextual;
 import org.gradle.internal.UncheckedException;
@@ -33,20 +34,32 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
         super(message);
     }
 
+    public ModuleVersionResolveException(String message, ModuleVersionSelector selector, Throwable cause) {
+        super(format(message, selector), cause);
+    }
+
     public ModuleVersionResolveException(ModuleRevisionId id, Throwable cause) {
-        super(format(id), cause);
+        super(format("Could not resolve ", id), cause);
     }
 
     public ModuleVersionResolveException(ModuleRevisionId id, Iterable<? extends Throwable> causes) {
-        super(format(id), causes);
+        super(format("Could not resolve ", id), causes);
     }
 
     public ModuleVersionResolveException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    private static String format(ModuleRevisionId id) {
-        return String.format("Could not resolve group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision());
+    private static String format(String message, ModuleRevisionId id) {
+        return format(message, id.getOrganisation(), id.getName(), id.getRevision());
+    }
+
+    private static String format(String message, ModuleVersionSelector id) {
+        return format(message, id.getGroup(), id.getName(), id.getVersion());
+    }
+
+    private static String format(String message, String group, String name, String version) {
+        return String.format(message + "group:%s, module:%s, version:%s.", group, name, version);
     }
 
     /**

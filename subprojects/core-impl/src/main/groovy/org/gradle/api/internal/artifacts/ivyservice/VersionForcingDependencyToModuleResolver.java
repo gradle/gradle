@@ -57,8 +57,8 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
         private final ModuleVersionResolveException failure;
 
         public FailedDependencyResolveActionResult(ModuleVersionSelector module, Throwable problem) {
-            this.failure = new ModuleVersionResolveException("Problems executing resolve action for dependency: "
-                    + module.getGroup() + ":" + module.getName() + ":" + module.getVersion(), problem);
+            this.failure = new ModuleVersionResolveException("Problems executing resolve action for dependency - ",
+                    module, problem);
         }
 
         public ModuleVersionResolveException getFailure() {

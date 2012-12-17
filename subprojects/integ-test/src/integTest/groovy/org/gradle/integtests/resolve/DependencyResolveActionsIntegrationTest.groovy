@@ -366,7 +366,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 .assertRequiredBy(":root:1.0")
 
         failure
-            .assertHasCause("Problems executing resolve action for dependency: org.utils:impl:1.3")
+            .assertHasCause("Problems executing resolve action for dependency - group:org.utils, module:impl, version:1.3.")
             .assertHasCause("Unhappy :(")
     }
 
