@@ -73,7 +73,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         repo1.expectDirectoryListGet("group", "projectA")
         repo2Module.publish()
         repo2.expectMetaDataGet("group", "projectA")
-        repo2Module.expectPomGet()
+        repo2Module.pom.expectGet()
         repo2Module.getArtifact().expectGet()
 
         then:
@@ -120,9 +120,9 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
     """
 
         when:
-        repo1Module.expectPomGetMissing()
+        repo1Module.pom.expectGetMissing()
         repo1Artifact.expectHeadMissing()
-        repo2Module.expectPomGetMissing()
+        repo2Module.pom.expectGetMissing()
         repo2Artifact.expectHeadMissing()
 
         then:
@@ -130,10 +130,10 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
 
         when:
         server.resetExpectations()
-        repo1Module.expectPomGetMissing()
+        repo1Module.pom.expectGetMissing()
         repo1Artifact.expectHeadMissing()
         repo2Module.publish()
-        repo2Module.expectPomGet()
+        repo2Module.pom.expectGet()
         repo2Artifact.expectGet()
 
         then:
@@ -199,9 +199,9 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
             }
         """
         when:
-        repo1Module.expectPomGetMissing()
+        repo1Module.pom.expectGetMissing()
         repo1Artifact.expectHeadMissing()
-        repo2Module.expectPomGetMissing()
+        repo2Module.pom.expectGetMissing()
         repo2Artifact.expectHeadMissing()
 
         then:
@@ -209,9 +209,9 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
 
         when:
         server.resetExpectations()
-        repo1Module.expectPomGetMissing()
+        repo1Module.pom.expectGetMissing()
         repo1Artifact.expectHeadMissing()
-        repo2Module.expectPomGetMissing()
+        repo2Module.pom.expectGetMissing()
         repo2Artifact.expectHeadMissing()
 
         then:
@@ -250,7 +250,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
 
         when:
         repo2Module.publish()
-        repo1Module.expectPomGetMissing()
+        repo1Module.pom.expectGetMissing()
         repo1Module.artifact.expectHeadMissing()
 
         then:

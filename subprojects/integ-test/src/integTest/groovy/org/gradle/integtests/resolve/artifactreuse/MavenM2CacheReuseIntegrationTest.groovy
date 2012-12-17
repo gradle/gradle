@@ -40,8 +40,8 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        module1.expectPomHead()
-        module1.expectPomSha1Get()
+        module1.pom.expectHead()
+        module1.pom.sha1.expectGet()
         module1.artifact.expectHead()
         module1.artifact.sha1.expectGet()
 

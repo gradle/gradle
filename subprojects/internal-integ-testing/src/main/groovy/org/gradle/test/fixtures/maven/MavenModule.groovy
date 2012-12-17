@@ -46,7 +46,7 @@ interface MavenModule {
 
     TestFile getMetaDataFile()
 
-    MavenPom getPom()
+    MavenPom getParsedPom()
 
     MavenMetaData getRootMetaData()
 }

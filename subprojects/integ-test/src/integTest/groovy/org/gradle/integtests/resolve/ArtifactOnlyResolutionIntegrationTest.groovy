@@ -46,7 +46,7 @@ task retrieve(type: Sync) {
 
     def "can resolve and cache artifact-only dependencies from a HTTP repository"() {
         when:
-        projectA.expectPomGet()
+        projectA.pom.expectGet()
         projectA.artifact.expectGet()
 
         and:
@@ -61,7 +61,7 @@ task retrieve(type: Sync) {
 
     def "can resolve and cache artifact-only dependencies from a HTTP repository with no descriptor"() {
         when:
-        projectA.expectPomGetMissing()
+        projectA.pom.expectGetMissing()
         projectA.artifact.expectHead()
         projectA.artifact.expectGet()
 

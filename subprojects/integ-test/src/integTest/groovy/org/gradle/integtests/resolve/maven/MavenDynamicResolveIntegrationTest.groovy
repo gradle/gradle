@@ -46,12 +46,12 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
     """
 
         when:
-        projectA.expectPomGet()
+        projectA.pom.expectGet()
         projectA.getArtifact().expectGet()
-        projectB.expectPomGet()
+        projectB.pom.expectGet()
         projectB.getArtifact().expectGet()
         mavenHttpRepo.expectMetaDataGet("org.test", "projectC")
-        projectC.expectPomGet()
+        projectC.pom.expectGet()
         projectC.getArtifact().expectGet()
 
         and:
@@ -94,7 +94,7 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
         when:
         mavenHttpRepo.expectMetaDataGetMissing("org.test", "projectA")
         mavenHttpRepo.expectDirectoryListGet("org.test", "projectA")
-        projectA.expectPomGet()
+        projectA.pom.expectGet()
         projectA.getArtifact().expectGet()
 
         and:
@@ -139,11 +139,11 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
 
         when:
         repo1.expectMetaDataGet("group", "projectA")
-        projectA1.expectPomGet()
+        projectA1.pom.expectGet()
         projectA1.getArtifact().expectGet()
 
         repo2.expectMetaDataGet("group", "projectA")
-        projectA2.expectPomGetBroken()
+        projectA2.pom.expectGetBroken()
 
         and:
         run 'retrieve'
@@ -154,7 +154,7 @@ class MavenDynamicResolveIntegrationTest extends AbstractDependencyResolutionTes
         when:
         server.resetExpectations()
         repo2.expectMetaDataGet("group", "projectA")
-        projectA2.expectPomGet()
+        projectA2.pom.expectGet()
         projectA2.artifact.expectGet()
 
         and:

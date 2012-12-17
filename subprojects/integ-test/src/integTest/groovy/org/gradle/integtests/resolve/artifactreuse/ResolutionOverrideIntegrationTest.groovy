@@ -51,9 +51,9 @@ task retrieve(type: Sync) {
 
         and:
         server.resetExpectations()
-        module.expectPomHead()
-        module.expectPomSha1Get()
-        module.expectPomGet()
+        module.pom.expectHead()
+        module.pom.sha1.expectGet()
+        module.pom.expectGet()
         module.artifact.expectHead()
         module.artifact.sha1.expectGet()
         module.artifact.expectGet()
@@ -87,7 +87,7 @@ task showMissing << { println configurations.missing.files }
 """
 
         when:
-        module.expectPomGetMissing()
+        module.pom.expectGetMissing()
         artifact.expectHeadMissing()
 
         then:
@@ -95,7 +95,7 @@ task showMissing << { println configurations.missing.files }
 
         when:
         server.resetExpectations()
-        module.expectPomGet()
+        module.pom.expectGet()
         module.getArtifact().expectGet()
 
         then:
@@ -128,7 +128,7 @@ task retrieve(type: Sync) {
         def artifact = module.artifact
 
         when:
-        module.expectPomGet()
+        module.pom.expectGet()
         artifact.expectGetMissing()
 
         then:
@@ -136,7 +136,7 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        module.expectPomHead()
+        module.pom.expectGet()
         artifact.expectGet()
 
         then:

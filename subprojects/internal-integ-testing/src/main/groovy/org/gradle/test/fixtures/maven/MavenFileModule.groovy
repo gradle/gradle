@@ -127,7 +127,7 @@ class MavenFileModule implements MavenModule {
         assert actual.isEmpty()
     }
 
-    MavenPom getPom() {
+    MavenPom getParsedPom() {
         return new MavenPom(pomFile)
     }
 

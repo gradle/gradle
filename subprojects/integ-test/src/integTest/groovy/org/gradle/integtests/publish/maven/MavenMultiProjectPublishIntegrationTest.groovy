@@ -35,7 +35,7 @@ project(":project1") {
         run ":project1:uploadArchives"
 
         then:
-        def pom = mavenModule.pom
+        def pom = mavenModule.parsedPom
         pom.scopes.compile.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 
@@ -57,7 +57,7 @@ project(":project2") {
         run ":project1:uploadArchives"
 
         then:
-        def pom = mavenModule.pom
+        def pom = mavenModule.parsedPom
         pom.scopes.compile.assertDependsOn("org.gradle.test", "changed", "1.9")
     }
 
@@ -83,7 +83,7 @@ project(":project2") {
         run ":project1:uploadArchives"
 
         then:
-        def pom = mavenModule.pom
+        def pom = mavenModule.parsedPom
         pom.scopes.compile.assertDependsOn("org.gradle.test", "changed", "1.9")
     }
 
@@ -110,7 +110,7 @@ project(":project2") {
         run ":project1:uploadArchives"
 
         then:
-        def pom = mavenModule.pom
+        def pom = mavenModule.parsedPom
         pom.scopes.compile.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 

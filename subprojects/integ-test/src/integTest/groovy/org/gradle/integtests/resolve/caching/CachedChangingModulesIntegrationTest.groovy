@@ -54,7 +54,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         """
 
         when:
-        module.expectPomGet()
+        module.pom.expectGet()
         sourceArtifact.expectGet()
         module.expectMetaDataGet()
 
@@ -65,7 +65,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         server.resetExpectations()
         module.expectMetaDataGet()
         sourceArtifact.expectHead()
-        module.expectPomHead()
+        module.pom.expectHead()
         then:
         run 'retrieve'
 
@@ -74,9 +74,9 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         server.resetExpectations()
 
         module.expectMetaDataGet()
-        module.expectPomSha1Get()
-        module.expectPomHead()
-        module.expectPomGet()
+        module.pom.sha1.expectGet()
+        module.pom.expectHead()
+        module.pom.expectGet()
         sourceArtifact.expectHead()
         sourceArtifact.expectGet()
         sourceArtifact.sha1.expectGet()
@@ -125,7 +125,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         """
 
         when:
-        module.expectPomGet()
+        module.pom.expectGet()
         sourceArtifact.expectGet()
         module.expectMetaDataGetMissing()
 
@@ -136,7 +136,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         server.resetExpectations()
         module.expectMetaDataGetMissing()
         sourceArtifact.expectHead()
-        module.expectPomHead()
+        module.pom.expectHead()
         then:
         run 'retrieve'
 
@@ -145,9 +145,9 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         server.resetExpectations()
 
         module.expectMetaDataGetMissing()
-        module.expectPomSha1Get()
-        module.expectPomHead()
-        module.expectPomGet()
+        module.pom.sha1.expectGet()
+        module.pom.expectHead()
+        module.pom.expectGet()
         sourceArtifact.expectHead()
         sourceArtifact.expectGet()
         sourceArtifact.sha1.expectGet()

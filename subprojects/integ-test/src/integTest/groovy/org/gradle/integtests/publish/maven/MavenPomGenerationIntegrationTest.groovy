@@ -48,7 +48,7 @@ uploadArchives {
 
         then:
         def mavenModule = mavenRepo.module("org.gradle.test", pomArtifactId, pomVersion)
-        def pom = mavenModule.pom
+        def pom = mavenModule.parsedPom
         pom.groupId == "org.gradle.test"
         pom.artifactId == pomArtifactId
         pom.version == pomVersion
@@ -92,7 +92,7 @@ uploadArchives {
 
         then:
         def mavenModule = mavenRepo.module(pomGroupId, pomArtifactId, pomVersion)
-        def pom = mavenModule.pom
+        def pom = mavenModule.parsedPom
         pom.groupId == pomGroupId
         pom.artifactId == pomArtifactId
         pom.version == pomVersion

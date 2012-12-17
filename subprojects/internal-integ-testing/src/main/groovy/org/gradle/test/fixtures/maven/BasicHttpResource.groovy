@@ -19,11 +19,11 @@ package org.gradle.test.fixtures.maven
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
-class SimpleHttpResource extends HttpResource{
+class BasicHttpResource extends HttpResource{
     private final String path
     private final File file
 
-    SimpleHttpResource(HttpServer httpServer, File file, String path) {
+    BasicHttpResource(HttpServer httpServer, File file, String path) {
         super(httpServer)
         this.file = file
         this.path = path

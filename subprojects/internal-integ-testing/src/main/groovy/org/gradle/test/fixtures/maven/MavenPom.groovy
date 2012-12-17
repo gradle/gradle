@@ -25,24 +25,25 @@ class MavenPom {
     final Map<String, MavenScope> scopes = [:]
 
     MavenPom(File pomFile) {
-        def pom = new XmlParser().parse(pomFile)
+        if (pomFile.exists()){
+            def pom = new XmlParser().parse(pomFile)
 
-        groupId = pom.groupId[0]?.text()
-        artifactId = pom.artifactId[0]?.text()
-        version = pom.version[0]?.text()
-        packaging = pom.packaging[0]?.text()
-        description = pom.description[0]?.text()
+            groupId = pom.groupId[0]?.text()
+            artifactId = pom.artifactId[0]?.text()
+            version = pom.version[0]?.text()
+            packaging = pom.packaging[0]?.text()
+            description = pom.description[0]?.text()
 
-        pom.dependencies.dependency.each { dep ->
-            def scopeElement = dep.scope
-            def scopeName = scopeElement ? scopeElement.text() : "runtime"
-            def scope = scopes[scopeName]
-            if (!scope) {
-                scope = new MavenScope()
-                scopes[scopeName] = scope
+            pom.dependencies.dependency.each { dep ->
+                def scopeElement = dep.scope
+                def scopeName = scopeElement ? scopeElement.text() : "runtime"
+                def scope = scopes[scopeName]
+                if (!scope) {
+                    scope = new MavenScope()
+                    scopes[scopeName] = scope
+                }
+                scope.addDependency(dep.groupId.text(), dep.artifactId.text(), dep.version.text())
             }
-            scope.addDependency(dep.groupId.text(), dep.artifactId.text(), dep.version.text())
         }
     }
-
 }

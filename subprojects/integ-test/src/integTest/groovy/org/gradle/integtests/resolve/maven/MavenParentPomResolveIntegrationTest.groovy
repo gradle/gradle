@@ -49,8 +49,8 @@ task retrieve(type: Sync) {
 """
 
         when:
-        child.expectPomGet()
-        parent.expectPomGet()
+        child.pom.expectGet()
+        parent.pom.expectGet()
 
         // Will always check for a default artifact with a module with 'pom' packaging
         // TODO - should not make this request
@@ -58,9 +58,9 @@ task retrieve(type: Sync) {
 
         child.artifact.expectGet()
 
-        parentDep.expectPomGet()
+        parentDep.pom.expectGet()
         parentDep.artifact.expectGet()
-        childDep.expectPomGet()
+        childDep.pom.expectGet()
         childDep.artifact.expectGet()
 
         and:
@@ -100,13 +100,13 @@ task retrieve(type: Sync) {
 """
 
         when:
-        child.expectPomGet()
+        child.pom.expectGet()
         child.artifact.expectGet()
 
-        parentInRepo1.expectPomGetMissing()
+        parentInRepo1.pom.expectGetMissing()
         parentInRepo1.artifact.expectHeadMissing()
 
-        parentInRepo2.expectPomGet()
+        parentInRepo2.pom.expectGet()
          // TODO - should not make this request
         parentInRepo2.artifact.expectHeadMissing()
 

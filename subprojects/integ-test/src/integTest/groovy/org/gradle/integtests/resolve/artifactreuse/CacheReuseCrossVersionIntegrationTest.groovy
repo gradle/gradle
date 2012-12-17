@@ -64,8 +64,8 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        projectB.expectPomHead()
-        projectB.expectPomSha1Get()
+        projectB.pom.expectHead()
+        projectB.pom.sha1.expectGet()
         projectB.artifact.expectHead()
         projectB.artifact.sha1.expectGet()
 
@@ -111,7 +111,7 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        projectB.expectPomHead()
+        projectB.pom.expectHead()
         projectB.artifact.expectHead()
 
         and:
@@ -158,8 +158,8 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         httpRepo.expectMetaDataGet("org.name", "projectB")
-        projectB.expectPomHead()
-        projectB.expectPomSha1Get()
+        projectB.pom.expectHead()
+        projectB.pom.sha1.expectGet()
         projectB.artifact.expectHead()
         projectB.artifact.sha1.expectGet()
 

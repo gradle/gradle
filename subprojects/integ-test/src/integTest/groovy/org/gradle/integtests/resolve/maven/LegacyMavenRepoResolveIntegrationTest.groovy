@@ -43,9 +43,9 @@ task check << {
 }
 """
         and:
-        module.expectPomGet()
-        module.expectPomSha1GetMissing()
-        module.expectPomMd5Get()
+        module.pom.expectGet()
+        module.pom.sha1.expectGetMissing()
+        module.pom.md5.expectGet()
         module.artifact.expectGet()
         module.artifact.sha1.expectGetMissing()
         module.artifact.md5.expectGet()
@@ -58,11 +58,11 @@ task check << {
 
         and:
         server.resetExpectations()
-        module.expectPomHead()
-        module.expectPomSha1Get()
-        module.expectPomGet()
+        module.pom.expectHead()
+        module.pom.sha1.expectGet()
+        module.pom.expectGet()
         // TODO - shouldn't get checksum twice
-        module.expectPomSha1Get()
+        module.pom.sha1.expectGet()
         module.artifact.expectHead()
         module.artifact.sha1.expectGet()
         module.artifact.expectGet()
@@ -79,7 +79,7 @@ task check << {
 
         given:
         def module = mavenHttpRepo.module("group", "module", "1.2").publishWithChangedContent()
-        module.artifactSha1File.text = '1234'
+        module.artifact.sha1.file.text = '1234'
 
         buildFile << """
 repositories {
@@ -100,8 +100,8 @@ task check << {
 }
 """
         and:
-        module.expectPomGet()
-        module.expectPomSha1Get()
+        module.pom.expectGet()
+        module.pom.sha1.expectGet()
         module.artifact.expectGet()
         module.artifact.sha1.expectGet()
 
@@ -136,7 +136,7 @@ task check << {
 }
 """
         and:
-        module.expectPomGetMissing()
+        module.pom.expectGetMissing()
 
         expect:
         fails 'check'
@@ -201,7 +201,7 @@ task check << {
 }
 """
         and:
-        module.expectPomGet()
+        module.pom.expectGet()
         module.artifact.expectGet()
 
         expect:

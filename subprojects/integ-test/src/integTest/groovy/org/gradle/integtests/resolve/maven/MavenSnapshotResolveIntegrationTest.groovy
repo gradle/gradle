@@ -119,7 +119,7 @@ task retrieve(type: Sync) {
 
         and: "Server provides projectB with artifact in repo2"
         repo1ProjectB.expectMetaDataGet()
-        repo1ProjectB.expectPomGet()
+        repo1ProjectB.pom.expectGet()
         repo1ProjectB.artifact.expectGetMissing()
         repo2ProjectB.artifact.expectGet()
 
@@ -420,7 +420,7 @@ project('second') {
 """
         when: "Module is requested once"
         module.expectMetaDataGet()
-        module.expectPomGet()
+        module.pom.expectGet()
         module.artifact.expectGet()
 
         module2.artifact.expectHead()
@@ -466,7 +466,7 @@ project('second') {
         // There are lots of dates floating around in a resolution and we want to make
         // sure we use this.
         module.artifactFile.setLastModified(2000)
-        module.pomFile.setLastModified(6000)
+        module.pom.file.setLastModified(6000)
         def artifact = module.artifact
 
         when:
@@ -492,9 +492,9 @@ project('second') {
         module.publishWithChangedContent()
         server.resetExpectations()
         module.expectMetaDataGet()
-        module.expectPomHead()
-        module.expectPomSha1GetMissing()
-        module.expectPomGet()
+        module.pom.expectHead()
+        module.pom.sha1.expectGetMissing()
+        module.pom.expectGet()
         artifact.expectHead()
         artifact.sha1.expectGetMissing()
         artifact.expectGet()
@@ -508,15 +508,15 @@ project('second') {
 
     private expectModuleServed(MavenHttpModule module) {
         module.expectMetaDataGet()
-        module.expectPomGet()
+        module.pom.expectGet()
         module.artifact.expectGet()
     }
 
     private expectChangedModuleServed(MavenHttpModule module) {
         module.expectMetaDataGet()
-        module.expectPomHead()
-        module.expectPomSha1Get()
-        module.expectPomGet()
+        module.pom.expectHead()
+        module.pom.sha1.expectGet()
+        module.pom.expectGet()
         def artifact = module.artifact
         artifact.expectHead()
         artifact.sha1.expectGet()
@@ -525,7 +525,7 @@ project('second') {
 
     private expectChangedArtifactServed(MavenHttpModule module) {
         module.expectMetaDataGet()
-        module.expectPomHead()
+        module.pom.expectHead()
         def artifact = module.artifact
         artifact.expectHead()
         artifact.sha1.expectGet()
@@ -534,13 +534,13 @@ project('second') {
 
     private expectChangedProbe(MavenHttpModule module) {
         module.expectMetaDataGet()
-        module.expectPomHead()
+        module.pom.expectHead()
         module.artifact.expectHead()
     }
 
     private expectModuleMissing(MavenHttpModule module) {
         module.expectMetaDataGetMissing()
-        module.expectPomGetMissing()
+        module.pom.expectGetMissing()
         module.artifact.expectHeadMissing()
     }
 }

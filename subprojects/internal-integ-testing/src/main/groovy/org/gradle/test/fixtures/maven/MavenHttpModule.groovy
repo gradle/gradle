@@ -92,8 +92,12 @@ class MavenHttpModule implements MavenModule {
         return backingModule.metaDataFile
     }
 
-    MavenPom getPom() {
-        backingModule.pom
+    MavenPom getParsedPom() {
+        return backingModule.parsedPom;
+    }
+
+    PomHttpResource getPom() {
+        return new PomHttpResource(server, getPomPath(), backingModule)
     }
 
     MavenMetaData getRootMetaData() {
@@ -204,60 +208,12 @@ class MavenHttpModule implements MavenModule {
         server.expectPut(md5Path(pomPath), md5File(pomFile), statusCode, credentials)
     }
 
-    void expectPomGet() {
-        server.expectGet("$moduleVersionPath/$pomFile.name", pomFile)
-    }
-
-    void expectPomHead() {
-        server.expectHead("$moduleVersionPath/$pomFile.name", pomFile)
-    }
-
-    void expectPomGetMissing() {
-        server.expectGetMissing("$moduleVersionPath/$missingPomName")
-    }
-
-    void expectPomGetBroken() {
-        server.expectGetBroken("$moduleVersionPath/$missingPomName")
-    }
-
-    void expectPomHeadMissing() {
-        server.expectHeadMissing("$moduleVersionPath/$missingPomName")
-    }
-
-    void expectPomSha1Get() {
-        server.expectGet("$moduleVersionPath/${pomFile.name}.sha1", backingModule.getSha1File(pomFile))
-    }
-
-    void expectPomSha1GetMissing() {
-        server.expectGetMissing("$moduleVersionPath/${missingPomName}.sha1")
-    }
-
-    void expectPomMd5Get() {
-        server.expectGet("$moduleVersionPath/${pomFile.name}.md5", backingModule.getMd5File(pomFile))
-    }
-
-    private String getMissingPomName() {
-        if (backingModule.version.endsWith("-SNAPSHOT")) {
-            return "${backingModule.artifactId}-${backingModule.version}.pom"
-        } else {
-            return pomFile.name
-        }
-    }
-
     String getArtifactPath(Map options = [:]) {
         "$moduleVersionPath/${getArtifactFile(options).name}"
     }
 
     String getPomPath() {
         "$moduleVersionPath/$pomFile.name"
-    }
-
-    TestFile getArtifactMd5File() {
-        backingModule.artifactMd5File
-    }
-
-    String getArtifactMd5Path() {
-        "${artifactPath}.md5"
     }
 
     void expectArtifactPut(PasswordCredentials credentials) {
@@ -272,11 +228,19 @@ class MavenHttpModule implements MavenModule {
         expectArtifactSha1Put(200, credentials)
     }
 
-    TestFile getArtifactSha1File() {
+    private TestFile getArtifactMd5File() {
+        backingModule.artifactMd5File
+    }
+
+    private String getArtifactMd5Path() {
+        "${artifactPath}.md5"
+    }
+
+    private TestFile getArtifactSha1File() {
         backingModule.artifactSha1File
     }
 
-    String getArtifactSha1Path(Map options = [:]) {
+    private String getArtifactSha1Path(Map options = [:]) {
         "${getArtifactPath(options)}.sha1"
     }
 

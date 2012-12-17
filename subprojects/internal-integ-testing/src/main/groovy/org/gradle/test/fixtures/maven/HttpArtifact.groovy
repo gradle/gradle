@@ -37,14 +37,11 @@ abstract class HttpArtifact extends HttpResource {
     }
 
     HttpResource getMd5(){
-        return new SimpleHttpResource(server, getSha1File(), "${path}.md5")
-    }
-    void expectMd5Get() {
-        server.expectGet("${path}.md5", md5File)
+        return new BasicHttpResource(server, getMd5File(), "${path}.md5")
     }
 
     HttpResource getSha1() {
-        return new SimpleHttpResource(server, getSha1File(), "${path}.sha1")
+        return new BasicHttpResource(server, getSha1File(), "${path}.sha1")
     }
 
     protected String getPath() {

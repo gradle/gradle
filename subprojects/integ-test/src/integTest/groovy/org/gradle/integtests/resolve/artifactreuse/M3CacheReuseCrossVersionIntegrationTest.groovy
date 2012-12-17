@@ -61,7 +61,7 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        projectB.expectPomGet()
+        projectB.pom.expectGet()
         projectB.artifact.expectHead()
         projectB.artifact.sha1.expectGet()
 
