@@ -347,8 +347,9 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 def a = modules.find { it.id.name == 'a' }
                 assert a.id.version == '1.4'
                 assert a.selectionReason.conflictResolution
-//                assert a.selectionReason.selectedByAction //TODO SF
+                assert a.selectionReason.selectedByAction
                 assert !a.selectionReason.forced
+                assert a.selectionReason.description == 'conflict resolution by action'
 
                 //flush out resolve issues
                 configurations.conf.files

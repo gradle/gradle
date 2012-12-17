@@ -48,13 +48,13 @@ public class DependencyGraphBuilder {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final DependencyToModuleVersionIdResolver dependencyResolver;
-    private final ForcedModuleConflictResolver conflictResolver;
+    private final InternalConflictResolver conflictResolver;
 
     public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory, DependencyToModuleVersionIdResolver dependencyResolver, ModuleConflictResolver conflictResolver) {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.dependencyResolver = dependencyResolver;
-        this.conflictResolver = new ForcedModuleConflictResolver(conflictResolver);
+        this.conflictResolver = new InternalConflictResolver(conflictResolver);
     }
 
     public DefaultLenientConfiguration resolve(ConfigurationInternal configuration, ResolveData resolveData, ResolvedConfigurationListener listener) throws ResolveException {
@@ -940,10 +940,10 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static class ForcedModuleConflictResolver {
+    private static class InternalConflictResolver {
         private final ModuleConflictResolver resolver;
 
-        private ForcedModuleConflictResolver(ModuleConflictResolver resolver) {
+        private InternalConflictResolver(ModuleConflictResolver resolver) {
             this.resolver = resolver;
         }
 
@@ -958,7 +958,11 @@ public class DependencyGraphBuilder {
             }
             //TODO SF unit test
             DefaultModuleRevisionResolveState out = (DefaultModuleRevisionResolveState) resolver.select(candidates, root);
-            out.selectionReason = VersionSelectionReasons.CONFLICT_RESOLUTION;
+            if (out.selectionReason == VersionSelectionReasons.SELECTED_BY_ACTION) {
+                out.selectionReason = VersionSelectionReasons.CONFLICT_RESOLUTION_BY_ACTION;
+            } else {
+                out.selectionReason = VersionSelectionReasons.CONFLICT_RESOLUTION;
+            }
             return out;
         }
     }

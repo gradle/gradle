@@ -27,6 +27,7 @@ public class VersionSelectionReasons {
     public static final ModuleVersionSelectionReason FORCED = new DefaultModuleVersionSelectionReason(true, false, false, "forced");
     public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION = new DefaultModuleVersionSelectionReason(false, true, false, "conflict resolution");
     public static final ModuleVersionSelectionReason SELECTED_BY_ACTION = new DefaultModuleVersionSelectionReason(false, false, true, "selected by action");
+    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION_BY_ACTION = new DefaultModuleVersionSelectionReason(false, true, true, "conflict resolution by action");
 
     private static class DefaultModuleVersionSelectionReason implements ModuleVersionSelectionReason {
 
