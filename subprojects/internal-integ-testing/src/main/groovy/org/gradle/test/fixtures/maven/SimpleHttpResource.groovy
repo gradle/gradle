@@ -19,11 +19,11 @@ package org.gradle.test.fixtures.maven
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
-class Sha1HttpResource extends HttpResource{
+class SimpleHttpResource extends HttpResource{
     private final String path
     private final File file
 
-    Sha1HttpResource(HttpServer httpServer, File file, String path) {
+    SimpleHttpResource(HttpServer httpServer, File file, String path) {
         super(httpServer)
         this.file = file
         this.path = path

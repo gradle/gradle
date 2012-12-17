@@ -48,7 +48,7 @@ task check << {
         module.expectPomMd5Get()
         module.artifact.expectGet()
         module.artifact.sha1.expectGetMissing()
-        module.artifact.expectMd5Get()
+        module.artifact.md5.expectGet()
 
         expect:
         succeeds 'check'
