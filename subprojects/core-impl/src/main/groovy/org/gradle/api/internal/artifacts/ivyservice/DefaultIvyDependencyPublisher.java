@@ -85,13 +85,12 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
 
             boolean successfullyPublished = false;
             try {
-                boolean overwrite = true;
-                resolver.beginPublishTransaction(moduleDescriptor.getModuleRevisionId(), overwrite);
+                resolver.beginPublishTransaction(moduleDescriptor.getModuleRevisionId(), true);
                 // for each declared published artifact in this descriptor, do:
                 for (Map.Entry<Artifact, File> entry : artifactsFiles.entrySet()) {
                     Artifact artifact = entry.getKey();
                     File artifactFile = entry.getValue();
-                    publish(artifact, artifactFile, resolver, overwrite);
+                    publish(artifact, artifactFile, resolver, true);
                 }
                 resolver.commitPublishTransaction();
                 successfullyPublished = true;

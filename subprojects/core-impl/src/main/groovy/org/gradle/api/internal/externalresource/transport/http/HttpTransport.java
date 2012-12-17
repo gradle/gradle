@@ -16,15 +16,15 @@
 package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.transfer.DefaultCacheAwareExternalResourceAccessor;
-import org.gradle.api.internal.externalresource.transport.DefaultExternalResourceRepository;
-import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceAccessor;
 import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceUploader;
+import org.gradle.api.internal.externalresource.transport.DefaultExternalResourceRepository;
+import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.logging.ProgressLoggerFactory;
 
@@ -63,7 +63,7 @@ public class HttpTransport implements RepositoryTransport {
         );
     }
 
-    public void configureCacheManager(AbstractResolver resolver) {
+    public void configureCacheManager(ExternalResourceResolver resolver) {
         resolver.setRepositoryCacheManager(repositoryCacheManager);
     }
 
