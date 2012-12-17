@@ -20,15 +20,19 @@ import spock.lang.Specification
 
 import java.util.regex.Pattern
 
-/**
- * by Szczepan Faber, created at: 12/12/12
- */
-class RegexMatcherSpec extends Specification {
+import static org.gradle.util.Matchers.matchesRegexp
 
-    def "matches"() {
+/**
+ * by Szczepan Faber, created at: 12/17/12
+ */
+class MatchersSpec extends Specification {
+
+    def "matches regex"() {
         expect:
-        new RegexMatcher("foo.*").matches(match)
-        !new RegexMatcher(Pattern.compile("foo.*")).matches(noMatch)
+        matchesRegexp("foo.*").matches(match)
+
+        and:
+        !matchesRegexp(Pattern.compile("foo.*")).matches(noMatch)
 
         where:
         match     | noMatch
