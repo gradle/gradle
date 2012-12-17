@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.internal.UncheckedException;
 
@@ -94,11 +93,10 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         return results;
     }
 
-    @Nullable
     public Reader getOutputs(final String className, final TestOutputEvent.Destination destination) {
         final File file = outputsFile(className, destination);
         if (!file.exists()) {
-            return null;
+            return new StringReader("");
         }
         try {
             return new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), "UTF-8");

@@ -17,14 +17,13 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.apache.tools.ant.util.DateUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
 import java.io.*;
 import java.util.Set;
-
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
  * by Szczepan Faber, created at: 11/13/12
@@ -40,7 +39,7 @@ public class SaxJUnitXmlResultWriter {
     }
 
     public void write(String className, TestClassResult result, OutputStream output) {
-        OutputStreamWriter sw = null;
+        OutputStreamWriter sw;
         try {
             sw = new OutputStreamWriter(output, "UTF-8");
             SimpleXmlWriter writer = new SimpleXmlWriter(sw);
@@ -75,39 +74,29 @@ public class SaxJUnitXmlResultWriter {
             writer.writeEndElement();
             sw.flush();
         } catch (IOException e) {
-            throw new RuntimeException("Problems writing the XML results for class: " + className, e);
+            throw new UncheckedIOException("Problems writing the XML results for class: " + className, e);
         }
     }
 
     private void writeOutputs(SimpleXmlWriter writer, String className, TestOutputEvent.Destination destination) throws IOException {
         Reader outputs = testResultsProvider.getOutputs(className, destination);
-        writer.writeStartCDATA();
-        if (outputs != null) {
+        try {
+            writer.writeStartCDATA();
             writeCDATA(writer, outputs);
+            writer.writeEndCDATA();
+        } finally {
+            outputs.close();
         }
-        writer.writeEndCDATA();
     }
 
     private void writeCDATA(SimpleXmlWriter writer, Reader content) throws IOException {
-        try {
-            char[] buffer = new char[2048];
+        char[] buffer = new char[2048];
+        while (true) {
             int read = content.read(buffer);
             if (read < 0) {
                 return;
             }
             writer.writeCDATA(buffer, 0, read);
-        } finally {
-            content.close();
-        }
-    }
-
-    String getXml(String className, TestClassResult result) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        write(className, result, out);
-        try {
-            return out.toString("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw throwAsUncheckedException(e);
         }
     }
 

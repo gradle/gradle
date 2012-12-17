@@ -48,7 +48,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         provider.getOutputs("com.foo.FooTest", StdErr) >> new StringReader("err")
 
         when:
-        def xml = generator.getXml("com.foo.FooTest", result)
+        def xml = getXml("com.foo.FooTest", result)
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest")
@@ -82,10 +82,10 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
     def "writes results with empty outputs"() {
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
-        provider.getOutputs(_, _) >> null
+        provider.getOutputs(_, _) >> { new StringReader("") }
 
         when:
-        def xml = generator.getXml("com.foo.FooTest", result)
+        def xml = getXml("com.foo.FooTest", result)
 
         then:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
@@ -104,7 +104,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         provider.getOutputs(_, StdOut) >> new StringReader("with CDATA end token: ]]> some ascii: ż")
 
         when:
-        def xml = generator.getXml("com.foo.FooTest", result)
+        def xml = getXml("com.foo.FooTest", result)
 
         then:
         //attribute and text is encoded:
@@ -112,5 +112,11 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         //output encoded:
         xml.contains('<system-out><![CDATA[with CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-out>')
         xml.contains('<system-err><![CDATA[with CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-err>')
+    }
+
+    def getXml(String className, TestClassResult result) {
+        def text = new ByteArrayOutputStream()
+        generator.write(className, result, text)
+        return text.toString("UTF-8")
     }
 }

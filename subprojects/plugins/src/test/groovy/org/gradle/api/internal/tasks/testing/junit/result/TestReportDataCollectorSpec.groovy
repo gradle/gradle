@@ -157,7 +157,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.getOutputs("FooTest", StdErr).text == 'errerr2'
         collector.getOutputs("FooTest", StdOut).text == 'out'
 
-        collector.getOutputs("TestWithoutOutputs", StdErr) == null
-        collector.getOutputs("TestWithoutOutputs", StdOut) == null
+        collector.getOutputs("TestWithoutOutputs", StdErr).text == ''
+        collector.getOutputs("TestWithoutOutputs", StdOut).text == ''
     }
 }
