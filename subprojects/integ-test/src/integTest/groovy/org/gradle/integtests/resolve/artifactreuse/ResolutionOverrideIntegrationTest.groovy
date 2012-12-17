@@ -41,7 +41,7 @@ task retrieve(type: Sync) {
 
         when:
         succeeds 'retrieve'
-        
+
         then:
         file('libs').assertHasDescendants('projectA-1.2.jar')
         def snapshot = file('libs/projectA-1.2.jar').snapshot()
@@ -61,7 +61,7 @@ task retrieve(type: Sync) {
         and:
         executer.withArguments('--refresh-dependencies')
         succeeds 'retrieve'
-        
+
         then:
         file('libs/projectA-1.2.jar').assertIsCopyOf(module.artifactFile).assertHasChangedSince(snapshot)
     }
@@ -136,7 +136,7 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        module.pom.expectGet()
+        module.pom.expectHead()
         artifact.expectGet()
 
         then:
@@ -169,7 +169,7 @@ task retrieve(type: Sync) {
 }
 """
 
-        when:  "Server handles requests"
+        when: "Server handles requests"
         module.allowAll()
 
         and: "We resolve dependencies"
