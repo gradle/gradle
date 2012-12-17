@@ -363,11 +363,9 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.dependencyResolutionFailure
                 .assertFailedConfiguration(":conf")
-                .assertRequiredBy(":root:1.0")
-
-        failure
-            .assertHasCause("Problems executing resolve action for dependency - group:org.utils, module:impl, version:1.3.")
-            .assertHasCause("Unhappy :(")
+                .assertHasCause("Problems executing resolve action for dependency - group:org.utils, module:impl, version:1.3.")
+                .assertHasCause("Unhappy :(")
+                .assertFailedDependencyRequiredBy(":root:1.0")
     }
 
     void "configuring null version is not allowed"()
@@ -399,10 +397,8 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.dependencyResolutionFailure
                 .assertFailedConfiguration(":conf")
-                .assertRequiredBy(":root:1.0")
-
-        failure
-            .assertHasCause("Configuring the dependency resolve details with 'null' version is not allowed")
+                .assertHasCause("Configuring the dependency resolve details with 'null' version is not allowed")
+                .assertFailedDependencyRequiredBy(":root:1.0")
     }
 
     String getRepo() {

@@ -1,7 +1,7 @@
 /*
  * Copyright 2012 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -22,19 +22,24 @@ import org.gradle.util.RegexMatcher
  * by Szczepan Faber, created at: 12/12/12
  */
 public class DependencyResolutionFailure {
-    private final ExecutionFailure failure;
+    private final ExecutionFailure failure
 
-    public DependencyResolutionFailure(ExecutionFailure failure) {
-        this.failure = failure;
+    DependencyResolutionFailure(ExecutionFailure failure) {
+        this.failure = failure
     }
 
-    public DependencyResolutionFailure assertFailedConfiguration(String configuration) {
+    DependencyResolutionFailure assertFailedConfiguration(String configuration) {
         failure.assertHasCause("Could not resolve all dependencies for configuration '$configuration'.")
-        return this;
+        this
     }
 
-    public DependencyResolutionFailure assertRequiredBy(String dependency) {
+    DependencyResolutionFailure assertFailedDependencyRequiredBy(String dependency) {
         failure.assertThatCause(new RegexMatcher("(?ms).*Required by:\\s+$dependency.*"))
-        return this;
+        this
+    }
+
+    DependencyResolutionFailure assertHasCause(String cause) {
+        failure.assertHasCause(cause)
+        this
     }
 }
