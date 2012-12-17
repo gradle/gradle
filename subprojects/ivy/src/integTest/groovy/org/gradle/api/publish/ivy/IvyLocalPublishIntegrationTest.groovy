@@ -135,10 +135,10 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can publish with non-ascii characters"() {
-        def organisation = 'group-©¨¿¬¹'
-        def moduleName = 'artifact-Œ¨ ??'
-        def version = 'version-???Æ'
-        def description = 'description-Ãº'
+        def organisation = 'group-âˆšÃ¦ãš'
+        def moduleName = 'artifact-âˆ«Ê™ã´'
+        def version = 'version-â‚¦ã‚¬ãâˆ†'
+        def description = 'description-Ã§âˆšâˆ«'
 
         given:
         settingsFile << "rootProject.name = '${moduleName}'"
