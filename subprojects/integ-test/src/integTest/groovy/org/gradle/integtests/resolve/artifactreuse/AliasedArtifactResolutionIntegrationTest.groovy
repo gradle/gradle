@@ -66,7 +66,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         def projectBModuleRepo2 = mavenRepo2.module('org.name', 'projectB', '1.0').publish()
         def projectBArtifactRepo2 = projectBModuleRepo2.artifact
         projectBModuleRepo2.pom.expectHead()
-        projectBModuleRepo2.pom.expectGet()
+        projectBModuleRepo2.pom.sha1.expectGet()
         projectBArtifactRepo2.expectHead()
         projectBArtifactRepo2.sha1.expectGet()
 
@@ -152,7 +152,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
     def "does re-download maven artifact downloaded from a different URI when sha1 not found"() {
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
-        projectBRepo1.expectGet()
+        projectBRepo1.pom.expectGet()
         projectBRepo1.getArtifact().expectGet()
 
         then:
@@ -186,7 +186,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         projectBRepo2.pom.sha1.expectGet()
         projectBRepo2.pom.expectGet()
 
-        def projRepo2BArtifact= projectBRepo2.artifact
+        def projRepo2BArtifact = projectBRepo2.artifact
         projRepo2BArtifact.expectHead()
         projectBRepo2.artifact.sha1.expectGet()
         projRepo2BArtifact.expectGet()
