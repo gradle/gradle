@@ -86,7 +86,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-	            def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+	            def deps = configurations.conf.incoming.resolutionResult.allDependencies
 	            assert deps*.selected.id.name == ['foo', 'impl', 'api']
 	            assert deps*.selected.id.version == ['2.0', '1.5', '1.5']
 	            assert deps*.selected.selectionReason.forced         == [false, false, false]
@@ -305,13 +305,12 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
                 assert deps.size() == 1
-                def d = deps.iterator().next()
-                assert d.requested.version == '1.3'
-                assert d.selected.id.version == '1.5'
-                assert !d.selected.selectionReason.forced
-                assert d.selected.selectionReason.selectedByAction
+                assert deps[0].requested.version == '1.3'
+                assert deps[0].selected.id.version == '1.5'
+                assert !deps[0].selected.selectionReason.forced
+                assert deps[0].selected.selectionReason.selectedByAction
 	        }
 """
 
@@ -320,6 +319,42 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    void "action selects unavailable version"()
+    {
+        mavenRepo.module("org.utils", "api", '1.3').publish()
+
+        buildFile << """
+            $repo
+
+            dependencies {
+                conf 'org.utils:api:1.3'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                it.useVersion '1.123.15' //does not exist
+	        }
+
+	        task check << {
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                assert deps.size() == 1
+                assert deps[0].failure
+                assert deps[0].failure.message.contains('1.123.15')
+                assert deps[0].requested.version == '1.3'
+
+                //triggers resolution failure:
+                configurations.conf.files
+	        }
+"""
+
+        when:
+        def failure = runAndFail("check")
+
+        then:
+        failure.dependencyResolutionFailure
+            .assertFailedConfiguration(":conf")
+            .assertHasCause("Could not find group:org.utils, module:api, version:1.123.15")
     }
 
     void "actions triggered exactly once per the same dependency"()
