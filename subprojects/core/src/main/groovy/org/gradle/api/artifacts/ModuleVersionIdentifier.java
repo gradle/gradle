@@ -18,7 +18,7 @@ package org.gradle.api.artifacts;
 /**
  * The identifier of a module version.
  */
-public interface ModuleVersionIdentifier extends ModuleIdentifier {
+public interface ModuleVersionIdentifier {
 
     /**
      * The version of the module
@@ -26,4 +26,18 @@ public interface ModuleVersionIdentifier extends ModuleIdentifier {
      * @return module version
      */
     String getVersion();
+
+    /**
+     * The group of the module.
+     *
+     * @return module group
+     */
+    String getGroup();
+
+    /**
+     * The name of the module.
+     *
+     * @return module name
+     */
+    String getName();
 }
