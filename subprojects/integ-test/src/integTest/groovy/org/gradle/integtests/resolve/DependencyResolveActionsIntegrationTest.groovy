@@ -321,6 +321,88 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "user blacklists a version"()
+    {
+        mavenRepo.module("org.utils", "a",  '1.4').publish()
+        mavenRepo.module("org.utils", "a",  '1.3').publish()
+        mavenRepo.module("org.utils", "a",  '1.2').publish()
+        mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()
+
+        buildFile << """
+            $repo
+
+            dependencies {
+                conf 'org.utils:a:1.2', 'org.utils:b:1.3'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                // a:1.2 is blacklisted, 1.4 should be used instead:
+                if (it.requested.name == 'a' && it.requested.version == '1.2') {
+                    it.useVersion '1.4'
+                }
+	        }
+
+	        task check << {
+                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
+                def a = modules.find { it.id.name == 'a' }
+                assert a.id.version == '1.4'
+                assert a.selectionReason.conflictResolution
+//                assert a.selectionReason.selectedByAction //TODO SF
+                assert !a.selectionReason.forced
+
+                //flush out resolve issues
+                configurations.conf.files
+	        }
+"""
+
+        when:
+        run("check")
+
+        then:
+        noExceptionThrown()
+    }
+
+
+    void "user blacklists a version that is not used"()
+    {
+        mavenRepo.module("org.utils", "a",  '1.3').publish()
+        mavenRepo.module("org.utils", "a",  '1.2').publish()
+        mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()
+
+        buildFile << """
+            $repo
+
+            dependencies {
+                conf 'org.utils:a:1.2', 'org.utils:b:1.3'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                // a:1.2 is blacklisted, 1.2.1 should be used instead:
+                if (it.requested.name == 'a' && it.requested.version == '1.2') {
+                    it.useVersion '1.2.1'
+                }
+	        }
+
+	        task check << {
+                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
+                def a = modules.find { it.id.name == 'a' }
+                assert a.id.version == '1.3'
+                assert a.selectionReason.conflictResolution
+                assert !a.selectionReason.selectedByAction
+                assert !a.selectionReason.forced
+
+                //flush out resolve issues
+                configurations.conf.files
+	        }
+"""
+
+        when:
+        run("check")
+
+        then:
+        noExceptionThrown()
+    }
+
     void "action selects unavailable version"()
     {
         mavenRepo.module("org.utils", "api", '1.3').publish()
