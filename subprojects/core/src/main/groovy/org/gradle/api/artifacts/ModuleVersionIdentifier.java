@@ -15,10 +15,12 @@
  */
 package org.gradle.api.artifacts;
 
+import java.io.Serializable;
+
 /**
  * The identifier of a module version.
  */
-public interface ModuleVersionIdentifier {
+public interface ModuleVersionIdentifier extends Serializable {
 
     /**
      * The version of the module
