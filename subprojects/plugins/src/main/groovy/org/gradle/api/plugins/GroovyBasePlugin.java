@@ -18,7 +18,8 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
@@ -34,16 +35,21 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * <p>A {@link org.gradle.api.Plugin} which extends the {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
- * source files.</p>
+ * Extends {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
+ * source files.
  *
  * @author Hans Dockter
  */
 public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     public static final String GROOVY_CONFIGURATION_NAME = "groovy";
+    private static final Pattern GROOVY_JAR_PATTERN = Pattern.compile("(groovy(?:-all)?)-(\\d.*?)(-indy)?.jar");
+
     private final FileResolver fileResolver;
+    private ProjectInternal project;
 
     @Inject
     public GroovyBasePlugin(FileResolver fileResolver) {
@@ -51,30 +57,30 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(ProjectInternal project) {
+        this.project = project;
         JavaBasePlugin javaBasePlugin = project.getPlugins().apply(JavaBasePlugin.class);
 
-        project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).setTransitive(false).
-                setDescription("The groovy libraries to be used for this Groovy project.");
+        project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).
+                setDescription("The Groovy libraries to be used for this Groovy project.");
 
-        configureCompileDefaults(project);
-        configureSourceSetDefaults(project, javaBasePlugin);
+        configureCompileDefaults();
+        configureSourceSetDefaults(javaBasePlugin);
 
-        configureGroovydoc(project);
+        configureGroovydoc();
     }
 
-    private void configureCompileDefaults(final Project project) {
+    private void configureCompileDefaults() {
         project.getTasks().withType(GroovyCompile.class, new Action<GroovyCompile>() {
-            public void execute(GroovyCompile compile) {
-                compile.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
+            public void execute(final GroovyCompile compile) {                                                                                                                                                                                                                                            compile.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME).copy().setTransitive(true);
+                        return getGroovyClasspath(compile.getClasspath());
                     }
                 });
             }
         });
     }
 
-    private void configureSourceSetDefaults(final ProjectInternal project, final JavaBasePlugin javaBasePlugin) {
+    private void configureSourceSetDefaults(final JavaBasePlugin javaBasePlugin) {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             public void execute(SourceSet sourceSet) {
                 final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), fileResolver);
@@ -101,12 +107,12 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureGroovydoc(final Project project) {
+    private void configureGroovydoc() {
         project.getTasks().withType(Groovydoc.class, new Action<Groovydoc>() {
-            public void execute(Groovydoc groovydoc) {
+            public void execute(final Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME).copy().setTransitive(true);
+                        return getGroovyClasspath(groovydoc.getClasspath());
                     }
                 });
                 groovydoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
@@ -128,7 +134,34 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
+    private FileCollection getGroovyClasspath(FileCollection classpath) {
+        Configuration groovyClasspath = project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME);
+        if (groovyClasspath.getDependencies().isEmpty() && !project.getRepositories().isEmpty()) {
+            Matcher groovyJar = findGroovyJar(classpath);
+            if (groovyJar != null) {
+                // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
+                String dependency = "org.codehaus.groovy:" + groovyJar.group(1) + ":" + groovyJar.group(2);
+                if (groovyJar.group(3) != null) {
+                    dependency += ":indy";
+                };
+                groovyClasspath = project.getConfigurations().detachedConfiguration(project.getDependencies().create(dependency));
+            }
+        }
+        return groovyClasspath;
+    }
+
     private JavaPluginConvention java(Convention convention) {
         return convention.getPlugin(JavaPluginConvention.class);
+    }
+
+    private Matcher findGroovyJar(Iterable<File> classpath) {
+        if (classpath == null) { return null; }
+        for (File file : classpath) {
+            Matcher matcher = GROOVY_JAR_PATTERN.matcher(file.getName());
+            if (matcher.matches()) {
+                return matcher;
+            }
+        }
+        return null;
     }
 }

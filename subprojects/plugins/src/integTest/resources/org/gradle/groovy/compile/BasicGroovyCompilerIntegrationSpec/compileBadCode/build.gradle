@@ -3,7 +3,3 @@ apply plugin: "groovy"
 repositories {
     mavenCentral()
 }
-
-dependencies {
-    testCompile "junit:junit:4.10"
-}
