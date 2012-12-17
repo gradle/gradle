@@ -79,7 +79,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.expectPomGet()
         sourceArtifact.expectHead()
         sourceArtifact.expectGet()
-        sourceArtifact.expectSha1Get()
+        sourceArtifact.sha1.expectGet()
         then:
         run 'retrieve'
 
@@ -150,7 +150,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.expectPomGet()
         sourceArtifact.expectHead()
         sourceArtifact.expectGet()
-        sourceArtifact.expectSha1Get()
+        sourceArtifact.sha1.expectGet()
         then:
         run 'retrieve'
 

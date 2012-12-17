@@ -43,7 +43,7 @@ task retrieve(type: Sync) {
         module1.expectPomHead()
         module1.expectPomSha1Get()
         module1.artifact.expectHead()
-        module1.artifact.expectSha1Get()
+        module1.artifact.sha1.expectGet()
 
         when:
         using m2Installation

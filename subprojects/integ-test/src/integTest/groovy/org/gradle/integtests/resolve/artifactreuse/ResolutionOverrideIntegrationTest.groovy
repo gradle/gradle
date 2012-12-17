@@ -55,7 +55,7 @@ task retrieve(type: Sync) {
         module.expectPomSha1Get()
         module.expectPomGet()
         module.artifact.expectHead()
-        module.artifact.expectSha1Get()
+        module.artifact.sha1.expectGet()
         module.artifact.expectGet()
 
         and:

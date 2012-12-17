@@ -19,38 +19,28 @@ package org.gradle.test.fixtures.maven
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
-abstract class HttpArtifact extends HttpResource {
+class Sha1HttpResource extends HttpResource{
+    private final String path
+    private final File file
 
-    String modulePath
-
-    public HttpArtifact(HttpServer server, String modulePath) {
-        super(server)
-        this.modulePath = modulePath
+    Sha1HttpResource(HttpServer httpServer, File file, String path) {
+        super(httpServer)
+        this.file = file
+        this.path = path
     }
 
-    void expectHeadMissing() {
-        server.expectHeadMissing(path)
-    }
-
+    @Override
     void expectGetMissing() {
         server.expectGetMissing(path)
     }
 
-    void expectMd5Get() {
-        server.expectGet("${path}.md5", md5File)
+    @Override
+    TestFile getFile() {
+        return file
     }
 
-    HttpResource getSha1() {
-        return new Sha1HttpResource(server, getSha1File(), "${path}.sha1")
-    }
-
+    @Override
     protected String getPath() {
-        "${modulePath}/${file.name}"
+        return path
     }
-
-    abstract File getSha1File();
-
-    abstract File getMd5File();
-
-    abstract TestFile getFile();
 }

@@ -68,7 +68,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         projectBModuleRepo2.expectPomHead()
         projectBModuleRepo2.expectPomSha1Get()
         projectBArtifactRepo2.expectHead()
-        projectBArtifactRepo2.expectSha1Get()
+        projectBArtifactRepo2.sha1.expectGet()
 
         then:
         succeedsWith 'mavenRepository2'
@@ -127,7 +127,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         projectBRepo2.expectPomGet()
         def projectBRepo2Artifact = projectBRepo2.artifact
         projectBRepo2Artifact.expectHead()
-        projectBRepo2Artifact.expectSha1Get()
+        projectBRepo2Artifact.sha1.expectGet()
 
         then:
         succeedsWith 'mavenRepository1'
@@ -143,7 +143,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         projectBRepo2.expectPomHead()
         projectBRepo2.expectPomSha1Get()
         projectBRepo2.artifact.expectHead()
-        projectBRepo2.artifact.expectSha1Get()
+        projectBRepo2.artifact.sha1.expectGet()
 
         then:
         succeedsWith 'mavenRepository2'
@@ -164,7 +164,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         projectBRepo2.expectPomSha1GetMissing()
         projectBRepo2.expectPomGet()
         projectBRepo2.artifact.expectHead()
-        projectBRepo2.artifact.expectSha1GetMissing()
+        projectBRepo2.artifact.sha1.expectGetMissing()
         projectBRepo2.getArtifact().expectGet()
 
         then:
@@ -188,7 +188,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
 
         def projRepo2BArtifact= projectBRepo2.artifact
         projRepo2BArtifact.expectHead()
-        projectBRepo2.artifact.expectSha1Get()
+        projectBRepo2.artifact.sha1.expectGet()
         projRepo2BArtifact.expectGet()
 
         then:

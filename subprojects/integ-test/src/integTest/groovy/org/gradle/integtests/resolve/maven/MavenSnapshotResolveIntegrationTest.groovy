@@ -424,7 +424,7 @@ project('second') {
         module.artifact.expectGet()
 
         module2.artifact.expectHead()
-        module2.artifact.expectSha1Get()
+        module2.artifact.sha1.expectGet()
         module2.artifact.expectGet()
 
         then:
@@ -496,7 +496,7 @@ project('second') {
         module.expectPomSha1GetMissing()
         module.expectPomGet()
         artifact.expectHead()
-        artifact.expectSha1GetMissing()
+        artifact.sha1.expectGetMissing()
         artifact.expectGet()
 
         run "retrieve"
@@ -519,7 +519,7 @@ project('second') {
         module.expectPomGet()
         def artifact = module.artifact
         artifact.expectHead()
-        artifact.expectSha1Get()
+        artifact.sha1.expectGet()
         artifact.expectGet()
     }
 
@@ -528,7 +528,7 @@ project('second') {
         module.expectPomHead()
         def artifact = module.artifact
         artifact.expectHead()
-        artifact.expectSha1Get()
+        artifact.sha1.expectGet()
         artifact.expectGet()
     }
 

@@ -67,7 +67,7 @@ task retrieve(type: Sync) {
         projectB.expectPomHead()
         projectB.expectPomSha1Get()
         projectB.artifact.expectHead()
-        projectB.artifact.expectSha1Get()
+        projectB.artifact.sha1.expectGet()
 
         and:
         version current withGradleUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
@@ -161,7 +161,7 @@ task retrieve(type: Sync) {
         projectB.expectPomHead()
         projectB.expectPomSha1Get()
         projectB.artifact.expectHead()
-        projectB.artifact.expectSha1Get()
+        projectB.artifact.sha1.expectGet()
 
         and:
         version current withGradleUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()

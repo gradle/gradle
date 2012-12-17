@@ -47,7 +47,7 @@ task check << {
         module.expectPomSha1GetMissing()
         module.expectPomMd5Get()
         module.artifact.expectGet()
-        module.artifact.expectSha1GetMissing()
+        module.artifact.sha1.expectGetMissing()
         module.artifact.expectMd5Get()
 
         expect:
@@ -64,10 +64,10 @@ task check << {
         // TODO - shouldn't get checksum twice
         module.expectPomSha1Get()
         module.artifact.expectHead()
-        module.artifact.expectSha1Get()
+        module.artifact.sha1.expectGet()
         module.artifact.expectGet()
         // TODO - shouldn't get checksum twice
-        module.artifact.expectSha1Get()
+        module.artifact.sha1.expectGet()
 
         then:
         executer.withArguments("--refresh-dependencies")
@@ -103,7 +103,7 @@ task check << {
         module.expectPomGet()
         module.expectPomSha1Get()
         module.artifact.expectGet()
-        module.artifact.expectSha1Get()
+        module.artifact.sha1.expectGet()
 
         expect:
         fails 'check'

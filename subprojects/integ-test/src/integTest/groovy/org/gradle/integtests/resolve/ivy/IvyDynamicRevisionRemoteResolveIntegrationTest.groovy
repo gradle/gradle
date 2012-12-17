@@ -729,7 +729,7 @@ task retrieve(type: Sync) {
         mavenRepo.expectMetaDataGet("org.test", "a")
         mavenModule.expectPomGet()
         mavenModule.artifact.expectHead()
-        mavenModule.artifact.expectSha1Get()
+        mavenModule.artifact.sha1.expectGet()
 
         and:
         run 'retrieve'
