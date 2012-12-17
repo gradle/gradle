@@ -37,7 +37,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         //however due to the conflict resolution, org.utils:api:1.5 and org.utils.impl:1.3 are resolved.
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.stuff:foo:2.0', 'org.utils:impl:1.3', 'org.utils:optional-lib:5.0'
@@ -54,7 +54,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 """
 
         when:
-        run("dependencies")
+        run("resolveConf")
 
         then:
         noExceptionThrown()
@@ -71,7 +71,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.stuff", "foo", '2.0').dependsOn('org.utils', 'impl', '1.3') publish()
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.stuff:foo:2.0'
@@ -110,7 +110,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.utils:impl:1.3'
@@ -160,7 +160,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.utils:impl:1.3'
@@ -202,7 +202,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.utils:impl:1.3'
@@ -245,7 +245,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.utils:impl:1.3'
@@ -294,7 +294,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.utils:api:1.3'
@@ -321,7 +321,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "user blacklists a version"()
+    void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
         mavenRepo.module("org.utils", "a",  '1.3').publish()
@@ -329,7 +329,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.utils:a:1.2', 'org.utils:b:1.3'
@@ -350,9 +350,6 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 assert a.selectionReason.selectedByAction
                 assert !a.selectionReason.forced
                 assert a.selectionReason.description == 'conflict resolution by action'
-
-                //flush out resolve issues
-                configurations.conf.files
 	        }
 """
 
@@ -363,15 +360,14 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-
-    void "user blacklists a version that is not used"()
+    void "can blacklist a version that is not used"()
     {
         mavenRepo.module("org.utils", "a",  '1.3').publish()
         mavenRepo.module("org.utils", "a",  '1.2').publish()
         mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.utils:a:1.2', 'org.utils:b:1.3'
@@ -391,9 +387,74 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 assert a.selectionReason.conflictResolution
                 assert !a.selectionReason.selectedByAction
                 assert !a.selectionReason.forced
+	        }
+"""
 
-                //flush out resolve issues
-                configurations.conf.files
+        when:
+        run("check")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can use custom versioning scheme"()
+    {
+        mavenRepo.module("org.utils", "api",  '1.3').publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org.utils:api:default'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.version == 'default') {
+                    it.useVersion '1.3'
+                }
+	        }
+
+	        task check << {
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                assert deps.size() == 1
+                deps[0].requested.version == 'default'
+                deps[0].selected.id.version == '1.3'
+                deps[0].selected.selectionReason.selectedByAction
+	        }
+"""
+
+        when:
+        run("check")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can use custom versioning scheme for transitive dependencies"()
+    {
+        mavenRepo.module("org.utils", "api",  '1.3').publish()
+        mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', 'default').publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org.utils:impl:1.3'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.version == 'default') {
+                    it.useVersion '1.3'
+                }
+	        }
+
+	        task check << {
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                assert deps.size() == 2
+                def api = deps.find { it.requested.name == 'api' }
+                api.requested.version == 'default'
+                api.selected.id.version == '1.3'
+                api.selected.selectionReason.selectedByAction
 	        }
 """
 
@@ -409,7 +470,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.utils:api:1.3'
@@ -425,14 +486,11 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 assert deps[0].failure
                 assert deps[0].failure.message.contains('1.123.15')
                 assert deps[0].requested.version == '1.3'
-
-                //triggers resolution failure:
-                configurations.conf.files
 	        }
 """
 
         when:
-        def failure = runAndFail("check")
+        def failure = runAndFail("check", "resolveConf")
 
         then:
         failure.dependencyResolutionFailure
@@ -462,7 +520,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         */
 
         buildFile << """
-            $repo
+            $common
 
             dependencies {
                 conf 'org.utils:impl:1.3', 'org.stuff:foo:2.0', 'org.stuff:bar:2.0'
@@ -498,7 +556,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             version = 1.0
 
-            $repo
+            $common
 
             dependencies {
                 conf 'org.utils:impl:1.3'
@@ -512,12 +570,10 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                     throw new RuntimeException("Unhappy :(")
 	            }
 	        }
-
-            task resolveNow << { configurations.conf.resolve() }
 """
 
         when:
-        def failure = runAndFail("resolveNow")
+        def failure = runAndFail("resolveConf")
 
         then:
         failure.dependencyResolutionFailure
@@ -527,10 +583,15 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 .assertFailedDependencyRequiredBy(":root:1.0")
     }
 
-    String getRepo() {
+    String getCommon() {
         """configurations { conf }
         repositories {
             maven { url "${mavenRepo.uri}" }
-        }"""
+        }
+        task resolveConf << { configurations.conf.files }
+
+        //resolving the configuration at the end:
+        gradle.startParameter.taskNames += 'resolveConf'
+        """
     }
 }
