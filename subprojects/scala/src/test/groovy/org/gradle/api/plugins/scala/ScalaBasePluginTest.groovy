@@ -35,7 +35,6 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 public class ScalaBasePluginTest {
-
     private final Project project = HelperUtil.createRootProject()
 
     @Test void appliesTheJavaPluginToTheProject() {
@@ -58,8 +57,15 @@ public class ScalaBasePluginTest {
         project.dependencies {
             scalaTools "org.scala-lang:scala-compiler:2.10"
         }
-        def task = project.tasks.compileCustomScala
-        assertSame(configuration, task.scalaClasspath)
+
+        def compileTask = project.tasks.compileCustomScala
+        assertSame(configuration, compileTask.scalaClasspath)
+
+        def consoleTask = project.tasks.scalaCustomConsole
+        assertSame(configuration, consoleTask.classpath)
+
+        def scaladocTask = project.task("scaladoc", type: ScalaDoc)
+        assertSame(configuration, scaladocTask.scalaClasspath)
     }
 
     // see ScalaBasePluginIntegrationTest

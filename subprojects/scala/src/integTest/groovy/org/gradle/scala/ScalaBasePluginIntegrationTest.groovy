@@ -18,18 +18,54 @@ package org.gradle.scala
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ScalaBasePluginIntegrationTest extends AbstractIntegrationSpec {
-    def "defaults scalaClasspath to inferred scala compiler dependency if scalaTools configuration is empty"() {
+    def "defaults scalaClasspath to inferred Scala compiler dependency if scalaTools configuration is empty"() {
         file("build.gradle") << """
-apply plugin: "scala"
+apply plugin: "scala-base"
+
+sourceSets {
+    custom
+}
+
 repositories {
     mavenCentral()
 }
 dependencies {
-    compile "org.scala-lang:scala-library:2.9.2"
+    customCompile "org.scala-lang:scala-library:2.9.2"
+}
+
+task scaladoc(type: ScalaDoc) {
+    classpath = sourceSets.custom.runtimeClasspath
 }
 
 task verify << {
-    assert compileScala.scalaClasspath.files.any { it.name == "scala-compiler-2.9.2.jar" }
+    assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-2.9.2.jar" }
+    assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-2.9.2.jar" }
+    assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-2.9.2.jar" }
+}
+"""
+
+        expect:
+        succeeds("verify")
+    }
+
+    def "defaults scalaClasspath to (empty) scalaTools configuration if Scala compiler dependency isn't found on class path"() {
+        file("build.gradle") << """
+apply plugin: "scala-base"
+
+sourceSets {
+    custom
+}
+
+repositories {
+    mavenCentral()
+}
+
+task scaladoc(type: ScalaDoc)
+
+task verify << {
+    assert compileCustomScala.scalaClasspath.is(configurations.scalaTools)
+    assert scalaCustomConsole.classpath.is(configurations.scalaTools)
+    assert scaladoc.scalaClasspath.is(configurations.scalaTools)
 }
 """
 
