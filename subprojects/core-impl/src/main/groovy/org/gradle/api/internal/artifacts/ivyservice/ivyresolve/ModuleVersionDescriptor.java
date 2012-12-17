@@ -16,11 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 // at some point, this is due to merge with ModuleVersionResolveResult
 public interface ModuleVersionDescriptor {
-    ModuleRevisionId getId();
+    ModuleVersionIdentifier getId();
 
     ModuleDescriptor getDescriptor();
 

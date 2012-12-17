@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleVersionDescriptor {
@@ -26,6 +28,7 @@ public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleV
     private ModuleSource moduleSource;
 
     private ModuleVersionResolveException failure;
+    private ModuleVersionIdentifier moduleVersionIdentifier;
 
     public void reset(State state) {
         this.state = state;
@@ -38,6 +41,8 @@ public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleV
         reset(State.Resolved);
         moduleDescriptor = descriptor;
         this.changing = changing;
+        final ModuleRevisionId moduleRevisionId = descriptor.getModuleRevisionId();
+        this.moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
         this.moduleSource = moduleSource;
     }
 
@@ -78,9 +83,9 @@ public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleV
         }
     }
 
-    public ModuleRevisionId getId() {
+    public ModuleVersionIdentifier getId() {
         assertResolved();
-        return moduleDescriptor.getResolvedModuleRevisionId();
+        return moduleVersionIdentifier;
     }
 
     public ModuleDescriptor getDescriptor() {

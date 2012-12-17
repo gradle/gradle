@@ -38,8 +38,8 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         failed(new ModuleVersionNotFoundException(moduleVersionIdentifier));
     }
 
-    public void resolved(ModuleRevisionId moduleRevisionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
-        this.moduleVersionIdentifier = toModuleVersionIdentifier(moduleRevisionId);
+    public void resolved(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
+        this.moduleVersionIdentifier = moduleVersionIdentifier;
         this.moduleDescriptor = descriptor;
         this.artifactResolver = artifactResolver;
     }

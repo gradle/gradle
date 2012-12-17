@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
@@ -38,13 +39,14 @@ class ModuleDescriptorStoreTest extends Specification {
     ModuleDescriptor moduleDescriptor = Mock()
     IvyModuleDescriptorWriter ivyModuleDescriptorWriter = Mock()
     IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser = Mock()
+    ModuleVersionIdentifier moduleVersionIdentifier = Mock()
 
     def setup() {
         store = new ModuleDescriptorStore(pathKeyFileStore, ivyModuleDescriptorWriter, ivyXmlModuleDescriptorParser);
         _ * repository.getId() >> "repositoryId"
-        _ * moduleRevisionId.getOrganisation() >> "org.test"
-        _ * moduleRevisionId.getName() >> "testArtifact"
-        _ * moduleRevisionId.getRevision() >> "1.0"
+        _ * moduleVersionIdentifier.group >> "org.test"
+        _ * moduleVersionIdentifier.name >> "testArtifact"
+        _ * moduleVersionIdentifier.version >> "1.0"
         _ * moduleDescriptor.getModuleRevisionId() >> moduleRevisionId
     }
 
@@ -52,18 +54,21 @@ class ModuleDescriptorStoreTest extends Specification {
         when:
         pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId.ivy.xml") >> null
         then:
-        null == store.getModuleDescriptor(repository, moduleRevisionId)
+        null == store.getModuleDescriptor(repository, moduleVersionIdentifier)
     }
 
     def "getModuleDescriptorFile uses PathKeyFileStore to get file"() {
         when:
-        store.getModuleDescriptor(repository, moduleRevisionId);
+        store.getModuleDescriptor(repository, moduleVersionIdentifier);
         then:
         1 * pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId.ivy.xml") >> null
     }
 
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {
         setup:
+        _ * moduleRevisionId.organisation >> "org.test"
+        _ * moduleRevisionId.name >> "testArtifact"
+        _ * moduleRevisionId.revision >> "1.0"
         File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
         when:
         store.putModuleDescriptor(repository, moduleDescriptor);

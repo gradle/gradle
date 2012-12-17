@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -60,6 +61,11 @@ class DefaultBuildableModuleVersionDescriptorTest extends Specification {
 
     def "can mark as resolved"() {
         def moduleDescriptor = Mock(ModuleDescriptor)
+        ModuleRevisionId moduleRevisionId = Mock();
+        1 * moduleRevisionId.organisation >> "group"
+        1 * moduleRevisionId.name >> "project"
+        1 * moduleRevisionId.revision >> "1.0"
+        1 * moduleDescriptor.moduleRevisionId >> moduleRevisionId
 
         when:
         descriptor.resolved(moduleDescriptor, true, moduleSource)

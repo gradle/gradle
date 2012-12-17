@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.version.VersionMatcher
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.*
 import spock.lang.Specification
 
@@ -53,14 +55,13 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         moduleResolveResult.descriptor == module
 
-        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(module.moduleRevisionId, module, Mock(ArtifactResolver))}
+        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(moduleIdentifier(module), module, Mock(ArtifactResolver))}
         0 * target._
     }
 
     def "resolves module for dynamic version dependency immediately"() {
         def dependency = dependency()
         def module = module()
-
         given:
         matcher.isDynamic(_) >> true
 
@@ -74,7 +75,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         id.version == module.moduleRevisionId.revision
 
         and:
-        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(module.moduleRevisionId, module, Mock(ArtifactResolver))}
+        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(moduleIdentifier(module), module, Mock(ArtifactResolver))}
         0 * target._
 
         when:
@@ -82,6 +83,10 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         then:
         0 * target._
+    }
+
+    def moduleIdentifier(ModuleDescriptor moduleDescriptor) {
+        return new DefaultModuleVersionIdentifier(moduleDescriptor.moduleRevisionId.organisation, moduleDescriptor.moduleRevisionId.name, moduleDescriptor.moduleRevisionId.revision)
     }
 
     def "does not resolve module more than once"() {
@@ -212,7 +217,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def resolveResult = resolver.resolve(dependency).resolve()
 
         then:
-        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(module.moduleRevisionId, module, targetResolver)}
+        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(moduleIdentifier(module), module, targetResolver)}
 
         when:
         resolveResult.artifactResolver.resolve(artifact, result)
@@ -227,6 +232,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def dependency = dependency()
         def artifact = artifact()
         def module = module()
+
         ArtifactResolver targetResolver = Mock()
         BuildableArtifactResolveResult result = Mock()
         def failure = new RuntimeException("broken")
@@ -235,7 +241,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def resolveResult = resolver.resolve(dependency).resolve()
 
         then:
-        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(module.moduleRevisionId, module, targetResolver)}
+        1 * target.resolve(dependency, _) >> { args -> args[1].resolved(moduleIdentifier(module), module, targetResolver)}
 
         when:
         resolveResult.artifactResolver.resolve(artifact, result)

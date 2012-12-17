@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
@@ -66,15 +66,15 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         return cacheLockingManager.createCache(artifactResolutionCacheFile, RevisionKey.class, ModuleDescriptorCacheEntry.class);
     }
 
-    public CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
-        ModuleDescriptorCacheEntry moduleDescriptorCacheEntry = getCache().get(createKey(repository, moduleRevisionId));
+    public CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
+        ModuleDescriptorCacheEntry moduleDescriptorCacheEntry = getCache().get(createKey(repository, moduleVersionIdentifier));
         if (moduleDescriptorCacheEntry == null) {
             return null;
         }
         if (moduleDescriptorCacheEntry.isMissing) {
             return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, null, timeProvider);
         }
-        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleRevisionId);
+        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleVersionIdentifier);
         if (descriptor == null) {
             // Descriptor file has been manually deleted - ignore the entry
             return null;
@@ -82,23 +82,23 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }
 
-    public CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor, ModuleSource moduleSource, boolean isChanging) {
+    public CachedModuleDescriptor cacheModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleSource moduleSource, boolean isChanging) {
         ModuleDescriptorCacheEntry entry;
         if (moduleDescriptor == null) {
-            LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", moduleRevisionId, isChanging);
+            LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", moduleVersionIdentifier, isChanging);
             entry = createMissingEntry(isChanging);
-            getCache().put(createKey(repository, moduleRevisionId), entry);
+            getCache().put(createKey(repository, moduleVersionIdentifier), entry);
         } else {
             LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
             FileStoreEntry fileStoreEntry = moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
             entry = createEntry(isChanging, fileStoreEntry.getSha1(), moduleSource);
-            getCache().put(createKey(repository, moduleRevisionId), entry);
+            getCache().put(createKey(repository, moduleVersionIdentifier), entry);
         }
         return new DefaultCachedModuleDescriptor(entry, null, timeProvider);
     }
 
-    private RevisionKey createKey(ModuleVersionRepository resolver, ModuleRevisionId moduleRevisionId) {
-        return new RevisionKey(resolver, moduleRevisionId);
+    private RevisionKey createKey(ModuleVersionRepository resolver, ModuleVersionIdentifier moduleVersionIdentifier) {
+        return new RevisionKey(resolver, moduleVersionIdentifier);
     }
 
     private ModuleDescriptorCacheEntry createMissingEntry(boolean changing) {
@@ -111,11 +111,11 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
 
     private static class RevisionKey implements Serializable {
         private final String resolverId;
-        private final String moduleRevisionId;
+        private final ModuleVersionIdentifier moduleVersionIdentifier;
 
-        private RevisionKey(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
+        private RevisionKey(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
             this.resolverId = repository.getId();
-            this.moduleRevisionId = moduleRevisionId == null ? null : moduleRevisionId.encodeToString();
+            this.moduleVersionIdentifier = moduleVersionIdentifier;
         }
 
         @Override
@@ -124,12 +124,12 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
                 return false;
             }
             RevisionKey other = (RevisionKey) o;
-            return resolverId.equals(other.resolverId) && moduleRevisionId.equals(other.moduleRevisionId);
+            return resolverId.equals(other.resolverId) && moduleVersionIdentifier.equals(other.moduleVersionIdentifier);
         }
 
         @Override
         public int hashCode() {
-            return resolverId.hashCode() ^ moduleRevisionId.hashCode();
+            return resolverId.hashCode() ^ moduleVersionIdentifier.hashCode();
         }
     }
 

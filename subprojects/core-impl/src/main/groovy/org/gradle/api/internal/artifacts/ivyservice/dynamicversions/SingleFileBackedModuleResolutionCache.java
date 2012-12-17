@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
@@ -53,13 +54,13 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
         return cacheLockingManager.createCache(dynamicRevisionsFile, RevisionKey.class, ModuleResolutionCacheEntry.class);
     }
 
-    public void cacheModuleResolution(ModuleVersionRepository repository, ModuleRevisionId requestedVersion, ModuleRevisionId resolvedVersion) {
-        if (requestedVersion.equals(resolvedVersion)) {
+    public void cacheModuleResolution(ModuleVersionRepository repository, ModuleRevisionId requestedVersion, ModuleVersionIdentifier moduleVersionIdentifier) {
+        if (requestedVersion.equals(moduleVersionIdentifier)) {
             return;
         }
 
-        LOGGER.debug("Caching resolved revision in dynamic revision cache: Will use '{}' for '{}'", resolvedVersion, requestedVersion);
-        getCache().put(createKey(repository, requestedVersion), createEntry(resolvedVersion));
+        LOGGER.debug("Caching resolved revision in dynamic revision cache: Will use '{}' for '{}'", moduleVersionIdentifier, requestedVersion);
+        getCache().put(createKey(repository, requestedVersion), createEntry(moduleVersionIdentifier));
     }
 
     public CachedModuleResolution getCachedModuleResolution(ModuleVersionRepository repository, ModuleRevisionId moduleId) {
@@ -74,8 +75,8 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
         return new RevisionKey(repository, revisionId);
     }
 
-    private ModuleResolutionCacheEntry createEntry(ModuleRevisionId revisionId) {
-        return new ModuleResolutionCacheEntry(revisionId, timeProvider);
+    private ModuleResolutionCacheEntry createEntry(ModuleVersionIdentifier moduleVersionIdentifier) {
+        return new ModuleResolutionCacheEntry(moduleVersionIdentifier, timeProvider);
     }
 
     private static class RevisionKey implements Serializable {

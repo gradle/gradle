@@ -23,6 +23,7 @@ import org.apache.ivy.plugins.latest.LatestRevisionStrategy
 import org.apache.ivy.plugins.resolver.ResolverSettings
 import org.apache.ivy.plugins.version.VersionMatcher
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import spock.lang.Specification
 
@@ -31,7 +32,13 @@ class UserResolverChainTest extends Specification {
     final ModuleRevisionId dependencyId = Stub()
     final DependencyDescriptor dependency = Stub()
     final ModuleDescriptor descriptor = descriptor("1.2")
-    final ModuleRevisionId resolvedId = descriptor.resolvedModuleRevisionId
+    final ModuleVersionIdentifier resolvedId = moduleVersionIdentifier(descriptor)
+
+    ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
+        def moduleRevId = moduleDescriptor.moduleRevisionId
+        new DefaultModuleVersionIdentifier(moduleRevId.organisation, moduleRevId.name, moduleRevId.revision)
+    }
+
     final BuildableModuleVersionResolveResult result = Mock()
     final VersionMatcher matcher = Stub()
     final ModuleSource moduleSource = Mock()
@@ -195,7 +202,7 @@ class UserResolverChainTest extends Specification {
         1 * repo3.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor("1.0"), true, null)
         }
-        1 * result.resolved(version2.resolvedModuleRevisionId, version2, _) >> { revision, descriptor, repo ->
+        1 * result.resolved(moduleVersionIdentifier(version2), version2, _) >> { revision, descriptor, repo ->
             assert repo.delegate == repo2
             assert repo.moduleSource == moduleSource
         }

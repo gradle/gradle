@@ -16,10 +16,12 @@
 
 package org.gradle.api.artifacts;
 
+import java.io.Serializable;
+
 /**
  * The identifier of a module.
  */
-public interface ModuleIdentifier {
+public interface ModuleIdentifier extends Serializable {
 
     /**
      * The group of the module.

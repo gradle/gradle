@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 
 import java.io.File;
@@ -36,7 +38,9 @@ public class ProjectDependencyResolver implements DependencyToModuleResolver {
     public void resolve(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionResolveResult result) {
         ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(dependencyDescriptor);
         if (moduleDescriptor != null) {
-            result.resolved(moduleDescriptor.getModuleRevisionId(), moduleDescriptor, artifactResolver);
+            final ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
+            final DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+            result.resolved(moduleVersionIdentifier, moduleDescriptor, artifactResolver);
         } else {
             resolver.resolve(dependencyDescriptor, result);
         }

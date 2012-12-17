@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
 import spock.lang.Specification
@@ -28,8 +29,13 @@ class ProjectDependencyResolverTest extends Specification {
     final ModuleRevisionId moduleRevisionId = Mock()
     final DependencyToModuleResolver target = Mock()
     final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target)
-    
+
     def "resolves project dependency"() {
+        setup:
+        1 * moduleRevisionId.organisation >> "group"
+        1 * moduleRevisionId.name >> "project"
+        1 * moduleRevisionId.revision >> "1.0"
+
         ModuleDescriptor moduleDescriptor = Mock()
         BuildableModuleVersionResolveResult result = Mock()
 
@@ -39,7 +45,12 @@ class ProjectDependencyResolverTest extends Specification {
         then:
         1 * registry.findProject(dependencyDescriptor) >> moduleDescriptor
         _ * moduleDescriptor.moduleRevisionId >> moduleRevisionId
-        1 * result.resolved(moduleRevisionId, moduleDescriptor, _)
+        1 * result.resolved(_, moduleDescriptor, _) >> { args ->
+            ModuleVersionIdentifier moduleVersionIdentifier = args[0]
+            moduleVersionIdentifier.group == "group"
+            moduleVersionIdentifier.name == "project"
+            moduleVersionIdentifier.version == "1.0"
+        }
         0 * result._
     }
 

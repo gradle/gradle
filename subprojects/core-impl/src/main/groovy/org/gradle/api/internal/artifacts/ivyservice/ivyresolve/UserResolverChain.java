@@ -23,6 +23,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.slf4j.Logger;
@@ -204,7 +205,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
             this.moduleSource = moduleSource;
         }
 
-        public ModuleRevisionId getId() throws ModuleVersionResolveException {
+        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
             return module.getId();
         }
 
@@ -221,7 +222,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         }
 
         public String getRevision() {
-            return module.getId().getRevision();
+            return module.getId().getVersion();
         }
     }
 }

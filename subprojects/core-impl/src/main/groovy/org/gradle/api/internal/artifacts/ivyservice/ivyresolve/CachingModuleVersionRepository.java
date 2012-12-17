@@ -88,7 +88,9 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(dependencyDescriptor, true), result);
         switch (result.getState()) {
             case Missing:
-                moduleDescriptorCache.cacheModuleDescriptor(delegate, dependencyDescriptor.getDependencyRevisionId(), null, null, dependencyDescriptor.isChanging());
+                final ModuleRevisionId dependencyRevisionId = dependencyDescriptor.getDependencyRevisionId();
+                final DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
+                moduleDescriptorCache.cacheModuleDescriptor(delegate, moduleVersionIdentifier, null, null, dependencyDescriptor.isChanging());
                 break;
             case Resolved:
                 moduleResolutionCache.cacheModuleResolution(delegate, dependencyDescriptor.getDependencyRevisionId(), result.getId());
@@ -108,14 +110,13 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = moduleResolutionCache.getCachedModuleResolution(repository, originalId);
         if (cachedModuleResolution != null && cachedModuleResolution.isDynamicVersion()) {
             ModuleVersionSelector selector = createModuleVersionSelector(originalId);
-            ModuleVersionIdentifier resolvedVersion = cachedModuleResolution.getResolvedModule() == null ? null : cachedModuleResolution.getResolvedModule().getId();
+            ModuleVersionIdentifier resolvedVersion = cachedModuleResolution.getResolvedVersion();
             if (cachePolicy.mustRefreshDynamicVersion(selector, resolvedVersion, cachedModuleResolution.getAgeMillis())) {
                 LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", selector, repository.getName());
                 return original;
             } else {
-                LOGGER.debug("Found resolved revision in dynamic revision cache of '{}': Using '{}' for '{}'",
-                        new Object[]{repository.getName(), cachedModuleResolution.getResolvedVersion(), originalId});
-                return original.clone(cachedModuleResolution.getResolvedVersion());
+                LOGGER.debug("Found resolved revision in dynamic revision cache of '{}': Using '{}' for '{}'", repository.getName(), cachedModuleResolution.getResolvedVersion(), originalId);
+                return original.clone(ModuleRevisionId.newInstance(resolvedVersion.getGroup(), resolvedVersion.getName(), resolvedVersion.getVersion()));
             }
         }
         return original;
@@ -124,7 +125,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     public void lookupModuleInCache(ModuleVersionRepository repository, DependencyDescriptor resolvedDependencyDescriptor, BuildableModuleVersionDescriptor result) {
         ModuleRevisionId resolvedModuleVersionId = resolvedDependencyDescriptor.getDependencyRevisionId();
         ModuleVersionIdentifier moduleVersionIdentifier = createModuleVersionIdentifier(resolvedModuleVersionId);
-        ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(repository, resolvedModuleVersionId);
+        ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(repository, moduleVersionIdentifier);
         if (cachedModuleDescriptor == null) {
             return;
         }

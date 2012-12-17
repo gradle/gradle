@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import spock.lang.Specification
 
@@ -97,14 +96,8 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     }
 
     def "failure is null when successfully resolved"() {
-        setup:
-        ModuleRevisionId moduleRevisionId = Mock()
-        1 * moduleRevisionId.organisation >> "group"
-        1 * moduleRevisionId.name >> "name"
-        1 * moduleRevisionId.revision >> "1.0"
-
         when:
-        result.resolved(moduleRevisionId, Mock(ModuleDescriptor), Mock(ArtifactResolver))
+        result.resolved(Mock(ModuleVersionIdentifier), Mock(ModuleDescriptor), Mock(ArtifactResolver))
 
         then:
         result.failure == null
