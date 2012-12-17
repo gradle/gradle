@@ -42,7 +42,7 @@ DeprecationLogger.whileDisabled {
         file("build/classes/main/compile/test/Person.class").exists()
     }
 
-    def compileBadCodeBreaksTheBuild() {
+    def compileBadCode() {
         given:
         badCode()
 
@@ -146,7 +146,6 @@ repositories {
 }
 
 dependencies {
-    scalaTools "org.scala-lang:scala-compiler:$version"
     compile "org.scala-lang:scala-library:$version"
     compile localGroovy()
 }
