@@ -46,8 +46,13 @@ public class PublishToMavenLocal extends PublishToMavenRepository {
 
     @Override
     public MavenArtifactRepository getRepository() {
-        MavenArtifactRepository mavenLocalRepository = baseRepositoryFactory.createMavenLocalRepository();
-        mavenLocalRepository.setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME);
-        return mavenLocalRepository;
+        if (super.getRepository() == null) {
+            // Instantiate the default MavenLocal repository if none has been set explicitly
+            MavenArtifactRepository mavenLocalRepository = baseRepositoryFactory.createMavenLocalRepository();
+            mavenLocalRepository.setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME);
+            setRepository(mavenLocalRepository);
+        }
+
+        return super.getRepository();
     }
 }
