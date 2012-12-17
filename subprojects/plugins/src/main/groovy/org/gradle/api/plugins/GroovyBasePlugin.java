@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
@@ -30,6 +31,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -41,6 +43,12 @@ import java.util.concurrent.Callable;
  */
 public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     public static final String GROOVY_CONFIGURATION_NAME = "groovy";
+    private final FileResolver fileResolver;
+
+    @Inject
+    public GroovyBasePlugin(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
+    }
 
     public void apply(ProjectInternal project) {
         JavaBasePlugin javaBasePlugin = project.getPlugins().apply(JavaBasePlugin.class);
@@ -69,7 +77,7 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     private void configureSourceSetDefaults(final ProjectInternal project, final JavaBasePlugin javaBasePlugin) {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             public void execute(SourceSet sourceSet) {
-                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), project.getFileResolver());
+                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), fileResolver);
                 new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
                 groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy", sourceSet.getName()));

@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.DefaultDeployerFactory;
@@ -54,10 +55,12 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     public static final String INSTALL_TASK_NAME = "install";
 
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
+    private final FileResolver fileResolver;
 
     @Inject
-    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory) {
+    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver) {
         this.loggingManagerFactory = loggingManagerFactory;
+        this.fileResolver = fileResolver;
     }
 
     public void apply(final ProjectInternal project) {
@@ -68,7 +71,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         final DefaultDeployerFactory deployerFactory = new DefaultDeployerFactory(
                 mavenFactory,
                 loggingManagerFactory,
-                project.getFileResolver(),
+                fileResolver,
                 pluginConvention,
                 project.getConfigurations(),
                 pluginConvention.getConf2ScopeMappings());

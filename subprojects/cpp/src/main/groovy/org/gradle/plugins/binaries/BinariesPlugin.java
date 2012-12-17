@@ -27,15 +27,22 @@ import org.gradle.plugins.binaries.model.internal.DefaultCompilerRegistry;
 import org.gradle.plugins.binaries.model.internal.DefaultExecutable;
 import org.gradle.plugins.binaries.model.internal.DefaultLibrary;
 
+import javax.inject.Inject;
+
 /**
  * temp plugin, not sure what will provide the binaries container and model elements
  */
 public class BinariesPlugin implements Plugin<ProjectInternal> {
+    private final Instantiator instantiator;
+
+    @Inject
+    public BinariesPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
 
-        Instantiator instantiator = project.getServices().get(Instantiator.class);
         project.getExtensions().create("compilers",
                 DefaultCompilerRegistry.class,
                 instantiator

@@ -57,7 +57,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     FileCollection ruleSetFiles
 
     @Nested
-    private final PmdReportsImpl reports = services.get(Instantiator).newInstance(PmdReportsImpl, this)
+    private final PmdReportsImpl reports
 
     private final IsolatedAntBuilder antBuilder
 

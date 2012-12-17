@@ -35,17 +35,16 @@ import static org.junit.Assert.*
 
 class GroovyBasePluginTest {
     private final Project project = HelperUtil.createRootProject()
-    private final GroovyBasePlugin groovyBasePlugin = new GroovyBasePlugin()
 
     @Test public void appliesTheJavaBasePluginToTheProject() {
-        groovyBasePlugin.apply(project)
+        project.plugins.apply(GroovyBasePlugin)
 
         assertTrue(project.getPlugins().hasPlugin(JavaBasePlugin));
     }
 
     @Test public void addsGroovyConfigurationToTheProject() {
-        groovyBasePlugin.apply(project)
-        
+        project.plugins.apply(GroovyBasePlugin)
+
         def configuration = project.configurations.getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertFalse(configuration.visible)
@@ -53,7 +52,7 @@ class GroovyBasePluginTest {
     }
 
     @Test public void appliesMappingsToNewSourceSet() {
-        groovyBasePlugin.apply(project)
+        project.plugins.apply(GroovyBasePlugin)
 
         def sourceSet = project.sourceSets.add('custom')
         assertThat(sourceSet.groovy.displayName, equalTo("custom Groovy source"))
@@ -61,8 +60,8 @@ class GroovyBasePluginTest {
     }
 
     @Test public void addsCompileTaskToNewSourceSet() {
-        groovyBasePlugin.apply(project)
-        
+        project.plugins.apply(GroovyBasePlugin)
+
         project.sourceSets.add('custom')
 
         def task = project.tasks['compileCustomGroovy']
@@ -72,7 +71,7 @@ class GroovyBasePluginTest {
     }
 
     @Test public void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
-        groovyBasePlugin.apply(project)
+        project.plugins.apply(GroovyBasePlugin)
 
         project.sourceSets.add('custom')
         def task = project.tasks['customClasses']
@@ -80,7 +79,7 @@ class GroovyBasePluginTest {
     }
    
     @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
-        groovyBasePlugin.apply(project)
+        project.plugins.apply(GroovyBasePlugin)
 
         def task = project.task('otherGroovydoc', type: Groovydoc)
         assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))

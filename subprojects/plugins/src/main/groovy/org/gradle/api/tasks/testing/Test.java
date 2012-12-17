@@ -110,6 +110,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
     private final StyledTextOutputFactory textOutputFactory;
+    private final ProgressLoggerFactory progressLoggerFactory;
     private final TestLoggingContainer testLogging;
     private final DefaultJavaForkOptions options;
 
@@ -129,7 +130,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @Inject
     public Test(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory, FileResolver fileResolver,
-                Factory<WorkerProcessBuilder> processBuilderFactory, ActorFactory actorFactory, Instantiator instantiator) {
+                Factory<WorkerProcessBuilder> processBuilderFactory, ActorFactory actorFactory, Instantiator instantiator,
+                ProgressLoggerFactory progressLoggerFactory) {
+        this.progressLoggerFactory = progressLoggerFactory;
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         this.textOutputFactory = textOutputFactory;
@@ -427,7 +430,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             addTestOutputListener(testReportDataCollector);
         }
 
-        ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
         TestCountLogger testCountLogger = new TestCountLogger(progressLoggerFactory);
         addTestListener(testCountLogger);
 

@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
@@ -28,6 +29,7 @@ import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.api.tasks.JavaExec
 
+import javax.inject.Inject
 import java.util.regex.Pattern
 
 class ScalaBasePlugin implements Plugin<Project> {
@@ -39,6 +41,12 @@ class ScalaBasePlugin implements Plugin<Project> {
     private static final Pattern SCALA_LIBRARY_JAR_PATTERN = Pattern.compile("scala-library-(\\d.*).jar")
 
     private Project project
+    private final FileResolver fileResolver
+
+    @Inject
+    ScalaBasePlugin(FileResolver fileResolver) {
+        this.fileResolver = fileResolver
+    }
 
     void apply(Project project) {
         this.project = project
@@ -58,8 +66,8 @@ class ScalaBasePlugin implements Plugin<Project> {
 
     private void configureSourceSetDefaults(JavaBasePlugin javaPlugin) {
         project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all { SourceSet sourceSet ->
-            sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, project.fileResolver)
-            sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala")}
+            sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, fileResolver)
+            sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala") }
             sourceSet.allJava.source(sourceSet.scala)
             sourceSet.allSource.source(sourceSet.scala)
             sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
@@ -141,7 +149,7 @@ class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureScaladoc() {
-        project.getTasks().withType(ScalaDoc.class) {ScalaDoc scalaDoc ->
+        project.getTasks().withType(ScalaDoc.class) { ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
             scalaDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
             scalaDoc.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
