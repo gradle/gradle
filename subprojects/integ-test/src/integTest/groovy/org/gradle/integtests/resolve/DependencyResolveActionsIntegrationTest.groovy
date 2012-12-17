@@ -134,7 +134,9 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-	            configurations.conf.incoming.resolutionResult.allDependencies {
+	            def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                assert deps.size() == 2
+                deps.each {
 	                assert it.selected.id.version == '1.5'
 	                assert it.selected.selectionReason.selectedByAction
 	                assert it.selected.selectionReason.description == 'selected by action'
@@ -173,7 +175,9 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-	            configurations.conf.incoming.resolutionResult.allDependencies {
+	            def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                assert deps.size() == 2
+                deps.each {
 	                assert it.selected.id.version == '1.3'
                     def reason = it.selected.selectionReason
                     assert !reason.forced
@@ -214,7 +218,9 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-	            configurations.conf.incoming.resolutionResult.allDependencies {
+	            def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                assert deps.size() == 2
+                deps.each {
 	                assert it.selected.id.version == '1.3'
                     def reason = it.selected.selectionReason
                     assert !reason.forced
@@ -271,6 +277,41 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                     !it.selected.selectionReason.forced &&
                     it.selected.selectionReason.selectedByAction
 	            }
+	        }
+"""
+
+        when:
+        run("check")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "action selects a dynamic version"()
+    {
+        mavenRepo.module("org.utils", "api", '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.4').publish()
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+
+        buildFile << """
+            $repo
+
+            dependencies {
+                conf 'org.utils:api:1.3'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                it.useVersion '1.+'
+	        }
+
+	        task check << {
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                assert deps.size() == 1
+                def d = deps.iterator().next()
+                assert d.requested.version == '1.3'
+                assert d.selected.id.version == '1.5'
+                assert !d.selected.selectionReason.forced
+                assert d.selected.selectionReason.selectedByAction
 	        }
 """
 
