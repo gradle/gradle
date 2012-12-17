@@ -24,11 +24,17 @@ class IvyDescriptor {
     final Map<String, IvyDescriptorDependencyConfiguration> dependencies = [:]
     Map<String, IvyDescriptorArtifact> artifacts = [:]
     Map<String, IvyDescriptorConfiguration> configurations = [:]
-    String rev
+    String organisation
+    String module
+    String revision
+    String description
 
     IvyDescriptor(File ivyFile) {
         def ivy = new XmlParser().parse(ivyFile)
-        rev = ivy.@rev
+        organisation = ivy.info[0].@organisation
+        module = ivy.info[0].@module
+        revision = ivy.info[0].@revision
+        description = ivy.info[0].description[0]?.text()
 
         ivy.configurations[0].conf.each {
             configurations[it.@name] = new IvyDescriptorConfiguration(

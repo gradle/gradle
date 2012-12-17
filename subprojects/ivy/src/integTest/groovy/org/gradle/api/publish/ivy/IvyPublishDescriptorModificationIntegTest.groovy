@@ -50,7 +50,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
         ":jar" in executedTasks
 
         and:
-        module.ivyXml.info[0].@revision == "2"
+        module.ivy.revision == "2"
 
         when:
         buildFile << """
@@ -75,7 +75,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
         and:
         // Note that the modified “coordinates” do not affect how the module is published
         // This is not the desired behaviour and will be fixed in the future so that XML modification changes the publication model consistently.
-        module.ivyXml.info[0].@revision == "3"
+        module.ivy.revision == "3"
     }
 
     def "produces sensible error when withXML fails"() {
