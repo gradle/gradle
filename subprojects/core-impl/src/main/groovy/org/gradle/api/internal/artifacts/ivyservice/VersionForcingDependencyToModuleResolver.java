@@ -69,8 +69,8 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
             throw failure;
         }
 
-        public ModuleVersionResolveResult resolve() {
-            return new DefaultBuildableModuleVersionResolveResult().failed(failure);
+        public ModuleVersionResolveResult resolve() throws ModuleVersionResolveException {
+            throw failure;
         }
 
         public ModuleVersionSelectionReason getSelectionReason() {

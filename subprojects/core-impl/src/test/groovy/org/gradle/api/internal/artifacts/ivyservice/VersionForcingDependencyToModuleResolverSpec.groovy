@@ -95,12 +95,7 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         ex2 == result.failure
 
         when:
-        def resolveResult = result.resolve()
-        then:
-        resolveResult.failure == result.failure
-
-        when:
-        resolveResult.getId()
+        result.resolve()
         then:
         def ex3 = thrown(ModuleVersionResolveException)
         ex3 == result.failure

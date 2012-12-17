@@ -29,18 +29,19 @@ public interface ModuleVersionIdResolveResult {
     /**
      * Returns the identifier of this module version.
      *
-     * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     * @throws ModuleVersionResolveException If id resolution was unsuccessful and the id is unknown.
      */
     ModuleVersionIdentifier getId() throws ModuleVersionResolveException;
 
     /**
      * Resolves the meta-data for this module version, if required. Failures are packaged up in the result.
+     * @throws ModuleVersionResolveException If id resolution was unsuccessful and the id is unknown.
      */
-    ModuleVersionResolveResult resolve();
+    ModuleVersionResolveResult resolve() throws ModuleVersionResolveException;
 
     /**
      * @return why given id was selected
-     * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     * @throws ModuleVersionResolveException If id resolution was unsuccessful and the id is unknown.
      */
     ModuleVersionSelectionReason getSelectionReason() throws ModuleVersionResolveException;
 }
