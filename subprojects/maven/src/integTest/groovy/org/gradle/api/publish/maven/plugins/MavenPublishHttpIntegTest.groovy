@@ -67,16 +67,16 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
 
     def "can publish to an unauthenticated http repo"() {
         given:
-        module.expectArtifactPut()
-        module.expectArtifactSha1Put()
-        module.expectArtifactMd5Put()
+        module.artifact.expectPut()
+        module.artifact.sha1.expectPut()
+        module.artifact.md5.expectPut()
         module.expectRootMetaDataGetMissing()
         module.expectRootMetaDataPut()
         module.expectRootMetaDataSha1Put()
         module.expectRootMetaDataMd5Put()
-        module.expectPomPut()
-        module.expectPomSha1Put()
-        module.expectPomMd5Put()
+        module.pom.expectPut()
+        module.pom.sha1.expectPut()
+        module.pom.md5.expectPut()
 
         when:
         succeeds 'publish'
@@ -108,16 +108,16 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
 
         server.authenticationScheme = authScheme
 
-        module.expectArtifactPut(credentials)
-        module.expectArtifactSha1Put(credentials)
-        module.expectArtifactMd5Put(credentials)
+        module.artifact.expectPut(credentials)
+        module.artifact.sha1.expectPut(credentials)
+        module.artifact.md5.expectPut(credentials)
         module.expectRootMetaDataGetMissing(credentials)
         module.expectRootMetaDataPut(credentials)
         module.expectRootMetaDataSha1Put(credentials)
         module.expectRootMetaDataMd5Put(credentials)
-        module.expectPomPut(credentials)
-        module.expectPomSha1Put(credentials)
-        module.expectPomMd5Put(credentials)
+        module.pom.expectPut(credentials)
+        module.pom.sha1.expectPut(credentials)
+        module.pom.md5.expectPut(credentials)
 
         when:
         succeeds 'publish'
@@ -151,7 +151,7 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         """
 
         server.authenticationScheme = authScheme
-        module.expectArtifactPut(401, credentials)
+        module.artifact.expectPut(401, credentials)
 
         when:
         fails 'publish'
@@ -169,7 +169,7 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
     def "reports failure when required credentials are not provided #authScheme"() {
         given:
         server.authenticationScheme = authScheme
-        module.expectArtifactPut(401)
+        module.artifact.expectPut(401)
 
         when:
         fails 'publish'
@@ -182,6 +182,4 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
     }
-
-
 }

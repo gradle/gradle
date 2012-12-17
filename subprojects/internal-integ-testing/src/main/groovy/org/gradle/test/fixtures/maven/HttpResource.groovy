@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
@@ -23,7 +24,7 @@ abstract class HttpResource {
 
     protected HttpServer server
 
-    public HttpResource(HttpServer server){
+    public HttpResource(HttpServer server) {
         this.server = server
     }
 
@@ -37,6 +38,14 @@ abstract class HttpResource {
 
     void expectHead() {
         server.expectHead(getPath(), file)
+    }
+
+    void expectPut(PasswordCredentials credentials) {
+        expectPut(200, credentials)
+    }
+
+    void expectPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
+        server.expectPut(getPath(), getFile(), statusCode, credentials)
     }
 
     abstract void expectGetMissing();

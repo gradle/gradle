@@ -184,76 +184,8 @@ class MavenHttpModule implements MavenModule {
         server.expectPut(md5Path(rootMetaDataPath), md5File(rootMetaDataFile), statusCode, credentials)
     }
 
-    void expectPomPut(PasswordCredentials credentials) {
-        expectPomPut(200, credentials)
-    }
-
-    void expectPomPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(pomPath, pomFile, statusCode, credentials)
-    }
-
-    void expectPomSha1Put(PasswordCredentials credentials) {
-        expectPomSha1Put(200, credentials)
-    }
-
-    void expectPomSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(sha1Path(pomPath), sha1File(pomFile), statusCode, credentials)
-    }
-
-    void expectPomMd5Put(PasswordCredentials credentials) {
-        expectPomMd5Put(200, credentials)
-    }
-
-    void expectPomMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(md5Path(pomPath), md5File(pomFile), statusCode, credentials)
-    }
-
-    String getArtifactPath(Map options = [:]) {
-        "$moduleVersionPath/${getArtifactFile(options).name}"
-    }
-
     String getPomPath() {
         "$moduleVersionPath/$pomFile.name"
-    }
-
-    void expectArtifactPut(PasswordCredentials credentials) {
-        expectArtifactPut(200, credentials)
-    }
-
-    void expectArtifactPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(artifactPath, artifactFile, statusCode, credentials)
-    }
-
-    void expectArtifactSha1Put(PasswordCredentials credentials) {
-        expectArtifactSha1Put(200, credentials)
-    }
-
-    private TestFile getArtifactMd5File() {
-        backingModule.artifactMd5File
-    }
-
-    private String getArtifactMd5Path() {
-        "${artifactPath}.md5"
-    }
-
-    private TestFile getArtifactSha1File() {
-        backingModule.artifactSha1File
-    }
-
-    private String getArtifactSha1Path(Map options = [:]) {
-        "${getArtifactPath(options)}.sha1"
-    }
-
-    void expectArtifactSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(artifactSha1Path, artifactSha1File, statusCode, credentials)
-    }
-
-    void expectArtifactMd5Put(PasswordCredentials credentials) {
-        expectArtifactMd5Put(200, credentials)
-    }
-
-    void expectArtifactMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(artifactMd5Path, artifactMd5File, statusCode, credentials)
     }
 
     void verifyArtifactChecksums() {
