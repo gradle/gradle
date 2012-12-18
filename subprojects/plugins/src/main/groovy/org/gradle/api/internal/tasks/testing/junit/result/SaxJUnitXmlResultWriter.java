@@ -76,25 +76,9 @@ public class SaxJUnitXmlResultWriter {
     }
 
     private void writeOutputs(SimpleXmlWriter writer, String className, TestOutputEvent.Destination destination) throws IOException {
-        Reader outputs = testResultsProvider.getOutputs(className, destination);
-        try {
-            writer.writeStartCDATA();
-            writeCDATA(writer, outputs);
-            writer.writeEndCDATA();
-        } finally {
-            outputs.close();
-        }
-    }
-
-    private void writeCDATA(SimpleXmlWriter writer, Reader content) throws IOException {
-        char[] buffer = new char[2048];
-        while (true) {
-            int read = content.read(buffer);
-            if (read < 0) {
-                return;
-            }
-            writer.writeCharacters(buffer, 0, read);
-        }
+        writer.writeStartCDATA();
+        testResultsProvider.writeOutputs(className, destination, writer);
+        writer.writeEndCDATA();
     }
 
     private void writeTests(SimpleXmlWriter writer, Set<TestMethodResult> methodResults, String className) throws IOException {
