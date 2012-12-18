@@ -20,10 +20,10 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
 class MavenHttpArtifact extends HttpArtifact {
-    private final MavenHttpModule backingModule;
+    private final MavenFileModule backingModule;
     private final Map options
 
-    public MavenHttpArtifact(HttpServer server, String modulePath, MavenHttpModule backingModule, Map<String, ?> options = [:]) {
+    public MavenHttpArtifact(HttpServer server, String modulePath, MavenFileModule backingModule, Map<String, ?> options = [:]) {
         super(server, modulePath)
         this.options = options
         this.backingModule = backingModule;
@@ -41,5 +41,9 @@ class MavenHttpArtifact extends HttpArtifact {
 
     TestFile getFile() {
         return backingModule.getArtifactFile(options)
+    }
+
+    void verifyChecksums() {
+        backingModule.verifyChecksums(getFile())
     }
 }

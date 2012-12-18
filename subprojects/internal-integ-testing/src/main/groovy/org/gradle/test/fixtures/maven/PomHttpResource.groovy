@@ -17,18 +17,34 @@
 package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.util.TestFile
 
-class PomHttpResource extends BasicHttpResource {
+class PomHttpResource extends HttpArtifact {
     MavenFileModule backingModule
 
     PomHttpResource(HttpServer httpServer, String path, MavenFileModule backingModule) {
-        super(httpServer, backingModule.pomFile, path)
+        super(httpServer, path)
         this.backingModule = backingModule
     }
 
     @Override
     void expectGetMissing() {
-        server.expectGetMissing(path - getFile().name + getMissingPomName());
+        server.expectGetMissing(getPath() - getFile().name + getMissingPomName());
+    }
+
+    @Override
+    File getSha1File() {
+        backingModule.sha1File(getFile())
+    }
+
+    @Override
+    File getMd5File() {
+        backingModule.md5File(file)
+    }
+
+    @Override
+    TestFile getFile() {
+        return backingModule.pomFile
     }
 
     private String getMissingPomName() {
@@ -39,11 +55,7 @@ class PomHttpResource extends BasicHttpResource {
         }
     }
 
-    HttpResource getMd5() {
-        return new BasicHttpResource(server, backingModule.getMd5File(getFile()), "${path}.md5")
-    }
-
-    HttpResource getSha1() {
-        return new BasicHttpResource(server, backingModule.getSha1File(getFile()), "${path}.sha1")
+    void verifyChecksums() {
+        backingModule.verifyChecksums(getFile())
     }
 }

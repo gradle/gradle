@@ -53,4 +53,6 @@ abstract class HttpArtifact extends HttpResource {
     protected abstract File getMd5File();
 
     abstract TestFile getFile();
+
+    abstract void verifyChecksums()
 }

@@ -79,8 +79,6 @@ task check << {
 
         given:
         def module = mavenHttpRepo.module("group", "module", "1.2").publishWithChangedContent()
-        module.artifact.sha1.file.text = '1234'
-
         buildFile << """
 repositories {
     def repo = mavenRepo url: '${mavenHttpRepo.uri}'
@@ -104,7 +102,8 @@ task check << {
         module.pom.sha1.expectGet()
         module.artifact.expectGet()
         module.artifact.sha1.expectGet()
-
+        and:
+        module.artifact.sha1.file.text = '1234'
         expect:
         fails 'check'
         failureHasCause("Could not download artifact 'group:module:1.2@jar'")

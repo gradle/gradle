@@ -57,7 +57,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
         when:
         def projectBModuleRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
         projectBModuleRepo1.pom.expectGet()
-        projectBModuleRepo1.getArtifact().expectGet()
+        projectBModuleRepo1.artifact.expectGet()
 
         then:
         succeedsWith 'mavenRepository1'

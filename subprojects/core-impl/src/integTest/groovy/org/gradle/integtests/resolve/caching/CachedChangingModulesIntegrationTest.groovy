@@ -56,14 +56,14 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         when:
         module.pom.expectGet()
         sourceArtifact.expectGet()
-        module.expectMetaDataGet()
+        module.metaData.expectGet()
 
         then:
         run 'retrieve'
 
         when:
         server.resetExpectations()
-        module.expectMetaDataGet()
+        module.metaData.expectGet()
         sourceArtifact.expectHead()
         module.pom.expectHead()
         then:
@@ -73,7 +73,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.publishWithChangedContent()
         server.resetExpectations()
 
-        module.expectMetaDataGet()
+        module.metaData.expectGet()
         module.pom.sha1.expectGet()
         module.pom.expectHead()
         module.pom.expectGet()
@@ -127,14 +127,14 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         when:
         module.pom.expectGet()
         sourceArtifact.expectGet()
-        module.expectMetaDataGetMissing()
+        module.metaData.expectGetMissing()
 
         then:
         run 'retrieve'
 
         when:
         server.resetExpectations()
-        module.expectMetaDataGetMissing()
+        module.metaData.expectGetMissing()
         sourceArtifact.expectHead()
         module.pom.expectHead()
         then:
@@ -144,7 +144,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         module.publishWithChangedContent()
         server.resetExpectations()
 
-        module.expectMetaDataGetMissing()
+        module.metaData.expectGetMissing()
         module.pom.sha1.expectGet()
         module.pom.expectHead()
         module.pom.expectGet()

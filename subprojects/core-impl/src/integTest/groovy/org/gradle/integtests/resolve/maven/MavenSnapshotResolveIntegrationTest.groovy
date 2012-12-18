@@ -118,7 +118,7 @@ task retrieve(type: Sync) {
         expectModuleServed(projectA)
 
         and: "Server provides projectB with artifact in repo2"
-        repo1ProjectB.expectMetaDataGet()
+        repo1ProjectB.metaData.expectGet()
         repo1ProjectB.pom.expectGet()
         repo1ProjectB.artifact.expectGetMissing()
         repo2ProjectB.artifact.expectGet()
@@ -419,7 +419,7 @@ project('second') {
 }
 """
         when: "Module is requested once"
-        module.expectMetaDataGet()
+        module.metaData.expectGet()
         module.pom.expectGet()
         module.artifact.expectGet()
 
@@ -491,7 +491,7 @@ project('second') {
         when:
         module.publishWithChangedContent()
         server.resetExpectations()
-        module.expectMetaDataGet()
+        module.metaData.expectGet()
         module.pom.expectHead()
         module.pom.sha1.expectGetMissing()
         module.pom.expectGet()
@@ -507,13 +507,13 @@ project('second') {
     }
 
     private expectModuleServed(MavenHttpModule module) {
-        module.expectMetaDataGet()
+        module.metaData.expectGet()
         module.pom.expectGet()
         module.artifact.expectGet()
     }
 
     private expectChangedModuleServed(MavenHttpModule module) {
-        module.expectMetaDataGet()
+        module.metaData.expectGet()
         module.pom.expectHead()
         module.pom.sha1.expectGet()
         module.pom.expectGet()
@@ -524,7 +524,7 @@ project('second') {
     }
 
     private expectChangedArtifactServed(MavenHttpModule module) {
-        module.expectMetaDataGet()
+        module.metaData.expectGet()
         module.pom.expectHead()
         def artifact = module.artifact
         artifact.expectHead()
@@ -533,13 +533,13 @@ project('second') {
     }
 
     private expectChangedProbe(MavenHttpModule module) {
-        module.expectMetaDataGet()
+        module.metaData.expectGet()
         module.pom.expectHead()
         module.artifact.expectHead()
     }
 
     private expectModuleMissing(MavenHttpModule module) {
-        module.expectMetaDataGetMissing()
+        module.metaData.expectGetMissing()
         module.pom.expectGetMissing()
         module.artifact.expectHeadMissing()
     }

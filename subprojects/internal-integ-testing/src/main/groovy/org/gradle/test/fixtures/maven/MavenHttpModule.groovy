@@ -38,7 +38,7 @@ class MavenHttpModule implements MavenModule {
     }
 
     HttpArtifact getArtifact(Map options = [:]) {
-        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", this, options)
+        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
     }
 
     /**
@@ -47,7 +47,7 @@ class MavenHttpModule implements MavenModule {
      */
     HttpArtifact artifact(Map<String, ?> options) {
         backingModule.artifact(options)
-        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", this, options)
+        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
     }
 
     MavenHttpModule publish() {
@@ -97,7 +97,7 @@ class MavenHttpModule implements MavenModule {
     }
 
     PomHttpResource getPom() {
-        return new PomHttpResource(server, getPomPath(), backingModule)
+        return new PomHttpResource(server, getModuleVersionPath(), backingModule)
     }
 
     MavenMetaData getRootMetaData() {
@@ -112,8 +112,8 @@ class MavenHttpModule implements MavenModule {
         server.allowGetOrHead(moduleVersionPath, backingModule.moduleDir)
     }
 
-    void expectMetaDataGet() {
-        server.expectGet(getMetaDataPath(), metaDataFile)
+    HttpResource getMetaData() {
+        return new BasicHttpResource(server, metaDataFile, getMetaDataPath())
     }
 
     String getRootMetaDataPath() {
@@ -138,10 +138,6 @@ class MavenHttpModule implements MavenModule {
 
     String md5Path(String path) {
         "${path}.md5"
-    }
-
-    void expectMetaDataGetMissing() {
-        server.expectGetMissing(metaDataPath)
     }
 
     void expectRootMetaDataGetMissing(PasswordCredentials passwordCredentials = null) {
@@ -182,18 +178,6 @@ class MavenHttpModule implements MavenModule {
 
     void expectRootMetaDataMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
         server.expectPut(md5Path(rootMetaDataPath), md5File(rootMetaDataFile), statusCode, credentials)
-    }
-
-    String getPomPath() {
-        "$moduleVersionPath/$pomFile.name"
-    }
-
-    void verifyArtifactChecksums() {
-        backingModule.verifyChecksums(artifactFile)
-    }
-
-    void verifyPomChecksums() {
-        backingModule.verifyChecksums(pomFile)
     }
 
     void verifyRootMetaDataChecksums() {
