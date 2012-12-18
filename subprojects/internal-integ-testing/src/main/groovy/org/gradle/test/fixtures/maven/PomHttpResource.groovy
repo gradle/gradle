@@ -34,12 +34,12 @@ class PomHttpResource extends HttpArtifact {
 
     @Override
     File getSha1File() {
-        backingModule.sha1File(getFile())
+        backingModule.getSha1File(file)
     }
 
     @Override
     File getMd5File() {
-        backingModule.md5File(file)
+        backingModule.getMd5File(file)
     }
 
     @Override
