@@ -22,6 +22,8 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.GradleException
 
 /**
@@ -37,6 +39,7 @@ class ApplicationPlugin implements Plugin<Project> {
     static final String TASK_START_SCRIPTS_NAME = "startScripts"
     static final String TASK_INSTALL_NAME = "installApp"
     static final String TASK_DIST_ZIP_NAME = "distZip"
+    static final String TASK_DIST_TAR_NAME = "distTar"
 
     private Project project
     private ApplicationPluginConvention pluginConvention
@@ -53,6 +56,7 @@ class ApplicationPlugin implements Plugin<Project> {
 
         addInstallTask()
         addDistZipTask()
+        addDistTarTask()
     }
 
     private void addPluginConvention() {
@@ -101,12 +105,20 @@ class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void addDistZipTask() {
-        def distZipTask = project.tasks.add(TASK_DIST_ZIP_NAME, Zip)
-        distZipTask.description = "Bundles the project as a JVM application with libs and OS specific scripts."
-        distZipTask.group = APPLICATION_GROUP
-        distZipTask.conventionMapping.baseName = { pluginConvention.applicationName }
-        def baseDir = { distZipTask.archiveName - ".zip" }
-        distZipTask.into(baseDir) {
+        addArchiveTask(TASK_DIST_ZIP_NAME, Zip)
+    }
+
+	private void addDistTarTask() {
+        addArchiveTask(TASK_DIST_TAR_NAME, Tar)
+	}
+
+    private <T extends AbstractArchiveTask> void addArchiveTask(String name, Class<T> type) {
+        def archiveTask = project.tasks.add(name, type)
+        archiveTask.description = "Bundles the project as a JVM application with libs and OS specific scripts."
+        archiveTask.group = APPLICATION_GROUP
+        archiveTask.conventionMapping.baseName = { pluginConvention.applicationName }
+        def baseDir = { archiveTask.archiveName - ".${archiveTask.extension}" }
+        archiveTask.into(baseDir) {
             with(pluginConvention.applicationDistribution)
         }
     }
