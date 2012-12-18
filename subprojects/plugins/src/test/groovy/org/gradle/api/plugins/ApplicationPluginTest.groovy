@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Tar
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
@@ -83,6 +84,16 @@ class ApplicationPluginTest extends Specification {
         def task = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
         task.archiveName == "${project.applicationName}.zip"
+    }
+
+    def "adds distTar task to project"() {
+        when:
+        plugin.apply(project)
+
+        then:
+        def task = project.tasks[ApplicationPlugin.TASK_DIST_TAR_NAME]
+        task instanceof Tar
+        task.archiveName == "${project.applicationName}.tar"
     }
 
     public void "applicationName is configurable"() {
