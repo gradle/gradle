@@ -124,7 +124,23 @@ allowing more metadata to be manipulated, and more dependency resolution corner 
 Even though dependency resolve actions are lower level hooks
 in future we will use them to provide many high level features in Gradle's dependency engine.
 
-For more information, including the code sample, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_actions).
+Many interesting use cases that can be implemented with the dependency resolve actions:
+
+* [Blacklisting a version] (userguide/userguide_single.html#sec:blacklisting_version) with a replacement.
+* Implementing a [custom versioning scheme](userguide/userguide_single.html#sec:custom_versioning_scheme).
+* [Modelling a releasable unit](userguide/userguide_single.html#sec:releasable_unit) - a set of related libraries that require a consistent version
+
+See below example on how to make all libraries from group 'org.gradle' use a consistent version:
+
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'org.gradle') {
+                details.useVersion '1.4'
+            }
+        }
+    }
+
+For more information, including more code samples, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_actions).
 
 ### Generate ivy.xml without publishing
 
