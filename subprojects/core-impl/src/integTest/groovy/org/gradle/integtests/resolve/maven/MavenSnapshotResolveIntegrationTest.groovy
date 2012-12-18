@@ -35,9 +35,9 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile "org.gradle:projectA:1.0-SNAPSHOT"
-    compile "org.gradle:projectB:1.0-SNAPSHOT"
-    compile "org.gradle:nonunique:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:projectA:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:projectB:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
 }
 
 task retrieve(type: Sync) {
@@ -47,11 +47,11 @@ task retrieve(type: Sync) {
 """
 
         and: "snapshot modules are published"
-        def repo1ProjectA = repo1.module("org.gradle", "projectA", "1.0-SNAPSHOT").publish()
-        def repo1ProjectB = repo1.module("org.gradle", "projectB", "1.0-SNAPSHOT")
-        def repo2ProjectB = repo2.module("org.gradle", "projectB", "1.0-SNAPSHOT").publish()
-        def repo1NonUnique = repo1.module("org.gradle", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots()
-        def repo2NonUnique = repo2.module("org.gradle", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def repo1ProjectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT").publish()
+        def repo1ProjectB = repo1.module("org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT")
+        def repo2ProjectB = repo2.module("org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT").publish()
+        def repo1NonUnique = repo1.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots()
+        def repo2NonUnique = repo2.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
 
         when: "Server provides projectA from repo1"
         expectModuleServed(repo1ProjectA)
@@ -99,8 +99,8 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile "org.gradle:projectA:1.0-SNAPSHOT"
-    compile "org.gradle:projectB:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:projectA:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:projectB:1.0-SNAPSHOT"
 }
 
 task retrieve(type: Sync) {
@@ -110,9 +110,9 @@ task retrieve(type: Sync) {
 """
 
         and: "snapshot modules are published"
-        def projectA = repo1.module("org.gradle", "projectA", "1.0-SNAPSHOT").publish()
-        def repo1ProjectB = repo1.module("org.gradle", "projectB", "1.0-SNAPSHOT").publish()
-        def repo2ProjectB = repo2.module("org.gradle", "projectB", "1.0-SNAPSHOT").publish()
+        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT").publish()
+        def repo1ProjectB = repo1.module("org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT").publish()
+        def repo2ProjectB = repo2.module("org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT").publish()
 
         when: "Server provides projectA from repo1"
         expectModuleServed(projectA)
@@ -153,8 +153,8 @@ configurations { compile }
 configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 
 dependencies { 
-    compile "org.gradle:unique:1.0-SNAPSHOT" 
-    compile "org.gradle:nonunique:1.0-SNAPSHOT" 
+    compile "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
 }
 
 task retrieve(type: Sync) {
@@ -164,8 +164,8 @@ task retrieve(type: Sync) {
 """
 
         when: "snapshot modules are published"
-        def uniqueVersionModule = mavenHttpRepo.module("org.gradle", "unique", "1.0-SNAPSHOT").publish()
-        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
+        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
 
         and: "Server handles requests"
         expectModuleServed(uniqueVersionModule)
@@ -216,8 +216,8 @@ if (project.hasProperty('noTimeout')) {
 }
 
 dependencies {
-    compile "org.gradle:unique:1.0-SNAPSHOT"
-    compile "org.gradle:nonunique:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
 }
 
 task retrieve(type: Sync) {
@@ -227,8 +227,8 @@ task retrieve(type: Sync) {
 """
 
         when: "snapshot modules are published"
-        def uniqueVersionModule = mavenHttpRepo.module("org.gradle", "unique", "1.0-SNAPSHOT").publish()
-        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
+        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
 
         and: "Server handles requests"
         expectModuleServed(uniqueVersionModule)
@@ -285,7 +285,7 @@ configurations.all {
 }
 
 dependencies {
-    compile "org.gradle:testproject:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:testproject:1.0-SNAPSHOT"
 }
 
 task retrieve(type: Sync) {
@@ -295,7 +295,7 @@ task retrieve(type: Sync) {
 """
 
         when: "Publish the first snapshot"
-        def module = mavenHttpRepo.module("org.gradle", "testproject", "1.0-SNAPSHOT").publish()
+        def module = mavenHttpRepo.module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").publish()
 
         and: "Server handles requests"
         expectModuleServed(module)
@@ -323,7 +323,7 @@ task retrieve(type: Sync) {
     def "does not download snapshot artifacts more than once per build"() {
         server.start()
         given:
-        def module = mavenHttpRepo.module("org.gradle", "testproject", "1.0-SNAPSHOT").publish()
+        def module = mavenHttpRepo.module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").publish()
 
         and:
         settingsFile << "include 'a', 'b'"
@@ -340,7 +340,7 @@ allprojects {
     }
 
     dependencies {
-        compile "org.gradle:testproject:1.0-SNAPSHOT"
+        compile "org.gradle.integtests.resolve:testproject:1.0-SNAPSHOT"
     }
 
     task retrieve(type: Sync) {
@@ -364,8 +364,8 @@ allprojects {
     def "can update snapshot artifact during build even if it is locked earlier in build"() {
         server.start()
         given:
-        def module = mavenHttpRepo("/repo", maven("repo1")).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
-        def module2 = mavenHttpRepo("/repo", maven("repo2")).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def module = mavenHttpRepo("/repo", maven("repo1")).module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def module2 = mavenHttpRepo("/repo", maven("repo2")).module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         module2.pomFile << '    ' // ensure it's a different length to the first one
         module2.backingModule.sha1File(module2.pomFile)
         module2.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
@@ -388,7 +388,7 @@ subprojects {
     }
 
     dependencies {
-        compile "org.gradle:testproject:1.0-SNAPSHOT"
+        compile "org.gradle.integtests.resolve:testproject:1.0-SNAPSHOT"
     }
 
     task lock << {
