@@ -99,6 +99,9 @@ public class SimpleXmlWriter extends Writer {
         if (!isValidXmlName(name)) {
             throw new IllegalArgumentException(String.format("Invalid element name: '%s'", name));
         }
+        if (context == Context.CData) {
+            throw new IllegalStateException("Cannot start element, as current CDATA node has not been closed.");
+        }
         maybeFinishElement();
         context = Context.StartTag;
         elements.add(name);
@@ -109,7 +112,10 @@ public class SimpleXmlWriter extends Writer {
 
     public void writeEndElement() throws IOException {
         if (elements.isEmpty()) {
-            throw new IllegalStateException("Cannot write end element! There are no started elements.");
+            throw new IllegalStateException("Cannot end element, as there are no started elements.");
+        }
+        if (context == Context.CData) {
+            throw new IllegalStateException("Cannot end element, as current CDATA node has not been closed.");
         }
         if (context == Context.StartTag) {
             writeRaw("/>");
@@ -165,6 +171,9 @@ public class SimpleXmlWriter extends Writer {
     }
 
     public void writeStartCDATA() throws IOException {
+        if (context == Context.CData) {
+            throw new IllegalStateException("Cannot start CDATA node, as current CDATA node has not been closed.");
+        }
         maybeFinishElement();
         writeRaw("<![CDATA[");
         context = Context.CData;
@@ -172,6 +181,9 @@ public class SimpleXmlWriter extends Writer {
     }
 
     public void writeEndCDATA() throws IOException {
+        if (context != Context.CData) {
+            throw new IllegalStateException("Cannot end CDATA node, as not currently in a CDATA node.");
+        }
         writeRaw("]]>");
         context = Context.Character;
     }

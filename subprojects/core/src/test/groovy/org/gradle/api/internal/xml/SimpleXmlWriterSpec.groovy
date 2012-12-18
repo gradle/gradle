@@ -150,7 +150,7 @@ class SimpleXmlWriterSpec extends Specification {
         xml.contains("<root>some &lt;chars&gt; and some <![CDATA[cdata]]></root>")
     }
 
-    def "has basic stack validation"() {
+    def "cannot end element when stack is empty"() {
         writer.writeStartElement("root")
         writer.writeEndElement()
 
@@ -158,7 +158,55 @@ class SimpleXmlWriterSpec extends Specification {
         writer.writeEndElement()
 
         then:
-        thrown(IllegalStateException)
+        IllegalStateException e = thrown()
+        e.message == 'Cannot end element, as there are no started elements.'
+    }
+
+    def "cannot end element when CDATA node is open"() {
+        writer.writeStartElement("root")
+        writer.writeStartCDATA()
+
+        when:
+        writer.writeEndElement()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot end element, as current CDATA node has not been closed.'
+    }
+
+    def "cannot start element when CDATA node is open"() {
+        writer.writeStartElement("root")
+        writer.writeStartCDATA()
+
+        when:
+        writer.writeStartElement("nested")
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot start element, as current CDATA node has not been closed.'
+    }
+
+    def "cannot start CDATA node when CDATA node is open"() {
+        writer.writeStartElement("root")
+        writer.writeStartCDATA()
+
+        when:
+        writer.writeStartCDATA()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot start CDATA node, as current CDATA node has not been closed.'
+    }
+
+    def "cannot end CDATA node when not in a CDATA node"() {
+        writer.writeStartElement("root")
+
+        when:
+        writer.writeEndCDATA()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot end CDATA node, as not currently in a CDATA node.'
     }
 
     def "closes tags"() {
@@ -172,7 +220,7 @@ class SimpleXmlWriterSpec extends Specification {
 
         where:
         action << [{ it.writeStartElement("foo"); it.writeEndElement() },
-                { it.writeStartCDATA() },
+                { it.writeStartCDATA(); it.writeEndCDATA() },
                 { it.writeCharacters("bar") },
                 { it.write("close") }]
     }
@@ -189,7 +237,7 @@ class SimpleXmlWriterSpec extends Specification {
 
         where:
         action << [{ it.writeStartElement("foo"); it.writeEndElement() },
-                { it.writeStartCDATA() },
+                { it.writeStartCDATA(); it.writeEndCDATA() },
                 { it.writeCharacters("bar") },
                 { it.write("close") }]
     }
