@@ -6,7 +6,7 @@ configurations.all {
 
 //START SNIPPET changing-module-cache-control
 configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 30, 'days'
+    resolutionStrategy.cacheChangingModulesFor 4, 'hours'
 }
 //END SNIPPET changing-module-cache-control
 
