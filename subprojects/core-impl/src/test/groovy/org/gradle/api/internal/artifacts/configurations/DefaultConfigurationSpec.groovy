@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.internal.Factory
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.listener.ListenerManager
 import spock.lang.Specification
@@ -34,10 +33,10 @@ class DefaultConfigurationSpec extends Specification {
     ArtifactDependencyResolver dependencyResolver = Mock()
     ListenerManager listenerManager = Mock()
     DependencyMetaDataProvider metaDataProvider = Mock()
-    Factory<ResolutionStrategyInternal> resolutionStrategyFactory = Mock()
+    ResolutionStrategyInternal resolutionStrategy = Mock()
 
     DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategyFactory)
+        new DefaultConfiguration(path, confName, configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy)
     }
 
     DefaultPublishArtifact artifact(String name) {
@@ -290,25 +289,16 @@ class DefaultConfigurationSpec extends Specification {
         copied.excludeRules.collect{[group: it.group, module: it.module]}.sort { it.group } == [p1Exclude, p2Exclude]
     }
 
-    def "uses factory to create instance of resolution strategy"() {
-        def strategy = Mock(ResolutionStrategyInternal)
-
-        when:
-        def conf = conf()
-
-        then:
-        1 * resolutionStrategyFactory.create() >> strategy
-        conf.resolutionStrategy == strategy
-    }
-
     def "copied configuration has own instance of resolution strategy"() {
+        def strategy = Mock(ResolutionStrategyInternal)
         def conf = conf()
 
         when:
         def copy = conf.copy()
 
         then:
-        resolutionStrategyFactory.create() >> { Mock(ResolutionStrategyInternal) }
+        1 * resolutionStrategy.copy() >> strategy
         conf.resolutionStrategy != copy.resolutionStrategy
+        copy.resolutionStrategy == strategy
     }
 }

@@ -107,4 +107,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     public void cacheChangingModulesFor(int value, TimeUnit units) {
         this.cachePolicy.cacheChangingModulesFor(value, units);
     }
+
+    public ResolutionStrategyInternal copy() {
+        //TODO SF not yet implemented
+        return this;
+    }
 }

@@ -86,7 +86,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(StartParameter) >> startParameter
         1 * instantiator.newInstance(DefaultRepositoryHandler, _, _) >> repositoryHandler
         1 * instantiator.newInstance(DefaultConfigurationContainer, !null, instantiator,
-                domainObjectContext, listenerManager, dependencyMetaDataProvider, _ as Factory) >> configurationContainer
+                domainObjectContext, listenerManager, dependencyMetaDataProvider) >> configurationContainer
         def strategy = new DefaultResolutionStrategy()
         instantiator.newInstance(DefaultResolutionStrategy) >> strategy
 
@@ -99,13 +99,6 @@ class DefaultDependencyManagementServicesTest extends Specification {
         resolutionServices.dependencyHandler
         resolutionServices.artifactHandler
         resolutionServices.createArtifactPublicationServices()
-        resolutionServices.createResolutionStrategyFactory()
-
-        when:
-        def createdStrategy = resolutionServices.createResolutionStrategyFactory().create()
-
-        then:
-        createdStrategy == strategy
     }
 
     def "publish services provide a repository handler"() {
