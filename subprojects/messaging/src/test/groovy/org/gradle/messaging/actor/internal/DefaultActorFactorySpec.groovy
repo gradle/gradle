@@ -151,15 +151,16 @@ class DefaultActorFactorySpec extends ConcurrentSpec {
         operation.dispatch {
             actor.dispatch(new MethodInvocation(TargetObject.class.getMethod('doStuff', String.class), ['param'] as Object[]))
         }
+        thread.blockUntil.handled
 
         then:
         1 * target.doStuff('param') >> {
             thread.block()
-            instant.finished
+            instant.handled
         }
 
         and:
-        operation.dispatch.end < instant.finished
+        operation.dispatch.end < instant.handled
     }
 
     def nonBlockingActorProxyDispatchesMethodCallToTargetObjectAndDoesNotWaitForResult() {
