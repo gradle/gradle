@@ -84,6 +84,9 @@ public class DefaultTestReport implements TestReporter {
             for (int i = 0; i < testCases.getLength(); i++) {
                 Element testCase = (Element) testCases.item(i);
                 String className = testCase.getAttribute("classname");
+                if("".equals(className)) {
+                    className = ((Element)testCase.getParentNode()).getAttribute("name");
+                }
                 String testName = testCase.getAttribute("name");
                 LocaleSafeDecimalFormat format = new LocaleSafeDecimalFormat();
                 BigDecimal duration = format.parse(testCase.getAttribute("time"));

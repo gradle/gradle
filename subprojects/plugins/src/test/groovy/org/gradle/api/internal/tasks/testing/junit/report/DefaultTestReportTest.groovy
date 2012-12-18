@@ -197,6 +197,29 @@ message">this is a failure.</failure></testcase>
         packageFile.assertHasLinkTo('Test')
     }
 
+    def reportsOnTestCasesWithoutClassname() {
+        resultsDir.file('TEST-someClass.xml') << '''
+<testsuite name="Test">
+    <testcase name="test1" time="0">
+    </testcase>
+</testsuite>
+'''
+
+        when:
+        report.generateReport()
+
+        then:
+        def index = results(indexFile)
+        index.assertHasLinkTo('default-package')
+        index.assertHasLinkTo('Test', 'Test')
+
+        def packageFile = results(reportDir.file('default-package.html'))
+        packageFile.assertHasLinkTo('Test', 'Test')
+
+        def testFile = results(reportDir.file('Test.html'))
+        testFile.assertHasTest("test1")
+    }
+
     def escapesHtmlContentInReport() {
         resultsDir.file('TEST-someClass.xml') << '''
 <testsuite name="org.gradle.Test">
