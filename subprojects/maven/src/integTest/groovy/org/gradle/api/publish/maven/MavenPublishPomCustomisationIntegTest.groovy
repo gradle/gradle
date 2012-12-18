@@ -62,8 +62,8 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         then:
         def module = mavenRepo.module('group', 'root', 'foo')
         module.assertPublishedAsJavaModule()
-        module.pom.description == 'custom-description'
-        module.pom.scopes.runtime.assertDependsOn("junit", "junit", "4.1")
+        module.parsedPom.description == 'custom-description'
+        module.parsedPom.scopes.runtime.assertDependsOn("junit", "junit", "4.1")
     }
 
     def "pom can contain non-ascii characters"() {
@@ -103,7 +103,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         then:
         def module = mavenRepo.module(groupId, artifactId, version)
         module.assertPublishedAsJavaModule()
-        module.pom.description == description
+        module.parsedPom.description == description
     }
 
     def "has reasonable error message when withXml fails"() {
