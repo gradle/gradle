@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.caching
 
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 public class CachedChangingModulesIntegrationTest extends AbstractDependencyResolutionTest {
 

@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.hamcrest.Matchers
 
 class ResolutionOverrideIntegrationTest extends AbstractDependencyResolutionTest {

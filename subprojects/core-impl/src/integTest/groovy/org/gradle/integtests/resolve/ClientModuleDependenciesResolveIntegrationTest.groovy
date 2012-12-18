@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.junit.Test
 
 /**

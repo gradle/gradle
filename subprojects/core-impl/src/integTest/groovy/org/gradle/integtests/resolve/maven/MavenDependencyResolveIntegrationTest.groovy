@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class MavenDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "dependency includes main artifact and runtime dependencies of referenced module"() {

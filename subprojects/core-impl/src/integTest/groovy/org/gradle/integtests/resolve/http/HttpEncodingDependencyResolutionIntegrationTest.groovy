@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.http
 
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest;
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest;
 
 
 public class HttpEncodingDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {

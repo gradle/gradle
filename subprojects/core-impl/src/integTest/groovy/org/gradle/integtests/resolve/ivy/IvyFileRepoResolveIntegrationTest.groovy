@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class IvyFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
     public void "does not cache local artifacts or metadata"() {

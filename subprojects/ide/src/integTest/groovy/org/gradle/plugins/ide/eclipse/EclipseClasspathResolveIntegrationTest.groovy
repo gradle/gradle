@@ -17,8 +17,8 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.junit.Rule
 
 class EclipseClasspathResolveIntegrationTest extends AbstractDependencyResolutionTest {

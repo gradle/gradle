@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.http
 
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 

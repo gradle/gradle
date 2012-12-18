@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class LegacyMavenRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "can configure legacy Maven resolver to verify artifact using checksums"() {

@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenHttpModule
 
 class MavenSnapshotResolveIntegrationTest extends AbstractDependencyResolutionTest {

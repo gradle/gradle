@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.resolve.caching
 
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import spock.lang.IgnoreIf
 
 class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTest {

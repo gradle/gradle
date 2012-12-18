@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve
+package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.ivy.IvyHttpRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository

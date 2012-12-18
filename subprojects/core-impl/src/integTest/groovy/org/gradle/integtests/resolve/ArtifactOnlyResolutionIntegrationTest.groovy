@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.maven.MavenHttpModule
 import org.junit.Rule
