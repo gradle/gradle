@@ -45,7 +45,7 @@ public class CompositeStoppable implements Stoppable {
         return new CompositeStoppable().add(elements);
     }
 
-    public static CompositeStoppable closeable(Iterable<Closeable> elements) {
+    public static CompositeStoppable closeable(Iterable<? extends Closeable> elements) {
         return new CompositeStoppable().add(elements);
     }
 

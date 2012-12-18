@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
@@ -57,7 +57,7 @@ public class Binary2JUnitXmlReportGenerator {
                 saxWriter.write(className, result, output);
                 output.close();
             } catch (IOException e) {
-                throw new GradleException("Problems writing XML test results to file: " + file, e);
+                throw new UncheckedIOException("Problems writing XML test results to file: " + file, e);
             } finally {
                 IOUtils.closeQuietly(output);
             }
