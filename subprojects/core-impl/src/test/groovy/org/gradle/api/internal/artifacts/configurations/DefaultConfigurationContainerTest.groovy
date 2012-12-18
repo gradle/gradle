@@ -23,7 +23,6 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.MissingMethodException
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
-import org.gradle.internal.Factory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.listener.ListenerManager
@@ -48,10 +47,9 @@ class DefaultConfigurationContainerTest {
     private ListenerManager listenerManager = context.mock(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class)
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory = { } as Factory
     private DefaultConfigurationContainer configurationHandler = instantiator.newInstance(DefaultConfigurationContainer.class,
             dependencyResolver, instantiator, { name -> name } as DomainObjectContext,
-            listenerManager, metaDataProvider, resolutionStrategyFactory)
+            listenerManager, metaDataProvider)
 
     @Before
     public void setup() {
