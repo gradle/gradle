@@ -53,7 +53,8 @@ public class SaxJUnitXmlResultWriter {
 
             //TODO SF indentation belongs elsewhere
             writer.writeCharacters("\n  ");
-            writer.writeEmptyElement("properties");
+            writer.writeStartElement("properties");
+            writer.writeEndElement();
 
             writeTests(writer, result.getResults(), className);
 
@@ -92,7 +93,7 @@ public class SaxJUnitXmlResultWriter {
             if (read < 0) {
                 return;
             }
-            writer.writeCDATA(buffer, 0, read);
+            writer.writeCharacters(buffer, 0, read);
         }
     }
 

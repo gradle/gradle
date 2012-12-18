@@ -23,15 +23,19 @@ import java.io.Writer;
 import java.util.LinkedList;
 
 /**
- * Basic XML writer. Encodes characters and CDATA. Provides only basic state validation.
+ * <p>A basic XML writer. Encodes characters and CDATA. Provides only basic state validation.</p>
+ *
+ * <p>This class also is-a Writer, and any characters written to this writer will be encoded as appropriate.</p>
  *
  * by Szczepan Faber, created at: 12/3/12
  */
-public class SimpleXmlWriter {
-
+public class SimpleXmlWriter extends Writer {
+    private enum Context {
+        Character, CData, StartTag
+    }
     private final Writer output;
     private final LinkedList<String> elements = new LinkedList<String>();
-    private boolean startElement;
+    private Context context = Context.Character;
     private int squareBrackets;
 
     public SimpleXmlWriter(OutputStream output) throws IOException {
@@ -40,22 +44,54 @@ public class SimpleXmlWriter {
     }
 
     private void writeXmlDeclaration(String encoding, String ver) throws IOException {
-        write("<?xml version=\"");
-        write(ver);
-        write("\" encoding=\"");
-        write(encoding);
-        write("\"?>");
+        writeRaw("<?xml version=\"");
+        writeRaw(ver);
+        writeRaw("\" encoding=\"");
+        writeRaw(encoding);
+        writeRaw("\"?>");
     }
 
-    public void writeCharacters(String characters) throws IOException {
+    @Override
+    public void write(char[] chars, int offset, int length) throws IOException {
+        writeCharacters(chars, offset, length);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        output.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+        // Does nothing
+    }
+
+    public void writeCharacters(char[] characters) throws IOException {
+        writeCharacters(characters, 0, characters.length);
+    }
+
+    public void writeCharacters(char[] characters, int start, int count) throws IOException {
         maybeFinishElement();
-        writeXmlEncoded(characters);
+        if (context == Context.Character) {
+            writeXmlEncoded(characters, start, count);
+        } else {
+            writeCDATA(characters, start, count);
+        }
+    }
+
+    public void writeCharacters(CharSequence characters) throws IOException {
+        maybeFinishElement();
+        if (context == Context.Character) {
+            writeXmlEncoded(characters);
+        } else {
+            writeCDATA(characters);
+        }
     }
 
     private void maybeFinishElement() throws IOException {
-        if (startElement) {
-            write(">");
-            startElement = false;
+        if (context == Context.StartTag) {
+            writeRaw(">");
+            context = Context.Character;
         }
     }
 
@@ -64,10 +100,10 @@ public class SimpleXmlWriter {
             throw new IllegalArgumentException(String.format("Invalid element name: '%s'", name));
         }
         maybeFinishElement();
-        startElement = true;
+        context = Context.StartTag;
         elements.add(name);
-        write("<");
-        write(name);
+        writeRaw("<");
+        writeRaw(name);
         return this;
     }
 
@@ -75,34 +111,39 @@ public class SimpleXmlWriter {
         if (elements.isEmpty()) {
             throw new IllegalStateException("Cannot write end element! There are no started elements.");
         }
-        maybeFinishElement();
-        write("</");
-        write(elements.removeLast());
-        write(">");
+        if (context == Context.StartTag) {
+            writeRaw("/>");
+            elements.removeLast();
+        } else {
+            writeRaw("</");
+            writeRaw(elements.removeLast());
+            writeRaw(">");
+        }
+        context = Context.Character;
         if (elements.isEmpty()) {
             output.flush();
         }
     }
 
-    public void writeEmptyElement(String name) throws IOException {
-        maybeFinishElement();
-        write("<");
-        write(name);
-        write("/>");
+    private void writeCDATA(char[] cdata, int offset, int count) throws IOException {
+        int end = offset + count;
+        for (int i = offset; i < end; i++) {
+            writeCDATA(cdata[i]);
+        }
     }
 
-    public void writeCDATA(char[] cdata) throws IOException {
-        writeCDATA(cdata, 0, cdata.length);
+    private void writeCDATA(CharSequence cdata) throws IOException {
+        int len = cdata.length();
+        for (int i = 0; i < len; i++) {
+            writeCDATA(cdata.charAt(i));
+        }
     }
 
-    public void writeCDATA(char[] cdata, int from, int to) throws IOException {
-        for (int i = from; i < to; i++) {
-            char c = cdata[i];
-            if (needsCDATAEscaping(c)) {
-                write("]]><![CDATA[>");
-            } else {
-                write(c);
-            }
+    private void writeCDATA(char c) throws IOException {
+        if (needsCDATAEscaping(c)) {
+            writeRaw("]]><![CDATA[>");
+        } else {
+            writeRaw(c);
         }
     }
 
@@ -125,27 +166,29 @@ public class SimpleXmlWriter {
 
     public void writeStartCDATA() throws IOException {
         maybeFinishElement();
+        writeRaw("<![CDATA[");
+        context = Context.CData;
         squareBrackets = 0;
-        write("<![CDATA[");
     }
 
     public void writeEndCDATA() throws IOException {
-        write("]]>");
+        writeRaw("]]>");
+        context = Context.Character;
     }
 
     public SimpleXmlWriter attribute(String name, String value) throws IOException {
         if (!isValidXmlName(name)) {
             throw new IllegalArgumentException(String.format("Invalid attribute name: '%s'", name));
         }
-        if (!startElement) {
+        if (context != Context.StartTag) {
             throw new IllegalStateException("Cannot write attribute [" + name + ":" + value + "]. You should write start element first.");
         }
 
-        write(" ");
-        write(name);
-        write("=\"");
+        writeRaw(" ");
+        writeRaw(name);
+        writeRaw("=\"");
         writeXmlEncoded(value);
-        write("\"");
+        writeRaw("\"");
         return this;
     }
 
@@ -232,31 +275,40 @@ public class SimpleXmlWriter {
         return false;
     }
 
-    private void write(char c) throws IOException {
+    private void writeRaw(char c) throws IOException {
         output.write(c);
     }
 
-    private void write(String message) throws IOException {
-        assert message != null;
+    private void writeRaw(String message) throws IOException {
         output.write(message);
+    }
+
+    private void writeXmlEncoded(char[] message, int offset, int count) throws IOException {
+        int end = offset + count;
+        for (int i = offset; i < end; i++) {
+            writeXmlEncoded(message[i]);
+        }
     }
 
     private void writeXmlEncoded(CharSequence message) throws IOException {
         assert message != null;
         int len = message.length();
         for (int i = 0; i < len; i++) {
-            char ch = message.charAt(i);
-            if (ch == '<') {
-                write("&lt;");
-            } else if (ch == '>') {
-                write("&gt;");
-            } else if (ch == '&') {
-                write("&amp;");
-            } else if (ch == '"') {
-                write("&quot;");
-            } else {
-                write(ch);
-            }
+            writeXmlEncoded(message.charAt(i));
+        }
+    }
+
+    private void writeXmlEncoded(char ch) throws IOException {
+        if (ch == '<') {
+            writeRaw("&lt;");
+        } else if (ch == '>') {
+            writeRaw("&gt;");
+        } else if (ch == '&') {
+            writeRaw("&amp;");
+        } else if (ch == '"') {
+            writeRaw("&quot;");
+        } else {
+            writeRaw(ch);
         }
     }
 }
