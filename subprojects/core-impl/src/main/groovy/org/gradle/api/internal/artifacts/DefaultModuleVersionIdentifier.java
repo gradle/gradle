@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
@@ -69,6 +70,10 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
     @Override
     public int hashCode() {
         return id.hashCode() ^ version.hashCode();
+    }
+
+    public ModuleIdentifier getModule() {
+        return id;
     }
 
     public static ModuleVersionIdentifier newId(Module module) {
