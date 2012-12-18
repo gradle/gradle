@@ -59,7 +59,7 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
     }
 
     private static String format(String message, String group, String name, String version) {
-        return String.format(message + "group:%s, module:%s, version:%s.", group, name, version);
+        return String.format(message + "%s:%s:%s.", group, name, version);
     }
 
     /**

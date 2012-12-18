@@ -139,7 +139,7 @@ task check << {
 
         expect:
         fails 'check'
-        failureHasCause("Could not find group:group, module:module, version:1.2.")
+        failureHasCause("Could not find group:module:1.2.")
     }
 
     def "can configure resolver to ignore poms"() {

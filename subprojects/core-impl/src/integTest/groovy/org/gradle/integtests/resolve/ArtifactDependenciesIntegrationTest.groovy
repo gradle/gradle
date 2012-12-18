@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ project(':b') {
 
         inTestDirectory().withTasks('a:listDeps').run()
         def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
-        result.assertThatCause(containsString('Could not find group:org.gradle.test, module:external1, version:1.0.'))
+        result.assertThatCause(containsString('Could not find org.gradle.test:external1:1.0.'))
     }
 
     @Test
@@ -162,7 +162,7 @@ project(':b') {
 
         inTestDirectory().withTasks('a:listDeps').run()
         def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
-        result.assertThatCause(containsString('Could not find group:org.gradle.test, module:external1, version:1.0.'))
+        result.assertThatCause(containsString('Could not find org.gradle.test:external1:1.0.'))
     }
 
     @Test
@@ -612,8 +612,8 @@ task test << {
         failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
         failure.assertHasDescription("Execution failed for task ':listJars'");
         failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration ':compile'"));
-        failure.assertThatCause(containsString("Could not find group:test, module:unknownProjectA, version:1.2."));
-        failure.assertThatCause(containsString("Could not find group:test, module:unknownProjectB, version:2.1.5."));
+        failure.assertThatCause(containsString("Could not find test:unknownProjectA:1.2."));
+        failure.assertThatCause(containsString("Could not find test:unknownProjectB:2.1.5."));
     }
 
     @Test

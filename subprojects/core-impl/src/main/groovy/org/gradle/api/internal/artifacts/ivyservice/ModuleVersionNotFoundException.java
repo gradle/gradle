@@ -20,11 +20,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 public class ModuleVersionNotFoundException extends ModuleVersionResolveException {
     public ModuleVersionNotFoundException(ModuleRevisionId id) {
-        super(String.format("Could not find group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()));
+        super(String.format("Could not find %s:%s:%s.", id.getOrganisation(), id.getName(), id.getRevision()));
     }
 
     public ModuleVersionNotFoundException(ModuleVersionIdentifier id) {
-        super(String.format("Could not find group:%s, module:%s, version:%s.", id.getGroup(), id.getName(), id.getVersion()));
+        super(String.format("Could not find %s:%s:%s.", id.getGroup(), id.getName(), id.getVersion()));
     }
 
     public ModuleVersionNotFoundException(String message) {

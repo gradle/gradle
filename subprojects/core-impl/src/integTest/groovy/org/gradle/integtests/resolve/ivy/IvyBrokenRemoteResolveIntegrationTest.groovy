@@ -83,7 +83,7 @@ task showBroken << { println configurations.broken.files }
         then:
         failure.assertHasDescription('Execution failed for task \':showBroken\'.')
         failure.assertHasCause('Could not resolve all dependencies for configuration \':broken\'.')
-        failure.assertHasCause('Could not resolve group:group, module:projectA, version:1.3')
+        failure.assertHasCause('Could not resolve group:projectA:1.3.')
         failure.assertHasCause("Could not GET '${ivyHttpRepo.uri}/group/projectA/1.3/ivy-1.3.xml'. Received status code 500 from server: broken")
 
         when:

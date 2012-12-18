@@ -150,7 +150,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         then:
         resolveResult.failure instanceof ModuleVersionNotFoundException
-        resolveResult.failure.message == "Could not find group:group, module:module, version:1.0."
+        resolveResult.failure.message == "Could not find group:module:1.0."
 
         and:
         1 * target.resolve(dependency, _) >> { args -> args[1].failed(new ModuleVersionNotFoundException("broken"))}
@@ -165,7 +165,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         then:
         resolveResult.failure instanceof ModuleVersionResolveException
-        resolveResult.failure.message == "Could not resolve group:group, module:module, version:1.0."
+        resolveResult.failure.message == "Could not resolve group:module:1.0."
 
         and:
         1 * target.resolve(dependency, _) >> { throw failure }

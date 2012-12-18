@@ -497,7 +497,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.dependencyResolutionFailure
             .assertFailedConfiguration(":conf")
-            .assertHasCause("Could not find group:org.utils, module:api, version:1.123.15")
+            .assertHasCause("Could not find org.utils:api:1.123.15")
     }
 
     void "actions triggered exactly once per the same dependency"()
@@ -580,7 +580,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.dependencyResolutionFailure
                 .assertFailedConfiguration(":conf")
-                .assertHasCause("Problems executing resolve action for dependency - group:org.utils, module:impl, version:1.3.")
+                .assertHasCause("Problems executing resolve action for dependency: org.utils:impl:1.3.")
                 .assertHasCause("Unhappy :(")
                 .assertFailedDependencyRequiredBy(":root:1.0")
     }

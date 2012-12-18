@@ -38,7 +38,7 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
 
     @Override
     public String toString() {
-        return String.format("%s:%s", group, name); //TODO SF align on the string representations
+        return String.format("%s:%s", group, name);
     }
 
     @Override
