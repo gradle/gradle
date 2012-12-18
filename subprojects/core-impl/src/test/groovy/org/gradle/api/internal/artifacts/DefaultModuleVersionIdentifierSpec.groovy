@@ -40,11 +40,4 @@ class DefaultModuleVersionIdentifierSpec extends Specification {
         module != differentModule
         module != differentVersion
     }
-
-    def "provides module identifier"() {
-        expect:
-        def id = new DefaultModuleVersionIdentifier("org.gradle", "tooling-api", "1.3")
-        id.group == id.module.group
-        id.name == id.module.name
-    }
 }

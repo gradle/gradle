@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 import java.io.Serializable;
 
 /**
@@ -44,14 +42,4 @@ public interface ModuleVersionIdentifier extends Serializable {
      * @return module name
      */
     String getName();
-
-    /**
-     * Returns the {@link ModuleIdentifier} containing the group and the name of this module.
-     * Contains the same information as {@link #getGroup()} and {@link #getVersion()}
-     *
-     * @return the module identifier
-     * @since 1.4
-     */
-    @Incubating
-    ModuleIdentifier getModule();
 }
