@@ -91,3 +91,9 @@ Some options for supporting a dynamic Gradle version:
    use. The wrapper task would choose the appropriate provider to embed in the source tree based on the declared dependencies.
 4. Some kind of multi-stage startup, where the launcher resolves the runtime and then invokes it through some cross-version internal API. This is complicated by the fact that
    logging and console integration plus dependency resolution is required by both the launcher and runtime.
+
+From the command-line:
+
+- Provide some way to define the default Gradle version of your machine via a Gradle command. This version is used if no project specific metadata is provided.
+- Provide a command line switch to ignore project metadata and use the default metadata (i.e. a build master wants to try the build with the default version of Gradle).
+- Provide some way to enable/disable the daemon from the command line.
