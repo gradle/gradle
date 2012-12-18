@@ -29,6 +29,8 @@ import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.util.Assertions.assertThat
+
 public class DefaultCachePolicySpec extends Specification {
     private static final int SECOND = 1000;
     private static final int MINUTE = SECOND * 60;
@@ -193,6 +195,18 @@ public class DefaultCachePolicySpec extends Specification {
         !cachePolicy.mustRefreshArtifact(null, null, 1000, false, true)
         !cachePolicy.mustRefreshArtifact(null, null, 1000, false, false)
         cachePolicy.mustRefreshArtifact(null, null, 1000, true, false)
+    }
+
+    def "provides a copy"() {
+        expect:
+        def copy = cachePolicy.copy()
+
+        !copy.is(cachePolicy)
+        assertThat(copy).doesNotShareStateWith(cachePolicy)
+
+        copy.dependencyCacheRules == cachePolicy.dependencyCacheRules
+        copy.moduleCacheRules == cachePolicy.moduleCacheRules
+        copy.artifactCacheRules == cachePolicy.artifactCacheRules
     }
 
     private def hasDynamicVersionTimeout(int timeout) {

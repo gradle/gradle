@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.dsl.ForcedModuleNotationParser;
 
 import java.util.Collection;
@@ -41,10 +40,19 @@ import static org.gradle.util.GUtil.flattenElements;
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     private Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
-    private Set<Action<? super DependencyResolveDetails>> dependencyResolveActions = new LinkedHashSet<Action<? super DependencyResolveDetails>>();
-
     private ConflictResolution conflictResolution = new LatestConflictResolution();
-    private final DefaultCachePolicy cachePolicy = new DefaultCachePolicy();
+
+    final Set<Action<? super DependencyResolveDetails>> dependencyResolveActions;
+    private final DefaultCachePolicy cachePolicy;
+
+    public DefaultResolutionStrategy() {
+        this(new DefaultCachePolicy(), new LinkedHashSet<Action<? super DependencyResolveDetails>>());
+    }
+
+    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, Set<Action<? super DependencyResolveDetails>> dependencyResolveActions) {
+        this.cachePolicy = cachePolicy;
+        this.dependencyResolveActions = dependencyResolveActions;
+    }
 
     public Set<ModuleVersionSelector> getForcedModules() {
         return forcedModules;
@@ -86,7 +94,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    public CachePolicy getCachePolicy() {
+    public DefaultCachePolicy getCachePolicy() {
         return cachePolicy;
     }
 
@@ -108,8 +116,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         this.cachePolicy.cacheChangingModulesFor(value, units);
     }
 
-    public ResolutionStrategyInternal copy() {
-        //TODO SF not yet implemented
-        return this;
+    public DefaultResolutionStrategy copy() {
+        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(),
+                new LinkedHashSet<Action<? super DependencyResolveDetails>>(dependencyResolveActions));
+
+        if (conflictResolution instanceof StrictConflictResolution) {
+            out.failOnVersionConflict();
+        }
+        out.setForcedModules(getForcedModules());
+        return out;
     }
 }

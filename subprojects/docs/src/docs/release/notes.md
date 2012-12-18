@@ -229,6 +229,13 @@ For backwards compatibility reasons, certain task configuration is deprecated. T
 
 For consistency, InvalidUserDataException is thrown instead of ReportException when user incorrectly uses the dependency insight report.
 
+### Copying configurations also copies the resolution strategy
+
+Previously, after performing the copy, the resolution strategy was shared between the target and source configuration.
+This behavior is now corrected.
+Copy operation copies all the resolution strategy settings and the target configuration contains own instance of the resolution strategy.
+The impact of this change is minimal - it is mentioned here only for completeness. The new behavior is much better for all users.
+
 ### Removed getSupportsAppleScript() in org.gradle.util.Jvm
 
 In the deprecated internal class `org.gradle.util.Jvm` we removed the method `getSupportsAppleScript()` to check that AppleScriptEngine is available on the Jvm.

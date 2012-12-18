@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.util.Assertions.assertThat
 
 /**
  * by Szczepan Faber, created at: 11/2/11
@@ -126,5 +127,38 @@ public class DefaultResolutionStrategySpec extends Specification {
         then:
         1 * details.useVersion("6.0")
         0 * details._
+    }
+
+    def "copied instance does not share state"() {
+        when:
+        def copy = strategy.copy()
+
+        then:
+        !copy.is(strategy)
+        assertThat(copy).doesNotShareStateWith(strategy)
+    }
+
+    def "provides a copy"() {
+        given:
+        def newCachePolicy = Mock(DefaultCachePolicy)
+        def cachePolicy = Mock(DefaultCachePolicy) {
+            copy() >> newCachePolicy
+        }
+
+        strategy = new DefaultResolutionStrategy(cachePolicy, [] as Set)
+        strategy.failOnVersionConflict()
+        strategy.force("org:foo:1.0")
+        strategy.eachDependency(Mock(Action))
+
+        when:
+        def copy = strategy.copy()
+
+        then:
+        copy.forcedModules == strategy.forcedModules
+        copy.dependencyResolveActions == strategy.dependencyResolveActions
+        copy.conflictResolution instanceof StrictConflictResolution
+
+        strategy.cachePolicy == cachePolicy
+        copy.cachePolicy == newCachePolicy
     }
 }
