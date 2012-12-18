@@ -86,9 +86,9 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         def localArtifact = file("build/libs/publish-2.jar").assertIsFile()
 
         module.pomFile.assertIsCopyOf(localPom)
-        module.verifyPomChecksums()
+        module.pom.verifyChecksums()
         module.artifactFile.assertIsCopyOf(localArtifact)
-        module.verifyArtifactChecksums()
+        module.artifact.verifyChecksums()
 
         module.verifyRootMetaDataChecksums()
         module.rootMetaData.versions == ["2"]
@@ -127,9 +127,9 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         def localArtifact = file("build/libs/publish-2.jar").assertIsFile()
 
         module.pomFile.assertIsCopyOf(localPom)
-        module.verifyPomChecksums()
+        module.pom.verifyChecksums()
         module.artifactFile.assertIsCopyOf(localArtifact)
-        module.verifyArtifactChecksums()
+        module.artifact.verifyChecksums()
 
         module.verifyRootMetaDataChecksums()
         module.rootMetaData.versions == ["2"]

@@ -253,13 +253,13 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
     }
 
     def moduleAvailableViaHttp() {
-        module.expectMetaDataGet()
+        module.metaData.expectGet()
         module.pom.expectGet()
         module.getArtifact().expectGet()
     }
 
     def moduleAvailableViaHttpWithoutMetaData() {
-        module.expectMetaDataGetMissing()
+        module.metaData.expectGetMissing()
         module.pom.expectGet()
         module.getArtifact().expectGet()
     }
