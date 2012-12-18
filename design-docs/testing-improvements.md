@@ -46,28 +46,33 @@ Improve TestNG test execution/reporting
 
 ### Backwards compatibility:
 
--story changes the default values (for better, though)
+- Story changes the default values (for better, though)
 
 ## Story: JUnit XML generation is efficient
 
-- Use the same mechanism as TestNG for XML generation:
-    - Change `Test.executeTests()` so that it uses a TestReportDataCollector for all test frameworks (not just TestNG)
-    - Change `JUnitTestClassProcessor.startProcessing()` so that it no longer uses `JUnitXmlReportGenerator`.
+Use the same mechanism as TestNG for XML result generation
+
+- Change `Test.executeTests()` so that it uses a TestReportDataCollector for all test frameworks (not just TestNG)
+- Change `JUnitTestClassProcessor.startProcessing()` so that it no longer uses `JUnitXmlReportGenerator`.
 - Remove `JUnitXmlReportGenerator`, `XmlTestSuiteWriter` and `XmlTestSuiteWriterFactory`.
 
 ### Coverage
 
--tweak performance tests
--tests that don't have an associated method or class
--start-time and duration reported for a class should include all setup and teardown
+- Add a performance test with a build with many JUnit tests which do not generate any logging output. Verify that this build is not any slower than Gradle 1.0 or Gradle 1.3.
+- Add coverage for tests that don't have an associated method or class.
+- Check that start-time and duration reported for a class should include all setup and teardown.
 
 ### Backwards compatibility:
 
--no partial XML results available when process crashes (see first story for more)
+- No partial XML results available when process crashes (see first story for more)
 
 ## Story: HTML test report generation is efficient
 
-- HTML report is generated from the binary format, not from XML results
+HTML report is generated from the binary format, not from XML results
+
+- Change `DefaultTestReport` to use `TestResultsProvider` to get results instead of loading from XML.
+- Spike using [jatl](http://code.google.com/p/jatl/) to generate the report instead of using the DOM.
+- Change the report rendering so that it copies the test output directly from `TestResultsProvider` to file, rather than loading it into heap.
 
 ## Story: HTML test report shows output per test
 
