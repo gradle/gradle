@@ -89,3 +89,5 @@ Some options for supporting a dynamic Gradle version:
    `$rootDir/.gradle` directory. A bootstrapper would use this cached value for any subsequent builds. The cached value would be refreshed periodically.
 3. There are two built-in meta-data providers - a small implementation that handles static versions only, and a larger implementation that can resolve the launcher ZIP to
    use. The wrapper task would choose the appropriate provider to embed in the source tree based on the declared dependencies.
+4. Some kind of multi-stage startup, where the launcher resolves the runtime and then invokes it through some cross-version internal API. This is complicated by the fact that
+   logging and console integration plus dependency resolution is required by both the launcher and runtime.
