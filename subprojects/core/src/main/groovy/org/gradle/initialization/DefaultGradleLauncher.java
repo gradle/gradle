@@ -140,8 +140,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
         // Configure build
         buildConfigurer.configure(gradle);
-        buildListener.projectsEvaluated(gradle);
-        modelConfigurationListener.onConfigure(gradle);
+
+        if (!gradle.getStartParameter().isConfigureOnDemand()) {
+            buildListener.projectsEvaluated(gradle);
+            modelConfigurationListener.onConfigure(gradle);
+        }
 
         if (upTo == Stage.Configure) {
             return;
@@ -149,6 +152,10 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
         // Populate task graph
         buildExecuter.select(gradle);
+
+        if (gradle.getStartParameter().isConfigureOnDemand()) {
+            buildListener.projectsEvaluated(gradle);
+        }
 
         if (upTo == Stage.PopulateTaskGraph) {
             return;

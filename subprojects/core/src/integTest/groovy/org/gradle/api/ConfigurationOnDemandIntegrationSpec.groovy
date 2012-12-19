@@ -41,6 +41,10 @@ class ConfigurationOnDemandIntegrationSpec extends AbstractIntegrationSpec {
 """
 
         buildFile << """
+gradle.projectsEvaluated {
+  println "all evaluated"
+}
+
 allprojects {
   task foo
   afterEvaluate {
@@ -70,14 +74,13 @@ dependencies {
         assertEvaluated(":", ":api")
         assertNotEvaluated(":util", ":impl")
 
-//        not yet implemented (task dependencies)
 //        when:
 //        run(":api:foo")
 //
 //        then:
 //        assertEvaluated(":", ":api", ":util")
 //        assertNotEvaluated(":impl")
-
+//
         when:
         run(":impl:build")
 
@@ -122,13 +125,15 @@ dependencies {
     }
 
     ExecutionResult run(String ... tasks) {
-//        executer.withArguments("-Dorg.gradle.configuration.ondemand=true")
         super.run(tasks)
     }
 
     void assertEvaluated(String ... paths) {
         paths.each {
             assert output.contains("evaluated $it")
+            assert output.contains("all evaluated")
+            //making sure the global projectsEvaluated hook was fired last
+            assert output.indexOf("all evaluated") > output.indexOf("evaluated $it")
         }
     }
 
