@@ -16,31 +16,40 @@
 
 package org.gradle.messaging.remote.internal.hub.queue;
 
+import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
 // TODO - use circular buffers to avoid copying
-public class MultiEndPointQueue {
+// TODO - share a single initializer with MultiChannelQueue
+public class MultiEndPointQueue implements Dispatch<InterHubMessage> {
     private final Set<EndPointQueue> endpoints = new HashSet<EndPointQueue>();
     private final List<InterHubMessage> queue = new ArrayList<InterHubMessage>();
     private final List<EndPointQueue> waiting = new ArrayList<EndPointQueue>();
     private final Lock lock;
-    private InterHubMessage mostRecentStateful;
+    private final QueueInitializer initializer = new QueueInitializer();
 
     public MultiEndPointQueue(Lock lock) {
         this.lock = lock;
     }
 
-    public void queue(InterHubMessage message) {
+    public void dispatch(InterHubMessage message) {
         queue.add(message);
         flush();
     }
 
-    public void empty(EndPointQueue endPointQueue) {
+    void empty(EndPointQueue endPointQueue) {
         waiting.add(endPointQueue);
         flush();
+    }
+
+    void stopped(EndPointQueue queue) {
+        waiting.remove(queue);
+        endpoints.remove(queue);
+        queue.dispatch(new EndOfStream());
     }
 
     public void drain(Collection<InterHubMessage> drainTo) {
@@ -61,10 +70,10 @@ public class MultiEndPointQueue {
                         return;
                     }
                     if (message.getDelivery() == InterHubMessage.Delivery.Stateful) {
-                        mostRecentStateful = message;
+                        initializer.onStatefulMessage(message);
                     }
                     for (EndPointQueue endpoint : endpoints) {
-                        endpoint.put(message);
+                        endpoint.dispatch(message);
                     }
                     queue.remove(0);
                     waiting.clear();
@@ -75,7 +84,7 @@ public class MultiEndPointQueue {
                     }
                     queue.remove(0);
                     waiting.remove(selected);
-                    selected.put(message);
+                    selected.dispatch(message);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown delivery type: " + message.getDelivery());
@@ -86,9 +95,7 @@ public class MultiEndPointQueue {
     public EndPointQueue newEndpoint() {
         EndPointQueue endPointQueue = new EndPointQueue(this, lock.newCondition());
         endpoints.add(endPointQueue);
-        if (mostRecentStateful != null) {
-            endPointQueue.put(mostRecentStateful);
-        }
+        initializer.onQueueAdded(endPointQueue);
         return endPointQueue;
     }
 }

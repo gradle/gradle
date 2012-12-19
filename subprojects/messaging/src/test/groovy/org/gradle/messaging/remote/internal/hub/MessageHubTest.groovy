@@ -1,3 +1,19 @@
+/*
+ * Copyright 2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.gradle.messaging.remote.internal.hub
 
 import org.gradle.api.Action
@@ -53,7 +69,8 @@ class MessageHubTest extends ConcurrentSpec {
     }
 
     def "outgoing messages are dispatched asynchronously to connection"() {
-        Connection<InterHubMessage> connection = Mock()
+        Dispatch<InterHubMessage> outgoing = Mock()
+        def connection = new MockOutgoingConnection(outgoing)
 
         given:
         hub.addConnection(connection)
@@ -67,14 +84,14 @@ class MessageHubTest extends ConcurrentSpec {
         thread.blockUntil.longDispatched
 
         then:
-        1 * connection.dispatch({ it.payload == "message1" }) >> {
+        1 * outgoing.dispatch({ it.payload == "message1" }) >> {
             thread.blockUntil.dispatch
             instant.message1Dispatched
         }
-        1 * connection.dispatch({ it.payload == "message2" }) >> {
+        1 * outgoing.dispatch({ it.payload == "message2" }) >> {
             instant.message2Dispatched
         }
-        1 * connection.dispatch({ it.payload == 12 }) >> {
+        1 * outgoing.dispatch({ it.payload == 12 }) >> {
             instant.longDispatched
         }
         0 * _._
@@ -83,10 +100,14 @@ class MessageHubTest extends ConcurrentSpec {
         operation.dispatch.end < instant.message1Dispatched
         instant.message1Dispatched < instant.message2Dispatched
         instant.message2Dispatched < instant.longDispatched
+
+        cleanup:
+        connection.stop()
     }
 
     def "queued outgoing messages are dispatched asynchronously to connection when connection is added"() {
-        Connection<InterHubMessage> connection = Mock()
+        Dispatch<InterHubMessage> outgoing = Mock()
+        def connection = new MockOutgoingConnection(outgoing)
 
         given:
         hub.getOutgoing("channel1", String).dispatch("message1")
@@ -100,55 +121,86 @@ class MessageHubTest extends ConcurrentSpec {
         thread.blockUntil.longDispatched
 
         then:
-        1 * connection.dispatch({ it.payload == "message1" }) >> {
+        1 * outgoing.dispatch({ it.payload == "message1" }) >> {
             thread.blockUntil.connection
             instant.message1Dispatched
         }
-        1 * connection.dispatch({ it.payload == "message2" }) >> {
+        1 * outgoing.dispatch({ it.payload == "message2" }) >> {
             instant.message2Dispatched
         }
-        1 * connection.dispatch({ it.payload == 12 }) >> {
+        1 * outgoing.dispatch({ it.payload == 12 }) >> {
             instant.longDispatched
         }
-        1 * connection.receive() >> null
         0 * _._
 
         and:
         operation.connection.end < instant.message1Dispatched
         instant.message1Dispatched < instant.message2Dispatched
         instant.message2Dispatched < instant.longDispatched
+
+        cleanup:
+        connection.stop()
     }
 
     def "stop blocks until all outgoing messages dispatched to connection"() {
-        Connection<InterHubMessage> connection = Mock()
-
-        given:
-        hub.addConnection(connection)
+        Dispatch<InterHubMessage> outgoing = Mock()
+        def connection = new MockOutgoingConnection(outgoing)
 
         when:
+        hub.addConnection(connection)
         hub.getOutgoing("channel1", String).dispatch("message1")
         hub.getOutgoing("channel1", String).dispatch("message2")
         hub.getOutgoing("channel2", Long).dispatch(12)
         hub.stop()
 
         then:
-        1 * connection.dispatch({ it.payload == "message1" })
-        1 * connection.dispatch({ it.payload == "message2" })
-        1 * connection.dispatch({ it.payload == 12 })
+        1 * outgoing.dispatch({ it instanceof ChannelMessage && it.payload == "message1" })
+        1 * outgoing.dispatch({ it instanceof ChannelMessage && it.payload == "message2" })
+        1 * outgoing.dispatch({ it instanceof ChannelMessage && it.payload == 12 })
+        1 * outgoing.dispatch({ it instanceof EndOfStream}) >> { connection.stop() }
         0 * _._
+    }
+
+    def "each outgoing message is dispatched in order to connection"() {
+        def messages = new CopyOnWriteArrayList()
+        Dispatch<InterHubMessage> outgoing = Mock()
+        def connection = new MockOutgoingConnection(outgoing)
+
+        given:
+        outgoing.dispatch({ it instanceof ChannelMessage }) >> { ChannelMessage message ->
+            messages.add(message.payload)
+            if (messages.size() == 20) {
+                instant.messagesReceived
+            }
+        }
+
+        and:
+        hub.addConnection(connection)
+
+        when:
+        def dispatcher = hub.getOutgoing("channel", Long)
+        20.times { dispatcher.dispatch(it) }
+        thread.blockUntil.messagesReceived
+
+        then:
+        messages == 0..19
+
+        cleanup:
+        connection.stop()
     }
 
     def "each outgoing message is dispatched to exactly one connection"() {
         def messages = new CopyOnWriteArrayList()
-        Connection<InterHubMessage> connection1 = Mock()
-        Connection<InterHubMessage> connection2 = Mock()
+        Dispatch<InterHubMessage> outgoing = Mock()
+        def connection1 = new MockOutgoingConnection(outgoing)
+        def connection2 = new MockOutgoingConnection(outgoing)
 
         given:
-        connection1.dispatch(_) >> { ChannelMessage message ->
+        outgoing.dispatch({ it instanceof ChannelMessage }) >> { ChannelMessage message ->
             messages.add(message.payload)
-        }
-        connection2.dispatch(_) >> { ChannelMessage message ->
-            messages.add(message.payload)
+            if (messages.size() == 20) {
+                instant.messagesReceived
+            }
         }
 
         and:
@@ -158,10 +210,14 @@ class MessageHubTest extends ConcurrentSpec {
         when:
         def dispatcher = hub.getOutgoing("channel", Long)
         20.times { dispatcher.dispatch(it) }
-        hub.stop()
+        thread.blockUntil.messagesReceived
 
         then:
-        messages as Set == (0..19) as Set
+        new ArrayList<String>(messages).sort() == 0..19
+
+        cleanup:
+        connection1.stop()
+        connection2.stop()
     }
 
     def "stops dispatching outgoing messages to failed connection"() {
@@ -388,11 +444,11 @@ class MessageHubTest extends ConcurrentSpec {
 
         given:
         hub.addHandler("channel", listener1)
-        hub.addHandler("channel", listener2)
 
         when:
         hub.addConnection(connection1)
         hub.addConnection(connection2)
+        hub.addHandler("channel", listener2)
         thread.blockUntil.listener1Connect
         thread.blockUntil.listener2Connect
 
@@ -409,9 +465,13 @@ class MessageHubTest extends ConcurrentSpec {
         thread.blockUntil.listener2Disconnect
 
         then:
-        1 * listener1.onDisconnect() >> { instant.listener2Disconnect }
+        1 * listener1.onDisconnect() >> { instant.listener1Disconnect }
         1 * listener2.onDisconnect() >> { instant.listener2Disconnect }
         0 * _._
+
+        cleanup:
+        connection1.stop()
+        connection2.stop()
     }
 
     def "stop blocks until hub state listeners notified"() {
@@ -474,20 +534,20 @@ class MessageHubTest extends ConcurrentSpec {
         0 * _._
     }
 
-    private static class TestConnection implements Connection<InterHubMessage> {
-        private final BlockingQueue<InterHubMessage> queue = new LinkedBlockingDeque<>()
+    private static class MockOutgoingConnection implements Connection<InterHubMessage> {
+        private final Dispatch<InterHubMessage> dispatch
+        private final BlockingQueue<InterHubMessage> incoming = new LinkedBlockingDeque<>()
+
+        MockOutgoingConnection(Dispatch<InterHubMessage> dispatch) {
+            this.dispatch = dispatch
+        }
 
         void dispatch(InterHubMessage message) {
-            throw new UnsupportedOperationException()
+            dispatch.dispatch(message)
         }
 
         InterHubMessage receive() {
-            def message = queue.take()
-            return message instanceof EndOfStream ? null : message
-        }
-
-        void queueIncoming(InterHubMessage message) {
-            queue.put(message)
+            return incoming.take()
         }
 
         void requestStop() {
@@ -495,7 +555,33 @@ class MessageHubTest extends ConcurrentSpec {
         }
 
         void stop() {
-            queue.put(new EndOfStream())
+            incoming.put(new EndOfStream())
+        }
+    }
+
+    private static class TestConnection implements Connection<InterHubMessage> {
+        private final BlockingQueue<InterHubMessage> incoming = new LinkedBlockingDeque<>()
+        private final BlockingQueue<InterHubMessage> outgoing = new LinkedBlockingDeque<>()
+
+        void dispatch(InterHubMessage message) {
+            outgoing.put(message)
+        }
+
+        InterHubMessage receive() {
+            def message = incoming.take()
+            return message instanceof EndOfStream ? null : message
+        }
+
+        void queueIncoming(InterHubMessage message) {
+            incoming.put(message)
+        }
+
+        void requestStop() {
+            throw new UnsupportedOperationException()
+        }
+
+        void stop() {
+            incoming.put(new EndOfStream())
         }
     }
 }

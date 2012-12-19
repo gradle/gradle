@@ -17,6 +17,7 @@
 package org.gradle.messaging.remote.internal.hub.queue;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 
-public class EndPointQueue {
+public class EndPointQueue implements Dispatch<InterHubMessage> {
     private final List<InterHubMessage> queue = new ArrayList<InterHubMessage>();
     private final MultiEndPointQueue owner;
     private final Condition condition;
@@ -34,7 +35,7 @@ public class EndPointQueue {
         this.condition = condition;
     }
 
-    public void put(InterHubMessage message) {
+    public void dispatch(InterHubMessage message) {
         queue.add(message);
         condition.signalAll();
     }
@@ -52,5 +53,9 @@ public class EndPointQueue {
         }
         drainTo.addAll(queue);
         queue.clear();
+    }
+
+    public void stop() {
+        owner.stopped(this);
     }
 }

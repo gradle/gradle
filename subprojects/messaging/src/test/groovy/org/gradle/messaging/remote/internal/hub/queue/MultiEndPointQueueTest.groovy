@@ -1,4 +1,22 @@
+/*
+ * Copyright 2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.gradle.messaging.remote.internal.hub.queue
+
+import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
 
 class MultiEndPointQueueTest extends AbstractQueueTest {
     final MultiEndPointQueue queue = new MultiEndPointQueue(lock)
@@ -10,8 +28,8 @@ class MultiEndPointQueueTest extends AbstractQueueTest {
         def endpoint = queue.newEndpoint()
 
         and:
-        queue.queue(message1)
-        queue.queue(message2)
+        queue.dispatch(message1)
+        queue.dispatch(message2)
 
         when:
         queue.empty(endpoint)
@@ -31,7 +49,7 @@ class MultiEndPointQueueTest extends AbstractQueueTest {
         queue.empty(endpoint)
 
         when:
-        queue.queue(message)
+        queue.dispatch(message)
         def messages = []
         endpoint.take(messages)
 
@@ -48,9 +66,9 @@ class MultiEndPointQueueTest extends AbstractQueueTest {
         def endpoint2 = queue.newEndpoint()
 
         and:
-        queue.queue(message1)
-        queue.queue(message2)
-        queue.queue(message3)
+        queue.dispatch(message1)
+        queue.dispatch(message2)
+        queue.dispatch(message3)
 
         when:
         queue.empty(endpoint1)
@@ -72,8 +90,8 @@ class MultiEndPointQueueTest extends AbstractQueueTest {
         def endpoint2 = queue.newEndpoint()
 
         when:
-        queue.queue(message)
-        queue.queue(message2)
+        queue.dispatch(message)
+        queue.dispatch(message2)
         def messages1 = []
         endpoint1.take(messages1)
         def messages2 = []
@@ -96,8 +114,8 @@ class MultiEndPointQueueTest extends AbstractQueueTest {
         queue.empty(endpoint2)
 
         when:
-        queue.queue(message)
-        queue.queue(message2)
+        queue.dispatch(message)
+        queue.dispatch(message2)
         def messages1 = []
         endpoint1.take(messages1)
         def messages2 = []
@@ -115,9 +133,9 @@ class MultiEndPointQueueTest extends AbstractQueueTest {
         def message3 = unicast()
 
         and:
-        queue.queue(message1)
-        queue.queue(message2)
-        queue.queue(message3)
+        queue.dispatch(message1)
+        queue.dispatch(message2)
+        queue.dispatch(message3)
 
         when:
         def endpoint = queue.newEndpoint()
@@ -126,5 +144,22 @@ class MultiEndPointQueueTest extends AbstractQueueTest {
 
         then:
         messages == [message1, message2, message3]
+    }
+
+    def "does not dispatch anything to endpoint that has stopped"() {
+        given:
+        def endpoint = queue.newEndpoint()
+        queue.empty(endpoint)
+
+        when:
+        endpoint.stop()
+        queue.dispatch(broadcast())
+        queue.dispatch(unicast())
+        def messages = []
+        endpoint.take(messages)
+
+        then:
+        messages.size() == 1
+        messages[0] instanceof EndOfStream
     }
 }

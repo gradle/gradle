@@ -27,7 +27,7 @@ import java.util.concurrent.locks.Lock;
 public class MultiChannelQueue {
     private final Lock lock;
     private final Map<ChannelIdentifier, MultiEndPointQueue> channels = new HashMap<ChannelIdentifier, MultiEndPointQueue>();
-    private InterHubMessage mostRecentStateful;
+    private final QueueInitializer initializer = new QueueInitializer();
 
     public MultiChannelQueue(Lock lock) {
         this.lock = lock;
@@ -38,9 +38,7 @@ public class MultiChannelQueue {
         if (queue == null) {
             queue = new MultiEndPointQueue(lock);
             channels.put(channel, queue);
-            if (mostRecentStateful != null) {
-                queue.queue(mostRecentStateful);
-            }
+            initializer.onQueueAdded(queue);
         }
         return queue;
     }
@@ -48,17 +46,17 @@ public class MultiChannelQueue {
     public void queue(InterHubMessage message) {
         switch (message.getDelivery()) {
             case Stateful:
-                mostRecentStateful = message;
+                initializer.onStatefulMessage(message);
                 // Fallthrough
             case AllHandlers:
                 for (MultiEndPointQueue queue : channels.values()) {
-                    queue.queue(message);
+                    queue.dispatch(message);
                 }
                 break;
             case SingleHandler:
                 if (message instanceof Routable) {
                     Routable routableMessage = (Routable) message;
-                    getChannel(routableMessage.getChannel()).queue(message);
+                    getChannel(routableMessage.getChannel()).dispatch(message);
                 } else {
                     throw new IllegalArgumentException(String.format("Don't know how to route message %s.", message));
                 }

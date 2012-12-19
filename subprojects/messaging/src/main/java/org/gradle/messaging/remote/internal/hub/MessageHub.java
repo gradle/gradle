@@ -17,6 +17,7 @@
 package org.gradle.messaging.remote.internal.hub;
 
 import org.gradle.api.Action;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
@@ -28,7 +29,10 @@ import org.gradle.messaging.remote.internal.hub.queue.MultiChannelQueue;
 import org.gradle.messaging.remote.internal.hub.queue.MultiEndPointQueue;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -46,6 +50,7 @@ public class MessageHub implements AsyncStoppable {
     private State state = State.Running;
     private final IncomingQueue incomingQueue = new IncomingQueue(lock);
     private final OutgoingQueue outgoingQueue = new OutgoingQueue(incomingQueue, lock);
+    private final ConnectionSet connections = new ConnectionSet(lock, incomingQueue, outgoingQueue);
 
     /**
      * @param errorHandler Notified when some asynch. activity fails. Must be thread-safe.
@@ -127,10 +132,9 @@ public class MessageHub implements AsyncStoppable {
         lock.lock();
         try {
             assertRunning("add connection");
-            incomingQueue.queue(new ConnectionEstablished());
-            EndPointQueue queue = outgoingQueue.newEndpoint();
-            workers.execute(new ConnectionDispatch(connection, queue));
-            workers.execute(new ConnectionReceive(connection));
+            ConnectionState connectionState = connections.add(connection);
+            workers.execute(new ConnectionDispatch(connectionState));
+            workers.execute(new ConnectionReceive(connectionState));
         } finally {
             lock.unlock();
         }
@@ -160,8 +164,7 @@ public class MessageHub implements AsyncStoppable {
                 return;
             }
             try {
-                outgoingQueue.requestStop();
-                incomingQueue.requestStop();
+                outgoingQueue.endOutput();
             } finally {
                 state = State.Stopping;
             }
@@ -185,7 +188,14 @@ public class MessageHub implements AsyncStoppable {
      */
     public void stop() {
         try {
-            requestStop();
+            lock.lock();
+            try {
+                requestStop();
+                connections.waitForConnectionsToComplete();
+                outgoingQueue.discardQueued();
+            } finally {
+                lock.unlock();
+            }
             workers.stop();
         } finally {
             lock.lock();
@@ -200,8 +210,84 @@ public class MessageHub implements AsyncStoppable {
     /**
      * NOTE: must be holding lock to use this class.
      */
+    private static class ConnectionState {
+        private boolean receiveFinished;
+        private boolean dispatchFinished;
+        private final Connection<InterHubMessage> connection;
+        private final ConnectionSet owner;
+        private final EndPointQueue dispatchQueue;
+
+        private ConnectionState(ConnectionSet owner, Connection<InterHubMessage> connection, EndPointQueue dispatchQueue) {
+            this.owner = owner;
+            this.connection = connection;
+            this.dispatchQueue = dispatchQueue;
+        }
+
+        public void receiveFinished() {
+            receiveFinished = true;
+            if (!dispatchFinished) {
+                dispatchQueue.stop();
+            }
+            maybeDisconnected();
+        }
+
+        public void dispatchFinished() {
+            dispatchFinished = true;
+            maybeDisconnected();
+        }
+
+        private void maybeDisconnected() {
+            if (dispatchFinished && receiveFinished) {
+                owner.finished(this);
+            }
+        }
+    }
+
+    /**
+     * NOTE: must be holding lock to use this class.
+     */
+    private static class ConnectionSet {
+        private final Set<ConnectionState> connections = new HashSet<ConnectionState>();
+        private final Condition condition;
+        private final IncomingQueue incomingQueue;
+        private final OutgoingQueue outgoingQueue;
+
+        private ConnectionSet(Lock lock, IncomingQueue incomingQueue, OutgoingQueue outgoingQueue) {
+            this.incomingQueue = incomingQueue;
+            this.outgoingQueue = outgoingQueue;
+            this.condition = lock.newCondition();
+        }
+
+        public ConnectionState add(Connection<InterHubMessage> connection) {
+            incomingQueue.queue(new ConnectionEstablished(connection));
+            EndPointQueue queue = outgoingQueue.newEndpoint();
+            ConnectionState state = new ConnectionState(this, connection, queue);
+            connections.add(state);
+            return state;
+        }
+
+        public void finished(ConnectionState connectionState) {
+            incomingQueue.queue(new ConnectionClosed(connectionState.connection));
+            connections.remove(connectionState);
+            condition.signalAll();
+        }
+
+        public void waitForConnectionsToComplete() {
+            while (!connections.isEmpty()) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+            incomingQueue.queue(new EndOfStream());
+        }
+    }
+
+    /**
+     * NOTE: must be holding lock to use this class.
+     */
     private static class OutgoingQueue extends MultiEndPointQueue {
-        private boolean connected;
         private final IncomingQueue incomingQueue;
 
         private OutgoingQueue(IncomingQueue incomingQueue, Lock lock) {
@@ -209,24 +295,19 @@ public class MessageHub implements AsyncStoppable {
             this.incomingQueue = incomingQueue;
         }
 
-        void requestStop() {
-            if (!connected) {
-                List<InterHubMessage> rejected = new ArrayList<InterHubMessage>();
-                drain(rejected);
-                for (InterHubMessage message : rejected) {
-                    if (message instanceof ChannelMessage) {
-                        ChannelMessage channelMessage = (ChannelMessage) message;
-                        incomingQueue.queue(new RejectedMessage(channelMessage.getChannel(), channelMessage.getPayload()));
-                    }
-                }
-            }
-            queue(new EndOfStream());
+        void endOutput() {
+            dispatch(new EndOfStream());
         }
 
-        @Override
-        public EndPointQueue newEndpoint() {
-            this.connected = true;
-            return super.newEndpoint();
+        void discardQueued() {
+            List<InterHubMessage> rejected = new ArrayList<InterHubMessage>();
+            drain(rejected);
+            for (InterHubMessage message : rejected) {
+                if (message instanceof ChannelMessage) {
+                    ChannelMessage channelMessage = (ChannelMessage) message;
+                    incomingQueue.queue(new RejectedMessage(channelMessage.getChannel(), channelMessage.getPayload()));
+                }
+            }
         }
     }
 
@@ -259,23 +340,43 @@ public class MessageHub implements AsyncStoppable {
 
     private class ConnectionReceive implements Runnable {
         private final Connection<InterHubMessage> connection;
+        private final ConnectionState connectionState;
 
-        public ConnectionReceive(Connection<InterHubMessage> connection) {
-            this.connection = connection;
+        public ConnectionReceive(ConnectionState connectionState) {
+            this.connection = connectionState.connection;
+            this.connectionState = connectionState;
         }
 
         public void run() {
-            while (true) {
-                InterHubMessage message = connection.receive();
-                if (message == null) {
-                    return;
-                }
-                lock.lock();
+            try {
                 try {
-                    incomingQueue.queue(message);
+                    while (true) {
+                        System.out.println(String.format("=== %s waiting to receive from %s ...", Thread.currentThread(), connection));
+                        InterHubMessage message = connection.receive();
+                        System.out.println(String.format("=== %s received %s from %s.", Thread.currentThread(), message, connection));
+                        if (message == null || message instanceof EndOfStream) {
+                            return;
+                        }
+                        lock.lock();
+                        try {
+                            incomingQueue.queue(message);
+                        } finally {
+                            lock.unlock();
+                        }
+                    }
                 } finally {
-                    lock.unlock();
+                    lock.lock();
+                    try {
+                        System.out.println(String.format("=== %s finished receiving from %s.", Thread.currentThread(), connection));
+                        connectionState.receiveFinished();
+                    } finally {
+                        lock.unlock();
+                    }
                 }
+            } catch (Throwable e) {
+                System.out.println(String.format("=== %s failed receiving from %s.", Thread.currentThread(), connection));
+                e.printStackTrace();
+                errorHandler.execute(e);
             }
         }
     }
@@ -283,32 +384,47 @@ public class MessageHub implements AsyncStoppable {
     private class ConnectionDispatch implements Runnable {
         private final Connection<InterHubMessage> connection;
         private final EndPointQueue queue;
+        private final ConnectionState connectionState;
 
-        private ConnectionDispatch(Connection<InterHubMessage> connection, EndPointQueue queue) {
-            this.connection = connection;
-            this.queue = queue;
+        private ConnectionDispatch(ConnectionState connectionState) {
+            this.connection = connectionState.connection;
+            this.queue = connectionState.dispatchQueue;
+            this.connectionState = connectionState;
         }
 
         public void run() {
             try {
                 List<InterHubMessage> messages = new ArrayList<InterHubMessage>();
-                while (true) {
+                try {
+                    while (true) {
+                        lock.lock();
+                        try {
+                            queue.take(messages);
+                        } finally {
+                            lock.unlock();
+                        }
+                        for (Object message : messages) {
+                            InterHubMessage channelMessage = (InterHubMessage) message;
+                            System.out.println(String.format("=== %s dispatching %s to %s.", Thread.currentThread(), message, connection));
+                            connection.dispatch(channelMessage);
+                            if (message instanceof EndOfStream) {
+                                return;
+                            }
+                        }
+                        messages.clear();
+                    }
+                } finally {
                     lock.lock();
                     try {
-                        queue.take(messages);
+                        System.out.println(String.format("=== %s finished dispatching to %s.", Thread.currentThread(), connection));
+                        connectionState.dispatchFinished();
                     } finally {
                         lock.unlock();
                     }
-                    for (Object message : messages) {
-                        if (message instanceof EndOfStream) {
-                            return;
-                        }
-                        InterHubMessage channelMessage = (InterHubMessage) message;
-                        connection.dispatch(channelMessage);
-                    }
-                    messages.clear();
                 }
             } catch (Throwable t) {
+                System.out.println(String.format("=== %s failed dispatching to %s.", Thread.currentThread(), connection));
+                t.printStackTrace();
                 errorHandler.execute(t);
             }
         }
@@ -332,7 +448,7 @@ public class MessageHub implements AsyncStoppable {
             lock.lock();
             try {
                 assertRunning("dispatch message");
-                outgoingQueue.queue(new ChannelMessage(channelIdentifier, message));
+                outgoingQueue.dispatch(new ChannelMessage(channelIdentifier, message));
             } finally {
                 lock.unlock();
             }
@@ -355,32 +471,47 @@ public class MessageHub implements AsyncStoppable {
         public void run() {
             try {
                 List<InterHubMessage> messages = new ArrayList<InterHubMessage>();
-                while (true) {
+                try {
+                    while (true) {
+                        lock.lock();
+                        try {
+                            System.out.println(String.format("=== %s waiting to messages to handle...", Thread.currentThread()));
+                            queue.take(messages);
+                        } finally {
+                            lock.unlock();
+                        }
+                        for (InterHubMessage message : messages) {
+                            System.out.println(String.format("=== %s handling %s.", Thread.currentThread(), message));
+                            if (message instanceof EndOfStream) {
+                                return;
+                            }
+                            if (message instanceof ChannelMessage) {
+                                ChannelMessage channelMessage = (ChannelMessage) message;
+                                dispatch.dispatch(channelMessage.getPayload());
+                            } else if (message instanceof RejectedMessage) {
+                                RejectedMessage rejectedMessage = (RejectedMessage) message;
+                                listener.messageDiscarded(rejectedMessage.getPayload());
+                            } else if (message instanceof ConnectionEstablished) {
+                                stateListener.onConnect();
+                            } else if (message instanceof ConnectionClosed) {
+                                stateListener.onDisconnect();
+                            } else {
+                                throw new IllegalArgumentException(String.format("Don't know how to handle message %s", message));
+                            }
+                        }
+                        messages.clear();
+                    }
+                } finally {
                     lock.lock();
                     try {
-                        queue.take(messages);
+                        queue.stop();
                     } finally {
                         lock.unlock();
                     }
-                    for (InterHubMessage message : messages) {
-                        if (message instanceof EndOfStream) {
-                            return;
-                        }
-                        if (message instanceof ChannelMessage) {
-                            ChannelMessage channelMessage = (ChannelMessage) message;
-                            dispatch.dispatch(channelMessage.getPayload());
-                        } else if (message instanceof RejectedMessage) {
-                            RejectedMessage rejectedMessage = (RejectedMessage) message;
-                            listener.messageDiscarded(rejectedMessage.getPayload());
-                        } else if (message instanceof ConnectionEstablished) {
-                            stateListener.onConnect();
-                        } else {
-                            throw new IllegalArgumentException(String.format("Don't know how to handle message %s", message));
-                        }
-                    }
-                    messages.clear();
                 }
             } catch (Throwable t) {
+                System.out.println(String.format("=== %s failed handling.", Thread.currentThread()));
+                t.printStackTrace();
                 errorHandler.execute(t);
             }
         }

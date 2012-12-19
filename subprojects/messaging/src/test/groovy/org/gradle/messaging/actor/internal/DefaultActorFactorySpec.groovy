@@ -25,7 +25,7 @@ class DefaultActorFactorySpec extends ConcurrentSpec {
     private final TargetObject target = Mock()
     private final DefaultActorFactory factory = new DefaultActorFactory(executorFactory)
 
-    def cleanup() {
+    public cleanup() {
         factory.stop()
     }
 

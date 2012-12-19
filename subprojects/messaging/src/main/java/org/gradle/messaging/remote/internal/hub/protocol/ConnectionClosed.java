@@ -18,10 +18,10 @@ package org.gradle.messaging.remote.internal.hub.protocol;
 
 import org.gradle.messaging.remote.internal.Connection;
 
-public class ConnectionEstablished extends InterHubMessage {
+public class ConnectionClosed extends InterHubMessage {
     private final Connection<InterHubMessage> connection;
 
-    public ConnectionEstablished(Connection<InterHubMessage> connection) {
+    public ConnectionClosed(Connection<InterHubMessage> connection) {
         this.connection = connection;
     }
 
