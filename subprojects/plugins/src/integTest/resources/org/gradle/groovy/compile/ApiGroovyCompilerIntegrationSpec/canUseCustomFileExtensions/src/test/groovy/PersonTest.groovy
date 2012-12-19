@@ -1,5 +1,4 @@
-class Person2 {
+class PersonTest {
     @org.junit.Test
     void testMe() {}
 }
-
