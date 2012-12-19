@@ -28,6 +28,8 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * Examples:
  * <pre autoTested=''>
+ * apply plugin: 'java' //so that there are some configurations
+ *
  * configurations.all {
  *   resolutionStrategy {
  *     // fail eagerly on version conflict (includes transitive dependencies)
@@ -42,14 +44,14 @@ import java.util.concurrent.TimeUnit;
  *
  *     // add a dependency resolve action
  *     eachDependency { DependencyResolveDetails details ->
- *       //forcing version for all libraries with 'org.gradle' group
+ *       //specifying a fixed version for all libraries with 'org.gradle' group
  *       if (details.requested.group == 'org.gradle') {
- *           details.forceVersion'1.4'
+ *           details.useVersion'1.4'
  *       }
  *     }
  *
  *     // cache dynamic versions for 10 minutes
- *     cacheDynamicVersionsFor 10, 'minutes'
+ *     cacheDynamicVersionsFor 10*60, 'seconds'
  *     // don't cache changing modules at all
  *     cacheChangingModulesFor 0, 'seconds'
  *   }
@@ -67,6 +69,8 @@ public interface ResolutionStrategy {
      * The check includes both first level and transitive dependencies. See example below:
      *
      * <pre autoTested=''>
+     * apply plugin: 'java' //so that there are some configurations
+     *
      * configurations.all {
      *   resolutionStrategy.failOnVersionConflict()
      * }
@@ -89,6 +93,8 @@ public interface ResolutionStrategy {
      * </ul>
      * Example:
      * <pre autoTested=''>
+     * apply plugin: 'java' //so that there are some configurations
+     *
      * configurations.all {
      *   resolutionStrategy.force 'asm:asm-all:3.3.1', 'commons-io:commons-io:1.4'
      * }
@@ -108,6 +114,8 @@ public interface ResolutionStrategy {
      * <p>
      * Example:
      * <pre autoTested=''>
+     * apply plugin: 'java' //so that there are some configurations
+     *
      * configurations.all {
      *   resolutionStrategy.forcedModules = ['asm:asm-all:3.3.1', 'commons-io:commons-io:1.4']
      * }
@@ -133,15 +141,19 @@ public interface ResolutionStrategy {
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
      * Example:
      * <pre autoTested=''>
+     * apply plugin: 'java' //so that there are some configurations
+     *
      * configurations.all {
-     *   eachDependency { DependencyResolveDetails details ->
-     *     //forcing version for all libraries with 'org.gradle' group
-     *     if (details.requested.group == 'org.gradle') {
-     *       details.forceVersion '1.4'
+     *   resolutionStrategy {
+     *     eachDependency { DependencyResolveDetails details ->
+     *       //specifying a fixed version for all libraries with 'org.gradle' group
+     *       if (details.requested.group == 'org.gradle') {
+     *         details.useVersion '1.4'
+     *       }
      *     }
-     *   }
-     *   eachDependency {
-     *     //multiple actions can be specified
+     *     eachDependency {
+     *       //multiple actions can be specified
+     *     }
      *   }
      * }
      * </pre>
