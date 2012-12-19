@@ -31,6 +31,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     String groovyDependency = "org.codehaus.groovy:groovy-all:$version"
 
+    def setup() {
+        // necessary for picking up some of the output/errorOutput when forked executer is used
+        executer.withArgument("-i")
+    }
+
     def "compileGoodCode"() {
         groovyDependency = "org.codehaus.groovy:$module:$version"
 
