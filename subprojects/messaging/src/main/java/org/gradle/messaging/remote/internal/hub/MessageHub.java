@@ -17,7 +17,6 @@
 package org.gradle.messaging.remote.internal.hub;
 
 import org.gradle.api.Action;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
@@ -25,19 +24,14 @@ import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.hub.protocol.*;
 import org.gradle.messaging.remote.internal.hub.queue.EndPointQueue;
-import org.gradle.messaging.remote.internal.hub.queue.MultiChannelQueue;
-import org.gradle.messaging.remote.internal.hub.queue.MultiEndPointQueue;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A multi-channel message dispatcher.
+ * A multi-channel message router.
  */
 public class MessageHub implements AsyncStoppable {
     private enum State {Running, Stopping, Stopped}
@@ -207,123 +201,6 @@ public class MessageHub implements AsyncStoppable {
         }
     }
 
-    /**
-     * NOTE: must be holding lock to use this class.
-     */
-    private static class ConnectionState {
-        private boolean receiveFinished;
-        private boolean dispatchFinished;
-        private final Connection<InterHubMessage> connection;
-        private final ConnectionSet owner;
-        private final EndPointQueue dispatchQueue;
-
-        private ConnectionState(ConnectionSet owner, Connection<InterHubMessage> connection, EndPointQueue dispatchQueue) {
-            this.owner = owner;
-            this.connection = connection;
-            this.dispatchQueue = dispatchQueue;
-        }
-
-        public void receiveFinished() {
-            receiveFinished = true;
-            if (!dispatchFinished) {
-                dispatchQueue.stop();
-            }
-            maybeDisconnected();
-        }
-
-        public void dispatchFinished() {
-            dispatchFinished = true;
-            maybeDisconnected();
-        }
-
-        private void maybeDisconnected() {
-            if (dispatchFinished && receiveFinished) {
-                owner.finished(this);
-            }
-        }
-    }
-
-    /**
-     * NOTE: must be holding lock to use this class.
-     */
-    private static class ConnectionSet {
-        private final Set<ConnectionState> connections = new HashSet<ConnectionState>();
-        private final Condition condition;
-        private final IncomingQueue incomingQueue;
-        private final OutgoingQueue outgoingQueue;
-
-        private ConnectionSet(Lock lock, IncomingQueue incomingQueue, OutgoingQueue outgoingQueue) {
-            this.incomingQueue = incomingQueue;
-            this.outgoingQueue = outgoingQueue;
-            this.condition = lock.newCondition();
-        }
-
-        public ConnectionState add(Connection<InterHubMessage> connection) {
-            incomingQueue.queue(new ConnectionEstablished(connection));
-            EndPointQueue queue = outgoingQueue.newEndpoint();
-            ConnectionState state = new ConnectionState(this, connection, queue);
-            connections.add(state);
-            return state;
-        }
-
-        public void finished(ConnectionState connectionState) {
-            incomingQueue.queue(new ConnectionClosed(connectionState.connection));
-            connections.remove(connectionState);
-            condition.signalAll();
-        }
-
-        public void waitForConnectionsToComplete() {
-            while (!connections.isEmpty()) {
-                try {
-                    condition.await();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-            incomingQueue.queue(new EndOfStream());
-        }
-    }
-
-    /**
-     * NOTE: must be holding lock to use this class.
-     */
-    private static class OutgoingQueue extends MultiEndPointQueue {
-        private final IncomingQueue incomingQueue;
-
-        private OutgoingQueue(IncomingQueue incomingQueue, Lock lock) {
-            super(lock);
-            this.incomingQueue = incomingQueue;
-        }
-
-        void endOutput() {
-            dispatch(new EndOfStream());
-        }
-
-        void discardQueued() {
-            List<InterHubMessage> rejected = new ArrayList<InterHubMessage>();
-            drain(rejected);
-            for (InterHubMessage message : rejected) {
-                if (message instanceof ChannelMessage) {
-                    ChannelMessage channelMessage = (ChannelMessage) message;
-                    incomingQueue.queue(new RejectedMessage(channelMessage.getChannel(), channelMessage.getPayload()));
-                }
-            }
-        }
-    }
-
-    /**
-     * NOTE: must be holding lock to use this class.
-     */
-    private static class IncomingQueue extends MultiChannelQueue {
-        private IncomingQueue(Lock lock) {
-            super(lock);
-        }
-
-        public void requestStop() {
-            queue(new EndOfStream());
-        }
-    }
-
     private static class Discard implements Dispatch<Object>, RejectedMessageListener, HubStateListener {
         public void dispatch(Object message) {
         }
@@ -343,7 +220,7 @@ public class MessageHub implements AsyncStoppable {
         private final ConnectionState connectionState;
 
         public ConnectionReceive(ConnectionState connectionState) {
-            this.connection = connectionState.connection;
+            this.connection = connectionState.getConnection();
             this.connectionState = connectionState;
         }
 
@@ -387,8 +264,8 @@ public class MessageHub implements AsyncStoppable {
         private final ConnectionState connectionState;
 
         private ConnectionDispatch(ConnectionState connectionState) {
-            this.connection = connectionState.connection;
-            this.queue = connectionState.dispatchQueue;
+            this.connection = connectionState.getConnection();
+            this.queue = connectionState.getDispatchQueue();
             this.connectionState = connectionState;
         }
 
