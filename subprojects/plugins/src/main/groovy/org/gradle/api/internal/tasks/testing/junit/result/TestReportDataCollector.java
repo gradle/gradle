@@ -49,6 +49,10 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         if (suite.getParent() == null) {
             cachingFileWriter.closeAll();
         }
+        if (suite.getName().equals(suite.getClassName()) && !results.containsKey(suite.getClassName())) {
+            //ignored test class (JUnit)
+            results.put(suite.getClassName(), new TestClassResult(result.getStartTime()));
+        }
     }
 
     public void beforeTest(TestDescriptor testDescriptor) {
@@ -56,19 +60,30 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         if (!testDescriptor.isComposite()) {
+            String className = className(testDescriptor);
             TestMethodResult methodResult = new TestMethodResult(testDescriptor.getName(), result);
-            TestClassResult classResult = results.get(testDescriptor.getClassName());
+            TestClassResult classResult = results.get(className);
             if (classResult == null) {
                 classResult = new TestClassResult(result.getStartTime());
-                results.put(testDescriptor.getClassName(), classResult);
+                results.put(className, classResult);
             }
-
             classResult.add(methodResult);
         }
     }
 
+    private String className(TestDescriptor testDescriptor) {
+        String className;
+        final TestDescriptor parent = testDescriptor.getParent();
+        if(parent!=null && parent.getName().equals(parent.getClassName())){
+            className = parent.getName();
+        } else {
+            className = testDescriptor.getClassName();
+        }
+        return className;
+    }
+
     public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
-        String className = testDescriptor.getClassName();
+        String className = className(testDescriptor);
         if (className == null) {
             //this means that we receive an output before even starting any class (or too late).
             //we don't have a place for such output in any of the reports so skipping.

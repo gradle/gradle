@@ -41,8 +41,8 @@ class TestTaskSpec extends Specification {
         task.executeTests()
 
         then:
-        2 * testListenerBroadcaster.add(_)
-        1 * testOutputListenerBroadcaster.add(_)
+        3 * testListenerBroadcaster.add(_)
+        2 * testOutputListenerBroadcaster.add(_)
 
         then:
         1 * testExecuter.execute(task, _ as TestResultProcessor)

@@ -15,18 +15,19 @@
  */
 package org.gradle.testing.junit
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.*
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 
 public class JUnitIntegrationTest extends AbstractIntegrationTest {
     @Rule public final TestResources resources = new TestResources()
@@ -137,9 +138,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void reportsAndBreaksBuildWhenTestFails() {
-        ExecutionFailure failure = executer.withTasks('build').runWithFailure();
-
-        failure.assertTestsFailed()
+        executer.withTasks('build').runWithFailure().assertTestsFailed()
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted(
@@ -164,7 +163,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenBeforeAndAfter').assertTestFailed('ok', equalTo('java.lang.AssertionError: before failed'), equalTo('java.lang.AssertionError: after failed'))
         result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
-        result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: '))
+        result.testClass('org.gradle.BrokenException').assertTestFailed('broken', containsString('org.gradle.BrokenException$BrokenRuntimeException'))
         result.testClass('org.gradle.Unloadable').assertTestFailed('initializationError', equalTo('java.lang.AssertionError: failed'))
     }
 

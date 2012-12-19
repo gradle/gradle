@@ -114,6 +114,21 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         xml.contains('<system-err><![CDATA[with CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-err>')
     }
 
+    def "writes results with no tests"() {
+        TestClassResult result = new TestClassResult(startTime)
+
+        when:
+        def xml = getXml("com.foo.IgnoredTest", result)
+
+        then:
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+  <testsuite name="com.foo.IgnoredTest" tests="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.0">
+  <properties/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>"""
+    }
+
     def getXml(String className, TestClassResult result) {
         def text = new ByteArrayOutputStream()
         generator.write(className, result, text)
