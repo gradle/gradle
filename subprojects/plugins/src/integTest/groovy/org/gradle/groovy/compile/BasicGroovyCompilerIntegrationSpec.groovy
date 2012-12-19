@@ -31,12 +31,8 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     String groovyDependency = "org.codehaus.groovy:groovy-all:$version"
 
-    def setup() {
-        executer.withArguments("-i")
-    }
-
     def "compileGoodCode"() {
-        groovyDependency = dependency
+        groovyDependency = "org.codehaus.groovy:$module:$version"
 
         expect:
         succeeds("compileGroovy")
@@ -45,7 +41,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         file("build/classes/main/Address.class").exists()
 
         where:
-        dependency << ["org.codehaus.groovy:groovy-all:$version", "org.codehaus.groovy:groovy:$version"]
+        module << ["groovy-all", "groovy"]
     }
 
     def "compileBadCode"() {
@@ -107,10 +103,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     private void configureGroovy() {
         buildFile << """
-dependencies { compile '$groovyDependency' }
-        """
+dependencies {
+    compile '${groovyDependency.toString()}'
+}
 
-        buildFile << """
 DeprecationLogger.whileDisabled {
     ${compilerConfiguration()}
 }
