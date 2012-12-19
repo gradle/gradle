@@ -87,6 +87,9 @@ enum TestPrecondition {
     JDK7({
         System.getProperty("java.version").startsWith("1.7")
     }),
+    NOT_JDK5({
+        !JDK5.fulfilled
+    }),
     NOT_JDK7({
         !JDK7.fulfilled
     }),
