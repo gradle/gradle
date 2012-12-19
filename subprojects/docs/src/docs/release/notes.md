@@ -79,7 +79,102 @@ A similar improvement has been made to the `dependencyInsight` task:
     \--- foo:bar:1.0
          \--- compile
 
-In this example, `foo:baz` was forced to version `2.0`, but that version couldn't be resolved.
+In this example, `foo:baz` was forced to version `2.0`, and that version couldn't be resolved.
+
+### Automatic configuration of Groovy dependency used by GroovyCompile and Groovydoc tasks
+
+The `groovy-base` plugin now automatically detects the Groovy dependency used on the class path of any `GroovyCompile` or `Groovydoc` task,
+and adds a corresponding dependency declaration (e.g. `org.codehaus.groovy:groovy-all:2.0.5`) for the task's `groovyClasspath`.
+As a consequence, the Groovy dependency can now be configured directly for the configuration(s) that need it, and it is no longer necessary
+to use the `groovy` configuration.
+
+Old (and still supported):
+
+    dependencies {
+        groovy "org.codehaus.groovy:groovy-all:2.0.5"
+    }
+
+New (and now preferred):
+
+    dependencies {
+        compile "org.codehaus.groovy:groovy-all:2.0.5"
+    }
+
+Automatic configuration makes it easier to build multiple artifact variants targeting different Groovy versions, or to only use Groovy
+for selected source sets:
+
+    dependencies {
+        testCompile "org.codehaus.groovy:groovy-all:2.0.5"
+    }
+
+Apart from the `groovy-all` Jar, Gradle also detects usages of the `groovy` Jar and `-indy` variants. Automatic configuration is disabled
+if a task's `groovyClasspath` is non-empty (for example because the `groovy` configuration is used) or no repositories are declared
+in the project.
+
+### Automatic configuration of Scala dependency used by ScalaCompile and Scaladoc tasks
+
+The `scala-base` plugin now automatically detects the `scala-library` dependency used on the class path of any `ScalaCompile` or `ScalaDoc` task,
+and adds a corresponding dependency declaration (e.g. `org.scala-lang:scala-compiler:2.9.2`) for the task's `scalaClasspath`.
+As a consequence, it is no longer necessary to use the `scalaTools` configuration.
+
+Old (and still supported):
+
+    dependencies {
+        scalaTools "org.scala-lang:scala-compiler:2.9.2"
+        compile "org.scala-lang:scala-library:2.9.2"
+    }
+
+New (and now preferred):
+
+    dependencies {
+        compile "org.scala-lang:scala-library:2.9.2"
+    }
+
+Automatic configuration makes it easier to build multiple artifact variants targeting different Scala versions. Here is one way to do it:
+
+    apply plugin: "scala-base"
+
+    sourceSets {
+        scala2_8
+        scala2_9
+        scala2_10
+    }
+
+    sourceSets.all { sourceSet ->
+        scala.srcDirs = ["src/main/scala"]
+        resources.srcDirs = ["src/main/resources"]
+
+        def jarTask = task(sourceSet.getTaskName(null, "jar"), type: Jar) {
+            baseName = sourceSet.name
+            from sourceSet.output
+        }
+
+        artifacts {
+            archives jarTask
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        scala2_8Compile "org.scala-lang:scala-library:2.8.2"
+        scala2_9Compile "org.scala-lang:scala-library:2.9.2"
+        scala2_10Compile "org.scala-lang:scala-library:2.10.0-RC5"
+    }
+
+Note that we didn't have to declare the different `scala-compiler` dependencies, nor did we have to assign them
+to the corresponding `ScalaCompile` and `ScalaDoc` tasks. Nevertheless, running `gradle assemble` produces:
+
+    $ ls build/libs
+    scala2_10.jar scala2_8.jar  scala2_9.jar
+
+With build variants becoming a first-class Gradle feature, building multiple artifact variants targeting different
+Scala versions will only get easier.
+
+Automatic configuration isn't used if a task's `scalaClasspath` is non-empty (for example because the `scalaTools`
+configuration is used) or no repositories are declared in the project.
 
 <!--
 ### Example new and noteworthy
