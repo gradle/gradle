@@ -16,9 +16,11 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.FileResolver;
@@ -31,9 +33,11 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
+import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -140,11 +144,17 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
             Matcher groovyJar = findGroovyJar(classpath);
             if (groovyJar != null) {
                 // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
-                String dependency = "org.codehaus.groovy:" + groovyJar.group(1) + ":" + groovyJar.group(2);
+                String notation = "org.codehaus.groovy:" + groovyJar.group(1) + ":" + groovyJar.group(2);
                 if (groovyJar.group(3) != null) {
-                    dependency += ":indy";
+                    notation += ":indy";
                 }
-                groovyClasspath = project.getConfigurations().detachedConfiguration(project.getDependencies().create(dependency));
+                List<Dependency> dependencies = Lists.newArrayList();
+                dependencies.add(project.getDependencies().create(notation));
+                if (groovyJar.group(1).equals("groovy") && VersionNumber.parse(groovyJar.group(2)).getMajor() >= 2) {
+                    // for when AntGroovyCompiler is used
+                    dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
+                }
+                groovyClasspath = project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
             }
         }
         return groovyClasspath;
