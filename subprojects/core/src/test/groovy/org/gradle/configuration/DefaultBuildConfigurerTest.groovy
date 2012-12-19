@@ -15,26 +15,42 @@
  */
 package org.gradle.configuration
 
+import org.gradle.StartParameter
+import org.gradle.api.Action
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
-import org.gradle.api.Action
 
 class DefaultBuildConfigurerTest extends Specification {
-    private final GradleInternal gradle = Mock()
-    private final ProjectInternal rootProject = Mock()
-    private final Action<? super ProjectInternal> action = Mock()
-    private final DefaultBuildConfigurer configurer = new DefaultBuildConfigurer(action)
+    private startParameter = Mock(StartParameter)
+    private gradle = Mock(GradleInternal)
+    private rootProject = Mock(ProjectInternal)
+    private action = Mock(Action)
+    private configurer = new DefaultBuildConfigurer(action)
 
     def executesActionsForEachProject() {
         when:
         configurer.configure(gradle)
 
         then:
+        1 * gradle.startParameter >> startParameter
         _ * gradle.rootProject >> rootProject
         1 * rootProject.allprojects(!null) >> { args ->
             args[0].execute(rootProject)
         }
         1 * action.execute(rootProject)
+    }
+
+    def "works in configure on demand mode"() {
+        when:
+        configurer.configure(gradle)
+
+        then:
+        1 * startParameter.isConfigureOnDemand() >> true
+        1 * gradle.startParameter >> startParameter
+        1 * gradle.addProjectEvaluationListener(_ as ImplicitTasksConfigurer)
+        1 * gradle.rootProject >> rootProject
+        1 * rootProject.evaluate()
+        0 * _._
     }
 }

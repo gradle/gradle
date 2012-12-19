@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.gradle.api.Incubating;
 import org.gradle.internal.SystemProperties;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.GFileUtils;
@@ -606,6 +607,15 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public void setParallelThreadCount(int parallelThreadCount) {
         this.parallelThreadCount = parallelThreadCount;
+    }
+
+    /**
+     * If the configure-on-demand mode is active
+     */
+    @Incubating
+    public boolean isConfigureOnDemand() {
+        //TODO SF this needs to be handled same way as other properties, like 'org.gradle.daemon'
+        return "true".equals(System.getProperty("org.gradle.configuration.ondemand"));
     }
 
     @Override

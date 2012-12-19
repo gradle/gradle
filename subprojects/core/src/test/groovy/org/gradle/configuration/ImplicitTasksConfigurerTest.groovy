@@ -30,4 +30,12 @@ class ImplicitTasksConfigurerTest extends Specification {
         then:
         project.plugins.hasPlugin('help-tasks')
     }
+
+    def "applies help tasks after evaluate"() {
+        when:
+        configurer.afterEvaluate(project, null)
+
+        then:
+        project.plugins.hasPlugin('help-tasks')
+    }
 }
