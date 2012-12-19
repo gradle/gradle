@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 /**
  * by Szczepan Faber, created at: 11/21/12
  */
-class ConfigurationOnDemandIntegrationSpec extends AbstractIntegrationSpec {
+class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     //TODO SF more coverage, possibly new integ test 'mode', develop 'proper' fixture code
     def "projects are evaluated on demand"() {
