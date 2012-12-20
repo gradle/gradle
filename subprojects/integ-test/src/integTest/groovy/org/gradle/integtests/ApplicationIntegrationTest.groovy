@@ -83,19 +83,64 @@ class Main {
 '''
 
         when:
-        run 'install', 'distZip'
+        run 'install', 'distZip', 'distTar'
 
         then:
         def installDir = file('build/install/mega-app')
         installDir.assertIsDir()
-        checkApplicationImage(installDir)
+        checkApplicationImage('mega-app', installDir)
 
-        def distFile = distribution.testFile('build/distributions/mega-app.zip')
-        distFile.assertIsFile()
+        def distZipFile = distribution.testFile('build/distributions/mega-app.zip')
+        distZipFile.assertIsFile()
 
-        def distDir = distribution.testFile('build/unzip')
-        distFile.usingNativeTools().unzipTo(distDir)
-        checkApplicationImage(distDir.file('mega-app'))
+        def distZipDir = distribution.testFile('build/unzip')
+        distZipFile.usingNativeTools().unzipTo(distZipDir)
+        checkApplicationImage('mega-app', distZipDir.file('mega-app'))
+
+        def distTarFile = distribution.testFile('build/distributions/mega-app.tar')
+        distTarFile.assertIsFile()
+
+        def distTarDir = distribution.testFile('build/untar')
+        distTarFile.usingNativeTools().untarTo(distTarDir)
+        checkApplicationImage('mega-app', distTarDir.file('mega-app'))
+    }
+
+    def "check distribution contents when all defaults used"() {
+        file('settings.gradle') << 'rootProject.name = "application"'
+        file('build.gradle') << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+'''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+    }
+}
+'''
+
+        when:
+        run 'install', 'distZip', 'distTar'
+
+        then:
+        def installDir = file('build/install/application')
+        installDir.assertIsDir()
+        checkApplicationImage('application', installDir)
+        
+        def distZipFile = distribution.testFile('build/distributions/application.zip')
+        distZipFile.assertIsFile()
+        
+        def distZipDir = distribution.testFile('build/unzip')
+        distZipFile.usingNativeTools().unzipTo(distZipDir)
+        checkApplicationImage('application', distZipDir.file('application'))
+        
+        def distTarFile = distribution.testFile('build/distributions/application.tar')
+        distTarFile.assertIsFile()
+		
+        def distTarDir = distribution.testFile('build/untar')
+        distTarFile.usingNativeTools().untarTo(distTarDir)
+        checkApplicationImage('application', distTarDir.file('application'))
     }
 
     def "installApp complains if install directory exists and doesn't look like previous install"() {
@@ -136,17 +181,17 @@ installApp.destinationDir = buildDir
         distribution.testFile("build/scripts/mega-app").exists()
     }
 
-    private void checkApplicationImage(TestFile installDir) {
-        installDir.file('bin/mega-app').assertIsFile()
-        installDir.file('bin/mega-app.bat').assertIsFile()
-        installDir.file('lib/application.jar').assertIsFile()
-
+    private void checkApplicationImage(String applicationName, TestFile installDir) {
+        installDir.file("bin/${applicationName}").assertIsFile()
+        installDir.file("bin/${applicationName}.bat").assertIsFile()
+        installDir.file("lib/application.jar").assertIsFile()
+        
         def builder = new ScriptExecuter()
         builder.workingDir installDir.file('bin')
-        builder.executable 'mega-app'
+        builder.executable applicationName
         builder.standardOutput = new ByteArrayOutputStream()
         builder.errorOutput = new ByteArrayOutputStream()
-
+        
         def result = builder.run()
         result.assertNormalExitValue()
     }
