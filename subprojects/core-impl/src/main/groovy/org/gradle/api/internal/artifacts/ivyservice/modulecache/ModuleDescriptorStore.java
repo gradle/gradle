@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
@@ -34,6 +33,7 @@ import java.net.URL;
 
 public class ModuleDescriptorStore {
 
+    public static final String FILE_PATH_PATTERN = "module-metadata/%s/%s/%s/%s.ivy.xml";
     private final IvyXmlModuleDescriptorParser parser;
     private final PathKeyFileStore pathKeyFileStore;
     private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
@@ -54,11 +54,7 @@ public class ModuleDescriptorStore {
     }
 
     public FileStoreEntry putModuleDescriptor(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
-        final ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
-        final ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(),
-                moduleRevisionId.getName(),
-                moduleRevisionId.getRevision());
-        String filePath = getFilePath(repository, moduleVersionIdentifier);
+        String filePath = getFilePath(repository, moduleDescriptor.getModuleRevisionId());
         return pathKeyFileStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
@@ -80,7 +76,11 @@ public class ModuleDescriptorStore {
         }
     }
 
+    private String getFilePath(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
+        return String.format(FILE_PATH_PATTERN, moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision(), repository.getId());
+    }
+
     private String getFilePath(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
-        return String.format("module-metadata/%s/%s/%s/%s.ivy.xml", moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion(), repository.getId());
+        return String.format(FILE_PATH_PATTERN, moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion(), repository.getId());
     }
 }
