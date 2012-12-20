@@ -33,6 +33,7 @@ public class SimpleXmlWriter extends Writer {
     private enum Context {
         Character, CData, StartTag
     }
+
     private final Writer output;
     private final LinkedList<String> elements = new LinkedList<String>();
     private Context context = Context.Character;
@@ -317,6 +318,8 @@ public class SimpleXmlWriter extends Writer {
             writeRaw("&gt;");
         } else if (ch == '&') {
             writeRaw("&amp;");
+        } else if (ch == 10) {
+            writeRaw("&#xa;");
         } else if (ch == '"') {
             writeRaw("&quot;");
         } else {

@@ -57,12 +57,12 @@ class SimpleXmlWriterSpec extends Specification {
         when:
         writer.writeStartElement("root")
         writer.writeStartElement("item").attribute("size", "encoded: &lt; < > ' \"")
-        writer.writeCharacters("chars with interesting stuff: &lt; < > ' \" ]]>")
+        writer.writeCharacters("chars with interesting stuff: &lt; < > ' \" ]]> \n")
         writer.writeEndElement()
         writer.writeEndElement()
 
         then:
-        xml.contains('<item size="encoded: &amp;lt; &lt; &gt; \' &quot;">chars with interesting stuff: &amp;lt; &lt; &gt; \' &quot; ]]&gt;</item>')
+        xml.contains('<item size="encoded: &amp;lt; &lt; &gt; \' &quot;">chars with interesting stuff: &amp;lt; &lt; &gt; \' &quot; ]]&gt; &#xa;</item>')
     }
 
     def "encodes non-ascii characters"() {
