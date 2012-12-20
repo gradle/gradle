@@ -2,53 +2,52 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Easier to embed Gradle via [Tooling API](userguide/embedding.html)
+### Easier embedding of Gradle via [Tooling API](userguide/embedding.html)
 
-We continuously look for ways to improve the experience of embedding Gradle.
-The standard way to embed Gradle, [The Tooling API](userguide/embedding.html) used to ship in multiple jars, including some 3rd party libraries.
-In Gradle 1.4 we refactored the publication and packaging of the Tooling API. The Tooling API is now shipped in a single jar.
-All you need to work with the Tooling API is the tooling api jar and slf4j.
-Furthermore, we repackaged the Tooling API's 3rd party transitive dependencies to avoid conflicts
-with different versions you might already have on your classpath. Happy embedding!Now go and embed Gradle!
+We are continuously looking for ways to improve the experience of embedding Gradle.
+The standard way to embed Gradle, the [Tooling API](userguide/embedding.html) used to ship as multiple Jars, some of which were third-party libraries.
+In Gradle 1.4, we refactored the publication and packaging of the Tooling API. It now ships as a single Jar whose only external dependency is SLF4J.
+All other third-party dependencies are packaged inside the Jar and shaded to avoid conflicts with the embedder's classpath. Happy embedding! Now go and embed Gradle!
 
 ### [Java Library Distribution Plugin](userguide/javaLibraryDistributionPlugin.html)
 
-Sébastien Cogneau contributed this plugin that allows bundling library for the jvm in a simple manner.
+Thanks to a contribution by Sébastien Cogneau, it is now much easier to create a standalone distribution for a JVM library.
 
 Let's walk through a small example. Let's assume we have a project with the following layout:
 
     MyLibrary
     |____build.gradle
-    |____libs // a folder with third party libs
+    |____libs // a directory containing third party libraries
     | |____a.jar
     |____src
     | |____main
     | | |____java
     | | | |____SomeLibrary.java
-    | |____dist // files you want in your distribution zip
+    | |____dist // additional files that should go into the distribution
     | | |____dir2
     | | | |____file2.txt
     | | |____file1.txt
 
-In the past you have to declare a custom task that puts all the things you want to ship in one zip file. From now on, you just have to apply the Java Library Distribution Plugin:
+In the past, it was necessary to declare a custom `zip` task that assembles the distribution. Now, the Java Library Distribution Plugin will do the job for you:
 
-    apply plugin:'java-library-distribution'
+    apply plugin: 'java-library-distribution'
 
-    dependencies{
+    dependencies {
         runtime files('libs/a.jar')
     }
 
-    distribution{
+    distribution {
 	    name = 'MyLibraryDistribution'
     }
 
-This adds your library, the third party dependencies your project depend on, and all content of your src/dist folder into a zip file named `MyLibraryDistribution`.
+Given this configuration, running `gradle distZip` will produce a zip file named `MyLibraryDistribution` that contains the library itself,
+its runtime dependencies, and everything in the `src/dist` directory.
 
-To customize the your distribution you can easily configure the introduced `distZip` task:
+To add further files to the distribution, configure the `distZip` task accordingly:
 
-    distZip{
+    distZip {
         from('aFile')
-    	from('anotherFile'){
+    	from('anotherFile') {
     		into('dist')
     	}
     }
@@ -239,10 +238,10 @@ For more information, including more code samples, please refer to this [user gu
 
 ### Generate ivy.xml without publishing
 
-The 'ivy-publish' plugin introduces a new GenerateIvyDescriptor task, which permits the generation of the ivy.xml metadata file without also publishing
-your module to an ivy repository. The task name for the default ivy publication is 'generateIvyModuleDescriptor'.
+The 'ivy-publish' plugin introduces a new GenerateIvyDescriptor task, which permits the generation of the `ivy.xml` metadata file without also publishing
+your module to an Ivy repository. The task name for the default Ivy publication is 'generateIvyModuleDescriptor'.
 
-The GenerateIvyDescriptor task also allows the location of the generated ivy descriptor file to changed from it's default location at `build/publications/ivy/ivy.xml`.
+The `GenerateIvyDescriptor` task also allows the location of the generated Ivy descriptor file to changed from its default location at `build/publications/ivy/ivy.xml`.
 This is done by setting the `destination` property of the task:
 
     apply plugin: 'ivy-publish'
@@ -256,7 +255,7 @@ This is done by setting the `destination` property of the task:
         destination = 'generated-ivy.xml'
     }
 
-Executing `gradle generateIvyModuleDescriptor` will result in the ivy module descriptor being written to the file specified. This task is automatically wired
+Executing `gradle generateIvyModuleDescriptor` will result in the Ivy module descriptor being written to the file specified. This task is automatically wired
 into the respective PublishToIvyRepository tasks, so you do not need to explicitly call this task to publish your module.
 
 ### The new maven-publish plugin
@@ -281,23 +280,23 @@ In the simplest case, publishing to a Maven repository looks like…
         }
     }
 
-To publish, you simply run the `publish` task. The `pom` file will be generated and the main artifact uploaded to the declared repository.
+To publish, you simply run the `publish` task. The POM file will be generated and the main artifact uploaded to the declared repository.
 To publish to your local Maven repository (ie 'mvn install') simply run the `publishToMavenLocal` task. You do not need to have `mavenLocal` in your
 `publishing.repositories` section.
 
-To modify the generated `pom` file, you can use a programmatic hook that modifies the descriptor content as XML.
+To modify the generated POM file, you can use a programmatic hook that modifies the descriptor content as XML.
 
     publications {
         maven {
             pom.withXml {
-                asNode().appendNode('description', 'A demonstration of maven pom customisation')
+                asNode().appendNode('description', 'A demonstration of maven POM customisation')
             }
         }
     }
 
-In this example we are adding a 'description' element for the generated POM. With this hook, you can modify any aspect of the pom.
+In this example we are adding a 'description' element for the generated POM. With this hook, you can modify any aspect of the POM.
 For example, you could replace the version range for a dependency with the actual version used to produce the build.
-This allows the pom file to describe how the module should be consumed, rather than be a description of how the module was built.
+This allows the POM file to describe how the module should be consumed, rather than be a description of how the module was built.
 
 For more information on the new publishing mechanism, see the [new User Guide chapter](userguide/publishing_maven.html).
 
@@ -349,7 +348,7 @@ The impact of this change is minimal - it is mentioned here only for completenes
 
 ### Removed getSupportsAppleScript() in org.gradle.util.Jvm
 
-In the deprecated internal class `org.gradle.util.Jvm` we removed the method `getSupportsAppleScript()` to check that AppleScriptEngine is available on the Jvm.
+In the deprecated internal class `org.gradle.util.Jvm` we removed the method `getSupportsAppleScript()` to check that AppleScriptEngine is available on the JVM.
 As a workaround you can dynamically check if the AppleScriptEngine is available:
 
     import javax.script.ScriptEngine
@@ -363,14 +362,14 @@ As a workaround you can dynamically check if the AppleScriptEngine is available:
 
 #### Removed `descriptorFile` property from IvyPublication
 
-In v1.3 it was possible to set the `descriptorFile` property on an IvyPublication object. This property has been removed with the introduction of the new
-GenerateIvyDescriptor task. To specify where the ivy.xml file should be generated, set the `destination` property of the GenerateIvyDescriptor task.
+In Gradle 1.3, it was possible to set the `descriptorFile` property on an IvyPublication object. This property has been removed with the introduction of the new
+GenerateIvyDescriptor task. To specify where the `ivy.xml` file should be generated, set the `destination` property of the GenerateIvyDescriptor task.
 
 #### Generated XML descriptor does not include all configurations
 
-As part of improving the way we publish modules to an ivy repository, we no longer publish _all_ configurations to the generated ivy.xml. Only the 'archives' configuration,
-together with the 'default' configuration and it's ancestors will be published. In practice, this means that the 'testCompile' and 'testRuntime' configurations will
-not be published for a regular 'java' project.
+As part of improving the way we publish modules to an Ivy repository, we no longer publish _all_ configurations to the generated `ivy.xml`. Only the 'archives' configuration,
+together with the 'default' configuration and its ancestors will be published. In practice, this means that a Java project's 'testCompile' and 'testRuntime' configurations will
+no longer be published by default.
 
 ## External contributions
 
