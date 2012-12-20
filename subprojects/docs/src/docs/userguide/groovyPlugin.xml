@@ -186,8 +186,8 @@
             <sourcefile file="build.gradle" snippet="groovy-dependency"/>
         </sample>
         <para>
-            To use the same Groovy library that ships with Gradle, declare a <literal>groovyLocal()</literal> dependency. Note that
-            different Gradle versions ship with different Groovy versions; as such, using <literal>groovyLocal()</literal> is less
+            To use the same Groovy library that ships with Gradle, declare a <literal>localGroovy()</literal> dependency. Note that
+            different Gradle versions ship with different Groovy versions; as such, using <literal>localGroovy()</literal> is less
             safe then explicitly choosing a Groovy version.
         </para>
         <sample id="bundledGroovyDependency" dir="userguide/groovy/groovyDependency" title="Configuration of bundled Groovy dependency">

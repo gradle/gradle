@@ -18,6 +18,6 @@ dependencies {
 
 // START SNIPPET bundled-groovy-dependency
 dependencies {
-    compile groovyLocal()
+    compile localGroovy()
 }
 // END SNIPPET bundled-groovy-dependency
