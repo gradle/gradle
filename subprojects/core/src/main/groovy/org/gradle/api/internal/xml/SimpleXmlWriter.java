@@ -80,6 +80,11 @@ public class SimpleXmlWriter extends Writer {
         }
     }
 
+    public void newLine() throws IOException {
+        maybeFinishElement();
+        writeRaw("\n");
+    }
+
     public void writeCharacters(CharSequence characters) throws IOException {
         maybeFinishElement();
         if (context == Context.Character) {

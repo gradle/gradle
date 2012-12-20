@@ -22,7 +22,10 @@ import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Set;
 
 /**
@@ -41,33 +44,36 @@ public class SaxJUnitXmlResultWriter {
     public void write(String className, TestClassResult result, OutputStream output) {
         try {
             SimpleXmlWriter writer = new SimpleXmlWriter(output);
-            writer.writeCharacters("\n  ");
+            writer.newLine();
+            writer.writeCharacters("  ");
             writer.writeStartElement("testsuite")
-                .attribute("name", className)
-                .attribute("tests", String.valueOf(result.getTestsCount()))
-                .attribute("failures", String.valueOf(result.getFailuresCount()))
-                .attribute("errors", "0")
-                .attribute("timestamp", DateUtils.format(result.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN))
-                .attribute("hostname", hostName)
-                .attribute("time", String.valueOf(result.getDuration() / 1000.0));
+                    .attribute("name", className)
+                    .attribute("tests", String.valueOf(result.getTestsCount()))
+                    .attribute("failures", String.valueOf(result.getFailuresCount()))
+                    .attribute("errors", "0")
+                    .attribute("timestamp", DateUtils.format(result.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN))
+                    .attribute("hostname", hostName)
+                    .attribute("time", String.valueOf(result.getDuration() / 1000.0));
 
+            writer.newLine();
             //TODO SF indentation belongs elsewhere
-            writer.writeCharacters("\n  ");
+            writer.writeCharacters("  ");
             writer.writeStartElement("properties");
             writer.writeEndElement();
 
             writeTests(writer, result.getResults(), className);
 
-            writer.writeCharacters("\n  ");
+            writer.newLine();
+            writer.writeCharacters("  ");
             writer.writeStartElement("system-out");
             writeOutputs(writer, className, TestOutputEvent.Destination.StdOut);
             writer.writeEndElement();
-
-            writer.writeCharacters("\n  ");
+            writer.newLine();
+            writer.writeCharacters("  ");
             writer.writeStartElement("system-err");
             writeOutputs(writer, className, TestOutputEvent.Destination.StdErr);
             writer.writeEndElement();
-            writer.writeCharacters("\n");
+            writer.newLine();
 
             writer.writeEndElement();
         } catch (IOException e) {
@@ -83,7 +89,8 @@ public class SaxJUnitXmlResultWriter {
 
     private void writeTests(SimpleXmlWriter writer, Set<TestMethodResult> methodResults, String className) throws IOException {
         for (TestMethodResult methodResult : methodResults) {
-            writer.writeCharacters("\n    ");
+            writer.newLine();
+            writer.writeCharacters("    ");
             String testCase = methodResult.result.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
             writer.writeStartElement(testCase)
                     .attribute("name", methodResult.name)
@@ -91,7 +98,8 @@ public class SaxJUnitXmlResultWriter {
                     .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0));
 
             for (Throwable failure : methodResult.result.getExceptions()) {
-                writer.writeCharacters("\n      ");
+                writer.newLine();
+                writer.writeCharacters("      ");
                 writer.writeStartElement("failure")
                         .attribute("message", failureMessage(failure))
                         .attribute("type", failure.getClass().getName());
