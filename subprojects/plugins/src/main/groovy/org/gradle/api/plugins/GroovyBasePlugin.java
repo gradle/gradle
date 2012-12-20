@@ -139,25 +139,28 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private FileCollection getGroovyClasspath(FileCollection classpath) {
-        Configuration groovyClasspath = project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME);
-        if (groovyClasspath.getDependencies().isEmpty() && !project.getRepositories().isEmpty()) {
-            Matcher groovyJar = findGroovyJar(classpath);
-            if (groovyJar != null) {
-                // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
-                String notation = "org.codehaus.groovy:" + groovyJar.group(1) + ":" + groovyJar.group(2);
-                if (groovyJar.group(3) != null) {
-                    notation += ":indy";
-                }
-                List<Dependency> dependencies = Lists.newArrayList();
-                dependencies.add(project.getDependencies().create(notation));
-                if (groovyJar.group(1).equals("groovy") && VersionNumber.parse(groovyJar.group(2)).getMajor() >= 2) {
-                    // for when AntGroovyCompiler is used
-                    dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
-                }
-                groovyClasspath = project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
-            }
+        Configuration groovyConfiguration = project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME);
+        if (!groovyConfiguration.getDependencies().isEmpty()) { return groovyConfiguration; }
+
+        Matcher groovyJar = findGroovyJar(classpath);
+        if (groovyJar == null) { return groovyConfiguration; }
+
+        if (project.getRepositories().isEmpty()) {
+            return project.files(groovyJar.group(0));
         }
-        return groovyClasspath;
+
+        // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
+        String notation = "org.codehaus.groovy:" + groovyJar.group(1) + ":" + groovyJar.group(2);
+        if (groovyJar.group(3) != null) {
+            notation += ":indy";
+        }
+        List<Dependency> dependencies = Lists.newArrayList();
+        dependencies.add(project.getDependencies().create(notation));
+        if (groovyJar.group(1).equals("groovy") && VersionNumber.parse(groovyJar.group(2)).getMajor() >= 2) {
+            // for when AntGroovyCompiler is used
+            dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
+        }
+        return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
     }
 
     private JavaPluginConvention java(Convention convention) {
