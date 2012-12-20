@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.ParserSettings;
@@ -32,12 +31,8 @@ import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Collections;
 
 public class ModuleDescriptorStore {
-
-    private static final String DESCRIPTOR_ARTIFACT_PATTERN =
-            "module-metadata/[organisation]/[module](/[branch])/[revision]/[resolverId].ivy.xml";
 
     private final IvyXmlModuleDescriptorParser parser;
     private final PathKeyFileStore pathKeyFileStore;
@@ -86,20 +81,6 @@ public class ModuleDescriptorStore {
     }
 
     private String getFilePath(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
-        String resolverId = repository.getId();
-
-
-        return IvyPatternHelper.substitute(DESCRIPTOR_ARTIFACT_PATTERN,
-                moduleVersionIdentifier.getGroup(),
-                moduleVersionIdentifier.getName(),
-                null,
-                moduleVersionIdentifier.getVersion(),
-                "ivy",
-                "ivy",
-                "ivy",
-                null,
-                null,
-                Collections.emptyMap(),
-                Collections.singletonMap("resolverId", resolverId));
+        return String.format("module-metadata/%s/%s/%s/%s.ivy.xml", moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion(), repository.getId());
     }
 }
