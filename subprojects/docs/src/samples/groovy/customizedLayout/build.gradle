@@ -9,19 +9,18 @@ dependencies {
     testCompile 'junit:junit:4.11'
 }
 
-// START SNIPPET define-main
+// START SNIPPET custom-source-locations
 sourceSets {
     main {
         groovy {
-            srcDir 'src/groovy'
+            srcDirs = ['src/groovy']
         }
     }
-// END SNIPPET define-main
+
     test {
         groovy {
-            srcDir 'test/groovy'
+            srcDirs = ['test/groovy']
         }
     }
-// START SNIPPET define-main
 }
-// END SNIPPET define-main
+// END SNIPPET custom-source-locations

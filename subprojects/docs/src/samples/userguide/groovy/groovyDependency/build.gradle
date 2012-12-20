@@ -1,0 +1,23 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+// START SNIPPET groovy-test-dependency
+dependencies {
+    testCompile "org.codehaus.groovy:groovy-all:2.0.5"
+}
+// END SNIPPET groovy-test-dependency
+
+// START SNIPPET groovy-configuration
+dependencies {
+    groovy "org.codehaus.groovy:groovy-all:2.0.5"
+}
+// END SNIPPET groovy-configuration
+
+// START SNIPPET bundled-groovy-dependency
+dependencies {
+    compile groovyLocal()
+}
+// END SNIPPET bundled-groovy-dependency
