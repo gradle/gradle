@@ -56,7 +56,6 @@ class MultiLineSuite extends FunSuite {
         """
 
         then:
-        //the build should fail because the failing test has been executed
         succeeds("test")
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
