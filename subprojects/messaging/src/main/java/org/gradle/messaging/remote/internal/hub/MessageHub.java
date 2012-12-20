@@ -325,6 +325,7 @@ public class MessageHub implements AsyncStoppable {
             lock.lock();
             try {
                 assertRunning("dispatch message");
+                System.out.println(String.format("=== %s queued %s.", Thread.currentThread(), message));
                 outgoingQueue.dispatch(new ChannelMessage(channelIdentifier, message));
             } finally {
                 lock.unlock();
@@ -375,6 +376,7 @@ public class MessageHub implements AsyncStoppable {
                             } else {
                                 throw new IllegalArgumentException(String.format("Don't know how to handle message %s", message));
                             }
+                            System.out.println(String.format("=== %s handled %s.", Thread.currentThread(), message));
                         }
                         messages.clear();
                     }
