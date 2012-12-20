@@ -24,7 +24,7 @@ class DefaultModuleVersionIdentifierSpec extends Specification {
         def module = new DefaultModuleVersionIdentifier("group", "module", "version")
 
         expect:
-        module.toString().contains("group: group, module: module, version: version")
+        module.toString().contains("group:module:version")
     }
 
     def "ids are equal when group, module and version are equal"() {
@@ -39,5 +39,12 @@ class DefaultModuleVersionIdentifierSpec extends Specification {
         module != differentGroup
         module != differentModule
         module != differentVersion
+    }
+
+    def "provides module identifier"() {
+        expect:
+        def id = new DefaultModuleVersionIdentifier("org.gradle", "tooling-api", "1.3")
+        id.group == id.module.group
+        id.name == id.module.name
     }
 }

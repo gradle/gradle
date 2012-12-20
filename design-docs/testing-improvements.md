@@ -2,21 +2,21 @@ Improve TestNG test execution/reporting
 
 # Use cases
 
-1. Efficient generation of xml results
-2. Efficient generation of html results
-3. html results contain output per test VS output per test class
-4. html results contain aggregated std err/std out VS separated
+1. Efficient generation of XML results
+2. Efficient generation of HTML results
+3. HTML results contain output per test VS output per test class
+4. HTML results contain aggregated std err/std out VS separated
 
 # Implementation plan
 
-## Story: TestNG xml generation is efficient
+## Story: TestNG XML generation is efficient
 
 -test events/output stored in binary format (internal format geared towards efficiency)
     -2 files per test class (events and output, the latter is streamed), cache of open files
     -uses java serialization
     -the binary file with output is streamed. We should keep reasonable amount of files open
 -parent process writes the binary results
--parent process writes the xml results
+-parent process writes the XML results
 
 ### Coverage
 
@@ -27,51 +27,58 @@ Improve TestNG test execution/reporting
 
 ### Backwards compatibility
 
--story introduces negligible breaking change: if the worker process / parent process crashes, no xml results are generated at all. Previously, partial xml results are available.
+-story introduces negligible breaking change: if the worker process / parent process crashes, no XML results are generated at all. Previously, partial XML results are available.
 
-## Story: TestNG produces the new xml/html result by default
+## Story: TestNG produces the new XML/HTML result by default
 
--change the testReport default value to 'true'
--change the testNGOptions.useDefaultListeners default value to 'false'
--deprecate testNGOptions.useDefaultListeners
--there is a way to *only* generate the old reports
-    -generation of new xml results is configurable (atm, it isn't)
--update the documentation and release notes accordingly
-
-### Coverage
-
--update existing coverage
--tweak performance tests
-
-### Backwards compatibility:
-
--story changes the default values (for better, though)
-
-## Story: JUnit xml generation is efficient
-
--use the same mechanism as TestNG for xml generation
--remove the existing JUnit classes that are no longer needed
+- Change the Test `testReport` default value to `true`.
+- Change the Test `testNGOptions.useDefaultListeners` default value to `false`.
+- Deprecate the `TestNGOptions.useDefaultListeners` property.
+- Extract a shared `TestReporter` implementation out of `TestNGTestFramework` and `JUnitTestFramework` and remove `TestFramework.report()`.
+- Update the documentation and release notes accordingly.
 
 ### Coverage
 
--tweak performance tests
--tests that don't have an associated method or class
--start-time and duration reported for a class should include all setup and teardown
+- Add a performance test with a build with many TestNG tests which do not generate any logging output. Verify that this build is not any slower than Gradle 1.0 or Gradle 1.3.
+- Update `TestNGProducesJUnitXmlResultsIntegrationTest` so that it uses the default value for the `testReport` property.
+- Update `TestNGProducesOldReportsIntegrationTest` so that it uses the appropriate values for the `testReport` property.
+- Update performance tests to use the default setting for the `testReport` property.
 
 ### Backwards compatibility:
 
--no partial xml results available when process crashes (see first story for more)
+- Story changes the default values (for better, though)
 
-## Story: html test report generation is efficient
+## Story: JUnit XML generation is efficient
 
--html report is generated from the binary format, not from xml results
--separate Test report generation from TestFramework
+Use the same mechanism as TestNG for XML result generation
 
-## Story: html test report shows output per test
+- Change `Test.executeTests()` so that it uses a TestReportDataCollector for all test frameworks (not just TestNG)
+- Change `JUnitTestClassProcessor.startProcessing()` so that it no longer uses `JUnitXmlReportGenerator`.
+- Remove `JUnitXmlReportGenerator`, `XmlTestSuiteWriter` and `XmlTestSuiteWriterFactory`.
+
+### Coverage
+
+- Add a performance test with a build with many JUnit tests which do not generate any logging output. Verify that this build is not any slower than Gradle 1.0 or Gradle 1.3.
+- Add coverage for tests that don't have an associated method or class.
+- Check that start-time and duration reported for a class should include all setup and teardown.
+
+### Backwards compatibility:
+
+- No partial XML results available when process crashes (see first story for more)
+
+## Story: HTML test report generation is efficient
+
+HTML report is generated from the binary format, not from XML results
+
+- Change `DefaultTestReport` to use `TestResultsProvider` to get results instead of loading from XML.
+- Spike using [jatl](http://code.google.com/p/jatl/) to generate the report instead of using the DOM.
+- Change the report rendering so that it copies the test output directly from `TestResultsProvider` to file, rather than loading it into heap.
+
+## Story: HTML test report shows output per test
 
 -instead of showing output for the entire test class the report shows output per test method
 
-## Story: html test report shows aggregated output (out + err)
+## Story: HTML test report shows aggregated output (out + err)
 
 -instead of showing separate tabs for out + err, there's a single tab 'output'
 
@@ -80,7 +87,7 @@ Improve TestNG test execution/reporting
 -depending how the story is implemented, we might drop support for separate err and std output.
 It's a breaking change in a way but I don't find the separate err/std output useful.
 
-## Story: html report contains the output from TestNG Reporter.
+## Story: HTML report contains the output from TestNG Reporter
 
 I'm hoping we won't have to implement it. I don't know how popular the Reporter is.
 Also the problem can be avoided by using the Reporter methods that also print to the standard output (which is nice because the messages show up in IDE).
@@ -100,3 +107,7 @@ However, the latter class is geared towards the JUnit model, where we receive no
 In TestNG, we only receive notification on entire suite start / end and then on each test method start / end.
 This means that with TestNG, the CaptureTestOutputTestResultProcessor is started only when the first test starts.
 We could possibly fix it by starting redirecting the output at suite start in the TestNG scenario.
+
+# Other issues
+
+- Provide some way to generate only the old TestNG reports, so that both test report and test XML generation can be disabled.

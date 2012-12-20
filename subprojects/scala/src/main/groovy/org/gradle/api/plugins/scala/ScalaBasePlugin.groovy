@@ -17,6 +17,7 @@ package org.gradle.api.plugins.scala;
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.file.FileResolver
@@ -59,7 +60,7 @@ class ScalaBasePlugin implements Plugin<Project> {
                 .setVisible(false)
                 .setDescription("The Zinc incremental compiler to be used for this Scala project.")
 
-        configureCompileDefaults(javaPlugin)
+        configureCompileDefaults()
         configureSourceSetDefaults(javaPlugin)
         configureScaladoc()
     }
@@ -107,25 +108,15 @@ class ScalaBasePlugin implements Plugin<Project> {
         scalaConsole.dependsOn(sourceSet.runtimeClasspath)
         scalaConsole.description = "Starts a Scala REPL with the $sourceSet.name runtime class path."
         scalaConsole.main = "scala.tools.nsc.MainGenericRunner"
-        scalaConsole.classpath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
+        scalaConsole.conventionMapping.classpath = { getScalaClasspath(sourceSet.runtimeClasspath) }
         scalaConsole.systemProperty("scala.usejavacp", true)
         scalaConsole.standardInput = System.in
         scalaConsole.conventionMapping.jvmArgs = { ["-classpath", sourceSet.runtimeClasspath.asPath] }
     }
 
-    private void configureCompileDefaults(JavaBasePlugin javaPlugin) {
+    private void configureCompileDefaults() {
         project.tasks.withType(ScalaCompile.class) { ScalaCompile compile ->
-            compile.conventionMapping.scalaClasspath = {
-                def classpath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
-                if (classpath.dependencies.empty) {
-                    def scalaVersion = sniffScalaVersion(compile.classpath)
-                    if (scalaVersion != null) {
-                        classpath = project.configurations.detachedConfiguration(
-                                new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion))
-                    }
-                }
-                classpath
-            }
+            compile.conventionMapping.scalaClasspath = { getScalaClasspath(compile.classpath) }
             compile.conventionMapping.zincClasspath = {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
                 if (!compile.scalaCompileOptions.useAnt && config.dependencies.empty) {
@@ -138,21 +129,34 @@ class ScalaBasePlugin implements Plugin<Project> {
         }
     }
 
+    private void configureScaladoc() {
+        project.tasks.withType(ScalaDoc) { ScalaDoc scalaDoc ->
+            scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
+            scalaDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
+            scalaDoc.conventionMapping.scalaClasspath = { getScalaClasspath(scalaDoc.classpath) }
+        }
+    }
+
+    private FileCollection getScalaClasspath(Iterable<File> classpath) {
+        def scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
+        if (scalaClasspath.dependencies.empty && !project.repositories.empty) {
+            def scalaVersion = sniffScalaVersion(classpath)
+            if (scalaVersion != null) {
+                scalaClasspath = project.configurations.detachedConfiguration(
+                        new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion))
+            }
+        }
+        scalaClasspath
+    }
+
     private String sniffScalaVersion(Iterable<File> classpath) {
+        if (classpath == null) { return null }
         for (file in classpath) {
             def matcher = SCALA_LIBRARY_JAR_PATTERN.matcher(file.name)
             if (matcher.matches()) {
                 return matcher.group(1)
             }
         }
-        return null
-    }
-
-    private void configureScaladoc() {
-        project.getTasks().withType(ScalaDoc.class) { ScalaDoc scalaDoc ->
-            scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
-            scalaDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
-            scalaDoc.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
-        }
+        null
     }
 }

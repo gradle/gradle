@@ -44,8 +44,8 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
         result.add(new TestMethodResult("some skipped test", new DefaultTestResult(SKIPPED, startTime + 35, startTime + 45, 1, 0, 1, asList())))
 
-        provider.getOutputs("com.foo.FooTest", StdOut) >> new StringReader("1st output message\n2nd output message\n")
-        provider.getOutputs("com.foo.FooTest", StdErr) >> new StringReader("err")
+        provider.writeOutputs("com.foo.FooTest", StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
+        provider.writeOutputs("com.foo.FooTest", StdErr, _) >> { args -> args[2].write("err") }
 
         when:
         def xml = getXml("com.foo.FooTest", result)
@@ -65,13 +65,13 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         xml.startsWith """<?xml version="1.0" encoding="UTF-8"?>
   <testsuite name="com.foo.FooTest" tests="4" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
   <properties/>
-    <testcase name="some test" classname="com.foo.FooTest" time="0.015"></testcase>
-    <testcase name="some test two" classname="com.foo.FooTest" time="0.015"></testcase>
+    <testcase name="some test" classname="com.foo.FooTest" time="0.015"/>
+    <testcase name="some test two" classname="com.foo.FooTest" time="0.015"/>
     <testcase name="some failing test" classname="com.foo.FooTest" time="0.01">
       <failure message="java.lang.RuntimeException: Boo!" type="java.lang.RuntimeException">java.lang.RuntimeException: Boo!"""
 
         xml.endsWith """</failure></testcase>
-    <ignored-testcase name="some skipped test" classname="com.foo.FooTest" time="0.01"></ignored-testcase>
+    <ignored-testcase name="some skipped test" classname="com.foo.FooTest" time="0.01"/>
   <system-out><![CDATA[1st output message
 2nd output message
 ]]></system-out>
@@ -82,7 +82,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
     def "writes results with empty outputs"() {
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
-        provider.getOutputs(_, _) >> { new StringReader("") }
+        _ * provider.writeOutputs(_, _, _)
 
         when:
         def xml = getXml("com.foo.FooTest", result)
@@ -91,7 +91,7 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
         xml == """<?xml version="1.0" encoding="UTF-8"?>
   <testsuite name="com.foo.FooTest" tests="1" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
   <properties/>
-    <testcase name="some test" classname="com.foo.FooTest" time="0.2"></testcase>
+    <testcase name="some test" classname="com.foo.FooTest" time="0.2"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>"""
@@ -100,8 +100,8 @@ class SaxJUnitXmlResultWriterSpec extends Specification {
     def "encodes xml"() {
         TestClassResult result = new TestClassResult(startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
-        provider.getOutputs(_, StdErr) >> new StringReader("with CDATA end token: ]]> some ascii: ż")
-        provider.getOutputs(_, StdOut) >> new StringReader("with CDATA end token: ]]> some ascii: ż")
+        provider.writeOutputs(_, StdErr, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
+        provider.writeOutputs(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
 
         when:
         def xml = getXml("com.foo.FooTest", result)

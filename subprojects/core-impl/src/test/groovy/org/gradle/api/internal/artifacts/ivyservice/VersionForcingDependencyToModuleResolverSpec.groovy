@@ -73,7 +73,7 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         def result = resolver.resolve(dependency('org', 'module', '0.5'))
 
         then:
-        result.failure.message == "Problems executing resolve action for dependency - group:org, module:module, version:0.5."
+        result.failure.message == "Problems executing resolve action for dependency: org:module:0.5."
         result.failure.cause.message == 'Boo!'
     }
 

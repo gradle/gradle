@@ -15,7 +15,6 @@
  */
 package org.gradle.test.fixtures.ivy
 
-import groovy.util.slurpersupport.GPathResult
 import org.apache.ivy.core.IvyPatternHelper
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.util.TestFile
@@ -62,7 +61,7 @@ class IvyFileModule extends AbstractIvyModule {
         return this
     }
 
-    IvyFileModule dependsOn(String ... modules) {
+    IvyFileModule dependsOn(String... modules) {
         modules.each { dependsOn(organisation, it, revision) }
         return this
     }
@@ -87,10 +86,6 @@ class IvyFileModule extends AbstractIvyModule {
         return moduleDir.file(path)
     }
 
-    GPathResult getIvyXml() {
-        new XmlSlurper().parse(ivyFile)
-    }
-
     TestFile getJarFile() {
         def path = IvyPatternHelper.substitute(artifactPattern, ModuleRevisionId.newInstance(organisation, module, revision), null, "jar", "jar")
         return moduleDir.file(path)
@@ -101,7 +96,7 @@ class IvyFileModule extends AbstractIvyModule {
     }
 
     TestFile artifactFile(String name) {
-        return file(artifacts.find{ it.name == name })
+        return file(artifacts.find { it.name == name })
     }
 
     /**

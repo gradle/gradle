@@ -75,7 +75,7 @@ class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def pom(suffix) {
-        module(suffix).pom
+        module(suffix).parsedPom
     }
 
     def module(suffix) {

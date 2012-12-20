@@ -166,12 +166,11 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        def module = ivyRepo.module(organisation, moduleName, version)
-        def ivyXmlInfo = module.ivyXml.info[0]
-        ivyXmlInfo.@organisation == organisation
-        ivyXmlInfo.@module == moduleName
-        ivyXmlInfo.@revision == version
-        ivyXmlInfo.description == description
+        def ivy = ivyRepo.module(organisation, moduleName, version).ivy
+        ivy.organisation == organisation
+        ivy.module == moduleName
+        ivy.revision == version
+        ivy.description == description
     }
 
 

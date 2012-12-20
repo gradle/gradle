@@ -22,7 +22,9 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.util.HelperUtil
+import org.junit.Before
 import org.junit.Test
+
 import static org.gradle.util.Matchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
@@ -36,32 +38,30 @@ import static org.junit.Assert.*
 class GroovyBasePluginTest {
     private final Project project = HelperUtil.createRootProject()
 
-    @Test public void appliesTheJavaBasePluginToTheProject() {
+    @Before
+    void before() {
         project.plugins.apply(GroovyBasePlugin)
+    }
 
+    @Test void appliesTheJavaBasePluginToTheProject() {
         assertTrue(project.getPlugins().hasPlugin(JavaBasePlugin));
     }
 
-    @Test public void addsGroovyConfigurationToTheProject() {
-        project.plugins.apply(GroovyBasePlugin)
-
-        def configuration = project.configurations.getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)
+    @Test void addsGroovyConfigurationToTheProject() {
+        def configuration = project.configurations.findByName('groovy')
+        assertNotNull(configuration)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertFalse(configuration.visible)
-        assertFalse(configuration.transitive)
+        assertTrue(configuration.transitive)
     }
 
-    @Test public void appliesMappingsToNewSourceSet() {
-        project.plugins.apply(GroovyBasePlugin)
-
+    @Test void appliesMappingsToNewSourceSet() {
         def sourceSet = project.sourceSets.add('custom')
         assertThat(sourceSet.groovy.displayName, equalTo("custom Groovy source"))
         assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/custom/groovy"))))
     }
 
-    @Test public void addsCompileTaskToNewSourceSet() {
-        project.plugins.apply(GroovyBasePlugin)
-
+    @Test void addsCompileTaskToNewSourceSet() {
         project.sourceSets.add('custom')
 
         def task = project.tasks['compileCustomGroovy']
@@ -70,20 +70,34 @@ class GroovyBasePluginTest {
         assertThat(task, dependsOn('compileCustomJava'))
     }
 
-    @Test public void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
-        project.plugins.apply(GroovyBasePlugin)
-
+    @Test void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
         project.sourceSets.add('custom')
         def task = project.tasks['customClasses']
         assertThat(task, dependsOn(hasItem('compileCustomGroovy')))
     }
    
-    @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
-        project.plugins.apply(GroovyBasePlugin)
-
+    @Test void configuresAdditionalTasksDefinedByTheBuildScript() {
         def task = project.task('otherGroovydoc', type: Groovydoc)
         assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
         assertThat(task.docTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
         assertThat(task.windowTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
+    }
+
+    @Test void defaultsGroovyClasspathToGroovyConfigurationIfTheLatterIsNonEmpty() {
+        project.sourceSets.add('custom')
+        def configuration = project.configurations.groovy
+        project.dependencies {
+            groovy "org.codehaus.groovy:groovy-all:2.0.5"
+        }
+
+        def compileTask = project.tasks.compileCustomGroovy
+        assertSame(configuration, compileTask.groovyClasspath)
+
+        def groovydocTask = project.task('groovydoc', type: Groovydoc)
+        assertSame(configuration, groovydocTask.groovyClasspath)
+    }
+
+    // see GroovyBasePluginIntegrationTest
+    @Test void defaultsGroovyClasspathToInferredGroovyDependencyIfGroovyConfigurationIsEmpty() {
     }
 }

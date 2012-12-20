@@ -94,7 +94,7 @@ public class GradleDistribution implements MethodRule, TestRule, TestFileContext
     }
 
     public int getArtifactCacheLayoutVersion() {
-        return 20;
+        return 21;
     }
 
     public boolean wrapperCanExecute(String version) {

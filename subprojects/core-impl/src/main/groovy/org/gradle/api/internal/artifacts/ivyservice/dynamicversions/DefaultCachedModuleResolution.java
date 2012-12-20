@@ -19,9 +19,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.TimeProvider;
 
-import java.io.Serializable;
-
-class DefaultCachedModuleResolution implements ModuleResolutionCache.CachedModuleResolution, Serializable {
+class DefaultCachedModuleResolution implements ModuleResolutionCache.CachedModuleResolution {
     private final ModuleRevisionId requestedVersion;
     private final ModuleVersionIdentifier resolvedVersion;
     private final long ageMillis;

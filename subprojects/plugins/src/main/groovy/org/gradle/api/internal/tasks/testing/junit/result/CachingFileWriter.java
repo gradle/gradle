@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -58,7 +59,7 @@ public class CachingFileWriter {
             out.write(text);
         } catch (IOException e) {
             cleanUpQuietly();
-            throw new RuntimeException("Problems writing to file: " + file, e);
+            throw new UncheckedIOException("Problems writing to file: " + file, e);
         }
     }
 
@@ -69,7 +70,7 @@ public class CachingFileWriter {
                 c.close();
             } catch(IOException e) {
                 cleanUpQuietly();
-                throw new RuntimeException("Problems closing file: " + file, e);
+                throw new UncheckedIOException("Problems closing file: " + file, e);
             }
         }
     }
@@ -81,7 +82,7 @@ public class CachingFileWriter {
             }
         } catch (IOException e) {
             cleanUpQuietly();
-            throw new RuntimeException("Problems closing all files.", e);
+            throw new UncheckedIOException("Problems closing all files.", e);
         } finally {
             openFiles.clear();
         }
@@ -89,7 +90,7 @@ public class CachingFileWriter {
 
     private void cleanUpQuietly() {
         try {
-            closeable((Iterable) openFiles.values()).close();
+            closeable(openFiles.values()).close();
         } catch (IOException e) {
             LOG.debug("Problems closing files", e);
         } finally {

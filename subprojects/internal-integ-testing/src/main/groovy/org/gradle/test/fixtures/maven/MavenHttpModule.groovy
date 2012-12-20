@@ -38,7 +38,7 @@ class MavenHttpModule implements MavenModule {
     }
 
     HttpArtifact getArtifact(Map options = [:]) {
-        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", this, options)
+        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
     }
 
     /**
@@ -47,7 +47,7 @@ class MavenHttpModule implements MavenModule {
      */
     HttpArtifact artifact(Map<String, ?> options) {
         backingModule.artifact(options)
-        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", this, options)
+        return new MavenHttpArtifact(server, "${moduleRootPath}/${backingModule.version}", backingModule, options)
     }
 
     MavenHttpModule publish() {
@@ -92,8 +92,12 @@ class MavenHttpModule implements MavenModule {
         return backingModule.metaDataFile
     }
 
-    MavenPom getPom() {
-        backingModule.pom
+    MavenPom getParsedPom() {
+        return backingModule.parsedPom;
+    }
+
+    PomHttpResource getPom() {
+        return new PomHttpResource(server, getModuleVersionPath(), backingModule)
     }
 
     MavenMetaData getRootMetaData() {
@@ -108,8 +112,8 @@ class MavenHttpModule implements MavenModule {
         server.allowGetOrHead(moduleVersionPath, backingModule.moduleDir)
     }
 
-    void expectMetaDataGet() {
-        server.expectGet(getMetaDataPath(), metaDataFile)
+    HttpResource getMetaData() {
+        return new BasicHttpResource(server, metaDataFile, getMetaDataPath())
     }
 
     String getRootMetaDataPath() {
@@ -134,10 +138,6 @@ class MavenHttpModule implements MavenModule {
 
     String md5Path(String path) {
         "${path}.md5"
-    }
-
-    void expectMetaDataGetMissing() {
-        server.expectGetMissing(metaDataPath)
     }
 
     void expectRootMetaDataGetMissing(PasswordCredentials passwordCredentials = null) {
@@ -178,126 +178,6 @@ class MavenHttpModule implements MavenModule {
 
     void expectRootMetaDataMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
         server.expectPut(md5Path(rootMetaDataPath), md5File(rootMetaDataFile), statusCode, credentials)
-    }
-
-    void expectPomPut(PasswordCredentials credentials) {
-        expectPomPut(200, credentials)
-    }
-
-    void expectPomPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(pomPath, pomFile, statusCode, credentials)
-    }
-
-    void expectPomSha1Put(PasswordCredentials credentials) {
-        expectPomSha1Put(200, credentials)
-    }
-
-    void expectPomSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(sha1Path(pomPath), sha1File(pomFile), statusCode, credentials)
-    }
-
-    void expectPomMd5Put(PasswordCredentials credentials) {
-        expectPomMd5Put(200, credentials)
-    }
-
-    void expectPomMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(md5Path(pomPath), md5File(pomFile), statusCode, credentials)
-    }
-
-    void expectPomGet() {
-        server.expectGet("$moduleVersionPath/$pomFile.name", pomFile)
-    }
-
-    void expectPomHead() {
-        server.expectHead("$moduleVersionPath/$pomFile.name", pomFile)
-    }
-
-    void expectPomGetMissing() {
-        server.expectGetMissing("$moduleVersionPath/$missingPomName")
-    }
-
-    void expectPomGetBroken() {
-        server.expectGetBroken("$moduleVersionPath/$missingPomName")
-    }
-
-    void expectPomHeadMissing() {
-        server.expectHeadMissing("$moduleVersionPath/$missingPomName")
-    }
-
-    void expectPomSha1Get() {
-        server.expectGet("$moduleVersionPath/${pomFile.name}.sha1", backingModule.getSha1File(pomFile))
-    }
-
-    void expectPomSha1GetMissing() {
-        server.expectGetMissing("$moduleVersionPath/${missingPomName}.sha1")
-    }
-
-    void expectPomMd5Get() {
-        server.expectGet("$moduleVersionPath/${pomFile.name}.md5", backingModule.getMd5File(pomFile))
-    }
-
-    private String getMissingPomName() {
-        if (backingModule.version.endsWith("-SNAPSHOT")) {
-            return "${backingModule.artifactId}-${backingModule.version}.pom"
-        } else {
-            return pomFile.name
-        }
-    }
-
-    String getArtifactPath(Map options = [:]) {
-        "$moduleVersionPath/${getArtifactFile(options).name}"
-    }
-
-    String getPomPath() {
-        "$moduleVersionPath/$pomFile.name"
-    }
-
-    TestFile getArtifactMd5File() {
-        backingModule.artifactMd5File
-    }
-
-    String getArtifactMd5Path() {
-        "${artifactPath}.md5"
-    }
-
-    void expectArtifactPut(PasswordCredentials credentials) {
-        expectArtifactPut(200, credentials)
-    }
-
-    void expectArtifactPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(artifactPath, artifactFile, statusCode, credentials)
-    }
-
-    void expectArtifactSha1Put(PasswordCredentials credentials) {
-        expectArtifactSha1Put(200, credentials)
-    }
-
-    TestFile getArtifactSha1File() {
-        backingModule.artifactSha1File
-    }
-
-    String getArtifactSha1Path(Map options = [:]) {
-        "${getArtifactPath(options)}.sha1"
-    }
-
-    void expectArtifactSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(artifactSha1Path, artifactSha1File, statusCode, credentials)
-    }
-
-    void expectArtifactMd5Put(PasswordCredentials credentials) {
-        expectArtifactMd5Put(200, credentials)
-    }
-
-    void expectArtifactMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(artifactMd5Path, artifactMd5File, statusCode, credentials)
-    }
-
-    void verifyArtifactChecksums() {
-        backingModule.verifyChecksums(artifactFile)
-    }
-
-    void verifyPomChecksums() {
-        backingModule.verifyChecksums(pomFile)
     }
 
     void verifyRootMetaDataChecksums() {

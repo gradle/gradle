@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.*;
-import org.gradle.internal.UncheckedException;
 
 import java.io.*;
 import java.util.HashMap;
@@ -93,15 +93,23 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         return results;
     }
 
-    public Reader getOutputs(final String className, final TestOutputEvent.Destination destination) {
+    public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
         final File file = outputsFile(className, destination);
         if (!file.exists()) {
-            return new StringReader("");
+            return;
         }
         try {
-            return new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), "UTF-8");
+            Reader reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), "UTF-8");
+            char[] buffer = new char[2048];
+            while (true) {
+                int read = reader.read(buffer);
+                if (read < 0) {
+                    return;
+                }
+                writer.write(buffer, 0, read);
+            }
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw new UncheckedIOException(e);
         }
     }
 }

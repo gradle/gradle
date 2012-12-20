@@ -15,17 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.internal.Factory;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 
 public class DefaultCacheLockingManager implements CacheLockingManager {
-    public static final int CACHE_LAYOUT_VERSION = 20;
+    public static final int CACHE_LAYOUT_VERSION = 21;
     private final PersistentCache cache;
 
     public DefaultCacheLockingManager(CacheRepository cacheRepository) {

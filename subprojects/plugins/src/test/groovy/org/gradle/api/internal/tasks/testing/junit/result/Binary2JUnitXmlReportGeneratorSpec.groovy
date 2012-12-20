@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.api.GradleException
+import org.gradle.api.UncheckedIOException
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -65,7 +65,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         generator.generate()
 
         then:
-        def ex = thrown(GradleException)
+        def ex = thrown(UncheckedIOException)
         ex.message.contains('FooTest')
         ex.cause.message == "Boo!"
     }

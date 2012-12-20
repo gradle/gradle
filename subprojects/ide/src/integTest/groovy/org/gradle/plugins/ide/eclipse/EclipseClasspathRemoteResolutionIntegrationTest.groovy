@@ -42,11 +42,11 @@ class EclipseClasspathRemoteResolutionIntegrationTest extends AbstractEclipseInt
 
 //        when:
         server.resetExpectations()
-        projectA.expectPomGet()
+        projectA.pom.expectGet()
         projectA.artifact.expectGet()
         projectA.artifact(classifier: 'sources').expectGetMissing()
         projectA.artifact(classifier: 'javadoc').expectGetMissing()
-        projectB.expectPomGet()
+        projectB.pom.expectGet()
         projectB.artifact.expectGet()
         projectB.artifact(classifier: 'sources').expectGetBroken()
         projectB.artifact(classifier: 'javadoc').expectGetBroken()

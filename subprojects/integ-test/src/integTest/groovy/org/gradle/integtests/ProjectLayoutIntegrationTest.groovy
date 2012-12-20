@@ -40,9 +40,8 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    groovy 'org.codehaus.groovy:groovy-all:1.8.8'
+    compile 'org.codehaus.groovy:groovy-all:2.0.5'
     // scaladoc in Scala 2.9.2 requires Java 1.6
-    scalaTools 'org.scala-lang:scala-compiler:2.9.1'
     compile 'org.scala-lang:scala-library:2.9.1'
 }
 

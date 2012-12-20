@@ -67,7 +67,7 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     @Override
     public String toString() {
-        return String.format("ModuleVersionSelector{group: %s, module: %s, version: %s}", group, name, version);
+        return String.format("%s:%s:%s", group, name, version);
     }
 
     @Override

@@ -24,12 +24,12 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.Factory;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.HelperUtil;
@@ -58,7 +58,6 @@ public class DefaultConfigurationTest {
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
-    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory = context.mock(Factory.class);
     private DefaultConfiguration configuration;
     private DependencyResolutionListener dependencyResolutionBroadcast = context.mock(DependencyResolutionListener.class);
     private ListenerBroadcast resolutionListenerBroadcast = context.mock(ListenerBroadcast.class); 
@@ -73,7 +72,6 @@ public class DefaultConfigurationTest {
             will(returnValue(dependencyResolutionBroadcast));
             allowing(dependencyResolutionBroadcast).afterResolve(with(any(ResolvableDependencies.class)));
             allowing(dependencyResolutionBroadcast).beforeResolve(with(any(ResolvableDependencies.class)));
-            allowing(resolutionStrategyFactory).create();
             will(returnValue(null));
         }});
         configuration = createNamedConfiguration("path", "name");
@@ -355,11 +353,13 @@ public class DefaultConfigurationTest {
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategyFactory);
+        return new DefaultConfiguration(confName, confName, configurationContainer,
+                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy());
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
-        return new DefaultConfiguration(path, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategyFactory);
+        return new DefaultConfiguration(path, confName, configurationContainer,
+                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy());
     }
 
     @SuppressWarnings("unchecked")

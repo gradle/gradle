@@ -6,7 +6,6 @@ subprojects {
     }
 
     dependencies {
-        scalaTools "org.scala-lang:scala-compiler:$scalaVersion"
         compile "org.scala-lang:scala-library:$scalaVersion"
     }
 

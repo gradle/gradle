@@ -16,9 +16,12 @@
 package org.gradle.configuration;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
+import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.ProjectState;
 
-public class ImplicitTasksConfigurer implements Action<ProjectInternal> {
+//This one should go away once we complete the auto-apply plugins
+public class ImplicitTasksConfigurer implements Action<Project>, ProjectEvaluationListener {
     public static final String HELP_GROUP = "help";
     public static final String HELP_TASK = "help";
     public static final String PROJECTS_TASK = "projects";
@@ -27,7 +30,13 @@ public class ImplicitTasksConfigurer implements Action<ProjectInternal> {
     public static final String DEPENDENCIES_TASK = "dependencies";
     public static final String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
 
-    public void execute(ProjectInternal project) {
+    public void beforeEvaluate(Project project) {}
+
+    public void afterEvaluate(Project project, ProjectState state) {
+        execute(project);
+    }
+
+    public void execute(Project project) {
         project.getPlugins().apply("help-tasks");
     }
 }

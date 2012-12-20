@@ -39,11 +39,8 @@ public class SaxJUnitXmlResultWriter {
     }
 
     public void write(String className, TestClassResult result, OutputStream output) {
-        OutputStreamWriter sw;
         try {
-            sw = new OutputStreamWriter(output, "UTF-8");
-            SimpleXmlWriter writer = new SimpleXmlWriter(sw);
-            writer.writeXmlDeclaration("UTF-8", "1.0");
+            SimpleXmlWriter writer = new SimpleXmlWriter(output);
             writer.writeCharacters("\n  ");
             writer.writeStartElement("testsuite")
                 .attribute("name", className)
@@ -56,7 +53,8 @@ public class SaxJUnitXmlResultWriter {
 
             //TODO SF indentation belongs elsewhere
             writer.writeCharacters("\n  ");
-            writer.writeEmptyElement("properties");
+            writer.writeStartElement("properties");
+            writer.writeEndElement();
 
             writeTests(writer, result.getResults(), className);
 
@@ -72,32 +70,15 @@ public class SaxJUnitXmlResultWriter {
             writer.writeCharacters("\n");
 
             writer.writeEndElement();
-            sw.flush();
         } catch (IOException e) {
             throw new UncheckedIOException("Problems writing the XML results for class: " + className, e);
         }
     }
 
     private void writeOutputs(SimpleXmlWriter writer, String className, TestOutputEvent.Destination destination) throws IOException {
-        Reader outputs = testResultsProvider.getOutputs(className, destination);
-        try {
-            writer.writeStartCDATA();
-            writeCDATA(writer, outputs);
-            writer.writeEndCDATA();
-        } finally {
-            outputs.close();
-        }
-    }
-
-    private void writeCDATA(SimpleXmlWriter writer, Reader content) throws IOException {
-        char[] buffer = new char[2048];
-        while (true) {
-            int read = content.read(buffer);
-            if (read < 0) {
-                return;
-            }
-            writer.writeCDATA(buffer, 0, read);
-        }
+        writer.writeStartCDATA();
+        testResultsProvider.writeOutputs(className, destination, writer);
+        writer.writeEndCDATA();
     }
 
     private void writeTests(SimpleXmlWriter writer, Set<TestMethodResult> methodResults, String className) throws IOException {

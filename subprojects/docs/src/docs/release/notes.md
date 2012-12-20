@@ -79,7 +79,102 @@ A similar improvement has been made to the `dependencyInsight` task:
     \--- foo:bar:1.0
          \--- compile
 
-In this example, `foo:baz` was forced to version `2.0`, but that version couldn't be resolved.
+In this example, `foo:baz` was forced to version `2.0`, and that version couldn't be resolved.
+
+### Automatic configuration of Groovy dependency used by GroovyCompile and Groovydoc tasks
+
+The `groovy-base` plugin now automatically detects the Groovy dependency used on the class path of any `GroovyCompile` or `Groovydoc` task,
+and adds a corresponding dependency declaration (e.g. `org.codehaus.groovy:groovy-all:2.0.5`) for the task's `groovyClasspath`.
+As a consequence, the Groovy dependency can now be configured directly for the configuration(s) that need it, and it is no longer necessary
+to use the `groovy` configuration.
+
+Old (and still supported):
+
+    dependencies {
+        groovy "org.codehaus.groovy:groovy-all:2.0.5"
+    }
+
+New (and now preferred):
+
+    dependencies {
+        compile "org.codehaus.groovy:groovy-all:2.0.5"
+    }
+
+Automatic configuration makes it easier to build multiple artifact variants targeting different Groovy versions, or to only use Groovy
+for selected source sets:
+
+    dependencies {
+        testCompile "org.codehaus.groovy:groovy-all:2.0.5"
+    }
+
+Apart from the `groovy-all` Jar, Gradle also detects usages of the `groovy` Jar and `-indy` variants. Automatic configuration is disabled
+if a task's `groovyClasspath` is non-empty (for example because the `groovy` configuration is used) or no repositories are declared
+in the project.
+
+### Automatic configuration of Scala dependency used by ScalaCompile and Scaladoc tasks
+
+The `scala-base` plugin now automatically detects the `scala-library` dependency used on the class path of any `ScalaCompile` or `ScalaDoc` task,
+and adds a corresponding dependency declaration (e.g. `org.scala-lang:scala-compiler:2.9.2`) for the task's `scalaClasspath`.
+As a consequence, it is no longer necessary to use the `scalaTools` configuration.
+
+Old (and still supported):
+
+    dependencies {
+        scalaTools "org.scala-lang:scala-compiler:2.9.2"
+        compile "org.scala-lang:scala-library:2.9.2"
+    }
+
+New (and now preferred):
+
+    dependencies {
+        compile "org.scala-lang:scala-library:2.9.2"
+    }
+
+Automatic configuration makes it easier to build multiple artifact variants targeting different Scala versions. Here is one way to do it:
+
+    apply plugin: "scala-base"
+
+    sourceSets {
+        scala2_8
+        scala2_9
+        scala2_10
+    }
+
+    sourceSets.all { sourceSet ->
+        scala.srcDirs = ["src/main/scala"]
+        resources.srcDirs = ["src/main/resources"]
+
+        def jarTask = task(sourceSet.getTaskName(null, "jar"), type: Jar) {
+            baseName = sourceSet.name
+            from sourceSet.output
+        }
+
+        artifacts {
+            archives jarTask
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        scala2_8Compile "org.scala-lang:scala-library:2.8.2"
+        scala2_9Compile "org.scala-lang:scala-library:2.9.2"
+        scala2_10Compile "org.scala-lang:scala-library:2.10.0-RC5"
+    }
+
+Note that we didn't have to declare the different `scala-compiler` dependencies, nor did we have to assign them
+to the corresponding `ScalaCompile` and `ScalaDoc` tasks. Nevertheless, running `gradle assemble` produces:
+
+    $ ls build/libs
+    scala2_10.jar scala2_8.jar  scala2_9.jar
+
+With build variants becoming a first-class Gradle feature, building multiple artifact variants targeting different
+Scala versions will only get easier.
+
+Automatic configuration isn't used if a task's `scalaClasspath` is non-empty (for example because the `scalaTools`
+configuration is used) or no repositories are declared in the project.
 
 <!--
 ### Example new and noteworthy
@@ -124,7 +219,23 @@ allowing more metadata to be manipulated, and more dependency resolution corner 
 Even though dependency resolve actions are lower level hooks
 in future we will use them to provide many high level features in Gradle's dependency engine.
 
-For more information, including the code sample, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_actions).
+Many interesting use cases that can be implemented with the dependency resolve actions:
+
+* [Blacklisting a version] (userguide/userguide_single.html#sec:blacklisting_version) with a replacement.
+* Implementing a [custom versioning scheme](userguide/userguide_single.html#sec:custom_versioning_scheme).
+* [Modelling a releasable unit](userguide/userguide_single.html#sec:releasable_unit) - a set of related libraries that require a consistent version
+
+See below example on how to make all libraries from group 'org.gradle' use a consistent version:
+
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'org.gradle') {
+                details.useVersion '1.4'
+            }
+        }
+    }
+
+For more information, including more code samples, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_actions).
 
 ### Generate ivy.xml without publishing
 
@@ -228,6 +339,13 @@ For backwards compatibility reasons, certain task configuration is deprecated. T
 ### Incubating DependencyInsightReport throws better exception
 
 For consistency, InvalidUserDataException is thrown instead of ReportException when user incorrectly uses the dependency insight report.
+
+### Copying configurations also copies the resolution strategy
+
+Previously, after performing the copy, the resolution strategy was shared between the target and source configuration.
+This behavior is now corrected.
+Copy operation copies all the resolution strategy settings and the target configuration contains own instance of the resolution strategy.
+The impact of this change is minimal - it is mentioned here only for completeness. The new behavior is much better for all users.
 
 ### Removed getSupportsAppleScript() in org.gradle.util.Jvm
 

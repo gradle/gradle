@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
+import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -33,7 +34,8 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
  */
 class TestReportDataCollectorSpec extends Specification {
 
-    @Rule private TemporaryFolder temp = new TemporaryFolder()
+    @Rule
+    private TemporaryFolder temp = new TemporaryFolder()
     private collector = new TestReportDataCollector(temp.dir)
 
     def "validates results directory"() {
@@ -154,10 +156,16 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(new DefaultTestSuiteDescriptor("1", "suite"), null) //force closing of files
 
         then:
-        collector.getOutputs("FooTest", StdErr).text == 'errerr2'
-        collector.getOutputs("FooTest", StdOut).text == 'out'
+        collectOutput("FooTest", StdErr) == 'errerr2'
+        collectOutput("FooTest", StdOut) == 'out'
 
-        collector.getOutputs("TestWithoutOutputs", StdErr).text == ''
-        collector.getOutputs("TestWithoutOutputs", StdOut).text == ''
+        collectOutput("TestWithoutOutputs", StdErr) == ''
+        collectOutput("TestWithoutOutputs", StdOut) == ''
+    }
+
+    String collectOutput(String className, TestOutputEvent.Destination destination) {
+        def writer = new StringWriter()
+        collector.writeOutputs(className, destination, writer)
+        return writer.toString()
     }
 }

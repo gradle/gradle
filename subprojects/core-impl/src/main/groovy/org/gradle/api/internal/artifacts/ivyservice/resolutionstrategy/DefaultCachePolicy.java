@@ -32,16 +32,25 @@ import java.util.concurrent.TimeUnit;
 public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     private static final int SECONDS_IN_DAY = 24 * 60 * 60;
 
-    private final List<Action<? super DependencyResolutionControl>> dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>();
-    private final List<Action<? super ModuleResolutionControl>> moduleCacheRules = new ArrayList<Action<? super ModuleResolutionControl>>();
-    private final List<Action<? super ArtifactResolutionControl>> artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>();
+    final List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
+    final List<Action<? super ModuleResolutionControl>> moduleCacheRules;
+    final List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
 
     public DefaultCachePolicy() {
+        this.dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>();
+        this.moduleCacheRules = new ArrayList<Action<? super ModuleResolutionControl>>();
+        this.artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>();
+
         cacheDynamicVersionsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         cacheMissingModulesAndArtifactsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
     }
 
+    DefaultCachePolicy(DefaultCachePolicy policy) {
+        this.dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>(policy.dependencyCacheRules);
+        this.moduleCacheRules = new ArrayList<Action<? super ModuleResolutionControl>>(policy.moduleCacheRules);
+        this.artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>(policy.artifactCacheRules);
+    }
 
     public void eachDependency(Action<? super DependencyResolutionControl> rule) {
         dependencyCacheRules.add(0, rule);
@@ -143,6 +152,10 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
             }
         }
         return false;
+    }
+
+    DefaultCachePolicy copy() {
+        return new DefaultCachePolicy(this);
     }
 
     private abstract static class AbstractResolutionControl<A, B> implements ResolutionControl<A, B> {

@@ -61,9 +61,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                scalaTools 'org.scala-lang:scala-compiler:2.8.1'
-                scalaTools 'org.scala-lang:scala-library:2.8.1'
-                compile 'org.scala-lang:scala-library:2.8.1'
+                compile 'org.scala-lang:scala-library:2.9.2'
             }
         """
 

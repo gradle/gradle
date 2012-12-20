@@ -32,7 +32,6 @@ repositories {
 }
 
 dependencies {
-    scalaTools "org.scala-lang:scala-compiler:2.9.2"
     compile "org.scala-lang:scala-library:2.9.2"
 }
 

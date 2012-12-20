@@ -99,9 +99,9 @@ class MavenFileModule implements MavenModule {
 
     void assertPublishedAsJavaModule() {
         assert pomFile.assertExists()
-        assert pom.groupId == groupId
-        assert pom.artifactId == artifactId
-        assert pom.version == version
+        assert parsedPom.groupId == groupId
+        assert parsedPom.artifactId == artifactId
+        assert parsedPom.version == version
         assertArtifactsPublished("${artifactId}-${version}.jar", "${artifactId}-${version}.pom")
     }
 
@@ -127,7 +127,7 @@ class MavenFileModule implements MavenModule {
         assert actual.isEmpty()
     }
 
-    MavenPom getPom() {
+    MavenPom getParsedPom() {
         return new MavenPom(pomFile)
     }
 

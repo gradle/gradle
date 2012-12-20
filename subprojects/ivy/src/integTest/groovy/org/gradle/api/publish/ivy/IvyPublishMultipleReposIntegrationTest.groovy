@@ -51,7 +51,7 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
             publishing {
                 publications {
                     ivy.descriptor.withXml {
-                        asNode().@rev = 10
+                        asNode().info[0].appendNode('description', 'test module')
                     }
                 }
                 repositories {
@@ -80,8 +80,8 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
         repo2Module.jarFile.exists()
 
         and: // Modification applied to both
-        repo1Module.ivy.rev == "10"
-        repo2Module.ivy.rev == "10"
+        repo1Module.ivy.description == "test module"
+        repo2Module.ivy.description == "test module"
     }
 
 }

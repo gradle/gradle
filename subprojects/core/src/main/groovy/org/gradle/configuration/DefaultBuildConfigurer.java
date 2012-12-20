@@ -20,15 +20,24 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
     private Action<Project> actions;
+    private final static Logger LOG = Logging.getLogger(DefaultBuildConfigurer.class);
 
     public DefaultBuildConfigurer(Action<? super ProjectInternal>... actions) {
         this.actions = Actions.castBefore(ProjectInternal.class, Actions.composite(actions));
     }
 
     public void configure(GradleInternal gradle) {
-        gradle.getRootProject().allprojects(actions);
+        if (gradle.getStartParameter().isConfigureOnDemand()) {
+            LOG.lifecycle("The configuration-on-demand mode is incubating. Enjoy it and let us know how it works for you.");
+            gradle.addProjectEvaluationListener(new ImplicitTasksConfigurer());
+            gradle.getRootProject().evaluate();
+        } else {
+            gradle.getRootProject().allprojects(actions);
+        }
     }
 }

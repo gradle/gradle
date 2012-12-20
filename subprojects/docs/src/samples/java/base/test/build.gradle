@@ -1,5 +1,5 @@
 dependencies {
-    compile group: 'junit', name: 'junit', version: '4.8.2', project(':prod')
+    compile 'junit:junit:4.11', project(':prod')
 }
 
 task test(type: Test) {

@@ -840,42 +840,80 @@ someroot/[artifact]-[revision].[ext]
                     <para>All of the artifacts for the module are then requested from the <emphasis>same repository</emphasis> that was chosen in the process above.</para>
                 </listitem>
             </itemizedlist>
-
-        <section id='sec:dependency_metadata_manipulation'>
-            <title>Manipulating the dependency metadata during the resolution process</title>
-            <para>Gradle's dependency resolution engine will eventually offer a complete access to the
-                dependency tree during the resolution, allowing any kind of manipulation.
-                We want to get there incrementally, by solving one by one all the important use cases raised by our users.
-                Currently, it is possible to manipulate the dependency metadata in following ways:
+    </section>
+    <section id='sec:dependency_metadata_manipulation'>
+        <title>Manipulating the dependency metadata during the resolution process</title>
+        <para>Gradle's dependency resolution engine will eventually offer a complete access to the
+            dependency tree during the resolution, allowing any kind of manipulation.
+            We want to get there incrementally, by solving one by one all the important use cases raised by our users.
+            Currently, it is possible to manipulate the dependency metadata in following ways:
+        </para>
+        <section id='sec:forcing_modules'>
+            <title>Forcing certain module versions</title>
+            <para>It is possible to configure dependency resolution to use a specific version for given dependency (transitive or not).
+                The dependency is identified by group and name.
+                This feature is useful when tackling version conflicts - for more information see <xref linkend='sub:version_conflicts'/>.
+                Another interesting use case that drives this feature is dealing with rogue metadata of transitive dependencies.
+                Imagine a transitive dependency that is pulled onto your classpath. This dependency has poor quality metadata
+                that leads to some problems at dependency resolution time.
+                However, there is a new version of this dependency available, a version with improved metadata information.
+                Using forced modules, you can force a better version of this dependency and hence avoid the problem.
+                For an example, see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
             </para>
-            <section id='sec:forcing_modules'>
-                <title>Forcing certain module versions</title>
-                    <para>It is possible to configure dependency resolution to use a specific version for given dependency (transitive or not).
-                    The dependency is identified by group and name.
-                    This feature is useful when tackling version conflicts - for more information see <xref linkend='sub:version_conflicts'/>.
-                    Another interesting use case that drives this feature is dealing with rogue metadata of transitive dependencies.
-                    Imagine a transitive dependency that is pulled onto your classpath. This dependency has poor quality metadata
-                    that leads to some problems at dependency resolution time.
-                    However, there is a new version of this dependency available, a version with improved metadata information.
-                    Using forced modules, you can force a better version of this dependency and hence avoid the problem.
-                    For an example, see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
-                </para>
-            </section>
-            <section id='sec:dependency_resolve_actions'>
-                <title>Dependency resolve actions</title>
-                    <para>A dependency resolve action is executed for each resolved dependency and offers ways
-                    to manipulate the dependency metadata when the dependency is resolved.
-                    This feature is incubating, not entire dependency metadata can be manipulated at this time.
-                    At the moment, the dependency resolve action can be used to manipulate the dependency version.</para>
-                    <para>One of the use cases that was driving this feature was the requirement
+        </section>
+        <section id='sec:dependency_resolve_actions'>
+            <title>Dependency resolve actions</title>
+            <para>A dependency resolve action is executed for each resolved dependency and offers ways
+                to manipulate the dependency metadata when the dependency is resolved.
+                This feature is incubating, not entire dependency metadata can be manipulated at this time.
+                At the moment, the dependency resolve action can be used to manipulate the dependency version.</para>
+            <section id='sec:releasable_unit'>
+                <title>Modelling releaseable units</title>
+                <para>One of the use cases for dependency resolve actions was the requirement
                     of resolving all dependencies from a single releasable unit with the same consistent version.
                     Lets consider that the releasable unit is a set of libraries that are built, tested and published together.
                     Lets imagine that the releasable unit are all libraries that have 'org.gradle' group and we want them to use a consistent version:
                     <sample id="releasable-unit" dir="userguide/artifacts/resolutionStrategy" title="Forcing consistent version for a group of libraries">
                         <sourcefile file="build.gradle" snippet="releasable-unit"/>
                     </sample>
-                    </para>
-                    For more information and code samples see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
+                    For more information and code samples see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
+                </para>
+            </section>
+            <section id='sec:custom_versioning_scheme'>
+                <title>Custom versioning scheme</title>
+                <para>Another use case that supports the dependency resolve actions is a custom versioning scheme.
+                    Imagine an environment where the versions of libraries that can be declared in gradle builds are maintained and audited externally.
+                    In the build script, the developer declares dependencies using group, name and a placeholder for version, for example a String value: 'default'.
+                    The 'default' version is resolved to a specific version via a dependency resolve action, which looks up the version in some corporate catalog.
+                    The dependency resolve action implementation can be neatly encapsulated in a suite of corporate plugins.
+                    Here is an example of such dependency resolve action:
+                    <sample id="custom-versioning-scheme" dir="userguide/artifacts/resolutionStrategy" title="Using a custom versioning scheme">
+                        <sourcefile file="build.gradle" snippet="custom-versioning-scheme"/>
+                    </sample>
+                    For more information and code samples see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
+                </para>
+            </section>
+            <section id='sec:blacklisting_version'>
+                <title>Blacklisting a version with a replacement</title>
+                <para>One of the interesting scenarios for dependency resolve actions is blacklisting a certain version of a dependency
+                    and providing a replacement version. This is extremely useful if an unwanted transitive dependency is pulled in to the dependency graph.
+                    In this scenario the dependency resolve action can be used to specify a different version of an unwanted dependency.
+                    Why a transitive dependency might be unwanted? For example, it was published with troublesome metadata
+                    that causes the dependency resolution to fail. More specifically, our unwanted transitive dependency
+                    declares dependency to a library that cannot be found in any of the public repositories.
+                    There are many other reasons why certain version of a dependency might be unwanted and a different version is preferred.
+                </para><para>
+                    In below example, we will demonstrate how to avoid a dependency to 'org.cool.software:cool-library:1.2'
+                    and prefer different version of 'cool-library'. Let's imagine, version 1.2.1 contains important fixes
+                    and hence we prefer 1.2.1 over 1.2.
+                    Bear in mind that in the example below, only version 1.2 is replaced with 1.2.1.
+                    If there are other versions that participate in a conflict resolution the final version may be different.
+                    For example the 'newest' conflict resolution strategy can select version 1.3 because this version was also pulled transitively.
+                    <sample id="blacklisting_version" dir="userguide/artifacts/resolutionStrategy" title="Blacklisting a version with a replacement">
+                        <sourcefile file="build.gradle" snippet="blacklisting_version"/>
+                    </sample>
+                    For more information and code samples see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
+                </para>
             </section>
         </section>
     </section>
