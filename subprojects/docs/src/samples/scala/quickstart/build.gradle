@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 apply plugin: 'scala'
 // END SNIPPET use-plugin
 
-// START SNIPPET declare-scala-version
+// START SNIPPET scala-dependency
 repositories {
     mavenCentral()
 }
@@ -11,7 +11,7 @@ repositories {
 dependencies {
     compile 'org.scala-lang:scala-library:2.9.1'
 }
-// END SNIPPET declare-scala-version
+// END SNIPPET scala-dependency
 
 dependencies {
     compile 'commons-collections:commons-collections:3.2'

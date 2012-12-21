@@ -9,19 +9,17 @@ dependencies {
     testCompile 'junit:junit:4.11'
 }
 
-// START SNIPPET define-main
+// START SNIPPET custom-source-locations
 sourceSets {
     main {
         scala {
-            srcDir 'src/scala'
+            srcDirs = ['src/scala']
         }
     }
-// END SNIPPET define-main
     test {
         scala {
-            srcDir 'test/scala'
+            srcDirs = ['test/scala']
         }
     }
-// START SNIPPET define-main
 }
-// END SNIPPET define-main
+// END SNIPPET custom-source-locations

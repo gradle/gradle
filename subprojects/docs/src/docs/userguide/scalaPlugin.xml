@@ -16,10 +16,11 @@
 <chapter id="scala_plugin" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Scala Plugin</title>
 
-    <para>The Scala plugin extends the Java plugin to add support for Scala projects. It can deal with Scala-only
-        projects and with mixed Java/Scala projects. It can even deal with Java-only projects.
-        The Scala plugin supports joint compilation of Java and Scala source. This means your project can contain
-        Scala classes which use Java classes, and vice versa.
+    <para>The Scala plugin extends the Java plugin to add support for Scala projects. It can deal with
+        Scala code, mixed Scala and Java code, and even pure Java code (although we don't necessarily recommend to use it for the latter).
+        The plugin supports <emphasis>joint compilation</emphasis>, which allows to freely mix and match Scala and Java code,
+        with dependencies in both directions. For example, a Scala class can extend a Java class that in turn extends a Scala class.
+        This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
     </para>
 
     <section>
@@ -47,25 +48,25 @@
                 <td><literal>compileScala</literal></td>
                 <td><literal>compileJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
-                <td>Compiles production Scala source files using scalac.</td>
+                <td>Compiles production Scala source files.</td>
             </tr>
             <tr>
                 <td><literal>compileTestScala</literal></td>
                 <td><literal>compileTestJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
-                <td>Compiles test Scala source files using scalac.</td>
+                <td>Compiles test Scala source files.</td>
             </tr>
             <tr>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Scala</literal></td>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
-                <td>Compiles the given source set's Scala source files using scalac.</td>
+                <td>Compiles the given source set's Scala source files.</td>
             </tr>
             <tr>
                 <td><literal>scaladoc</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaDoc"/></td>
-                <td>Generates API documentation for the production Scala source files using scaladoc.</td>
+                <td>Generates API documentation for the production Scala source files.</td>
             </tr>
         </table>
         <para>The Scala plugin adds the following dependencies to tasks added by the Java plugin.</para>
@@ -112,8 +113,9 @@
         <title>Project layout</title>
         <para>The Scala plugin assumes the project layout shown below.  All the Scala source directories can contain
             Scala <emphasis>and</emphasis> Java code. The Java source directories may only contain Java source code.
-            None of these directories need exist or have anything in them. The Scala plugin will compile whatever it
-            finds, and handles anything which is missing.</para>
+            None of these directories need to exist or have anything in them; the Scala plugin will simply compile
+            whatever it finds.
+        </para>
         <table id='scalalayout'>
             <title>Scala plugin - project layout</title>
             <thead>
@@ -127,29 +129,29 @@
                 <td>
                     <filename>src/main/scala</filename>
                 </td>
-                <td>Production Scala source. May also contain Java source for joint compilation.</td>
+                <td>Production Scala sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectTestLayout.xml"/>
             <tr>
                 <td>
                     <filename>src/test/scala</filename>
                 </td>
-                <td>Test Scala source. May also contain Java source for joint compilation.</td>
+                <td>Test Scala sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectGenericLayout.xml"/>
             <tr>
                 <td>
                     <filename>src/<replaceable>sourceSet</replaceable>/scala</filename>
                 </td>
-                <td>Scala source for the given source set. May also contain Java source for joint compilation.</td>
+                <td>Scala sources for the given source set. May also contain Java sources for joint compilation.</td>
             </tr>
         </table>
 
         <section>
             <title>Changing the project layout</title>
-            <para>TBD</para>
+            <para>Just like the Java plugin, the Scala plugin allows to configure custom locations for Scala production and test sources.</para>
             <sample id="customScalaSourceLayout" dir="scala/customizedLayout" title="Custom Scala source layout">
-                <sourcefile file="build.gradle" snippet="define-main"/>
+                <sourcefile file="build.gradle" snippet="custom-source-locations"/>
             </sample>
         </section>
 
@@ -157,12 +159,37 @@
 
     <section>
         <title>Dependency management</title>
-        <para>The Scala plugin adds a <literal>scalaTools</literal> configuration, which it uses to locate the Scala
-            tools, such as scalac, to use. You must specify the version of Scala to use. Below is an example.
+        <para>
+            Scala projects need to add a <literal>scala-library</literal> dependency to the appropriate configuration(s). This dependency will then
+            be used as a compile and runtime dependency for the project's Scala code. It will also be used to infer a <literal>scala-compiler</literal>
+            dependency for executing the Scala compiler and Scaladoc tool, respectively.
+            <footnote>
+                More precisely, if a <literal>ScalaCompile</literal> or <literal>ScalaDoc</literal> task's <literal>scalaClasspath</literal> is empty,
+                and the project has at least one repository declared, the plugin searches the task's <literal>classpath</literal> for a
+                <literal>scala-library</literal> artifact, and adds a corresponding <literal>scala-compiler</literal> repository dependency to the
+                task's <literal>scalaClasspath</literal>.
+            </footnote>
         </para>
-        <sample id="declareScalaTools" dir="scala/quickstart" title="Declaring the Scala version to use">
-            <sourcefile file="build.gradle" snippet="declare-scala-version"/>
+        <para>
+            If Scala is used for production code, the <literal>scala-library</literal> dependency should be added to the
+            <literal>compile</literal> configuration:
+        </para>
+        <sample id="declareScalaDependency" dir="scala/quickstart" title="Declaring a Scala dependency for production code">
+            <sourcefile file="build.gradle" snippet="scala-dependency"/>
         </sample>
+        <para>
+            If Scala is only used for test code, the <literal>scala-library</literal> dependency should be added to the <literal>testCompile</literal>
+            (but not the <literal>compile</literal>)
+            configuration:
+        </para>
+        <sample id="declareScalaTestDependency" dir="userguide/scala/scalaDependency" title="Declaring a Scala dependency for test code">
+            <sourcefile file="build.gradle" snippet="scala-test-dependency"/>
+        </sample>
+        <para>
+            In earlier Gradle versions, it was necessary to add the <literal>scala-compiler</literal> dependency to the <literal>scalaTools</literal>
+            configuration. This is now deprecated in favor of automatic configuration of <literal>scala-compiler</literal> (see above), which is more
+            convenient and makes it easier to compile against multiple Scala versions.
+        </para>
     </section>
 
     <section>
