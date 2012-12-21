@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -25,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
@@ -33,14 +35,11 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
-import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Extends {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
@@ -50,7 +49,6 @@ import java.util.regex.Pattern;
  */
 public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     public static final String GROOVY_CONFIGURATION_NAME = "groovy";
-    private static final Pattern GROOVY_JAR_PATTERN = Pattern.compile("(groovy(?:-all)?)-(\\d.*?)(-indy)?.jar");
 
     private final FileResolver fileResolver;
     private ProjectInternal project;
@@ -142,22 +140,23 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         Configuration groovyConfiguration = project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME);
         if (!groovyConfiguration.getDependencies().isEmpty()) { return groovyConfiguration; }
 
-        Matcher groovyJar = findGroovyJar(classpath);
+        GroovyJarFile groovyJar = findGroovyJarFile(classpath);
         if (groovyJar == null) { return groovyConfiguration; }
 
-        if (project.getRepositories().isEmpty()) {
-            return project.files(groovyJar.group(0));
+        if (groovyJar.isGroovyAll()) {
+            return project.files(groovyJar.getFileName());
         }
 
-        // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
-        String notation = "org.codehaus.groovy:" + groovyJar.group(1) + ":" + groovyJar.group(2);
-        if (groovyJar.group(3) != null) {
-            notation += ":indy";
+        if (project.getRepositories().isEmpty()) {
+            return groovyConfiguration;
         }
+
+        String notation = groovyJar.getDependencyNotation();
         List<Dependency> dependencies = Lists.newArrayList();
+        // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
         dependencies.add(project.getDependencies().create(notation));
-        if (groovyJar.group(1).equals("groovy") && VersionNumber.parse(groovyJar.group(2)).getMajor() >= 2) {
-            // for when AntGroovyCompiler is used
+        if (groovyJar.getVersion().getMajor() >= 2) {
+            // add groovy-ant to bring in AntGroovyCompiler
             dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
         }
         return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
@@ -167,13 +166,12 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         return convention.getPlugin(JavaPluginConvention.class);
     }
 
-    private Matcher findGroovyJar(Iterable<File> classpath) {
+    @Nullable
+    private GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
         if (classpath == null) { return null; }
         for (File file : classpath) {
-            Matcher matcher = GROOVY_JAR_PATTERN.matcher(file.getName());
-            if (matcher.matches()) {
-                return matcher;
-            }
+            GroovyJarFile groovyJar = GroovyJarFile.parse(file);
+            if (groovyJar != null) { return groovyJar; }
         }
         return null;
     }
