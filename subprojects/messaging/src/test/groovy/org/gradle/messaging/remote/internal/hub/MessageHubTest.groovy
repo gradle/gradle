@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.LinkedBlockingDeque
+import java.util.concurrent.LinkedBlockingQueue
 
 class MessageHubTest extends ConcurrentSpec {
     final Action<Throwable> errorHandler = Mock()
@@ -617,7 +617,7 @@ class MessageHubTest extends ConcurrentSpec {
 
     private static class MockOutgoingConnection implements Connection<InterHubMessage> {
         private final Dispatch<InterHubMessage> dispatch
-        private final BlockingQueue<InterHubMessage> incoming = new LinkedBlockingDeque<>()
+        private final BlockingQueue<InterHubMessage> incoming = new LinkedBlockingQueue<>()
 
         MockOutgoingConnection(Dispatch<InterHubMessage> dispatch) {
             this.dispatch = dispatch
@@ -641,8 +641,8 @@ class MessageHubTest extends ConcurrentSpec {
     }
 
     private static class TestConnection implements Connection<InterHubMessage> {
-        private final BlockingQueue<InterHubMessage> incoming = new LinkedBlockingDeque<>()
-        private final BlockingQueue<InterHubMessage> outgoing = new LinkedBlockingDeque<>()
+        private final BlockingQueue<InterHubMessage> incoming = new LinkedBlockingQueue<>()
+        private final BlockingQueue<InterHubMessage> outgoing = new LinkedBlockingQueue<>()
 
         void dispatch(InterHubMessage message) {
             outgoing.put(message)
