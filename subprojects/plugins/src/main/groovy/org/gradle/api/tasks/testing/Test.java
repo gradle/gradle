@@ -420,8 +420,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         File binaryResultsDir = new File(getTemporaryDir(), "binary-test-results");
         TestReportDataCollector testReportDataCollector = null;
         if (isTestReport() || testFramework instanceof JUnitTestFramework) {
-            //TODO SF this is obviously work in progress, add coverage for binary results interference
-
             getProject().delete(binaryResultsDir);
             getProject().mkdir(binaryResultsDir);
 
