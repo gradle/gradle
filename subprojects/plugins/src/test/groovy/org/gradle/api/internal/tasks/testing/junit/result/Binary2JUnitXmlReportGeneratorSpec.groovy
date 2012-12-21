@@ -32,7 +32,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     private generator = new Binary2JUnitXmlReportGenerator(temp.dir, resultsProvider)
 
     def setup() {
-        generator.saxWriter = Mock(SaxJUnitXmlResultWriter)
+        generator.saxWriter = Mock(JUnitXmlResultWriter)
     }
 
     def "writes results"() {

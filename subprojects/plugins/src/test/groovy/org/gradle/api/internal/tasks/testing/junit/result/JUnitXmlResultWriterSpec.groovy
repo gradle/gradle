@@ -30,10 +30,10 @@ import static org.hamcrest.Matchers.equalTo
 /**
  * by Szczepan Faber, created at: 11/16/12
  */
-class SaxJUnitXmlResultWriterSpec extends Specification {
+class JUnitXmlResultWriterSpec extends Specification {
 
     private provider = Mock(TestResultsProvider)
-    private generator = new SaxJUnitXmlResultWriter("localhost", provider)
+    private generator = new JUnitXmlResultWriter("localhost", provider)
 
     private startTime = 1353344968049
 

@@ -34,13 +34,13 @@ public class Binary2JUnitXmlReportGenerator {
 
     private final File testResultsDir;
     private final TestResultsProvider testResultsProvider;
-    SaxJUnitXmlResultWriter saxWriter;
+    JUnitXmlResultWriter saxWriter;
     private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
     public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.saxWriter = new SaxJUnitXmlResultWriter(getHostname(), testResultsProvider);
+        this.saxWriter = new JUnitXmlResultWriter(getHostname(), testResultsProvider);
     }
 
     public void generate() {

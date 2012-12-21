@@ -31,12 +31,12 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 11/13/12
  */
-public class SaxJUnitXmlResultWriter {
+public class JUnitXmlResultWriter {
 
     private final String hostName;
     private final TestResultsProvider testResultsProvider;
 
-    public SaxJUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider) {
+    public JUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider) {
         this.hostName = hostName;
         this.testResultsProvider = testResultsProvider;
     }
