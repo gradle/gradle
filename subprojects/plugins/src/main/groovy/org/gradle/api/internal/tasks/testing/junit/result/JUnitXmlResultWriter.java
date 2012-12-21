@@ -21,6 +21,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.messaging.remote.internal.PlaceholderException;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -108,15 +109,16 @@ public class JUnitXmlResultWriter {
 
                 writer.writeEndElement();
             }
-
             writer.writeEndElement();
         }
     }
 
-    //below methods are "inherited" from the original xml writer
-
     private String failureMessage(Throwable throwable) {
         try {
+            if (throwable instanceof PlaceholderException) { // Original Exception could not be serialized.
+                return String.format("Could not determine failure message for exception of type %s: %s",
+                        ((PlaceholderException) throwable).getExceptionClassName(), throwable.getCause());
+            }
             return throwable.toString();
         } catch (Throwable t) {
             return String.format("Could not determine failure message for exception of type %s: %s",

@@ -30,7 +30,8 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 public class JUnitIntegrationTest extends AbstractIntegrationTest {
-    @Rule public final TestResources resources = new TestResources()
+    @Rule
+    public final TestResources resources = new TestResources()
 
     @Before
     public void before() {
@@ -163,7 +164,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenBeforeAndAfter').assertTestFailed('ok', equalTo('java.lang.AssertionError: before failed'), equalTo('java.lang.AssertionError: after failed'))
         result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
-        result.testClass('org.gradle.BrokenException').assertTestFailed('broken', containsString('org.gradle.BrokenException$BrokenRuntimeException'))
+        result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: '))
         result.testClass('org.gradle.Unloadable').assertTestFailed('initializationError', equalTo('java.lang.AssertionError: failed'))
     }
 
