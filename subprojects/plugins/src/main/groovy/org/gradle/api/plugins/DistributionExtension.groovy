@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.Incubating
+
 /**
  * Extension for {@link JavaLibraryDistributionPlugin }
  * 
@@ -34,6 +36,7 @@ package org.gradle.api.plugins
  * @author scogneau
  *
  */
+@Incubating
 class DistributionExtension {
 
 	/**

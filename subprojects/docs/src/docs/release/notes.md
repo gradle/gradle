@@ -9,48 +9,6 @@ The standard way to embed Gradle, the [Tooling API](userguide/embedding.html) us
 In Gradle 1.4, we refactored the publication and packaging of the Tooling API. It now ships as a single Jar whose only external dependency is SLF4J.
 All other third-party dependencies are packaged inside the Jar and shaded to avoid conflicts with the embedder's classpath. Happy embedding! Now go and embed Gradle!
 
-### [Java Library Distribution Plugin](userguide/javaLibraryDistributionPlugin.html)
-
-Thanks to a contribution by Sébastien Cogneau, it is now much easier to create a standalone distribution for a JVM library.
-
-Let's walk through a small example. Let's assume we have a project with the following layout:
-
-    MyLibrary
-    |____build.gradle
-    |____libs // a directory containing third party libraries
-    | |____a.jar
-    |____src
-    | |____main
-    | | |____java
-    | | | |____SomeLibrary.java
-    | |____dist // additional files that should go into the distribution
-    | | |____dir2
-    | | | |____file2.txt
-    | | |____file1.txt
-
-In the past, it was necessary to declare a custom `zip` task that assembles the distribution. Now, the Java Library Distribution Plugin will do the job for you:
-
-    apply plugin: 'java-library-distribution'
-
-    dependencies {
-        runtime files('libs/a.jar')
-    }
-
-    distribution {
-	    name = 'MyLibraryDistribution'
-    }
-
-Given this configuration, running `gradle distZip` will produce a zip file named `MyLibraryDistribution` that contains the library itself,
-its runtime dependencies, and everything in the `src/dist` directory.
-
-To add further files to the distribution, configure the `distZip` task accordingly:
-
-    distZip {
-        from('aFile')
-    	from('anotherFile') {
-    		into('dist')
-    	}
-    }
 
 ### Dependency resolution improvements
 
@@ -299,6 +257,49 @@ For example, you could replace the version range for a dependency with the actua
 This allows the POM file to describe how the module should be consumed, rather than be a description of how the module was built.
 
 For more information on the new publishing mechanism, see the [new User Guide chapter](userguide/publishing_maven.html).
+
+### [Java Library Distribution Plugin](userguide/javaLibraryDistributionPlugin.html)
+
+Thanks to a contribution by Sébastien Cogneau, it is now much easier to create a standalone distribution for a JVM library.
+
+Let's walk through a small example. Let's assume we have a project with the following layout:
+
+    MyLibrary
+    |____build.gradle
+    |____libs // a directory containing third party libraries
+    | |____a.jar
+    |____src
+    | |____main
+    | | |____java
+    | | | |____SomeLibrary.java
+    | |____dist // additional files that should go into the distribution
+    | | |____dir2
+    | | | |____file2.txt
+    | | |____file1.txt
+
+In the past, it was necessary to declare a custom `zip` task that assembles the distribution. Now, the Java Library Distribution Plugin will do the job for you:
+
+    apply plugin: 'java-library-distribution'
+
+    dependencies {
+        runtime files('libs/a.jar')
+    }
+
+    distribution {
+	    name = 'MyLibraryDistribution'
+    }
+
+Given this configuration, running `gradle distZip` will produce a zip file named `MyLibraryDistribution` that contains the library itself,
+its runtime dependencies, and everything in the `src/dist` directory.
+
+To add further files to the distribution, configure the `distZip` task accordingly:
+
+    distZip {
+        from('aFile')
+    	from('anotherFile') {
+    		into('dist')
+    	}
+    }
 
 ## Deprecations
 

@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.GradleException
+import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Zip
@@ -26,6 +28,7 @@ import org.gradle.api.tasks.bundling.Zip
  * @author scogneau
  *
  */
+@Incubating
 class JavaLibraryDistributionPlugin implements Plugin<Project> {
     static final String JAVA_LIBRARY_PLUGIN_NAME = "java-library-distribution"
     static final String JAVA_LIBRARY_GROUP = JAVA_LIBRARY_PLUGIN_NAME
@@ -39,29 +42,23 @@ class JavaLibraryDistributionPlugin implements Plugin<Project> {
         project.plugins.apply(JavaPlugin)
         addPluginExtension()
         addDistZipTask()
-        addValidation()
-    }
-
-    void addValidation() {
-        project.afterEvaluate {
-            if (project.distribution.name == null) {
-                throw new IllegalArgumentException("Distribution name must not be null! Check your configuration of the java-library-distribution plugin.")
-            }
-        }
     }
 
     private void addPluginExtension() {
-        extension = new DistributionExtension()
+        extension = project.extensions.create("distribution", DistributionExtension)
         extension.name = project.name
-        project.extensions.add("distribution", extension)
     }
-
 
     private void addDistZipTask() {
         def distZipTask = project.tasks.add(TASK_DIST_ZIP_NAME, Zip)
         distZipTask.description = "Bundles the project as a java library distribution."
         distZipTask.group = JAVA_LIBRARY_GROUP
-        distZipTask.conventionMapping.baseName = { extension.name }
+        distZipTask.conventionMapping.baseName = {
+            if (project.distribution.name == null) {
+                throw new GradleException("Distribution name must not be null! Check your configuration of the java-library-distribution plugin.")
+            }
+            extension.name
+        }
         def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]
         distZipTask.with {
             from(jar)

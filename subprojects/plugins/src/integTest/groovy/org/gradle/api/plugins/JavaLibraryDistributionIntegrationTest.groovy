@@ -90,6 +90,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
             }
             """
         then:
+        executer.withArgument("-S")
         runAndFail 'distZip'
         failure.assertThatDescription(containsString("Distribution name must not be null! Check your configuration of the java-library-distribution plugin."))
     }
