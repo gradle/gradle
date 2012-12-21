@@ -18,12 +18,26 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 /**
  * by Szczepan Faber, created at: 11/21/12
  */
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        buildFile << """
+gradle.projectsEvaluated {
+  println "all evaluated"
+}
+
+allprojects {
+  afterEvaluate {
+    println "evaluated project " + path
+  }
+}
+"""
+        file("gradle.properties") << "systemProp.org.gradle.configuration.ondemand=true"
+    }
 
     //TODO SF more coverage, possibly new integ test 'mode', develop 'proper' fixture code
     def "projects are evaluated on demand"() {
@@ -40,23 +54,10 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 }
 """
 
-        buildFile << """
-gradle.projectsEvaluated {
-  println "all evaluated"
-}
+        buildFile << "\ntask foo"
 
-allprojects {
-  task foo
-  afterEvaluate {
-    println "evaluated " + path
-  }
-}
-"""
+        file("api/build.gradle") << "apply plugin: 'java'"
 
-        file("api/build.gradle") << """
-apply plugin: 'java'
-//foo.dependsOn ":util:utility"
-"""
         file("impl/build.gradle") << """
 apply plugin: 'java'
 dependencies {
@@ -65,81 +66,61 @@ dependencies {
 """
         file("util/build.gradle") << "task utility"
 
-        file("gradle.properties") << "systemProp.org.gradle.configuration.ondemand=true"
-
-        when:
-        run(":api:build")
-
-        then:
-        assertEvaluated(":", ":api")
-        assertNotEvaluated(":util", ":impl")
-
 //        when:
-//        run(":api:foo")
+//        run(":api:build")
 //
 //        then:
-//        assertEvaluated(":", ":api", ":util")
-//        assertNotEvaluated(":impl")
-//
+//        assertOnlyEvaluated(":", ":api")
+
         when:
         run(":impl:build")
 
         then:
-        assertEvaluated(":", ":api", ":impl")
-        assertNotEvaluated(":util")
+        assertOnlyEvaluated(":", ":api", ":impl")
 
         when:
-        run(":foo")
+        run(":projects")
 
         then:
-        assertEvaluated(":")
-        assertNotEvaluated(":api", ":impl", ":util")
+        assertOnlyEvaluated(":")
 
         when:
         run("foo")
 
         then:
-        assertEvaluated(":", ":api", ":impl", ":util")
+        assertOnlyEvaluated(":", ":api", ":impl", ":util")
 
         when:
         inDirectory("api")
         run("build")
 
         then:
-        assertEvaluated(":", ":api")
-        assertNotEvaluated(":impl", ":util")
+        assertOnlyEvaluated(":", ":api")
 
         when:
         inDirectory("impl")
         run("build")
 
         then:
-        assertEvaluated(":", ":api", ":impl")
-        assertNotEvaluated(":util")
+        assertOnlyEvaluated(":", ":api", ":impl")
 
         when:
         run("impl:dependencies")
         then:
-        assertEvaluated(":", ":impl")
-        assertNotEvaluated(":util", ":api")
+        assertOnlyEvaluated(":", ":impl")
     }
 
-    ExecutionResult run(String ... tasks) {
-        super.run(tasks)
+    void assertOnlyEvaluated(String ... paths) {
+        assertEvaluated(paths)
+        assert output.count("evaluated project") == paths.size()
     }
 
     void assertEvaluated(String ... paths) {
         paths.each {
-            assert output.contains("evaluated $it")
+            assert output.contains("evaluated project $it")
             assert output.contains("all evaluated")
             //making sure the global projectsEvaluated hook was fired last
             assert output.indexOf("all evaluated") > output.indexOf("evaluated $it")
-        }
-    }
-
-    void assertNotEvaluated(String ... paths) {
-        paths.each {
-            assert !output.contains("evaluated $it")
         }
     }
 }

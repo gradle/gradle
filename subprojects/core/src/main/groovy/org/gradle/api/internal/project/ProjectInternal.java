@@ -39,6 +39,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     Project evaluate();
 
+    void ensureEvaluated();
+
     TaskContainerInternal getTasks();
 
     TaskContainerInternal getImplicitTasks();

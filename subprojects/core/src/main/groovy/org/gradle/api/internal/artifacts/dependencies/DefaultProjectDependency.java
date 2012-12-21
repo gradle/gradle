@@ -155,7 +155,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             if (!instruction.isRebuild()) {
                 return;
             }
-            dependencyProject.evaluate();
+            dependencyProject.ensureEvaluated();
             Configuration configuration = getProjectConfiguration();
             context.add(configuration);
             context.add(configuration.getAllArtifacts());
