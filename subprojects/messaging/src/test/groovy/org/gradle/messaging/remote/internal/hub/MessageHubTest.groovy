@@ -279,15 +279,13 @@ class MessageHubTest extends ConcurrentSpec {
     }
 
     def "queued incoming messages are dispatched when handler added"() {
-        Connection<InterHubMessage> connection = Mock()
+        def connection = new TestConnection()
         Dispatch<String> handler = Mock()
 
         given:
-        1 * connection.receive() >> new ChannelMessage(new ChannelIdentifier("channel"), "message 1")
-        1 * connection.receive() >> new ChannelMessage(new ChannelIdentifier("channel"), "message 2")
-        1 * connection.receive() >> { instant.messagesQueued; null }
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 1"))
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 2"))
         hub.addConnection(connection)
-        thread.blockUntil.messagesQueued
 
         when:
         hub.addHandler("channel", handler)
@@ -304,6 +302,9 @@ class MessageHubTest extends ConcurrentSpec {
 
         and:
         instant.message1Received < instant.message2Received
+
+        cleanup:
+        connection.stop()
     }
 
     def "each incoming message is dispatched to exactly one handler"() {
