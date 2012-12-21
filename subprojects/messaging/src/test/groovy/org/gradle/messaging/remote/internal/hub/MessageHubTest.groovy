@@ -221,7 +221,8 @@ class MessageHubTest extends ConcurrentSpec {
     }
 
     def "stops dispatching outgoing messages to failed connection"() {
-        Connection<InterHubMessage> connection = Mock()
+        Dispatch<InterHubMessage> outgoing = Mock()
+        def connection = new MockOutgoingConnection(outgoing)
         def dispatch = hub.getOutgoing("channel", String)
         def failure = new RuntimeException()
 
@@ -231,15 +232,19 @@ class MessageHubTest extends ConcurrentSpec {
 
         when:
         hub.addConnection(connection)
-        hub.stop()
+        thread.blockUntil.broken
 
         then:
-        1 * connection.dispatch({ it.payload == "message 1" }) >> {
+        1 * outgoing.dispatch({ it.payload == "message 1" }) >> {
             throw failure
         }
-        1 * connection.receive() >> null
-        1 * errorHandler.execute(failure)
+        1 * errorHandler.execute(failure) >> {
+            instant.broken
+        }
         0 * _._
+
+        cleanup:
+        connection.stop()
     }
 
     def "incoming messages are dispatched asynchronously to handler"() {
@@ -361,13 +366,17 @@ class MessageHubTest extends ConcurrentSpec {
         connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 1"))
         connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 2"))
         connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 3"))
-        connection.stop()
-        hub.stop()
+        thread.blockUntil.failed
 
         then:
         1 * handler.dispatch("message 1") >> { throw failure }
-        1 * errorHandler.execute(failure)
+        1 * errorHandler.execute(failure) >> {
+            instant.failed
+        }
         0 * _._
+
+        cleanup:
+        connection.stop()
     }
 
     def "stop blocks until queued incoming messages handled"() {

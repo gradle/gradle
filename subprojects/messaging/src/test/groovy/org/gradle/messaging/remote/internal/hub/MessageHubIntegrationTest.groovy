@@ -27,6 +27,8 @@ import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
+import java.util.concurrent.CountDownLatch
+
 class MessageHubIntegrationTest extends ConcurrentSpec {
     final TcpOutgoingConnector<InterHubMessage> outgoingConnector = new TcpOutgoingConnector<InterHubMessage>(new InterHubMessageSerializer())
     final TcpIncomingConnector<InterHubMessage> incomingConnector = new TcpIncomingConnector<InterHubMessage>(executorFactory, new InterHubMessageSerializer(), new InetAddressFactory(), new UUIDGenerator())
@@ -74,6 +76,7 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
     }
 
     def "can wire three hubs together"() {
+        def replies = new CountDownLatch(8)
         Dispatch<String> client1Handler = Mock()
         Dispatch<String> client2Handler = Mock()
         Dispatch<String> serverHandler = Mock()
@@ -97,7 +100,7 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
         serverDispatch.dispatch("message 6")
         serverDispatch.dispatch("message 7")
         serverDispatch.dispatch("message 8")
-        thread.blockUntil.repliesReceived
+        replies.await()
         client1.stop()
         client2.stop()
         server.stop()
@@ -105,14 +108,14 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
         then:
         _ * client1Handler.dispatch(_) >> { String message -> client1Dispatch.dispatch("[${message}]") }
         _ * client2Handler.dispatch(_) >> { String message -> client2Dispatch.dispatch("[${message}]") }
-        1 * serverHandler.dispatch("[message 1]")
-        1 * serverHandler.dispatch("[message 2]")
-        1 * serverHandler.dispatch("[message 3]")
-        1 * serverHandler.dispatch("[message 4]")
-        1 * serverHandler.dispatch("[message 5]")
-        1 * serverHandler.dispatch("[message 6]")
-        1 * serverHandler.dispatch("[message 7]")
-        1 * serverHandler.dispatch("[message 8]") >> { instant.repliesReceived }
+        1 * serverHandler.dispatch("[message 1]") >> { replies.countDown() }
+        1 * serverHandler.dispatch("[message 2]") >> { replies.countDown() }
+        1 * serverHandler.dispatch("[message 3]") >> { replies.countDown() }
+        1 * serverHandler.dispatch("[message 4]") >> { replies.countDown() }
+        1 * serverHandler.dispatch("[message 5]") >> { replies.countDown() }
+        1 * serverHandler.dispatch("[message 6]") >> { replies.countDown() }
+        1 * serverHandler.dispatch("[message 7]") >> { replies.countDown() }
+        1 * serverHandler.dispatch("[message 8]") >> { replies.countDown() }
         0 * _._
     }
 
