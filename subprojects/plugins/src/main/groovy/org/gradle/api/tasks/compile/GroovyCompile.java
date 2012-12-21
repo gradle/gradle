@@ -66,7 +66,7 @@ public class GroovyCompile extends AbstractCompile {
         spec.setClasspath(getClasspath());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setGroovyClasspath(groovyClasspath);
+        spec.setGroovyClasspath(getGroovyClasspath());
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
@@ -79,7 +79,7 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     private void checkGroovyClasspathIsNonEmpty() {
-        if (groovyClasspath.isEmpty()) {
+        if (getGroovyClasspath().isEmpty()) {
             throw new InvalidUserDataException("'" + getName() + ".groovyClasspath' must not be empty. It is either configured automatically by the 'groovy-base' plugin, or can be set manually.");
         }
     }
