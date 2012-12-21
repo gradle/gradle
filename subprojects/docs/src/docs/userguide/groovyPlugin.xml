@@ -47,25 +47,25 @@
                 <td><literal>compileGroovy</literal></td>
                 <td><literal>compileJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
-                <td>Compiles production Groovy source files using groovyc.</td>
+                <td>Compiles production Groovy source files.</td>
             </tr>
             <tr>
                 <td><literal>compileTestGroovy</literal></td>
                 <td><literal>compileTestJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
-                <td>Compiles test Groovy source files using groovyc.</td>
+                <td>Compiles test Groovy source files.</td>
             </tr>
             <tr>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Groovy</literal></td>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
-                <td>Compiles the given source set's Groovy source files using groovyc.</td>
+                <td>Compiles the given source set's Groovy source files.</td>
             </tr>
             <tr>
                 <td><literal>groovydoc</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.javadoc.Groovydoc"/></td>
-                <td>Generates API documentation for the production Groovy source files using groovydoc.</td>
+                <td>Generates API documentation for the production Groovy source files.</td>
             </tr>
         </table>
         <para>The Groovy plugin adds the following dependencies to tasks added by the Java plugin.</para>
@@ -106,8 +106,8 @@
                         url='http://gant.codehaus.org'/>).
                 </para>
             </footnote>
-            None of these directories need exist or have anything in them. The Groovy plugin will compile whatever it
-            finds, and skip anything which is missing.
+            None of these directories need to exist or have anything in them; the Groovy plugin will simply compile
+            whatever it finds.
         </para>
 
         <table id='groovylayout'>
@@ -123,27 +123,27 @@
                 <td>
                     <filename>src/main/groovy</filename>
                 </td>
-                <td>Production Groovy source. May also contain Java source for joint compilation.</td>
+                <td>Production Groovy sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectTestLayout.xml"/>
             <tr>
                 <td>
                     <filename>src/test/groovy</filename>
                 </td>
-                <td>Test Groovy source. May also contain Java source for joint compilation.</td>
+                <td>Test Groovy sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectGenericLayout.xml"/>
             <tr>
                 <td>
                     <filename>src/<replaceable>sourceSet</replaceable>/groovy</filename>
                 </td>
-                <td>Groovy source for the given source set. May also contain Java source for joint compilation.</td>
+                <td>Groovy sources for the given source set. May also contain Java sources for joint compilation.</td>
             </tr>
         </table>
 
         <section>
             <title>Changing the project layout</title>
-            <para>Like the Java plugin, the Groovy plugin allows to configure custom locations for Groovy production and test sources.</para>
+            <para>Just like the Java plugin, the Groovy plugin allows to configure custom locations for Groovy production and test sources.</para>
             <sample id="customGroovySourceLayout" dir="groovy/customizedLayout" title="Custom Groovy source layout">
                 <sourcefile file="build.gradle" snippet="custom-source-locations"/>
             </sample>
@@ -154,36 +154,31 @@
     <section>
         <title>Dependency management</title>
         <para>Because Gradle itself is partly implemented in Groovy, and its build language is also based on Groovy, Gradle already ships
-            with a Groovy library (1.8.6 as of Gradle 1.3). Nevertheless, Groovy projects have to explicitly declare
-            which Groovy library should be used for building the project. This may be the same or a different Groovy version than the one
-            that Gradle uses internally. The chosen Groovy library is then used to populate the class paths of such tasks as
-            <literal>GroovyCompile</literal>, <literal>Groovydoc</literal>, and <literal>Test</literal>. It is also used to get hold of the
-            Groovy compiler and Groovydoc tool in the first place.
+            with a Groovy library (1.8.6 as of Gradle 1.3). Nevertheless, Groovy projects need to explicitly add a Groovy dependency to
+            the appropriate configuration(s). This dependency, which can be the same or a different Groovy version than the one used internally by Gradle,
+            will then be used as a compile and runtime dependency for the project's Groovy code. It will also be used to execute the Groovy
+            compiler and Groovydoc tool, respectively.
+            <footnote>
+                More precisely, if a <literal>GroovyCompile</literal> or <literal>Groovydoc</literal> task's <literal>groovyClasspath</literal>
+                is empty, the plugin searches the task's <literal>classpath</literal> for a
+                <literal>groovy-all(-indy)</literal> or <literal>groovy(-indy)</literal> artifact. If it finds the former, it adds the same artifact
+                to <literal>groovyClasspath</literal>. If it finds the latter, and the project has at least one repository declared, the plugin adds
+                a corresponding repository dependency to <literal>groovyClasspath</literal>.
+            </footnote>
         </para>
         <para>
-            If Groovy is used both for production and test code, simply add a Groovy dependency to the <literal>compile</literal>
+            If Groovy is used both for production code, the Groovy dependency should be added to the <literal>compile</literal>
             configuration:
         </para>
         <sample id="quickstartGroovyDependency" dir="groovy/quickstart" title="Configuration of Groovy dependency">
             <sourcefile file="build.gradle" snippet="groovy-dependency"/>
         </sample>
         <para>
-            If Groovy is only used for test code, add a Groovy dependency to the <literal>testCompile</literal>
+            If Groovy is only used for test code, the Groovy dependency should be added to the <literal>testCompile</literal>
             (but not the <literal>compile</literal>) configuration:
         </para>
         <sample id="groovyTestDependency" dir="userguide/groovy/groovyDependency" title="Configuration of Groovy test dependency">
             <sourcefile file="build.gradle" snippet="groovy-test-dependency"/>
-        </sample>
-        <para>In earlier Gradle versions, the Groovy dependency was added to a special <literal>groovy</literal> configuration
-            added by the Groovy plugin. This is no longer the preferred choice, but is still supported:
-        </para>
-        <sample id="groovyConfiguration" dir="userguide/groovy/groovyDependency" title="Configuration of Groovy configuration">
-            <sourcefile file="build.gradle" snippet="groovy-configuration"/>
-        </sample>
-        <para>The Groovy library doesn't necessarily have to come from a repository. It could also come from a local
-            <literal>lib</literal> directory, perhaps checked in to source control:</para>
-        <sample id="groovyFileDependency" dir="userguide/tutorial/groovyWithFlatDir" title="Configuration of Groovy file dependency">
-            <sourcefile file="build.gradle" snippet="groovy-dependency"/>
         </sample>
         <para>
             To use the same Groovy library that ships with Gradle, declare a <literal>localGroovy()</literal> dependency. Note that
@@ -193,6 +188,19 @@
         <sample id="bundledGroovyDependency" dir="userguide/groovy/groovyDependency" title="Configuration of bundled Groovy dependency">
             <sourcefile file="build.gradle" snippet="bundled-groovy-dependency"/>
         </sample>
+        <para>In earlier Gradle versions, the Groovy dependency was instead added to the <literal>groovy</literal> configuration.
+            This is now deprecated in favor of adding it to a "standard" configuration like <literal>compile</literal> or <literal>testCompile</literal>,
+            which gives more control over what (not) to use Groovy for, and makes it easier to compile against multiple Groovy versions.
+        </para>
+        <sample id="groovyConfiguration" dir="userguide/groovy/groovyDependency" title="Configuration of Groovy configuration">
+            <sourcefile file="build.gradle" snippet="groovy-configuration"/>
+        </sample>
+        <para>The Groovy library doesn't necessarily have to come from a remote repository. It could also come from a local
+            <literal>lib</literal> directory, perhaps checked in to source control:</para>
+        <sample id="groovyFileDependency" dir="userguide/tutorial/groovyWithFlatDir" title="Configuration of Groovy file dependency">
+            <sourcefile file="build.gradle" snippet="groovy-dependency"/>
+        </sample>
+
     </section>
 
     <section>
