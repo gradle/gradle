@@ -31,11 +31,11 @@ class OutputScraper {
         this.evaluatedProjects = evaluatedProjects
     }
 
-    void assertProjectsEvaluated(Collection projectPaths) {
-        if (!projectPaths.empty && evaluatedProjects.empty) {
+    void assertProjectsEvaluated(Collection expectedProjects) {
+        if (!expectedProjects.empty && evaluatedProjects.empty) {
             throw new AssertionError(EVAL_NOT_FOUND)
         }
-        assert evaluatedProjects == projectPaths as List
+        assert evaluatedProjects == expectedProjects as List
     }
 
     static List<String> getEvaluatedProjects(String output) {
@@ -48,7 +48,7 @@ class OutputScraper {
                 assertNotEvaluated(allEvaluated, it)
                 evaluatedProjects << ':'
             } else {
-                def m = it =~ /Evaluating project '(.*)' using build file.*/
+                def m = it =~ /Evaluating project '(.*)' using.*/
                 if (m) {
                     assertNotEvaluated(allEvaluated, it)
                     evaluatedProjects << m.group(1)

@@ -38,6 +38,8 @@ class AbstractIntegrationSpec extends Specification {
     private MavenFileRepository mavenRepo
     private IvyFileRepository ivyRepo
 
+    private List<Closure> executerActions = []
+
     protected TestFile getBuildFile() {
         testDir.file('build.gradle')
     }
@@ -91,7 +93,12 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     protected ExecutionResult succeeds(String... tasks) {
+        supplyExecuterActions()
         result = executer.withTasks(*tasks).run()
+    }
+
+    void supplyExecuterActions() {
+        executerActions.each { it(executer) }
     }
 
     protected ExecutionFailure runAndFail(String... tasks) {
@@ -99,6 +106,7 @@ class AbstractIntegrationSpec extends Specification {
     }
     
     protected ExecutionFailure fails(String... tasks) {
+        supplyExecuterActions()
         failure = executer.withTasks(*tasks).runWithFailure()
         result = failure
     }
@@ -178,6 +186,11 @@ class AbstractIntegrationSpec extends Specification {
 
     public GradleExecuter using(Action<GradleExecuter> action) {
         action.execute(executer)
+        executer
+    }
+
+    public GradleExecuter alwaysUsing(Closure executerAction) {
+        executerActions.add(executerAction)
         executer
     }
 

@@ -25,7 +25,7 @@ class OutputScraperTest extends Specification {
 
     def output = """Included projects: [root project 'unknown-test-122', project ':api', project ':impl', project ':util']
 Evaluating root project 'unknown-test-122' using build file '/Users/szczepan/gradle/gradle.src/build/tmp/test files/AbstractIntegrationSpec/unknown-test-122/build.gradle'.
-Evaluating project ':api' using build file '/Users/szczepan/gradle/gradle.src/build/tmp/test files/AbstractIntegrationSpec/unknown-test-122/api/build.gradle'.
+Evaluating project ':api' using empty build file
 Selected primary task ':api:build'
 Evaluating project ':foo:bar' using build file '/Users/szczepan/gradle/gradle.src/build/tmp/test files/AbstractIntegrationSpec/unknown-test-122/api/build.gradle'.
 Selected primary task ':foo:bar:build'

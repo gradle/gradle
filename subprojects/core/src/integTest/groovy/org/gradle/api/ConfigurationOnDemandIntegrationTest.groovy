@@ -26,11 +26,35 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         file("gradle.properties") << "systemProp.org.gradle.configuration.ondemand=true"
+        alwaysUsing { it.withArgument('-i') }
     }
 
-    //TODO SF more coverage, possibly new integ test 'mode'
-    def "projects are evaluated on demand"() {
+    def "works with single-module project"() {
+        buildFile << "task foo"
+        when:
+        run("foo")
+        then:
+        result.assertProjectsEvaluated(":")
+    }
+
+    def "evaluates only project referenced in the task list"() {
+        settingsFile << "include 'api', 'impl', 'util', 'util:impl'"
+        buildFile << "allprojects { task foo }"
+
+        when:
+        run(":foo", ":util:impl:foo")
+
+        then:
+        result.assertProjectsEvaluated(":", ":util:impl")
+    }
+
+    def "follows java project dependencies"() {
         settingsFile << "include 'api', 'impl', 'util'"
+        buildFile << "allprojects { apply plugin: 'java' } "
+
+        file("impl/build.gradle") << "dependencies { compile project(':api') } "
+        file("util/build.gradle") << "dependencies { compile project(':impl') } "
+        //util -> impl -> api
 
         file("api/src/main/java/Person.java") << """public interface Person {
     String getName();
@@ -42,60 +66,91 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 }
 """
-
-        buildFile << "task foo"
-
-        file("api/build.gradle") << "apply plugin: 'java'"
-
-        file("impl/build.gradle") << """
-apply plugin: 'java'
-dependencies {
-    compile project(":api")
-}
-"""
-        file("util/build.gradle") << "task utility"
+        file("util/src/main/java/Utility.java") << "public class Utility extends PersonImpl {}"
 
         when:
-        run(":api:build", "-i")
+        run(":api:build")
 
         then:
         result.assertProjectsEvaluated(":", ":api")
 
         when:
-        run(":impl:build", "-i")
+        run(":impl:build")
 
         then:
         result.assertProjectsEvaluated(":", ":impl", ":api")
 
         when:
-        run(":projects", "-i")
+        run(":util:build")
 
         then:
-        result.assertProjectsEvaluated(":")
+        result.assertProjectsEvaluated(":", ":util", ":impl", ":api")
+    }
 
-        when:
-        run("foo", "-i")
+    def "follows project dependencies when ran in subproject"() {
+        settingsFile << "include 'api', 'impl', 'util'"
 
-        then:
-        result.assertProjectsEvaluated(":", ":api", ":impl", ":util")
-
-        when:
-        inDirectory("api")
-        run("build", "-i")
-
-        then:
-        result.assertProjectsEvaluated(":", ":api")
+        file("api/build.gradle") << "configurations { api }"
+        file("impl/build.gradle") << """
+            configurations { util }
+            dependencies { util project(path: ':api', configuration: 'api') }
+            task build(dependsOn: configurations.util)
+        """
 
         when:
         inDirectory("impl")
-        run("build", "-i")
+        run("build")
 
         then:
-        result.assertProjectsEvaluated(":", ":impl", ":api")
+        result.assertProjectsEvaluated(':', ':impl', ':api')
+    }
+
+    def "name matching execution from root evaluates all projects"() {
+        settingsFile << "include 'api', 'impl'"
+        buildFile << "task foo"
 
         when:
-        run("impl:dependencies", "-i")
+        run("foo")
+
         then:
-        result.assertProjectsEvaluated(":", ":impl")
+        result.assertProjectsEvaluated(":", ":api", ":impl")
+
+        when:
+        run(":foo")
+
+        then:
+        result.assertProjectsEvaluated(":")
+    }
+
+    def "name matching execution from subproject evaluates only the subproject recursively"() {
+        settingsFile << "include 'api', 'impl:one', 'impl:two', 'impl:two:abc'"
+        file("impl/build.gradle") << "task foo"
+
+        when:
+        inDirectory("impl")
+        run("foo")
+
+        then:
+        result.assertProjectsEvaluated(":", ":impl", ":impl:one", ":impl:two", ":impl:two:abc")
+    }
+
+    def "may run implicit tasks from root"() {
+        settingsFile << "include 'api', 'impl'"
+
+        when:
+        run(":tasks")
+
+        then:
+        result.assertProjectsEvaluated(":")
+    }
+
+    def "may run implicit tasks for subproject"() {
+        settingsFile << "include 'api', 'impl'"
+
+        when:
+        run(":api:tasks")
+
+        then:
+        result.assertProjectsEvaluated(":", ":api")
     }
 }
