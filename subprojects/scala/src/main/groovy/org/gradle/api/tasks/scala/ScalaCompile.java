@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -114,6 +115,7 @@ public class ScalaCompile extends AbstractCompile {
 
     @Override
     protected void compile() {
+        checkScalaClasspathIsNonEmpty();
         DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
@@ -129,6 +131,12 @@ public class ScalaCompile extends AbstractCompile {
         }
 
         compiler.execute(spec);
+    }
+
+    private void checkScalaClasspathIsNonEmpty() {
+        if (scalaClasspath.isEmpty()) {
+            throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty");
+        }
     }
 
     private void configureIncrementalCompilation(ScalaCompileSpec spec) {
