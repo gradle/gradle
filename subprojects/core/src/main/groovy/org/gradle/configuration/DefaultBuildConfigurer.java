@@ -33,7 +33,7 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
 
     public void configure(GradleInternal gradle) {
         if (gradle.getStartParameter().isConfigureOnDemand()) {
-            LOG.lifecycle("The configuration-on-demand mode is incubating. Enjoy it and let us know how it works for you.");
+            LOG.lifecycle("Thanks for using the incubating configuration-on-demand mode. Enjoy it and let us know how it works for you.");
             gradle.addProjectEvaluationListener(new ImplicitTasksConfigurer());
             gradle.getRootProject().evaluate();
         } else {
