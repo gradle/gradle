@@ -18,7 +18,6 @@
 
 package org.gradle.test.fixtures.maven
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
@@ -100,8 +99,8 @@ class MavenHttpModule implements MavenModule {
         return new PomHttpArtifact(server, getModuleVersionPath(), backingModule)
     }
 
-    MavenMetaData getRootMetaData() {
-        backingModule.rootMetaData
+    MetaDataArtifact getRootMetaData() {
+        return new MetaDataArtifact(server, "$moduleRootPath", backingModule)
     }
 
     TestFile getRootMetaDataFile() {
@@ -116,71 +115,7 @@ class MavenHttpModule implements MavenModule {
         return new BasicHttpResource(server, metaDataFile, getMetaDataPath())
     }
 
-    String getRootMetaDataPath() {
-        "$moduleRootPath/$rootMetaDataFile.name"
-    }
-
     String getMetaDataPath() {
         "$moduleVersionPath/$metaDataFile.name"
-    }
-
-    TestFile sha1File(TestFile file) {
-        backingModule.getSha1File(file)
-    }
-
-    String sha1Path(String path) {
-        "${path}.sha1"
-    }
-
-    TestFile md5File(TestFile file) {
-        backingModule.getMd5File(file)
-    }
-
-    String md5Path(String path) {
-        "${path}.md5"
-    }
-
-    void expectRootMetaDataGetMissing(PasswordCredentials passwordCredentials = null) {
-        server.expectGetMissing(rootMetaDataPath, passwordCredentials)
-    }
-
-    void expectMetaDataPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(metaDataPath, backingModule.metaDataFile, statusCode, credentials)
-    }
-
-    void expectMetaDataSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(sha1Path(metaDataPath), sha1File(metaDataFile), statusCode, credentials)
-    }
-
-    void expectMetaDataMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(md5Path(metaDataPath), md5File(metaDataFile), statusCode, credentials)
-    }
-
-    void expectRootMetaDataPut(PasswordCredentials credentials) {
-        expectRootMetaDataPut(200, credentials)
-    }
-
-    void expectRootMetaDataPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(rootMetaDataPath, rootMetaDataFile, statusCode, credentials)
-    }
-
-    void expectRootMetaDataSha1Put(PasswordCredentials credentials) {
-        expectRootMetaDataSha1Put(200, credentials)
-    }
-
-    void expectRootMetaDataSha1Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(sha1Path(rootMetaDataPath), sha1File(rootMetaDataFile), statusCode, credentials)
-    }
-
-    void expectRootMetaDataMd5Put(PasswordCredentials credentials) {
-        expectRootMetaDataMd5Put(200, credentials)
-    }
-
-    void expectRootMetaDataMd5Put(Integer statusCode = 200, PasswordCredentials credentials = null) {
-        server.expectPut(md5Path(rootMetaDataPath), md5File(rootMetaDataFile), statusCode, credentials)
-    }
-
-    void verifyRootMetaDataChecksums() {
-        backingModule.verifyChecksums(rootMetaDataFile)
     }
 }

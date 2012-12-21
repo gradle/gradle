@@ -131,8 +131,8 @@ class MavenFileModule implements MavenModule {
         return new MavenPom(pomFile)
     }
 
-    MavenMetaData getRootMetaData() {
-        new MavenMetaData(rootMetaDataFile)
+    DefaultMavenMetaData getRootMetaData() {
+        new DefaultMavenMetaData(rootMetaDataFile)
     }
 
     TestFile getPomFile() {
@@ -351,14 +351,4 @@ class MavenFileModule implements MavenModule {
     protected String getHash(TestFile file, String algorithm) {
         HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
     }
-
-    void verifyChecksums(File file) {
-        def sha1File = getSha1File(file)
-        sha1File.assertIsFile()
-        assert new BigInteger(sha1File.text, 16) == new BigInteger(getHash(file, "sha1"), 16)
-        def md5File = getMd5File(file)
-        md5File.assertIsFile()
-        assert new BigInteger(md5File.text, 16) == new BigInteger(getHash(file, "md5"), 16)
-    }
-
 }

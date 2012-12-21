@@ -16,8 +16,10 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
+import org.gradle.util.hash.HashUtil
 
 abstract class HttpArtifact extends HttpResource {
 
@@ -32,11 +34,11 @@ abstract class HttpArtifact extends HttpResource {
         server.expectHeadMissing(path)
     }
 
-    void expectGetMissing() {
-        server.expectGetMissing(path)
+    void expectGetMissing(PasswordCredentials passwordCredentials = null) {
+        server.expectGetMissing(path, passwordCredentials)
     }
 
-    HttpResource getMd5(){
+    HttpResource getMd5() {
         return new BasicHttpResource(server, getMd5File(), "${path}.md5")
     }
 
@@ -48,11 +50,22 @@ abstract class HttpArtifact extends HttpResource {
         "${modulePath}/${file.name}"
     }
 
-    protected abstract File getSha1File();
+    protected abstract TestFile getSha1File();
 
-    protected abstract File getMd5File();
+    protected abstract TestFile getMd5File();
 
     abstract TestFile getFile();
 
-    abstract void verifyChecksums()
+    void verifyChecksums() {
+        def sha1File = getSha1File()
+        sha1File.assertIsFile()
+        assert new BigInteger(sha1File.text, 16) == new BigInteger(getHash(getFile(), "sha1"), 16)
+        def md5File = getMd5File()
+        md5File.assertIsFile()
+        assert new BigInteger(md5File.text, 16) == new BigInteger(getHash(getFile(), "md5"), 16)
+    }
+
+    protected String getHash(TestFile file, String algorithm) {
+        HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
+    }
 }

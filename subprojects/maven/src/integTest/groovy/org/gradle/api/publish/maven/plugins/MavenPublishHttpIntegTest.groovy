@@ -70,14 +70,13 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         module.artifact.expectPut()
         module.artifact.sha1.expectPut()
         module.artifact.md5.expectPut()
-        module.expectRootMetaDataGetMissing()
-        module.expectRootMetaDataPut()
-        module.expectRootMetaDataSha1Put()
-        module.expectRootMetaDataMd5Put()
+        module.rootMetaData.expectGetMissing()
+        module.rootMetaData.expectPut()
+        module.rootMetaData.sha1.expectPut()
+        module.rootMetaData.md5.expectPut()
         module.pom.expectPut()
         module.pom.sha1.expectPut()
         module.pom.md5.expectPut()
-
         when:
         succeeds 'publish'
 
@@ -90,7 +89,7 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         module.artifactFile.assertIsCopyOf(localArtifact)
         module.artifact.verifyChecksums()
 
-        module.verifyRootMetaDataChecksums()
+        module.rootMetaData.verifyChecksums()
         module.rootMetaData.versions == ["2"]
     }
 
@@ -111,10 +110,10 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         module.artifact.expectPut(credentials)
         module.artifact.sha1.expectPut(credentials)
         module.artifact.md5.expectPut(credentials)
-        module.expectRootMetaDataGetMissing(credentials)
-        module.expectRootMetaDataPut(credentials)
-        module.expectRootMetaDataSha1Put(credentials)
-        module.expectRootMetaDataMd5Put(credentials)
+        module.rootMetaData.expectGetMissing(credentials)
+        module.rootMetaData.expectPut(credentials)
+        module.rootMetaData.sha1.expectPut(credentials)
+        module.rootMetaData.md5.expectPut(credentials)
         module.pom.expectPut(credentials)
         module.pom.sha1.expectPut(credentials)
         module.pom.md5.expectPut(credentials)
@@ -131,7 +130,7 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         module.artifactFile.assertIsCopyOf(localArtifact)
         module.artifact.verifyChecksums()
 
-        module.verifyRootMetaDataChecksums()
+        module.rootMetaData.verifyChecksums()
         module.rootMetaData.versions == ["2"]
 
         where:

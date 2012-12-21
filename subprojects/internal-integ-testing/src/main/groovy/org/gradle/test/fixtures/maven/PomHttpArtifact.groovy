@@ -33,12 +33,12 @@ class PomHttpArtifact extends HttpArtifact {
     }
 
     @Override
-    File getSha1File() {
+    TestFile getSha1File() {
         backingModule.getSha1File(file)
     }
 
     @Override
-    File getMd5File() {
+    TestFile getMd5File() {
         backingModule.getMd5File(file)
     }
 
@@ -53,9 +53,5 @@ class PomHttpArtifact extends HttpArtifact {
         } else {
             return getFile().name
         }
-    }
-
-    void verifyChecksums() {
-        backingModule.verifyChecksums(getFile())
     }
 }
