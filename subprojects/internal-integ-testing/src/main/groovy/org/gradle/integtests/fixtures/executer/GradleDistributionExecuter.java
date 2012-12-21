@@ -98,7 +98,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         if (dist == null) {
             dist = RuleHelper.getField(target, GradleDistribution.class);
         }
-//        beforeExecute(new RedirectMavenCentral(dist.getTemporaryFolder()));
+        beforeExecute(new RedirectMavenCentral(dist.getTemporaryFolder()));
         return base;
     }
 
