@@ -96,8 +96,8 @@ class MavenHttpModule implements MavenModule {
         return backingModule.parsedPom;
     }
 
-    PomHttpResource getPom() {
-        return new PomHttpResource(server, getModuleVersionPath(), backingModule)
+    PomHttpArtifact getPom() {
+        return new PomHttpArtifact(server, getModuleVersionPath(), backingModule)
     }
 
     MavenMetaData getRootMetaData() {

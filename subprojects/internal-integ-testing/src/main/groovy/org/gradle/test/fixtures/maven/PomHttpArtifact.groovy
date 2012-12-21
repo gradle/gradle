@@ -19,10 +19,10 @@ package org.gradle.test.fixtures.maven
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestFile
 
-class PomHttpResource extends HttpArtifact {
+class PomHttpArtifact extends HttpArtifact {
     MavenFileModule backingModule
 
-    PomHttpResource(HttpServer httpServer, String path, MavenFileModule backingModule) {
+    PomHttpArtifact(HttpServer httpServer, String path, MavenFileModule backingModule) {
         super(httpServer, path)
         this.backingModule = backingModule
     }
