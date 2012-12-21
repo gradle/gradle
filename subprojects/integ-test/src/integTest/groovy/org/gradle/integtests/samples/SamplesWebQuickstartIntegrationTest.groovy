@@ -110,9 +110,7 @@ task sayHearthyGoodbye << {
             try {
                 url.text
                 return
-            } catch (ConnectException e) {
-                // continue
-            } catch (FileNotFoundException e) {
+            } catch (IOException e) {
                 // continue
             }
             Thread.sleep(200)
