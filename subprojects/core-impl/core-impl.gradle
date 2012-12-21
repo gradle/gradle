@@ -20,8 +20,6 @@ dependencies {
     compile libraries.nekohtml
     runtime libraries.xbean //maven3 classes dependency
 
-    testCompile libraries.junit
-
     compile fileTree("$buildDir/libs/jarjar") {
         builtBy 'jarJarMaven3'
     }

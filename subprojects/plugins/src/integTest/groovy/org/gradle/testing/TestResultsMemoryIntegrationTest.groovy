@@ -29,7 +29,7 @@ public class TestResultsMemoryIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
                 repositories { mavenCentral() }
-                dependencies { testCompile 'org.testng:testng:6.3.1', 'junit:junit:4.10' }
+                dependencies { testCompile 'org.testng:testng:6.3.1', 'junit:junit:4.11' }
 
             test {
                 //TODO SF enable after fixing html report

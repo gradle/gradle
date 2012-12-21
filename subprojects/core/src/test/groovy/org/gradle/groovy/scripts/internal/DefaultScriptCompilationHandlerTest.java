@@ -47,6 +47,7 @@ import java.io.IOException;
 
 import static org.gradle.util.Matchers.containsLine;
 import static org.hamcrest.Matchers.*;
+import static org.gradle.util.Matchers.isA;
 import static org.junit.Assert.*;
 
 /**
@@ -152,7 +153,7 @@ public class DefaultScriptCompilationHandlerTest {
 
         Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass).newInstance();
-        assertThat(script, is(expectedScriptClass));
+        assertThat(script, isA(expectedScriptClass));
     }
 
     @Test
@@ -164,7 +165,7 @@ public class DefaultScriptCompilationHandlerTest {
 
         Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass).newInstance();
-        assertThat(script, is(expectedScriptClass));
+        assertThat(script, isA(expectedScriptClass));
     }
 
     @Test
@@ -176,7 +177,7 @@ public class DefaultScriptCompilationHandlerTest {
 
         Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass).newInstance();
-        assertThat(script, is(expectedScriptClass));
+        assertThat(script, isA(expectedScriptClass));
     }
 
     @Test
@@ -188,7 +189,7 @@ public class DefaultScriptCompilationHandlerTest {
 
         Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass).newInstance();
-        assertThat(script, is(expectedScriptClass));
+        assertThat(script, isA(expectedScriptClass));
     }
 
     @Test
@@ -200,7 +201,7 @@ public class DefaultScriptCompilationHandlerTest {
 
         Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass).newInstance();
-        assertThat(script, is(expectedScriptClass));
+        assertThat(script, isA(expectedScriptClass));
     }
 
     @Test

@@ -46,6 +46,7 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.util.DeprecationLogger;
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 
 import java.io.File;
 import java.io.InputStream;
@@ -347,7 +348,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         public ExecutionFailure assertThatCause(final Matcher<String> matcher) {
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
-            assertThat(causes, hasItem(hasMessage(matcher)));
+            assertThat(causes, Matchers.<Throwable>hasItem(hasMessage(matcher)));
             return this;
         }
 

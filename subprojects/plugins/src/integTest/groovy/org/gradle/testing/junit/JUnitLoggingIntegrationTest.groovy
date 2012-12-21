@@ -81,7 +81,7 @@ org.gradle.JUnit4StandardOutputTest > printTest STANDARD_OUT
         file("build.gradle") << """
             apply plugin: 'java'
                 repositories { mavenCentral() }
-                dependencies { testCompile 'junit:junit:4.10' }
+                dependencies { testCompile 'junit:junit:4.11' }
         """
 
         file("src/test/java/EncodingTest.java") << """

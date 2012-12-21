@@ -32,10 +32,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TestClosure;
-import org.gradle.util.WrapUtil;
+import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -46,6 +43,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.*;
 
+import static org.gradle.util.Matchers.hasSameItems;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -606,7 +604,7 @@ public class DefaultConfigurationTest {
     public void getDependencies() {
         Dependency dependency = context.mock(Dependency.class);
         configuration.getDependencies().add(dependency);
-        assertThat(configuration.getDependencies(), equalTo(toSet(dependency)));
+        assertThat(configuration.getDependencies(), hasSameItems(toSet(dependency)));
     }
 
     @Test
@@ -614,7 +612,7 @@ public class DefaultConfigurationTest {
         ProjectDependency projectDependency = context.mock(ProjectDependency.class);
         configuration.getDependencies().add(context.mock(Dependency.class));
         configuration.getDependencies().add(projectDependency);
-        assertThat(configuration.getDependencies().withType(ProjectDependency.class), equalTo(toSet(projectDependency)));
+        assertThat(configuration.getDependencies().withType(ProjectDependency.class), hasSameItems(toSet(projectDependency)));
     }
 
     @Test
@@ -634,7 +632,7 @@ public class DefaultConfigurationTest {
         otherConf.getDependencies().add(dependencyOtherConf1);
         otherConf.getDependencies().add(dependencyOtherConf2);
 
-        assertThat(configuration.getAllDependencies(), equalTo(toSet(dependencyConf, dependencyOtherConf2)));
+        assertThat(configuration.getAllDependencies(), hasSameItems(toLinkedSet(dependencyConf, dependencyOtherConf2)));
         assertCorrectInstanceInAllDependencies(configuration.getAllDependencies(), dependencyConf);
     }
 
@@ -649,7 +647,7 @@ public class DefaultConfigurationTest {
         otherConf.getDependencies().add(context.mock(Dependency.class, "depExtendedConf"));
         otherConf.getDependencies().add(projectDependencyExtendedConf);
 
-        assertThat(configuration.getAllDependencies().withType(ProjectDependency.class), equalTo(toSet(projectDependencyCurrentConf, projectDependencyExtendedConf)));
+        assertThat(configuration.getAllDependencies().withType(ProjectDependency.class), hasSameItems(toLinkedSet(projectDependencyCurrentConf, projectDependencyExtendedConf)));
     }
 
     @Test
@@ -670,7 +668,7 @@ public class DefaultConfigurationTest {
         configuration.getArtifacts().add(artifactConf);
         configuration.extendsFrom(otherConf);
         otherConf.getArtifacts().add(artifactOtherConf2);
-        assertThat(configuration.getAllArtifacts(), equalTo(toSet(artifactConf, artifactOtherConf2)));
+        assertThat(configuration.getAllArtifacts(), hasSameItems(toLinkedSet(artifactConf, artifactOtherConf2)));
     }
 
     @Test
@@ -707,7 +705,7 @@ public class DefaultConfigurationTest {
         PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
         configuration.getArtifacts().add(artifact);
         configuration.getArtifacts().remove(artifact);
-        assertThat(configuration.getAllArtifacts(), equalTo(Collections.<PublishArtifact>emptySet()));
+        assertThat(configuration.getAllArtifacts(), Matchers.isEmpty());
     }
 
     @Test
@@ -715,7 +713,7 @@ public class DefaultConfigurationTest {
         PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
         configuration.getArtifacts().add(artifact);
         configuration.getArtifacts().remove(HelperUtil.createPublishArtifact("name2", "ext1", "type1", "classifier1"));
-        assertThat(configuration.getAllArtifacts(), equalTo(WrapUtil.toSet(artifact)));
+        assertThat(configuration.getAllArtifacts(), hasSameItems(toSet(artifact)));
     }
 
     private void assertCorrectInstanceInAllDependencies(Set<Dependency> allDependencies, Dependency correctInstance) {

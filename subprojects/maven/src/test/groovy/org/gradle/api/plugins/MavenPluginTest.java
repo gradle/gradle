@@ -24,7 +24,6 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.Upload;
 import org.gradle.util.HelperUtil;
-import org.hamcrest.Matchers;
 
 import java.io.File;
 import java.util.Set;
@@ -44,7 +43,7 @@ public class MavenPluginTest {
     public void addsConventionToProject() {
         project.getPlugins().apply(MavenPlugin.class);
 
-        assertThat(project.getConvention().getPlugin(MavenPluginConvention.class), Matchers.<MavenPluginConvention>notNullValue());
+        assertThat(project.getConvention().getPlugin(MavenPluginConvention.class), notNullValue());
     }
     
     @org.junit.Test

@@ -77,7 +77,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         framework   | dependency                | superClass
-        "useJUnit"  | "junit:junit:4.10"        | "org.junit.runner.Result"
+        "useJUnit"  | "junit:junit:4.11"        | "org.junit.runner.Result"
         "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
     }
 
@@ -97,7 +97,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 dependencies{
-	                othertestsCompile "junit:junit:4.10"
+	                othertestsCompile "junit:junit:4.11"
                 }
 
                 task othertestsTest(type:Test){

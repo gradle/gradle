@@ -36,6 +36,22 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertTrue;
 
 public class Matchers {
+    /**
+     * A reimplementation of hamcrest's isA() but without the broken generics.
+     */
+    @Factory
+    public static Matcher<Object> isA(final Class<?> type) {
+        return new BaseMatcher<Object>() {
+            public boolean matches(Object item) {
+                return type.isInstance(item);
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("instanceof ").appendValue(type);
+            }
+        };
+    }
+
     @Factory
     public static <T> Matcher<T> reflectionEquals(T equalsTo) {
         return new ReflectionEqualsMatcher<T>(equalsTo);
@@ -215,20 +231,6 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 description.appendText("an empty map");
-            }
-        };
-    }
-
-    @Factory
-    public static Matcher<Object[]> isEmptyArray() {
-        return new BaseMatcher<Object[]>() {
-            public boolean matches(Object o) {
-                Object[] array = (Object[]) o;
-                return array != null && array.length == 0;
-            }
-
-            public void describeTo(Description description) {
-                description.appendText("an empty array");
             }
         };
     }
