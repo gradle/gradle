@@ -44,7 +44,7 @@ public class MessageHub implements AsyncStoppable {
     private State state = State.Running;
     private final IncomingQueue incomingQueue = new IncomingQueue(lock);
     private final OutgoingQueue outgoingQueue = new OutgoingQueue(incomingQueue, lock);
-    private final ConnectionSet connections = new ConnectionSet(lock, incomingQueue, outgoingQueue);
+    private final ConnectionSet connections = new ConnectionSet(incomingQueue, outgoingQueue);
 
     /**
      * @param errorHandler Notified when some asynch. activity fails. Must be thread-safe.
@@ -159,6 +159,7 @@ public class MessageHub implements AsyncStoppable {
             }
             try {
                 outgoingQueue.endOutput();
+                connections.requestStop();
             } finally {
                 state = State.Stopping;
             }
@@ -185,8 +186,6 @@ public class MessageHub implements AsyncStoppable {
             lock.lock();
             try {
                 requestStop();
-                connections.waitForConnectionsToComplete();
-                outgoingQueue.discardQueued();
             } finally {
                 lock.unlock();
             }
@@ -228,9 +227,7 @@ public class MessageHub implements AsyncStoppable {
             try {
                 try {
                     while (true) {
-                        System.out.println(String.format("=== %s waiting to receive from %s ...", Thread.currentThread(), connection));
                         InterHubMessage message = connection.receive();
-                        System.out.println(String.format("=== %s received %s from %s.", Thread.currentThread(), message, connection));
                         if (message == null || message instanceof EndOfStream) {
                             return;
                         }
@@ -244,15 +241,12 @@ public class MessageHub implements AsyncStoppable {
                 } finally {
                     lock.lock();
                     try {
-                        System.out.println(String.format("=== %s finished receiving from %s.", Thread.currentThread(), connection));
                         connectionState.receiveFinished();
                     } finally {
                         lock.unlock();
                     }
                 }
             } catch (Throwable e) {
-                System.out.println(String.format("=== %s failed receiving from %s.", Thread.currentThread(), connection));
-                e.printStackTrace();
                 errorHandler.execute(e);
             }
         }
@@ -282,7 +276,6 @@ public class MessageHub implements AsyncStoppable {
                         }
                         for (Object message : messages) {
                             InterHubMessage channelMessage = (InterHubMessage) message;
-                            System.out.println(String.format("=== %s dispatching %s to %s.", Thread.currentThread(), message, connection));
                             connection.dispatch(channelMessage);
                             if (message instanceof EndOfStream) {
                                 return;
@@ -293,15 +286,12 @@ public class MessageHub implements AsyncStoppable {
                 } finally {
                     lock.lock();
                     try {
-                        System.out.println(String.format("=== %s finished dispatching to %s.", Thread.currentThread(), connection));
                         connectionState.dispatchFinished();
                     } finally {
                         lock.unlock();
                     }
                 }
             } catch (Throwable t) {
-                System.out.println(String.format("=== %s failed dispatching to %s.", Thread.currentThread(), connection));
-                t.printStackTrace();
                 errorHandler.execute(t);
             }
         }
@@ -325,7 +315,6 @@ public class MessageHub implements AsyncStoppable {
             lock.lock();
             try {
                 assertRunning("dispatch message");
-                System.out.println(String.format("=== %s queued %s.", Thread.currentThread(), message));
                 outgoingQueue.dispatch(new ChannelMessage(channelIdentifier, message));
             } finally {
                 lock.unlock();
@@ -353,13 +342,11 @@ public class MessageHub implements AsyncStoppable {
                     while (true) {
                         lock.lock();
                         try {
-                            System.out.println(String.format("=== %s waiting to messages to handle...", Thread.currentThread()));
                             queue.take(messages);
                         } finally {
                             lock.unlock();
                         }
                         for (InterHubMessage message : messages) {
-                            System.out.println(String.format("=== %s handling %s.", Thread.currentThread(), message));
                             if (message instanceof EndOfStream) {
                                 return;
                             }
@@ -376,7 +363,6 @@ public class MessageHub implements AsyncStoppable {
                             } else {
                                 throw new IllegalArgumentException(String.format("Don't know how to handle message %s", message));
                             }
-                            System.out.println(String.format("=== %s handled %s.", Thread.currentThread(), message));
                         }
                         messages.clear();
                     }
@@ -389,8 +375,6 @@ public class MessageHub implements AsyncStoppable {
                     }
                 }
             } catch (Throwable t) {
-                System.out.println(String.format("=== %s failed handling.", Thread.currentThread()));
-                t.printStackTrace();
                 errorHandler.execute(t);
             }
         }

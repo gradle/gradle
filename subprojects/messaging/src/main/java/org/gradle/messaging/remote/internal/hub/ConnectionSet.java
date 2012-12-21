@@ -16,7 +16,6 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
-import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.hub.protocol.ConnectionClosed;
 import org.gradle.messaging.remote.internal.hub.protocol.ConnectionEstablished;
@@ -26,19 +25,16 @@ import org.gradle.messaging.remote.internal.hub.queue.EndPointQueue;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 
 class ConnectionSet {
     private final Set<ConnectionState> connections = new HashSet<ConnectionState>();
-    private final Condition condition;
     private final IncomingQueue incomingQueue;
     private final OutgoingQueue outgoingQueue;
+    private boolean stopping;
 
-    ConnectionSet(Lock lock, IncomingQueue incomingQueue, OutgoingQueue outgoingQueue) {
+    ConnectionSet(IncomingQueue incomingQueue, OutgoingQueue outgoingQueue) {
         this.incomingQueue = incomingQueue;
         this.outgoingQueue = outgoingQueue;
-        this.condition = lock.newCondition();
     }
 
     public ConnectionState add(Connection<InterHubMessage> connection) {
@@ -52,17 +48,20 @@ class ConnectionSet {
     public void finished(ConnectionState connectionState) {
         incomingQueue.queue(new ConnectionClosed(connectionState.getConnection()));
         connections.remove(connectionState);
-        condition.signalAll();
+        if (stopping) {
+            maybeStop();
+        }
     }
 
-    public void waitForConnectionsToComplete() {
-        while (!connections.isEmpty()) {
-            try {
-                condition.await();
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+    public void requestStop() {
+        stopping = true;
+        maybeStop();
+    }
+
+    private void maybeStop() {
+        if (connections.isEmpty()) {
+            outgoingQueue.discardQueued();
+            incomingQueue.queue(new EndOfStream());
         }
-        incomingQueue.queue(new EndOfStream());
     }
 }

@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
+import static org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage.Delivery.Stateful;
+
 public class MultiChannelQueue {
     private final Lock lock;
     private final Map<ChannelIdentifier, MultiEndPointQueue> channels = new HashMap<ChannelIdentifier, MultiEndPointQueue>();
@@ -44,25 +46,18 @@ public class MultiChannelQueue {
     }
 
     public void queue(InterHubMessage message) {
-        switch (message.getDelivery()) {
-            case Stateful:
-                initializer.onStatefulMessage(message);
-                // Fallthrough
-            case AllHandlers:
-                for (MultiEndPointQueue queue : channels.values()) {
-                    queue.dispatch(message);
-                }
-                break;
-            case SingleHandler:
-                if (message instanceof Routable) {
-                    Routable routableMessage = (Routable) message;
-                    getChannel(routableMessage.getChannel()).dispatch(message);
-                } else {
-                    throw new IllegalArgumentException(String.format("Don't know how to route message %s.", message));
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown delivery type: " + message.getDelivery());
+        if (message.getDelivery() == Stateful) {
+            initializer.onStatefulMessage(message);
+        }
+        if (message instanceof Routable) {
+            Routable routableMessage = (Routable) message;
+            getChannel(routableMessage.getChannel()).dispatch(message);
+        } else if (message.getDelivery() == Stateful || message.getDelivery() == InterHubMessage.Delivery.AllHandlers) {
+            for (MultiEndPointQueue queue : channels.values()) {
+                queue.dispatch(message);
+            }
+        } else {
+            throw new IllegalArgumentException(String.format("Don't know how to route message %s.", message));
         }
     }
 }

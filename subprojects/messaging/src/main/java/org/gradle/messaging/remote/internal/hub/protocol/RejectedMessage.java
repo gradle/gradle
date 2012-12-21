@@ -26,6 +26,11 @@ public class RejectedMessage extends InterHubMessage implements Routable {
     }
 
     @Override
+    public String toString() {
+        return String.format("[%s channel:%s, payload:%s]", getClass().getSimpleName(), channel, payload);
+    }
+
+    @Override
     public Delivery getDelivery() {
         return Delivery.AllHandlers;
     }

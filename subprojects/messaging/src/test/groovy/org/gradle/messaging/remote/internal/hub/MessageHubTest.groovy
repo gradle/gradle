@@ -306,12 +306,8 @@ class MessageHubTest extends ConcurrentSpec {
         Dispatch<Long> handler2 = Mock()
 
         given:
-        handler1.dispatch(_) >> { Long message ->
-            messages << message
-        }
-        handler2.dispatch(_) >> { Long message ->
-            messages << message
-        }
+        handler1.dispatch(_) >> { messages << it[0] }
+        handler2.dispatch(_) >> { messages << it[0] }
         hub.addHandler("channel", handler1)
         hub.addHandler("channel", handler2)
 
@@ -326,15 +322,74 @@ class MessageHubTest extends ConcurrentSpec {
     }
 
     def "incoming messages are dispatched to handler for the appropriate channel"() {
-        expect: false
+        def connection = new TestConnection()
+        Dispatch<String> handler1 = Mock()
+        Dispatch<String> handler2 = Mock()
+
+        given:
+        hub.addHandler("channel 1", handler1)
+        hub.addHandler("channel 2", handler2)
+        hub.addConnection(connection)
+
+        when:
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel 1"), "message 1"))
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel 2"), "message 2"))
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel 1"), "message 3"))
+        thread.blockUntil.channel1Received
+        thread.blockUntil.channel2Received
+
+        then:
+        1 * handler1.dispatch("message 1")
+        1 * handler1.dispatch("message 3") >> { instant.channel1Received }
+        1 * handler2.dispatch("message 2") >> { instant.channel2Received }
+        0 * _._
+
+        cleanup:
+        connection.stop()
     }
 
     def "stops dispatching to failed handler"() {
-        expect: false
+        def connection = new TestConnection()
+        def failure = new RuntimeException()
+        Dispatch<String> handler = Mock()
+
+        given:
+        hub.addHandler("channel", handler)
+        hub.addConnection(connection)
+
+        when:
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 1"))
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 2"))
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 3"))
+        connection.stop()
+        hub.stop()
+
+        then:
+        1 * handler.dispatch("message 1") >> { throw failure }
+        1 * errorHandler.execute(failure)
+        0 * _._
     }
 
     def "stop blocks until queued incoming messages handled"() {
-        expect: false
+        def connection = new TestConnection()
+        Dispatch<String> handler = Mock()
+
+        given:
+        hub.addHandler("channel", handler)
+        hub.addConnection(connection)
+
+        when:
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 1"))
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 2"))
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 3"))
+        connection.stop()
+        hub.stop()
+
+        then:
+        1 * handler.dispatch("message 1") >> { thread.block() }
+        1 * handler.dispatch("message 2")
+        1 * handler.dispatch("message 3")
+        0 * _._
     }
 
     def "queued outgoing messages are dispatched asynchronously to rejected message listener when stop requested and no connection available"() {
@@ -475,7 +530,33 @@ class MessageHubTest extends ConcurrentSpec {
     }
 
     def "stop blocks until hub state listeners notified"() {
-        expect: false
+        HubStateListener listener = Mock()
+        def connection1 = new TestConnection()
+        def connection2 = new TestConnection()
+
+        given:
+        hub.addHandler("channel", listener)
+
+        when:
+        hub.addConnection(connection1)
+        hub.addConnection(connection2)
+        connection1.stop()
+        connection2.stop()
+        operation.stop {
+            hub.stop()
+        }
+
+        then:
+        2 * listener.onConnect()
+        1 * listener.onDisconnect()
+        1 * listener.onDisconnect() >> {
+            thread.block()
+            instant.listenerNotified
+        }
+        0 * _._
+
+        and:
+        operation.stop.end > instant.listenerNotified
     }
 
     def "cannot dispatch outgoing messages after stop requested"() {
