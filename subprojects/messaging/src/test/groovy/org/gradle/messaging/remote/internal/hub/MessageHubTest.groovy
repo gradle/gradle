@@ -24,11 +24,13 @@ import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Timeout
 
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.LinkedBlockingQueue
 
+@Timeout(60)
 class MessageHubTest extends ConcurrentSpec {
     final Action<Throwable> errorHandler = Mock()
     final MessageHub hub = new MessageHub("<hub>", executorFactory, errorHandler)

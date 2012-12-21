@@ -26,9 +26,11 @@ import org.gradle.messaging.remote.internal.inet.InetAddressFactory
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Timeout
 
 import java.util.concurrent.CountDownLatch
 
+@Timeout(60)
 class MessageHubIntegrationTest extends ConcurrentSpec {
     final TcpOutgoingConnector<InterHubMessage> outgoingConnector = new TcpOutgoingConnector<InterHubMessage>(new InterHubMessageSerializer())
     final TcpIncomingConnector<InterHubMessage> incomingConnector = new TcpIncomingConnector<InterHubMessage>(executorFactory, new InterHubMessageSerializer(), new InetAddressFactory(), new UUIDGenerator())
