@@ -26,7 +26,7 @@ import org.gradle.messaging.serialize.Serializer;
 import java.io.File;
 
 public class DefaultCacheLockingManager implements CacheLockingManager {
-    public static final int CACHE_LAYOUT_VERSION = 22;
+    public static final int CACHE_LAYOUT_VERSION = 23;
     private final PersistentCache cache;
 
     public DefaultCacheLockingManager(CacheRepository cacheRepository) {

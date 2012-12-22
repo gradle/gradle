@@ -33,7 +33,7 @@ import java.net.URL;
 
 public class ModuleDescriptorStore {
 
-    public static final String FILE_PATH_PATTERN = "module-metadata/%s/%s/%s/%s.ivy.xml";
+    public static final String FILE_PATH_PATTERN = "module-metadata/%s/%s/%s/%s/ivy.xml";
     private final IvyXmlModuleDescriptorParser parser;
     private final PathKeyFileStore pathKeyFileStore;
     private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;

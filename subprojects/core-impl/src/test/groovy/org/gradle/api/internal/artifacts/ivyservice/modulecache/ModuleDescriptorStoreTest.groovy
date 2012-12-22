@@ -52,7 +52,7 @@ class ModuleDescriptorStoreTest extends Specification {
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {
         when:
-        pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId.ivy.xml") >> null
+        pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId/ivy.xml") >> null
         then:
         null == store.getModuleDescriptor(repository, moduleVersionIdentifier)
     }
@@ -61,7 +61,7 @@ class ModuleDescriptorStoreTest extends Specification {
         when:
         store.getModuleDescriptor(repository, moduleVersionIdentifier);
         then:
-        1 * pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId.ivy.xml") >> null
+        1 * pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId/ivy.xml") >> null
     }
 
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {
@@ -73,7 +73,7 @@ class ModuleDescriptorStoreTest extends Specification {
         when:
         store.putModuleDescriptor(repository, moduleDescriptor);
         then:
-        1 * pathKeyFileStore.add("module-metadata/org.test/testArtifact/1.0/repositoryId.ivy.xml", _) >> { path, action ->
+        1 * pathKeyFileStore.add("module-metadata/org.test/testArtifact/1.0/repositoryId/ivy.xml", _) >> { path, action ->
             action.execute(descriptorFile); fileStoreEntry
         };
         1 * ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorFile)
