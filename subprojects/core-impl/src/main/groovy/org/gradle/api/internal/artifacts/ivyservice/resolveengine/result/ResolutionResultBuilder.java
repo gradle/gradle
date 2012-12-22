@@ -48,12 +48,13 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
         return new DefaultResolutionResult(rootModule);
     }
 
+    public void resolvedModuleVersion(ModuleVersionSelection moduleVersion) {
+        createOrGet(moduleVersion.getSelectedId(), moduleVersion.getSelectionReason());
+    }
+
     public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
         for (InternalDependencyResult d : dependencies) {
             DefaultResolvedModuleVersionResult from = modules.get(id);
-            if (from == null) {
-                throw new IllegalStateException("Something went wrong with building the dependency graph. Module [" + id + "] should have been visited.");
-            }
             DefaultResolvedModuleVersionResult selected = createOrGet(d);
             DependencyResult dependency;
             if (d.getFailure() != null) {

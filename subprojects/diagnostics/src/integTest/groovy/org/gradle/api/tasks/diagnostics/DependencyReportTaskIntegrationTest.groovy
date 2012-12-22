@@ -16,10 +16,7 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
-import spock.lang.FailsWith
 import spock.lang.Ignore
-import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -448,53 +445,6 @@ rootProject.name = 'root'
 \\--- org:leaf4:2.0
 """))
     }
-
-    def "previously evicted nodes should contain correct target version"() {
-        given:
-        /*
-        a1->b1
-        a2->b2->a1
-
-        resolution process:
-
-        1. stop resolution, resolve conflict a1 vs a2
-        2. select a2, restart resolution
-        3. stop, resolve b1 vs b2
-        4. select b2, restart
-        5. resolve b2 dependencies, a1 has been evicted previously but it should show correctly on the report
-           ('dependencies' report pre 1.2 would not show the a1 dependency leaf for this scenario)
-        */
-
-        ivyRepo.module("org", "b", '1.0').publish()
-        ivyRepo.module("org", "a", '1.0').dependsOn("org", "b", '1.0').publish()
-        ivyRepo.module("org", "b", '2.0').dependsOn("org", "a", "1.0").publish()
-        ivyRepo.module("org", "a", '2.0').dependsOn("org", "b", '2.0').publish()
-
-        file("build.gradle") << """
-            repositories {
-                ivy { url "${ivyRepo.uri}" }
-            }
-
-            configurations {
-                conf
-            }
-            dependencies {
-                conf 'org:a:1.0', 'org:a:2.0'
-            }
-        """
-
-        when:
-        run ":dependencies"
-
-        then:
-        output.contains(toPlatformLineSeparators("""
-+--- org:a:1.0 -> 2.0
-|    \\--- org:b:2.0
-|         \\--- org:a:1.0 -> 2.0 (*)
-\\--- org:a:2.0 (*)
-"""))
-    }
-
     def "tells if there are no dependencies"() {
         given:
         buildFile << "configurations { foo }"
@@ -532,93 +482,6 @@ rootProject.name = 'root'
         then:
         noExceptionThrown()
         //note that 'a' project dependencies are not being resolved
-    }
-
-    @Issue("GRADLE-2555")
-    @FailsWith(value = UnexpectedBuildFailure, reason = "Issue has not been resolved")
-    def "can deal with transitive with parent in conflict"() {
-        given:
-        /*
-            Graph looks like…
-
-            \--- org:a:1.0
-                 \--- org:in-conflict:1.0 -> 2.0
-                      \--- org:target:1.0
-                           \--- org:target-child:1.0
-            \--- org:b:1.0
-                 \--- org:b-child:1.0
-                      \--- org:in-conflict:2.0 (*)
-
-            This is the simplest structure I could boil it down to that produces the error.
-            - target *must* have a child
-            - Having "b" depend directly on "in-conflict" does not produce the error, needs to go through "b-child"
-         */
-
-        mavenRepo.module("org", "target-child", "1.0").
-                publish()
-
-        mavenRepo.module("org", "target", "1.0").
-                dependsOn("org", "target-child", "1.0").
-                publish()
-
-        mavenRepo.module("org", "in-conflict", "1.0").
-                dependsOn("org", "target", "1.0").
-                publish()
-
-        mavenRepo.module("org", "in-conflict", "2.0").
-                dependsOn("org", "target", "1.0").
-                publish()
-
-        mavenRepo.module("org", "a", '1.0').
-                dependsOn("org", "in-conflict", "1.0").
-                publish()
-
-        mavenRepo.module("org", "b-child", '1.0').
-                dependsOn("org", "in-conflict", "2.0").
-                publish()
-
-        mavenRepo.module("org", "b", '1.0').
-                dependsOn("org", "b-child", "1.0").
-                publish()
-
-        when:
-        buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-
-            configurations { foo }
-
-            dependencies {
-                foo "org:a:1.0", "org:b:1.0"
-            }
-        """
-
-        then:
-        succeeds "dependencies"
-    }
-
-    @Ignore("This is the boiled down sample from http://forums.gradle.org/gradle/topics/gradle_1_3_rc_1_generates_nullpointerexception_when_resolving_dependencies - should be removed as the above case should supersede")
-    def "can deal with transitive with parent in conflict - original"() {
-        when:
-        buildFile << """
-            apply plugin: 'java'
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                compile ("com.google.gwt.inject:gin:1.5.0") {
-                    exclude module: "gwt-servlet"
-                    exclude module: "guice-assistedinject"
-                }
-                compile("com.gwtplatform:gwtp-mvp-client:0.7") {
-                    exclude module: 'aopalliance'
-                }
-            }
-        """
-
-        then:
-        succeeds "dependencies"
     }
 
     def "report can be limited to a single configuration via command-line parameter"() {
