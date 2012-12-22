@@ -16,7 +16,7 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.messaging.serialize.DataStreamBackedSerializer;
 
 import java.io.*;
 
@@ -56,9 +56,9 @@ public class CachingHasher implements Hasher {
         }
     }
 
-    private static class FileInfoSerializer implements Serializer<FileInfo> {
-        public FileInfo read(InputStream instr) throws Exception {
-            DataInputStream input = new DataInputStream(instr);
+    private static class FileInfoSerializer extends DataStreamBackedSerializer<FileInfo> {
+        @Override
+        public FileInfo read(DataInput input) throws IOException {
             int hashLength = input.readInt();
             byte[] hash = new byte[hashLength];
             input.readFully(hash);
@@ -67,13 +67,12 @@ public class CachingHasher implements Hasher {
             return new FileInfo(hash, length, timestamp);
         }
 
-        public void write(OutputStream outstr, FileInfo value) throws Exception {
-            DataOutputStream output = new DataOutputStream(outstr);
+        @Override
+        public void write(DataOutput output, FileInfo value) throws IOException {
             output.writeInt(value.hash.length);
             output.write(value.hash);
             output.writeLong(value.timestamp);
             output.writeLong(value.length);
-            output.flush();
         }
     }
 }

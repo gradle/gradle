@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
@@ -27,12 +28,13 @@ import org.gradle.api.internal.filestore.FileStoreEntry;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.TimeProvider;
+import org.gradle.messaging.serialize.DataStreamBackedSerializer;
+import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigInteger;
 
 public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
@@ -63,7 +65,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> initCache() {
         File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), "module-metadata.bin");
-        return cacheLockingManager.createCache(artifactResolutionCacheFile, RevisionKey.class, ModuleDescriptorCacheEntry.class);
+        return cacheLockingManager.createCache(artifactResolutionCacheFile, new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
     }
 
     public CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
@@ -97,24 +99,24 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         return new DefaultCachedModuleDescriptor(entry, null, timeProvider);
     }
 
-    private RevisionKey createKey(ModuleVersionRepository resolver, ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new RevisionKey(resolver, moduleVersionIdentifier);
+    private RevisionKey createKey(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
+        return new RevisionKey(repository.getId(), moduleVersionIdentifier);
     }
 
     private ModuleDescriptorCacheEntry createMissingEntry(boolean changing) {
-        return new ModuleDescriptorCacheEntry(changing, true, timeProvider, BigInteger.ZERO, null);
+        return new ModuleDescriptorCacheEntry(changing, true, timeProvider.getCurrentTime(), BigInteger.ZERO, null);
     }
 
     private ModuleDescriptorCacheEntry createEntry(boolean changing, HashValue moduleDescriptorHash, ModuleSource moduleSource) {
-        return new ModuleDescriptorCacheEntry(changing, false, timeProvider, moduleDescriptorHash.asBigInteger(), moduleSource);
+        return new ModuleDescriptorCacheEntry(changing, false, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger(), moduleSource);
     }
 
-    private static class RevisionKey implements Serializable {
-        private final String resolverId;
+    private static class RevisionKey {
+        private final String repositoryId;
         private final ModuleVersionIdentifier moduleVersionIdentifier;
 
-        private RevisionKey(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
-            this.resolverId = repository.getId();
+        private RevisionKey(String repositoryId, ModuleVersionIdentifier moduleVersionIdentifier) {
+            this.repositoryId = repositoryId;
             this.moduleVersionIdentifier = moduleVersionIdentifier;
         }
 
@@ -124,13 +126,64 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
                 return false;
             }
             RevisionKey other = (RevisionKey) o;
-            return resolverId.equals(other.resolverId) && moduleVersionIdentifier.equals(other.moduleVersionIdentifier);
+            return repositoryId.equals(other.repositoryId) && moduleVersionIdentifier.equals(other.moduleVersionIdentifier);
         }
 
         @Override
         public int hashCode() {
-            return resolverId.hashCode() ^ moduleVersionIdentifier.hashCode();
+            return repositoryId.hashCode() ^ moduleVersionIdentifier.hashCode();
         }
     }
 
+    private static class RevisionKeySerializer extends DataStreamBackedSerializer<RevisionKey> {
+        private final ModuleVersionIdentifierSerializer identifierSerializer = new ModuleVersionIdentifierSerializer();
+
+        @Override
+        public void write(DataOutput dataOutput, RevisionKey value) throws IOException {
+            dataOutput.writeUTF(value.repositoryId);
+            identifierSerializer.write(dataOutput, value.moduleVersionIdentifier);
+        }
+
+        @Override
+        public RevisionKey read(DataInput dataInput) throws IOException {
+            String resolverId = dataInput.readUTF();
+            ModuleVersionIdentifier identifier = identifierSerializer.read(dataInput);
+            return new RevisionKey(resolverId, identifier);
+        }
+    }
+
+    private static class ModuleDescriptorCacheEntrySerializer extends DataStreamBackedSerializer<ModuleDescriptorCacheEntry> {
+        private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>();
+
+        @Override
+        public void write(DataOutput dataOutput, ModuleDescriptorCacheEntry value) throws IOException {
+            dataOutput.writeBoolean(value.isMissing);
+            dataOutput.writeBoolean(value.isChanging);
+            dataOutput.writeLong(value.createTimestamp);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            moduleSourceSerializer.write(outputStream, value.moduleSource);
+            byte[] serializedModuleSource = outputStream.toByteArray();
+            dataOutput.writeInt(serializedModuleSource.length);
+            dataOutput.write(serializedModuleSource);
+            byte[] hash = value.moduleDescriptorHash.toByteArray();
+            dataOutput.writeInt(hash.length);
+            dataOutput.write(hash);
+        }
+
+        @Override
+        public ModuleDescriptorCacheEntry read(DataInput dataInput) throws Exception {
+            boolean isMissing = dataInput.readBoolean();
+            boolean isChanging = dataInput.readBoolean();
+            long createTimestamp = dataInput.readLong();
+            int count = dataInput.readInt();
+            byte[] serializedModuleSource = new byte[count];
+            dataInput.readFully(serializedModuleSource);
+            ModuleSource moduleSource = moduleSourceSerializer.read(new ByteArrayInputStream(serializedModuleSource));
+            count = dataInput.readInt();
+            byte[] encodedHash = new byte[count];
+            dataInput.readFully(encodedHash);
+            BigInteger hash = new BigInteger(encodedHash);
+            return new ModuleDescriptorCacheEntry(isChanging, isMissing, createTimestamp, hash, moduleSource);
+        }
+    }
 }

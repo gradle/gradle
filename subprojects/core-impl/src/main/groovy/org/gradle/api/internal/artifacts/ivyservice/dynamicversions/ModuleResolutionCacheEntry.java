@@ -16,16 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.internal.TimeProvider;
 
-import java.io.Serializable;
-
-class ModuleResolutionCacheEntry implements Serializable {
+class ModuleResolutionCacheEntry {
     public ModuleVersionIdentifier moduleVersionIdentifier;
     public long createTimestamp;
 
-    ModuleResolutionCacheEntry(ModuleVersionIdentifier moduleVersionIdentifier, TimeProvider timeProvider) {
+    ModuleResolutionCacheEntry(ModuleVersionIdentifier moduleVersionIdentifier, long createTimestamp) {
         this.moduleVersionIdentifier = moduleVersionIdentifier;
-        this.createTimestamp = timeProvider.getCurrentTime();
+        this.createTimestamp = createTimestamp;
     }
 }

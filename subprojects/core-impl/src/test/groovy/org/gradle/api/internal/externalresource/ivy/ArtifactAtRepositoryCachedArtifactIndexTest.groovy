@@ -68,7 +68,7 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
     def "stored artifact is put into persistentIndexedCache"() {
         setup:
         1 * moduleVersionRepository.getId() >> "RepoID"
-        1 * cacheLockingManager.createCache(persistentCacheFile, ArtifactAtRepositoryKey.class, CachedArtifact.class) >> persistentIndexedCache
+        1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
         def key = new ArtifactAtRepositoryKey(moduleVersionRepository, "artifactId");
         def testFile = folder.createFile("aTestFile");
         when:
@@ -123,7 +123,7 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
 
     def createEntryInPersistentCache() {
         1 * moduleVersionRepository.getId() >> "RepoID"
-        1 * cacheLockingManager.createCache(persistentCacheFile, ArtifactAtRepositoryKey.class, CachedArtifact.class) >> persistentIndexedCache
+        1 * cacheLockingManager.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
         1 * cacheLockingManager.useCache("lookup from artifact resolution cache \'cacheFile\'", _) >> {descr, factory -> factory.create()}
         def key = new ArtifactAtRepositoryKey(moduleVersionRepository, "artifactId");
         1 * persistentIndexedCache.get(key) >> cachedArtifact;

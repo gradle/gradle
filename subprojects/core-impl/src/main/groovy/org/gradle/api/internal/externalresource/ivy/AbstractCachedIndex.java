@@ -20,24 +20,23 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.externalresource.cached.CachedItem;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
-import java.io.Serializable;
 
-abstract public class AbstractCachedIndex<K extends Serializable, V extends CachedItem> {
-
+abstract public class AbstractCachedIndex<K, V extends CachedItem> {
     private final File persistentCacheFile;
-    private final Class<K> keyTypeClass;
-    private final Class<V> valueTypeClass;
+    private final Serializer<K> keySerializer;
+    private final Serializer<V> valueSerializer;
     private final CacheLockingManager cacheLockingManager;
 
     private PersistentIndexedCache<K, V> persistentCache;
 
-    public AbstractCachedIndex(File persistentCacheFile, Class<K> keyTypeClass, Class<V> valueTypeClass, CacheLockingManager cacheLockingManager) {
+    public AbstractCachedIndex(File persistentCacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer, CacheLockingManager cacheLockingManager) {
 
         this.persistentCacheFile = persistentCacheFile;
-        this.keyTypeClass = keyTypeClass;
-        this.valueTypeClass = valueTypeClass;
+        this.keySerializer = keySerializer;
+        this.valueSerializer = valueSerializer;
         this.cacheLockingManager = cacheLockingManager;
     }
 
@@ -48,11 +47,9 @@ abstract public class AbstractCachedIndex<K extends Serializable, V extends Cach
         return persistentCache;
     }
 
-
     private PersistentIndexedCache<K, V> initPersistentCache() {
-        return cacheLockingManager.createCache(persistentCacheFile, keyTypeClass, valueTypeClass);
+        return cacheLockingManager.createCache(persistentCacheFile, keySerializer, valueSerializer);
     }
-
 
     private String operationName(String action) {
         return String.format("%s artifact resolution cache '%s'", action, persistentCacheFile.getName());

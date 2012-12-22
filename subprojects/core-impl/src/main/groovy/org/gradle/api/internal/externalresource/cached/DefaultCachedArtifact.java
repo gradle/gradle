@@ -52,8 +52,4 @@ public class DefaultCachedArtifact implements CachedArtifact, Serializable {
     public BigInteger getDescriptorHash() {
         return descriptorHash;
     }
-
-    public long getContentLength() {
-        return isMissing() ? -1 : cachedFile.length();
-    }
 }

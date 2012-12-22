@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.cache.DefaultSerializer;
+import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 
 import java.io.File;

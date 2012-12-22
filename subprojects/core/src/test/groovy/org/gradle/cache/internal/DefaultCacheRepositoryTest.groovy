@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.invocation.Gradle
 import org.gradle.cache.CacheBuilder.VersionStrategy
-import org.gradle.cache.DefaultSerializer
+import org.gradle.messaging.serialize.DefaultSerializer
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.cache.PersistentStateCache

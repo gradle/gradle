@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache;
+package org.gradle.messaging.serialize;
 
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.messaging.serialize.Serializer;
 
 import java.io.*;
 
@@ -47,7 +46,7 @@ public class DefaultSerializer<T> implements Serializer<T> {
         }
     }
 
-    public void write(OutputStream outstr, T value) throws Exception {
+    public void write(OutputStream outstr, T value) throws IOException {
         ObjectOutputStream objectStr = new ObjectOutputStream(outstr);
         objectStr.writeObject(value);
         objectStr.flush();

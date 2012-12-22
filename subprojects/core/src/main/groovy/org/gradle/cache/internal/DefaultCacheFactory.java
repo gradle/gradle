@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
+import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 

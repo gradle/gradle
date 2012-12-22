@@ -21,6 +21,7 @@ import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.*;
 import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
@@ -84,6 +85,10 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
+            return new InMemoryIndexedCache<K, V>();
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
             return new InMemoryIndexedCache<K, V>();
         }
 

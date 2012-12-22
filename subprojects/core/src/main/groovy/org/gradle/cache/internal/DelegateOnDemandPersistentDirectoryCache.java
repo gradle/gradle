@@ -104,6 +104,10 @@ public class DelegateOnDemandPersistentDirectoryCache implements ReferencablePer
         throw new UnsupportedOperationException();
     }
 
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        throw new UnsupportedOperationException();
+    }
+
     public String toString(){
         return String.format("On Demand Cache for %s", delegateCache.toString());
     }

@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.registry;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.DefaultSerializer;
+import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
 import org.gradle.cache.internal.FileLockManager;

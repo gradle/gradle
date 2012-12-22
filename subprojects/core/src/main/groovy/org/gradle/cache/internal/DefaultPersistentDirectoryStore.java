@@ -122,6 +122,10 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return cacheAccess.newCache(cacheFile, keyType, valueSerializer);
     }
 
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        return cacheAccess.newCache(cacheFile, keySerializer, valueSerializer);
+    }
+
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
         return cacheAccess.useCache(operationDisplayName, action);
     }

@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.externalresource.ivy.AbstractCachedIndex;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.TimeProvider;
+import org.gradle.messaging.serialize.DefaultSerializer;
 
 import java.io.File;
 import java.io.Serializable;
@@ -29,7 +30,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
     private final TimeProvider timeProvider;
 
     public DefaultCachedExternalResourceIndex(File persistentCacheFile, Class<K> keyType, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, keyType, CachedExternalResource.class, cacheLockingManager);
+        super(persistentCacheFile, new DefaultSerializer<K>(), new DefaultSerializer<CachedExternalResource>(), cacheLockingManager);
         this.timeProvider = timeProvider;
     }
 

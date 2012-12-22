@@ -15,7 +15,7 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.cache.DefaultSerializer
+import org.gradle.messaging.serialize.DefaultSerializer
 import org.gradle.cache.PersistentStateCache
 import org.gradle.messaging.serialize.Serializer
 import org.gradle.util.TemporaryFolder

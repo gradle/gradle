@@ -22,10 +22,9 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResol
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.internal.TimeProvider;
 
-import java.io.Serializable;
 import java.math.BigInteger;
 
-class DefaultCachedModuleDescriptor implements ModuleDescriptorCache.CachedModuleDescriptor, Serializable {
+class DefaultCachedModuleDescriptor implements ModuleDescriptorCache.CachedModuleDescriptor {
     private final ModuleDescriptor moduleDescriptor;
     private final ModuleSource moduleSource;
     private final BigInteger descriptorHash;
