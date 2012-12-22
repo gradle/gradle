@@ -17,7 +17,7 @@ package org.gradle.api.internal.plugins
 
 import spock.lang.Specification
 
-class GroovyJarFileNameTest extends Specification {
+class GroovyJarFileTest extends Specification {
     def "parse non-Groovy file"() {
         expect:
         GroovyJarFile.parse(new File("groovy-other-2.0.5.jar")) == null
@@ -25,11 +25,11 @@ class GroovyJarFileNameTest extends Specification {
     }
 
     def "parse 'groovy' Jar"() {
-        def jar = GroovyJarFile.parse(new File("groovy-2.0.5.jar"))
+        def jar = GroovyJarFile.parse(new File("/lib/groovy-2.0.5.jar"))
 
         expect:
         jar != null
-        jar.fileName == "groovy-2.0.5.jar"
+        jar.file == new File("/lib/groovy-2.0.5.jar")
         jar.baseName == "groovy"
         jar.version.toString() == "2.0.5"
         !jar.groovyAll
@@ -38,11 +38,11 @@ class GroovyJarFileNameTest extends Specification {
     }
 
     def "parse 'groovy-all' Jar"() {
-        def jar = GroovyJarFile.parse(new File("groovy-all-2.0.5.jar"))
+        def jar = GroovyJarFile.parse(new File("/lib/groovy-all-2.0.5.jar"))
 
         expect:
         jar != null
-        jar.fileName == "groovy-all-2.0.5.jar"
+        jar.file == new File("/lib/groovy-all-2.0.5.jar")
         jar.baseName == "groovy-all"
         jar.version.toString() == "2.0.5"
         jar.groovyAll
@@ -52,11 +52,11 @@ class GroovyJarFileNameTest extends Specification {
     }
 
     def "parse indy Jar"() {
-        def jar = GroovyJarFile.parse(new File("groovy-2.0.5-indy.jar"))
+        def jar = GroovyJarFile.parse(new File("/lib/groovy-2.0.5-indy.jar"))
 
         expect:
         jar != null
-        jar.fileName == "groovy-2.0.5-indy.jar"
+        jar.file == new File("/lib/groovy-2.0.5-indy.jar")
         jar.baseName == "groovy"
         jar.version.toString() == "2.0.5"
         !jar.groovyAll

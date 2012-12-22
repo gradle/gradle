@@ -144,7 +144,7 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         if (groovyJar == null) { return groovyConfiguration; }
 
         if (groovyJar.isGroovyAll()) {
-            return project.files(groovyJar.getFileName());
+            return project.files(groovyJar.getFile());
         }
 
         if (project.getRepositories().isEmpty()) {

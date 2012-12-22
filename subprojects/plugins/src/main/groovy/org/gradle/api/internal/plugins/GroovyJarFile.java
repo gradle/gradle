@@ -25,14 +25,16 @@ import java.util.regex.Pattern;
 public class GroovyJarFile {
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(?:-all)?)-(\\d.*?)(-indy)?.jar");
 
+    private final File file;
     private final Matcher matcher;
 
-    private GroovyJarFile(Matcher matcher) {
+    private GroovyJarFile(File file, Matcher matcher) {
+        this.file = file;
         this.matcher = matcher;
     }
 
-    public String getFileName() {
-        return matcher.group(0);
+    public File getFile() {
+        return file;
     }
 
     public String getBaseName() {
@@ -62,6 +64,6 @@ public class GroovyJarFile {
     @Nullable
     public static GroovyJarFile parse(File file) {
         Matcher matcher = FILE_NAME_PATTERN.matcher(file.getName());
-        return matcher.matches() ? new GroovyJarFile(matcher) : null;
+        return matcher.matches() ? new GroovyJarFile(file, matcher) : null;
     }
 }
