@@ -70,8 +70,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
         if (getClass() == AntInProcessGroovyCompilerIntegrationTest &&
-                (version == '1.7.11' || versionNumber >= VersionNumber.parse('1.8.7'))) {
-            return // known not to work; see comment on GRADLE-2404
+                (version == '1.6.9' || version == '1.7.11' || versionNumber >= VersionNumber.parse('1.8.7'))) {
+            // known not to work in 1.7.11, 1.8.7 and beyond (see comment on GRADLE-2404)
+            // only works with 1.6.9 if JUnit makes it on Ant (!) class path, which is no longer the case
+            // note that these problems only apply to useAnt=true; fork=false
+            return
         }
 
         expect:
