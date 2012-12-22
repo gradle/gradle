@@ -153,7 +153,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     }
 
     private static class ModuleDescriptorCacheEntrySerializer extends DataStreamBackedSerializer<ModuleDescriptorCacheEntry> {
-        private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>();
+        private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>(ModuleSource.class.getClassLoader());
 
         @Override
         public void write(DataOutput dataOutput, ModuleDescriptorCacheEntry value) throws IOException {

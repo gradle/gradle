@@ -30,7 +30,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
     private final TimeProvider timeProvider;
 
     public DefaultCachedExternalResourceIndex(File persistentCacheFile, Class<K> keyType, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, new DefaultSerializer<K>(), new DefaultSerializer<CachedExternalResource>(), cacheLockingManager);
+        super(persistentCacheFile, new DefaultSerializer<K>(keyType.getClassLoader()), new DefaultSerializer<CachedExternalResource>(CachedExternalResource.class.getClassLoader()), cacheLockingManager);
         this.timeProvider = timeProvider;
     }
 
