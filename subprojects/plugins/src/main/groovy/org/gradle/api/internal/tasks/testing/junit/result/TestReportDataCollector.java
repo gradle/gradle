@@ -115,13 +115,17 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         }
         try {
             Reader reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), "UTF-8");
-            char[] buffer = new char[2048];
-            while (true) {
-                int read = reader.read(buffer);
-                if (read < 0) {
-                    return;
+            try {
+                char[] buffer = new char[2048];
+                while (true) {
+                    int read = reader.read(buffer);
+                    if (read < 0) {
+                        return;
+                    }
+                    writer.write(buffer, 0, read);
                 }
-                writer.write(buffer, 0, read);
+            } finally {
+                reader.close();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
