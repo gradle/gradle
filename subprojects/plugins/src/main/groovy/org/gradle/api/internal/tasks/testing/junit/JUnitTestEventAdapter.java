@@ -21,11 +21,15 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.id.IdGenerator;
+import org.junit.Test;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.TestClass;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,12 +81,24 @@ public class JUnitTestEventAdapter extends RunListener {
     @Override
     public void testIgnored(Description description) throws Exception {
         if (methodName(description) == null) {
-            // An @Ignored class, ignore the event. We don't get testIgnored events for each method, which would be kind of nice
+            // An @Ignored class, ignore the event. We don't get testIgnored events for each method, so we have
+            // generate them on our own
+            processIgnoredClass(description);
             return;
         }
+
         TestDescriptorInternal testInternal = descriptor(idGenerator.generateId(), description);
         resultProcessor.started(testInternal, startEvent());
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(timeProvider.getCurrentTime(), TestResult.ResultType.SKIPPED));
+    }
+
+    private void processIgnoredClass(Description description) throws Exception {
+        String className = className(description);
+        final TestClass testClass = new TestClass(description.getClass().getClassLoader().loadClass(className));
+        final List<FrameworkMethod> ignoreTestMethods = testClass.getAnnotatedMethods(Test.class);
+        for (FrameworkMethod testMethod : ignoreTestMethods) {
+            testIgnored(Description.createTestDescription(testClass.getJavaClass(), testMethod.getName()));
+        }
     }
 
     @Override

@@ -49,10 +49,6 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         if (suite.getParent() == null) {
             cachingFileWriter.closeAll();
         }
-        if (suite.getName().equals(suite.getClassName()) && !results.containsKey(suite.getClassName())) {
-            //ignored test class (JUnit)
-            results.put(suite.getClassName(), new TestClassResult(result.getStartTime()));
-        }
     }
 
     public void beforeTest(TestDescriptor testDescriptor) {
@@ -74,7 +70,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     private String className(TestDescriptor testDescriptor) {
         String className;
         final TestDescriptor parent = testDescriptor.getParent();
-        if(parent!=null && parent.getName().equals(parent.getClassName())){
+        if (parent != null && parent.getName().equals(parent.getClassName())) {
             className = parent.getName();
         } else {
             className = testDescriptor.getClassName();
@@ -93,7 +89,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     }
 
     private File outputsFile(String className, TestOutputEvent.Destination destination) {
-        return destination == TestOutputEvent.Destination.StdOut? standardOutputFile(className) : standardErrorFile(className);
+        return destination == TestOutputEvent.Destination.StdOut ? standardOutputFile(className) : standardErrorFile(className);
     }
 
     private File standardErrorFile(String className) {

@@ -76,7 +76,6 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.ASuite')
-
         result.testClass('org.gradle.ASuite').assertStdout(containsString('suite class loaded'))
         result.testClass('org.gradle.ASuite').assertStderr(containsString('This is test stderr'))
         result.testClass('org.gradle.ASuite').assertStdout(containsString('sys out from another test method'))
@@ -106,7 +105,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
                 .assertTestsExecuted('ok')
                 .assertTestPassed('ok')
                 .assertTestsSkipped('broken')
-        result.testClass('org.gradle.IgnoredTest').assertTestCount(0, 0, 0).assertTestsExecuted()
+        result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored")
     }
 
     @Test
@@ -134,7 +133,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.Junit4Test').assertTestsExecuted('ok')
         result.testClass('org.gradle.Junit4Test').assertTestPassed('ok')
         result.testClass('org.gradle.Junit4Test').assertTestsSkipped('broken')
-        result.testClass('org.gradle.IgnoredTest').assertTestsExecuted()
+        result.testClass('org.gradle.IgnoredTest').assertTestsSkipped('testIgnored')
     }
 
     @Test
