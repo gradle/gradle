@@ -63,18 +63,6 @@ public class CachingFileWriter {
         }
     }
 
-    public void close(File file) {
-        Closeable c = openFiles.remove(file);
-        if (c != null) { //could be already closed
-            try {
-                c.close();
-            } catch(IOException e) {
-                cleanUpQuietly();
-                throw new UncheckedIOException("Problems closing file: " + file, e);
-            }
-        }
-    }
-
     public void closeAll() {
         try {
             for (Map.Entry<File, Writer> entry : openFiles.entrySet()) {

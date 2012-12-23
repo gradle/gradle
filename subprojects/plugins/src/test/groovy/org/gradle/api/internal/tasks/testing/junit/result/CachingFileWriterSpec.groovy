@@ -69,11 +69,7 @@ class CachingFileWriterSpec extends Specification {
         writer.write(temp.file("3.txt"), "c")
 
         and:
-        writer.close(temp.file("xxxx.txt"))
-        writer.close(temp.file("1.txt"))
-        writer.close(temp.file("2.txt"))
-        writer.close(temp.file("3.txt"))
-        writer.close(temp.file("4.txt"))
+        writer.closeAll()
 
         then:
         writer.openFiles.isEmpty()
