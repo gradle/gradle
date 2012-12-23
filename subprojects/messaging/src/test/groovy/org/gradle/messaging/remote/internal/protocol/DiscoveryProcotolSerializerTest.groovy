@@ -81,16 +81,16 @@ class DiscoveryProcotolSerializerTest extends Specification {
         outstr.close()
 
         def bytesIn = new ByteArrayInputStream(bytesOut.toByteArray())
-        return serializer.read(new DataInputStream(bytesIn), null, new SocketInetAddress(receivedAddress, 9122))
+        return serializer.newReader(new DataInputStream(bytesIn), null, new SocketInetAddress(receivedAddress, 9122)).read()
     }
 
     def send(DiscoveryMessage message) {
         def bytesOut = new ByteArrayOutputStream()
         def outstr = new DataOutputStream(bytesOut)
-        serializer.write(message, outstr)
+        serializer.newWriter(outstr).write(message)
         outstr.close()
 
         def bytesIn = new ByteArrayInputStream(bytesOut.toByteArray())
-        return serializer.read(new DataInputStream(bytesIn), null, new SocketInetAddress(receivedAddress, 9122))
+        return serializer.newReader(new DataInputStream(bytesIn), null, new SocketInetAddress(receivedAddress, 9122)).read()
     }
 }

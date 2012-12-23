@@ -22,34 +22,60 @@ import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage;
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.messaging.remote.internal.inet.InetEndpoint;
+import org.gradle.messaging.serialize.ObjectReader;
+import org.gradle.messaging.serialize.ObjectWriter;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
 class InterHubMessageSerializer implements MessageSerializer<InterHubMessage> {
-    public InterHubMessage read(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) throws Exception {
-        switch (inputStream.readByte()) {
-            case 1:
-                String channel = inputStream.readUTF();
-                String payload = inputStream.readUTF();
-                return new ChannelMessage(new ChannelIdentifier(channel), payload);
-            case 2:
-                return new EndOfStream();
-            default:
-                throw new IllegalArgumentException();
+    public ObjectReader<InterHubMessage> newReader(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
+        return new MessageReader(inputStream);
+    }
+
+    public ObjectWriter<InterHubMessage> newWriter(DataOutputStream outputStream) {
+        return new MessageWriter(outputStream);
+    }
+
+    private static class MessageReader implements ObjectReader<InterHubMessage> {
+        private final DataInputStream inputStream;
+
+        private MessageReader(DataInputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        public InterHubMessage read() throws Exception {
+            switch (inputStream.readByte()) {
+                case 1:
+                    String channel = inputStream.readUTF();
+                    String payload = inputStream.readUTF();
+                    return new ChannelMessage(new ChannelIdentifier(channel), payload);
+                case 2:
+                    return new EndOfStream();
+                default:
+                    throw new IllegalArgumentException();
+            }
         }
     }
 
-    public void write(InterHubMessage message, DataOutputStream outputStream) throws Exception {
-        if (message instanceof ChannelMessage) {
-            ChannelMessage channelMessage = (ChannelMessage) message;
-            outputStream.writeByte(1);
-            outputStream.writeUTF(channelMessage.getChannel().getName());
-            outputStream.writeUTF(channelMessage.getPayload().toString());
-        } else if (message instanceof EndOfStream) {
-            outputStream.writeByte(2);
-        } else {
-            throw new IllegalArgumentException();
+    private static class MessageWriter implements ObjectWriter<InterHubMessage> {
+        private final DataOutputStream outputStream;
+
+        public MessageWriter(DataOutputStream outputStream) {
+            this.outputStream = outputStream;
+        }
+
+        public void write(InterHubMessage message) throws Exception {
+            if (message instanceof ChannelMessage) {
+                ChannelMessage channelMessage = (ChannelMessage) message;
+                outputStream.writeByte(1);
+                outputStream.writeUTF(channelMessage.getChannel().getName());
+                outputStream.writeUTF(channelMessage.getPayload().toString());
+            } else if (message instanceof EndOfStream) {
+                outputStream.writeByte(2);
+            } else {
+                throw new IllegalArgumentException();
+            }
         }
     }
 }

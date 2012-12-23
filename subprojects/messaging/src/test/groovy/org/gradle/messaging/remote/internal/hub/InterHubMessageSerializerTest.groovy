@@ -53,12 +53,12 @@ class InterHubMessageSerializerTest extends Specification {
     def serialize(InterHubMessage message) {
         def outStr = new ByteArrayOutputStream()
         def dataStr = new DataOutputStream(outStr)
-        serializer.write(message, dataStr)
+        serializer.newWriter(dataStr).write(message)
         dataStr.flush()
         return outStr.toByteArray()
     }
 
     def deserialize(byte[] data) {
-        return serializer.read(new DataInputStream(new ByteArrayInputStream(data)), null, null)
+        return serializer.newReader(new DataInputStream(new ByteArrayInputStream(data)), null, null).read()
     }
 }

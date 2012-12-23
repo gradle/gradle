@@ -16,6 +16,8 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.remote.internal.inet.InetEndpoint;
+import org.gradle.messaging.serialize.ObjectReader;
+import org.gradle.messaging.serialize.ObjectWriter;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -27,11 +29,37 @@ public class DefaultMessageSerializer<T> implements MessageSerializer<T> {
         this.classLoader = classLoader;
     }
 
-    public T read(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) throws Exception {
-        return (T) Message.receive(inputStream, classLoader);
+    public ObjectReader<T> newReader(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
+        return new MessageReader<T>(inputStream, classLoader);
     }
 
-    public void write(T message, DataOutputStream outputStream) throws Exception {
-        Message.send(message, outputStream);
+    public ObjectWriter<T> newWriter(DataOutputStream outputStream) {
+        return new MessageWriter<T>(outputStream);
+    }
+
+    private static class MessageReader<T> implements ObjectReader<T> {
+        private final DataInputStream inputStream;
+        private final ClassLoader classLoader;
+
+        public MessageReader(DataInputStream inputStream, ClassLoader classLoader) {
+            this.inputStream = inputStream;
+            this.classLoader = classLoader;
+        }
+
+        public T read() throws Exception {
+            return (T) Message.receive(inputStream, classLoader);
+        }
+    }
+
+    private static class MessageWriter<T> implements ObjectWriter<T> {
+        private final DataOutputStream outputStream;
+
+        public MessageWriter(DataOutputStream outputStream) {
+            this.outputStream = outputStream;
+        }
+
+        public void write(T value) throws Exception {
+            Message.send(value, outputStream);
+        }
     }
 }

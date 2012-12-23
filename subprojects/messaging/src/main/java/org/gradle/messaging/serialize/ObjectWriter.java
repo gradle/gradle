@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.remote.internal.inet.InetEndpoint;
-import org.gradle.messaging.serialize.ObjectReader;
-import org.gradle.messaging.serialize.ObjectWriter;
+package org.gradle.messaging.serialize;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-
-public interface MessageSerializer<T> {
-    ObjectReader<T> newReader(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress);
-
-    ObjectWriter<T> newWriter(DataOutputStream outputStream);
+public interface ObjectWriter<T> {
+    void write(T value) throws Exception;
 }
