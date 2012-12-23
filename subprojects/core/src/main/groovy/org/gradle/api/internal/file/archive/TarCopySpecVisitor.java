@@ -21,6 +21,7 @@ import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
 
@@ -33,7 +34,7 @@ public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
     private File tarFile;
 
     public void startVisit(CopyAction action) {
-        TarCopyAction archiveAction = (TarCopyAction) action;
+        ArchiveCopyAction archiveAction = (ArchiveCopyAction) action;
         try {
             tarFile = archiveAction.getArchivePath();
             OutputStream outStr = archiveAction.getCompressor().compress(tarFile);

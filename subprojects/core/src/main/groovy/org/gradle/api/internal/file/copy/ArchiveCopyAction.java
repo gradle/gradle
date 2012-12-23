@@ -17,6 +17,9 @@ package org.gradle.api.internal.file.copy;
 
 import java.io.File;
 
+import org.gradle.api.internal.file.archive.compression.Compressor;
+
 public interface ArchiveCopyAction extends CopyAction {
     File getArchivePath();
+    Compressor getCompressor();
 }
