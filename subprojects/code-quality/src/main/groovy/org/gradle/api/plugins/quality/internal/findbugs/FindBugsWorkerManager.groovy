@@ -40,6 +40,7 @@ class FindBugsWorkerManager {
         builder.sharedPackages(Arrays.asList("edu.umd.cs.findbugs"));
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
+        javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
 
         WorkerProcess process = builder.worker(new FindBugsWorkerServer(spec)).build()
         return process

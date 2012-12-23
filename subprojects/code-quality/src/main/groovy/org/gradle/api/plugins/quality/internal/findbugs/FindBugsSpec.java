@@ -23,10 +23,12 @@ import java.util.List;
 
 public class FindBugsSpec implements Serializable {
     private List<String> arguments;
+    private String maxHeapSize;
     private boolean debugEnabled;
 
-    public FindBugsSpec(List<String> arguments, boolean debugEnabled) {
+    public FindBugsSpec(List<String> arguments, String maxHeapSize, boolean debugEnabled) {
         this.debugEnabled = debugEnabled;
+        this.maxHeapSize = maxHeapSize;
         this.arguments = arguments;
     }
 
@@ -34,10 +36,14 @@ public class FindBugsSpec implements Serializable {
         return arguments;
     }
 
+    public String getJvmArguments() {
+    	return maxHeapSize;
+    }
+    
     public boolean isDebugEnabled() {
         return debugEnabled;
     }
-
+    
     public String toString() {
         return Objects.toStringHelper(this).add("arguments", arguments).add("debugEnabled", debugEnabled).toString();
     }

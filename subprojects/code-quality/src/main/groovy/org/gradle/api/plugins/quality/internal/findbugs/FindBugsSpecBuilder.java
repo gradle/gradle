@@ -41,6 +41,7 @@ public class FindBugsSpecBuilder {
 
     private String effort;
     private String reportLevel;
+    private String maxHeapSize;
     private Collection<String> visitors;
     private Collection<String> omitVisitors;
     private File excludeFilter;
@@ -88,6 +89,11 @@ public class FindBugsSpecBuilder {
             throw new InvalidUserDataException("Invalid value for FindBugs 'reportLevel' property: " + reportLevel);
         }
         this.reportLevel = reportLevel;
+        return this;
+    }
+    
+    public FindBugsSpecBuilder withMaxHeapSize(String maxHeapSize) {
+        this.maxHeapSize = maxHeapSize;
         return this;
     }
 
@@ -192,8 +198,8 @@ public class FindBugsSpecBuilder {
         for (File classFile : classes.getFiles()) {
             args.add(classFile.getAbsolutePath());
         }
-
-        return new FindBugsSpec(args, debugEnabled);
+        
+        return new FindBugsSpec(args, maxHeapSize, debugEnabled);
     }
 
     private boolean has(String str) {
