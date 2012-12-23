@@ -58,7 +58,7 @@ class DiscoveryProcotolSerializerTest extends Specification {
     def "can read message for unknown protocol version"() {
         expect:
         def result = send { outstr ->
-            outstr.writeByte(90)
+            outstr.write(90)
         }
         result instanceof UnknownMessage
         result.toString() == "unknown protocol version 90"
@@ -67,30 +67,28 @@ class DiscoveryProcotolSerializerTest extends Specification {
     def "can read unknown message type"() {
         expect:
         def result = send { outstr ->
-            outstr.writeByte(DiscoveryProtocolSerializer.PROTOCOL_VERSION);
-            outstr.writeByte(90)
+            outstr.write(DiscoveryProtocolSerializer.PROTOCOL_VERSION);
+            outstr.write(90)
         }
         result instanceof UnknownMessage
         result.toString() == "unknown message type 90"
     }
 
     def send(Closure cl) {
-        def bytesOut = new ByteArrayOutputStream()
-        def outstr = new DataOutputStream(bytesOut)
+        def outstr = new ByteArrayOutputStream()
         cl.call(outstr)
         outstr.close()
 
-        def bytesIn = new ByteArrayInputStream(bytesOut.toByteArray())
-        return serializer.newReader(new DataInputStream(bytesIn), null, new SocketInetAddress(receivedAddress, 9122)).read()
+        def bytesIn = new ByteArrayInputStream(outstr.toByteArray())
+        return serializer.newReader(bytesIn, null, new SocketInetAddress(receivedAddress, 9122)).read()
     }
 
     def send(DiscoveryMessage message) {
-        def bytesOut = new ByteArrayOutputStream()
-        def outstr = new DataOutputStream(bytesOut)
+        def outstr = new ByteArrayOutputStream()
         serializer.newWriter(outstr).write(message)
         outstr.close()
 
-        def bytesIn = new ByteArrayInputStream(bytesOut.toByteArray())
-        return serializer.newReader(new DataInputStream(bytesIn), null, new SocketInetAddress(receivedAddress, 9122)).read()
+        def bytesIn = new ByteArrayInputStream(outstr.toByteArray())
+        return serializer.newReader(bytesIn, null, new SocketInetAddress(receivedAddress, 9122)).read()
     }
 }

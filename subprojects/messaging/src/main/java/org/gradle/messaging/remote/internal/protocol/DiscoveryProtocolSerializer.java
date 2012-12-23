@@ -15,6 +15,8 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.MessageOriginator;
 import org.gradle.messaging.remote.internal.MessageSerializer;
@@ -23,169 +25,167 @@ import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryMessage> {
-    public static final byte PROTOCOL_VERSION = 1;
+    public static final byte PROTOCOL_VERSION = 2;
     public static final byte LOOKUP_REQUEST = 1;
     public static final byte CHANNEL_AVAILABLE = 2;
     public static final byte CHANNEL_UNAVAILABLE = 3;
 
-    public ObjectReader<DiscoveryMessage> newReader(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
+    public ObjectReader<DiscoveryMessage> newReader(InputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
         return new MessageReader(inputStream, remoteAddress);
     }
 
-    public ObjectWriter<DiscoveryMessage> newWriter(DataOutputStream outputStream) {
+    public ObjectWriter<DiscoveryMessage> newWriter(OutputStream outputStream) {
         return new MessageWriter(outputStream);
     }
 
     private static class MessageReader implements ObjectReader<DiscoveryMessage> {
-        private final DataInputStream inputStream;
+        private final Input input;
         private final InetEndpoint remoteAddress;
 
-        public MessageReader(DataInputStream inputStream, InetEndpoint remoteAddress) {
-            this.inputStream = inputStream;
+        public MessageReader(InputStream inputStream, InetEndpoint remoteAddress) {
+            this.input = new Input(inputStream);
             this.remoteAddress = remoteAddress;
         }
 
         public DiscoveryMessage read() throws Exception {
-            byte protocolVersion = inputStream.readByte();
+            byte protocolVersion = input.readByte();
             if (protocolVersion != PROTOCOL_VERSION) {
                 return new UnknownMessage(String.format("unknown protocol version %s", protocolVersion));
             }
-            byte messageType = inputStream.readByte();
+            byte messageType = input.readByte();
             switch (messageType) {
                 case LOOKUP_REQUEST:
-                    return readLookupRequest(inputStream);
+                    return readLookupRequest();
                 case CHANNEL_AVAILABLE:
-                    return readChannelAvailable(inputStream, remoteAddress);
+                    return readChannelAvailable();
                 case CHANNEL_UNAVAILABLE:
-                    return readChannelUnavailable(inputStream);
+                    return readChannelUnavailable();
             }
             return new UnknownMessage(String.format("unknown message type %s", messageType));
         }
 
-        private DiscoveryMessage readChannelUnavailable(DataInputStream inputStream) throws IOException {
-            MessageOriginator originator = readMessageOriginator(inputStream);
-            String group = inputStream.readUTF();
-            String channel = inputStream.readUTF();
-            Address address = readAddress(inputStream);
+        private DiscoveryMessage readChannelUnavailable() throws IOException {
+            MessageOriginator originator = readMessageOriginator();
+            String group = input.readString();
+            String channel = input.readString();
+            Address address = readAddress();
             return new ChannelUnavailable(originator, group, channel, address);
         }
 
-        private DiscoveryMessage readChannelAvailable(DataInputStream inputStream, InetEndpoint remoteAddress) throws IOException {
-            MessageOriginator originator = readMessageOriginator(inputStream);
-            String group = inputStream.readUTF();
-            String channel = inputStream.readUTF();
-            MultiChoiceAddress address = readAddress(inputStream);
+        private DiscoveryMessage readChannelAvailable() throws IOException {
+            MessageOriginator originator = readMessageOriginator();
+            String group = input.readString();
+            String channel = input.readString();
+            MultiChoiceAddress address = readAddress();
             address = address.addAddresses(remoteAddress.getCandidates());
             return new ChannelAvailable(originator, group, channel, address);
         }
 
-        private DiscoveryMessage readLookupRequest(DataInputStream inputStream) throws IOException {
-            MessageOriginator originator = readMessageOriginator(inputStream);
-            String group = inputStream.readUTF();
-            String channel = inputStream.readUTF();
+        private DiscoveryMessage readLookupRequest() throws IOException {
+            MessageOriginator originator = readMessageOriginator();
+            String group = input.readString();
+            String channel = input.readString();
             return new LookupRequest(originator, group, channel);
         }
 
-        private MessageOriginator readMessageOriginator(DataInputStream inputStream) throws IOException {
-            UUID uuid = readUUID(inputStream);
-            String name = inputStream.readUTF();
+        private MessageOriginator readMessageOriginator() throws IOException {
+            UUID uuid = readUUID();
+            String name = input.readString();
             return new MessageOriginator(uuid, name);
         }
 
-        private MultiChoiceAddress readAddress(DataInputStream inputStream) throws IOException {
-            UUID uuid = readUUID(inputStream);
-            int port = inputStream.readInt();
-            int addressCount = inputStream.readInt();
+        private MultiChoiceAddress readAddress() throws IOException {
+            UUID uuid = readUUID();
+            int port = input.readInt(true);
+            int addressCount = input.readInt(true);
             List<InetAddress> addresses = new ArrayList<InetAddress>();
             for (int i = 0; i < addressCount; i++) {
-                int length = inputStream.readInt();
-                byte[] binAddress = new byte[length];
-                inputStream.readFully(binAddress);
+                int length = input.readInt(true);
+                byte[] binAddress = input.readBytes(length);
                 InetAddress inetAddress = InetAddress.getByAddress(binAddress);
                 addresses.add(inetAddress);
             }
             return new MultiChoiceAddress(uuid, port, addresses);
         }
 
-        private UUID readUUID(DataInputStream inputStream) throws IOException {
-            long mostSigUuidBits = inputStream.readLong();
-            long leastSigUuidBits = inputStream.readLong();
+        private UUID readUUID() throws IOException {
+            long mostSigUuidBits = input.readLong();
+            long leastSigUuidBits = input.readLong();
             return new UUID(mostSigUuidBits, leastSigUuidBits);
         }
     }
 
     private static class MessageWriter implements ObjectWriter<DiscoveryMessage> {
-        private final DataOutputStream outputStream;
+        private final Output output;
 
-        public MessageWriter(DataOutputStream outputStream) {
-            this.outputStream = outputStream;
+        public MessageWriter(OutputStream outputStream) {
+            this.output = new Output(outputStream);
         }
 
         public void write(DiscoveryMessage message) throws Exception {
-            outputStream.writeByte(PROTOCOL_VERSION);
+            output.writeByte(PROTOCOL_VERSION);
             if (message instanceof LookupRequest) {
-                writeLookupRequest(outputStream, (LookupRequest) message);
+                writeLookupRequest((LookupRequest) message);
             } else if (message instanceof ChannelAvailable) {
-                writeChannelAvailable(outputStream, (ChannelAvailable) message);
+                writeChannelAvailable((ChannelAvailable) message);
             } else if (message instanceof ChannelUnavailable) {
-                writeChannelUnavailable(outputStream, (ChannelUnavailable) message);
+                writeChannelUnavailable((ChannelUnavailable) message);
             } else {
                 throw new UnsupportedOperationException();
             }
+            output.flush();
         }
 
-        private void writeChannelUnavailable(DataOutputStream outputStream, ChannelUnavailable channelUnavailable) throws IOException {
-            outputStream.writeByte(CHANNEL_UNAVAILABLE);
-            writeMessageOriginator(outputStream, channelUnavailable.getOriginator());
-            outputStream.writeUTF(channelUnavailable.getGroup());
-            outputStream.writeUTF(channelUnavailable.getChannel());
-            writeAddress(outputStream, (MultiChoiceAddress) channelUnavailable.getAddress());
+        private void writeChannelUnavailable(ChannelUnavailable channelUnavailable) throws IOException {
+            output.writeByte(CHANNEL_UNAVAILABLE);
+            writeMessageOriginator(channelUnavailable.getOriginator());
+            output.writeString(channelUnavailable.getGroup());
+            output.writeString(channelUnavailable.getChannel());
+            writeAddress((MultiChoiceAddress) channelUnavailable.getAddress());
         }
 
-        private void writeChannelAvailable(DataOutputStream outputStream, ChannelAvailable channelAvailable) throws IOException {
-            outputStream.writeByte(CHANNEL_AVAILABLE);
-            writeMessageOriginator(outputStream, channelAvailable.getOriginator());
-            outputStream.writeUTF(channelAvailable.getGroup());
-            outputStream.writeUTF(channelAvailable.getChannel());
-            writeAddress(outputStream, (MultiChoiceAddress) channelAvailable.getAddress());
+        private void writeChannelAvailable(ChannelAvailable channelAvailable) throws IOException {
+            output.writeByte(CHANNEL_AVAILABLE);
+            writeMessageOriginator(channelAvailable.getOriginator());
+            output.writeString(channelAvailable.getGroup());
+            output.writeString(channelAvailable.getChannel());
+            writeAddress((MultiChoiceAddress) channelAvailable.getAddress());
         }
 
-        private void writeLookupRequest(DataOutputStream outputStream, LookupRequest request) throws IOException {
-            outputStream.writeByte(LOOKUP_REQUEST);
-            writeMessageOriginator(outputStream, request.getOriginator());
-            outputStream.writeUTF(request.getGroup());
-            outputStream.writeUTF(request.getChannel());
+        private void writeLookupRequest(LookupRequest request) throws IOException {
+            output.writeByte(LOOKUP_REQUEST);
+            writeMessageOriginator(request.getOriginator());
+            output.writeString(request.getGroup());
+            output.writeString(request.getChannel());
         }
 
-        private void writeMessageOriginator(DataOutputStream outputStream, MessageOriginator messageOriginator) throws IOException {
-            writeUUID(outputStream, messageOriginator.getId());
-            outputStream.writeUTF(messageOriginator.getName());
+        private void writeMessageOriginator(MessageOriginator messageOriginator) throws IOException {
+            writeUUID(messageOriginator.getId());
+            output.writeString(messageOriginator.getName());
         }
 
-        private void writeAddress(DataOutputStream outputStream, MultiChoiceAddress address) throws IOException {
-            writeUUID(outputStream, address.getCanonicalAddress());
-            outputStream.writeInt(address.getPort());
-            outputStream.writeInt(address.getCandidates().size());
+        private void writeAddress(MultiChoiceAddress address) throws IOException {
+            writeUUID(address.getCanonicalAddress());
+            output.writeInt(address.getPort(), true);
+            output.writeInt(address.getCandidates().size(), true);
             for (InetAddress inetAddress : address.getCandidates()) {
                 byte[] binAddress = inetAddress.getAddress();
-                outputStream.writeInt(binAddress.length);
-                outputStream.write(binAddress);
+                output.writeInt(binAddress.length, true);
+                output.write(binAddress);
             }
         }
 
-        private void writeUUID(DataOutputStream outputStream, Object id) throws IOException {
+        private void writeUUID(Object id) throws IOException {
             UUID uuid = (UUID) id;
-            outputStream.writeLong(uuid.getMostSignificantBits());
-            outputStream.writeLong(uuid.getLeastSignificantBits());
+            output.writeLong(uuid.getMostSignificantBits());
+            output.writeLong(uuid.getLeastSignificantBits());
         }
     }
 }

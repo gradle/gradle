@@ -37,7 +37,50 @@ class InterHubMessageSerializerTest extends Specification {
         result instanceof ChannelMessage
         result.channel == channelId
         result.payload == "payload"
-        serialized.length == 16
+        serialized.length == 13
+    }
+
+    def "replaces a channel ID that has already been seen with an integer value"() {
+        def channelId = new ChannelIdentifier("name")
+        def message1 = new ChannelMessage(channelId, "payload 1")
+        def message2 = new ChannelMessage(channelId, "payload 2")
+
+        when:
+        def serialized = serialize(message1, message2)
+        def result = deserializeMultiple(serialized, 2)
+
+        then:
+        result[0] instanceof ChannelMessage
+        result[0].channel == channelId
+        result[0].payload == "payload 1"
+        result[1] instanceof ChannelMessage
+        result[1].channel == channelId
+        result[1].payload == "payload 2"
+        serialized.length == 26
+    }
+
+    def "can serialize messages for multiple channels"() {
+        def channelId1 = new ChannelIdentifier("channel 1")
+        def channelId2 = new ChannelIdentifier("channel 2")
+        def message1 = new ChannelMessage(channelId1, "payload 1") // 20
+        def message2 = new ChannelMessage(channelId2, "payload 2") // 20
+        def message3 = new ChannelMessage(channelId1, "payload 3") // 11
+
+        when:
+        def serialized = serialize(message1, message2, message3)
+        def result = deserializeMultiple(serialized, 3)
+
+        then:
+        result[0] instanceof ChannelMessage
+        result[0].channel == channelId1
+        result[0].payload == "payload 1"
+        result[1] instanceof ChannelMessage
+        result[1].channel == channelId2
+        result[1].payload == "payload 2"
+        result[2] instanceof ChannelMessage
+        result[2].channel == channelId1
+        result[2].payload == "payload 3"
+        serialized.length == 51
     }
 
     def "can serialise EndOfStream"() {
@@ -50,15 +93,27 @@ class InterHubMessageSerializerTest extends Specification {
         serialized.length == 1
     }
 
-    def serialize(InterHubMessage message) {
+    def serialize(InterHubMessage... messages) {
         def outStr = new ByteArrayOutputStream()
         def dataStr = new DataOutputStream(outStr)
-        serializer.newWriter(dataStr).write(message)
+        def writer = serializer.newWriter(dataStr)
+        messages.each {
+            writer.write(it)
+        }
         dataStr.flush()
         return outStr.toByteArray()
     }
 
     def deserialize(byte[] data) {
-        return serializer.newReader(new DataInputStream(new ByteArrayInputStream(data)), null, null).read()
+        return serializer.newReader(new ByteArrayInputStream(data), null, null).read()
+    }
+
+    def deserializeMultiple(byte[] data, int count) {
+        def reader = serializer.newReader(new ByteArrayInputStream(data), null, null)
+        def result = []
+        count.times {
+            result << reader.read()
+        }
+        return result
     }
 }

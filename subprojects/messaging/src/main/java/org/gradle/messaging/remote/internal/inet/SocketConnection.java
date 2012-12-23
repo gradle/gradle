@@ -26,7 +26,10 @@ import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedSelectorException;
@@ -40,8 +43,8 @@ public class SocketConnection<T> implements Connection<T> {
     private final SocketInetAddress remoteAddress;
     private final ObjectWriter<T> objectWriter;
     private final ObjectReader<T> objectReader;
-    private final DataInputStream instr;
-    private final DataOutputStream outstr;
+    private final InputStream instr;
+    private final OutputStream outstr;
 
     public SocketConnection(SocketChannel socket, MessageSerializer<T> serializer) {
         this.socket = socket;
@@ -49,8 +52,8 @@ public class SocketConnection<T> implements Connection<T> {
             // NOTE: we use non-blocking IO as there is no reliable way when using blocking IO to shutdown reads while
             // keeping writes active. For example, Socket.shutdownInput() does not work on Windows.
             socket.configureBlocking(false);
-            outstr = new DataOutputStream(new SocketOutputStream(socket));
-            instr = new DataInputStream(new SocketInputStream(socket));
+            outstr = new SocketOutputStream(socket);
+            instr = new SocketInputStream(socket);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

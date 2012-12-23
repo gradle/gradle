@@ -16,6 +16,8 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier;
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage;
@@ -25,56 +27,84 @@ import org.gradle.messaging.remote.internal.inet.InetEndpoint;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 class InterHubMessageSerializer implements MessageSerializer<InterHubMessage> {
-    public ObjectReader<InterHubMessage> newReader(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
+    public ObjectReader<InterHubMessage> newReader(InputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
         return new MessageReader(inputStream);
     }
 
-    public ObjectWriter<InterHubMessage> newWriter(DataOutputStream outputStream) {
+    public ObjectWriter<InterHubMessage> newWriter(OutputStream outputStream) {
         return new MessageWriter(outputStream);
     }
 
     private static class MessageReader implements ObjectReader<InterHubMessage> {
-        private final DataInputStream inputStream;
+        private final Map<Integer, ChannelIdentifier> channels = new HashMap<Integer, ChannelIdentifier>();
+        private final Input input;
 
-        private MessageReader(DataInputStream inputStream) {
-            this.inputStream = inputStream;
+        private MessageReader(InputStream inputStream) {
+            this.input = new Input(inputStream);
         }
 
         public InterHubMessage read() throws Exception {
-            switch (inputStream.readByte()) {
+            switch (input.readByte()) {
                 case 1:
-                    String channel = inputStream.readUTF();
-                    String payload = inputStream.readUTF();
-                    return new ChannelMessage(new ChannelIdentifier(channel), payload);
+                    ChannelIdentifier channelId = readChannelId();
+                    String payload = input.readString();
+                    return new ChannelMessage(channelId, payload);
                 case 2:
                     return new EndOfStream();
                 default:
                     throw new IllegalArgumentException();
             }
         }
+
+        private ChannelIdentifier readChannelId() {
+            int channelNum = input.readInt(true);
+            ChannelIdentifier channelId = channels.get(channelNum);
+            if (channelId == null) {
+                String channel = input.readString();
+                channelId = new ChannelIdentifier(channel);
+                channels.put(channelNum, channelId);
+            }
+            return channelId;
+        }
     }
 
     private static class MessageWriter implements ObjectWriter<InterHubMessage> {
-        private final DataOutputStream outputStream;
+        private final Map<ChannelIdentifier, Integer> channels = new HashMap<ChannelIdentifier, Integer>();
+        private final Output output;
 
-        public MessageWriter(DataOutputStream outputStream) {
-            this.outputStream = outputStream;
+        public MessageWriter(OutputStream outputStream) {
+            this.output = new Output(outputStream);
         }
 
         public void write(InterHubMessage message) throws Exception {
             if (message instanceof ChannelMessage) {
                 ChannelMessage channelMessage = (ChannelMessage) message;
-                outputStream.writeByte(1);
-                outputStream.writeUTF(channelMessage.getChannel().getName());
-                outputStream.writeUTF(channelMessage.getPayload().toString());
+                output.writeByte(1);
+                writeChannelId(channelMessage);
+                output.writeString(channelMessage.getPayload().toString());
             } else if (message instanceof EndOfStream) {
-                outputStream.writeByte(2);
+                output.writeByte(2);
             } else {
                 throw new IllegalArgumentException();
+            }
+            output.flush();
+        }
+
+        private void writeChannelId(ChannelMessage channelMessage) {
+            Integer channelNum = channels.get(channelMessage.getChannel());
+            if (channelNum == null) {
+                channelNum = channels.size();
+                channels.put(channelMessage.getChannel(), channelNum);
+                output.writeInt(channelNum, true);
+                output.writeString(channelMessage.getChannel().getName());
+            } else {
+                output.writeInt(channelNum, true);
             }
         }
     }

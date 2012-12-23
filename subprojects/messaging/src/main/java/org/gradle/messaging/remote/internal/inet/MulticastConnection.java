@@ -52,9 +52,8 @@ public class MulticastConnection<T> implements Connection<T> {
     public void dispatch(T message) {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-            serializer.newWriter(dataOutputStream).write(message);
-            dataOutputStream.close();
+            serializer.newWriter(outputStream).write(message);
+            outputStream.close();
             byte[] buffer = outputStream.toByteArray();
             socket.send(new DatagramPacket(buffer, buffer.length, address.getAddress(), address.getPort()));
         } catch (Exception e) {
@@ -68,8 +67,7 @@ public class MulticastConnection<T> implements Connection<T> {
             DatagramPacket packet = new DatagramPacket(buffer, 0, buffer.length);
             socket.receive(packet);
             ByteArrayInputStream inputStream = new ByteArrayInputStream(packet.getData(), packet.getOffset(), packet.getLength());
-            DataInputStream dataInputStream = new DataInputStream(inputStream);
-            return serializer.newReader(dataInputStream, localAddress, new SocketInetAddress(packet.getAddress(), packet.getPort())).read();
+            return serializer.newReader(inputStream, localAddress, new SocketInetAddress(packet.getAddress(), packet.getPort())).read();
         } catch (SocketException e) {
             // Assume closed
             return null;

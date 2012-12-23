@@ -19,7 +19,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface Serializer<T> {
+    /**
+     * Reads the next object from the given stream. The implementation must not perform any buffering, so that it reads only those bytes from the input stream that are
+     * required to deserialize the next object.
+     */
     T read(InputStream instr) throws Exception;
 
+    /**
+     * Writes the given object to the given stream. The implementation must not perform any buffering.
+     */
     void write(OutputStream outstr, T value) throws Exception;
 }

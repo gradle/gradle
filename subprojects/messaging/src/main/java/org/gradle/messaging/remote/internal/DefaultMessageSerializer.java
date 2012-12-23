@@ -19,8 +19,8 @@ import org.gradle.messaging.remote.internal.inet.InetEndpoint;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class DefaultMessageSerializer<T> implements MessageSerializer<T> {
     private final ClassLoader classLoader;
@@ -29,19 +29,19 @@ public class DefaultMessageSerializer<T> implements MessageSerializer<T> {
         this.classLoader = classLoader;
     }
 
-    public ObjectReader<T> newReader(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
+    public ObjectReader<T> newReader(InputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
         return new MessageReader<T>(inputStream, classLoader);
     }
 
-    public ObjectWriter<T> newWriter(DataOutputStream outputStream) {
+    public ObjectWriter<T> newWriter(OutputStream outputStream) {
         return new MessageWriter<T>(outputStream);
     }
 
     private static class MessageReader<T> implements ObjectReader<T> {
-        private final DataInputStream inputStream;
+        private final InputStream inputStream;
         private final ClassLoader classLoader;
 
-        public MessageReader(DataInputStream inputStream, ClassLoader classLoader) {
+        public MessageReader(InputStream inputStream, ClassLoader classLoader) {
             this.inputStream = inputStream;
             this.classLoader = classLoader;
         }
@@ -52,9 +52,9 @@ public class DefaultMessageSerializer<T> implements MessageSerializer<T> {
     }
 
     private static class MessageWriter<T> implements ObjectWriter<T> {
-        private final DataOutputStream outputStream;
+        private final OutputStream outputStream;
 
-        public MessageWriter(DataOutputStream outputStream) {
+        public MessageWriter(OutputStream outputStream) {
             this.outputStream = outputStream;
         }
 
