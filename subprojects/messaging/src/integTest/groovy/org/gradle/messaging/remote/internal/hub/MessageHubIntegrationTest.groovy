@@ -108,8 +108,8 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
         server.stop()
 
         then:
-        _ * client1Handler.dispatch(_) >> { String message -> client1Dispatch.dispatch("[${message}]") }
-        _ * client2Handler.dispatch(_) >> { String message -> client2Dispatch.dispatch("[${message}]") }
+        _ * client1Handler.dispatch(_) >> { String message -> client1Dispatch.dispatch("[${message}]" as String) }
+        _ * client2Handler.dispatch(_) >> { String message -> client2Dispatch.dispatch("[${message}]" as String) }
         1 * serverHandler.dispatch("[message 1]") >> { replies.countDown() }
         1 * serverHandler.dispatch("[message 2]") >> { replies.countDown() }
         1 * serverHandler.dispatch("[message 3]") >> { replies.countDown() }
