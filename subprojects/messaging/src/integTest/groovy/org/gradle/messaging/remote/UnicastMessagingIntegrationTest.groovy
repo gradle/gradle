@@ -27,16 +27,19 @@ import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector
-import org.gradle.messaging.serialize.kryo.TypeSafeKryoAwareSerializer
+import org.gradle.messaging.serialize.kryo.JavaSerializer
+import org.gradle.messaging.serialize.kryo.TypeSafeSerializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Timeout
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
+@Timeout(60)
 class UnicastMessagingIntegrationTest extends ConcurrentSpec {
-    final serializer = new InterHubMessageSerializer(new TypeSafeKryoAwareSerializer<MethodInvocation>(MethodInvocation.class, new MethodInvocationSerializer(getClass().classLoader)))
+    final serializer = new InterHubMessageSerializer(new TypeSafeSerializer<MethodInvocation>(MethodInvocation.class, new MethodInvocationSerializer(getClass().classLoader, new JavaSerializer<Object[]>(getClass().classLoader))))
 
     def "server can send messages to client"() {
         RemoteService1 service = Mock()

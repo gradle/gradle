@@ -16,22 +16,18 @@
 
 package org.gradle.messaging.remote.internal.hub
 
-import com.esotericsoftware.kryo.io.Input
-import com.esotericsoftware.kryo.io.Output
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
-import org.gradle.messaging.serialize.ObjectReader
-import org.gradle.messaging.serialize.ObjectWriter
-import org.gradle.messaging.serialize.kryo.KryoAwareSerializer
+import org.gradle.messaging.serialize.kryo.KryoSerializer
 import spock.lang.Specification
 
 class InterHubMessageSerializerTest extends Specification {
-    final InterHubMessageSerializer serializer = new InterHubMessageSerializer(new TestSerializer())
+    final InterHubMessageSerializer serializer = new InterHubMessageSerializer(new KryoSerializer<Object>())
 
     def "can serialise ChannelMessage"() {
-        def channelId = new ChannelIdentifier("name")
+        def channelId = new ChannelIdentifier("channel name")
         def message = new ChannelMessage(channelId, "payload")
 
         when:
@@ -42,11 +38,11 @@ class InterHubMessageSerializerTest extends Specification {
         result instanceof ChannelMessage
         result.channel == channelId
         result.payload == "payload"
-        serialized.length == 13
+        serialized.length == 23
     }
 
     def "replaces a channel ID that has already been seen with an integer value"() {
-        def channelId = new ChannelIdentifier("name")
+        def channelId = new ChannelIdentifier("channel name")
         def message1 = new ChannelMessage(channelId, "payload 1")
         def message2 = new ChannelMessage(channelId, "payload 2")
 
@@ -61,7 +57,7 @@ class InterHubMessageSerializerTest extends Specification {
         result[1] instanceof ChannelMessage
         result[1].channel == channelId
         result[1].payload == "payload 2"
-        serialized.length == 26
+        serialized.length == 38
     }
 
     def "can serialize messages for multiple channels"() {
@@ -85,7 +81,7 @@ class InterHubMessageSerializerTest extends Specification {
         result[2] instanceof ChannelMessage
         result[2].channel == channelId1
         result[2].payload == "payload 3"
-        serialized.length == 51
+        serialized.length == 57
     }
 
     def "can serialise EndOfStream"() {
@@ -118,23 +114,5 @@ class InterHubMessageSerializerTest extends Specification {
             result << reader.read()
         }
         return result
-    }
-
-    private static class TestSerializer implements KryoAwareSerializer<Object> {
-        ObjectWriter<Object> newWriter(Output output) {
-            return new ObjectWriter<Object>() {
-                void write(Object value) throws Exception {
-                    output.writeString(value.toString())
-                }
-            }
-        }
-
-        ObjectReader<Object> newReader(Input input) {
-            return new ObjectReader<Object>() {
-                Object read() throws Exception {
-                    return input.readString()
-                }
-            }
-        }
     }
 }

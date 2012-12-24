@@ -21,11 +21,11 @@ import com.esotericsoftware.kryo.io.Output;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
-public class TypeSafeKryoAwareSerializer<T> implements KryoAwareSerializer<Object> {
+public class TypeSafeSerializer<T> implements KryoAwareSerializer<Object> {
     private final Class<T> type;
     private final KryoAwareSerializer<T> serializer;
 
-    public TypeSafeKryoAwareSerializer(Class<T> type, KryoAwareSerializer<T> serializer) {
+    public TypeSafeSerializer(Class<T> type, KryoAwareSerializer<T> serializer) {
         this.type = type;
         this.serializer = serializer;
     }

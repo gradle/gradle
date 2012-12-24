@@ -16,7 +16,6 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.gradle.messaging.dispatch.MethodInvocation;
@@ -30,25 +29,29 @@ import java.util.Map;
 
 public class MethodInvocationSerializer implements KryoAwareSerializer<MethodInvocation> {
     private final ClassLoader classLoader;
+    private final KryoAwareSerializer<Object[]> argsSerializer;
 
-    public MethodInvocationSerializer(ClassLoader classLoader) {
+    public MethodInvocationSerializer(ClassLoader classLoader, KryoAwareSerializer<Object[]> argsSerializer) {
         this.classLoader = classLoader;
+        this.argsSerializer = argsSerializer;
     }
 
     public ObjectReader<MethodInvocation> newReader(Input input) {
-        return new MethodInvocationReader(input, classLoader);
+        return new MethodInvocationReader(input, classLoader, argsSerializer.newReader(input));
     }
 
     public ObjectWriter<MethodInvocation> newWriter(Output output) {
-        return new MethodInvocationWriter(output);
+        return new MethodInvocationWriter(output, argsSerializer.newWriter(output));
     }
 
     private static class MethodInvocationWriter implements ObjectWriter<MethodInvocation> {
         private final Output output;
+        private final ObjectWriter<Object[]> argsWriter;
         private final Map<Method, Integer> methods = new HashMap<Method, Integer>();
 
-        public MethodInvocationWriter(Output output) {
+        public MethodInvocationWriter(Output output, ObjectWriter<Object[]> argsWriter) {
             this.output = output;
+            this.argsWriter = argsWriter;
         }
 
         public void write(MethodInvocation value) throws Exception {
@@ -59,11 +62,8 @@ public class MethodInvocationSerializer implements KryoAwareSerializer<MethodInv
             writeArguments(value);
         }
 
-        private void writeArguments(MethodInvocation value) {
-            Kryo kryo = new Kryo();
-            for (Object arg : value.getArguments()) {
-                kryo.writeClassAndObject(output, arg);
-            }
+        private void writeArguments(MethodInvocation value) throws Exception {
+            argsWriter.write(value.getArguments());
         }
 
         private void writeMethod(Method method) {
@@ -93,26 +93,23 @@ public class MethodInvocationSerializer implements KryoAwareSerializer<MethodInv
 
         private final Input input;
         private final ClassLoader classLoader;
+        private final ObjectReader<Object[]> argsReader;
         private final Map<Integer, Method> methods = new HashMap<Integer, Method>();
 
-        public MethodInvocationReader(Input input, ClassLoader classLoader) {
+        public MethodInvocationReader(Input input, ClassLoader classLoader, ObjectReader<Object[]> argsReader) {
             this.input = input;
             this.classLoader = classLoader;
+            this.argsReader = argsReader;
         }
 
         public MethodInvocation read() throws Exception {
             Method method = readMethod();
-            Object[] args = readArguments(method);
+            Object[] args = readArguments();
             return new MethodInvocation(method, args);
         }
 
-        private Object[] readArguments(Method method) {
-            Object[] args = new Object[method.getParameterTypes().length];
-            Kryo kryo = new Kryo();
-            for (int i = 0; i < args.length; i++) {
-                args[i] = kryo.readClassAndObject(input);
-            }
-            return args;
+        private Object[] readArguments() throws Exception {
+            return argsReader.read();
         }
 
         private Method readMethod() throws ClassNotFoundException, NoSuchMethodException {

@@ -19,11 +19,12 @@ package org.gradle.messaging.remote.internal.hub
 import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
 import org.gradle.messaging.dispatch.MethodInvocation
+import org.gradle.messaging.serialize.kryo.KryoSerializer
 import spock.lang.Specification
 
 class MethodInvocationSerializerTest extends Specification {
     final classLoader = new GroovyClassLoader(getClass().classLoader)
-    final serializer = new MethodInvocationSerializer(classLoader)
+    final serializer = new MethodInvocationSerializer(classLoader, new KryoSerializer<Object[]>())
 
     def "serializes a method invocation with parameters"() {
         def method = String.class.getMethod("substring", Integer.TYPE, Integer.TYPE)
@@ -36,7 +37,7 @@ class MethodInvocationSerializerTest extends Specification {
         then:
         result.method == method
         result.arguments == [1, 2] as Object[]
-        serialized.length == 37
+        serialized.length == 60
     }
 
     def "replaces a method that has already been seen with an integer ID"() {
@@ -54,7 +55,7 @@ class MethodInvocationSerializerTest extends Specification {
         result[0].arguments == [1, 2] as Object[]
         result[1].method == method1
         result[1].arguments == [3, 4] as Object[]
-        serialized.length == 42
+        serialized.length == 88
     }
 
     def "serializes method invocations for multiple methods"() {
