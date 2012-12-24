@@ -3,11 +3,7 @@ dependencies {
     publishCompile project(':baseServices')
     publishCompile libraries.slf4j_api
     publishCompile libraries.guava
-    publishCompile module('com.esotericsoftware.kryo:kryo:2.20') {
-        dependency module('com.esotericsoftware.minlog:minlog:1.2')
-        dependency module('com.esotericsoftware.reflectasm:reflectasm:1.07')
-        dependency libraries.objenesis
-    }
+    publishCompile 'com.esotericsoftware.kryo:kryo:2.20'
 }
 
 useTestFixtures()
