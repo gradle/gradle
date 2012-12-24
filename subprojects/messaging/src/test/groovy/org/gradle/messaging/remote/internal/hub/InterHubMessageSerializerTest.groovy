@@ -16,14 +16,19 @@
 
 package org.gradle.messaging.remote.internal.hub
 
+import com.esotericsoftware.kryo.io.Input
+import com.esotericsoftware.kryo.io.Output
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
+import org.gradle.messaging.serialize.ObjectReader
+import org.gradle.messaging.serialize.ObjectWriter
+import org.gradle.messaging.serialize.kryo.KryoAwareSerializer
 import spock.lang.Specification
 
 class InterHubMessageSerializerTest extends Specification {
-    final InterHubMessageSerializer serializer = new InterHubMessageSerializer()
+    final InterHubMessageSerializer serializer = new InterHubMessageSerializer(new TestSerializer())
 
     def "can serialise ChannelMessage"() {
         def channelId = new ChannelIdentifier("name")
@@ -62,9 +67,9 @@ class InterHubMessageSerializerTest extends Specification {
     def "can serialize messages for multiple channels"() {
         def channelId1 = new ChannelIdentifier("channel 1")
         def channelId2 = new ChannelIdentifier("channel 2")
-        def message1 = new ChannelMessage(channelId1, "payload 1") // 20
-        def message2 = new ChannelMessage(channelId2, "payload 2") // 20
-        def message3 = new ChannelMessage(channelId1, "payload 3") // 11
+        def message1 = new ChannelMessage(channelId1, "payload 1")
+        def message2 = new ChannelMessage(channelId2, "payload 2")
+        def message3 = new ChannelMessage(channelId1, "payload 3")
 
         when:
         def serialized = serialize(message1, message2, message3)
@@ -95,12 +100,10 @@ class InterHubMessageSerializerTest extends Specification {
 
     def serialize(InterHubMessage... messages) {
         def outStr = new ByteArrayOutputStream()
-        def dataStr = new DataOutputStream(outStr)
-        def writer = serializer.newWriter(dataStr)
+        def writer = serializer.newWriter(outStr)
         messages.each {
             writer.write(it)
         }
-        dataStr.flush()
         return outStr.toByteArray()
     }
 
@@ -115,5 +118,23 @@ class InterHubMessageSerializerTest extends Specification {
             result << reader.read()
         }
         return result
+    }
+
+    private static class TestSerializer implements KryoAwareSerializer<Object> {
+        ObjectWriter<Object> newWriter(Output output) {
+            return new ObjectWriter<Object>() {
+                void write(Object value) throws Exception {
+                    output.writeString(value.toString())
+                }
+            }
+        }
+
+        ObjectReader<Object> newReader(Input input) {
+            return new ObjectReader<Object>() {
+                Object read() throws Exception {
+                    return input.readString()
+                }
+            }
+        }
     }
 }

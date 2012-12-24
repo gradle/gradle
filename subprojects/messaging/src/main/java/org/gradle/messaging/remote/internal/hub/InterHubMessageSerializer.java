@@ -26,6 +26,7 @@ import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.messaging.remote.internal.inet.InetEndpoint;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
+import org.gradle.messaging.serialize.kryo.KryoAwareSerializer;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,27 +34,37 @@ import java.util.HashMap;
 import java.util.Map;
 
 class InterHubMessageSerializer implements MessageSerializer<InterHubMessage> {
+    private final KryoAwareSerializer<Object> payloadSerializer;
+
+    public InterHubMessageSerializer(KryoAwareSerializer<Object> payloadSerializer) {
+        this.payloadSerializer = payloadSerializer;
+    }
+
     public ObjectReader<InterHubMessage> newReader(InputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
-        return new MessageReader(inputStream);
+        Input input = new Input(inputStream);
+        return new MessageReader(input, payloadSerializer.newReader(input));
     }
 
     public ObjectWriter<InterHubMessage> newWriter(OutputStream outputStream) {
-        return new MessageWriter(outputStream);
+        Output output = new Output(outputStream);
+        return new MessageWriter(output, payloadSerializer.newWriter(output));
     }
 
     private static class MessageReader implements ObjectReader<InterHubMessage> {
         private final Map<Integer, ChannelIdentifier> channels = new HashMap<Integer, ChannelIdentifier>();
         private final Input input;
+        private final ObjectReader<?> payloadReader;
 
-        private MessageReader(InputStream inputStream) {
-            this.input = new Input(inputStream);
+        public MessageReader(Input input, ObjectReader<?> payloadReader) {
+            this.input = input;
+            this.payloadReader = payloadReader;
         }
 
         public InterHubMessage read() throws Exception {
             switch (input.readByte()) {
                 case 1:
                     ChannelIdentifier channelId = readChannelId();
-                    String payload = input.readString();
+                    Object payload = payloadReader.read();
                     return new ChannelMessage(channelId, payload);
                 case 2:
                     return new EndOfStream();
@@ -77,9 +88,11 @@ class InterHubMessageSerializer implements MessageSerializer<InterHubMessage> {
     private static class MessageWriter implements ObjectWriter<InterHubMessage> {
         private final Map<ChannelIdentifier, Integer> channels = new HashMap<ChannelIdentifier, Integer>();
         private final Output output;
+        private final ObjectWriter<Object> payloadWriter;
 
-        public MessageWriter(OutputStream outputStream) {
-            this.output = new Output(outputStream);
+        public MessageWriter(Output output, ObjectWriter<Object> payloadWriter) {
+            this.output = output;
+            this.payloadWriter = payloadWriter;
         }
 
         public void write(InterHubMessage message) throws Exception {
@@ -87,7 +100,7 @@ class InterHubMessageSerializer implements MessageSerializer<InterHubMessage> {
                 ChannelMessage channelMessage = (ChannelMessage) message;
                 output.writeByte(1);
                 writeChannelId(channelMessage);
-                output.writeString(channelMessage.getPayload().toString());
+                payloadWriter.write(channelMessage.getPayload());
             } else if (message instanceof EndOfStream) {
                 output.writeByte(2);
             } else {
