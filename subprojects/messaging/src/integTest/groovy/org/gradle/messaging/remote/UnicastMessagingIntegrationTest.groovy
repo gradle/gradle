@@ -17,33 +17,39 @@
 package org.gradle.messaging.remote
 
 import org.gradle.api.Action
-import org.gradle.messaging.remote.internal.MessagingServices
-import org.gradle.util.ConcurrentSpecification
-import spock.lang.Ignore
+import org.gradle.internal.id.UUIDGenerator
+import org.gradle.messaging.dispatch.MethodInvocation
+import org.gradle.messaging.remote.internal.hub.InterHubMessageSerializer
+import org.gradle.messaging.remote.internal.hub.MessageHubBackedClient
+import org.gradle.messaging.remote.internal.hub.MessageHubBackedServer
+import org.gradle.messaging.remote.internal.hub.MethodInvocationSerializer
+import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
+import org.gradle.messaging.remote.internal.inet.InetAddressFactory
+import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector
+import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector
+import org.gradle.messaging.serialize.kryo.TypeSafeKryoAwareSerializer
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-@Ignore
-class UnicastMessagingIntegrationTest extends ConcurrentSpecification {
+class UnicastMessagingIntegrationTest extends ConcurrentSpec {
+    final serializer = new InterHubMessageSerializer(new TypeSafeKryoAwareSerializer<MethodInvocation>(MethodInvocation.class, new MethodInvocationSerializer(getClass().classLoader)))
+
     def "server can send messages to client"() {
         RemoteService1 service = Mock()
         def server = new Server()
         def client = new Client(server.address)
 
         when:
-        start {
-            client.addIncoming(service)
-        }
-        start {
-            server.outgoingService1.doStuff("1")
-            server.outgoingService1.doStuff("2")
-            server.outgoingService1.doStuff("3")
-            server.outgoingService1.doStuff("4")
-        }
-        finished()
+        client.addIncoming(service)
+        server.outgoingService1.doStuff("1")
+        server.outgoingService1.doStuff("2")
+        server.outgoingService1.doStuff("3")
+        server.outgoingService1.doStuff("4")
+        thread.blockUntil.received
         server.stop()
         client.stop()
 
@@ -51,7 +57,7 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpecification {
         1 * service.doStuff("1")
         1 * service.doStuff("2")
         1 * service.doStuff("3")
-        1 * service.doStuff("4")
+        1 * service.doStuff("4") >> { instant.received }
 
         cleanup:
         client?.stop()
@@ -64,16 +70,12 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpecification {
         def client = new Client(server.address)
 
         when:
-        start {
-            server.addIncoming(service)
-        }
-        start {
-            client.outgoingService1.doStuff("1")
-            client.outgoingService1.doStuff("2")
-            client.outgoingService1.doStuff("3")
-            client.outgoingService1.doStuff("4")
-        }
-        finished()
+        server.addIncoming(service)
+        client.outgoingService1.doStuff("1")
+        client.outgoingService1.doStuff("2")
+        client.outgoingService1.doStuff("3")
+        client.outgoingService1.doStuff("4")
+        thread.blockUntil.received
         client.stop()
         server.stop()
 
@@ -81,7 +83,7 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpecification {
         1 * service.doStuff("1")
         1 * service.doStuff("2")
         1 * service.doStuff("3")
-        1 * service.doStuff("4")
+        1 * service.doStuff("4") >> { instant.received }
 
         cleanup:
         client?.stop()
@@ -160,22 +162,17 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpecification {
         def client
 
         when:
-        start {
-            client = new Client(server.address)
-            client.outgoingService1.doStuff("1")
-            client.outgoingService1.doStuff("2")
-            client.stop()
-        }
-        start {
-            server.addIncoming(service)
-        }
-        finished()
+        client = new Client(server.address)
+        client.outgoingService1.doStuff("1")
+        client.outgoingService1.doStuff("2")
+        server.addIncoming(service)
+        thread.blockUntil.received
         server.stop()
         client?.stop()
 
         then:
         1 * service.doStuff("1")
-        1 * service.doStuff("2")
+        1 * service.doStuff("2") >> { instant.received }
 
         cleanup:
         client?.stop()
@@ -183,7 +180,6 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpecification {
     }
 
     abstract class Participant {
-        final def services = new MessagingServices(getClass().classLoader)
         private RemoteService1 remoteService1
         private RemoteService2 remoteService2
 
@@ -211,19 +207,21 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpecification {
             return remoteService2
         }
 
-        void stop() {
-            services.stop()
-        }
+        abstract void stop()
     }
 
     class Server extends Participant {
         private final Lock lock = new ReentrantLock()
         private final Condition condition = lock.newCondition()
         private ObjectConnection connection
+        final incomingConnector
+        final MessagingServer server
         final Address address
 
         Server() {
-            address = services.get(MessagingServer.class).accept({ event ->
+            incomingConnector = new TcpIncomingConnector<InterHubMessage>(getExecutorFactory(), serializer, new InetAddressFactory(), new UUIDGenerator())
+            server = new MessageHubBackedServer(incomingConnector, getExecutorFactory())
+            address = server.accept({ event ->
                 lock.lock()
                 try {
                     connection = event.connection
@@ -246,13 +244,35 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpecification {
                 lock.unlock()
             }
         }
+
+        @Override
+        void stop() {
+            lock.lock()
+            try {
+                if (connection != null) {
+                    connection.stop()
+                }
+                connection = null
+            } finally {
+                lock.unlock()
+            }
+            incomingConnector.stop()
+        }
     }
 
     class Client extends Participant {
         final ObjectConnection connection
+        final MessagingClient client
 
         Client(Address serverAddress) {
-            connection = services.get(MessagingClient.class).getConnection(serverAddress)
+            def outgoingConnector = new TcpOutgoingConnector<InterHubMessage>(serializer)
+            client = new MessageHubBackedClient(outgoingConnector, getExecutorFactory())
+            connection = client.getConnection(serverAddress)
+        }
+
+        @Override
+        void stop() {
+            connection.stop()
         }
     }
 }
