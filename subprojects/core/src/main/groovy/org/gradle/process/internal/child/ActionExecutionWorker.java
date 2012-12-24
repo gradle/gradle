@@ -49,36 +49,40 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
 
     public void execute(final WorkerContext workerContext) {
         MessagingServices messagingServices = createClient();
-        final MessagingClient client = messagingServices.get(MessagingClient.class);
-        final ObjectConnection clientConnection = client.getConnection(serverAddress);
         try {
-            LOGGER.debug("Starting {}.", displayName);
-            WorkerProcessContext context = new WorkerProcessContext() {
-                public ObjectConnection getServerConnection() {
-                    return clientConnection;
-                }
-
-                public ClassLoader getApplicationClassLoader() {
-                    return workerContext.getApplicationClassLoader();
-                }
-
-                public Object getWorkerId() {
-                    return workerId;
-                }
-
-                public String getDisplayName() {
-                    return displayName;
-                }
-            };
-
-            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
+            final MessagingClient client = messagingServices.get(MessagingClient.class);
+            final ObjectConnection clientConnection = client.getConnection(serverAddress);
             try {
-                action.execute(context);
+                LOGGER.debug("Starting {}.", displayName);
+                WorkerProcessContext context = new WorkerProcessContext() {
+                    public ObjectConnection getServerConnection() {
+                        return clientConnection;
+                    }
+
+                    public ClassLoader getApplicationClassLoader() {
+                        return workerContext.getApplicationClassLoader();
+                    }
+
+                    public Object getWorkerId() {
+                        return workerId;
+                    }
+
+                    public String getDisplayName() {
+                        return displayName;
+                    }
+                };
+
+                ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+                Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
+                try {
+                    action.execute(context);
+                } finally {
+                    Thread.currentThread().setContextClassLoader(contextClassLoader);
+                }
+                LOGGER.debug("Completed {}.", displayName);
             } finally {
-                Thread.currentThread().setContextClassLoader(contextClassLoader);
+                clientConnection.stop();
             }
-            LOGGER.debug("Completed {}.", displayName);
         } finally {
             LOGGER.debug("Stopping client connection.");
             messagingServices.stop();
