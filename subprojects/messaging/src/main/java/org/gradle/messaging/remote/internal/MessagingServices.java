@@ -147,15 +147,15 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
 
     protected MessagingClient createMessagingClient() {
         messagingClient = new DefaultMessagingClient(
-                get(MultiChannelConnector.class),
-                messageClassLoader);
+                get(MultiChannelConnector.class)
+        );
         return messagingClient;
     }
 
     protected MessagingServer createMessagingServer() {
         messagingServer = new DefaultMessagingServer(
-                get(MultiChannelConnector.class),
-                messageClassLoader);
+                get(MultiChannelConnector.class)
+        );
         return messagingServer;
     }
 

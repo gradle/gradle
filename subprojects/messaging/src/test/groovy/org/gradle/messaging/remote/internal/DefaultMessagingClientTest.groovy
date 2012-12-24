@@ -20,7 +20,7 @@ import org.gradle.messaging.remote.Address
 
 class DefaultMessagingClientTest extends Specification {
     final MultiChannelConnector connector = Mock()
-    final DefaultMessagingClient client = new DefaultMessagingClient(connector, getClass().classLoader)
+    final DefaultMessagingClient client = new DefaultMessagingClient(connector)
 
     def "creates connection and stops connection on stop"() {
         Address address = Mock()

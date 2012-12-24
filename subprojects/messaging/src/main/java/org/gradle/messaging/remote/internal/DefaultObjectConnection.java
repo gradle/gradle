@@ -18,30 +18,17 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.Addressable;
 import org.gradle.messaging.remote.ObjectConnection;
 
 public class DefaultObjectConnection implements ObjectConnection {
-    private final Addressable addressable;
     private final AsyncStoppable stopControl;
     private final OutgoingMethodInvocationHandler outgoing;
     private final IncomingMethodInvocationHandler incoming;
 
-    public DefaultObjectConnection(Addressable addressable, AsyncStoppable stopControl,
-                                   OutgoingMethodInvocationHandler outgoing, IncomingMethodInvocationHandler incoming) {
-        this.addressable = addressable;
+    public DefaultObjectConnection(AsyncStoppable stopControl, OutgoingMethodInvocationHandler outgoing, IncomingMethodInvocationHandler incoming) {
         this.stopControl = stopControl;
         this.outgoing = outgoing;
         this.incoming = incoming;
-    }
-
-    public Address getRemoteAddress() {
-        return addressable.getRemoteAddress();
-    }
-
-    public Address getLocalAddress() {
-        return addressable.getLocalAddress();
     }
 
     public <T> void addIncoming(Class<T> type, T instance) {

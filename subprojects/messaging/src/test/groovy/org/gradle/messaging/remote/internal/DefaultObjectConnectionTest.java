@@ -51,8 +51,8 @@ public class DefaultObjectConnectionTest {
         IncomingMethodInvocationHandler receiverIncoming = new IncomingMethodInvocationHandler(connection.getReceiver());
         OutgoingMethodInvocationHandler senderOutgoing = new OutgoingMethodInvocationHandler(connection.getSender());
         OutgoingMethodInvocationHandler receiverOutgoing = new OutgoingMethodInvocationHandler(connection.getReceiver());
-        sender = new DefaultObjectConnection(messageConnection, stopControl, senderOutgoing, senderIncoming);
-        receiver = new DefaultObjectConnection(messageConnection, stopControl, receiverOutgoing, receiverIncoming);
+        sender = new DefaultObjectConnection(stopControl, senderOutgoing, senderIncoming);
+        receiver = new DefaultObjectConnection(stopControl, receiverOutgoing, receiverIncoming);
     }
 
     @Test

@@ -28,7 +28,7 @@ class DefaultMessagingServerTest extends Specification {
     final Address remoteAddress = Mock()
     final Address localAddress = Mock()
     private final MultiChannelConnector multiChannelConnector = Mock()
-    private final DefaultMessagingServer server = new DefaultMessagingServer(multiChannelConnector, getClass().classLoader)
+    private final DefaultMessagingServer server = new DefaultMessagingServer(multiChannelConnector)
 
     def createsConnection() {
         Action<ConnectEvent<ObjectConnection>> action = Mock()

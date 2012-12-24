@@ -22,7 +22,7 @@ import org.gradle.messaging.dispatch.MethodInvocation;
 /**
  * Manages a set of incoming and outgoing channels between 2 peers. Implementations must be thread-safe.
  */
-public interface ObjectConnection extends Addressable, AsyncStoppable {
+public interface ObjectConnection extends AsyncStoppable {
     /**
      * Creates a transmitter for outgoing messages on the given type. The returned object is thread-safe.
      *

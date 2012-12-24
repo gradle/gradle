@@ -27,18 +27,16 @@ import java.util.Set;
 public class DefaultMessagingClient implements MessagingClient, Stoppable {
     private final Set<ObjectConnection> connections = new HashSet<ObjectConnection>();
     private final MultiChannelConnector connector;
-    private final ClassLoader classLoader;
 
-    public DefaultMessagingClient(MultiChannelConnector connector, ClassLoader classLoader) {
+    public DefaultMessagingClient(MultiChannelConnector connector) {
         this.connector = connector;
-        this.classLoader = classLoader;
     }
 
     public ObjectConnection getConnection(Address address) {
         MultiChannelConnection<Object> connection = connector.connect(address);
         IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(connection);
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(connection);
-        ObjectConnection objectConnection = new DefaultObjectConnection(connection, connection, outgoing, incoming);
+        ObjectConnection objectConnection = new DefaultObjectConnection(connection, outgoing, incoming);
         connections.add(objectConnection);
         return objectConnection;
     }
