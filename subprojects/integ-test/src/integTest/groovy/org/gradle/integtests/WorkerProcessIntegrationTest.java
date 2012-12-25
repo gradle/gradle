@@ -19,7 +19,10 @@ package org.gradle.integtests;
 import org.apache.tools.ant.Project;
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.api.internal.*;
+import org.gradle.api.internal.Actions;
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DefaultClassPathProvider;
+import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TestFiles;
@@ -42,7 +45,10 @@ import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.ObjectInputStream;
@@ -130,7 +136,6 @@ public class WorkerProcessIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void handlesWorkerProcessWhichCrashes() throws Throwable {
         context.checking(new Expectations() {{
             atMost(1).of(listenerMock).send("message 1", 1);
