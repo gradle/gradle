@@ -33,7 +33,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-class InterHubMessageSerializer implements MessageSerializer<InterHubMessage> {
+public class InterHubMessageSerializer implements MessageSerializer<InterHubMessage> {
     private final KryoAwareSerializer<Object> payloadSerializer;
 
     public InterHubMessageSerializer(KryoAwareSerializer<Object> payloadSerializer) {

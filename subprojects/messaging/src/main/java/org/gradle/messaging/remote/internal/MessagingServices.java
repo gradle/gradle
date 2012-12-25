@@ -24,11 +24,19 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
+import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.messaging.remote.internal.hub.InterHubMessageSerializer;
+import org.gradle.messaging.remote.internal.hub.MessageHubBackedClient;
+import org.gradle.messaging.remote.internal.hub.MessageHubBackedServer;
+import org.gradle.messaging.remote.internal.hub.MethodInvocationSerializer;
+import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.messaging.remote.internal.inet.*;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryProtocolSerializer;
+import org.gradle.messaging.serialize.kryo.JavaSerializer;
+import org.gradle.messaging.serialize.kryo.TypeSafeSerializer;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
@@ -55,11 +63,11 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
     private final ClassLoader messageClassLoader;
     private final String broadcastGroup;
     private final SocketInetAddress broadcastAddress;
-    private DefaultMessagingClient messagingClient;
-    private DefaultMultiChannelConnector multiChannelConnector;
-    private TcpIncomingConnector<Message> incomingConnector;
+    private MessagingClient messagingClient;
+    private IncomingConnector<Message> incomingLegacyConnector;
+    private IncomingConnector<InterHubMessage> incomingHubConnector;
     private DefaultExecutorFactory executorFactory;
-    private DefaultMessagingServer messagingServer;
+    private MessagingServer messagingServer;
     private DefaultIncomingBroadcast incomingBroadcast;
     private AsyncConnectionAdapter<DiscoveryMessage> multicastConnection;
     private DefaultOutgoingBroadcast outgoingBroadcast;
@@ -93,10 +101,10 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
     @Override
     public void close() {
         CompositeStoppable stoppable = new CompositeStoppable();
-        stoppable.add(incomingConnector);
+        stoppable.add(incomingLegacyConnector);
+        stoppable.add(incomingHubConnector);
         stoppable.add(messagingClient);
         stoppable.add(messagingServer);
-        stoppable.add(multiChannelConnector);
         stoppable.add(outgoingBroadcast);
         stoppable.add(incomingBroadcast);
         stoppable.add(multicastConnection);
@@ -126,36 +134,53 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
     }
 
     protected IncomingConnector<Message> createIncomingConnector() {
-        incomingConnector = new TcpIncomingConnector<Message>(
+        incomingLegacyConnector = new TcpIncomingConnector<Message>(
                 get(ExecutorFactory.class),
                 new DefaultMessageSerializer<Message>(
                         messageClassLoader),
                 get(InetAddressFactory.class),
                 idGenerator);
-        return incomingConnector;
+        return incomingLegacyConnector;
     }
 
-    protected MultiChannelConnector createMultiChannelConnector() {
-        multiChannelConnector = new DefaultMultiChannelConnector(
-                get(OutgoingConnector.class),
-                get(IncomingConnector.class),
+    protected OutgoingConnector<InterHubMessage> createOutgoingHubConnector() {
+        return new TcpOutgoingConnector<InterHubMessage>(
+                new InterHubMessageSerializer(
+                        new TypeSafeSerializer<MethodInvocation>(
+                                MethodInvocation.class,
+                                new MethodInvocationSerializer(
+                                        messageClassLoader,
+                                        new JavaSerializer<Object[]>(
+                                                messageClassLoader)))));
+    }
+
+    protected IncomingConnector<InterHubMessage> createIncomingHubConnector() {
+        incomingHubConnector = new TcpIncomingConnector<InterHubMessage>(
                 get(ExecutorFactory.class),
-                messageClassLoader,
-                idGenerator);
-        return multiChannelConnector;
+                new InterHubMessageSerializer(
+                        new TypeSafeSerializer<MethodInvocation>(
+                                MethodInvocation.class,
+                                new MethodInvocationSerializer(
+                                        messageClassLoader,
+                                        new JavaSerializer<Object[]>(
+                                                messageClassLoader)))),
+                get(InetAddressFactory.class),
+                idGenerator
+        );
+        return incomingHubConnector;
     }
 
     protected MessagingClient createMessagingClient() {
-        messagingClient = new DefaultMessagingClient(
-                get(MultiChannelConnector.class)
-        );
+        messagingClient = new MessageHubBackedClient(
+                createOutgoingHubConnector(),
+                get(ExecutorFactory.class));
         return messagingClient;
     }
 
     protected MessagingServer createMessagingServer() {
-        messagingServer = new DefaultMessagingServer(
-                get(MultiChannelConnector.class)
-        );
+        messagingServer = new MessageHubBackedServer(
+                createIncomingHubConnector(),
+                get(ExecutorFactory.class));
         return messagingServer;
     }
 
@@ -164,7 +189,7 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
                 get(MessageOriginator.class),
                 broadcastGroup,
                 get(AsyncConnection.class),
-                get(IncomingConnector.class),
+                createIncomingConnector(),
                 get(ExecutorFactory.class),
                 idGenerator,
                 messageClassLoader);
@@ -176,7 +201,7 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
                 get(MessageOriginator.class),
                 broadcastGroup,
                 get(AsyncConnection.class),
-                get(OutgoingConnector.class),
+                createOutgoingConnector(),
                 get(ExecutorFactory.class),
                 idGenerator,
                 messageClassLoader);

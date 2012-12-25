@@ -19,12 +19,13 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public class MethodInvocation {
+    private static final Object[] ZERO_ARGS = new Object[0];
     private final Method method;
     private final Object[] arguments;
 
     public MethodInvocation(Method method, Object[] args) {
         this.method = method;
-        arguments = args;
+        arguments = args == null ? ZERO_ARGS : args;
     }
 
     public Object[] getArguments() {
