@@ -37,7 +37,7 @@ public class FindBugsSpec implements Serializable {
     }
 
     public String getJvmArguments() {
-    	return maxHeapSize;
+        return maxHeapSize;
     }
     
     public boolean isDebugEnabled() {
