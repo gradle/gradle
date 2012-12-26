@@ -33,19 +33,18 @@ class CleanBuildPerformanceTest extends Specification {
         expect:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['clean', 'build'],
-                runs: runs,
+                runs: 5,
                 warmUpRuns: 1,
                 targetVersions: ['1.0', 'last'],
-                maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: [kbytes(1400), kbytes(1400)]
+                maxExecutionTimeRegression: [maxExecutionTimeRegression, maxExecutionTimeRegression],
+                maxMemoryRegression: [kbytes(3000), kbytes(3000)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject | runs | maxExecutionTimeRegression
-        //max regression for 1.0 is very generous
-        "small" | 5 | [millis(50000), millis(500)]
-        "multi" | 5 | [millis(50000), millis(1000)]
-        "lotDependencies" | 5 | [millis(50000), millis(1000)]
+        testProject       | maxExecutionTimeRegression
+        "small"           | millis(500)
+        "multi"           | millis(1000)
+        "lotDependencies" | millis(1000)
     }
 }

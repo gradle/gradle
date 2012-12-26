@@ -32,15 +32,16 @@ class DependencyReportPerformanceTest extends Specification {
         expect:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['dependencyReport'],
-                runs: runs,
+                runs: 5,
                 warmUpRuns: 1,
-                maxExecutionTimeRegression: [maxExecutionTimeRegression],
-                maxMemoryRegression: [kbytes(1400)]
+                targetVersions: ['1.0', 'last'],
+                maxExecutionTimeRegression: [maxExecutionTimeRegression, maxExecutionTimeRegression],
+                maxMemoryRegression: [kbytes(3000), kbytes(3000)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | runs | maxExecutionTimeRegression
-        "lotDependencies" | 5    | millis(1000)
+        testProject       | maxExecutionTimeRegression
+        "lotDependencies" | millis(1000)
     }
 }

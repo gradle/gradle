@@ -28,25 +28,26 @@ import static org.gradle.performance.fixture.Duration.millis
  */
 class TestExecutionPerformanceTest extends Specification {
     @Unroll("Project '#testProject'")
-    def "verbose tests with report"() {
+    def "test execution"() {
         when:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['cleanTest', 'test'],
-                runs: runs,
+                runs: 4,
                 args: ['-q'],
                 warmUpRuns: 1,
-                targetVersions: versions,
-                maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: maxMemoryRegression
+                targetVersions: ['1.0', '1.2', 'last'],
+                maxExecutionTimeRegression: [maxExecutionTimeRegression, maxExecutionTimeRegression, maxExecutionTimeRegression],
+                maxMemoryRegression: [kbytes(500), kbytes(500), kbytes(500)]
         ).run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject         | runs | versions        | maxExecutionTimeRegression   | maxMemoryRegression
-        //needs to be tuned when html report is efficient
-        "withTestNG"        | 4    | ['1.2', 'last'] | [millis(1200), millis(200)]  | [kbytes(0), kbytes(0)]
-        "withVerboseJUnits" | 4    | ['last']        | [millis(1200)]               | [kbytes(0)]
+        testProject         | maxExecutionTimeRegression
+        "withTestNG"        | millis(0)
+        "withJUnit"         | millis(0)
+        "withVerboseTestNG" | millis(0)
+        "withVerboseJUnit"  | millis(0)
     }
 }

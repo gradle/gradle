@@ -34,13 +34,24 @@ task mixedSize(type: ProjectGeneratorTask) {
     projects[1].sourceFiles = 20000
 }
 
+task withJUnit(type: ProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 2000
+}
+
 task withTestNG(type: ProjectGeneratorTask) {
     projects = 1
-    sourceFiles = 10
+    sourceFiles = 2000
     subProjectTemplates << 'with-testng'
 }
 
-task withVerboseJUnits(type: ProjectGeneratorTask) {
+task withVerboseTestNG(type: ProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 10
+    subProjectTemplates << 'with-verbose-testng'
+}
+
+task withVerboseJUnit(type: ProjectGeneratorTask) {
     projects = 1
     sourceFiles = 10
     subProjectTemplates << 'with-verbose-junit'
@@ -125,7 +136,7 @@ generators.all {
 }
 task all(dependsOn: generators)
 
-task prepareSamples(dependsOn: [small, multi, lotDependencies, withTestNG, withVerboseJUnits])
+task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit])
 
 integTestTasks.all {
     if (buildTypes.isActive('performanceTest')) {

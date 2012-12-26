@@ -32,18 +32,19 @@ class IdeIntegrationPerformanceTest extends Specification {
         expect:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['eclipse'],
-                runs: runs,
+                runs: 5,
                 warmUpRuns: 1,
-                maxExecutionTimeRegression: [maxExecutionTimeRegression],
-                maxMemoryRegression: [kbytes(1400)]
+                targetVersions: ['1.0', 'last'],
+                maxExecutionTimeRegression: [maxExecutionTimeRegression, maxExecutionTimeRegression],
+                maxMemoryRegression: [kbytes(3000), kbytes(3000)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | runs | maxExecutionTimeRegression
-        "small"           | 5    | millis(500)
-        "multi"           | 5    | millis(1000)
-        "lotDependencies" | 5    | millis(1000)
+        testProject       | maxExecutionTimeRegression
+        "small"           | millis(500)
+        "multi"           | millis(1000)
+        "lotDependencies" | millis(1000)
     }
 
     @Unroll("Project '#testProject' idea")
@@ -51,17 +52,18 @@ class IdeIntegrationPerformanceTest extends Specification {
         expect:
         def result = new PerformanceTestRunner(testProject: testProject,
                 tasksToRun: ['idea'],
-                runs: runs,
+                runs: 5,
                 warmUpRuns: 1,
-                maxExecutionTimeRegression: [maxExecutionTimeRegression],
-                maxMemoryRegression: [kbytes(1400)]
+                targetVersions: ['1.0', 'last'],
+                maxExecutionTimeRegression: [maxExecutionTimeRegression, maxExecutionTimeRegression],
+                maxMemoryRegression: [kbytes(3000), kbytes(3000)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | runs | maxExecutionTimeRegression
-        "small"           | 5    | millis(500)
-        "multi"           | 5    | millis(1000)
-        "lotDependencies" | 5    | millis(1000)
+        testProject       | maxExecutionTimeRegression
+        "small"           | millis(500)
+        "multi"           | millis(1000)
+        "lotDependencies" | millis(1000)
     }
 }
