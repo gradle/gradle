@@ -50,7 +50,7 @@ public class ZipCopySpecVisitorTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
+    private final ArchiveCopyAction copyAction = context.mock(ZipCopyAction.class);
     private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
     private final ZipCopySpecVisitor visitor = new ZipCopySpecVisitor();
     private TestFile zipFile;
@@ -61,6 +61,10 @@ public class ZipCopySpecVisitorTest {
         context.checking(new Expectations(){{
             allowing(copyAction).getArchivePath();
             will(returnValue(zipFile));
+        }});
+        context.checking(new Expectations(){{
+            allowing(copyAction).getCompressor();
+            will(returnValue(ZipCompressedCompressor.INSTANCE));
         }});
     }
 
@@ -76,7 +80,7 @@ public class ZipCopySpecVisitorTest {
     
     @Test
     public void createsZipFile() {
-    	initializeZipFile(zipFile, ZipCompressedCompressor.INSTANCE);
+        initializeZipFile(zipFile, ZipCompressedCompressor.INSTANCE);
         zip(dir("dir"), file("dir/file1"), file("file2"));
 
         TestFile expandDir = tmpDir.getDir().file("expanded");
@@ -87,7 +91,7 @@ public class ZipCopySpecVisitorTest {
     
     @Test
     public void createsDeflatedZipFile() {
-    	initializeZipFile(zipFile, ZipDeflatedCompressor.INSTANCE);
+        initializeZipFile(zipFile, ZipDeflatedCompressor.INSTANCE);
         zip(dir("dir"), file("dir/file1"), file("file2"));
 
         TestFile expandDir = tmpDir.getDir().file("expanded");
@@ -115,7 +119,7 @@ public class ZipCopySpecVisitorTest {
             allowing(copyAction).getArchivePath();
             will(returnValue(invalidZipFile));
         }});
-
+        
         try {
             visitor.startVisit(copyAction);
             fail();

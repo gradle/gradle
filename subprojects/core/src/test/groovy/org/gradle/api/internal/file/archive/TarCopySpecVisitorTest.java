@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.Compressor;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
+import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
@@ -51,7 +52,7 @@ public class TarCopySpecVisitorTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final TarCopyAction copyAction = context.mock(TarCopyAction.class);
+    private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
     private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
     private final TarCopySpecVisitor visitor = new TarCopySpecVisitor();
 

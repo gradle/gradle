@@ -18,7 +18,6 @@ package org.gradle.api.tasks.bundling;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.archive.ZipCopySpecVisitor;
-import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.ZipCompressedCompressor;
 import org.gradle.api.internal.file.copy.ZipCompressor;
@@ -49,7 +48,7 @@ public class Zip extends AbstractArchiveTask {
      * @return whether the archive will be compressed.
      */
     public boolean getCompressed() {
-    	return compressed;
+        return compressed;
     }
     
     /**
@@ -58,14 +57,17 @@ public class Zip extends AbstractArchiveTask {
      * @param compressed
      */
     public void setCompressed(boolean compressed) {
-    	this.compressed = compressed;
+        this.compressed = compressed;
     }
 
     protected ZipCopyActionImpl getCopyAction() {
         return action;
     }
 
-    private class ZipCopyActionImpl extends CopyActionImpl implements ZipCopyAction {
+    /**
+     * Zip compress action implementation.
+     */
+    protected class ZipCopyActionImpl extends CopyActionImpl implements ZipCopyAction {
         public ZipCopyActionImpl(FileResolver fileResolver) {
             super(fileResolver, new ZipCopySpecVisitor());
         }
@@ -74,8 +76,8 @@ public class Zip extends AbstractArchiveTask {
             return Zip.this.getArchivePath();
         }
 
-		public ZipCompressor getCompressor() {
-			return compressed ? ZipCompressedCompressor.INSTANCE : ZipDeflatedCompressor.INSTANCE;
-		}
+        public ZipCompressor getCompressor() {
+            return compressed ? ZipCompressedCompressor.INSTANCE : ZipDeflatedCompressor.INSTANCE;
+        }
     }
 }
