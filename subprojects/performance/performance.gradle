@@ -36,12 +36,13 @@ task mixedSize(type: ProjectGeneratorTask) {
 
 task withJUnit(type: ProjectGeneratorTask) {
     projects = 1
-    sourceFiles = 2000
+    sourceFiles = 100
+    subProjectTemplates << 'with-junit'
 }
 
 task withTestNG(type: ProjectGeneratorTask) {
     projects = 1
-    sourceFiles = 2000
+    sourceFiles = 100
     subProjectTemplates << 'with-testng'
 }
 
