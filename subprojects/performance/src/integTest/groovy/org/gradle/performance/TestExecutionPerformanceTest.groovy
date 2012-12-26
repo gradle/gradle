@@ -37,7 +37,7 @@ class TestExecutionPerformanceTest extends Specification {
                 warmUpRuns: 1,
                 targetVersions: ['1.0', '1.2', 'last'],
                 maxExecutionTimeRegression: [maxExecutionTimeRegression, maxExecutionTimeRegression, maxExecutionTimeRegression],
-                maxMemoryRegression: [kbytes(500), kbytes(500), kbytes(500)]
+                maxMemoryRegression: [kbytes(500), kbytes(3000), kbytes(3000)]
         ).run()
 
         then:
@@ -45,9 +45,9 @@ class TestExecutionPerformanceTest extends Specification {
 
         where:
         testProject         | maxExecutionTimeRegression
-        "withTestNG"        | millis(0)
-        "withJUnit"         | millis(0)
-        "withVerboseTestNG" | millis(0)
-        "withVerboseJUnit"  | millis(0)
+        "withTestNG"        | millis(500)
+        "withJUnit"         | millis(500)
+        "withVerboseTestNG" | millis(500)
+        "withVerboseJUnit"  | millis(500)
     }
 }
