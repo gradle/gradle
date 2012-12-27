@@ -45,8 +45,7 @@ public class JUnitXmlResultWriter {
     public void write(String className, TestClassResult result, OutputStream output) {
         try {
             SimpleXmlWriter writer = new SimpleXmlWriter(output);
-            writer.newLine();
-            writer.writeCharacters("  ");
+            writer.writeCharacters("\n  ");
             writer.writeStartElement("testsuite")
                     .attribute("name", className)
                     .attribute("tests", String.valueOf(result.getTestsCount()))
@@ -56,26 +55,22 @@ public class JUnitXmlResultWriter {
                     .attribute("hostname", hostName)
                     .attribute("time", String.valueOf(result.getDuration() / 1000.0));
 
-            writer.newLine();
             //TODO SF indentation belongs elsewhere
-            writer.writeCharacters("  ");
+            writer.writeCharacters("\n  ");
             writer.writeStartElement("properties");
             writer.writeEndElement();
 
             writeTests(writer, result.getResults(), className);
 
-            writer.newLine();
-            writer.writeCharacters("  ");
+            writer.writeCharacters("\n  ");
             writer.writeStartElement("system-out");
             writeOutputs(writer, className, TestOutputEvent.Destination.StdOut);
             writer.writeEndElement();
-            writer.newLine();
-            writer.writeCharacters("  ");
+            writer.writeCharacters("\n  ");
             writer.writeStartElement("system-err");
             writeOutputs(writer, className, TestOutputEvent.Destination.StdErr);
             writer.writeEndElement();
-            writer.newLine();
-
+            writer.writeCharacters("\n");
             writer.writeEndElement();
         } catch (IOException e) {
             throw new UncheckedIOException("Problems writing the XML results for class: " + className, e);
@@ -90,8 +85,7 @@ public class JUnitXmlResultWriter {
 
     private void writeTests(SimpleXmlWriter writer, Set<TestMethodResult> methodResults, String className) throws IOException {
         for (TestMethodResult methodResult : methodResults) {
-            writer.newLine();
-            writer.writeCharacters("    ");
+            writer.writeCharacters("\n    ");
             String testCase = methodResult.result.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
             writer.writeStartElement(testCase)
                     .attribute("name", methodResult.name)
@@ -99,8 +93,7 @@ public class JUnitXmlResultWriter {
                     .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0));
 
             for (Throwable failure : methodResult.result.getExceptions()) {
-                writer.newLine();
-                writer.writeCharacters("      ");
+                writer.writeCharacters("\n      ");
                 writer.writeStartElement("failure")
                         .attribute("message", failureMessage(failure))
                         .attribute("type", failure.getClass().getName());

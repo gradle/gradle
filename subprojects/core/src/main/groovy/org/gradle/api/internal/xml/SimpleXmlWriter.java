@@ -80,11 +80,6 @@ public class SimpleXmlWriter extends Writer {
         }
     }
 
-    public void newLine() throws IOException {
-        maybeFinishElement();
-        writeRaw("\n");
-    }
-
     public void writeCharacters(CharSequence characters) throws IOException {
         maybeFinishElement();
         if (context == Context.Character) {
@@ -205,7 +200,7 @@ public class SimpleXmlWriter extends Writer {
         writeRaw(" ");
         writeRaw(name);
         writeRaw("=\"");
-        writeXmlEncoded(value);
+        writeXmlAttributeEncoded(value);
         writeRaw("\"");
         return this;
     }
@@ -308,6 +303,26 @@ public class SimpleXmlWriter extends Writer {
         }
     }
 
+    private void writeXmlAttributeEncoded(CharSequence message) throws IOException {
+        assert message != null;
+        int len = message.length();
+        for (int i = 0; i < len; i++) {
+            writeXmlAttributeEncoded(message.charAt(i));
+        }
+    }
+
+    private void writeXmlAttributeEncoded(char ch) throws IOException {
+        if (ch == 9) {
+            writeRaw("&#9;");
+        } else if (ch == 10) {
+            writeRaw("&#10;");
+        } else if (ch == 13) {
+            writeRaw("&#13;");
+        } else {
+            writeXmlEncoded(ch);
+        }
+    }
+
     private void writeXmlEncoded(CharSequence message) throws IOException {
         assert message != null;
         int len = message.length();
@@ -323,8 +338,6 @@ public class SimpleXmlWriter extends Writer {
             writeRaw("&gt;");
         } else if (ch == '&') {
             writeRaw("&amp;");
-        } else if (ch == 10) {
-            writeRaw("&#xa;");
         } else if (ch == '"') {
             writeRaw("&quot;");
         } else {
