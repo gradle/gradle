@@ -42,7 +42,7 @@
                 <td>-</td>
                 <td>
                     <para>Adds Java compilation, testing and bundling capabilities to a project. It serves
-                        as the basis for many of the other Gradle plugins. See also<xref linkend="tutorial_java_projects"/>.
+                        as the basis for many of the other Gradle plugins. See also <xref linkend="tutorial_java_projects"/>.
                     </para>
                 </td>
             </tr>
@@ -57,7 +57,7 @@
                 </td>
                 <td>-</td>
                 <td>
-                    <para>Adds support for building Groovy projects. See also<xref linkend="tutorial_groovy_projects"/>.
+                    <para>Adds support for building Groovy projects. See also <xref linkend="tutorial_groovy_projects"/>.
                     </para>
                 </td>
             </tr>
@@ -86,7 +86,7 @@
                 </td>
                 <td>-</td>
                 <td>
-                    <para>Adds support for generating parsers using<ulink url="http://www.antlr.org/">Antlr</ulink>.
+                    <para>Adds support for generating parsers using <ulink url="http://www.antlr.org/">Antlr</ulink>.
                     </para>
                 </td>
             </tr>
@@ -224,7 +224,7 @@
                 </td>
                 <td>-</td>
                 <td>
-                    <para>Deploys your web application to a Jetty web container embedded in the build. See also<xref linkend="web_project_tutorial"/>.
+                    <para>Deploys your web application to a Jetty web container embedded in the build. See also <xref linkend="web_project_tutorial"/>.
                     </para>
                 </td>
             </tr>
@@ -269,7 +269,7 @@
                 </td>
                 <td>-</td>
                 <td>
-                    <para>Adds support for assembling web application WAR files. See also<xref linkend="web_project_tutorial"/>.
+                    <para>Adds support for assembling web application WAR files. See also <xref linkend="web_project_tutorial"/>.
                     </para>
                 </td>
             </tr>
@@ -387,8 +387,8 @@
                     <literal>scala</literal>
                 </td>
                 <td>
-                    <para>Generates files that are used by<ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus making
-                        it possible to import the project into Eclipse. See also<xref linkend="tutorial_java_projects"/>.
+                    <para>Generates files that are used by <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus making
+                        it possible to import the project into Eclipse. See also <xref linkend="tutorial_java_projects"/>.
                     </para>
                 </td>
             </tr>
@@ -437,7 +437,7 @@
                     <literal>java</literal>
                 </td>
                 <td>
-                    <para>Generates files that are used by<ulink url="http://www.jetbrains.com/idea/index.html">Intellij IDEA IDE</ulink>,
+                    <para>Generates files that are used by <ulink url="http://www.jetbrains.com/idea/index.html">Intellij IDEA IDE</ulink>,
                         thus making it possible to import the project into IDEA.
                     </para>
                 </td>
@@ -553,9 +553,9 @@
                             </listitem>
                             <listitem>configures reasonable default values for all archive tasks (e.g. tasks that inherit from
                                 <apilink class="org.gradle.api.tasks.bundling.AbstractArchiveTask"/>).
-                                For example, the archive tasks are tasks of types:<apilink class="org.gradle.api.tasks.bundling.Jar"/>,
-                                <apilink class="org.gradle.api.tasks.bundling.Tar"/>,<apilink class="org.gradle.api.tasks.bundling.Zip"/>.
-                                Specifically,<literal>destinationDir</literal>,
+                                For example, the archive tasks are tasks of types: <apilink class="org.gradle.api.tasks.bundling.Jar"/>,
+                                <apilink class="org.gradle.api.tasks.bundling.Tar"/>, <apilink class="org.gradle.api.tasks.bundling.Zip"/>.
+                                Specifically, <literal>destinationDir</literal>,
                                 <literal>baseName</literal>
                                 and
                                 <literal>version</literal>
