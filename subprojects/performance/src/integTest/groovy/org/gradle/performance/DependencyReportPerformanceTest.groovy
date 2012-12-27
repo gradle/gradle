@@ -34,14 +34,14 @@ class DependencyReportPerformanceTest extends Specification {
                 tasksToRun: ['dependencyReport'],
                 runs: 5,
                 warmUpRuns: 1,
-                targetVersions: ['1.0', 'last'],
-                maxExecutionTimeRegression: [maxExecutionTimeRegression, maxExecutionTimeRegression],
-                maxMemoryRegression: [kbytes(3000), kbytes(3000)]
+                targetVersions: ['1.0', '1.1', '1.2', 'last'],
+                maxExecutionTimeRegression: maxExecutionTimeRegression,
+                maxMemoryRegression: maxMemoryRegression
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxExecutionTimeRegression
-        "lotDependencies" | millis(1000)
+        testProject       | maxExecutionTimeRegression | maxMemoryRegression
+        "lotDependencies" | [millis(7000), millis(1000), millis(1000), millis(1000)] | [kbytes(6000), kbytes(3000), kbytes(3000), kbytes(3000)]
     }
 }

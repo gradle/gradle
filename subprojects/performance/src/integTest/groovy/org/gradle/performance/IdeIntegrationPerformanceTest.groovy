@@ -34,17 +34,17 @@ class IdeIntegrationPerformanceTest extends Specification {
                 tasksToRun: ['eclipse'],
                 runs: 5,
                 warmUpRuns: 1,
-                targetVersions: ['1.0', 'last'],
+                targetVersions: ['1.0', '1.1', '1.2', 'last'],
                 maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: [kbytes(3000), kbytes(3000)]
+                maxMemoryRegression: [kbytes(3000), kbytes(3000), kbytes(3000), kbytes(3000)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject       | maxExecutionTimeRegression
-        "small"           | [millis(500), millis(500)]
-        "multi"           | [millis(1500), millis(1000)]
-        "lotDependencies" | [millis(3000), millis(1000)]
+        "small"           | [millis(500), millis(500), millis(500), millis(500)]
+        "multi"           | [millis(1500), millis(1000), millis(1000), millis(1000)]
+        "lotDependencies" | [millis(3000), millis(1000), millis(1000), millis(1000)]
     }
 
     @Unroll("Project '#testProject' idea")
@@ -54,16 +54,16 @@ class IdeIntegrationPerformanceTest extends Specification {
                 tasksToRun: ['idea'],
                 runs: 5,
                 warmUpRuns: 1,
-                targetVersions: ['1.0', 'last'],
-                maxExecutionTimeRegression: [maxExecutionTimeRegression, maxExecutionTimeRegression],
-                maxMemoryRegression: [kbytes(3000), kbytes(3000)]
+                targetVersions: ['1.0', '1.1', '1.2', 'last'],
+                maxExecutionTimeRegression: maxExecutionTimeRegression,
+                maxMemoryRegression: [kbytes(3000), kbytes(3000), kbytes(3000), kbytes(3000)]
         ).run()
         result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject       | maxExecutionTimeRegression
-        "small"           | [millis(500), millis(500)]
-        "multi"           | [millis(1500), millis(1000)]
-        "lotDependencies" | [millis(3000), millis(1000)]
+        "small"           | [millis(500), millis(500), millis(500), millis(500)]
+        "multi"           | [millis(1500), millis(1000), millis(1000), millis(1000)]
+        "lotDependencies" | [millis(3000), millis(1000), millis(1000), millis(1000)]
     }
 }
