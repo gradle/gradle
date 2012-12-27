@@ -69,25 +69,44 @@ import java.util.Set;
 import static java.util.Arrays.asList;
 
 /**
- * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs. The sample below shows various configuration options.
+ * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
+ * The sample below shows various configuration options.
  *
- * <pre autoTested=''> apply plugin: 'java' // adds 'test' task
+ * <pre autoTested=''>
+ * apply plugin: 'java' // adds 'test' task
  *
- * test { // enable TestNG support (default is JUnit) useTestNG()
+ * test {
+ *   // enable TestNG support (default is JUnit)
+ *   useTestNG()
  *
- * // set a system property for the test JVM(s) systemProperty 'some.prop', 'value'
+ *   // set a system property for the test JVM(s)
+ *   systemProperty 'some.prop', 'value'
  *
- * // explicitly include or exclude tests include 'org/foo/**' exclude 'org/boo/**'
+ *   // explicitly include or exclude tests
+ *   include 'org/foo/**'
+ *   exclude 'org/boo/**'
  *
- * // show standard out and standard error of the test JVM(s) on the console testLogging.showStandardStreams = true
+ *   // show standard out and standard error of the test JVM(s) on the console
+ *   testLogging.showStandardStreams = true
  *
- * // set heap size for the test JVM(s) minHeapSize = "128m" maxHeapSize = "512m"
+ *   // set heap size for the test JVM(s)
+ *   minHeapSize = "128m"
+ *   maxHeapSize = "512m"
  *
- * // set JVM arguments for the test JVM(s) jvmArgs '-XX:MaxPermSize=256m'
+ *   // set JVM arguments for the test JVM(s)
+ *   jvmArgs '-XX:MaxPermSize=256m'
  *
- * // listen to events in the test execution lifecycle beforeTest { descriptor -> logger.lifecycle("Running test: " + descriptor) }
+ *   // listen to events in the test execution lifecycle
+ *   beforeTest { descriptor ->
+ *      logger.lifecycle("Running test: " + descriptor)
+ *   }
  *
- * // listen to standard out and standard error of the test JVM(s) onOutput { descriptor, event -> logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message ) } } </pre>
+ *   // listen to standard out and standard error of the test JVM(s)
+ *   onOutput { descriptor, event ->
+ *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+ *   }
+ * }
+ * </pre>
  *
  * @author Hans Dockter
  */
