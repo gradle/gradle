@@ -25,8 +25,6 @@ import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManage
 import org.gradle.api.internal.tasks.testing.junit.JULRedirector;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.id.IdGenerator;
@@ -42,7 +40,6 @@ import java.util.List;
  */
 public class TestNGTestFramework implements TestFramework {
 
-    private final static Logger LOG = Logging.getLogger(TestNGTestFramework.class);
 
     private TestNGOptions options;
     private TestNGDetector detector;
@@ -74,18 +71,6 @@ public class TestNGTestFramework implements TestFramework {
                 workerProcessBuilder.sharedPackages("org.testng");
             }
         };
-    }
-
-    public void report() {
-        if (!testTask.isTestReport()) {
-            LOG.info("Test report disabled, omitting generation of the HTML test report.");
-            return;
-        }
-        // TODO SF split out from TestFramework, sanitize JUnit coverage (it's jmock)
-        LOG.info("Generating HTML test report...");
-        reporter.setTestReportDir(testTask.getTestReportDir());
-        reporter.setTestResultsDir(testTask.getTestResultsDir());
-        reporter.generateReport();
     }
 
     public TestNGOptions getOptions() {

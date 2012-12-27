@@ -54,7 +54,6 @@ class JUnitTestExecutionResult implements TestExecutionResult {
 
     private def findClasses() {
         xmlResultsDir().assertIsDir()
-        buildDir.file('reports/tests/index.html').assertIsFile()
 
         Map<String, File> classes = [:]
         buildDir.file('test-results').eachFile { File file ->

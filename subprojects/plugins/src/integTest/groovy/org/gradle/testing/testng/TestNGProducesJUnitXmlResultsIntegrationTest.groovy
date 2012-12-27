@@ -128,7 +128,6 @@ repositories { mavenCentral() }
 dependencies { testCompile 'org.testng:testng:6.3.1' }
 
 test {
-    testReport = true
     $testConfiguration
 }
 """

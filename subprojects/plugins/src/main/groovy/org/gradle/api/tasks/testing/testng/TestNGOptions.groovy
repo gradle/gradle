@@ -85,7 +85,8 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
      * xml results in TestNG format.
      *
      */
-    boolean useDefaultListeners = true
+    @Deprecated
+    boolean useDefaultListeners = false
 
     /**
      * Sets the default name of the test suite, if one is not specified in a suite xml file or in the source code.

@@ -19,6 +19,7 @@ package org.gradle.api.tasks.testing
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter
+import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -35,6 +36,10 @@ class TestTaskSpec extends Specification {
 
     private task = HelperUtil.createTask(Test, [testExecuter: testExecuter, testFramework: testFramework,
             testListenerBroadcaster: testListenerBroadcaster, testOutputListenerBroadcaster: testOutputListenerBroadcaster])
+
+    public setup(){
+        task.setTestReporter(Mock(TestReporter))
+    }
 
     def "adds listeners and removes after execution"() {
         when:

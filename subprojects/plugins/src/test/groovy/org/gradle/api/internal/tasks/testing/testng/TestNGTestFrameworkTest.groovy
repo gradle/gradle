@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.testng;
+package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
@@ -22,7 +22,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
 
 /**
  * @author Szczepan Faber
@@ -64,30 +63,5 @@ public class TestNGTestFrameworkTest extends Specification {
         then:
         framework.options.testResources.is(testTask.testSrcDirs)
         processor instanceof TestNGTestClassProcessor
-    }
-
-    void "reports"() {
-        testTask.testReport = true
-        def reporter = Mock(TestReporter)
-
-        when:
-        new TestNGTestFramework(testTask, reporter).report()
-
-        then:
-        1 * reporter.setTestReportDir(testTask.getTestReportDir());
-        1 * reporter.setTestResultsDir(testTask.getTestResultsDir());
-        1 * reporter.generateReport();
-        0 * reporter._
-    }
-
-    void "reports only when testReport configured"() {
-        testTask.testReport = false
-        def reporter = Mock(TestReporter)
-
-        when:
-        new TestNGTestFramework(testTask, reporter).report()
-
-        then:
-        0 * reporter._
     }
 }

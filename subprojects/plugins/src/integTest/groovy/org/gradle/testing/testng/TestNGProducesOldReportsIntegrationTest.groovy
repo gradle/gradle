@@ -28,7 +28,7 @@ public class TestNGProducesOldReportsIntegrationTest extends AbstractIntegration
         executer.allowExtraLogging = false
     }
 
-    def "produces only the old reports by default"() {
+    def "always produces the new xml reports"() {
         given:
         file("src/test/java/org/MixedMethodsTest.java") << """package org;
 import org.testng.*;
@@ -50,6 +50,7 @@ repositories { mavenCentral() }
 dependencies { testCompile 'org.testng:testng:6.3.1' }
 
 test {
+    testReport = false
     useTestNG()
 }
 """
@@ -57,15 +58,11 @@ test {
         executer.withTasks('test').runWithFailure().assertTestsFailed()
 
         then:
-        !new JUnitTestExecutionResult(file(".")).hasJUnitXmlResults()
-
-        def testNG = new TestNGExecutionResult(file("."))
-        testNG.hasTestNGXmlResults()
-        testNG.hasHtmlResults()
-        testNG.hasJUnitResultsGeneratedByTestNG()
+        !new TestNGExecutionResult(file(".")).hasTestNGXmlResults()
+        new JUnitTestExecutionResult(file(".")).hasJUnitXmlResults()
     }
 
-    def "can generate only the new reports"() {
+    def "can generate the old xml reports"() {
         given:
         file("src/test/java/org/SomeTest.java") << """package org;
 import org.testng.annotations.*;
@@ -80,8 +77,11 @@ apply plugin: 'java'
 repositories { mavenCentral() }
 dependencies { testCompile 'org.testng:testng:6.3.1' }
 test {
-  testReport = true
-  useTestNG()
+  testReport = false
+  useTestNG(){
+    useDefaultListeners = true
+  }
+
 }
 """
         when:
@@ -91,41 +91,8 @@ test {
         new JUnitTestExecutionResult(file(".")).hasJUnitXmlResults()
 
         def testNG = new TestNGExecutionResult(file("."))
-        !testNG.hasTestNGXmlResults()
-        !testNG.hasJUnitResultsGeneratedByTestNG()
+        testNG.hasTestNGXmlResults()
+        testNG.hasJUnitResultsGeneratedByTestNG()
         testNG.hasHtmlResults()
-    }
-
-    def "can prevent generating the old and new reports"() {
-        given:
-        file("src/test/java/org/SomeTest.java") << """package org;
-import org.testng.annotations.*;
-
-public class SomeTest {
-    @Test public void passing() {}
-}
-"""
-        def buildFile = file('build.gradle')
-        buildFile << """
-apply plugin: 'java'
-repositories { mavenCentral() }
-dependencies { testCompile 'org.testng:testng:6.3.1' }
-test {
-  useTestNG {
-    useDefaultListeners = false
-    testReport = false
-  }
-}
-"""
-        when:
-        executer.withTasks('test').run()
-
-        then:
-        !new JUnitTestExecutionResult(file(".")).hasJUnitXmlResults()
-
-        def testNG = new TestNGExecutionResult(file("."))
-        !testNG.hasTestNGXmlResults()
-        !testNG.hasHtmlResults()
-        !testNG.hasJUnitResultsGeneratedByTestNG()
     }
 }
