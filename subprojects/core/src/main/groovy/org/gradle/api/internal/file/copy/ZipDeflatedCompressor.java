@@ -27,7 +27,7 @@ public class ZipDeflatedCompressor implements ZipCompressor {
     public ZipOutputStream compress(File destination) {
         try {
             ZipOutputStream outStream = new ZipOutputStream(destination);
-            outStream.setLevel(ZipOutputStream.DEFLATED);
+            outStream.setLevel(ZipOutputStream.STORED);
             return outStream;
         } catch (IOException e) {
             String message = String.format("Unable to create zip output stream for file %s.", destination);
