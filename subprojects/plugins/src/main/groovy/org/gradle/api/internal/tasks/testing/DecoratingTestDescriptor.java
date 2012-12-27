@@ -41,7 +41,7 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
     }
 
     public String getClassName() {
-        return descriptor.getClassName();
+        return findClassName();
     }
 
     public String getName() {
@@ -50,5 +50,15 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
 
     public boolean isComposite() {
         return descriptor.isComposite();
+    }
+
+    private String findClassName() {
+        String className;
+        if (parent != null && parent.getName().equals(parent.getClassName())) {
+            className = parent.getName();
+        } else {
+            className = descriptor.getClassName();
+        }
+        return className;
     }
 }

@@ -56,7 +56,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         if (!testDescriptor.isComposite()) {
-            String className = className(testDescriptor);
+            String className = testDescriptor.getClassName();
             TestMethodResult methodResult = new TestMethodResult(testDescriptor.getName(), result);
             TestClassResult classResult = results.get(className);
             if (classResult == null) {
@@ -67,19 +67,8 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         }
     }
 
-    private String className(TestDescriptor testDescriptor) {
-        String className;
-        final TestDescriptor parent = testDescriptor.getParent();
-        if (parent != null && parent.getName().equals(parent.getClassName())) {
-            className = parent.getName();
-        } else {
-            className = testDescriptor.getClassName();
-        }
-        return className;
-    }
-
     public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
-        String className = className(testDescriptor);
+        String className = testDescriptor.getClassName();
         if (className == null) {
             //this means that we receive an output before even starting any class (or too late).
             //we don't have a place for such output in any of the reports so skipping.
