@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.xml
 
-import org.w3c.dom.Document
 import spock.lang.Specification
 
-import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
@@ -67,19 +65,7 @@ class SimpleXmlWriterSpec extends Specification {
         xml.contains('<item size="encoded: &amp;lt; &lt; &gt; \' &quot;">chars with interesting stuff: &amp;lt; &lt; &gt; \' &quot; ]]&gt;</item>')
     }
 
-    def "encodes \\r \\t and \n in attribute names"() {
-        when:
-        writer.writeStartElement("root")
-        writer.writeStartElement("item").attribute("description", "encoded: \t &lt; < > ' \n\r\"")
-        writer.writeCharacters("chars with interesting stuff: &lt; < > ' \" ]]>")
-        writer.writeEndElement()
-        writer.writeEndElement()
-
-        then:
-        xml.contains('<item description="encoded: &#9; &amp;lt; &lt; &gt; \' &#10;&#13;&quot;">chars with interesting stuff: &amp;lt; &lt; &gt; \' &quot; ]]&gt;</item>')
-    }
-
-    def "does not encode  in text CDATA"() {
+    def "encodes \\r \\t and \n for attributes only"() {
         when:
         writer.writeStartElement("root")
         writer.writeStartElement("item").attribute("description", "encoded: \t &lt; < > ' \n\r\"")
