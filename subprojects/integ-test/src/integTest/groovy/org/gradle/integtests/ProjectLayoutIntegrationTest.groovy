@@ -17,7 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.TestFile
 import org.junit.Rule
@@ -170,7 +170,7 @@ sourceSets.main.java {
 
         dist.testFile('build').assertDoesNotExist()
 
-        JUnitTestExecutionResult results = new JUnitTestExecutionResult(dist.testFile(), 'target')
+        DefaultTestExecutionResult results = new DefaultTestExecutionResult(dist.testFile(), 'target')
         results.assertTestClassesExecuted('PersonTest')
         results.testClass('PersonTest').assertTestsExecuted('ok')
     }

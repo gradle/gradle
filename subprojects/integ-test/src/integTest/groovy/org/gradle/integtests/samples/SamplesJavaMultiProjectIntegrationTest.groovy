@@ -20,7 +20,7 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Before
@@ -66,7 +66,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         TestFile buildSrcDir = javaprojectDir.file('buildSrc')
 
         buildSrcDir.file('build/libs/buildSrc.jar').assertIsFile()
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(buildSrcDir)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(buildSrcDir)
         result.assertTestClassesExecuted('org.gradle.buildsrc.BuildSrcClassTest')
     }
 
@@ -87,10 +87,10 @@ class SamplesJavaMultiProjectIntegrationTest {
         assertExists(javaprojectDir, WEBAPP_PATH, packagePrefix, WEBAPP_NAME, 'TestTest.class')
 
         // Check test results and report
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir.file(SHARED_NAME))
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(javaprojectDir.file(SHARED_NAME))
         result.assertTestClassesExecuted('org.gradle.shared.PersonTest')
 
-        result = new JUnitTestExecutionResult(javaprojectDir.file(WEBAPP_PATH))
+        result = new DefaultTestExecutionResult(javaprojectDir.file(WEBAPP_PATH))
         result.assertTestClassesExecuted('org.gradle.webservice.TestTestTest')
 
         // Check contents of shared jar

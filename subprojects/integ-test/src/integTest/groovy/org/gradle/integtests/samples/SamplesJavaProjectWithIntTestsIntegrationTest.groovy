@@ -18,7 +18,7 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
@@ -40,7 +40,7 @@ class SamplesJavaProjectWithIntTestsIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'integrationTest').run()
 
         // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(javaprojectDir)
         result.assertTestClassesExecuted('org.gradle.PersonIntegrationTest')
     }
 }

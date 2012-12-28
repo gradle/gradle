@@ -16,7 +16,7 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.TestFile
@@ -42,7 +42,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     public void executesTestsInCorrectEnvironment() {
         executer.withTasks('build').run();
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
 
         result.testClass('org.gradle.OkTest').assertTestPassed('ok')
@@ -74,7 +74,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     public void suitesOutputIsVisible() {
         executer.withTasks('test').withArguments('-i').run();
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.ASuite')
         result.testClass('org.gradle.ASuite').assertStdout(containsString('suite class loaded'))
         result.testClass('org.gradle.ASuite').assertStderr(containsString('This is test stderr'))
@@ -94,7 +94,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
         executer.withTasks('check').run()
 
-        def result = new JUnitTestExecutionResult(testDir)
+        def result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest')
         result.testClass('org.gradle.Junit3Test')
                 .assertTestCount(1, 0, 0)
@@ -113,7 +113,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
         executer.withTasks('check').run()
 
-        def result = new JUnitTestExecutionResult(testDir)
+        def result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.Junit3Test')
         result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
         result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
@@ -126,7 +126,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         resources.maybeCopy('JUnitIntegrationTest/junit4_4Tests')
         executer.withTasks('check').run()
 
-        def result = new JUnitTestExecutionResult(testDir)
+        def result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest')
         result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
         result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
@@ -140,7 +140,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     public void reportsAndBreaksBuildWhenTestFails() {
         executer.withTasks('build').runWithFailure().assertTestsFailed()
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted(
                 'org.gradle.ClassWithBrokenRunner',
                 'org.gradle.BrokenTest',
@@ -170,7 +170,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canRunSingleTests() {
         executer.withTasks('test').withArguments('-Dtest.single=Ok2').run()
-        def result = new JUnitTestExecutionResult(testDir)
+        def result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted('Ok2')
 
         executer.withTasks('cleanTest', 'test').withArguments('-Dtest.single=Ok').run()
@@ -211,7 +211,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
         executer.withTasks('a:test').run();
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir.file('a'))
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDir.file('a'))
         result.assertTestClassesExecuted('org.gradle.SomeTest')
         result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
     }
@@ -239,7 +239,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
         executer.withTasks('test').run();
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.SomeTest')
         result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
     }
@@ -248,7 +248,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     public void detectsTestClasses() {
         executer.withTasks('test').run()
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.EmptyRunWithSubclass', 'org.gradle.TestsOnInner', 'org.gradle.TestsOnInner$SomeInner')
         result.testClass('org.gradle.EmptyRunWithSubclass').assertTestsExecuted('ok')
         result.testClass('org.gradle.EmptyRunWithSubclass').assertTestPassed('ok')
@@ -420,7 +420,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     public void canHaveMultipleTestTaskInstances() {
         executer.withTasks('check').run()
 
-        def result = new JUnitTestExecutionResult(testDir)
+        def result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.Test1', 'org.gradle.Test2')
         result.testClass('org.gradle.Test1').assertTestPassed('ok')
         result.testClass('org.gradle.Test2').assertTestPassed('ok')
@@ -433,7 +433,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         assert result.getOutput().contains("thread 1 out")
         assert result.getOutput().contains("thread 2 out")
 
-        def junitResult = new JUnitTestExecutionResult(testDir)
+        def junitResult = new DefaultTestExecutionResult(testDir)
         def testClass = junitResult.testClass("org.gradle.SystemOutTest")
         testClass.assertStdout(containsText("thread 0 out"))
         testClass.assertStdout(containsText("thread 1 out"))
@@ -447,7 +447,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         assert result.getOutput().contains("thread 1 err")
         assert result.getOutput().contains("thread 2 err")
 
-        def junitResult = new JUnitTestExecutionResult(testDir)
+        def junitResult = new DefaultTestExecutionResult(testDir)
         def testClass = junitResult.testClass("org.gradle.SystemErrTest")
         testClass.assertStderr(containsText("thread 0 err"))
         testClass.assertStderr(containsText("thread 1 err"))

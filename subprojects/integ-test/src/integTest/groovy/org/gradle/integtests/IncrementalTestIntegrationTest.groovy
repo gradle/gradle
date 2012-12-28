@@ -64,7 +64,7 @@ class IncrementalTestIntegrationTest {
     public void executesTestsWhenSelectedTestsChange() {
         executer.withTasks('test').run()
 
-        def result = new JUnitTestExecutionResult(distribution.testDir)
+        def result = new DefaultTestExecutionResult(distribution.testDir)
         result.assertTestClassesExecuted('JUnitTest')
 
         // Include more tests
@@ -86,7 +86,7 @@ class IncrementalTestIntegrationTest {
         //TODO this exposes a possible problem: When changing the test framework stale xml result files from former test framework are still present.
         executer.withTasks('cleanTest', 'test').run().assertTasksNotSkipped(':cleanTest',':test')
 
-        result = new JUnitTestExecutionResult(distribution.testDir)
+        result = new DefaultTestExecutionResult(distribution.testDir)
         result.assertTestClassesExecuted('TestNGTest')
 
         executer.withTasks('test').run().assertTasksNotSkipped()

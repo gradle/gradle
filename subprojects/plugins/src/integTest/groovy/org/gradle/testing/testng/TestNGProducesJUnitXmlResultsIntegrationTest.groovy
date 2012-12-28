@@ -18,7 +18,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
 import static org.hamcrest.Matchers.*
 
@@ -134,7 +134,7 @@ test {
         executer.withTasks('test').runWithFailure().assertTestsFailed()
 
         //then
-        def junitResult = new JUnitTestExecutionResult(file("."));
+        def junitResult = new DefaultTestExecutionResult(file("."));
         junitResult
             .assertTestClassesExecuted("org.FailingTest","org.PassingTest", "org.MixedMethodsTest", "org.NoOutputsTest", "org.EncodingTest")
 

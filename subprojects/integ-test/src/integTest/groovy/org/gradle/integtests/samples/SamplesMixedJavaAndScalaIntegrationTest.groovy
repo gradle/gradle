@@ -18,7 +18,7 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
@@ -38,7 +38,7 @@ class SamplesMixedJavaAndScalaIntegrationTest {
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(projectDir)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(projectDir)
         result.assertTestClassesExecuted('org.gradle.sample.PersonTest')
 
         // Check contents of Jar

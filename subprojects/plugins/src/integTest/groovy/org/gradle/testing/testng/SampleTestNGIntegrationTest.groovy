@@ -33,7 +33,7 @@ public class SampleTestNGIntegrationTest {
     public void suiteXmlBuilder() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
-        def result = new JUnitTestExecutionResult(sample.dir)
+        def result = new DefaultTestExecutionResult(sample.dir)
         result.assertTestClassesExecuted('org.gradle.testng.UserImplTest')
         result.testClass('org.gradle.testng.UserImplTest').assertTestsExecuted('testOkFirstName')
         result.testClass('org.gradle.testng.UserImplTest').assertTestPassed('testOkFirstName')
@@ -43,7 +43,7 @@ public class SampleTestNGIntegrationTest {
     public void javaJdk14Passing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
-        def result = new JUnitTestExecutionResult(sample.dir)
+        def result = new DefaultTestExecutionResult(sample.dir)
         result.assertTestClassesExecuted('org.gradle.OkTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }

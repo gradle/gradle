@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
 import static org.hamcrest.Matchers.equalTo
 
@@ -104,7 +104,7 @@ public class EncodingTest {
         executer.withTasks("test").runWithFailure()
 
         then:
-        new JUnitTestExecutionResult(testDir)
+        new DefaultTestExecutionResult(testDir)
                 .testClass("EncodingTest")
                 .assertTestPassed("encodesCdata")
                 .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))
