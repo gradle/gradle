@@ -18,10 +18,7 @@ package org.gradle.messaging.remote.internal.hub;
 
 import org.gradle.api.Action;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.ConnectEvent;
-import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.*;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.IncomingConnector;
 import org.gradle.messaging.remote.internal.MessageSerializer;
@@ -41,7 +38,7 @@ public class MessageHubBackedServer implements MessagingServer {
         this.executorFactory = executorFactory;
     }
 
-    public Address accept(Action<ConnectEvent<ObjectConnection>> action) {
+    public ConnectionAcceptor accept(Action<ConnectEvent<ObjectConnection>> action) {
         return connector.accept(new ConnectEventAction(action), serializer, false);
     }
 

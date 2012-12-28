@@ -18,18 +18,20 @@
 
 package org.gradle.process.internal
 
-import org.junit.runner.RunWith
-import org.jmock.integration.junit4.JMock
+import org.gradle.messaging.remote.ObjectConnection
+import org.gradle.process.ExecResult
+import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.MultithreadedTestCase
 import org.jmock.Mockery
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.messaging.remote.ConnectEvent
-import org.gradle.messaging.remote.ObjectConnection
+import org.jmock.integration.junit4.JMock
 import org.junit.Test
-import static org.hamcrest.Matchers.*
+import org.junit.runner.RunWith
+
 import java.util.concurrent.TimeUnit
-import static org.junit.Assert.*
-import org.gradle.process.ExecResult
+
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 @RunWith(JMock.class)
 class DefaultWorkerProcessTest extends MultithreadedTestCase {
@@ -47,7 +49,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
             will {
                 start {
                     expectUnblocks {
-                        workerProcess.getConnectAction().execute(new ConnectEvent<ObjectConnection>(connection, null, null))
+                        workerProcess.onConnect(connection)
                     }
                 }
             }
@@ -146,7 +148,7 @@ class DefaultWorkerProcessTest extends MultithreadedTestCase {
         context.checking {
             one(execHandle).start()
             will {
-                workerProcess.getConnectAction().execute(new ConnectEvent<ObjectConnection>(connection, null, null))
+                workerProcess.onConnect(connection)
             }
         }
 

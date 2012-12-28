@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,18 @@
 
 package org.gradle.messaging.remote;
 
-import org.gradle.api.Action;
+import org.gradle.internal.concurrent.AsyncStoppable;
 
-/**
- * A {@code MessagingServer} allows the creation of multiple bi-directional uni-cast connections with some peer.
- */
-public interface MessagingServer {
+public interface ConnectionAcceptor extends AsyncStoppable {
+    Address getAddress();
+
     /**
-     * Creates an endpoint which a single peer can connect to.
-     *
-     * @param action The action to execute when the connection has been established.
-     * @return The local address of the endpoint, for the peer to connect to.
+     * Stops accepting incoming connections.
      */
-    ConnectionAcceptor accept(Action<ConnectEvent<ObjectConnection>> action);
+    void requestStop();
+
+    /**
+     * Stops accepting incoming connections and blocks until the accept action has completed executing for any queued connections.
+     */
+    void stop();
 }

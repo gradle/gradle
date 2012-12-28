@@ -17,6 +17,7 @@
 package org.gradle.messaging.remote
 
 import org.gradle.api.Action
+import org.gradle.internal.CompositeStoppable
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.messaging.remote.internal.MessagingServices
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -205,12 +206,13 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
         private final Lock lock = new ReentrantLock()
         private final Condition condition = lock.newCondition()
         private final MessagingServices services = new TestMessagingServices()
+        private ConnectionAcceptor acceptor
         private ObjectConnection connection
         final Address address
 
         Server() {
             def server = services.get(MessagingServer)
-            address = server.accept({ event ->
+            acceptor = server.accept({ event ->
                 lock.lock()
                 try {
                     connection = event.connection
@@ -219,6 +221,7 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
                     lock.unlock()
                 }
             } as Action)
+            address = acceptor.address
         }
 
         @Override
@@ -238,11 +241,10 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
         void stop() {
             lock.lock()
             try {
-                if (connection != null) {
-                    connection.stop()
-                }
-                connection = null
+                CompositeStoppable.stoppable(acceptor, connection).stop()
             } finally {
+                connection = null
+                acceptor = null
                 lock.unlock()
             }
             services.stop()

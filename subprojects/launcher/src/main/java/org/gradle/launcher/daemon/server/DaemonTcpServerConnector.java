@@ -16,11 +16,14 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.Action;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.ConnectionAcceptor;
+import org.gradle.messaging.remote.internal.IncomingConnector;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 
@@ -31,11 +34,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * Opens a TCP connection for clients to connect to to communicate with a daemon.
  */
 public class DaemonTcpServerConnector implements DaemonServerConnector {
-    final private TcpIncomingConnector incomingConnector;
+    final private IncomingConnector incomingConnector;
 
     private boolean started;
     private boolean stopped;
     private final Lock lifecycleLock = new ReentrantLock();
+    private ConnectionAcceptor acceptor;
 
     public DaemonTcpServerConnector() {
         this.incomingConnector = new TcpIncomingConnector(
@@ -64,9 +68,9 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
                 }
             };
 
-            Address address = incomingConnector.accept(connectEvent, getClass().getClassLoader(), false);
+            acceptor = incomingConnector.accept(connectEvent, getClass().getClassLoader(), false);
             started = true;
-            return address;
+            return acceptor.getAddress();
         } finally {
             lifecycleLock.unlock();
         }
@@ -80,7 +84,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
             lifecycleLock.unlock();
         }
 
-        incomingConnector.stop();
+        CompositeStoppable.stoppable(acceptor, incomingConnector).stop();
     }
 
 }

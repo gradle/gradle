@@ -21,11 +21,9 @@ import org.gradle.messaging.remote.ConnectEvent
 import org.gradle.messaging.remote.internal.ConnectException
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
-import org.gradle.util.ConcurrentSpecification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import java.util.concurrent.CountDownLatch
-
-class TcpConnectorTest extends ConcurrentSpecification {
+class TcpConnectorTest extends ConcurrentSpec {
     final def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
     final def idGenerator = new UUIDGenerator()
     final def addressFactory = new InetAddressFactory()
@@ -36,45 +34,43 @@ class TcpConnectorTest extends ConcurrentSpecification {
         Action action = Mock()
 
         when:
-        def address = incomingConnector.accept(action, serializer, false)
-        def connection = outgoingConnector.connect(address, serializer)
+        def acceptor = incomingConnector.accept(action, serializer, false)
+        def connection = outgoingConnector.connect(acceptor.address, serializer)
 
         then:
         connection != null
 
         cleanup:
-        incomingConnector.requestStop()
+        acceptor?.requestStop()
     }
 
     def "client can connect to server using remote addresses"() {
         Action action = Mock()
 
         when:
-        def address = incomingConnector.accept(action, serializer, true)
-        def connection = outgoingConnector.connect(address, serializer)
+        def acceptor = incomingConnector.accept(action, serializer, true)
+        def connection = outgoingConnector.connect(acceptor.address, serializer)
 
         then:
         connection != null
 
         cleanup:
-        incomingConnector.requestStop()
+        acceptor?.requestStop()
     }
 
     def "server executes action when incoming connection received"() {
-        def connectionReceived = startsAsyncAction()
         Action action = Mock()
 
         when:
-        connectionReceived.started {
-            def address = incomingConnector.accept(action, serializer, false)
-            outgoingConnector.connect(address, serializer)
-        }
+        def acceptor = incomingConnector.accept(action, serializer, false)
+        outgoingConnector.connect(acceptor.address, serializer)
+        thread.blockUntil.connected
 
         then:
-        1 * action.execute(!null) >> { connectionReceived.done() }
+        1 * action.execute(!null) >> { instant.connected }
 
         cleanup:
-        incomingConnector.requestStop()
+        acceptor?.requestStop()
     }
 
     def "client throws exception when cannot connect to server"() {
@@ -101,36 +97,88 @@ class TcpConnectorTest extends ConcurrentSpecification {
         e.cause instanceof java.net.ConnectException
     }
 
+    def "client cannot connect when server has requested stop"() {
+        when:
+        def acceptor = incomingConnector.accept(Mock(Action), serializer, false)
+        acceptor.requestStop()
+        outgoingConnector.connect(acceptor.address, serializer)
+
+        then:
+        ConnectException e = thrown()
+        e.message.startsWith "Could not connect to server ${acceptor.address}."
+        e.cause instanceof java.net.ConnectException
+    }
+
+    def "server stops accepting connections when action fails"() {
+        Action action = Mock()
+
+        given:
+        _ * action.execute(_) >> {
+            throw new RuntimeException()
+        }
+
+        when:
+        def acceptor = incomingConnector.accept(action, serializer, false)
+        async {
+            outgoingConnector.connect(acceptor.address, serializer)
+        }
+        outgoingConnector.connect(acceptor.address, serializer)
+
+        then:
+        ConnectException e = thrown()
+        e.message.startsWith "Could not connect to server ${acceptor.address}."
+        e.cause instanceof java.net.ConnectException
+
+        cleanup:
+        acceptor?.requestStop()
+    }
+
+    def "acceptor stop blocks until accept action has completed"() {
+        Action action = Mock()
+
+        given:
+        1 * action.execute(_) >> {
+            instant.connected
+            thread.block()
+            instant.actionFinished
+        }
+
+        when:
+        def acceptor = incomingConnector.accept(action, serializer, false)
+        outgoingConnector.connect(acceptor.address, serializer)
+        thread.blockUntil.connected
+        operation.stop {
+            acceptor.stop()
+        }
+
+        then:
+        operation.stop.end > instant.actionFinished
+
+        cleanup:
+        acceptor?.requestStop()
+    }
+
     def "can receive message from peer after peer has closed connection"() {
         // This is a test to simulate the messaging that the daemon does on build completion, in order to validate some assumptions
 
-        def closed = new CountDownLatch(1)
-
         when:
-        def address = incomingConnector.accept({ ConnectEvent<Connection<Object>> event ->
+        def acceptor = incomingConnector.accept({ ConnectEvent<Connection<Object>> event ->
             def connection = event.connection
-            println "[server] connected"
             connection.dispatch("bye")
             connection.stop()
-            closed.countDown()
-            println "[server] disconnected"
+            instant.closed
         } as Action, serializer, false)
 
-        def connection = outgoingConnector.connect(address, serializer)
-        println "[client] connected"
-        closed.await()
-        println "[client] receiving"
-        assert connection.receive() == "bye"
-        assert connection.receive() == null
-        connection.stop()
-        println "[client] disconnected"
-        incomingConnector.requestStop()
+        def connection = outgoingConnector.connect(acceptor.address, serializer)
+        thread.blockUntil.closed
 
         then:
-        finished()
+        connection.receive() == "bye"
+        connection.receive() == null
 
         cleanup:
-        incomingConnector.requestStop()
+        connection?.stop()
+        acceptor?.stop()
     }
 }
 

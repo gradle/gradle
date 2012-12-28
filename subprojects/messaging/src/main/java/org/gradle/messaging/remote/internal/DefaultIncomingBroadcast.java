@@ -25,6 +25,7 @@ import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ReflectionDispatch;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
+import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.internal.protocol.ChannelAvailable;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
 import org.gradle.internal.id.IdGenerator;
@@ -47,6 +48,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
     private final StoppableExecutor executor;
     private final Address address;
     private final MessageHub hub;
+    private final ConnectionAcceptor acceptor;
 
     public DefaultIncomingBroadcast(MessageOriginator messageOriginator, String group, AsyncConnection<DiscoveryMessage> connection, IncomingConnector incomingConnector, ExecutorFactory executorFactory, IdGenerator<UUID> idGenerator, ClassLoader messagingClassLoader) {
         this.messageOriginator = messageOriginator;
@@ -58,7 +60,8 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
         connection.dispatchTo(new GroupMessageFilter(group, protocolStack.getBottom()));
         protocolStack.getBottom().dispatchTo(connection);
 
-        address = incomingConnector.accept(new IncomingConnectionAction(), getClass().getClassLoader(), true);
+        acceptor = incomingConnector.accept(new IncomingConnectionAction(), getClass().getClassLoader(), true);
+        address = acceptor.getAddress();
         hub = new MessageHub("incoming broadcast", messageOriginator.getName(), executorFactory, idGenerator, messagingClassLoader);
 
         LOGGER.info("Created IncomingBroadcast with {}", messageOriginator);
@@ -78,7 +81,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
     }
 
     public void stop() {
-        CompositeStoppable.stoppable(protocolStack, hub, executor).stop();
+        CompositeStoppable.stoppable(acceptor, protocolStack, hub, executor).stop();
     }
 
     private class IncomingConnectionAction implements Action<ConnectEvent<Connection<Message>>> {

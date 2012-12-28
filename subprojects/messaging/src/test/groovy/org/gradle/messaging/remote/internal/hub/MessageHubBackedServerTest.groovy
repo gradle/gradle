@@ -23,6 +23,7 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.ConnectEvent
+import org.gradle.messaging.remote.ConnectionAcceptor
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.IncomingConnector
 import org.gradle.messaging.remote.internal.MessageSerializer
@@ -38,6 +39,9 @@ class MessageHubBackedServerTest extends Specification {
     def "creates connection and cleans up on stop"() {
         Address remoteAddress = Stub()
         Address localAddress = Stub()
+        ConnectionAcceptor acceptor = Mock() {
+            getAddress() >> localAddress
+        }
         Action<ConnectEvent<Connection<InterHubMessage>>> connectAction = Mock()
         Connection<InterHubMessage> backingConnection = Mock()
         StoppableExecutor executor = Mock()
@@ -48,7 +52,7 @@ class MessageHubBackedServerTest extends Specification {
         server.accept(connectAction)
 
         then:
-        1 * connector.accept(_, serializer, false) >> { acceptAction = it[0]; return remoteAddress }
+        1 * connector.accept(_, serializer, false) >> { acceptAction = it[0]; return acceptor }
 
         when:
         acceptAction.execute(new ConnectEvent<Connection<InterHubMessage>>(backingConnection, localAddress, remoteAddress))

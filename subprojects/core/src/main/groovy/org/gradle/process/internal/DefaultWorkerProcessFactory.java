@@ -16,13 +16,13 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.messaging.remote.*;
 import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.EncodedStream;
@@ -73,8 +73,14 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
                 throw new IllegalStateException("No worker action specified for this worker process.");
             }
 
-            DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
-            Address localAddress = server.accept(workerProcess.getConnectAction());
+            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
+            ConnectionAcceptor acceptor = server.accept(new Action<ConnectEvent<ObjectConnection>>() {
+                public void execute(ConnectEvent<ObjectConnection> event) {
+                    workerProcess.onConnect(event.getConnection());
+                }
+            });
+            workerProcess.startAccepting(acceptor);
+            Address localAddress = acceptor.getAddress();
 
             // Build configuration for GradleWorkerMain
             List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());

@@ -19,12 +19,12 @@ package org.gradle.messaging.remote.internal.inet;
 import org.gradle.api.Action;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
+import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.IncomingConnector;
@@ -38,31 +38,28 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
+public class TcpIncomingConnector implements IncomingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
-    private final StoppableExecutor executor;
+    private final ExecutorFactory executorFactory;
     private final InetAddressFactory addressFactory;
     private final IdGenerator<?> idGenerator;
-    private final List<ServerSocketChannel> serverSockets = new CopyOnWriteArrayList<ServerSocketChannel>();
 
     public TcpIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory addressFactory, IdGenerator<?> idGenerator) {
+        this.executorFactory = executorFactory;
         this.addressFactory = addressFactory;
         this.idGenerator = idGenerator;
-        this.executor = executorFactory.create("Incoming TCP Connector");
     }
 
-    public <T> Address accept(Action<ConnectEvent<Connection<T>>> action, ClassLoader classLoader, boolean allowRemote) {
+    public <T> ConnectionAcceptor accept(Action<ConnectEvent<Connection<T>>> action, ClassLoader classLoader, boolean allowRemote) {
         return accept(action, new DefaultMessageSerializer<T>(classLoader), allowRemote);
     }
 
-    public <T> Address accept(Action<ConnectEvent<Connection<T>>> action, MessageSerializer<T> serializer, boolean allowRemote) {
-        ServerSocketChannel serverSocket;
+    public <T> ConnectionAcceptor accept(Action<ConnectEvent<Connection<T>>> action, MessageSerializer<T> serializer, boolean allowRemote) {
+        final ServerSocketChannel serverSocket;
         int localPort;
         try {
             serverSocket = ServerSocketChannel.open();
-            serverSockets.add(serverSocket);
             serverSocket.socket().bind(new InetSocketAddress(0));
             localPort = serverSocket.socket().getLocalPort();
         } catch (Exception e) {
@@ -71,20 +68,26 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
 
         Object id = idGenerator.generateId();
         List<InetAddress> addresses = allowRemote ? addressFactory.findRemoteAddresses() : addressFactory.findLocalAddresses();
-        Address address = new MultiChoiceAddress(id, localPort, addresses);
+        final Address address = new MultiChoiceAddress(id, localPort, addresses);
         LOGGER.debug("Listening on {}.", address);
 
+        final StoppableExecutor executor = executorFactory.create(String.format("Incoming %s TCP Connector on port %s", allowRemote ? "remote" : "local", localPort));
         executor.execute(new Receiver<T>(serverSocket, action, serializer, allowRemote));
-        return address;
-    }
 
-    public void requestStop() {
-        CompositeStoppable.stoppable(serverSockets).stop();
-    }
+        return new ConnectionAcceptor() {
+            public Address getAddress() {
+                return address;
+            }
 
-    public void stop() {
-        requestStop();
-        executor.stop();
+            public void requestStop() {
+                CompositeStoppable.stoppable(serverSocket).stop();
+            }
+
+            public void stop() {
+                requestStop();
+                executor.stop();
+            }
+        };
     }
 
     private class Receiver<T> implements Runnable {
@@ -127,7 +130,6 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
                 }
             } finally {
                 CompositeStoppable.stoppable(serverSocket).stop();
-                serverSockets.remove(serverSocket);
             }
         }
     }

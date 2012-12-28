@@ -17,35 +17,26 @@
 package org.gradle.messaging.remote.internal.hub
 
 import org.gradle.api.Action
-import org.gradle.internal.id.UUIDGenerator
 import org.gradle.messaging.dispatch.Dispatch
-import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.Connection
-import org.gradle.messaging.remote.internal.inet.InetAddressFactory
-import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector
-import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector
-import org.gradle.messaging.serialize.kryo.KryoSerializer
+import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Timeout
 
+import java.util.concurrent.BlockingQueue
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.LinkedBlockingQueue
 
 @Timeout(60)
 class MessageHubIntegrationTest extends ConcurrentSpec {
-    final serializer = new InterHubMessageSerializer(new KryoSerializer<Object>())
-    final outgoingConnector = new TcpOutgoingConnector()
-    final incomingConnector = new TcpIncomingConnector(executorFactory, new InetAddressFactory(), new UUIDGenerator())
     final Action<Throwable> errorHandler = Mock()
-
-    def cleanup() {
-        incomingConnector?.stop()
-    }
 
     def "can wire two hubs together"() {
         Dispatch<String> clientHandler = Mock()
         Dispatch<String> serverHandler = Mock()
-        def server = server()
-        def client = client(server)
+        def server = new Participant()
+        def client = new Participant()
+        client.connectTo(server)
         server.addHandler("channel", serverHandler)
         client.addHandler("channel", clientHandler)
 
@@ -83,9 +74,11 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
         Dispatch<String> client1Handler = Mock()
         Dispatch<String> client2Handler = Mock()
         Dispatch<String> serverHandler = Mock()
-        def server = server()
-        def client1 = client(server)
-        def client2 = client(server)
+        def server = new Participant()
+        def client1 = new Participant()
+        def client2 = new Participant()
+        client1.connectTo(server)
+        client2.connectTo(server)
         server.addHandler("channel", serverHandler)
         client1.addHandler("channel", client1Handler)
         client2.addHandler("channel", client2Handler)
@@ -126,8 +119,9 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
         Dispatch<String> clientHandler1 = Mock()
         Dispatch<String> clientHandler2 = Mock()
         Dispatch<String> serverHandler = Mock()
-        def server = server()
-        def client = client(server)
+        def server = new Participant()
+        def client = new Participant()
+        client.connectTo(server)
         server.addHandler("channel", serverHandler)
         client.addHandler("channel1", clientHandler1)
         client.addHandler("channel2", clientHandler2)
@@ -166,16 +160,8 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def server() {
-        return new Server()
-    }
-
-    def client(Server server) {
-        return new Client(server.address)
-    }
-
     private class Participant {
-        MessageHub hub
+        MessageHub hub = new MessageHub("participant", getExecutorFactory(), getErrorHandler())
 
         Dispatch<String> createOutgoing(String channel) {
             return hub.getOutgoing(channel, String)
@@ -185,34 +171,59 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
             hub.addHandler(channel, handler)
         }
 
+        def connectTo(Participant other) {
+            def connector = new TestConnector()
+            hub.addConnection(connector.connectionA)
+            other.hub.addConnection(connector.connectionB)
+        }
+
         def stop() {
             hub.stop()
         }
     }
 
-    private class Server extends Participant {
-        final Address address
+    private class TestConnector {
+        private final BlockingQueue<InterHubMessage> incomingA = new LinkedBlockingQueue<>()
+        private final BlockingQueue<InterHubMessage> incomingB = new LinkedBlockingQueue<>()
 
-        Server() {
-            hub = new MessageHub("server", getExecutorFactory(), errorHandler)
-            this.address = incomingConnector.accept({ event ->
-                hub.addConnection(event.connection)
-            } as Action, serializer, false)
+        Connection<InterHubMessage> getConnectionA() {
+            return new Connection<InterHubMessage>() {
+                void dispatch(InterHubMessage message) {
+                    incomingB.put(message)
+                }
+
+                InterHubMessage receive() {
+                    return incomingA.take()
+                }
+
+                void requestStop() {
+                    throw new UnsupportedOperationException()
+                }
+
+                void stop() {
+                    throw new UnsupportedOperationException()
+                }
+            }
         }
-    }
 
-    private class Client extends Participant {
-        final Connection connection
+        Connection<InterHubMessage> getConnectionB() {
+            return new Connection<InterHubMessage>() {
+                void dispatch(InterHubMessage message) {
+                    incomingA.put(message)
+                }
 
-        Client(Address address) {
-            hub = new MessageHub("client", getExecutorFactory(), errorHandler)
-            this.connection = outgoingConnector.connect(address, serializer)
-            hub.addConnection(connection)
-        }
+                InterHubMessage receive() {
+                    return incomingB.take()
+                }
 
-        def stop() {
-            hub.stop()
-            connection.stop()
+                void requestStop() {
+                    throw new UnsupportedOperationException()
+                }
+
+                void stop() {
+                    throw new UnsupportedOperationException()
+                }
+            }
         }
     }
 }

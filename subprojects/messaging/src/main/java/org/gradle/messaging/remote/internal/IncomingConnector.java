@@ -17,8 +17,8 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.Action;
-import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
+import org.gradle.messaging.remote.ConnectionAcceptor;
 
 public interface IncomingConnector {
     /**
@@ -29,7 +29,7 @@ public interface IncomingConnector {
      * @param allowRemote If true, only allow connections from remote machines. If false, allow only from the local machine.
      * @return the address of the endpoint which the connector is listening on.
      */
-    <T> Address accept(Action<ConnectEvent<Connection<T>>> action, ClassLoader messageClassLoader, boolean allowRemote);
+    <T> ConnectionAcceptor accept(Action<ConnectEvent<Connection<T>>> action, ClassLoader messageClassLoader, boolean allowRemote);
 
     /**
      * Allocates a new incoming endpoint.
@@ -38,5 +38,5 @@ public interface IncomingConnector {
      * @param allowRemote If true, only allow connections from remote machines. If false, allow only from the local machine.
      * @return the address of the endpoint which the connector is listening on.
      */
-    <T> Address accept(Action<ConnectEvent<Connection<T>>> action, MessageSerializer<T> serializer, boolean allowRemote);
+    <T> ConnectionAcceptor accept(Action<ConnectEvent<Connection<T>>> action, MessageSerializer<T> serializer, boolean allowRemote);
 }
