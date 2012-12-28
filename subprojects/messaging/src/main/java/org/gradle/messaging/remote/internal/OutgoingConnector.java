@@ -17,11 +17,19 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.remote.Address;
 
-public interface OutgoingConnector<T> {
+public interface OutgoingConnector {
     /**
-     * Creates a connection to the given address.
+     * Creates a connection to the given address. Uses default Java serialization for messages.
+     *
+     * @param messageClassLoader ClassLoader to use to load incoming messages.
+     * @throws ConnectException when there is nothing listening on the remote address.
+     */
+    <T> Connection<T> connect(Address destinationAddress, ClassLoader messageClassLoader) throws ConnectException;
+
+    /**
+     * Creates a connection to the given address. Uses the given serializer to convert messages between binary form and objects of type T.
      *
      * @throws ConnectException when there is nothing listening on the remote address
      */
-    Connection<T> connect(Address destinationAddress) throws ConnectException;
+    <T> Connection<T> connect(Address destinationAddress, MessageSerializer<T> serializer) throws ConnectException;
 }

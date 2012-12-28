@@ -41,7 +41,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOutgoingBroadcast.class);
     private final MessageOriginator messageOriginator;
     private final String group;
-    private final OutgoingConnector<Message> outgoingConnector;
+    private final OutgoingConnector outgoingConnector;
     private final ProtocolStack<DiscoveryMessage> discoveryBroadcast;
     private final Lock lock = new ReentrantLock();
     private final StoppableExecutor executor;
@@ -49,7 +49,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
     private final Set<Address> connections = new HashSet<Address>();
     private final MessageHub hub;
 
-    public DefaultOutgoingBroadcast(MessageOriginator messageOriginator, String group, AsyncConnection<DiscoveryMessage> connection, OutgoingConnector<Message> outgoingConnector, ExecutorFactory executorFactory, final IdGenerator<UUID> idGenerator, ClassLoader messagingClassLoader) {
+    public DefaultOutgoingBroadcast(MessageOriginator messageOriginator, String group, AsyncConnection<DiscoveryMessage> connection, OutgoingConnector outgoingConnector, ExecutorFactory executorFactory, final IdGenerator<UUID> idGenerator, ClassLoader messagingClassLoader) {
         this.messageOriginator = messageOriginator;
         this.group = group;
         this.outgoingConnector = outgoingConnector;
@@ -109,7 +109,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
                     lock.unlock();
                 }
 
-                Connection<Message> syncConnection = outgoingConnector.connect(serviceAddress);
+                Connection<Message> syncConnection = outgoingConnector.connect(serviceAddress, DiscoveryMessage.class.getClassLoader());
                 hub.addConnection(syncConnection);
             }
         }

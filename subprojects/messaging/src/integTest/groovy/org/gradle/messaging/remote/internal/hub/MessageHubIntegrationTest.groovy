@@ -21,7 +21,6 @@ import org.gradle.internal.id.UUIDGenerator
 import org.gradle.messaging.dispatch.Dispatch
 import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.Connection
-import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector
@@ -34,8 +33,8 @@ import java.util.concurrent.CountDownLatch
 @Timeout(60)
 class MessageHubIntegrationTest extends ConcurrentSpec {
     final serializer = new InterHubMessageSerializer(new KryoSerializer<Object>())
-    final outgoingConnector = new TcpOutgoingConnector<InterHubMessage>(serializer)
-    final incomingConnector = new TcpIncomingConnector<InterHubMessage>(executorFactory, serializer, new InetAddressFactory(), new UUIDGenerator())
+    final outgoingConnector = new TcpOutgoingConnector()
+    final incomingConnector = new TcpIncomingConnector(executorFactory, new InetAddressFactory(), new UUIDGenerator())
     final Action<Throwable> errorHandler = Mock()
 
     def cleanup() {
@@ -198,7 +197,7 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
             hub = new MessageHub("server", getExecutorFactory(), errorHandler)
             this.address = incomingConnector.accept({ event ->
                 hub.addConnection(event.connection)
-            } as Action, false)
+            } as Action, serializer, false)
         }
     }
 
@@ -207,7 +206,7 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
 
         Client(Address address) {
             hub = new MessageHub("client", getExecutorFactory(), errorHandler)
-            this.connection = outgoingConnector.connect(address)
+            this.connection = outgoingConnector.connect(address, serializer)
             hub.addConnection(connection)
         }
 
@@ -215,9 +214,5 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
             hub.stop()
             connection.stop()
         }
-    }
-
-    interface TestService {
-        void doStuff(String param)
     }
 }

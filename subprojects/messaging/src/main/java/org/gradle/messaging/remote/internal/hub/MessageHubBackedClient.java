@@ -22,6 +22,7 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 import org.slf4j.Logger;
@@ -29,16 +30,18 @@ import org.slf4j.LoggerFactory;
 
 public class MessageHubBackedClient implements MessagingClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedClient.class);
-    private final OutgoingConnector<InterHubMessage> connector;
+    private final OutgoingConnector connector;
+    private final MessageSerializer<InterHubMessage> serializer;
     private final ExecutorFactory executorFactory;
 
-    public MessageHubBackedClient(OutgoingConnector<InterHubMessage> connector, ExecutorFactory executorFactory) {
+    public MessageHubBackedClient(OutgoingConnector connector, MessageSerializer<InterHubMessage> serializer, ExecutorFactory executorFactory) {
         this.connector = connector;
+        this.serializer = serializer;
         this.executorFactory = executorFactory;
     }
 
     public ObjectConnection getConnection(Address address) {
-        Connection<InterHubMessage> connection = connector.connect(address);
+        Connection<InterHubMessage> connection = connector.connect(address, serializer);
         MessageHub hub = new MessageHub(connection.toString(), executorFactory, new Action<Throwable>() {
             public void execute(Throwable throwable) {
                 LOGGER.error("Unexpected exception thrown.", throwable);

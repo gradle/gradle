@@ -24,22 +24,25 @@ import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.IncomingConnector;
+import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MessageHubBackedServer implements MessagingServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedServer.class);
-    private final IncomingConnector<InterHubMessage> connector;
+    private final IncomingConnector connector;
+    private final MessageSerializer<InterHubMessage> serializer;
     private final ExecutorFactory executorFactory;
 
-    public MessageHubBackedServer(IncomingConnector<InterHubMessage> connector, ExecutorFactory executorFactory) {
+    public MessageHubBackedServer(IncomingConnector connector, MessageSerializer<InterHubMessage> serializer, ExecutorFactory executorFactory) {
         this.connector = connector;
+        this.serializer = serializer;
         this.executorFactory = executorFactory;
     }
 
     public Address accept(Action<ConnectEvent<ObjectConnection>> action) {
-        return connector.accept(new ConnectEventAction(action), false);
+        return connector.accept(new ConnectEventAction(action), serializer, false);
     }
 
     private class ConnectEventAction implements Action<ConnectEvent<Connection<InterHubMessage>>> {

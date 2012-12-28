@@ -25,13 +25,15 @@ import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.ConnectEvent
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.IncomingConnector
+import org.gradle.messaging.remote.internal.MessageSerializer
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import spock.lang.Specification
 
 class MessageHubBackedServerTest extends Specification {
-    final IncomingConnector<InterHubMessage> connector = Mock()
+    final IncomingConnector connector = Mock()
     final ExecutorFactory executorFactory = Mock()
-    final MessageHubBackedServer server = new MessageHubBackedServer(connector, executorFactory)
+    final MessageSerializer<InterHubMessage> serializer = Mock()
+    final MessageHubBackedServer server = new MessageHubBackedServer(connector, serializer, executorFactory)
 
     def "creates connection and cleans up on stop"() {
         Address remoteAddress = Stub()
@@ -46,7 +48,7 @@ class MessageHubBackedServerTest extends Specification {
         server.accept(connectAction)
 
         then:
-        1 * connector.accept(_, false) >> { acceptAction = it[0]; return remoteAddress }
+        1 * connector.accept(_, serializer, false) >> { acceptAction = it[0]; return remoteAddress }
 
         when:
         acceptAction.execute(new ConnectEvent<Connection<InterHubMessage>>(backingConnection, localAddress, remoteAddress))

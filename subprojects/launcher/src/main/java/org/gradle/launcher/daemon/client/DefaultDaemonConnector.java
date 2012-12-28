@@ -38,11 +38,11 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
     private final DaemonRegistry daemonRegistry;
-    protected final OutgoingConnector<Object> connector;
+    protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;
     private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
-    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector<Object> connector, DaemonStarter daemonStarter) {
+    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter) {
         this.daemonRegistry = daemonRegistry;
         this.connector = connector;
         this.daemonStarter = daemonStarter;
@@ -145,7 +145,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         };
         Connection<Object> connection;
         try {
-            connection = connector.connect(daemonInfo.getAddress());
+            connection = connector.connect(daemonInfo.getAddress(), getClass().getClassLoader());
         } catch (ConnectException e) {
             onFailure.run();
             throw e;

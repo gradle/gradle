@@ -22,14 +22,16 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.Connection
+import org.gradle.messaging.remote.internal.MessageSerializer
 import org.gradle.messaging.remote.internal.OutgoingConnector
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import spock.lang.Specification
 
 class MessageHubBackedClientTest extends Specification {
-    final OutgoingConnector<InterHubMessage> connector = Mock()
+    final OutgoingConnector connector = Mock()
     final ExecutorFactory executorFactory = Mock()
-    final MessageHubBackedClient client = new MessageHubBackedClient(connector, executorFactory)
+    final MessageSerializer<InterHubMessage> serializer = Mock()
+    final MessageHubBackedClient client = new MessageHubBackedClient(connector, serializer, executorFactory)
 
     def "creates connection and cleans up on stop"() {
         Address address = Stub()
@@ -40,7 +42,7 @@ class MessageHubBackedClientTest extends Specification {
         def objectConnection = client.getConnection(address)
 
         then:
-        1 * connector.connect(address) >> backingConnection
+        1 * connector.connect(address, serializer) >> backingConnection
         1 * executorFactory.create("${backingConnection} workers") >> executor
 
         when:

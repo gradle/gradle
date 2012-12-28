@@ -21,7 +21,6 @@ import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 
@@ -32,16 +31,15 @@ import java.util.concurrent.locks.ReentrantLock;
  * Opens a TCP connection for clients to connect to to communicate with a daemon.
  */
 public class DaemonTcpServerConnector implements DaemonServerConnector {
-    final private TcpIncomingConnector<Object> incomingConnector;
+    final private TcpIncomingConnector incomingConnector;
 
     private boolean started;
     private boolean stopped;
     private final Lock lifecycleLock = new ReentrantLock();
 
     public DaemonTcpServerConnector() {
-        this.incomingConnector = new TcpIncomingConnector<Object>(
+        this.incomingConnector = new TcpIncomingConnector(
                 new DefaultExecutorFactory(),
-                new DefaultMessageSerializer<Object>(getClass().getClassLoader()),
                 new InetAddressFactory(),
                 new UUIDGenerator()
         );
@@ -66,7 +64,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
                 }
             };
 
-            Address address = incomingConnector.accept(connectEvent, false);
+            Address address = incomingConnector.accept(connectEvent, getClass().getClassLoader(), false);
             started = true;
             return address;
         } finally {
@@ -76,7 +74,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
 
     public void stop() {
         lifecycleLock.lock();
-        try { // can't imagine what would go wrong here, but try/finally just in case
+        try {
             stopped = true;
         } finally {
             lifecycleLock.unlock();

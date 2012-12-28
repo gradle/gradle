@@ -25,6 +25,7 @@ import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.ConnectException
 import org.gradle.messaging.remote.internal.Connection
+import org.gradle.messaging.remote.internal.MessageSerializer
 import org.gradle.messaging.remote.internal.OutgoingConnector
 import spock.lang.Specification
 
@@ -35,11 +36,15 @@ class DefaultDaemonConnectorTest extends Specification {
     def daemonCounter = 0
 
     class OutgoingConnectorStub implements OutgoingConnector {
-        Connection connect(Address address) {
+        Connection connect(Address address, ClassLoader messageClassLoader) throws ConnectException {
             def connection = [:] as Connection
             // unsure why I can't add this as property in the map-mock above
             connection.metaClass.num = address.num
             connection
+        }
+
+        Connection connect(Address address, MessageSerializer serializer) {
+            throw new UnsupportedOperationException()
         }
     }
 
@@ -115,7 +120,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
         assert !registry.all.empty
 
-        connector.connector.connect(_ as Address) >> { throw new ConnectException("Problem!", new RuntimeException("foo")) }
+        connector.connector.connect(_ as Address, _) >> { throw new ConnectException("Problem!", new RuntimeException("foo")) }
 
         when:
         def connection = connector.maybeConnect( { true } as ExplainingSpec)

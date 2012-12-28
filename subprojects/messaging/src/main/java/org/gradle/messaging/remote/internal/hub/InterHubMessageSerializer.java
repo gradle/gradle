@@ -18,12 +18,12 @@ package org.gradle.messaging.remote.internal.hub;
 
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier;
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage;
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
-import org.gradle.messaging.remote.internal.inet.InetEndpoint;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 import org.gradle.messaging.serialize.kryo.KryoAwareSerializer;
@@ -40,7 +40,7 @@ public class InterHubMessageSerializer implements MessageSerializer<InterHubMess
         this.payloadSerializer = payloadSerializer;
     }
 
-    public ObjectReader<InterHubMessage> newReader(InputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
+    public ObjectReader<InterHubMessage> newReader(InputStream inputStream, Address localAddress, Address remoteAddress) {
         Input input = new Input(inputStream);
         return new MessageReader(input, payloadSerializer.newReader(input));
     }

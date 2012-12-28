@@ -29,15 +29,15 @@ class TcpConnectorTest extends ConcurrentSpecification {
     final def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
     final def idGenerator = new UUIDGenerator()
     final def addressFactory = new InetAddressFactory()
-    final def outgoingConnector = new TcpOutgoingConnector<String>(serializer)
-    final def incomingConnector = new TcpIncomingConnector<String>(executorFactory, serializer, addressFactory, idGenerator)
+    final def outgoingConnector = new TcpOutgoingConnector()
+    final def incomingConnector = new TcpIncomingConnector(executorFactory, addressFactory, idGenerator)
 
     def "client can connect to server"() {
         Action action = Mock()
 
         when:
-        def address = incomingConnector.accept(action, false)
-        def connection = outgoingConnector.connect(address)
+        def address = incomingConnector.accept(action, serializer, false)
+        def connection = outgoingConnector.connect(address, serializer)
 
         then:
         connection != null
@@ -50,8 +50,8 @@ class TcpConnectorTest extends ConcurrentSpecification {
         Action action = Mock()
 
         when:
-        def address = incomingConnector.accept(action, true)
-        def connection = outgoingConnector.connect(address)
+        def address = incomingConnector.accept(action, serializer, true)
+        def connection = outgoingConnector.connect(address, serializer)
 
         then:
         connection != null
@@ -66,8 +66,8 @@ class TcpConnectorTest extends ConcurrentSpecification {
 
         when:
         connectionReceived.started {
-            def address = incomingConnector.accept(action, false)
-            outgoingConnector.connect(address)
+            def address = incomingConnector.accept(action, serializer, false)
+            outgoingConnector.connect(address, serializer)
         }
 
         then:
@@ -81,7 +81,7 @@ class TcpConnectorTest extends ConcurrentSpecification {
         def address = new MultiChoiceAddress("address", 12345, [InetAddress.getByName("localhost")])
 
         when:
-        outgoingConnector.connect(address)
+        outgoingConnector.connect(address, serializer)
 
         then:
         ConnectException e = thrown()
@@ -93,7 +93,7 @@ class TcpConnectorTest extends ConcurrentSpecification {
         def address = new MultiChoiceAddress("address", 12345, [InetAddress.getByName("localhost"), InetAddress.getByName("127.0.0.1")])
 
         when:
-        outgoingConnector.connect(address)
+        outgoingConnector.connect(address, serializer)
 
         then:
         ConnectException e = thrown()
@@ -114,9 +114,9 @@ class TcpConnectorTest extends ConcurrentSpecification {
             connection.stop()
             closed.countDown()
             println "[server] disconnected"
-        } as Action, false)
+        } as Action, serializer, false)
 
-        def connection = outgoingConnector.connect(address)
+        def connection = outgoingConnector.connect(address, serializer)
         println "[client] connected"
         closed.await()
         println "[client] receiving"

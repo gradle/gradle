@@ -20,7 +20,17 @@ import org.gradle.api.Action;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 
-public interface IncomingConnector<T> {
+public interface IncomingConnector {
+    /**
+     * Allocates a new incoming endpoint. Uses Java serialization.
+     *
+     * @param action the action to execute on incoming connection. The supplied action is not required to be thread-safe.
+     * @param messageClassLoader The ClassLoader to use to deserialize incoming messages.
+     * @param allowRemote If true, only allow connections from remote machines. If false, allow only from the local machine.
+     * @return the address of the endpoint which the connector is listening on.
+     */
+    <T> Address accept(Action<ConnectEvent<Connection<T>>> action, ClassLoader messageClassLoader, boolean allowRemote);
+
     /**
      * Allocates a new incoming endpoint.
      *
@@ -28,5 +38,5 @@ public interface IncomingConnector<T> {
      * @param allowRemote If true, only allow connections from remote machines. If false, allow only from the local machine.
      * @return the address of the endpoint which the connector is listening on.
      */
-    Address accept(Action<ConnectEvent<Connection<T>>> action, boolean allowRemote);
+    <T> Address accept(Action<ConnectEvent<Connection<T>>> action, MessageSerializer<T> serializer, boolean allowRemote);
 }

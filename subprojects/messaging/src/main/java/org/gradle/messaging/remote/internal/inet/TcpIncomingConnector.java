@@ -26,6 +26,7 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.IncomingConnector;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.slf4j.Logger;
@@ -39,22 +40,24 @@ import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStoppable {
+public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
     private final StoppableExecutor executor;
-    private final MessageSerializer<T> serializer;
     private final InetAddressFactory addressFactory;
     private final IdGenerator<?> idGenerator;
     private final List<ServerSocketChannel> serverSockets = new CopyOnWriteArrayList<ServerSocketChannel>();
 
-    public TcpIncomingConnector(ExecutorFactory executorFactory, MessageSerializer<T> serializer, InetAddressFactory addressFactory, IdGenerator<?> idGenerator) {
-        this.serializer = serializer;
+    public TcpIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory addressFactory, IdGenerator<?> idGenerator) {
         this.addressFactory = addressFactory;
         this.idGenerator = idGenerator;
         this.executor = executorFactory.create("Incoming TCP Connector");
     }
 
-    public Address accept(Action<ConnectEvent<Connection<T>>> action, boolean allowRemote) {
+    public <T> Address accept(Action<ConnectEvent<Connection<T>>> action, ClassLoader classLoader, boolean allowRemote) {
+        return accept(action, new DefaultMessageSerializer<T>(classLoader), allowRemote);
+    }
+
+    public <T> Address accept(Action<ConnectEvent<Connection<T>>> action, MessageSerializer<T> serializer, boolean allowRemote) {
         ServerSocketChannel serverSocket;
         int localPort;
         try {
@@ -71,7 +74,7 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
         Address address = new MultiChoiceAddress(id, localPort, addresses);
         LOGGER.debug("Listening on {}.", address);
 
-        executor.execute(new Receiver(serverSocket, action, allowRemote));
+        executor.execute(new Receiver<T>(serverSocket, action, serializer, allowRemote));
         return address;
     }
 
@@ -84,14 +87,16 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
         executor.stop();
     }
 
-    private class Receiver implements Runnable {
+    private class Receiver<T> implements Runnable {
         private final ServerSocketChannel serverSocket;
         private final Action<ConnectEvent<Connection<T>>> action;
+        private final MessageSerializer<T> serializer;
         private final boolean allowRemote;
 
-        public Receiver(ServerSocketChannel serverSocket, Action<ConnectEvent<Connection<T>>> action, boolean allowRemote) {
+        public Receiver(ServerSocketChannel serverSocket, Action<ConnectEvent<Connection<T>>> action, MessageSerializer<T> serializer, boolean allowRemote) {
             this.serverSocket = serverSocket;
             this.action = action;
+            this.serializer = serializer;
             this.allowRemote = allowRemote;
         }
 

@@ -37,8 +37,8 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
     public static final byte CHANNEL_AVAILABLE = 2;
     public static final byte CHANNEL_UNAVAILABLE = 3;
 
-    public ObjectReader<DiscoveryMessage> newReader(InputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
-        return new MessageReader(inputStream, remoteAddress);
+    public ObjectReader<DiscoveryMessage> newReader(InputStream inputStream, Address localAddress, Address remoteAddress) {
+        return new MessageReader(inputStream, (InetEndpoint) remoteAddress);
     }
 
     public ObjectWriter<DiscoveryMessage> newWriter(OutputStream outputStream) {

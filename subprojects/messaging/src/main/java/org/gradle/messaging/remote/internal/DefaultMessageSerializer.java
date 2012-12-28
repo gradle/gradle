@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.remote.internal.inet.InetEndpoint;
+import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
@@ -29,7 +29,7 @@ public class DefaultMessageSerializer<T> implements MessageSerializer<T> {
         this.classLoader = classLoader;
     }
 
-    public ObjectReader<T> newReader(InputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) {
+    public ObjectReader<T> newReader(InputStream inputStream, Address localAddress, Address remoteAddress) {
         return new MessageReader<T>(inputStream, classLoader);
     }
 

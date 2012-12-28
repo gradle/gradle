@@ -17,10 +17,7 @@
 package org.gradle.messaging.remote.internal.inet;
 
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.internal.ConnectException;
-import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.MessageSerializer;
-import org.gradle.messaging.remote.internal.OutgoingConnector;
+import org.gradle.messaging.remote.internal.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,15 +27,14 @@ import java.net.SocketException;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
-public class TcpOutgoingConnector<T> implements OutgoingConnector<T> {
+public class TcpOutgoingConnector implements OutgoingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
-    private final MessageSerializer<T> serializer;
 
-    public TcpOutgoingConnector(MessageSerializer<T> serializer) {
-        this.serializer = serializer;
+    public <T> Connection<T> connect(Address destinationAddress, ClassLoader messageClassLoader) throws ConnectException {
+        return connect(destinationAddress, new DefaultMessageSerializer<T>(messageClassLoader));
     }
 
-    public Connection<T> connect(Address destinationAddress) {
+    public <T> Connection<T> connect(Address destinationAddress, MessageSerializer<T> serializer) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
             throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }

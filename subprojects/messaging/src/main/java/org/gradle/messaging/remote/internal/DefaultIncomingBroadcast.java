@@ -48,7 +48,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
     private final Address address;
     private final MessageHub hub;
 
-    public DefaultIncomingBroadcast(MessageOriginator messageOriginator, String group, AsyncConnection<DiscoveryMessage> connection, IncomingConnector<Message> incomingConnector, ExecutorFactory executorFactory, IdGenerator<UUID> idGenerator, ClassLoader messagingClassLoader) {
+    public DefaultIncomingBroadcast(MessageOriginator messageOriginator, String group, AsyncConnection<DiscoveryMessage> connection, IncomingConnector incomingConnector, ExecutorFactory executorFactory, IdGenerator<UUID> idGenerator, ClassLoader messagingClassLoader) {
         this.messageOriginator = messageOriginator;
         this.group = group;
 
@@ -58,7 +58,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
         connection.dispatchTo(new GroupMessageFilter(group, protocolStack.getBottom()));
         protocolStack.getBottom().dispatchTo(connection);
 
-        address = incomingConnector.accept(new IncomingConnectionAction(), true);
+        address = incomingConnector.accept(new IncomingConnectionAction(), getClass().getClassLoader(), true);
         hub = new MessageHub("incoming broadcast", messageOriginator.getName(), executorFactory, idGenerator, messagingClassLoader);
 
         LOGGER.info("Created IncomingBroadcast with {}", messageOriginator);

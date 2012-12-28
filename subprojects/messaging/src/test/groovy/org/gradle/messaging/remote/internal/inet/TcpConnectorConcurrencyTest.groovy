@@ -31,8 +31,8 @@ class TcpConnectorConcurrencyTest extends ConcurrentSpecification {
 
     //sharing serializer adds extra flavor...
     final serializer = new DefaultMessageSerializer<Object>(getClass().classLoader)
-    final outgoingConnector = new TcpOutgoingConnector<Object>(serializer)
-    final incomingConnector = new TcpIncomingConnector<Object>(executorFactory, serializer, new InetAddressFactory(), new UUIDGenerator())
+    final outgoingConnector = new TcpOutgoingConnector()
+    final incomingConnector = new TcpIncomingConnector(executorFactory, new InetAddressFactory(), new UUIDGenerator())
 
     @Timeout(60)
     @Ignore
@@ -55,8 +55,8 @@ class TcpConnectorConcurrencyTest extends ConcurrentSpecification {
             }
         }
 
-        def address = incomingConnector.accept(action, false)
-        def connection = outgoingConnector.connect(address)
+        def address = incomingConnector.accept(action, getClass().classLoader, false)
+        def connection = outgoingConnector.connect(address, getClass().classLoader)
 
         when:
         def all = []

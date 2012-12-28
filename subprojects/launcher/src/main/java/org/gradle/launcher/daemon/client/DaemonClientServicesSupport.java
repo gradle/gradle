@@ -30,7 +30,6 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.id.CompositeIdGenerator;
@@ -98,8 +97,8 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new CompositeIdGenerator(new UUIDGenerator().generateId(), new LongIdGenerator());
     }
 
-    protected OutgoingConnector<Object> createOutgoingConnector() {
-        return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
+    protected OutgoingConnector createOutgoingConnector() {
+        return new TcpOutgoingConnector();
     }
 
     protected DaemonConnector createDaemonConnector() {
