@@ -67,14 +67,19 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     public void onConnect(ObjectConnection connection) {
+        ConnectionAcceptor stoppable;
+
         lock.lock();
         try {
             LOGGER.debug("Received connection {} from {}", connection, execHandle);
             this.connection = connection;
             condition.signalAll();
+            stoppable = acceptor;
         } finally {
             lock.unlock();
         }
+
+        stoppable.requestStop();
     }
 
     private void onProcessStop(ExecResult execResult) {
@@ -105,6 +110,15 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     public void start() {
+        try {
+            doStart();
+        } catch (Throwable t) {
+            cleanup();
+            throw UncheckedException.throwAsUncheckedException(t);
+        }
+    }
+
+    private void doStart() {
         lock.lock();
         try {
             running = true;
@@ -138,7 +152,14 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     public ExecResult waitForStop() {
-        ExecResult result = execHandle.waitForFinish();
+        try {
+            return execHandle.waitForFinish().assertNormalExitValue();
+        } finally {
+            cleanup();
+        }
+    }
+
+    private void cleanup() {
         CompositeStoppable stoppable;
         lock.lock();
         try {
@@ -150,6 +171,5 @@ public class DefaultWorkerProcess implements WorkerProcess {
             lock.unlock();
         }
         stoppable.stop();
-        return result.assertNormalExitValue();
     }
 }
