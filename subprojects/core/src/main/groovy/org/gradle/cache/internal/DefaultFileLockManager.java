@@ -240,7 +240,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
                 } else {
                     try {
-                        if (lockFileAccess.length() < INFORMATION_REGION_POS) {
+                        if (lockFileAccess.length() <= INFORMATION_REGION_POS) {
                             LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
                         } else {
                             lockFileAccess.seek(INFORMATION_REGION_POS);
