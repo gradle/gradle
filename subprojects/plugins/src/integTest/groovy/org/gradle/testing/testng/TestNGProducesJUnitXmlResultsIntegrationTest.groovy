@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitTestExecutionResult
 
 import static org.hamcrest.Matchers.*
-import static org.hamcrest.core.IsNot.not
 
 public class TestNGProducesJUnitXmlResultsIntegrationTest extends
         AbstractIntegrationSpec {

@@ -15,22 +15,43 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report
 
+import org.cyberneko.html.parsers.SAXParser
+import org.gradle.api.tasks.testing.Test
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.cyberneko.html.parsers.SAXParser
 
 class DefaultTestReportTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
-    final DefaultTestReport report = new DefaultTestReport()
+    @Rule
+    public final TemporaryFolder tmpDir = new TemporaryFolder()
+    final Test task = Mock();
+    final DefaultTestReport report = new DefaultTestReport(task)
     final TestFile reportDir = tmpDir.file('report')
     final TestFile resultsDir = tmpDir.file('results')
     final TestFile indexFile = reportDir.file('index.html')
 
     def setup() {
-        report.testReportDir = reportDir
-        report.testResultsDir = resultsDir
+        _ * task.isTestReport() >> true
+        _ * task.getTestReportDir() >> reportDir
+        _ * task.getTestResultsDir() >> resultsDir
+    }
+
+    def skipsReportGenerationWhenDisabledInTestTask() {
+        given:
+        Test testTask = Mock()
+        def reporter = Spy(DefaultTestReport.class, constructorArgs: [testTask])
+        when:
+        1 * testTask.isTestReport() >> false
+        and:
+        reporter.generateReport()
+
+        then:
+        0 * task.getTestResultsDir()
+        0 * task.getTestReportDir()
+        0 * reporter.loadModel()
+        0 * reporter.loadModel()
+        0 * reporter.generateFiles()
     }
 
     def generatesReportWhenResultsDirectoryDoesNotExist() {
@@ -301,7 +322,7 @@ class TestResultsFixture {
         assert counter != null
         assert counter.text() == '-'
     }
-    
+
     void assertHasSuccessRate(int rate) {
         Node testDiv = content.depthFirst().find { it.'@id' == 'successRate' }
         assert testDiv != null

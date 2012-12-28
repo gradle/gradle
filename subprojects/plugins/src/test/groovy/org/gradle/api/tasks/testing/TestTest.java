@@ -127,31 +127,11 @@ public class TestTest extends AbstractConventionTaskTest {
         expectTestsExecuted();
 
         final TestReporter testReporter = context.mock(TestReporter.class);
-
         test.setTestReporter(testReporter);
         context.checking(new Expectations() {{
-            one(testReporter).setTestReportDir(test.getTestReportDir());
-            one(testReporter).setTestResultsDir(test.getTestResultsDir());
             one(testReporter).generateReport();
         }});
 
-        test.executeTests();
-    }
-
-    @org.junit.Test
-    public void reportsOnlyWhenTestReportConfigured() {
-        configureTask();
-        expectTestsExecuted();
-
-        final TestReporter testReporter = context.mock(TestReporter.class);
-
-        test.setTestReport(false);
-        test.setTestReporter(testReporter);
-        context.checking(new Expectations() {{
-            never(testReporter).setTestReportDir(test.getTestReportDir());
-            never(testReporter).setTestResultsDir(test.getTestResultsDir());
-            never(testReporter).generateReport();
-        }});
         test.executeTests();
     }
 

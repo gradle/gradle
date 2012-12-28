@@ -23,8 +23,6 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.junit.JULRedirector;
-import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
-import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.id.IdGenerator;
@@ -39,20 +37,12 @@ import java.util.List;
  * @author Tom Eyckmans
  */
 public class TestNGTestFramework implements TestFramework {
-
-
     private TestNGOptions options;
     private TestNGDetector detector;
     final Test testTask;
-    final TestReporter reporter;
 
     public TestNGTestFramework(Test testTask) {
-        this(testTask, new DefaultTestReport());
-    }
-
-    public TestNGTestFramework(Test testTask, TestReporter reporter) {
         this.testTask = testTask;
-        this.reporter = reporter;
         options = new TestNGOptions(testTask.getProject().getProjectDir());
         options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));

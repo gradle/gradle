@@ -160,14 +160,14 @@ class JavaBasePluginTest extends Specification {
         test.useTestNG()
 
         then:
-        assert !test.testReport //for TestNG, the report is 'off' by default for now
+        assert test.testReport
 
         when:
-        test.testReport = true
+        test.testReport = false
         test.useTestNG()
 
         then:
-        assert test.testReport
+        assert !test.testReport
     }
 
     void appliesMappingsToCustomJarTasks() {

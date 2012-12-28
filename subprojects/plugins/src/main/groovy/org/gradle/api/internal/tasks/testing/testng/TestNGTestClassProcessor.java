@@ -88,12 +88,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             testNg.setSourcePath(CollectionUtils.join(File.pathSeparator, options.getTestResources()));
         }
 
-        //TODO SF
-        //only use the default listeners flag when testReport is off
-        //we should remove this complexity when new TestNG reports are turned on by default
-        //deprecate default listeners
-        testNg.setUseDefaultListeners(!testReportOn && options.getUseDefaultListeners());
-
+        testNg.setUseDefaultListeners(options.getUseDefaultListeners());
         testNg.addListener((Object) adaptListener(testResultProcessor));
         testNg.setVerbose(0);
         testNg.setGroups(CollectionUtils.join(",", options.getIncludeGroups()));

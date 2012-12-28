@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.util.Clock;
 import org.w3c.dom.Document;
@@ -36,8 +37,10 @@ public class DefaultTestReport implements TestReporter {
     private File resultDir;
     private File reportDir;
     private final static Logger LOG = Logging.getLogger(DefaultTestReport.class);
+    private final Test task;
 
-    public DefaultTestReport() {
+    public DefaultTestReport(Test task) {
+        this.task = task;
         htmlRenderer.requireResource(getClass().getResource("/org/gradle/reporting/report.js"));
         htmlRenderer.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
         htmlRenderer.requireResource(getClass().getResource("/org/gradle/reporting/css3-pie-1.0beta3.htc"));
@@ -53,6 +56,14 @@ public class DefaultTestReport implements TestReporter {
     }
 
     public void generateReport() {
+        if (!task.isTestReport()) {
+            LOG.info("Test report disabled, omitting generation of the HTML test report.");
+            return;
+        }
+        LOG.info("Generating HTML test report...");
+        setTestReportDir(task.getTestReportDir());
+        setTestResultsDir(task.getTestResultsDir());
+
         Clock clock = new Clock();
         AllTestResults model = loadModel();
         generateFiles(model);
@@ -71,7 +82,7 @@ public class DefaultTestReport implements TestReporter {
         return model;
     }
 
-    private void mergeFromFile(File file, AllTestResults model) {
+    void mergeFromFile(File file, AllTestResults model) {
         try {
             InputStream inputStream = new FileInputStream(file);
             Document document;

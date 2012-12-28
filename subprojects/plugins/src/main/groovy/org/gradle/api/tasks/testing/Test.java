@@ -36,8 +36,6 @@ import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.testing.logging.TestLogging;
@@ -111,7 +109,6 @@ import static java.util.Arrays.asList;
  * @author Hans Dockter
  */
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask {
-    private final static Logger LOG = Logging.getLogger(Test.class);
 
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
@@ -147,7 +144,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         options.setEnableAssertions(true);
         testExecuter = new DefaultTestExecuter(processBuilderFactory, actorFactory);
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
-        testReporter = new DefaultTestReport();
+        testReporter = new DefaultTestReport(this);
     }
 
     /**
@@ -454,25 +451,13 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         final Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector);
         binary2JUnitXmlReportGenerator.generate();
 
-        report();
+        testReporter.generateReport();
 
         testFramework = null;
 
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         }
-
-    }
-
-    void report() {
-        if (!isTestReport()) {
-            LOG.info("Test report disabled, omitting generation of the HTML test report.");
-            return;
-        }
-        LOG.info("Generating HTML test report...");
-        testReporter.setTestReportDir(getTestReportDir());
-        testReporter.setTestResultsDir(getTestResultsDir());
-        testReporter.generateReport();
     }
 
 

@@ -47,7 +47,6 @@ public class TestNGTestFrameworkTest extends Specification {
         framework.testTask == testTask
         framework.options.projectDir == project.projectDir
         framework.detector
-        framework.reporter
     }
 
     void "initializes for newer java"() {
