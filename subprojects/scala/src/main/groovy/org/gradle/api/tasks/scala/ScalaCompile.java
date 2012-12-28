@@ -134,7 +134,7 @@ public class ScalaCompile extends AbstractCompile {
     }
 
     private void checkScalaClasspathIsNonEmpty() {
-        if (scalaClasspath.isEmpty()) {
+        if (getScalaClasspath().isEmpty()) {
             throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty");
         }
     }
