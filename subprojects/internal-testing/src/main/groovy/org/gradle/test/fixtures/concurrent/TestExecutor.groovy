@@ -103,7 +103,7 @@ class TestExecutor implements Executor {
             }
 
             if (!threads.isEmpty()) {
-                println "* timeout waiting for threads ${threads.size()} to complete"
+                println "* timeout waiting for ${threads.size()} threads to complete"
                 threads.each { thread ->
                     IllegalStateException e = new IllegalStateException("Timeout waiting for ${thread.name} to complete.")
                     e.stackTrace = thread.stackTrace
