@@ -44,22 +44,26 @@ public class CachingFileWriter {
     public void write(File file, String text) {
         Writer out;
         try {
-            if (openFiles.containsKey(file)) {
-                out = openFiles.get(file);
-            } else {
-                out = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file, true)), "UTF-8");
-                openFiles.put(file, out);
-                if (openFiles.size() > openFilesCount) {
-                    //remove first
-                    Iterator<Map.Entry<File, Writer>> iterator = openFiles.entrySet().iterator();
-                    close(iterator.next().getValue(), file.toString());
-                    iterator.remove();
+            try {
+                if (openFiles.containsKey(file)) {
+                    out = openFiles.get(file);
+                } else {
+                    out = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file, true)), "UTF-8");
+                    openFiles.put(file, out);
+                    if (openFiles.size() > openFilesCount) {
+                        //remove first
+                        Iterator<Map.Entry<File, Writer>> iterator = openFiles.entrySet().iterator();
+                        close(iterator.next().getValue(), file.toString());
+                        iterator.remove();
+                    }
                 }
+                out.write(text);
+            } catch (IOException e) {
+                throw new UncheckedIOException("Problems writing to file: " + file, e);
             }
-            out.write(text);
-        } catch (IOException e) {
+        } catch (UncheckedIOException e) {
             cleanUpQuietly();
-            throw new UncheckedIOException("Problems writing to file: " + file, e);
+            throw e;
         }
     }
 
@@ -68,9 +72,9 @@ public class CachingFileWriter {
             for (Map.Entry<File, Writer> entry : openFiles.entrySet()) {
                 close(entry.getValue(), entry.getKey().toString());
             }
-        } catch (IOException e) {
+        } catch (UncheckedIOException e) {
             cleanUpQuietly();
-            throw new UncheckedIOException("Problems closing all files.", e);
+            throw e;
         } finally {
             openFiles.clear();
         }
@@ -78,21 +82,19 @@ public class CachingFileWriter {
 
     private void cleanUpQuietly() {
         try {
-            closeable(openFiles.values()).close();
-        } catch (IOException e) {
+            closeable(openFiles.values()).stop();
+        } catch (Exception e) {
             LOG.debug("Problems closing files", e);
         } finally {
             openFiles.clear();
         }
     }
 
-    private void close(Closeable c, String displayName) throws IOException {
+    private void close(Closeable c, String displayName) {
         try {
             c.close();
         } catch (IOException e) {
-            IOException ex = new IOException("Problems closing file: " + displayName);
-            ex.initCause(e); //java5 IOException does not have required constructor, hence initCause
-            throw ex;
+            throw new UncheckedIOException("Problems closing file: " + displayName, e);
         }
     }
 }
