@@ -17,9 +17,7 @@ package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.internal.MessageOriginator;
 
-import java.io.Serializable;
-
-public class DiscoveryMessage implements Serializable {
+public class DiscoveryMessage {
     private final MessageOriginator originator;
     private final String group;
 
