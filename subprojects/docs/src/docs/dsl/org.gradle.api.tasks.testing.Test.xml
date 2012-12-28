@@ -34,7 +34,7 @@
             </tr>
             <tr>
                 <td>testReport</td>
-                <td><literal>true</literal> for JUnit, since Gradle 1.3 <literal>false</literal> for TestNG</td>
+                <td><literal>true</literal></td>
             </tr>
             <tr>
                 <td>scanForTestClasses</td>
