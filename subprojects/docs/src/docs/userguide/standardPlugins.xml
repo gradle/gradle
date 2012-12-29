@@ -320,10 +320,10 @@
                         <literal>java-library-distribution</literal>
                     </link>
                 </td>
-                <td><literal>java-base</literal></td>
+                <td><literal>java</literal></td>
                 <td>-</td>
                 <td>
-                    <para>Adds support for common library related tasks.
+                    <para>Adds support for building a ZIP distribution for a Java library.
                     </para>
                 </td>
             </tr>
