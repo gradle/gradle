@@ -54,7 +54,7 @@ public class SimpleXmlWriter extends Writer {
 
     @Override
     public void write(char[] chars, int offset, int length) throws IOException {
-        writeCharacters(chars, offset, length);
+        characters(chars, offset, length);
     }
 
     @Override
@@ -67,26 +67,29 @@ public class SimpleXmlWriter extends Writer {
         // Does nothing
     }
 
-    public void writeCharacters(char[] characters) throws IOException {
-        writeCharacters(characters, 0, characters.length);
+    public SimpleXmlWriter characters(char[] characters) throws IOException {
+        characters(characters, 0, characters.length);
+        return this;
     }
 
-    public void writeCharacters(char[] characters, int start, int count) throws IOException {
+    public SimpleXmlWriter characters(char[] characters, int start, int count) throws IOException {
         maybeFinishElement();
         if (context == Context.Character) {
             writeXmlEncoded(characters, start, count);
         } else {
             writeCDATA(characters, start, count);
         }
+        return this;
     }
 
-    public void writeCharacters(CharSequence characters) throws IOException {
+    public SimpleXmlWriter characters(CharSequence characters) throws IOException {
         maybeFinishElement();
         if (context == Context.Character) {
             writeXmlEncoded(characters);
         } else {
             writeCDATA(characters);
         }
+        return this;
     }
 
     private void maybeFinishElement() throws IOException {
@@ -96,7 +99,7 @@ public class SimpleXmlWriter extends Writer {
         }
     }
 
-    public SimpleXmlWriter writeStartElement(String name) throws IOException {
+    public SimpleXmlWriter startElement(String name) throws IOException {
         if (!isValidXmlName(name)) {
             throw new IllegalArgumentException(String.format("Invalid element name: '%s'", name));
         }
@@ -111,7 +114,7 @@ public class SimpleXmlWriter extends Writer {
         return this;
     }
 
-    public void writeEndElement() throws IOException {
+    public SimpleXmlWriter endElement() throws IOException {
         if (elements.isEmpty()) {
             throw new IllegalStateException("Cannot end element, as there are no started elements.");
         }
@@ -130,6 +133,7 @@ public class SimpleXmlWriter extends Writer {
         if (elements.isEmpty()) {
             output.flush();
         }
+        return this;
     }
 
     private void writeCDATA(char[] cdata, int offset, int count) throws IOException {
@@ -171,7 +175,7 @@ public class SimpleXmlWriter extends Writer {
         }
     }
 
-    public void writeStartCDATA() throws IOException {
+    public SimpleXmlWriter startCDATA() throws IOException {
         if (context == Context.CData) {
             throw new IllegalStateException("Cannot start CDATA node, as current CDATA node has not been closed.");
         }
@@ -179,14 +183,16 @@ public class SimpleXmlWriter extends Writer {
         writeRaw("<![CDATA[");
         context = Context.CData;
         squareBrackets = 0;
+        return this;
     }
 
-    public void writeEndCDATA() throws IOException {
+    public SimpleXmlWriter endCDATA() throws IOException {
         if (context != Context.CData) {
             throw new IllegalStateException("Cannot end CDATA node, as not currently in a CDATA node.");
         }
         writeRaw("]]>");
         context = Context.Character;
+        return this;
     }
 
     public SimpleXmlWriter attribute(String name, String value) throws IOException {

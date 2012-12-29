@@ -45,8 +45,8 @@ public class JUnitXmlResultWriter {
     public void write(String className, TestClassResult result, OutputStream output) {
         try {
             SimpleXmlWriter writer = new SimpleXmlWriter(output);
-            writer.writeCharacters("\n  ");
-            writer.writeStartElement("testsuite")
+            writer.characters("\n  ");
+            writer.startElement("testsuite")
                     .attribute("name", className)
                     .attribute("tests", String.valueOf(result.getTestsCount()))
                     .attribute("failures", String.valueOf(result.getFailuresCount()))
@@ -56,53 +56,53 @@ public class JUnitXmlResultWriter {
                     .attribute("time", String.valueOf(result.getDuration() / 1000.0));
 
             //TODO SF indentation belongs elsewhere
-            writer.writeCharacters("\n  ");
-            writer.writeStartElement("properties");
-            writer.writeEndElement();
+            writer.characters("\n  ");
+            writer.startElement("properties");
+            writer.endElement();
 
             writeTests(writer, result.getResults(), className);
 
-            writer.writeCharacters("\n  ");
-            writer.writeStartElement("system-out");
+            writer.characters("\n  ");
+            writer.startElement("system-out");
             writeOutputs(writer, className, TestOutputEvent.Destination.StdOut);
-            writer.writeEndElement();
-            writer.writeCharacters("\n  ");
-            writer.writeStartElement("system-err");
+            writer.endElement();
+            writer.characters("\n  ");
+            writer.startElement("system-err");
             writeOutputs(writer, className, TestOutputEvent.Destination.StdErr);
-            writer.writeEndElement();
-            writer.writeCharacters("\n");
-            writer.writeEndElement();
+            writer.endElement();
+            writer.characters("\n");
+            writer.endElement();
         } catch (IOException e) {
             throw new UncheckedIOException("Problems writing the XML results for class: " + className, e);
         }
     }
 
     private void writeOutputs(SimpleXmlWriter writer, String className, TestOutputEvent.Destination destination) throws IOException {
-        writer.writeStartCDATA();
+        writer.startCDATA();
         testResultsProvider.writeOutputs(className, destination, writer);
-        writer.writeEndCDATA();
+        writer.endCDATA();
     }
 
     private void writeTests(SimpleXmlWriter writer, Set<TestMethodResult> methodResults, String className) throws IOException {
         for (TestMethodResult methodResult : methodResults) {
-            writer.writeCharacters("\n    ");
+            writer.characters("\n    ");
             String testCase = methodResult.result.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
-            writer.writeStartElement(testCase)
+            writer.startElement(testCase)
                     .attribute("name", methodResult.name)
                     .attribute("classname", className)
                     .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0));
 
             for (Throwable failure : methodResult.result.getExceptions()) {
-                writer.writeCharacters("\n      ");
-                writer.writeStartElement("failure")
+                writer.characters("\n      ");
+                writer.startElement("failure")
                         .attribute("message", failureMessage(failure))
                         .attribute("type", failure.getClass().getName());
 
-                writer.writeCharacters(stackTrace(failure));
+                writer.characters(stackTrace(failure));
 
-                writer.writeEndElement();
+                writer.endElement();
             }
-            writer.writeEndElement();
+            writer.endElement();
         }
     }
 
