@@ -20,6 +20,7 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.plugins.StartScriptGenerator
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GUtil
@@ -42,6 +43,8 @@ public class CreateStartScripts extends ConventionTask {
     @Input
     String mainClassName
 
+    Iterable<String> defaultJvmOpts
+
     /**
      * The application's name.
      */
@@ -57,6 +60,19 @@ public class CreateStartScripts extends ConventionTask {
      */
     @InputFiles
     FileCollection classpath
+
+    /**
+     * Returns the application's default JVM options.
+     */
+    @Input
+    @Optional
+    Iterable<String> getDefaultJvmOpts() {
+        if (defaultJvmOpts) {
+            return defaultJvmOpts
+        } else {
+            return []
+        }
+    }
 
     /**
      * Returns the name of the application's OPTS environment variable.
@@ -98,6 +114,7 @@ public class CreateStartScripts extends ConventionTask {
         def generator = new StartScriptGenerator()
         generator.applicationName = getApplicationName()
         generator.mainClassName = getMainClassName()
+        generator.defaultJvmOpts = getDefaultJvmOpts()
         generator.optsEnvironmentVar = getOptsEnvironmentVar()
         generator.exitEnvironmentVar = getExitEnvironmentVar()
         generator.classpath = getClasspath().collect { "lib/${it.name}" }

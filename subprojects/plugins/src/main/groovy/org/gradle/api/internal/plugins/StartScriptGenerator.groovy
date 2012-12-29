@@ -39,6 +39,8 @@ class StartScriptGenerator {
 
     String mainClassName
 
+    Iterable<String> defaultJvmOpts = []
+
     /**
      * The classpath, relative to the application home directory.
      */
@@ -64,9 +66,11 @@ class StartScriptGenerator {
 
     String generateUnixScriptContent() {
         def unixClassPath = classpath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.join(":")
+        def defaultJvmOptsString = defaultJvmOpts.collect { it.replace(' ', '\\ ') }.join(' ')
         def binding = [applicationName: applicationName,
                 optsEnvironmentVar: optsEnvironmentVar,
                 mainClassName: mainClassName,
+                defaultJvmOpts: defaultJvmOptsString,
                 appNameSystemProperty: appNameSystemProperty,
                 appHomeRelativePath: appHomeRelativePath,
                 classpath: unixClassPath]
@@ -81,10 +85,12 @@ class StartScriptGenerator {
     String generateWindowsScriptContent() {
         def windowsClassPath = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.join(";")
         def appHome = appHomeRelativePath.replace('/', '\\')
+        def defaultJvmOptsString = defaultJvmOpts.collect { it.replace(' ', '\\ ') }.join(' ')
         def binding = [applicationName: applicationName,
                 optsEnvironmentVar: optsEnvironmentVar,
                 exitEnvironmentVar: exitEnvironmentVar,
                 mainClassName: mainClassName,
+                defaultJvmOpts: defaultJvmOptsString,
                 appNameSystemProperty: appNameSystemProperty,
                 appHomeRelativePath: appHome,
                 classpath: windowsClassPath]
