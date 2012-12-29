@@ -7,7 +7,7 @@
 ##############################################################################
 
 # Add default JVM options here. You can also use JAVA_OPTS and ${optsEnvironmentVar} to pass JVM options to this script.
-DEFAULT_JVM_OPTS=""
+DEFAULT_JVM_OPTS="${defaultJvmOpts}"
 
 APP_NAME="${applicationName}"
 APP_BASE_NAME=`basename "\$0"`
