@@ -73,6 +73,8 @@ Nice messages when user incorrectly uses a command line option.
     1. single '-' used instead of '--'
     1. option used but there are no tasks that accept this configuration option
     1. clashing options, e.g. no-value boolean option in one task is a string option in other task
+1. When a value has not been specified for a required task property and that property has a `@CommandLineOption` annotation, then the validation error
+   message should inform the user that they can use the specified option to provide a value.
 
 ## Make the dependencies' report 'configuration' configurable via cmd line
 

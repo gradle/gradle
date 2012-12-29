@@ -83,7 +83,7 @@ For example, allow `default` to be used as the version in dependency notation, a
 
 ## Story: allow substitution of group and module
 
-For example, allow `groovy-all` to be replaced with `groovy`, or 'log4j' with 'log4j-over-slf4j'.
+For example, allow `groovy-all` to be replaced with `groovy`, or `log4j` with `log4j-over-slf4j`.
 
 - Add a method to `DependencyResolveDetails` that accepts a module version selector notation (same as ResolutionStrategy.force() does) that can replace the (group, module, version).
 - Change dependency reporting so that it does not assume that the requested and selected modules are the same.

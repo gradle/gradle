@@ -60,7 +60,7 @@ Use the same mechanism as TestNG for XML result generation
 
 - Add a performance test with a build with many JUnit tests which do not generate any logging output. Verify that this build is not any slower than Gradle 1.0 or Gradle 1.3.
 - Add coverage for tests that don't have an associated method or class.
-- Check that start-time and duration reported for a class should include all setup and teardown.
+- Check that start-time and duration reported for a class should include all setup and tear-down.
 
 ### Backwards compatibility:
 
