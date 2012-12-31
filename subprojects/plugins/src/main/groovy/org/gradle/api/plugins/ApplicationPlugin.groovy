@@ -67,6 +67,7 @@ class ApplicationPlugin implements Plugin<Project> {
         run.group = APPLICATION_GROUP
         run.classpath = project.sourceSets.main.runtimeClasspath
         run.conventionMapping.main = { pluginConvention.mainClassName }
+        run.conventionMapping.jvmArgs = { pluginConvention.defaultJvmOpts }
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
@@ -77,6 +78,7 @@ class ApplicationPlugin implements Plugin<Project> {
         startScripts.conventionMapping.mainClassName = { pluginConvention.mainClassName }
         startScripts.conventionMapping.applicationName = { pluginConvention.applicationName }
         startScripts.conventionMapping.outputDir = { new File(project.buildDir, 'scripts') }
+        startScripts.conventionMapping.defaultJvmOpts = { pluginConvention.defaultJvmOpts }
     }
 
     private void addInstallTask() {
