@@ -67,6 +67,83 @@ class Main {
         result.assertNormalExitValue()
     }
 
+    def canUseDefaultJvmOptsToPassMultipleOptionsToJvmWhenRunningScript() {
+        file("build.gradle") << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+applicationName = 'application'
+defaultJvmOpts = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
+'''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+        if (!"value".equals(System.getProperty("testValue"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+        if (!"some value".equals(System.getProperty("testValue2"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+        if (!"some value".equals(System.getProperty("testValue3"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+    }
+}
+'''
+
+        when:
+        run 'install'
+
+        def builder = new ScriptExecuter()
+        builder.workingDir distribution.testDir.file('build/install/application/bin')
+        builder.executable "application"
+
+        def result = builder.run()
+
+        then:
+        result.assertNormalExitValue()
+    }
+
+    def canUseBothDefaulJvmOptsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
+        file("build.gradle") << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+applicationName = 'application'
+defaultJvmOpts = ['-Dvar1=value1', '-Dvar2=some value2']
+'''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+        if (!"value1".equals(System.getProperty("var1"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+        if (!"some value2".equals(System.getProperty("var2"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+        if (!"value3".equals(System.getProperty("var3"))) {
+            throw new RuntimeException("Expected system property not specified");
+        }
+    }
+}
+'''
+
+        when:
+        run 'install'
+
+        def builder = new ScriptExecuter()
+        builder.workingDir distribution.testDir.file('build/install/application/bin')
+        builder.executable "application"
+        builder.environment('APPLICATION_OPTS', '-Dvar3=value3')
+
+        def result = builder.run()
+
+        then:
+        result.assertNormalExitValue()
+    }
+
     def "can customize application name"() {
         file('settings.gradle') << 'rootProject.name = "application"'
         file('build.gradle') << '''
