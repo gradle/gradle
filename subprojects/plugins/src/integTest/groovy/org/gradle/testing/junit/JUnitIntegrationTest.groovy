@@ -121,24 +121,6 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canRunTestsUsingJUnit4_4() {
-        resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
-        resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
-        resources.maybeCopy('JUnitIntegrationTest/junit4_4Tests')
-        executer.withTasks('check').run()
-
-        def result = new DefaultTestExecutionResult(testDir)
-        result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest', 'org.gradle.CustomIgnoredTest')
-        result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
-        result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
-        result.testClass('org.gradle.Junit4Test').assertTestsExecuted('ok')
-        result.testClass('org.gradle.Junit4Test').assertTestPassed('ok')
-        result.testClass('org.gradle.Junit4Test').assertTestsSkipped('broken')
-        result.testClass('org.gradle.IgnoredTest').assertTestsSkipped('testIgnored')
-        result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
-    }
-
-    @Test
     public void reportsAndBreaksBuildWhenTestFails() {
         executer.withTasks('build').runWithFailure().assertTestsFailed()
 
