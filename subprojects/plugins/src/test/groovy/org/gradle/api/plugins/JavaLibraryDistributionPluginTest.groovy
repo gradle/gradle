@@ -17,6 +17,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.distribution.Distribution
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -30,7 +31,8 @@ class JavaLibraryDistributionPluginTest extends Specification {
 
         then:
         project.plugins.hasPlugin(JavaPlugin.class)
-        project.extensions.getByType(DistributionExtension.class) != null
+        project.extensions.getByType(Distribution.class) != null
+        project.plugins.hasPlugin(DistributionPlugin.class)
         project.distribution.name == project.name
 
     }

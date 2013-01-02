@@ -68,6 +68,7 @@
     <xi:include href='projectReports.xml'/>
     <xi:include href='announcePlugin.xml'/>
     <xi:include href='buildAnnouncementsPlugin.xml'/>
+    <xi:include href='distributionPlugin.xml'/>
     <xi:include href='applicationPlugin.xml'/>
     <xi:include href='javaLibraryDistributionPlugin.xml'/>
     <xi:include href='bootstrapPlugin.xml'/>

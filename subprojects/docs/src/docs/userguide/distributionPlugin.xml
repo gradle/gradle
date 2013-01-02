@@ -1,0 +1,80 @@
+<!--
+  ~ Copyright 2012 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id='distribution_plugin'>
+    <title>The Distribution Plugin</title>
+    <para>The distribution plugin extends the language plugins with common distribution related tasks.
+	It allows bundling project including binaries,sources and documentation.
+	</para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the distribution plugin, include in your build script:</para>
+        <sample id="useDistributionPlugin" dir="userguide/distribution" title="Using the distribution plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <para>To define the name for the distribution you have to set the <literal>name</literal> property as shown below</para>
+        <sample id="configureDistributionName" dir="userguide/distribution" title="Configure the distribution name">
+            <sourcefile file="build.gradle" snippet="name-conf"/>
+        </sample>
+
+         <para>The plugin build a distribution for your project. You can run <userinput>gradle distZip</userinput> to create a
+            ZIP containing the distribution.
+        </para>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The Distribution plugin adds the following tasks to the project.</para>
+        <table>
+            <title>Distribution plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+		<tr>
+                <td>
+                    <literal>distZip</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
+                <td>Creates a full distribution ZIP archive.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Multiple distributions</title>
+        <para>The distribution plugin allow to generate multiple distributions.
+        </para>
+        <sample id="multipleDistribution" dir="userguide/distribution" title="Declare multiple distributions">
+            <sourcefile file="build.gradle" snippet="custom-distZip"/>
+        </sample>
+    </section>
+
+    <section>
+            <title>Extension properties</title>
+            <para>The distribution plugin add an extension to the project, which you can use to configure its behaviour. See <apilink class="org.gradle.api.Project"/>.
+            </para>
+    </section>
+
+</chapter>
