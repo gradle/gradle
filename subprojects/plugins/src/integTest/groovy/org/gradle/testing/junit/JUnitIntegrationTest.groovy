@@ -125,7 +125,6 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
         resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
         resources.maybeCopy('JUnitIntegrationTest/junit4_4Tests')
-        executer.withArgument("-i")
         executer.withTasks('check').run()
 
         def result = new DefaultTestExecutionResult(testDir)
