@@ -143,6 +143,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDir)
         result.assertTestClassesExecuted(
                 'org.gradle.ClassWithBrokenRunner',
+                'org.gradle.CustomException',
                 'org.gradle.BrokenTest',
                 'org.gradle.BrokenBefore',
                 'org.gradle.BrokenAfter',
@@ -151,7 +152,8 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
                 'org.gradle.BrokenBeforeAndAfter',
                 'org.gradle.BrokenConstructor',
                 'org.gradle.BrokenException',
-                'org.gradle.Unloadable')
+                'org.gradle.Unloadable',
+                'org.gradle.UnserializableException')
         result.testClass('org.gradle.ClassWithBrokenRunner').assertTestFailed('initializationError', equalTo('java.lang.UnsupportedOperationException: broken'))
         result.testClass('org.gradle.BrokenTest')
                 .assertTestCount(2, 2, 0)
@@ -163,8 +165,10 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenBeforeAndAfter').assertTestFailed('ok', equalTo('java.lang.AssertionError: before failed'), equalTo('java.lang.AssertionError: after failed'))
         result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
-        result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: '))
+        result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: java.lang.UnsupportedOperationException'))
+        result.testClass('org.gradle.CustomException').assertTestFailed('custom', startsWith('Exception with a custom toString implementation'))
         result.testClass('org.gradle.Unloadable').assertTestFailed('initializationError', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.UnserializableException').assertTestFailed('unserialized', equalTo('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
     }
 
     @Test
@@ -377,7 +381,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         assert containsLine(result.getOutput(), "START [test knownError(SomeTest)] [knownError]");
         assert containsLine(result.getOutput(), "FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [1] [java.lang.RuntimeException: message]");
         assert containsLine(result.getOutput(), "START [test unknownError(SomeTest)] [unknownError]");
-        assert containsLine(result.getOutput(), "FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [AppException: null]");
+        assert containsLine(result.getOutput(), "FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [AppException]");
     }
 
     @Test

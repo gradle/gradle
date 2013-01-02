@@ -165,6 +165,29 @@ class MessageTest extends Specification {
         transported.cause.stackTrace == cause.stackTrace
     }
 
+    def "creates placeholder with toString() behaviour as original"() {
+        def cause = new IOException("nested")
+        def broken = new SerializableToStringException("message", cause)
+
+        when:
+        def transported = transport(broken)
+        transported.toString()
+        then:
+
+        def toStringException = thrown(RuntimeException)
+        toStringException.getMessage() == "broken toString"
+
+        when:
+        cause = new IOException("nested")
+        broken = new UnserializableToStringException("message", cause)
+        transported = transport(broken)
+        transported.toString()
+
+        then:
+        toStringException = thrown(PlaceholderException)
+        toStringException.getMessage() == "broken toString"
+    }
+
     @Ignore
     @Issue("GRADLE-1996")
     def "can transport exception that implements writeReplace()"() {
@@ -204,6 +227,34 @@ class MessageTest extends Specification {
     static class UnserializableException extends RuntimeException {
         UnserializableException(String message, Throwable cause) {
             super(message, cause)
+        }
+
+        private void writeObject(ObjectOutputStream outstr) throws IOException {
+            outstr.writeObject(new Object())
+        }
+    }
+
+    static class UnserializableToStringException extends RuntimeException {
+        UnserializableToStringException (String message, Throwable cause) {
+            super(message, cause)
+        }
+
+        public String toString() {
+            throw new UnserializableException("broken toString", null);
+        }
+
+        private void writeObject(ObjectOutputStream outstr) throws IOException {
+            outstr.writeObject(new Object())
+        }
+    }
+
+    static class SerializableToStringException extends RuntimeException {
+        SerializableToStringException(String message, Throwable cause) {
+            super(message, cause)
+        }
+
+        public String toString() {
+            throw new RuntimeException("broken toString", null);
         }
 
         private void writeObject(ObjectOutputStream outstr) throws IOException {

@@ -68,7 +68,7 @@ class TestNGIntegrationTest {
         assert containsLine(result.getOutput(), "START [test method knownError(SomeTest)] [knownError]");
         assert containsLine(result.getOutput(), "FINISH [test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]");
         assert containsLine(result.getOutput(), "START [test method unknownError(SomeTest)] [unknownError]");
-        assert containsLine(result.getOutput(), "FINISH [test method unknownError(SomeTest)] [unknownError] [AppException: null]");
+        assert containsLine(result.getOutput(), "FINISH [test method unknownError(SomeTest)] [unknownError] [AppException]");
     }
 
     @Test

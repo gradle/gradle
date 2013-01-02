@@ -22,33 +22,21 @@ import spock.lang.Issue
 class PlaceholderExceptionTest extends Specification {
     def "toString() generally produces same output as original exception"() {
         def original = new Exception("original exception")
-        def placeholder = new PlaceholderException(original.getClass().name, original.message, original.cause)
+        def placeholder = new PlaceholderException(original.getClass().name, original.message, original.toString(), null, original.cause)
         
         expect:
         placeholder.toString() == original.toString()
     }
     
-    def "toString() doesn't produce same output as original exception if the latter overrides toString()"() {
+    def "toString() produces same output as original exception if the latter overrides toString()"() {
         def original = new Exception("original exception") {
             String toString() {
                 "fancy customized toString"
             }
         }
-        def placeholder = new PlaceholderException(original.getClass().name, original.message, original.cause)
-        
-        expect:
-        placeholder.toString() != original.toString()
-    }
-    
-    def "toString() doesn't produce same output as original exception if the latter has a localized message"() {
-        def original = new Exception("original exception") {
-            String getLocalizedMessage() {
-                "lokalisierte nachricht"
-            }
-        }
-        def placeholder = new PlaceholderException(original.getClass().name, original.message, original.cause)
+        def placeholder = new PlaceholderException(original.getClass().name, original.message, original.toString(), null, original.cause)
 
         expect:
-        placeholder.toString() != original.toString()
+        placeholder.toString() == original.toString()
     }
 }

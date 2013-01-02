@@ -42,8 +42,10 @@ public abstract class Message implements Serializable {
         private byte[] serializedException;
         private String type;
         private String message;
+        private String toString;
         private ExceptionPlaceholder cause;
         private StackTraceElement[] stackTrace;
+        private RuntimeException toStringRuntimeExec;
 
         public ExceptionPlaceholder(final Throwable throwable) throws IOException {
             ByteArrayOutputStream outstr = new ByteArrayOutputStream();
@@ -70,6 +72,12 @@ public abstract class Message implements Serializable {
 
             type = throwable.getClass().getName();
             message = throwable.getMessage();
+            try {
+                toString = throwable.toString();
+            } catch (RuntimeException toStringRE) {
+                toString = null;
+                toStringRuntimeExec = toStringRE;
+            }
             if (throwable.getCause() != null) {
                 cause = new ExceptionPlaceholder(throwable.getCause());
             }
@@ -110,7 +118,7 @@ public abstract class Message implements Serializable {
             }
 
             if (throwable == null) {
-                throwable = new PlaceholderException(type, message, causeThrowable);
+                throwable = new PlaceholderException(type, message, toString, toStringRuntimeExec, causeThrowable);
                 throwable.setStackTrace(stackTrace);
             }
 

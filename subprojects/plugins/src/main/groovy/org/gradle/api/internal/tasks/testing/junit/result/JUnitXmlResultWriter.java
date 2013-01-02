@@ -108,14 +108,11 @@ public class JUnitXmlResultWriter {
 
     private String failureMessage(Throwable throwable) {
         try {
-            if (throwable instanceof PlaceholderException) { // Original Exception could not be serialized.
-                return String.format("Could not determine failure message for exception of type %s: %s",
-                        ((PlaceholderException) throwable).getExceptionClassName(), throwable.getCause());
-            }
             return throwable.toString();
         } catch (Throwable t) {
+            String exceptionClassName = throwable instanceof PlaceholderException ? ((PlaceholderException)throwable).getExceptionClassName() : throwable.getClass().getName();
             return String.format("Could not determine failure message for exception of type %s: %s",
-                    throwable.getClass().getName(), t);
+                    exceptionClassName, t);
         }
     }
 
