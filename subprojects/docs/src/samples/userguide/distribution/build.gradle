@@ -1,0 +1,35 @@
+// START SNIPPET use-plugin
+apply plugin: 'distribution'
+// END SNIPPET use-plugin
+
+version = '1.0.0'
+
+// START SNIPPET name-conf
+distribution {
+    name = 'my-name'
+}
+// END SNIPPET name-conf
+
+// START SNIPPET custom-distZip
+apply plugin: 'distribution'
+
+distributions {
+    custom
+}
+
+distZip {
+    from { ... }
+}
+
+customDistZip {
+    from { ... }
+}
+// END SNIPPET custom-distZip
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'commons-collections:commons-collections:3.2.1'
+}

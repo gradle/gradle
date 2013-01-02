@@ -91,7 +91,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
             """
         then:
         runAndFail 'distZip'
-        failure.assertThatDescription(containsString("Distribution name must not be null! Check your configuration of the java-library-distribution plugin."))
+        failure.assertThatDescription(containsString("Distribution name must not be null or empty ! Check your configuration of the distribution plugin."))
     }
 
     def canCreateADistributionIncludingOtherFile() {
