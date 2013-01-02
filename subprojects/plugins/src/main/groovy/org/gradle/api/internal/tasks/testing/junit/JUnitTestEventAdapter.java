@@ -21,15 +21,14 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.id.IdGenerator;
-import org.junit.Test;
 import org.junit.runner.Description;
+import org.junit.runner.Request;
+import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.TestClass;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -94,10 +93,20 @@ public class JUnitTestEventAdapter extends RunListener {
 
     private void processIgnoredClass(Description description) throws Exception {
         String className = className(description);
-        final TestClass testClass = new TestClass(description.getClass().getClassLoader().loadClass(className));
-        final List<FrameworkMethod> ignoreTestMethods = testClass.getAnnotatedMethods(Test.class);
-        for (FrameworkMethod testMethod : ignoreTestMethods) {
-            testIgnored(Description.createTestDescription(testClass.getJavaClass(), testMethod.getName()));
+        final AllExceptIgnoredTestRunnerBuilder allExceptIgnoredTestRunnerBuilder = new AllExceptIgnoredTestRunnerBuilder();
+        try {
+            final Class<?> testClass = description.getClass().getClassLoader().loadClass(className);
+            Runner runner = allExceptIgnoredTestRunnerBuilder.runnerForClass(testClass);
+            if (runner == null) {
+                //fall back to default runner
+                runner = Request.aClass(testClass).getRunner();
+            }
+            final Description runnerDescription = runner.getDescription();
+            for (Description childrenDescription : runnerDescription.getChildren()) {
+                testIgnored(childrenDescription);
+            }
+        } catch (Throwable throwable) {
+            LoggerFactory.getLogger(getClass()).warn("Unable to process IgnoredClass", throwable);
         }
     }
 

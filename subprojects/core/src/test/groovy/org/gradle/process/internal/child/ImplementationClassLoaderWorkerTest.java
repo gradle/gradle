@@ -32,7 +32,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.WrapUtil.toList;
 
 @RunWith(JMock.class)
 public class ImplementationClassLoaderWorkerTest {
@@ -47,7 +47,6 @@ public class ImplementationClassLoaderWorkerTest {
     public void createsClassLoaderAndInstantiatesAndExecutesWorker() throws Exception {
         final Action<WorkerContext> action = context.mock(Action.class);
         final List<URL> implementationClassPath = toList(new File(".").toURI().toURL());
-
         Action<WorkerContext> serializableAction = helper.serializable(action, implementationClassLoader);
         ImplementationClassLoaderWorker worker = new TestImplementationClassLoaderWorker(LogLevel.DEBUG, toList("a", "b"), implementationClassPath, serializableAction);
 
@@ -66,7 +65,7 @@ public class ImplementationClassLoaderWorkerTest {
 
     private class TestImplementationClassLoaderWorker extends ImplementationClassLoaderWorker {
         private TestImplementationClassLoaderWorker(LogLevel logLevel, Collection<String> sharedPackages,
-                                    Collection<URL> implementationClassPath, Action<WorkerContext> workerAction) {
+                                                    Collection<URL> implementationClassPath, Action<WorkerContext> workerAction) {
             super(logLevel, sharedPackages, implementationClassPath, workerAction);
         }
 
@@ -77,7 +76,7 @@ public class ImplementationClassLoaderWorkerTest {
 
         @Override
         protected MutableURLClassLoader createImplementationClassLoader(ClassLoader system,
-                                                                           ClassLoader application) {
+                                                                        ClassLoader application) {
             return implementationClassLoader;
         }
     }

@@ -95,7 +95,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         executer.withTasks('check').run()
 
         def result = new DefaultTestExecutionResult(testDir)
-        result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest')
+        result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest', 'org.gradle.CustomIgnoredTest')
         result.testClass('org.gradle.Junit3Test')
                 .assertTestCount(1, 0, 0)
                 .assertTestsExecuted('testRenamesItself')
@@ -106,6 +106,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
                 .assertTestPassed('ok')
                 .assertTestsSkipped('broken')
         result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored")
+        result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
     }
 
     @Test
@@ -124,16 +125,18 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
         resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
         resources.maybeCopy('JUnitIntegrationTest/junit4_4Tests')
+        executer.withArgument("-i")
         executer.withTasks('check').run()
 
         def result = new DefaultTestExecutionResult(testDir)
-        result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest')
+        result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest', 'org.gradle.CustomIgnoredTest')
         result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
         result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
         result.testClass('org.gradle.Junit4Test').assertTestsExecuted('ok')
         result.testClass('org.gradle.Junit4Test').assertTestPassed('ok')
         result.testClass('org.gradle.Junit4Test').assertTestsSkipped('broken')
         result.testClass('org.gradle.IgnoredTest').assertTestsSkipped('testIgnored')
+        result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
     }
 
     @Test
