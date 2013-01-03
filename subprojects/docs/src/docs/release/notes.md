@@ -402,3 +402,7 @@ We would like to thank the following community members for making contributions 
 * Brian Roberts, Tom Denley - Support multi-line JUnit test names (for better ScalaTest compatibility) (GRADLE-2572)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
+
+## Known issues
+
+Known issues are problems that were discovered post release that are directly related to changes made in this release.
