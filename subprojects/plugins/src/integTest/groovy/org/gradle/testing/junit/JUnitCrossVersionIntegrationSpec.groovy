@@ -47,7 +47,7 @@ class JUnitCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
         result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
         result.testClass('org.gradle.Junit4Test').assertTestsExecuted('ok')
         result.testClass('org.gradle.Junit4Test').assertTestPassed('ok')
-        result.testClass('org.gradle.Junit4Test').assertTestsSkipped('broken')
+        result.testClass('org.gradle.Junit4Test').assertTestsSkipped('broken', 'assumptionFailed')
         result.testClass('org.gradle.IgnoredTest').assertTestsSkipped('testIgnored')
         result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
     }

@@ -101,10 +101,10 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
                 .assertTestsExecuted('testRenamesItself')
                 .assertTestPassed('testRenamesItself')
         result.testClass('org.gradle.Junit4Test')
-                .assertTestCount(2, 0, 0)
+                .assertTestCount(3, 0, 0)
                 .assertTestsExecuted('ok')
                 .assertTestPassed('ok')
-                .assertTestsSkipped('broken')
+                .assertTestsSkipped('broken', 'assumptionFailed')
         result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored")
         result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
     }
