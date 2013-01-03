@@ -25,9 +25,6 @@ import org.gradle.listener.ListenerManager
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter, Szczepan
- */
 public class DefaultConfigurationContainerSpec extends Specification {
 
     private ArtifactDependencyResolver dependencyResolver = Mock()
