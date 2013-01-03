@@ -396,12 +396,9 @@ The default value for TestNGOptions.useDefaultListeners has changed from `true` 
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-Sébastien Cogneau - Contributing the `java-library-distribution` plugin
-
-James Bengeyfield - `showViolations` flag for `Checkstyle` task (GRADLE-1656)
-
-Dalibor Novak - `m2compatible` flag on `PatternRepositoryLayout` (GRADLE-1919)
-
-Brian Roberts, Tom Denley - Support multi-line JUnit test names (for better ScalaTest compatibility) (GRADLE-2572)
+* Sébastien Cogneau - Contributing the `java-library-distribution` plugin
+* James Bengeyfield - `showViolations` flag for `Checkstyle` task (GRADLE-1656)
+* Dalibor Novak - `m2compatible` flag on `PatternRepositoryLayout` (GRADLE-1919)
+* Brian Roberts, Tom Denley - Support multi-line JUnit test names (for better ScalaTest compatibility) (GRADLE-2572)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
