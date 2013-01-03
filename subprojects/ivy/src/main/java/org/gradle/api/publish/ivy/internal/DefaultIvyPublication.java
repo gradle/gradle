@@ -17,46 +17,34 @@
 package org.gradle.api.publish.ivy.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.CollectionUtils.*;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private final String name;
     private final IvyModuleDescriptorInternal descriptor;
-    private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final Set<? extends Configuration> configurations;
-    private final FileResolver fileResolver;
-    private final TaskResolver taskResolver;
-    private PublishArtifact descriptorArtifact;
+    private final Module module;
+    private FileCollection descriptorFile;
+    private SoftwareComponentInternal component;
 
     public DefaultIvyPublication(
-            String name, Instantiator instantiator, Set<? extends Configuration> configurations,
-            DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver, TaskResolver taskResolver
+            String name, Instantiator instantiator, Module module
     ) {
         this.name = name;
-        this.configurations = configurations;
-        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
-        this.fileResolver = fileResolver;
-        this.taskResolver = taskResolver;
-        this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, this);
+        this.module = module;
+        descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, this);
     }
 
     public String getName() {
@@ -67,64 +55,46 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return descriptor;
     }
 
+    public void setDescriptorFile(FileCollection descriptorFile) {
+        this.descriptorFile = descriptorFile;
+    }
+
     public void descriptor(Action<? super IvyModuleDescriptor> configure) {
         configure.execute(descriptor);
     }
 
-    public FileCollection getPublishableFiles() {
-        ConfigurableFileCollection files = new DefaultConfigurableFileCollection("publication artifacts", fileResolver, taskResolver);
-        files.from(new Callable<Set<FileCollection>>() {
-            public Set<FileCollection> call() throws Exception {
-                return collect(getConfigurations(), new Transformer<FileCollection, Configuration>() {
-                    public FileCollection transform(Configuration configuration) {
-                        return configuration.getAllArtifacts().getFiles();
-                    }
-                });
-            }
-        });
-        if (descriptorArtifact != null) {
-            files.from(new Callable<File>() {
-                public File call() throws Exception {
-                    return getDescriptorFile();
-                }
-            });
-            files.builtBy(descriptorArtifact);
+    public void from(SoftwareComponent component) {
+        if (this.component != null) {
+            throw new InvalidUserDataException("A MavenPublication cannot include multiple components");
         }
-        return files;
+        this.component = (SoftwareComponentInternal) component;
     }
 
-    public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(getModule(), getFlattenedConfigurations(), getDescriptorFile());
+    public FileCollection getPublishableFiles() {
+        if (component == null) {
+            return descriptorFile;
+        }
+        return new UnionFileCollection(component.getArtifacts().getFiles(), descriptorFile);
     }
 
     public Module getModule() {
-        return dependencyMetaDataProvider.getModule();
+        return module;
     }
 
-    public Class<IvyNormalizedPublication> getNormalisedPublicationType() {
-        return IvyNormalizedPublication.class;
+    public Set<Dependency> getRuntimeDependencies() {
+        return component == null ? Collections.<Dependency>emptySet() : component.getRuntimeDependencies();
     }
 
-    public Set<? extends Configuration> getConfigurations() {
-        return configurations;
-    }
-
-    public void setDescriptorArtifact(PublishArtifact descriptorArtifact) {
-        this.descriptorArtifact = descriptorArtifact;
+    public IvyNormalizedPublication asNormalisedPublication() {
+        // TODO:DAZ Handle missing component
+        return new IvyNormalizedPublication(getModule(), component.getArtifacts(), getDescriptorFile());
     }
 
     private File getDescriptorFile() {
-        return descriptorArtifact.getFile();
-    }
-
-    // Flattens each of the given configurations to include any parents, visible or not.
-    private Set<Configuration> getFlattenedConfigurations() {
-        Set<Configuration> flattenedConfigurations = new TreeSet<Configuration>(new Namer.Comparator<Configuration>(new Configuration.Namer()));
-        return inject(flattenedConfigurations, configurations, new Action<InjectionStep<Set<Configuration>, Configuration>>() {
-            public void execute(InjectionStep<Set<Configuration>, Configuration> step) {
-                step.getTarget().addAll(step.getItem().getHierarchy());
-            }
-        });
+        if (descriptorFile == null) {
+            throw new IllegalStateException("pomFile not set for publication");
+        }
+        return descriptorFile.getSingleFile();
     }
 
 }

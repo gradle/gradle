@@ -18,8 +18,9 @@ package org.gradle.api.publish.ivy.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 
 import java.util.Set;
@@ -28,7 +29,9 @@ public interface IvyModuleDescriptorInternal extends IvyModuleDescriptor {
 
     public Module getModule();
 
-    public Set<? extends Configuration> getConfigurations();
+    Set<PublishArtifact> getArtifacts();
+
+    Set<Dependency> getRuntimeDependencies();
 
     Action<XmlProvider> getXmlAction();
 

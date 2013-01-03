@@ -64,8 +64,11 @@ credentials {
 
             publishing {
                 repositories {
-                    ivy {
-                        url "http://localhost:${server.port}"
+                    ivy { url "http://localhost:${server.port}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
                     }
                 }
             }
@@ -113,6 +116,11 @@ credentials {
                         url "http://localhost:${server.port}"
                     }
                 }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
             }
         """
 
@@ -157,6 +165,11 @@ credentials {
                         url "http://localhost:${server.port}"
                     }
                 }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
             }
         """
 
@@ -193,6 +206,11 @@ credentials {
                 repositories {
                     ivy {
                         url "${repositoryUrl}"
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
                     }
                 }
             }
@@ -239,6 +257,11 @@ credentials {
                         artifactPattern "http://localhost:${server.port}/alternative/[module]/[artifact]-[revision].[ext]"
                         ivyPattern "http://localhost:${server.port}/primary-ivy/[module]/ivy-[revision].xml"
                         ivyPattern "http://localhost:${server.port}/secondary-ivy/[module]/ivy-[revision].xml"
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
                     }
                 }
             }
@@ -289,6 +312,11 @@ credentials {
                         url "http://localhost:${server.port}"
                     }
                 }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
             }
         """
 
@@ -322,6 +350,11 @@ credentials {
                 repositories {
                     ivy {
                         url "http://localhost:${server.port}"
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
                     }
                 }
             }

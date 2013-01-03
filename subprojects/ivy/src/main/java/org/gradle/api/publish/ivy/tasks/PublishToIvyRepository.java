@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
@@ -29,6 +30,7 @@ import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.internal.IvyPublisher;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.Factory;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -140,9 +142,14 @@ public class PublishToIvyRepository extends DefaultTask {
         new PublishOperation(publication, repository) {
             @Override
             protected void publish() throws Exception {
+                Factory<Configuration> configurationFactory = new Factory<Configuration>() {
+                    public Configuration create() {
+                        return getProject().getConfigurations().detachedConfiguration();
+                    }
+                };
                 ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher();
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
-                IvyPublisher publisher = new IvyPublisher(artifactPublisher);
+                IvyPublisher publisher = new IvyPublisher(artifactPublisher, configurationFactory);
                 publisher.publish(normalizedPublication, repository);
             }
         }.run();

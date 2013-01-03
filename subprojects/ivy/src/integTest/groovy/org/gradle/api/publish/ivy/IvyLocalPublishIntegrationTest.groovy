@@ -41,6 +41,11 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
                         url "${ivyRepo.uri}"
                     }
                 }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
             }
         """
 
@@ -81,6 +86,11 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
                         url "${ivyRepo.uri}"
                     }
                 }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
             }
         """
         when:
@@ -109,6 +119,11 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
                 repositories {
                     ivy {
                         url "${ivyRepo.uri}"
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
                     }
                 }
             }
@@ -154,7 +169,8 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
                     ivy { url "${ivyRepo.uri}" }
                 }
                 publications {
-                    ivy {
+                    ivy(IvyPublication) {
+                        from components.java
                         descriptor.withXml {
                             asNode().info[0].appendNode('description', "${description}")
                         }

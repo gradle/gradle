@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
-    public void "published WAR only for mixed java and WAR project"() {
+    public void "can publish WAR only for mixed java and WAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "
 
@@ -47,6 +47,11 @@ class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
                         url '${ivyRepo.uri}'
                     }
                 }
+                publications {
+                    ivyWeb(IvyPublication) {
+                        from components.web
+                    }
+                }
             }
         """
 
@@ -55,6 +60,7 @@ class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
-        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.war", "publishTest-1.9.jar")
+        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.war")
+        // TODO:DAZ Validate configurations and dependencies
     }
 }

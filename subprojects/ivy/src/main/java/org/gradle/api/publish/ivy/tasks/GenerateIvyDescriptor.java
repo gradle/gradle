@@ -18,10 +18,14 @@ package org.gradle.api.publish.ivy.tasks;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.xml.XmlTransformer;
@@ -34,7 +38,9 @@ import org.gradle.api.tasks.TaskDependency;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Date;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Generates an Ivy XML Module Descriptor file.
@@ -44,10 +50,9 @@ import java.util.Date;
 @Incubating
 public class GenerateIvyDescriptor extends DefaultTask {
 
-    private IvyModuleDescriptor descriptor;
-    private final PublishArtifact descriptorArtifact;
+    private final FileCollection descriptorFile;
 
-    private Action<? super XmlProvider> xmlAction;
+    private IvyModuleDescriptor descriptor;
     private Object destination;
 
     private final FileResolver fileResolver;
@@ -61,7 +66,7 @@ public class GenerateIvyDescriptor extends DefaultTask {
         // Never up to date; we don't understand the data structures.
         getOutputs().upToDateWhen(Specs.satisfyNone());
 
-        this.descriptorArtifact = new IvyDescriptorArtifact();
+        this.descriptorFile = new DescriptorFileCollection();
     }
 
     /**
@@ -98,32 +103,41 @@ public class GenerateIvyDescriptor extends DefaultTask {
         this.destination = destination;
     }
 
-    public Action<? super XmlProvider> getXmlAction() {
-        return xmlAction;
-    }
-
-    public void setXmlAction(Action<? super XmlProvider> xmlAction) {
-        this.xmlAction = xmlAction;
-    }
-
-    public PublishArtifact getDescriptorArtifact() {
-        return descriptorArtifact;
+    public FileCollection getDescriptorFile() {
+        return descriptorFile;
     }
 
     @TaskAction
     public void doGenerate() {
-        XmlTransformer xmlTransformer = new XmlTransformer();
-        Action<? super XmlProvider> xmlAction = getXmlAction();
-        if (xmlAction != null) {
-            xmlTransformer.addAction(xmlAction);
-        }
 
         IvyModuleDescriptorInternal descriptorInternal = toIvyModuleDescriptorInternal(getDescriptor());
 
+        XmlTransformer xmlTransformer = new XmlTransformer();
+        xmlTransformer.addAction(descriptorInternal.getXmlAction());
+
+        Set<Configuration> publishConfigurations = createPopulatedConfiguration(descriptorInternal.getArtifacts(), descriptorInternal.getRuntimeDependencies());
+
         ModuleDescriptorConverter moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(descriptorInternal.getConfigurations(), descriptorInternal.getModule());
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(publishConfigurations, descriptorInternal.getModule());
         IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
         ivyModuleDescriptorWriter.write(moduleDescriptor, getDestination(), xmlTransformer);
+    }
+
+    private Set<Configuration> createPopulatedConfiguration(Iterable<PublishArtifact> artifacts, Iterable<Dependency> runtimeDependencies) {
+        Configuration runtimeConfiguration = getProject().getConfigurations().detachedConfiguration("runtime");
+        for (PublishArtifact artifact : artifacts) {
+            runtimeConfiguration.getArtifacts().add(artifact);
+        }
+        for (Dependency runtimeDependency : runtimeDependencies) {
+            runtimeConfiguration.getDependencies().add(runtimeDependency);
+        }
+        Configuration defaultConfiguration = getProject().getConfigurations().detachedConfiguration("default");
+        defaultConfiguration.extendsFrom(runtimeConfiguration);
+
+        Set<Configuration> configurations = new LinkedHashSet<Configuration>();
+        configurations.add(runtimeConfiguration);
+        configurations.add(defaultConfiguration);
+        return configurations;
     }
 
 
@@ -143,40 +157,26 @@ public class GenerateIvyDescriptor extends DefaultTask {
         }
     }
 
-    private class IvyDescriptorArtifact implements PublishArtifact {
+    private class DescriptorFileCollection extends AbstractFileCollection {
         private final DefaultTaskDependency dependency;
 
-        public IvyDescriptorArtifact() {
+        public DescriptorFileCollection() {
             this.dependency = new DefaultTaskDependency();
             this.dependency.add(GenerateIvyDescriptor.this);
         }
 
-        public String getName() {
-            return "ivy";
+        @Override
+        public String getDisplayName() {
+            return "pom-file";
         }
 
-        public String getExtension() {
-            return "xml";
-        }
-
-        public String getType() {
-            return "xml";
-        }
-
-        public String getClassifier() {
-            return null;
-        }
-
-        public File getFile() {
-            return getDestination();
-        }
-
-        public Date getDate() {
-            return null;
-        }
-
+        @Override
         public TaskDependency getBuildDependencies() {
             return dependency;
+        }
+
+        public Set<File> getFiles() {
+            return Collections.singleton(getDestination());
         }
     }
 }

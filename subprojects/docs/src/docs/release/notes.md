@@ -163,6 +163,14 @@ Previously the 'maven-publish' plugin added a MavenPublication for any java comp
 was required to publish the jar file. It is now necessary to explicitly add a MavenPublication to the 'publishing.publications' container. The added publication can include
 a software component ['java', 'web'], custom artifacts or both. If no MavenPublication is added when using the 'maven-publish' plugin, then nothing will be published.
 
+### Changes to new Ivy publishing support
+
+- Removed GenerateIvyDescriptor.xmlAction property. Set it on ivy.descriptor.withXml
+- Publication must be explicitly added
+- Nothing is included in publication by default
+   - Can specify component to publish
+   - Can specify additional artifacts to publish
+
 ## Switch to Sonar Runner
 
 While every effort has been made to keep backwards compatibility with earlier versions of the Sonar plugin, the underlying switch to the

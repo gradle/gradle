@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.api.publish.Publication;
 
@@ -113,5 +114,7 @@ public interface IvyPublication extends Publication {
      * @param configure The configuration action.
      */
     void descriptor(Action<? super IvyModuleDescriptor> configure);
+
+    void from(SoftwareComponent component);
 
 }

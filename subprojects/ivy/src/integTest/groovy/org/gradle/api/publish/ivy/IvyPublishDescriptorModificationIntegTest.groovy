@@ -56,7 +56,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
         buildFile << """
             publishing {
                 publications {
-                    ivy {
+                    ivy(IvyPublication) {
                         descriptor {
                             withXml {
                                 asNode().info[0].@revision = "3"
@@ -83,7 +83,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
         buildFile << """
             publishing {
                 publications {
-                    ivy {
+                    ivy(IvyPublication) {
                         descriptor {
                             withXml {
                                 asNode().foo = "3"

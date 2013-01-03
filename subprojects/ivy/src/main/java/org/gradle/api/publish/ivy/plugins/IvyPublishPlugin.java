@@ -20,21 +20,20 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.PublicationContainerInternal;
+import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
 import org.gradle.api.publish.ivy.tasks.internal.IvyPublicationDynamicDescriptorGenerationTaskCreator;
 import org.gradle.api.publish.ivy.tasks.internal.IvyPublishDynamicTaskCreator;
 import org.gradle.api.publish.plugins.PublishingPlugin;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
-import java.util.Set;
 
 /**
  * Configures the project to publish a “main” IvyPublication to a “main” IvyArtifactRepository.
@@ -49,28 +48,23 @@ public class IvyPublishPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final FileResolver fileResolver;
 
     @Inject
     public IvyPublishPlugin(
-            Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver
+            Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider
     ) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
-        this.fileResolver = fileResolver;
     }
 
-    public void apply(Project project) {
+    public void apply(final Project project) {
         project.getPlugins().apply(PublishingPlugin.class);
-        PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
 
         // Create the default publication
-        Set<Configuration> visibleConfigurations = project.getConfigurations().matching(new Spec<Configuration>() {
-            public boolean isSatisfiedBy(Configuration configuration) {
-                return configuration.isVisible();
-            }
-        });
-        extension.getPublications().add(createPublication("ivy", project, visibleConfigurations));
+        final PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
+
+        final PublicationContainerInternal publicationContainer = (PublicationContainerInternal) extension.getPublications();
+        publicationContainer.registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator));
 
         TaskContainer tasks = project.getTasks();
 
@@ -84,10 +78,22 @@ public class IvyPublishPlugin implements Plugin<Project> {
         publishTaskCreator.monitor(extension.getPublications(), extension.getRepositories());
     }
 
-    private IvyPublication createPublication(String name, final Project project, Set<? extends Configuration> configurations) {
-        return instantiator.newInstance(
-                DefaultIvyPublication.class,
-                name, instantiator, configurations, dependencyMetaDataProvider, fileResolver, project.getTasks()
-        );
+
+    private class IvyPublicationFactory implements PublicationFactory {
+        private final Instantiator instantiator;
+        private final DependencyMetaDataProvider dependencyMetaDataProvider;
+
+        private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator) {
+            this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+            this.instantiator = instantiator;
+        }
+
+        public Publication create(String name) {
+            return instantiator.newInstance(
+                    DefaultIvyPublication.class,
+                    name, instantiator, dependencyMetaDataProvider.getModule()
+            );
+
+        }
     }
 }
