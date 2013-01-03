@@ -23,7 +23,7 @@ import org.junit.Rule
 class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    public final SFTPServer sftpServer = new SFTPServer(distribution.temporaryFolder)
+    public final SFTPServer sftpServer = new SFTPServer(this)
     @Rule
     ProgressLoggingFixture progressLogging
 

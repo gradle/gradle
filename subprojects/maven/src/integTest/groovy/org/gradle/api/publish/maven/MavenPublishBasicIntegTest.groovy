@@ -19,8 +19,8 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.junit.Rule
 import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 
 /**
  * Tests “simple” maven publishing scenarios
@@ -32,7 +32,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
     MavenFileRepository m2Repo
 
     def "setup"() {
-        m2Installation = new M2Installation(testDir)
+        m2Installation = new M2Installation(testWorkDir)
         using m2Installation
         m2Repo = m2Installation.mavenRepo()
     }

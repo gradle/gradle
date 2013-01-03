@@ -17,13 +17,13 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.api.Action
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestWorkDirProvider
 
 class RedirectMavenCentral implements Action<GradleExecuter> {
-    private final TemporaryFolder temporaryFolder
+    private final TestWorkDirProvider testWorkDirProvider
 
-    RedirectMavenCentral(TemporaryFolder temporaryFolder) {
-        this.temporaryFolder = temporaryFolder
+    RedirectMavenCentral(TestWorkDirProvider testWorkDirProvider) {
+        this.testWorkDirProvider = testWorkDirProvider
     }
 
     void execute(GradleExecuter executer) {
@@ -31,7 +31,7 @@ class RedirectMavenCentral implements Action<GradleExecuter> {
             return
         }
 
-        def file = temporaryFolder.createFile("redirect-maven-central-init.gradle")
+        def file = testWorkDirProvider.testWorkDir.createFile("redirect-maven-central-init.gradle")
         file.text = """
 allprojects {
     repositories.withType(org.gradle.api.artifacts.repositories.MavenArtifactRepository) {

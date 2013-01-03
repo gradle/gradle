@@ -181,7 +181,7 @@ public class CommandLineIntegrationTest {
         assert result.output.contains("my app")
 
         // Don't follow links when cleaning up test files
-        dist.temporaryFolder.dir.usingNativeTools().deleteDir()
+        dist.testWorkDir.usingNativeTools().deleteDir()
     }
 
     @Test

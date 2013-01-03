@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.*
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.TestFile
+import org.gradle.util.TestWorkDirProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -28,7 +29,7 @@ import spock.lang.Specification
  * 
  * Plan is to bring features over as needed.
  */
-class AbstractIntegrationSpec extends Specification {
+class AbstractIntegrationSpec extends Specification implements TestWorkDirProvider {
     
     @Rule final GradleDistribution distribution = new GradleDistribution()
     @Rule final GradleDistributionExecuter executer = new GradleDistributionExecuter()
@@ -41,19 +42,19 @@ class AbstractIntegrationSpec extends Specification {
     private List<Closure> executerActions = []
 
     protected TestFile getBuildFile() {
-        testDir.file('build.gradle')
+        testWorkDir.file('build.gradle')
     }
 
     protected TestFile getSettingsFile() {
-        testDir.file('settings.gradle')
+        testWorkDir.file('settings.gradle')
     }
 
-    protected TestFile getTestDir() {
-        distribution.getTestWorkDir();
+    TestFile getTestWorkDir() {
+        distribution.testWorkDir
     }
 
     protected TestFile file(Object... path) {
-        getTestDir().file(path);
+        getTestWorkDir().file(path);
     }
 
     protected GradleExecuter sample(Sample sample) {
@@ -151,7 +152,7 @@ class AbstractIntegrationSpec extends Specification {
     ArtifactBuilder artifactBuilder() {
         def executer = distribution.executer()
         executer.withGradleUserHomeDir(distribution.getUserHomeDir())
-        return new GradleBackedArtifactBuilder(executer, getTestDir().file("artifacts"))
+        return new GradleBackedArtifactBuilder(executer, getTestWorkDir().file("artifacts"))
     }
 
     public MavenFileRepository maven(TestFile repo) {

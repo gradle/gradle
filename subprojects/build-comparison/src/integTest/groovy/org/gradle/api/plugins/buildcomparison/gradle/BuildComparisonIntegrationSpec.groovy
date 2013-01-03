@@ -77,7 +77,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         storedFile("target/_jar").list().toList() == ["testBuild.jar"]
 
         and: // old filestore not around
-        !testDir.list().any { it.startsWith(CompareGradleBuilds.TMP_FILESTORAGE_PREFIX) }
+        !testWorkDir.list().any { it.startsWith(CompareGradleBuilds.TMP_FILESTORAGE_PREFIX) }
     }
 
     void failedBecauseNotIdentical() {

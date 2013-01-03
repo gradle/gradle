@@ -46,7 +46,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     }
 
     GradleDistributionExecuter getWrapperExecuter() {
-        executer.usingExecutable('gradlew').inDirectory(testDir)
+        executer.usingExecutable('gradlew').inDirectory(testWorkDir)
     }
 
     private prepareWrapper(String baseUrl) {

@@ -44,7 +44,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
                     into 'build'
                 }"""
 
-        m2Installation = new M2Installation(testDir)
+        m2Installation = new M2Installation(testWorkDir)
         using m2Installation
     }
 

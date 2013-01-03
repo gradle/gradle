@@ -16,11 +16,10 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution;
-import org.gradle.util.RuleHelper;
 import org.gradle.util.Resources;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.util.RuleHelper;
 import org.gradle.util.TestFile;
+import org.gradle.util.TestWorkDirProvider;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -38,7 +37,7 @@ import java.util.Collection;
  */
 public class TestResources implements MethodRule {
     private final Logger logger = LoggerFactory.getLogger(TestResources.class);
-    private TemporaryFolder temporaryFolder;
+    private TestWorkDirProvider testWorkDirProvider;
     private final Collection<String> extraResources;
     private final Resources resources = new Resources();
 
@@ -52,12 +51,12 @@ public class TestResources implements MethodRule {
     }
 
     public TestFile getDir() {
-        return temporaryFolder.getDir();
+        return testWorkDirProvider.getTestWorkDir();
     }
 
     public Statement apply(Statement base, final FrameworkMethod method, Object target) {
         final Statement statement = resources.apply(base, method, target);
-        temporaryFolder = findTempDir(target);
+        testWorkDirProvider = findTestWorkDirProvider(target);
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
@@ -72,18 +71,17 @@ public class TestResources implements MethodRule {
         };
     }
 
-    private TemporaryFolder findTempDir(Object target) {
-        GradleDistribution dist = RuleHelper.findField(target, GradleDistribution.class);
-        if (dist != null) {
-            return dist.getTemporaryFolder();
+    private TestWorkDirProvider findTestWorkDirProvider(Object target) {
+        if (target instanceof TestWorkDirProvider) {
+            return (TestWorkDirProvider) target;
         }
-        TemporaryFolder folder = RuleHelper.findField(target, TemporaryFolder.class);
-        if (folder != null) {
-            return folder;
+        TestWorkDirProvider dist = RuleHelper.findField(target, TestWorkDirProvider.class);
+        if (dist != null) {
+            return dist;
         }
         throw new RuntimeException(String.format(
-                "Could not find a GradleDistribution or TemporaryFolder field for test class %s.",
-                target.getClass().getSimpleName()));
+                "Test class %s does not implement %s and has no field of this type",
+                target.getClass().getName(), TestWorkDirProvider.class.getName()));
     }
 
     /**

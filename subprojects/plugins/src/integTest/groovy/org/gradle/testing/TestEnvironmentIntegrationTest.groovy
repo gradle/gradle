@@ -29,7 +29,7 @@ class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         run 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('org.gradle.JUnitTest')
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
@@ -39,7 +39,7 @@ class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         run 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('org.gradle.JUnitTest')
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
@@ -49,7 +49,7 @@ class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         run 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('org.gradle.JUnitTest')
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySecurityManagerIsUsed')
     }
@@ -59,7 +59,7 @@ class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         run 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('org.gradle.JMockitTest')
         result.testClass('org.gradle.JMockitTest').assertTestPassed('testOk')
     }

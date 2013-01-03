@@ -29,7 +29,7 @@ import static org.junit.Assert.assertThat
 
 class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
-    final ToolingApi toolingApi = new ToolingApi(distribution, distribution.userHomeDir, { getTestDir() }, false)
+    final ToolingApi toolingApi = new ToolingApi(distribution, distribution.userHomeDir, { getTestWorkDir() }, false)
 
     void setup() {
         server.start()

@@ -209,10 +209,6 @@ public class GradleDistribution implements MethodRule, TestRule, TestWorkDirProv
         return temporaryFolder.getDir();
     }
 
-    public TemporaryFolder getTemporaryFolder() {
-        return temporaryFolder;
-    }
-
     /**
      * Returns a previous version of Gradle.
      *
