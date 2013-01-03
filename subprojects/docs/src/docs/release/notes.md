@@ -400,6 +400,7 @@ We would like to thank the following community members for making contributions 
 * James Bengeyfield - `showViolations` flag for `Checkstyle` task (GRADLE-1656)
 * Dalibor Novak - `m2compatible` flag on `PatternRepositoryLayout` (GRADLE-1919)
 * Brian Roberts, Tom Denley - Support multi-line JUnit test names (for better ScalaTest compatibility) (GRADLE-2572)
+* Sean Gillespie - Extend the application plugin to build a tar distribution
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

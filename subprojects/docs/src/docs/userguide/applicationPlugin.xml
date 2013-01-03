@@ -95,7 +95,7 @@
                 <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
                 <td>Creates a full distribution ZIP archive including runtime libraries and OS specific scripts.</td>
             </tr>
-	    <tr>
+	        <tr>
                 <td>
                     <literal>distTar</literal>
                 </td>
