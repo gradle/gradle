@@ -48,4 +48,37 @@ TBD
 
 ### Implementation approach
 
--consider a new listener when task is added to the graph. The configuration on demand feature uses it.
+- consider a new listener when task is added to the graph. The configuration on demand feature uses it.
+
+## Project owner enables or disables daemon, parallel execution and configure on demand for a build in a consistent way
+
+- can enable each of these in ~/.gradle/gradle.properties.
+- can enable each of these in $projectDir/gradle.properties.
+- can enable each of these using a system property.
+- can enable each of these using a command-line option.
+
+## Parallel execution mode implies configure on demand
+
+- configure on demand with configuration decoupling is to eventually become the default Gradle model.
+
+## Build author injects configuration into projects without direct coupling between projects
+
+- Root project is no longer configured by default.
+
+## Warn build author when projects are coupled
+
+- This will be split into a number of stories as there are a few ways that projects can be coupled. We might also interleave warning about a particular type of
+  coupling with one of the following stories, which add alternative ways so solve the use cases without coupling.
+- Possibly offer 'legacy', 'transitional' and 'strict' modes, where legacy ignores coupling, transitional warns and strict fails.
+- Use transitional as the default when configure on demand is enabled, otherwise use legacy.
+
+## Build author uses artifacts produced by another project without direct coupling between projects
+
+## Build author uses model objects configured in another project without direct coupling between projects
+
+## Transition to use configure on demand as the default
+
+- Use strict mode as the default when configure-on-demand is used.
+- Use transitional mode as the default when configure-on-demand is not used.
+
+More to come ...
