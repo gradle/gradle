@@ -66,7 +66,17 @@ class StartScriptGenerator {
 
     String generateUnixScriptContent() {
         def unixClassPath = classpath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.join(":")
-        def defaultJvmOptsString = defaultJvmOpts.collect { it.replace(' ', '\\ ') }.join(' ')
+        def quotedDefaultJvmOpts = defaultJvmOpts.collect{
+            //quote ', ", \, $. Probably not perfect. TODO: identify non-working cases, fail-fast on them
+            it = it.replace('\\', '\\\\')
+            it = it.replace('"', '\\"')
+            it = it.replace(/'/, /'"'"'/)
+            it = it.replace('$', '\\$')
+            (/"${it}"/)
+        }
+        //put the whole arguments string in single quotes, unless defaultJvmOpts was empty,
+        // in which case we output "" to stay compatible with existing builds that scan the script for it
+        def defaultJvmOptsString = (quotedDefaultJvmOpts ? /'${quotedDefaultJvmOpts.join(' ')}'/ : '""')
         def binding = [applicationName: applicationName,
                 optsEnvironmentVar: optsEnvironmentVar,
                 mainClassName: mainClassName,
@@ -85,7 +95,27 @@ class StartScriptGenerator {
     String generateWindowsScriptContent() {
         def windowsClassPath = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.join(";")
         def appHome = appHomeRelativePath.replace('/', '\\')
-        def defaultJvmOptsString = defaultJvmOpts.collect { it.replace(' ', '\\ ') }.join(' ')
+        //argument quoting:
+        // - " must be encoded as \"
+        // - % must be encoded as %%
+        // - pathological case: \" must be encoded as \\\", but other than that, \ MUST NOT be quoted
+        // - other characters (including ') will not be quoted
+        // - use a state machine rather than regexps
+        def quotedDefaultJvmOpts = defaultJvmOpts.collect {
+            def wasOnBackslash = false
+            it = it.collect { ch ->
+                def repl = ch
+                if (ch == '%') {
+                    repl = '%%'
+                } else if (ch == '"') {
+                    repl = (wasOnBackslash ? '\\' : '') + '\\"'
+                }
+                wasOnBackslash = (ch == '\\')
+                repl
+            }
+            (/"${it.join()}"/)
+        }
+        def defaultJvmOptsString = quotedDefaultJvmOpts.join(' ')
         def binding = [applicationName: applicationName,
                 optsEnvironmentVar: optsEnvironmentVar,
                 exitEnvironmentVar: exitEnvironmentVar,
