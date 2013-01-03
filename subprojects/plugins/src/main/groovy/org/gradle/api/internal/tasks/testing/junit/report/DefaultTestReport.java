@@ -16,25 +16,24 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
+import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.util.Clock;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.math.BigDecimal;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultTestReport implements TestReporter {
     private final HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
-    private File resultDir;
     private File reportDir;
     private final static Logger LOG = Logging.getLogger(DefaultTestReport.class);
     private final Test task;
@@ -47,94 +46,69 @@ public class DefaultTestReport implements TestReporter {
         htmlRenderer.requireResource(getClass().getResource("style.css"));
     }
 
-    public void setTestResultsDir(File resultDir) {
-        this.resultDir = resultDir;
-    }
-
     public void setTestReportDir(File reportDir) {
         this.reportDir = reportDir;
     }
 
-    public void generateReport() {
+    public void generateReport(TestResultsProvider resultsProvider) {
         if (!task.isTestReport()) {
             LOG.info("Test report disabled, omitting generation of the HTML test report.");
             return;
         }
         LOG.info("Generating HTML test report...");
         setTestReportDir(task.getTestReportDir());
-        setTestResultsDir(task.getTestResultsDir());
 
         Clock clock = new Clock();
-        AllTestResults model = loadModel();
-        generateFiles(model);
+        AllTestResults model = loadModelFromProvider(resultsProvider);
+        generateFiles(model, resultsProvider);
         LOG.info("Finished generating test html results (" + clock.getTime() + ")");
     }
 
-    private AllTestResults loadModel() {
+    private AllTestResults loadModelFromProvider(TestResultsProvider resultsProvider) {
+        Map<String, TestClassResult> results = resultsProvider.getResults();
         AllTestResults model = new AllTestResults();
-        if (resultDir.exists()) {
-            for (File file : resultDir.listFiles()) {
-                if (file.getName().startsWith("TEST-") && file.getName().endsWith(".xml")) {
-                    mergeFromFile(file, model);
+        for (Map.Entry<String, TestClassResult> stringTestClassResultEntry : results.entrySet()) {
+            final String suiteClassName = stringTestClassResultEntry.getKey();
+            final TestClassResult value = stringTestClassResultEntry.getValue();
+            final Set<TestMethodResult> collectedResults = value.getResults();
+            for (TestMethodResult collectedResult : collectedResults) {
+                final TestResult testResult = model.addTest(suiteClassName, collectedResult.name, collectedResult.getDuration());
+                if (collectedResult.result.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
+                    testResult.ignored();
+                } else {
+                    final List<Throwable> failures = collectedResult.result.getExceptions();
+                    for (Throwable throwable : failures) {
+                        testResult.addFailure(throwable.getMessage(), stackTrace(throwable));
+                    }
                 }
             }
         }
         return model;
     }
 
-    void mergeFromFile(File file, AllTestResults model) {
+    private String stackTrace(Throwable throwable) {
         try {
-            InputStream inputStream = new FileInputStream(file);
-            Document document;
-            try {
-                document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(inputStream));
-            } finally {
-                inputStream.close();
-            }
-            NodeList testCases = document.getElementsByTagName("testcase");
-            for (int i = 0; i < testCases.getLength(); i++) {
-                Element testCase = (Element) testCases.item(i);
-                String className = testCase.getAttribute("classname");
-                String testName = testCase.getAttribute("name");
-                LocaleSafeDecimalFormat format = new LocaleSafeDecimalFormat();
-                BigDecimal duration = format.parse(testCase.getAttribute("time"));
-                duration = duration.multiply(BigDecimal.valueOf(1000));
-                NodeList failures = testCase.getElementsByTagName("failure");
-                TestResult testResult = model.addTest(className, testName, duration.longValue());
-                for (int j = 0; j < failures.getLength(); j++) {
-                    Element failure = (Element) failures.item(j);
-                    testResult.addFailure(failure.getAttribute("message"), failure.getTextContent());
-                }
-            }
-            NodeList ignoredTestCases = document.getElementsByTagName("ignored-testcase");
-            for (int i = 0; i < ignoredTestCases.getLength(); i++) {
-                Element testCase = (Element) ignoredTestCases.item(i);
-                String className = testCase.getAttribute("classname");
-                String testName = testCase.getAttribute("name");
-                model.addTest(className, testName, 0).ignored();
-            }
-            String suiteClassName = document.getDocumentElement().getAttribute("name");
-            ClassTestResults suiteResults = model.addTestClass(suiteClassName);
-            NodeList stdOutElements = document.getElementsByTagName("system-out");
-            for (int i = 0; i < stdOutElements.getLength(); i++) {
-                suiteResults.addStandardOutput(stdOutElements.item(i).getTextContent());
-            }
-            NodeList stdErrElements = document.getElementsByTagName("system-err");
-            for (int i = 0; i < stdErrElements.getLength(); i++) {
-                suiteResults.addStandardError(stdErrElements.item(i).getTextContent());
-            }
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not load test results from '%s'.", file), e);
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter writer = new PrintWriter(stringWriter);
+            throwable.printStackTrace(writer);
+            writer.close();
+            return stringWriter.toString();
+        } catch (Throwable t) {
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter writer = new PrintWriter(stringWriter);
+            t.printStackTrace(writer);
+            writer.close();
+            return stringWriter.toString();
         }
     }
 
-    private void generateFiles(AllTestResults model) {
+    private void generateFiles(AllTestResults model, TestResultsProvider resultsProvider) {
         try {
             generatePage(model, new OverviewPageRenderer(), new File(reportDir, "index.html"));
             for (PackageTestResults packageResults : model.getPackages()) {
                 generatePage(packageResults, new PackagePageRenderer(), new File(reportDir, packageResults.getName() + ".html"));
                 for (ClassTestResults classResults : packageResults.getClasses()) {
-                    generatePage(classResults, new ClassPageRenderer(), new File(reportDir, classResults.getName() + ".html"));
+                    generatePage(classResults, new ClassPageRenderer(classResults.getName(), resultsProvider), new File(reportDir, classResults.getName() + ".html"));
                 }
             }
         } catch (Exception e) {

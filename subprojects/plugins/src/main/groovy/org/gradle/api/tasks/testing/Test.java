@@ -451,7 +451,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         final Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector);
         binary2JUnitXmlReportGenerator.generate();
 
-        testReporter.generateReport();
+        testReporter.generateReport(testReportDataCollector);
 
         testFramework = null;
 

@@ -16,13 +16,26 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.reporting.CodePanelRenderer;
 import org.w3c.dom.Element;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
+    private final TestResultsProvider resultsProvider;
+    private final String className;
 
-    @Override protected void renderBreadcrumbs(Element parent) {
+    public ClassPageRenderer(String className, TestResultsProvider provider) {
+        this.className = className;
+        this.resultsProvider = provider;
+    }
+
+    @Override
+    protected void renderBreadcrumbs(Element parent) {
         Element div = append(parent, "div");
         div.setAttribute("class", "breadcrumbs");
         appendLink(div, "index.html", "all");
@@ -60,12 +73,8 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
         }
     }
 
-    private void renderStdOut(Element parent) {
-        codePanelRenderer.render(getResults().getStandardOutput().toString(), parent);
-    }
-
-    private void renderStdErr(Element parent) {
-        codePanelRenderer.render(getResults().getStandardError().toString(), parent);
+    private void renderStd(Element parent, String stdString) {
+        codePanelRenderer.render(stdString, parent);
     }
 
     @Override protected void registerTabs() {
@@ -75,19 +84,32 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                 renderTests(element);
             }
         });
-        if (getResults().getStandardOutput().length() > 0) {
+        final String stdOut = getOutputString(TestOutputEvent.Destination.StdOut);
+        if (stdOut.length() > 0) {
             addTab("Standard output", new Action<Element>() {
                 public void execute(Element element) {
-                    renderStdOut(element);
+                    renderStd(element, stdOut);
                 }
             });
         }
-        if (getResults().getStandardError().length() > 0) {
+        final String stdErr = getOutputString(TestOutputEvent.Destination.StdErr);
+        if (stdErr.length() > 0) {
             addTab("Standard error", new Action<Element>() {
                 public void execute(Element element) {
-                    renderStdErr(element);
+                    renderStd(element, stdErr);
                 }
             });
         }
+    }
+
+    /**
+     * @TODO RG: This method can consume a lot of memory depending on the amount of output We'll when moving away from dom based report generation
+     */
+    private String getOutputString(TestOutputEvent.Destination destination) {
+        final StringWriter stringWriter = new StringWriter();
+        PrintWriter writer = new PrintWriter(stringWriter);
+        resultsProvider.writeOutputs(className, destination, writer);
+        writer.close();
+        return stringWriter.toString();
     }
 }

@@ -32,6 +32,7 @@ import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.logging.internal.OutputEventListener;
@@ -129,7 +130,7 @@ public class TestTest extends AbstractConventionTaskTest {
         final TestReporter testReporter = context.mock(TestReporter.class);
         test.setTestReporter(testReporter);
         context.checking(new Expectations() {{
-            one(testReporter).generateReport();
+            one(testReporter).generateReport(with(any(TestResultsProvider.class)));
         }});
 
         test.executeTests();
