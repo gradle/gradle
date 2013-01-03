@@ -17,9 +17,9 @@
 package org.gradle.integtests.samples
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -41,7 +41,7 @@ class SamplesScalaZincIntegrationTest extends Specification {
 
         then:
         // Check contents of Jar
-        TestFile jarContents = dist.testDir.file('jar')
+        TestFile jarContents = dist.testWorkDir.file('jar')
         projectDir.file("build/libs/zinc.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

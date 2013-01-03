@@ -336,7 +336,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def resolver() {
-        return TestFiles.resolver(tmpDir.testDir)
+        return TestFiles.resolver(tmpDir.testWorkDir)
     }
 }
 

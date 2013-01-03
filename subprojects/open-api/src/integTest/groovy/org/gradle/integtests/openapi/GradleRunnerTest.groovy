@@ -15,8 +15,9 @@
  */
 package org.gradle.integtests.openapi
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.apache.commons.lang.builder.ReflectionToStringBuilder
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.openapi.external.runner.GradleRunnerFactory
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1
 import org.gradle.openapi.external.runner.GradleRunnerVersion1
@@ -24,7 +25,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.apache.commons.lang.builder.ReflectionToStringBuilder
 
 class GradleRunnerTest {
 
@@ -42,7 +42,7 @@ class GradleRunnerTest {
 
   @Before
   void setUp() {
-      javaprojectDir = dist.testDir
+      javaprojectDir = dist.testWorkDir
   }
 
   /**

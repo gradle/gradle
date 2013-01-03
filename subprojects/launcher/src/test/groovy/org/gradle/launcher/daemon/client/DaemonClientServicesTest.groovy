@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class DaemonClientServicesTest extends Specification {
     @Rule TemporaryFolder tmp = new TemporaryFolder()
-    final DaemonParameters parameters = new DaemonParameters(baseDir: tmp.testDir)
+    final DaemonParameters parameters = new DaemonParameters(baseDir: tmp.testWorkDir)
     final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), parameters, System.in)
 
     def "makes a DaemonRegistry available"() {

@@ -37,7 +37,7 @@ import java.util.jar.Manifest;
 
 import static org.junit.Assert.*;
 
-public class TestFile extends File implements TestFileContext {
+public class TestFile extends File {
     private boolean useNativeTools;
 
     public TestFile(File file, Object... path) {
@@ -54,10 +54,6 @@ public class TestFile extends File implements TestFileContext {
 
     public TestFile(URL url) {
         this(toUri(url));
-    }
-
-    public TestFile getTestDir() {
-        return this;
     }
 
     public TestFile usingNativeTools() {

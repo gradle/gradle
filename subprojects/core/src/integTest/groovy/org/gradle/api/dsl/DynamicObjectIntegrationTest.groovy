@@ -27,12 +27,12 @@ class DynamicObjectIntegrationTest {
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     TestFile getBuildFile() {
-        dist.testDir.file("build.gradle")
+        dist.testWorkDir.file("build.gradle")
     }
 
     @Test
     public void canAddDynamicPropertiesToProject() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file("settings.gradle").writelns("include 'child'");
         testDir.file("build.gradle").writelns(
                 "ext.rootProperty = 'root'",
@@ -78,7 +78,7 @@ class DynamicObjectIntegrationTest {
 
     @Test
     public void canAddDynamicMethodsToProject() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file("settings.gradle").writelns("include 'child'");
         testDir.file("build.gradle").writelns(
                 "def rootMethod(p) { 'root' + p }",
@@ -112,7 +112,7 @@ class DynamicObjectIntegrationTest {
 
     @Test
     public void canAddMixinsToProject() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file('build.gradle') << '''
 convention.plugins.test = new ConventionBean()
 
@@ -130,7 +130,7 @@ class ConventionBean {
 
     @Test
     public void canAddExtensionsToProject() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file('build.gradle') << '''
 extensions.test = new ExtensionBean()
 
@@ -147,7 +147,7 @@ class ExtensionBean {
 
     @Test
     public void canAddPropertiesToProjectUsingGradlePropertiesFile() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file("settings.gradle").writelns("include 'child'");
         testDir.file("gradle.properties") << '''
 global=some value
@@ -174,7 +174,7 @@ assert 'overridden value' == global
 
     @Test
     public void canAddDynamicPropertiesToCoreDomainObjects() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file('build.gradle') << '''
             class GroovyTask extends DefaultTask { }
 
@@ -236,7 +236,7 @@ assert 'overridden value' == global
 
     @Test
     public void canAddMixInsToCoreDomainObjects() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file('build.gradle') << '''
             class Extension { def doStuff() { 'method' } }
             class GroovyTask extends DefaultTask { }
@@ -290,7 +290,7 @@ assert 'overridden value' == global
 
     @Test
     public void canAddExtensionsToCoreDomainObjects() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file('build.gradle') << '''
             class Extension { def doStuff() { 'method' } }
             class GroovyTask extends DefaultTask { }
@@ -344,7 +344,7 @@ assert 'overridden value' == global
 
     @Test
     public void mixesDslMethodsIntoCoreDomainObjects() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file('build.gradle') << '''
             class GroovyTask extends DefaultTask {
                 def String prop
@@ -370,7 +370,7 @@ assert 'overridden value' == global
 
     @Test
     void canAddExtensionsToDynamicExtensions() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file('build.gradle') << '''
             class Extension {
                 String name
@@ -395,7 +395,7 @@ assert 'overridden value' == global
 
     @Test
     public void canInjectMethodsFromParentProject() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file("settings.gradle").writelns("include 'child'");
         testDir.file("build.gradle").writelns(
                 "subprojects {",
@@ -412,7 +412,7 @@ assert 'overridden value' == global
     }
     
     @Test void canAddNewPropertiesViaTheAdhocNamespace() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file("build.gradle") << """
             assert !hasProperty("p1")
 
@@ -452,7 +452,7 @@ assert 'overridden value' == global
     }
 
     @Test void warnsWhenNewPropertiesAreAddedDirectlyOnTargetObject() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file("build.gradle") << """
             assert !hasProperty("p1")
 
@@ -479,7 +479,7 @@ assert 'overridden value' == global
 
     @Issue("GRADLE-2163")
     @Test void canDecorateBooleanPrimitiveProperties() {
-        TestFile testDir = dist.getTestDir();
+        TestFile testDir = dist.getTestWorkDir();
         testDir.file("build.gradle") << """
             class CustomBean {
                 boolean b

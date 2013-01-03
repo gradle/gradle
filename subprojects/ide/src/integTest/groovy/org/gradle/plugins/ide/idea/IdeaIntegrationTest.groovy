@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.idea
 
-import java.util.regex.Pattern
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
@@ -26,6 +25,8 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
+
+import java.util.regex.Pattern
 
 class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
@@ -80,7 +81,7 @@ apply plugin: 'idea'
 
     @Test
     void worksWithNonStandardLayout() {
-        executer.inDirectory(testDir.file('root')).withTasks('idea').run()
+        executer.inDirectory(testWorkDir.file('root')).withTasks('idea').run()
 
         assertHasExpectedContents('root/root.ipr')
         assertHasExpectedContents('root/root.iml')
@@ -335,8 +336,8 @@ apply plugin: "idea"
     }
 
     private void assertHasExpectedContents(String path) {
-        TestFile file = testDir.file(path).assertIsFile()
-        TestFile expectedFile = testDir.file("expectedFiles/${path}.xml").assertIsFile()
+        TestFile file = testWorkDir.file(path).assertIsFile()
+        TestFile expectedFile = testWorkDir.file("expectedFiles/${path}.xml").assertIsFile()
 
         def expectedXml = expectedFile.text
 

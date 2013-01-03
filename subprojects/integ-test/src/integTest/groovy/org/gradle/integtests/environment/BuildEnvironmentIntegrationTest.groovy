@@ -34,7 +34,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         testProject()
 
         when:
-        def relativeDir = new File(distribution.testDir, 'java/multiproject/../quickstart')
+        def relativeDir = new File(distribution.testWorkDir, 'java/multiproject/../quickstart')
         executer.inDirectory(relativeDir).run()
 
         then:
@@ -46,7 +46,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         testProject()
 
         when:
-        def mixedCaseDir = new File(distribution.testDir, "JAVA/QuickStart")
+        def mixedCaseDir = new File(distribution.testWorkDir, "JAVA/QuickStart")
         executer.inDirectory(mixedCaseDir).run()
 
         then:
@@ -58,7 +58,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         testProject()
 
         when:
-        def shortDir = new File(distribution.testDir, 'java/QUICKS~1')
+        def shortDir = new File(distribution.testWorkDir, 'java/QUICKS~1')
         executer.inDirectory(shortDir).run()
 
         then:

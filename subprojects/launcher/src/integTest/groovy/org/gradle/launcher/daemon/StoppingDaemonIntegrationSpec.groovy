@@ -25,7 +25,7 @@ import org.gradle.util.TextUtil
 class StoppingDaemonIntegrationSpec extends DaemonIntegrationSpec {
     def "can handle multiple concurrent stop requests"() {
         given:
-        def projectDir = distribution.testDir
+        def projectDir = distribution.testWorkDir
         projectDir.file('build.gradle') << '''
 file('marker.txt') << 'waiting'
 Thread.sleep(60000)

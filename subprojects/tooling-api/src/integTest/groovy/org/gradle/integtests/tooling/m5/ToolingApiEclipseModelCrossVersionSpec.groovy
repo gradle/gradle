@@ -24,7 +24,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @MinTargetGradleVersion('1.0-milestone-3')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "eclipse project has access to gradle project and its tasks"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = """
 subprojects {
     apply plugin: 'java'

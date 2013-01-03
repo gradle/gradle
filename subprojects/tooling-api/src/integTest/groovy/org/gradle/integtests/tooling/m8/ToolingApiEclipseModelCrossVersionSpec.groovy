@@ -24,7 +24,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @MinTargetGradleVersion('1.0-milestone-8')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "can customise model late in the configuration phase"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = """
 apply plugin: 'java'
 

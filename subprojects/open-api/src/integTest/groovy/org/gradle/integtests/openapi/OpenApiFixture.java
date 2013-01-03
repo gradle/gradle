@@ -16,11 +16,11 @@
 package org.gradle.integtests.openapi;
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
-import org.gradle.util.RuleHelper;
 import org.gradle.internal.UncheckedException;
 import org.gradle.openapi.external.ui.DualPaneUIVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1;
 import org.gradle.openapi.external.ui.UIFactory;
+import org.gradle.util.RuleHelper;
 import org.junit.Assert;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -67,7 +67,7 @@ public class OpenApiFixture implements MethodRule {
         //make sure we got something
         Assert.assertNotNull(singlePane);
 
-        singlePane.setCurrentDirectory(dist.getTestDir());
+        singlePane.setCurrentDirectory(dist.getTestWorkDir());
         singlePane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(dist.getUserHomeDir()));
 
         return singlePane;
@@ -85,7 +85,7 @@ public class OpenApiFixture implements MethodRule {
         //make sure we got something
         Assert.assertNotNull(dualPane);
 
-        dualPane.setCurrentDirectory(dist.getTestDir());
+        dualPane.setCurrentDirectory(dist.getTestWorkDir());
         dualPane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(dist.getUserHomeDir()));
 
         return dualPane;

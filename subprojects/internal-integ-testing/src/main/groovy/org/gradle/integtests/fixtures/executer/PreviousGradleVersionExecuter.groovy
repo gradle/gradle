@@ -144,7 +144,7 @@ class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter imp
     @Override
     protected GradleExecuter configureExecuter() {
         ForkingGradleExecuter executer = new ForkingGradleExecuter(gradleHomeDir)
-        executer.inDirectory(dist.testDir)
+        executer.inDirectory(dist.testWorkDir)
         copyTo(executer)
         return executer
     }

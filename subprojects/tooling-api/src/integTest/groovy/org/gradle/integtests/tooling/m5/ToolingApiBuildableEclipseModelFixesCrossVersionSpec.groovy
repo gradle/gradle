@@ -46,7 +46,7 @@ task b
     @Issue("GRADLE-1529")
     //this is just one of the ways of fixing the problem. See the issue for details
     def "should hide not executable tasks when necessary for a multi module build"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = '''
 project(':api') {
     apply plugin: 'java'

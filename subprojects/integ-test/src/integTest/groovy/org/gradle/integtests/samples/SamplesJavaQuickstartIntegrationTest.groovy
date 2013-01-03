@@ -16,14 +16,16 @@
 
 package org.gradle.integtests.samples
 
-import java.util.jar.Manifest
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
+
+import java.util.jar.Manifest
+
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -53,7 +55,7 @@ class SamplesJavaQuickstartIntegrationTest {
         javaprojectDir.file('repos/quickstart-1.0.jar').assertIsFile()
 
         // Check contents of Jar
-        TestFile jarContents = dist.testDir.file('jar')
+        TestFile jarContents = dist.testWorkDir.file('jar')
         javaprojectDir.file('repos/quickstart-1.0.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

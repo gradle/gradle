@@ -16,20 +16,19 @@
 package org.gradle.integtests.fixtures
 
 import com.google.common.collect.ArrayListMultimap
+import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.internal.SystemProperties
 import org.gradle.util.AntUtil
 import org.gradle.util.TestFile
 import org.gradle.util.TextUtil
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.junit.Assert
 import org.junit.runner.Description
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
-
-import groovy.io.PlatformLineWriter
 
 import java.util.regex.Pattern
 
@@ -43,7 +42,7 @@ class UserGuideSamplesRunner extends Runner {
     private GradleDistributionExecuter executer = new GradleDistributionExecuter(dist)
     private Pattern dirFilter
     private List excludes
-    private TestFile baseExecutionDir = dist.testDir
+    private TestFile baseExecutionDir = dist.testWorkDir
 
     UserGuideSamplesRunner(Class<?> testClass) {
         this.testClass = testClass
@@ -109,7 +108,7 @@ class UserGuideSamplesRunner extends Runner {
 
     private void cleanup(SampleRun run) {
         // Clean up previous runs in the same subdir
-        File rootProjectDir = dist.testDir.file(run.subDir)
+        File rootProjectDir = dist.testWorkDir.file(run.subDir)
         if (rootProjectDir.exists()) {
             def delete = new Delete()
             delete.dir = rootProjectDir

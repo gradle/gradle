@@ -217,7 +217,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     protected GradleExecuter configureExecuter() {
         if (!workingDirSet) {
-            inDirectory(dist.getTestDir());
+            inDirectory(dist.getTestWorkDir());
         }
         if (!gradleUserHomeDirSet) {
             withGradleUserHomeDir(dist.getUserHomeDir());
@@ -298,6 +298,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     }
 
     private TestFile getTmpDir() {
-        return dist.getTestDir().file("tmp");
+        return dist.getTestWorkDir().file("tmp");
     }
 }

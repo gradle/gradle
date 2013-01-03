@@ -32,13 +32,13 @@ class DistroTempDirIsUniquePerTestSpec extends Specification {
 
     def setup() {
         //it's very important we try to access the test dir in the setup()
-        dist.testDir
+        dist.testWorkDir
     }
     
     def "testOne"() {
         when:
         tests << "testOne"
-        tmpDirs << dist.testDir
+        tmpDirs << dist.testWorkDir
         
         then:
         tests.size() == tmpDirs.size()
@@ -47,7 +47,7 @@ class DistroTempDirIsUniquePerTestSpec extends Specification {
     def "testTwo"() {
         when:
         tests << "testTwo"
-        tmpDirs << dist.testDir
+        tmpDirs << dist.testWorkDir
 
         then:
         tests.size() == tmpDirs.size()

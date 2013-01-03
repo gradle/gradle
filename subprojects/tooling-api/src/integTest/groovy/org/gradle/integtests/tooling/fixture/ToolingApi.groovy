@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
@@ -39,7 +39,7 @@ class ToolingApi {
     boolean verboseLogging = LOGGER.debugEnabled
 
     ToolingApi(GradleDistribution dist) {
-        this(dist, dist.userHomeDir, { dist.testDir }, GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded)
+        this(dist, dist.userHomeDir, { dist.testWorkDir }, GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded)
     }
 
     ToolingApi(BasicGradleDistribution dist, File userHomeDir, Closure getProjectDir, boolean isEmbedded) {

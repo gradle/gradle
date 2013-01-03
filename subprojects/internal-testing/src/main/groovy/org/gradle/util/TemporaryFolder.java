@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * A JUnit rule which provides a unique temporary folder for the test.
  */
-public class TemporaryFolder implements MethodRule, TestRule, TestFileContext {
+public class TemporaryFolder implements MethodRule, TestRule, TestWorkDirProvider {
     private TestFile dir;
     private String prefix;
     private static TestFile root;
@@ -114,7 +114,7 @@ public class TemporaryFolder implements MethodRule, TestRule, TestFileContext {
         return temporaryFolder;
     }
 
-    public TestFile getTestDir() {
+    public TestFile getTestWorkDir() {
         return getDir();
     }
 

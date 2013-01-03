@@ -16,12 +16,12 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.executer.*
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.integtests.fixtures.executer.*
 
 /**
  * Spockified version of AbstractIntegrationTest.
@@ -49,7 +49,7 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     protected TestFile getTestDir() {
-        distribution.getTestDir();
+        distribution.getTestWorkDir();
     }
 
     protected TestFile file(Object... path) {

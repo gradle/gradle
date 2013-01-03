@@ -26,7 +26,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class ToolingApiHonorsProjectCustomizationsCrossVersionSpec extends ToolingApiSpecification {
 
     def "should honour reconfigured project names"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = '''
 allprojects {
     apply plugin: 'java'
@@ -54,7 +54,7 @@ project(':impl') {
     }
 
     def "should deduplicate project names"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = '''
 allprojects {
     apply plugin: 'java'
@@ -72,7 +72,7 @@ allprojects {
     }
 
     def "can have overlapping source and resource directories"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 apply plugin: 'eclipse'
@@ -107,7 +107,7 @@ sourceSets {
     }
 
     def "can enable download of Javadoc for external dependencies"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 apply plugin: 'eclipse'

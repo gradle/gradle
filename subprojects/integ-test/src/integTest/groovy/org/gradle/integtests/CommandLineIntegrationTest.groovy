@@ -15,16 +15,19 @@
  */
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.TestResources
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.util.PreconditionVerifier
+import org.gradle.util.Requires
+import org.gradle.util.TestFile
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.util.*
-import org.gradle.internal.jvm.Jvm
 
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -71,7 +74,7 @@ public class CommandLineIntegrationTest {
 
     @Test
     public void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
-        def failure = executer.withEnvironmentVars('JAVA_HOME': dist.testDir).withTasks('checkJavaHome').runWithFailure()
+        def failure = executer.withEnvironmentVars('JAVA_HOME': dist.testWorkDir).withTasks('checkJavaHome').runWithFailure()
         assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
     }
 
@@ -105,7 +108,7 @@ public class CommandLineIntegrationTest {
     @Test
     public void canDefineGradleUserHomeViaEnvironmentVariable() {
         // the actual testing is done in the build script.
-        File gradleUserHomeDir = dist.testDir.file('customUserHome')
+        File gradleUserHomeDir = dist.testWorkDir.file('customUserHome')
         executer.withGradleUserHomeDir(null).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkGradleUserHomeViaSystemEnv").run();
     }
 

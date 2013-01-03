@@ -47,7 +47,7 @@ public class Sample implements MethodRule {
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         dist = RuleHelper.getField(target, GradleDistribution.class);
         final String sampleName = getSampleName(method);
-        sampleDir = sampleName == null ? null : dist.getTestDir().file(sampleName);
+        sampleDir = sampleName == null ? null : dist.getTestWorkDir().file(sampleName);
 
         return new Statement() {
             @Override

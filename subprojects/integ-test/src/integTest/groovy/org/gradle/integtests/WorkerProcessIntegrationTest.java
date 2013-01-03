@@ -76,7 +76,7 @@ public class WorkerProcessIntegrationTest {
     private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getDir(), null, CacheUsage.ON, factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
-    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestDir()), new LongIdGenerator());
+    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestWorkDir()), new LongIdGenerator());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
             TestListenerInterface.class);
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);

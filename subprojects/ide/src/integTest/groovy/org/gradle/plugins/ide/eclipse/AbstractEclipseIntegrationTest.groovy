@@ -70,6 +70,6 @@ class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     protected EclipseClasspathFixture getClasspath() {
-        return new EclipseClasspathFixture(distribution.testDir, distribution.userHomeDir)
+        return new EclipseClasspathFixture(distribution.testWorkDir, distribution.userHomeDir)
     }
 }

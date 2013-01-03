@@ -16,13 +16,14 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.containsString
 
 class SamplesMixedJavaAndGroovyIntegrationTest {
@@ -40,7 +41,7 @@ class SamplesMixedJavaAndGroovyIntegrationTest {
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check contents of jar
-        TestFile tmpDir = dist.testDir.file('jarContents')
+        TestFile tmpDir = dist.testWorkDir.file('jarContents')
         projectDir.file('build/libs/mixedJavaAndGroovy-1.0.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

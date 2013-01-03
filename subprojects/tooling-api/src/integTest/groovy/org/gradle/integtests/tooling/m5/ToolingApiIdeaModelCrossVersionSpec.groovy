@@ -26,7 +26,7 @@ import org.gradle.tooling.model.idea.*
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "builds the model even if idea plugin not applied"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 description = 'this is a project'
@@ -46,7 +46,7 @@ description = 'this is a project'
     }
 
     def "provides basic project information"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = """
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -66,7 +66,7 @@ idea.project {
     }
 
     def "provides all modules"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = '''
 subprojects {
     apply plugin: 'java'
@@ -84,7 +84,7 @@ subprojects {
     }
 
     def "provides basic module information"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = """
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -113,7 +113,7 @@ idea.module.testOutputDir = file('someTestDir')
     }
 
     def "provides source dir information"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = "apply plugin: 'java'"
 
         projectDir.create {
@@ -145,7 +145,7 @@ idea.module.testOutputDir = file('someTestDir')
     }
 
     def "provides exclude dir information"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = """
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -162,7 +162,7 @@ idea.module.excludeDirs += file('foo')
     }
 
     def "provides dependencies"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         def fakeRepo = projectDir.file("repo")
 
         def dependency = new MavenFileRepository(fakeRepo).module("foo.bar", "coolLib", 1.0)
@@ -217,7 +217,7 @@ project(':impl') {
     }
 
     def "makes sure module names are unique"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = """
 subprojects {
     apply plugin: 'java'
@@ -252,7 +252,7 @@ project(':contrib:impl') {
     }
 
     def "module has access to gradle project and its tasks"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = """
 subprojects {
     apply plugin: 'java'
@@ -281,7 +281,7 @@ project(':impl') {
     }
 
     def "offline model should not resolve external dependencies"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
 
         projectDir.file('build.gradle').text = """
 subprojects {

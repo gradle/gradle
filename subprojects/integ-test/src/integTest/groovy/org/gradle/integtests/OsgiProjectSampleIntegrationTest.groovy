@@ -16,15 +16,18 @@
 
 package org.gradle.integtests
 
-import java.util.jar.Manifest
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.*
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.GradleVersion
+
+import java.util.jar.Manifest
+
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 
 /**
  * @author Hans Dockter
@@ -39,7 +42,7 @@ class OsgiProjectSampleIntegrationTest {
         long start = System.currentTimeMillis()
         TestFile osgiProjectDir = sample.dir
         executer.inDirectory(osgiProjectDir).withTasks('clean', 'assemble').run()
-        TestFile tmpDir = dist.testDir
+        TestFile tmpDir = dist.testWorkDir
         osgiProjectDir.file('build/libs/osgi-1.0.jar').unzipTo(tmpDir)
         tmpDir.file('META-INF/MANIFEST.MF').withInputStream { InputStream instr ->
             Manifest manifest = new Manifest(instr)

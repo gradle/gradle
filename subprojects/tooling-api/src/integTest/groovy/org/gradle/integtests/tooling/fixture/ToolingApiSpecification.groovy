@@ -20,13 +20,13 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.tooling.GradleConnector
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.internal.AssumptionViolatedException
 import org.junit.runner.RunWith
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
-import org.gradle.util.TestFile
 
 @RunWith(ToolingApiCompatibilitySuiteRunner)
 abstract class ToolingApiSpecification extends Specification {
@@ -86,7 +86,7 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     TestFile getProjectDir() {
-        dist.testDir
+        dist.testWorkDir
     }
 
     TestFile getBuildFile() {

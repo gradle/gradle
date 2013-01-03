@@ -15,15 +15,15 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.Specification
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 @RunWith(CrossVersionTestRunner)
 abstract class CrossVersionIntegrationSpec extends Specification {
@@ -40,7 +40,7 @@ abstract class CrossVersionIntegrationSpec extends Specification {
     }
 
     protected TestFile getTestDir() {
-        current.getTestDir();
+        current.getTestWorkDir();
     }
 
     protected TestFile file(Object... path) {

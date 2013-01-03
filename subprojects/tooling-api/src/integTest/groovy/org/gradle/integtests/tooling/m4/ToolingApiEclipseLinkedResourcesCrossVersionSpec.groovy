@@ -28,7 +28,7 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 @MinTargetGradleVersion('1.0-milestone-4')
 class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification {
     def "can build linked resources"() {
-        def projectDir = dist.testDir
+        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 apply plugin: 'eclipse'

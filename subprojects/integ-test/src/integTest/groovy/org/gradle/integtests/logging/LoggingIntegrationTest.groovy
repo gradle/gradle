@@ -16,14 +16,16 @@
 
 package org.gradle.integtests.logging
 
-import org.gradle.util.TestFile
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.internal.SystemProperties
+import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 /**
  * @author Hans Dockter
@@ -219,7 +221,7 @@ class LoggingIntegrationTest {
 
     def run(LogLevel level) {
         resources.maybeCopy('LoggingIntegrationTest/logging')
-        TestFile loggingDir = dist.testDir
+        TestFile loggingDir = dist.testWorkDir
         loggingDir.file("buildSrc/build/.gradle").deleteDir()
         loggingDir.file("nestedBuild/buildSrc/.gradle").deleteDir()
 
@@ -229,7 +231,7 @@ class LoggingIntegrationTest {
     }
 
     def runBroken(LogLevel level) {
-        TestFile loggingDir = dist.testDir
+        TestFile loggingDir = dist.testWorkDir
 
         return executer.setAllowExtraLogging(false).inDirectory(loggingDir).withTasks('broken').runWithFailure()
     }

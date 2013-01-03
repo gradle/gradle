@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.executer.*;
 import org.gradle.test.fixtures.ivy.IvyFileRepository;
 import org.gradle.test.fixtures.maven.MavenFileRepository;
 import org.gradle.util.TestFile;
-import org.gradle.util.TestFileContext;
+import org.gradle.util.TestWorkDirProvider;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -28,7 +28,7 @@ import org.junit.Rule;
 import java.io.File;
 import java.util.Set;
 
-public abstract class AbstractIntegrationTest implements TestFileContext {
+public abstract class AbstractIntegrationTest implements TestWorkDirProvider {
     @Rule public final GradleDistribution distribution = new GradleDistribution();
     public final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution);
 
@@ -61,12 +61,12 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
         }
     }
 
-    public TestFile getTestDir() {
-        return getDistribution().getTestDir();
+    public TestFile getTestWorkDir() {
+        return getDistribution().getTestWorkDir();
     }
 
     public TestFile file(Object... path) {
-        return getTestDir().file(path);
+        return getTestWorkDir().file(path);
     }
 
     public TestFile testFile(String name) {
@@ -74,7 +74,7 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     }
 
     protected GradleExecuter inTestDirectory() {
-        return inDirectory(getTestDir());
+        return inDirectory(getTestWorkDir());
     }
 
     protected GradleExecuter inDirectory(File directory) {
@@ -92,7 +92,7 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     protected ArtifactBuilder artifactBuilder() {
         GradleDistributionExecuter gradleExecuter = getDistribution().executer();
         gradleExecuter.withGradleUserHomeDir(getDistribution().getUserHomeDir());
-        return new GradleBackedArtifactBuilder(gradleExecuter, getTestDir().file("artifacts"));
+        return new GradleBackedArtifactBuilder(gradleExecuter, getTestWorkDir().file("artifacts"));
     }
 
     public MavenFileRepository maven(TestFile repo) {

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestFile
 import org.gradle.util.TextUtil
+
 import static org.hamcrest.Matchers.startsWith
 
 class ApplicationIntegrationTest extends AbstractIntegrationSpec{
@@ -52,7 +53,7 @@ class Main {
         run 'install'
 
         def builder = new ScriptExecuter()
-        builder.workingDir distribution.testDir.file('build/install/application/bin')
+        builder.workingDir distribution.testWorkDir.file('build/install/application/bin')
         builder.executable "application"
         if (OperatingSystem.current().windows) {
             builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2="some value" -DtestValue3="some value"')

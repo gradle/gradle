@@ -15,14 +15,11 @@
  */
 package org.gradle.integtests
 
-import org.junit.Assert
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import org.gradle.integtests.fixtures.*
-import org.junit.Before
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.junit.*
 
 class IncrementalTestIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -64,7 +61,7 @@ class IncrementalTestIntegrationTest {
     public void executesTestsWhenSelectedTestsChange() {
         executer.withTasks('test').run()
 
-        def result = new DefaultTestExecutionResult(distribution.testDir)
+        def result = new DefaultTestExecutionResult(distribution.testWorkDir)
         result.assertTestClassesExecuted('JUnitTest')
 
         // Include more tests
@@ -86,7 +83,7 @@ class IncrementalTestIntegrationTest {
         //TODO this exposes a possible problem: When changing the test framework stale xml result files from former test framework are still present.
         executer.withTasks('cleanTest', 'test').run().assertTasksNotSkipped(':cleanTest',':test')
 
-        result = new DefaultTestExecutionResult(distribution.testDir)
+        result = new DefaultTestExecutionResult(distribution.testWorkDir)
         result.assertTestClassesExecuted('TestNGTest')
 
         executer.withTasks('test').run().assertTasksNotSkipped()

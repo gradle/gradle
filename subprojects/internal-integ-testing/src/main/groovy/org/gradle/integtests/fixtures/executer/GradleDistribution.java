@@ -21,7 +21,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
-import org.gradle.util.TestFileContext;
+import org.gradle.util.TestWorkDirProvider;
 import org.junit.rules.MethodRule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -33,7 +33,7 @@ import java.io.File;
 /**
  * Provides access to a Gradle distribution for integration testing.
  */
-public class GradleDistribution implements MethodRule, TestRule, TestFileContext, BasicGradleDistribution {
+public class GradleDistribution implements MethodRule, TestRule, TestWorkDirProvider, BasicGradleDistribution {
     private static final TestFile USER_HOME_DIR;
     private static final TestFile GRADLE_HOME_DIR;
     private static final TestFile SAMPLES_DIR;
@@ -104,14 +104,14 @@ public class GradleDistribution implements MethodRule, TestRule, TestFileContext
 
     public TestFile getDaemonBaseDir() {
         if (usingIsolatedDaemons) {
-            return getTestDir().file("daemon");
+            return getTestWorkDir().file("daemon");
         } else {
             return DAEMON_BASE_DIR;
         }
     }
 
     public void requireOwnUserHomeDir() {
-        userHome = getTestDir().file("user-home");
+        userHome = getTestWorkDir().file("user-home");
     }
 
     public boolean isUsingIsolatedDaemons() {
@@ -198,14 +198,14 @@ public class GradleDistribution implements MethodRule, TestRule, TestFileContext
     public boolean isFileUnderTest(File file) {
         return GRADLE_HOME_DIR.isSelfOrDescendent(file)
                 || SAMPLES_DIR.isSelfOrDescendent(file)
-                || getTestDir().isSelfOrDescendent(file)
+                || getTestWorkDir().isSelfOrDescendent(file)
                 || getUserHomeDir().isSelfOrDescendent(file);
     }
 
     /**
      * Returns a scratch-pad directory for the current test. This directory is not shared with any other tests.
      */
-    public TestFile getTestDir() {
+    public TestFile getTestWorkDir() {
         return temporaryFolder.getDir();
     }
 
@@ -234,14 +234,14 @@ public class GradleDistribution implements MethodRule, TestRule, TestFileContext
      * Returns a scratch-pad file for the current test. Equivalent to getTestDir().file(path)
      */
     public TestFile file(Object... path) {
-        return getTestDir().file(path);
+        return getTestWorkDir().file(path);
     }
 
     /**
      * Returns a scratch-pad file for the current test. Equivalent to getTestDir().file(path)
      */
     public TestFile testFile(Object... path) {
-        return getTestDir().file(path);
+        return getTestWorkDir().file(path);
     }
 }
 

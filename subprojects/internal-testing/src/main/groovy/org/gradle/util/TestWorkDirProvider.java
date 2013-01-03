@@ -16,8 +16,6 @@
 
 package org.gradle.util;
 
-public interface TestFileContext {
-    TestFile getTestDir();
-
-    TestFile file(Object... path);
+public interface TestWorkDirProvider {
+    TestFile getTestWorkDir();
 }

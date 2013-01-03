@@ -58,7 +58,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         def javaHome = Jvm.current().javaHome
         def javaLink = distribution.testFile("javaLink")
         FileSystems.default.createSymbolicLink(javaLink, javaHome)
-        distribution.getTestDir().file("tmp").deleteDir().createDir()
+        distribution.getTestWorkDir().file("tmp").deleteDir().createDir()
 
         String linkPath = TextUtil.escapeString(javaLink.absolutePath)
         distribution.file("gradle.properties") << "org.gradle.java.home=$linkPath"

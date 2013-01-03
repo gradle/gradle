@@ -57,8 +57,8 @@ abstract class DistributionIntegrationSpec extends Specification {
 
     protected TestFile unpackDistribution(type = getDistributionLabel()) {
         TestFile zip = getZip(type)
-        zip.usingNativeTools().unzipTo(dist.testDir)
-        TestFile contentsDir = dist.testDir.file("gradle-$version")
+        zip.usingNativeTools().unzipTo(dist.testWorkDir)
+        TestFile contentsDir = dist.testWorkDir.file("gradle-$version")
         contentsDir
     }
 

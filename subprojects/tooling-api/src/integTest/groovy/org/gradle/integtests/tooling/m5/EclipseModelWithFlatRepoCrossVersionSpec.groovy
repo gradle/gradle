@@ -24,7 +24,7 @@ import spock.lang.Issue
 
 @MinTargetGradleVersion('1.0-milestone-5')
 class EclipseModelWithFlatRepoCrossVersionSpec extends ToolingApiSpecification {
-    TestFile projectDir = dist.testDir
+    TestFile projectDir = dist.testWorkDir
 
     @Issue("GRADLE-1621")
     def "can get Eclipse model for project with flatDir repo and external dependency without source Jar"() {

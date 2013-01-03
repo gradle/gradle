@@ -16,12 +16,13 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.containsString
 
 /**
@@ -58,7 +59,7 @@ class SamplesGroovyMultiProjectIntegrationTest {
         testFiles.each { testProjectDir.file('build', it).assertIsFile() }
 
         // Check contents of jar
-        TestFile tmpDir = dist.testDir.file('jarContents')
+        TestFile tmpDir = dist.testWorkDir.file('jarContents')
         testProjectDir.file("build/libs/$TEST_PROJECT_NAME-1.0.jar").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
