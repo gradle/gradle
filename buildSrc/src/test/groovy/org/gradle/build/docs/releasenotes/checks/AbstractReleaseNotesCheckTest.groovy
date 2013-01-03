@@ -34,9 +34,12 @@ class AbstractReleaseNotesCheckTest extends Specification {
 
     ReleaseNotes notes(source, rendered) {
         def encoding = "utf-8"
-        def sourceFile = tmp.newFile("source.md")
+        println tmp.root.absolutePath
+        def sourceFile = new File(tmp.root, "source.md")
+        sourceFile.createNewFile()
         sourceFile.write(source, encoding)
-        def renderedFile = tmp.newFile("rendered.md")
+        def renderedFile = new File(tmp.root, "rendered.md")
+        renderedFile.createNewFile()
         renderedFile.write(rendered, encoding)
         new ReleaseNotes(sourceFile, renderedFile, encoding)
     }
