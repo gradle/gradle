@@ -43,7 +43,9 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                 publications {
                     maven {
                         pom.withXml {
-                            asNode().version[0].value = "foo"
+                            asNode().groupId[0].value = "changed-group"
+                            asNode().artifactId[0].value = "changed-artifact"
+                            asNode().version[0].value = "changed-version"
                             asNode().appendNode('description', "custom-description")
 
                             def dependency = asNode().appendNode('dependencies').appendNode('dependency')
@@ -60,7 +62,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module('group', 'root', 'foo')
+        def module = mavenRepo.module('changed-group', 'changed-artifact', 'changed-version')
         module.assertPublishedAsJavaModule()
         module.parsedPom.description == 'custom-description'
         module.parsedPom.scopes.runtime.assertDependsOn("junit", "junit", "4.11")
