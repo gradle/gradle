@@ -17,33 +17,24 @@
 package org.gradle.api.publish.maven.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication;
-import org.gradle.api.publish.maven.internal.MavenPublishLocalDynamicTaskCreator;
 import org.gradle.api.publish.maven.internal.MavenPublishDynamicTaskCreator;
+import org.gradle.api.publish.maven.internal.MavenPublishLocalDynamicTaskCreator;
 import org.gradle.api.publish.maven.internal.ModuleBackedMavenProjectIdentity;
 import org.gradle.api.publish.plugins.PublishingPlugin;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.Factory;
-import org.gradle.internal.LazyIterable;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.Callable;
-
-import static org.gradle.util.CollectionUtils.InjectionStep;
-import static org.gradle.util.CollectionUtils.inject;
 
 /**
  * Adds the ability to publish in the Maven format to Maven repositories.
@@ -57,26 +48,26 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final FileResolver fileResolver;
 
     @Inject
-    public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver) {
+    public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
-        this.fileResolver = fileResolver;
     }
 
-    public void apply(Project project) {
+    public void apply(final Project project) {
         project.getPlugins().apply(PublishingPlugin.class);
-        PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
+        final PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
 
-        // Create the default publication
-        Set<Configuration> visibleConfigurations = project.getConfigurations().matching(new Spec<Configuration>() {
-            public boolean isSatisfiedBy(Configuration configuration) {
-                return configuration.isVisible();
+        // Create the default publication for any components
+        project.getComponents().all(new Action<SoftwareComponent>() {
+            public void execute(SoftwareComponent softwareComponent) {
+                if (!extension.getPublications().withType(MavenPublication.class).isEmpty()) {
+                    throw new IllegalStateException("Cannot publish multiple components to Maven : need to fix this before we add another softwareComponent");
+                }
+                extension.getPublications().add(createPublication("maven", project, softwareComponent));
             }
         });
-        extension.getPublications().add(createPublication("maven", project, visibleConfigurations));
 
         TaskContainer tasks = project.getTasks();
 
@@ -91,7 +82,9 @@ public class MavenPublishPlugin implements Plugin<Project> {
         publishLocalTaskCreator.monitor(extension.getPublications());
     }
 
-    private MavenPublication createPublication(final String name, final Project project, final Set<? extends Configuration> configurations) {
+    private MavenPublication createPublication(final String name, final Project project, SoftwareComponent component) {
+        SoftwareComponentInternal componentInternal = (SoftwareComponentInternal) component;
+
         Callable<Object> pomDirCallable = new Callable<Object>() {
             public Object call() {
                 return new File(project.getBuildDir(), "publications/" + name);
@@ -102,25 +95,13 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         DefaultMavenPublication publication = instantiator.newInstance(
                 DefaultMavenPublication.class,
-                name, instantiator, projectIdentity, asPublishArtifacts(configurations), null, fileResolver, project.getTasks()
+                name, instantiator, projectIdentity, componentInternal, null
         );
 
         ConventionMapping descriptorConventionMapping = new DslObject(publication).getConventionMapping();
         descriptorConventionMapping.map("pomDir", pomDirCallable);
 
         return publication;
-    }
-
-    private Iterable<PublishArtifact> asPublishArtifacts(final Set<? extends Configuration> configurations) {
-        return new LazyIterable<PublishArtifact>(new Factory<Iterable<PublishArtifact>>() {
-            public Iterable<PublishArtifact> create() {
-                return inject(new HashSet<PublishArtifact>(), configurations, new Action<InjectionStep<HashSet<PublishArtifact>, Configuration>>() {
-                    public void execute(InjectionStep<HashSet<PublishArtifact>, Configuration> step) {
-                        step.getTarget().addAll(step.getItem().getAllArtifacts());
-                    }
-                });
-            }
-        });
     }
 
 }

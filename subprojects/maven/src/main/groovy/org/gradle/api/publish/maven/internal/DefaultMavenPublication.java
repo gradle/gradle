@@ -17,47 +17,32 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.CollectionUtils.collect;
-import static org.gradle.util.CollectionUtils.toSet;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private final String name;
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
-    private final Iterable<PublishArtifact> artifacts;
+    private final SoftwareComponentInternal component;
     private final File pomDir;
 
-    private final FileResolver fileResolver;
-    private final TaskResolver taskResolver;
-
     public DefaultMavenPublication(
-            String name, Instantiator instantiator, MavenProjectIdentity projectIdentity, Iterable<PublishArtifact> artifacts, File pomDir,
-            FileResolver fileResolver, TaskResolver taskResolver
+            String name, Instantiator instantiator, MavenProjectIdentity projectIdentity, SoftwareComponentInternal component, File pomDir
     ) {
         this.name = name;
         this.pom = instantiator.newInstance(DefaultMavenPom.class);
         this.projectIdentity = projectIdentity;
-        this.artifacts = artifacts;
+        this.component = component;
         this.pomDir = pomDir;
-        this.fileResolver = fileResolver;
-        this.taskResolver = taskResolver;
     }
 
     public String getName() {
@@ -73,18 +58,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
-        ConfigurableFileCollection files = new DefaultConfigurableFileCollection("publication artifacts", fileResolver, taskResolver);
-        files.from(new Callable<Set<File>>() {
-            public Set<File> call() throws Exception {
-                return collect(artifacts, new HashSet<File>(), new Transformer<File, PublishArtifact>() {
-                    public File transform(PublishArtifact artifact) {
-                        return artifact.getFile();
-                    }
-                });
-            }
-        });
-        files.builtBy(artifacts);
-        return files;
+        return component.getArtifacts().getFiles();
     }
 
     public TaskDependency getBuildDependencies() {
@@ -92,7 +66,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
-        return new MavenNormalizedPublication(projectIdentity, artifacts, pom.getXmlAction());
+        return new MavenNormalizedPublication(projectIdentity, component.getArtifacts(), component.getRuntimeDependencies(), pom.getXmlAction());
     }
 
     public File getPomDir() {
@@ -100,6 +74,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public Set<PublishArtifact> getArtifacts() {
-        return toSet(artifacts);
+        return component.getArtifacts();
     }
 }

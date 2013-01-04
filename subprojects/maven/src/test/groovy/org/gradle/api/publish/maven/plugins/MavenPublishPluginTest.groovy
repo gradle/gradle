@@ -18,14 +18,12 @@ package org.gradle.api.publish.maven.plugins
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication
 import org.gradle.api.publish.maven.internal.MavenPublicationInternal
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.War
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -39,14 +37,23 @@ class MavenPublishPluginTest extends Specification {
         publishing = project.extensions.getByType(PublishingExtension)
     }
 
-    def "default publication"() {
+    def "no publication without component"() {
         expect:
+        publishing.publications.empty
+    }
+
+    def "default publication with java plugin"() {
+        when:
+        javaPluginApplied()
+
+        then:
         publishing.publications.size() == 1
         publishing.publications.maven instanceof DefaultMavenPublication
     }
 
     def "creates publish tasks"() {
         when:
+        javaPluginApplied()
         publishing.repositories { maven { url = "http://foo.com" } }
 
         then:
@@ -54,33 +61,27 @@ class MavenPublishPluginTest extends Specification {
         project.tasks["publishMavenPublicationToMavenLocal"] != null
     }
 
-    def "default publication always has all visible config artifacts"() {
-        given:
-        MavenPublicationInternal publication = getMainPublication()
-
-        expect:
-        publication.artifacts.empty
-
+    def "java publication always has jar artifact"() {
         when:
-        project.plugins.apply(JavaPlugin)
+        javaPluginApplied()
 
         then:
-        publication.artifacts.size() == 1
-        publication.artifacts.find { it.archiveTask instanceof Jar }
-
-        when:
-        project.plugins.apply(WarPlugin)
-
-        then:
-        publication.artifacts.size() == 2
-        publication.artifacts.find { it.archiveTask instanceof War }
+        mainPublication.artifacts.size() == 1
+        mainPublication.artifacts.find { it.archiveTask instanceof Jar }
     }
 
     protected MavenPublicationInternal getMainPublication() {
         publishing.publications.maven
     }
 
+    def javaPluginApplied() {
+        project.plugins.apply(JavaPlugin)
+    }
+
     def "task is created for publishing to mavenLocal"() {
+        given:
+        javaPluginApplied()
+
         expect:
         publishLocalTasks.size() == 1
         publishLocalTasks.first().name == "publishMavenPublicationToMavenLocal"
@@ -89,6 +90,9 @@ class MavenPublishPluginTest extends Specification {
     }
 
     def "can explicitly add mavenLocal as a publishing repository"() {
+        given:
+        javaPluginApplied()
+
         when:
         def mavenLocal = publishing.repositories.mavenLocal()
 
@@ -101,6 +105,9 @@ class MavenPublishPluginTest extends Specification {
     }
 
     def "tasks are created for compatible publication / repo"() {
+        given:
+        javaPluginApplied()
+
         expect:
         publishTasks.size() == 0
 
@@ -139,6 +146,7 @@ class MavenPublishPluginTest extends Specification {
 
     def "publication identity is live wrt project properties"() {
         given:
+        javaPluginApplied()
         project.group = "group"
         project.version = "version"
 
@@ -160,6 +168,9 @@ class MavenPublishPluginTest extends Specification {
     }
 
     def "pom dir moves with build dir"() {
+        given:
+        javaPluginApplied()
+
         expect:
         mainPublication.pomDir == new File(project.buildDir, "publications/${mainPublication.name}")
 

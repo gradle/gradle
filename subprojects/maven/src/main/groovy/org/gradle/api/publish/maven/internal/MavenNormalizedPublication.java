@@ -18,17 +18,20 @@ package org.gradle.api.publish.maven.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 
 public class MavenNormalizedPublication implements MavenProjectIdentity {
 
     private final MavenProjectIdentity projectIdentity;
     private final Iterable<PublishArtifact> artifacts;
+    private final Iterable<Dependency> runtimeDependencies;
     private final Action<XmlProvider> pomWithXmlAction;
 
-    public MavenNormalizedPublication(MavenProjectIdentity projectIdentity, Iterable<PublishArtifact> artifacts, Action<XmlProvider> pomWithXmlAction) {
+    public MavenNormalizedPublication(MavenProjectIdentity projectIdentity, Iterable<PublishArtifact> artifacts, Iterable<Dependency> runtimeDependencies, Action<XmlProvider> pomWithXmlAction) {
         this.projectIdentity = projectIdentity;
         this.artifacts = artifacts;
+        this.runtimeDependencies = runtimeDependencies;
         this.pomWithXmlAction = pomWithXmlAction;
     }
 
@@ -50,6 +53,10 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
 
     public Iterable<PublishArtifact> getArtifacts() {
         return artifacts;
+    }
+
+    public Iterable<Dependency> getRuntimeDependencies() {
+        return runtimeDependencies;
     }
 
     public Action<XmlProvider> getPomWithXmlAction() {

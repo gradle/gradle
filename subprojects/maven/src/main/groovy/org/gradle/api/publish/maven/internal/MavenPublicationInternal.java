@@ -17,12 +17,10 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.maven.MavenPublication;
 
 import java.io.File;
-import java.util.Set;
 
 public interface MavenPublicationInternal extends MavenPublication, Buildable {
 
@@ -33,7 +31,5 @@ public interface MavenPublicationInternal extends MavenPublication, Buildable {
     MavenNormalizedPublication asNormalisedPublication();
 
     File getPomDir();
-
-    Set<PublishArtifact> getArtifacts();
 }
 
