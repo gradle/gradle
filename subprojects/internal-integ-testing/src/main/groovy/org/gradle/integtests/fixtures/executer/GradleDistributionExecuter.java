@@ -75,29 +75,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()));
     }
 
-    public GradleDistributionExecuter() {
-        this(getSystemPropertyExecuter());
-    }
-
-    public GradleDistributionExecuter(Executer executerType) {
-        this.executerType = executerType;
-    }
-
-    public GradleDistributionExecuter(GradleDistribution dist) {
-        this(getSystemPropertyExecuter(), dist);
-    }
-
     public GradleDistributionExecuter(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
         this(getSystemPropertyExecuter(), dist, testWorkDirProvider);
     }
 
-    public GradleDistributionExecuter(Executer executerType, GradleDistribution dist) {
-        this(executerType);
-        this.dist = dist;
-        reset();
-    }
-
-    public GradleDistributionExecuter(Executer executerType, GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
+    private GradleDistributionExecuter(Executer executerType, GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
         this.executerType = executerType;
         this.dist = dist;
         this.testWorkDirProvider = testWorkDirProvider;

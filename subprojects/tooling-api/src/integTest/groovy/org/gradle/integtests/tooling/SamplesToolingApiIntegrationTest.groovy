@@ -101,7 +101,7 @@ run {
 
     private ExecutionResult run() {
         try {
-            return new GradleDistributionExecuter(distribution).inDirectory(sample.dir)
+            return new GradleDistributionExecuter(distribution, temporaryFolder)
                     .withTasks('run')
                     .withDaemonIdleTimeoutSecs(60)
                     .run()

@@ -28,7 +28,8 @@ public class PerformanceTestRunner {
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
-    def current = new GradleDistribution(new TestNameTestDirectoryProvider())
+    def testDirectoryProvider = new TestNameTestDirectoryProvider()
+    def current = new GradleDistribution(testDirectoryProvider)
 
     String testProject
     int runs
@@ -43,6 +44,7 @@ public class PerformanceTestRunner {
     List<Amount<DataAmount>> maxMemoryRegression = [DataAmount.bytes(0)]
 
     PerformanceResults results
+
 
     PerformanceResults run() {
         assert targetVersions.size() == maxExecutionTimeRegression.size()
@@ -98,7 +100,7 @@ public class PerformanceTestRunner {
     GradleExecuter executer(BasicGradleDistribution dist, File projectDir) {
         def executer
         if (dist instanceof GradleDistribution) {
-            executer = new GradleDistributionExecuter(GradleDistributionExecuter.Executer.forking, dist)
+            executer = new GradleDistributionExecuter(dist, testDirectoryProvider).withForkingExecuter()
             executer.withDeprecationChecksDisabled()
             executer.withStackTraceChecksDisabled()
         } else {
