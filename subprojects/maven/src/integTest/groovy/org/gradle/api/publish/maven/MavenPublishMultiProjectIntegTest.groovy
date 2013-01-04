@@ -18,7 +18,7 @@
 
 
 
-package org.gradle.api.publish.maven.plugins
+package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
