@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-
-
-
-
 package org.gradle.api.publish.maven
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
-import spock.lang.Issue
 
 class MavenPublishMultiProjectIntegTest extends AbstractIntegrationSpec {
-    def mavenModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
+    def project1module = mavenRepo.module("org.gradle.test", "project1", "1.9")
 
     def "project dependency correctly reflected in POM if publication coordinates are unchanged"() {
         createBuildScripts("""
@@ -40,11 +34,10 @@ project(":project1") {
         run ":project1:publish"
 
         then:
-        def pom = mavenModule.parsedPom
+        def pom = project1module.parsedPom
         pom.scopes.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 
-    @Issue("GRADLE-443")
     def "project dependency correctly reflected in POM if archivesBaseName is changed"() {
         createBuildScripts("""
 project(":project1") {
@@ -62,11 +55,10 @@ project(":project2") {
         run ":project1:publish"
 
         then:
-        def pom = mavenModule.parsedPom
+        def pom = project1module.parsedPom
         pom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
     }
 
-    @Issue("GRADLE-443")
     def "project dependency correctly reflected in POM if mavenDeployer.pom.artifactId is changed"() {
         createBuildScripts("""
 project(":project1") {
@@ -92,7 +84,7 @@ project(":project2") {
         run ":project1:publish"
 
         then:
-        def pom = mavenModule.parsedPom
+        def pom = project1module.parsedPom
         pom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
     }
 
@@ -122,10 +114,11 @@ project(":project2") {
         run ":project1:publish"
 
         then:
-        def pom = mavenModule.parsedPom
+        def pom = project1module.parsedPom
         pom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
     }
 
+    @Ignore("This test currently proves nothing, since the maven-publish plugin does not include artifacts from the 'archives' configuration") // TODO:DAZ
     def "project dependency correctly reflected in POM if second artifact is published which differs in classifier"() {
         createBuildScripts("""
 project(":project1") {
@@ -149,13 +142,46 @@ project(":project2") {
         run ":project1:publish"
 
         then:
-        def pom = mavenModule.parsedPom
+        def pom = project1module.parsedPom
         pom.scopes.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 
+    def "mulitple project dependencies correctly reflected in POMs"() {
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(":project2")
+        compile project(":project3")
+    }
+}
+
+project(":project2") {
+    dependencies {
+        compile project(":project3")
+    }
+}
+        """)
+
+        when:
+        run "publish"
+
+        then:
+        def pom = project1module.parsedPom
+        pom.scopes.runtime.assertDependsOnArtifacts("project2", "project3")
+
+        and:
+        def pom2 = mavenRepo.module("org.gradle.test", "project2", "1.9").parsedPom
+        pom2.scopes.runtime.assertDependsOnArtifacts("project3")
+
+        and:
+        def pom3 = mavenRepo.module("org.gradle.test", "project3", "1.9").parsedPom
+        pom3.scopes.runtime == null
+    }
+
+
     private void createBuildScripts(String append = "") {
         settingsFile << """
-include "project1", "project2"
+include "project1", "project2", "project3"
         """
 
         buildFile << """
@@ -174,8 +200,6 @@ subprojects {
         }
     }
 }
-
-
 
 $append
         """
