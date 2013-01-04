@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.util.RuleHelper;
 import org.gradle.util.TestFile;
+import org.gradle.util.TestWorkDirProvider;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory;
 public class Sample implements MethodRule {
     private final Logger logger = LoggerFactory.getLogger(Sample.class);
     private final String defaultSampleName;
-    private GradleDistribution dist;
+
     private TestFile sampleDir;
 
     public Sample(String defaultSampleName) {
@@ -45,9 +46,11 @@ public class Sample implements MethodRule {
     }
 
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
-        dist = RuleHelper.getField(target, GradleDistribution.class);
+        final GradleDistribution dist = RuleHelper.getField(target, GradleDistribution.class);
+        final TestWorkDirProvider testWorkDirProvider = RuleHelper.getField(target, TestWorkDirProvider.class);
+
         final String sampleName = getSampleName(method);
-        sampleDir = sampleName == null ? null : dist.getTestWorkDir().file(sampleName);
+        sampleDir = sampleName == null ? null : testWorkDirProvider.getTestWorkDir().file(sampleName);
 
         return new Statement() {
             @Override

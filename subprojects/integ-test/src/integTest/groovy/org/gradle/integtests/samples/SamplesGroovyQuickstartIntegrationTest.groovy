@@ -16,17 +16,15 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 
-class SamplesGroovyQuickstartIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class SamplesGroovyQuickstartIntegrationTest extends AbstractIntegrationTest {
+
     @Rule public final Sample sample = new Sample('groovy/quickstart')
 
     @Test
@@ -39,7 +37,7 @@ class SamplesGroovyQuickstartIntegrationTest {
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check contents of jar
-        TestFile tmpDir = dist.testWorkDir.file('jarContents')
+        TestFile tmpDir = file('jarContents')
         groovyProjectDir.file('build/libs/quickstart.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

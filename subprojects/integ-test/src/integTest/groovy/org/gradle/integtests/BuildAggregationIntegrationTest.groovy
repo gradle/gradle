@@ -15,20 +15,16 @@
  */
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.TestFile
-import org.junit.Rule
 import org.junit.Test
 
-class BuildAggregationIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canExecuteAnotherBuildFromBuild() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
             assert gradle.parent == null
             task build(type: GradleBuild) {
                 dir = 'other'
@@ -37,7 +33,7 @@ class BuildAggregationIntegrationTest {
             }
 '''
 
-        dist.testFile('other/build.gradle') << '''
+        file('other/build.gradle') << '''
             assert gradle.parent != null
             task dostuff << {
                 assert gradle.parent != null
@@ -49,12 +45,12 @@ class BuildAggregationIntegrationTest {
 
     @Test
     public void treatsBuildSrcProjectAsANestedBuild() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
             assert gradle.parent == null
             task build
 '''
 
-        dist.testFile('buildSrc/build.gradle') << '''
+        file('buildSrc/build.gradle') << '''
             apply plugin: 'java'
             assert gradle.parent != null
             classes << {
@@ -67,11 +63,11 @@ class BuildAggregationIntegrationTest {
 
     @Test
     public void reportsNestedBuildFailure() {
-        TestFile other = dist.testFile('other.gradle') << '''
+        TestFile other = file('other.gradle') << '''
             throw new ArithmeticException('broken')
 '''
 
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
             task build(type: GradleBuild) {
                 buildFile = 'other.gradle'
                 startParameter.searchUpwards = false
@@ -87,7 +83,7 @@ class BuildAggregationIntegrationTest {
 
     @Test
     public void reportsBuildSrcFailure() {
-        dist.testFile('buildSrc/src/main/java/Broken.java') << 'broken!'
+        file('buildSrc/src/main/java/Broken.java') << 'broken!'
         ExecutionFailure failure = executer.runWithFailure()
         failure.assertHasDescription('Execution failed for task \':compileJava\'')
     }

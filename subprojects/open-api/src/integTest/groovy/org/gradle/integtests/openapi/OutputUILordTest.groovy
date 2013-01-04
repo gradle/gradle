@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.openapi;
+package org.gradle.integtests.openapi
 
-import java.awt.Font
-import java.util.concurrent.TimeUnit
-import javax.swing.UIManager
-
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.openapi.external.ui.OutputUILordVersion1
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1
-import org.gradle.util.TestPrecondition
-import org.gradle.util.Requires
 import org.gradle.util.PreconditionVerifier
-
+import org.gradle.util.Requires
+import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestPrecondition
 import org.junit.Assert
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.junit.ClassRule
+
+import javax.swing.*
+import java.awt.*
+import java.util.List
+import java.util.concurrent.TimeUnit
 
 import static org.hamcrest.Matchers.startsWith
 
@@ -41,7 +42,10 @@ import static org.hamcrest.Matchers.startsWith
  */
 @Requires(TestPrecondition.SWING)
 class OutputUILordTest {
-    @Rule public GradleDistribution dist = new GradleDistribution()
+
+    @Rule TemporaryFolder temporaryFolder = new TemporaryFolder()
+    GradleDistribution dist = new GradleDistribution(temporaryFolder)
+
     @Rule public OpenApiFixture openApi = new OpenApiFixture()
     @Rule public TestResources resources = new TestResources('testProject')
     @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()

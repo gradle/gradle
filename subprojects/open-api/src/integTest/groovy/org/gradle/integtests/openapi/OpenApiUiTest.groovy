@@ -15,15 +15,9 @@
  */
 package org.gradle.integtests.openapi
 
-import java.awt.Component
-import java.awt.event.HierarchyEvent
-import java.awt.event.HierarchyListener
-import java.util.concurrent.TimeUnit
-import javax.swing.JFrame
-import javax.swing.JLabel
-
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.openapi.external.ExternalUtility
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion2
 import org.gradle.openapi.external.foundation.ProjectVersion1
@@ -31,16 +25,21 @@ import org.gradle.openapi.external.foundation.RequestVersion1
 import org.gradle.openapi.external.foundation.TaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.openapi.external.ui.*
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.PreconditionVerifier
-
+import org.gradle.util.Requires
+import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestPrecondition
 import org.junit.Assert
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.junit.ClassRule
+
+import javax.swing.*
+import java.awt.*
+import java.awt.event.HierarchyEvent
+import java.awt.event.HierarchyListener
+import java.util.concurrent.TimeUnit
 
 import static org.hamcrest.Matchers.*
 
@@ -50,7 +49,9 @@ import static org.hamcrest.Matchers.*
  */
 @Requires(TestPrecondition.SWING)
 class OpenApiUiTest {
-    @Rule public GradleDistribution dist = new GradleDistribution()
+
+    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    GradleDistribution dist = new GradleDistribution(temporaryFolder)
     @Rule public TestResources resources = new TestResources('testproject')
     @Rule public OpenApiFixture openApi = new OpenApiFixture()
     @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()
@@ -218,7 +219,7 @@ class OpenApiUiTest {
         Assert.assertEquals(4, editor.getFavoriteTasks().size())
 
         //now remove one of them
-        List removed1 = [favorite2]
+        java.util.List removed1 = [favorite2]
         editor.removeFavorites(removed1)
 
         //make sure it was removed
@@ -226,7 +227,7 @@ class OpenApiUiTest {
         Assert.assertEquals(3, editor.getFavoriteTasks().size())
 
         //now remove multiples
-        List removed2 = [favorite1, favorite4]
+        java.util.List removed2 = [favorite1, favorite4]
         editor.removeFavorites(removed2)
 
         //make sure they were both removed
@@ -273,7 +274,7 @@ class OpenApiUiTest {
         ((GradleInterfaceVersion2) singlePane.getGradleInterfaceVersion1()).addRequestObserver(testRequestObserver)
 
         //now execute both favorites
-        List<FavoriteTaskVersion1> favorites = [favorite1, favorite2]
+        java.util.List<FavoriteTaskVersion1> favorites = [favorite1, favorite2]
         RequestVersion1 request = ((GradleInterfaceVersion2) singlePane.getGradleInterfaceVersion1()).executeFavorites(favorites)
 
         Assert.assertNotNull(request)
@@ -309,7 +310,7 @@ class OpenApiUiTest {
 
         Assert.assertEquals("Execution Failed: " + testRequestObserver.output, 0, testRequestObserver.result)
 
-        List<ProjectVersion1> rootProjects = gradleInterface.getRootProjects();
+        java.util.List<ProjectVersion1> rootProjects = gradleInterface.getRootProjects();
         Assert.assertFalse(rootProjects.isEmpty());   //do we have any root projects?
 
         ProjectVersion1 rootProject = rootProjects.get(0);
@@ -581,7 +582,7 @@ class OpenApiUiTest {
             throw new AssertionError("Failed to extract single pane: Caused by " + e.getMessage())
         }
 
-        File illegalDirectory = dist.testFile("non-existant").createDir();
+        File illegalDirectory = temporaryFolder.testWorkDir.file("non-existant").createDir();
         if (illegalDirectory.equals(singlePane.getCurrentDirectory())) {
             throw new AssertionError("Directory already set to 'test' directory. The test is not setup correctly.");
         }

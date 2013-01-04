@@ -16,14 +16,12 @@
 
 package org.gradle
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Shared
-import spock.lang.Specification
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
@@ -31,10 +29,8 @@ import java.util.zip.ZipFile
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
-abstract class DistributionIntegrationSpec extends Specification {
+abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
     @Shared String version = GradleVersion.current().version
@@ -57,13 +53,13 @@ abstract class DistributionIntegrationSpec extends Specification {
 
     protected TestFile unpackDistribution(type = getDistributionLabel()) {
         TestFile zip = getZip(type)
-        zip.usingNativeTools().unzipTo(dist.testWorkDir)
-        TestFile contentsDir = dist.testWorkDir.file("gradle-$version")
+        zip.usingNativeTools().unzipTo(testWorkDir)
+        TestFile contentsDir = file("gradle-$version")
         contentsDir
     }
 
     protected TestFile getZip(String type = getDistributionLabel()) {
-        dist.distributionsDir.file("gradle-$version-${type}.zip")
+        distribution.distributionsDir.file("gradle-$version-${type}.zip")
     }
 
     protected void checkMinimalContents(TestFile contentsDir) {

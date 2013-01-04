@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.util.TestWorkDirProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -31,21 +32,21 @@ class ToolingApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
 
     private BasicGradleDistribution dist
-    private Closure getProjectDir
+    private TestWorkDirProvider testWorkDirProvider
     private File userHomeDir
 
     private final List<Closure> connectorConfigurers = []
     boolean isEmbedded
     boolean verboseLogging = LOGGER.debugEnabled
 
-    ToolingApi(GradleDistribution dist) {
-        this(dist, dist.userHomeDir, { dist.testWorkDir }, GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded)
+    ToolingApi(GradleDistribution dist, TestWorkDirProvider testWorkDirProvider) {
+        this(dist, dist.userHomeDir, testWorkDirProvider, GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded)
     }
 
-    ToolingApi(BasicGradleDistribution dist, File userHomeDir, Closure getProjectDir, boolean isEmbedded) {
+    ToolingApi(BasicGradleDistribution dist, File userHomeDir, TestWorkDirProvider testWorkDirProvider, boolean isEmbedded) {
         this.dist = dist
         this.userHomeDir = userHomeDir
-        this.getProjectDir = getProjectDir
+        this.testWorkDirProvider = testWorkDirProvider
         this.isEmbedded = isEmbedded
     }
 
@@ -87,7 +88,7 @@ class ToolingApi {
     GradleConnector connector() {
         GradleConnector connector = GradleConnector.newConnector()
         connector.useGradleUserHomeDir(userHomeDir)
-        connector.forProjectDirectory(getProjectDir().absoluteFile)
+        connector.forProjectDirectory(testWorkDirProvider.testWorkDir)
         connector.searchUpwards(false)
         connector.daemonMaxIdleTime(60, TimeUnit.SECONDS)
         if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {

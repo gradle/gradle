@@ -16,12 +16,9 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.RuleHelper;
 import org.gradle.util.TestFile;
+import org.gradle.util.TestWorkDirProvider;
 import org.gradle.util.TextUtil;
-import org.junit.rules.MethodRule;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.Statement;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,12 +35,14 @@ import static org.gradle.util.Matchers.matchesRegexp;
  * By default, this executer will execute Gradle in a forked process. There is a system property which enables executing
  * Gradle in the current process.
  */
-public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter implements MethodRule {
+public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter {
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
     private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
     private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
 
+    private TestWorkDirProvider testWorkDirProvider;
     private GradleDistribution dist;
+
     private boolean workingDirSet;
     private boolean gradleUserHomeDirSet;
     private boolean deprecationChecksOn = true;
@@ -88,18 +87,20 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         this(getSystemPropertyExecuter(), dist);
     }
 
+    public GradleDistributionExecuter(GradleDistribution dist, TestWorkDirProvider testWorkDirProvider) {
+        this(getSystemPropertyExecuter(), dist, testWorkDirProvider);
+    }
+
     public GradleDistributionExecuter(Executer executerType, GradleDistribution dist) {
         this(executerType);
         this.dist = dist;
         reset();
     }
 
-    public Statement apply(Statement base, final FrameworkMethod method, Object target) {
-        if (dist == null) {
-            dist = RuleHelper.getField(target, GradleDistribution.class);
-        }
-        beforeExecute(new RedirectMavenCentral(dist));
-        return base;
+    public GradleDistributionExecuter(Executer executerType, GradleDistribution dist, TestWorkDirProvider testWorkDirProvider) {
+        this.executerType = executerType;
+        this.dist = dist;
+        this.testWorkDirProvider = testWorkDirProvider;
     }
 
     @Override
@@ -138,7 +139,15 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         stackTraceChecksOn = false;
         return this;
     }
-    
+
+    public Executer getExecuterType() {
+        return executerType;
+    }
+
+    public void setExecuterType(Executer executerType) {
+        this.executerType = executerType;
+    }
+
     public GradleDistributionExecuter withForkingExecuter() {
         if (!executerType.forks) {
             executerType = Executer.forking;
@@ -217,7 +226,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     protected GradleExecuter configureExecuter() {
         if (!workingDirSet) {
-            inDirectory(dist.getTestWorkDir());
+            inDirectory(testWorkDirProvider.getTestWorkDir());
         }
         if (!gradleUserHomeDirSet) {
             withGradleUserHomeDir(dist.getUserHomeDir());
@@ -298,6 +307,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     }
 
     private TestFile getTmpDir() {
-        return dist.getTestWorkDir().file("tmp");
+        return new TestFile(getWorkingDir(), "tmp");
     }
 }

@@ -33,7 +33,7 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
 
     def "daemon keeps logging to the file even if the build is started"() {
         given:
-        distribution.file("build.gradle") << """
+        file("build.gradle") << """
 task sleep << {
     println 'taking a nap...'
     Thread.sleep(10000)
@@ -73,7 +73,7 @@ task sleep << {
 
     @Timeout(25)
     def "promptly shows decent message when awkward java home used"() {
-        def dummyJdk = distribution.file("dummyJdk").createDir()
+        def dummyJdk = file("dummyJdk").createDir()
         assert dummyJdk.isDirectory()
         def jdkPath = TextUtil.escapeString(dummyJdk.canonicalPath)
         
@@ -88,7 +88,7 @@ task sleep << {
 
     def "daemon log contains all necessary logging"() {
         given:
-        distribution.file("build.gradle") << "println 'Hello build!'"
+        file("build.gradle") << "println 'Hello build!'"
 
         when:
         executer.withArguments("-i").run()
@@ -116,7 +116,7 @@ task sleep << {
 
     def "background daemon infrastructure logs with DEBUG"() {
         given:
-        distribution.file("build.gradle") << "task foo << { println 'hey!' }"
+        file("build.gradle") << "task foo << { println 'hey!' }"
 
         when: "runing build with --info"
         executer.withArguments("-i").withTasks('foo').run()
@@ -143,7 +143,7 @@ task sleep << {
 
     def "daemon log honors log levels for logging"() {
         given:
-        distribution.file("build.gradle") << """
+        file("build.gradle") << """
             println 'println me!'
 
             logger.debug('debug me!')
@@ -174,7 +174,7 @@ task sleep << {
 
     def "disappearing daemon makes client log useful information"() {
         given:
-        distribution.file("build.gradle") << "System.exit(0)"
+        file("build.gradle") << "System.exit(0)"
 
         when:
         def failure = executer.withArguments("-q").runWithFailure()
@@ -186,7 +186,7 @@ task sleep << {
 
     def "foreground daemon log honors log levels for logging"() {
         given:
-        distribution.file("build.gradle") << """
+        file("build.gradle") << """
             logger.debug('debug me!')
             logger.info('info me!')
         """

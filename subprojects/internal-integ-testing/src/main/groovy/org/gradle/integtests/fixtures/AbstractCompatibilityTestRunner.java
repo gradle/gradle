@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.executer.BasicGradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.util.TemporaryFolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,8 @@ import java.util.List;
  * A base class for those test runners which execute a test multiple times against a set of Gradle versions.
  */
 public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestRunner {
-    protected final GradleDistribution current = new GradleDistribution();
+
+    protected final GradleDistribution current = new GradleDistribution(new TemporaryFolder());
     protected final List<BasicGradleDistribution> previous;
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {

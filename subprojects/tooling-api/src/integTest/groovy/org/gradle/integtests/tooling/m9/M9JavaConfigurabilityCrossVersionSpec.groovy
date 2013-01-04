@@ -55,7 +55,7 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     @Issue("GRADLE-1799")
     @Timeout(25)
     def "promptly discovers when java is not a valid installation"() {
-        def dummyJdk = dist.file("wrong jdk location").createDir()
+        def dummyJdk = file("wrong jdk location").createDir()
 
         when:
         maybeFailWithConnection {
@@ -90,7 +90,7 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
     def "customized java home is reflected in the java.home and the build model"() {
         given:
-        dist.file('build.gradle') << "project.description = new File(System.getProperty('java.home')).canonicalPath"
+        file('build.gradle') << "project.description = new File(System.getProperty('java.home')).canonicalPath"
 
         when:
         File javaHome = AvailableJavaHomes.bestAlternative
@@ -111,8 +111,8 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
         File otherJava = getOtherJava()
         String otherJavaPath = TextUtil.escapeString(otherJava.canonicalPath)
-        dist.file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
-        dist.file('gradle.properties') << "org.gradle.java.home=$otherJavaPath"
+        file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
+        file('gradle.properties') << "org.gradle.java.home=$otherJavaPath"
 
         when:
         def env = withConnection {

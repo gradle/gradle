@@ -15,18 +15,15 @@
  */
 package org.gradle.testing.testng
 
+import org.gradle.integtests.fixtures.*
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 /**
  * @author Tom Eyckmans
  */
-public class SampleTestNGIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
+
     @Rule public final Sample sample = new Sample()
 
     @Test @UsesSample('testng/suitexmlbuilder')

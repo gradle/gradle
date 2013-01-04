@@ -24,7 +24,7 @@ class MavenPublishRespectsPomConfigurationTest extends AbstractIntegrationSpec {
     @Ignore
     def "project dependencies in pom respect renamed artifactId"() {
         setup:
-        def root = distribution.testFile("root")
+        def root = file("root")
         root.file("settings.gradle") << """
     rootProject.name = "publish"
     include 'project1'

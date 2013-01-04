@@ -26,11 +26,12 @@ import org.gradle.api.internal.project.TopLevelBuildServiceRegistry
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.HelperUtil
+import org.gradle.util.TemporaryFolder
 
 class ToolingApiDistributionResolver {
     private final DependencyResolutionServices resolutionServices
     private final Map<String, ToolingApiDistribution> distributions = [:]
-    private final GradleDistribution currentGradleDistribution = new GradleDistribution()
+    private final GradleDistribution currentGradleDistribution = new GradleDistribution(new TemporaryFolder())
     private boolean useExternalToolingApiDistribution = false;
 
     ToolingApiDistributionResolver() {

@@ -34,7 +34,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         testProject()
 
         when:
-        def relativeDir = new File(distribution.testWorkDir, 'java/multiproject/../quickstart')
+        def relativeDir = new File(testWorkDir, 'java/multiproject/../quickstart')
         executer.inDirectory(relativeDir).run()
 
         then:
@@ -46,7 +46,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         testProject()
 
         when:
-        def mixedCaseDir = new File(distribution.testWorkDir, "JAVA/QuickStart")
+        def mixedCaseDir = new File(testWorkDir, "JAVA/QuickStart")
         executer.inDirectory(mixedCaseDir).run()
 
         then:
@@ -58,7 +58,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         testProject()
 
         when:
-        def shortDir = new File(distribution.testWorkDir, 'java/QUICKS~1')
+        def shortDir = new File(testWorkDir, 'java/QUICKS~1')
         executer.inDirectory(shortDir).run()
 
         then:
@@ -66,8 +66,8 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private testProject() {
-        distribution.testFile("java/multiproject").createDir()
-        def projectDir = distribution.testFile("java/quickstart")
+        file("java/multiproject").createDir()
+        def projectDir = file("java/quickstart")
         projectDir.file('build.gradle') << "assert file('.') == new File(new URI('${projectDir.toURI()}'))"
     }
 
@@ -89,8 +89,8 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "build is executed with working directory set to where the build was launched from"() {
-        def project1 = distribution.testFile("project1")
-        def project2 = distribution.testFile("project2")
+        def project1 = file("project1")
+        def project2 = file("project2")
 
         project1.file('build.gradle') << """
 def expectedDir = new File(new URI('${project1.toURI()}'))

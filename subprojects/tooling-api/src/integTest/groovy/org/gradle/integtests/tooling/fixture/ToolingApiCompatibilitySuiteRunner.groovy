@@ -153,6 +153,8 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowClass(OperatingSystem)
             sharedClassLoader.allowClass(Requires)
             sharedClassLoader.allowClass(TestPrecondition)
+            sharedClassLoader.allowClass(TemporaryFolder)
+            sharedClassLoader.allowClass(TestWorkDirProvider)
             sharedClassLoader.allowResources(target.name.replace('.', '/'))
 
             def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)

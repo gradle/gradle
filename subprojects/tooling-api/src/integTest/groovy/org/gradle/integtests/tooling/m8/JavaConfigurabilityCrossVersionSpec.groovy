@@ -63,11 +63,11 @@ class JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "tooling api provided jvm args take precedence over gradle.properties"() {
-        dist.file('build.gradle') << """
+        file('build.gradle') << """
 assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx23m')
 assert System.getProperty('some-prop') == 'BBB'
 """
-        dist.file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=AAA -Xmx16m"
+        file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=AAA -Xmx16m"
 
         when:
         def model = withConnection {
@@ -82,7 +82,7 @@ assert System.getProperty('some-prop') == 'BBB'
 
     def "customized java args are reflected in the inputArguments and the build model"() {
         given:
-        dist.file('build.gradle') <<
+        file('build.gradle') <<
                 "project.description = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.join('##')"
 
         when:

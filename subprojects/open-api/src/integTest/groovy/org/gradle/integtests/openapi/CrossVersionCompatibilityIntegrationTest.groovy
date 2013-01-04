@@ -15,13 +15,13 @@
  */
 package org.gradle.integtests.openapi
 
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.DefaultClassLoaderFactory
-import org.gradle.util.TestPrecondition
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assert
 import org.junit.Rule
 import org.slf4j.Logger
@@ -58,7 +58,7 @@ class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSp
         def classloader = new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI() })
         def builder = classloader.loadClass(CrossVersionBuilder.class.name).newInstance()
         builder.targetGradleHomeDir = buildVersion.gradleHomeDir
-        builder.currentDir = testDir
+        builder.currentDir = testWorkDir
         builder.version = buildVersion.version
         builder.build()
     }

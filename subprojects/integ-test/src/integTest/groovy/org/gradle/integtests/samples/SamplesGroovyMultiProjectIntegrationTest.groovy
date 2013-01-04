@@ -16,9 +16,8 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
@@ -28,11 +27,9 @@ import static org.hamcrest.Matchers.containsString
 /**
  * @author Hans Dockter
  */
-class SamplesGroovyMultiProjectIntegrationTest {
+class SamplesGroovyMultiProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_PROJECT_NAME = 'testproject'
 
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final Sample sample = new Sample('groovy/multiproject')
 
     private List mainFiles = ['JavaPerson', 'GroovyPerson', 'GroovyJavaPerson']
@@ -59,7 +56,7 @@ class SamplesGroovyMultiProjectIntegrationTest {
         testFiles.each { testProjectDir.file('build', it).assertIsFile() }
 
         // Check contents of jar
-        TestFile tmpDir = dist.testWorkDir.file('jarContents')
+        TestFile tmpDir = file('jarContents')
         testProjectDir.file("build/libs/$TEST_PROJECT_NAME-1.0.jar").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

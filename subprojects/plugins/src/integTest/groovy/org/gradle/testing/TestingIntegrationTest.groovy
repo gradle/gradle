@@ -126,7 +126,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "othertestsTest"
         then:
-        def result = new DefaultTestExecutionResult(distribution.testWorkDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted("TestCaseExtendsAbstractClass")
     }
 }

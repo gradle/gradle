@@ -16,15 +16,12 @@
 
 package org.gradle.integtests.samples
 
-import org.junit.Rule
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import spock.lang.Specification
+import org.junit.Rule
 
-class SamplesAnnounceIntegrationTest extends Specification {
-    @Rule GradleDistribution dist
-    @Rule GradleDistributionExecuter executer
+class SamplesAnnounceIntegrationTest extends AbstractIntegrationSpec {
+
     @Rule Sample sample = new Sample("announce")
 
     def "make some announcements"() {

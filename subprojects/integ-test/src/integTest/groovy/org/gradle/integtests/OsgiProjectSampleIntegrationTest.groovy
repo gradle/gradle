@@ -16,9 +16,8 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
 import org.junit.Rule
@@ -32,9 +31,8 @@ import static org.junit.Assert.assertTrue
 /**
  * @author Hans Dockter
  */
-class OsgiProjectSampleIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class OsgiProjectSampleIntegrationTest extends AbstractIntegrationTest {
+
     @Rule public final Sample sample = new Sample('osgi')
 
     @Test
@@ -42,7 +40,7 @@ class OsgiProjectSampleIntegrationTest {
         long start = System.currentTimeMillis()
         TestFile osgiProjectDir = sample.dir
         executer.inDirectory(osgiProjectDir).withTasks('clean', 'assemble').run()
-        TestFile tmpDir = dist.testWorkDir
+        TestFile tmpDir = testWorkDir
         osgiProjectDir.file('build/libs/osgi-1.0.jar').unzipTo(tmpDir)
         tmpDir.file('META-INF/MANIFEST.MF').withInputStream { InputStream instr ->
             Manifest manifest = new Manifest(instr)

@@ -15,15 +15,13 @@
  */
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.junit.*
 
-class IncrementalTestIntegrationTest {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class IncrementalTestIntegrationTest extends AbstractIntegrationTest {
+
     @Rule public final TestResources resources = new TestResources()
 
     @Before
@@ -35,7 +33,7 @@ class IncrementalTestIntegrationTest {
     public void doesNotRunStaleTests() {
         executer.withTasks('test').runWithFailure().assertTestsFailed()
 
-        distribution.testFile('src/test/java/Broken.java').assertIsFile().delete()
+        file('src/test/java/Broken.java').assertIsFile().delete()
 
         executer.withTasks('test').run()
     }
@@ -45,13 +43,13 @@ class IncrementalTestIntegrationTest {
         executer.withTasks('test').run()
 
         // Change a production class
-        distribution.testFile('src/main/java/MainClass.java').assertIsFile().copyFrom(distribution.testFile('NewMainClass.java'))
+        file('src/main/java/MainClass.java').assertIsFile().copyFrom(file('NewMainClass.java'))
 
         executer.withTasks('test').run().assertTasksNotSkipped(':compileJava', ':classes', ':compileTestJava', ':testClasses', ':test')
         executer.withTasks('test').run().assertTasksNotSkipped()
         
         // Change a test class
-        distribution.testFile('src/test/java/Ok.java').assertIsFile().copyFrom(distribution.testFile('NewOk.java'))
+        file('src/test/java/Ok.java').assertIsFile().copyFrom(file('NewOk.java'))
 
         executer.withTasks('test').run().assertTasksNotSkipped(':compileTestJava', ':testClasses', ':test')
         executer.withTasks('test').run().assertTasksNotSkipped()
@@ -61,11 +59,11 @@ class IncrementalTestIntegrationTest {
     public void executesTestsWhenSelectedTestsChange() {
         executer.withTasks('test').run()
 
-        def result = new DefaultTestExecutionResult(distribution.testWorkDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('JUnitTest')
 
         // Include more tests
-        distribution.testFile('build.gradle').append 'test.include "**/*Extra*"\n'
+        file('build.gradle').append 'test.include "**/*Extra*"\n'
 
         executer.withTasks('test').run().assertTasksNotSkipped(':test')
         result.assertTestClassesExecuted('JUnitTest', 'JUnitExtra')
@@ -78,12 +76,12 @@ class IncrementalTestIntegrationTest {
         executer.withTasks('test').run().assertTasksNotSkipped()
 
         // Switch test framework
-        distribution.testFile('build.gradle').append 'test.useTestNG()\n'
+        file('build.gradle').append 'test.useTestNG()\n'
 
         //TODO this exposes a possible problem: When changing the test framework stale xml result files from former test framework are still present.
         executer.withTasks('cleanTest', 'test').run().assertTasksNotSkipped(':cleanTest',':test')
 
-        result = new DefaultTestExecutionResult(distribution.testWorkDir)
+        result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('TestNGTest')
 
         executer.withTasks('test').run().assertTasksNotSkipped()

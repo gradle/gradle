@@ -21,6 +21,7 @@ import org.gradle.openapi.external.ui.DualPaneUIVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1;
 import org.gradle.openapi.external.ui.UIFactory;
 import org.gradle.util.RuleHelper;
+import org.gradle.util.TestWorkDirProvider;
 import org.junit.Assert;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -33,6 +34,7 @@ import java.util.List;
 
 public class OpenApiFixture implements MethodRule {
     private GradleDistribution dist;
+    private TestWorkDirProvider testWorkDirProvider;
     private final List<JFrame> frames = new ArrayList<JFrame>();
 
     public Statement apply(final Statement base, FrameworkMethod method, final Object target) {
@@ -40,6 +42,7 @@ public class OpenApiFixture implements MethodRule {
             @Override
             public void evaluate() throws Throwable {
                 dist = RuleHelper.getField(target, GradleDistribution.class);
+                testWorkDirProvider = RuleHelper.getField(target, TestWorkDirProvider.class);
                 try {
                     base.evaluate();
                 } finally {
@@ -67,7 +70,7 @@ public class OpenApiFixture implements MethodRule {
         //make sure we got something
         Assert.assertNotNull(singlePane);
 
-        singlePane.setCurrentDirectory(dist.getTestWorkDir());
+        singlePane.setCurrentDirectory(testWorkDirProvider.getTestWorkDir());
         singlePane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(dist.getUserHomeDir()));
 
         return singlePane;
@@ -85,7 +88,7 @@ public class OpenApiFixture implements MethodRule {
         //make sure we got something
         Assert.assertNotNull(dualPane);
 
-        dualPane.setCurrentDirectory(dist.getTestWorkDir());
+        dualPane.setCurrentDirectory(testWorkDirProvider.getTestWorkDir());
         dualPane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(dist.getUserHomeDir()));
 
         return dualPane;

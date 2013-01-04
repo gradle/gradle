@@ -53,7 +53,7 @@ class Main {
         run 'install'
 
         def builder = new ScriptExecuter()
-        builder.workingDir distribution.testWorkDir.file('build/install/application/bin')
+        builder.workingDir file('build/install/application/bin')
         builder.executable "application"
         if (OperatingSystem.current().windows) {
             builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2="some value" -DtestValue3="some value"')
@@ -91,17 +91,17 @@ class Main {
         installDir.assertIsDir()
         checkApplicationImage('mega-app', installDir)
 
-        def distZipFile = distribution.testFile('build/distributions/mega-app.zip')
+        def distZipFile = file('build/distributions/mega-app.zip')
         distZipFile.assertIsFile()
 
-        def distZipDir = distribution.testFile('build/unzip')
+        def distZipDir = file('build/unzip')
         distZipFile.usingNativeTools().unzipTo(distZipDir)
         checkApplicationImage('mega-app', distZipDir.file('mega-app'))
 
-        def distTarFile = distribution.testFile('build/distributions/mega-app.tar')
+        def distTarFile = file('build/distributions/mega-app.tar')
         distTarFile.assertIsFile()
 
-        def distTarDir = distribution.testFile('build/untar')
+        def distTarDir = file('build/untar')
         distTarFile.usingNativeTools().untarTo(distTarDir)
         checkApplicationImage('mega-app', distTarDir.file('mega-app'))
     }
@@ -129,17 +129,17 @@ class Main {
         installDir.assertIsDir()
         checkApplicationImage('application', installDir)
         
-        def distZipFile = distribution.testFile('build/distributions/application.zip')
+        def distZipFile = file('build/distributions/application.zip')
         distZipFile.assertIsFile()
         
-        def distZipDir = distribution.testFile('build/unzip')
+        def distZipDir = file('build/unzip')
         distZipFile.usingNativeTools().unzipTo(distZipDir)
         checkApplicationImage('application', distZipDir.file('application'))
         
-        def distTarFile = distribution.testFile('build/distributions/application.tar')
+        def distTarFile = file('build/distributions/application.tar')
         distTarFile.assertIsFile()
 		
-        def distTarDir = distribution.testFile('build/untar')
+        def distTarDir = file('build/untar')
         distTarFile.usingNativeTools().untarTo(distTarDir)
         checkApplicationImage('application', distTarDir.file('application'))
     }
@@ -155,7 +155,7 @@ installApp.destinationDir = buildDir
         runAndFail 'installApp'
 
         then:
-        result.assertThatCause(startsWith("The specified installation directory '${distribution.testFile('build')}' is neither empty nor does it contain an installation"))
+        result.assertThatCause(startsWith("The specified installation directory '${file('build')}' is neither empty nor does it contain an installation"))
     }
 
     def "startScripts respect OS dependent line separators"() {
@@ -179,7 +179,7 @@ installApp.destinationDir = buildDir
         assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 164);
         assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
-        distribution.testFile("build/scripts/mega-app").exists()
+        file("build/scripts/mega-app").exists()
     }
 
     private void checkApplicationImage(String applicationName, TestFile installDir) {

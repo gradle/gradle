@@ -15,23 +15,21 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 
-class ProjectLayoutIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
+class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
+
     @Rule public final TestResources resources = new TestResources()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Test
     public void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {
-        dist.testFile('settings.gradle') << 'rootProject.name = "sharedSource"'
-        dist.testFile('build.gradle') << '''
+        file('settings.gradle') << 'rootProject.name = "sharedSource"'
+        file('build.gradle') << '''
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'scala'
@@ -62,26 +60,26 @@ sourceSets.each {
     }
 }
 '''
-        dist.testFile('src/org/gradle/main/resource.txt') << 'some text'
-        dist.testFile('src/org/gradle/test/resource.txt') << 'some text'
-        dist.testFile('src/resources/org/gradle/main/resource2.txt') << 'some text'
-        dist.testFile('src/resources/org/gradle/test/resource2.txt') << 'some text'
-        dist.testFile('src/org/gradle/main/JavaClass.java') << 'package org.gradle; public class JavaClass { }'
-        dist.testFile('src/org/gradle/test/JavaClassTest.java') << 'package org.gradle; class JavaClassTest { JavaClass c = new JavaClass(); }'
-        dist.testFile('src/java/org/gradle/main/JavaClass2.java') << 'package org.gradle; class JavaClass2 { }'
-        dist.testFile('src/java/org/gradle/test/JavaClassTest2.java') << 'package org.gradle; class JavaClassTest2 { JavaClass c = new JavaClass(); }'
-        dist.testFile('src/org/gradle/main/GroovyClass.groovy') << 'package org.gradle; class GroovyClass { }'
-        dist.testFile('src/org/gradle/test/GroovyClassTest.groovy') << 'package org.gradle; class GroovyClassTest { GroovyClass c = new GroovyClass() }'
-        dist.testFile('src/groovy/org/gradle/main/GroovyClass2.groovy') << 'package org.gradle; class GroovyClass2 { }'
-        dist.testFile('src/groovy/org/gradle/test/GroovyClassTest2.groovy') << 'package org.gradle; class GroovyClassTest2 { GroovyClass c = new GroovyClass() }'
-        dist.testFile('src/org/gradle/main/ScalaClass.scala') << 'package org.gradle; class ScalaClass { }'
-        dist.testFile('src/org/gradle/test/ScalaClassTest.scala') << 'package org.gradle; class ScalaClassTest { val c: ScalaClass = new ScalaClass() }'
-        dist.testFile('src/scala/org/gradle/main/ScalaClass2.scala') << 'package org.gradle; class ScalaClass2 { }'
-        dist.testFile('src/scala/org/gradle/test/ScalaClassTest2.scala') << 'package org.gradle; class ScalaClassTest2 { val c: ScalaClass = new ScalaClass() }'
+        file('src/org/gradle/main/resource.txt') << 'some text'
+        file('src/org/gradle/test/resource.txt') << 'some text'
+        file('src/resources/org/gradle/main/resource2.txt') << 'some text'
+        file('src/resources/org/gradle/test/resource2.txt') << 'some text'
+        file('src/org/gradle/main/JavaClass.java') << 'package org.gradle; public class JavaClass { }'
+        file('src/org/gradle/test/JavaClassTest.java') << 'package org.gradle; class JavaClassTest { JavaClass c = new JavaClass(); }'
+        file('src/java/org/gradle/main/JavaClass2.java') << 'package org.gradle; class JavaClass2 { }'
+        file('src/java/org/gradle/test/JavaClassTest2.java') << 'package org.gradle; class JavaClassTest2 { JavaClass c = new JavaClass(); }'
+        file('src/org/gradle/main/GroovyClass.groovy') << 'package org.gradle; class GroovyClass { }'
+        file('src/org/gradle/test/GroovyClassTest.groovy') << 'package org.gradle; class GroovyClassTest { GroovyClass c = new GroovyClass() }'
+        file('src/groovy/org/gradle/main/GroovyClass2.groovy') << 'package org.gradle; class GroovyClass2 { }'
+        file('src/groovy/org/gradle/test/GroovyClassTest2.groovy') << 'package org.gradle; class GroovyClassTest2 { GroovyClass c = new GroovyClass() }'
+        file('src/org/gradle/main/ScalaClass.scala') << 'package org.gradle; class ScalaClass { }'
+        file('src/org/gradle/test/ScalaClassTest.scala') << 'package org.gradle; class ScalaClassTest { val c: ScalaClass = new ScalaClass() }'
+        file('src/scala/org/gradle/main/ScalaClass2.scala') << 'package org.gradle; class ScalaClass2 { }'
+        file('src/scala/org/gradle/test/ScalaClassTest2.scala') << 'package org.gradle; class ScalaClassTest2 { val c: ScalaClass = new ScalaClass() }'
 
         executer.withTasks('build').run()
 
-        File buildDir = dist.testFile('build')
+        File buildDir = file('build')
 
         buildDir.file('classes/main').assertHasDescendants(
                 'org/gradle/JavaClass.class',
@@ -111,7 +109,7 @@ sourceSets.each {
                 'org/gradle/test/resource2.txt',
         )
 
-        TestFile tmpDir = dist.testFile('jarContents')
+        TestFile tmpDir = file('jarContents')
         buildDir.file('libs/sharedSource.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
@@ -134,15 +132,15 @@ sourceSets.each {
 
     @Test
     public void multipleProjectsCanShareTheSameSourceDirectory() {
-        dist.testFile('settings.gradle') << 'include "a", "b"'
-        dist.testFile('a/build.gradle') << '''
+        file('settings.gradle') << 'include "a", "b"'
+        file('a/build.gradle') << '''
 apply plugin: 'java'
 sourceSets.main.java {
     srcDirs '../src'
     include 'org/gradle/a/**'
 }
 '''
-        dist.testFile('b/build.gradle') << '''
+        file('b/build.gradle') << '''
 apply plugin: 'java'
 dependencies { compile project(':a') }
 sourceSets.main.java {
@@ -151,15 +149,15 @@ sourceSets.main.java {
 }
 '''
 
-        dist.testFile('src/org/gradle/a/ClassA.java') << 'package org.gradle.a; public class ClassA { }'
-        dist.testFile('src/org/gradle/b/ClassB.java') << 'package org.gradle.b; public class ClassB { private org.gradle.a.ClassA field; }'
+        file('src/org/gradle/a/ClassA.java') << 'package org.gradle.a; public class ClassA { }'
+        file('src/org/gradle/b/ClassB.java') << 'package org.gradle.b; public class ClassB { private org.gradle.a.ClassA field; }'
 
         executer.withTasks('clean', 'assemble').run()
 
-        dist.testFile('a/build/classes/main').assertHasDescendants(
+        file('a/build/classes/main').assertHasDescendants(
                 'org/gradle/a/ClassA.class'
         )
-        dist.testFile('b/build/classes/main').assertHasDescendants(
+        file('b/build/classes/main').assertHasDescendants(
                 'org/gradle/b/ClassB.class'
         )
     }
@@ -168,9 +166,9 @@ sourceSets.main.java {
     public void canUseANonStandardBuildDir() {
         executer.withTasks('build').withArguments('-i').run()
 
-        dist.testFile('build').assertDoesNotExist()
+        file('build').assertDoesNotExist()
 
-        DefaultTestExecutionResult results = new DefaultTestExecutionResult(dist.testFile(), 'target')
+        DefaultTestExecutionResult results = new DefaultTestExecutionResult(file(), 'target')
         results.assertTestClassesExecuted('PersonTest')
         results.testClass('PersonTest').assertTestsExecuted('ok')
     }

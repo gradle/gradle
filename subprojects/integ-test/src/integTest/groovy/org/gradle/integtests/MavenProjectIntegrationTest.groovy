@@ -15,19 +15,15 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.junit.Rule
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.junit.Test
 
-class MavenProjectIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class MavenProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void handlesSubProjectsWithoutTheMavenPluginApplied() {
-        dist.testFile("settings.gradle").write("include 'subProject'");
-        dist.testFile("build.gradle") << '''
+        file("settings.gradle").write("include 'subProject'");
+        file("build.gradle") << '''
             apply plugin: 'java'
             apply plugin: 'maven'
         '''

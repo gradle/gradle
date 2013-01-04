@@ -16,19 +16,17 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
 
-class SamplesMixedJavaAndScalaIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
+
     @Rule public final Sample sample = new Sample('scala/mixedJavaAndScala')
 
     @Test
@@ -43,7 +41,7 @@ class SamplesMixedJavaAndScalaIntegrationTest {
         result.assertTestClassesExecuted('org.gradle.sample.PersonTest')
 
         // Check contents of Jar
-        TestFile jarContents = dist.testWorkDir.file('jar')
+        TestFile jarContents = file('jar')
         projectDir.file("build/libs/mixedJavaAndScala-1.0.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

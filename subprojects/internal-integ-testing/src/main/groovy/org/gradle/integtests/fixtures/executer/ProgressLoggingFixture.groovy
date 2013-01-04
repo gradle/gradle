@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.util.RuleHelper
 import org.gradle.util.TestFile
+import org.gradle.util.TestWorkDirProvider
 import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
@@ -48,8 +49,8 @@ class ProgressLoggingFixture implements MethodRule {
     Statement apply(Statement base, FrameworkMethod method, Object target) {
         TestFile initFile
         GradleDistributionExecuter executer = RuleHelper.getField(target, GradleDistributionExecuter)
-        GradleDistribution distribution = RuleHelper.getField(target, GradleDistribution)
-        TestFile temporaryFolder = distribution.testWorkDir
+        TestWorkDirProvider testWorkDirProvider = target instanceof TestWorkDirProvider ? target : RuleHelper.getField(target, TestWorkDirProvider)
+        TestFile temporaryFolder = testWorkDirProvider.testWorkDir
         loggingOutputFile = temporaryFolder.file("loggingoutput.log")
         initFile = temporaryFolder.file("progress-logging-init.gradle")
         initFile.text = """import org.gradle.logging.internal.*

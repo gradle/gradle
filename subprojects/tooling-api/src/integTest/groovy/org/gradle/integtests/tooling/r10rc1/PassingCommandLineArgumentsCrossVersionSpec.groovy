@@ -35,7 +35,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
     def "understands project properties for building model"() {
         given:
         toolingApi.verboseLogging = false //sanity check, see GRADLE-2226
-        dist.file("build.gradle") << """
+        file("build.gradle") << """
         description = project.getProperty('theDescription')
 """
 
@@ -50,7 +50,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "understands system properties"() {
         given:
-        dist.file("build.gradle") << """
+        file("build.gradle") << """
         task printProperty << {
             file('sysProperty.txt') << System.getProperty('sysProperty')
         }
@@ -62,12 +62,12 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         }
 
         then:
-        dist.file('sysProperty.txt').text.contains('welcomeToTheJungle')
+        file('sysProperty.txt').text.contains('welcomeToTheJungle')
     }
 
     def "can use custom build file"() {
         given:
-        dist.file("foo.gradle") << """
+        file("foo.gradle") << """
         task someCoolTask
 """
 
@@ -86,7 +86,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         toolingApi.isEmbedded = false
 
         given:
-        dist.file("build.gradle") << """
+        file("build.gradle") << """
         logger.debug("debugging stuff")
         logger.info("infoing stuff")
 """
@@ -129,8 +129,8 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "can overwrite project dir via build arguments"() {
         given:
-        dist.file('otherDir').createDir()
-        dist.file('build.gradle') << "assert projectDir.name.endsWith('otherDir')"
+        file('otherDir').createDir()
+        file('build.gradle') << "assert projectDir.name.endsWith('otherDir')"
 
         when:
         withConnection { 
@@ -143,8 +143,8 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "can overwrite gradle user home via build arguments"() {
         given:
-        dist.file('.myGradle').createDir()
-        dist.file('build.gradle') << "assert gradle.gradleUserHomeDir.name.endsWith('.myGradle')"
+        file('.myGradle').createDir()
+        file('build.gradle') << "assert gradle.gradleUserHomeDir.name.endsWith('.myGradle')"
 
         when:
         withConnection {
@@ -157,7 +157,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "can overwrite searchUpwards via build arguments"() {
         given:
-        dist.file('build.gradle') << "assert !gradle.startParameter.searchUpwards"
+        file('build.gradle') << "assert !gradle.startParameter.searchUpwards"
 
         when:
         toolingApi.withConnector { it.searchUpwards(true) }
@@ -171,7 +171,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
     def "can overwrite task names via build arguments"() {
         given:
-        dist.file('build.gradle') << """
+        file('build.gradle') << """
 task foo << { assert false }
 task bar << { assert true }
 """

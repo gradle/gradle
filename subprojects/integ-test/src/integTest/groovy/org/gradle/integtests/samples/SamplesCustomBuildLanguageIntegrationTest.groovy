@@ -15,16 +15,14 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 
-class SamplesCustomBuildLanguageIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class SamplesCustomBuildLanguageIntegrationTest extends AbstractIntegrationTest {
+
     @Rule public final Sample sample = new Sample('customBuildLanguage')
 
     @Test
@@ -32,7 +30,7 @@ class SamplesCustomBuildLanguageIntegrationTest {
         TestFile rootDir = sample.dir
         executer.inDirectory(rootDir).withTasks('clean', 'dist').run()
 
-        TestFile expandDir = dist.testFile('expand-basic')
+        TestFile expandDir = file('expand-basic')
         rootDir.file('basicEdition/build/distributions/some-company-basic-edition-1.0.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
                 'readme.txt',
@@ -43,7 +41,7 @@ class SamplesCustomBuildLanguageIntegrationTest {
                 'lib/commons-lang-2.4.jar'
         )
 
-        expandDir = dist.testFile('expand-enterprise')
+        expandDir = file('expand-enterprise')
         rootDir.file('enterpriseEdition/build/distributions/some-company-enterprise-edition-1.0.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
                 'readme.txt',

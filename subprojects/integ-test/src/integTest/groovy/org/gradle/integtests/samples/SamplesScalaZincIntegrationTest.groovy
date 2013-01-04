@@ -17,18 +17,15 @@
 package org.gradle.integtests.samples
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Specification
 
 @IgnoreIf({!JavaVersion.current().java6Compatible})
-class SamplesScalaZincIntegrationTest extends Specification {
-    @Rule GradleDistribution dist = new GradleDistribution()
-    @Rule GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class SamplesScalaZincIntegrationTest extends AbstractIntegrationSpec {
+
     @Rule Sample sample = new Sample('scala/zinc')
 
     def canBuildJar() {
@@ -41,7 +38,7 @@ class SamplesScalaZincIntegrationTest extends Specification {
 
         then:
         // Check contents of Jar
-        TestFile jarContents = dist.testWorkDir.file('jar')
+        TestFile jarContents = file('jar')
         projectDir.file("build/libs/zinc.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

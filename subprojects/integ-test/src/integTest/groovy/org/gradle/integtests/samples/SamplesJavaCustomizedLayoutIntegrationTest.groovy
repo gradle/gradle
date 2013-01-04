@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
@@ -28,9 +27,8 @@ import org.junit.Test
  * @author Hans Dockter
  */
 
-class SamplesJavaCustomizedLayoutIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractIntegrationTest {
+
     @Rule public final Sample sample = new Sample('java/customizedLayout')
 
     @Test
@@ -48,7 +46,7 @@ class SamplesJavaCustomizedLayoutIntegrationTest {
         javaprojectDir.file('build/libs/customizedLayout.jar').assertIsFile()
 
         // Check contents of Jar
-        TestFile jarContents = dist.testWorkDir.file('jar')
+        TestFile jarContents = file('jar')
         javaprojectDir.file('build/libs/customizedLayout.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',

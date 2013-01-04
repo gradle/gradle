@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
 

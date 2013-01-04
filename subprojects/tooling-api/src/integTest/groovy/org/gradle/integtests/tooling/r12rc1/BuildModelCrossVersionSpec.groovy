@@ -26,8 +26,7 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 @MinTargetGradleVersion("1.2-rc-1")
 class BuildModelCrossVersionSpec extends ToolingApiSpecification {
     def "can run tasks before building Eclipse model"() {
-        def projectDir = dist.testWorkDir
-        projectDir.file('build.gradle').text = '''
+        file('build.gradle').text = '''
 apply plugin: 'java'
 
 task setup << {

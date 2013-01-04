@@ -53,7 +53,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         distribution.requireOwnUserHomeDir()
 
         String version = GradleVersion.current().version
-        projectDir = distribution.getTestWorkDir().file("project")
+        projectDir = file("project")
         projectDir.mkdirs()
         userHomeDir = distribution.getUserHomeDir()
         buildFile = projectDir.file('build.gradle')

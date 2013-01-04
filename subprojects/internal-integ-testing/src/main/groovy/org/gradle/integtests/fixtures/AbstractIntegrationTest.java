@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.integtests.fixtures.executer.*;
 import org.gradle.test.fixtures.ivy.IvyFileRepository;
 import org.gradle.test.fixtures.maven.MavenFileRepository;
+import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestWorkDirProvider;
 import org.junit.Before;
@@ -29,11 +30,13 @@ import java.io.File;
 import java.util.Set;
 
 public abstract class AbstractIntegrationTest implements TestWorkDirProvider {
-    @Rule public final GradleDistribution distribution = new GradleDistribution();
-    public final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution);
+    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    public final GradleDistribution distribution = new GradleDistribution(this);
+    public final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution, this);
 
-    @ClassRule public static final GradleDistribution SHARED_DISTRIBUTION = new GradleDistribution();
-    private static final GradleDistributionExecuter SHARED_EXECUTER = new GradleDistributionExecuter(SHARED_DISTRIBUTION);
+    @ClassRule public static final TemporaryFolder SHARED_TEMPORARY_FOLDER = new TemporaryFolder();
+    public static final GradleDistribution SHARED_DISTRIBUTION = new GradleDistribution(SHARED_TEMPORARY_FOLDER);
+    private static final GradleDistributionExecuter SHARED_EXECUTER = new GradleDistributionExecuter(SHARED_DISTRIBUTION, SHARED_TEMPORARY_FOLDER);
 
     private static final Set<Class<?>> SHARED_BUILD_RUN_CLASSES = Sets.newHashSet();
 
@@ -50,6 +53,10 @@ public abstract class AbstractIntegrationTest implements TestWorkDirProvider {
         return useSharedBuild ? SHARED_EXECUTER : executer;
     }
 
+    protected TemporaryFolder getTemporaryFolder() {
+        return useSharedBuild ? SHARED_TEMPORARY_FOLDER : temporaryFolder;
+    }
+
     protected void runSharedBuild() {}
 
     @Before
@@ -62,7 +69,7 @@ public abstract class AbstractIntegrationTest implements TestWorkDirProvider {
     }
 
     public TestFile getTestWorkDir() {
-        return getDistribution().getTestWorkDir();
+        return getTemporaryFolder().getTestWorkDir();
     }
 
     public TestFile file(Object... path) {

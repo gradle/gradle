@@ -15,9 +15,10 @@
  */
 package org.gradle.integtests.resolve;
 
+import org.gradle.integtests.fixtures.Sample;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter;
-import org.gradle.integtests.fixtures.Sample;
+import org.gradle.util.TemporaryFolder;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -27,8 +28,9 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class DependenciesResolveIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution();
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter();
+    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private final GradleDistribution dist = new GradleDistribution(temporaryFolder);
+    private final GradleDistributionExecuter executer = new GradleDistributionExecuter(dist, temporaryFolder);
     @Rule public final Sample sample = new Sample("dependencies");
 
     @Test

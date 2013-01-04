@@ -26,7 +26,7 @@ import org.gradle.tooling.model.GradleProject
 @MinTargetGradleVersion('1.0-milestone-5')
 class ToolingApiModelCrossVersionSpec extends ToolingApiSpecification {
     def "receives progress while the model is building"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 System.out.println 'this is stdout'
 System.err.println 'this is stderr'
 '''
@@ -47,7 +47,7 @@ System.err.println 'this is stderr'
     }
 
     def "tooling api reports failure to build model"() {
-        dist.testFile('build.gradle') << 'broken'
+        file('build.gradle') << 'broken'
 
         when:
         withConnection { connection ->

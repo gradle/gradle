@@ -26,8 +26,8 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class ToolingApiHonorsProjectCustomizationsCrossVersionSpec extends ToolingApiSpecification {
 
     def "should honour reconfigured project names"() {
-        def projectDir = dist.testWorkDir
-        projectDir.file('build.gradle').text = '''
+
+        file('build.gradle').text = '''
 allprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
@@ -41,7 +41,7 @@ project(':impl') {
     eclipse.project.name = 'gradle-impl'
 }
 '''
-        projectDir.file('settings.gradle').text = "include 'api', 'impl'"
+        file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
         EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
@@ -54,13 +54,12 @@ project(':impl') {
     }
 
     def "should deduplicate project names"() {
-        def projectDir = dist.testWorkDir
-        projectDir.file('build.gradle').text = '''
+        file('build.gradle').text = '''
 allprojects {
     apply plugin: 'java'
 }
 '''
-        projectDir.file('settings.gradle').text = "include 'services:api', 'contrib:api'"
+        file('settings.gradle').text = "include 'services:api', 'contrib:api'"
 
         when:
         EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
@@ -72,8 +71,7 @@ allprojects {
     }
 
     def "can have overlapping source and resource directories"() {
-        def projectDir = dist.testWorkDir
-        projectDir.file('build.gradle').text = '''
+        file('build.gradle').text = '''
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -107,8 +105,7 @@ sourceSets {
     }
 
     def "can enable download of Javadoc for external dependencies"() {
-        def projectDir = dist.testWorkDir
-        projectDir.file('build.gradle').text = '''
+        file('build.gradle').text = '''
 apply plugin: 'java'
 apply plugin: 'eclipse'
 repositories { mavenCentral() }

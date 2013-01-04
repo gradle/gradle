@@ -28,7 +28,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @MinTargetGradleVersion('1.0-milestone-5')
 class ToolingApiBuildExecutionCrossVersionSpec extends ToolingApiSpecification {
     def "can build the set of tasks for a project"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 task a {
    description = 'this is task a'
 }
@@ -50,8 +50,8 @@ task c
     }
 
     def "can execute a build for a project"() {
-        dist.testFile('settings.gradle') << 'rootProject.name="test"'
-        dist.testFile('build.gradle') << '''
+        file('settings.gradle') << 'rootProject.name="test"'
+        file('build.gradle') << '''
 apply plugin: 'java'
 '''
         when:
@@ -62,7 +62,7 @@ apply plugin: 'java'
         }
 
         then:
-        dist.testFile('build/libs/test.jar').assertIsFile()
+        file('build/libs/test.jar').assertIsFile()
 
         when:
         withConnection { connection ->
@@ -74,11 +74,11 @@ apply plugin: 'java'
         }
 
         then:
-        dist.testFile('build/libs/test.jar').assertDoesNotExist()
+        file('build/libs/test.jar').assertDoesNotExist()
     }
 
     def "receives progress while the build is executing"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 System.out.println 'this is stdout'
 System.err.println 'this is stderr'
 '''
@@ -98,7 +98,7 @@ System.err.println 'this is stderr'
     }
 
     def "tooling api reports build failure"() {
-        dist.testFile('build.gradle') << 'broken'
+        file('build.gradle') << 'broken'
 
         when:
         withConnection { connection ->
@@ -112,7 +112,7 @@ System.err.println 'this is stderr'
     }
 
     def "can build the set of tasks for an Eclipse project"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 task a {
    description = 'this is task a'
 }
@@ -134,7 +134,7 @@ task c
     }
 
     def "does not resolve dependencies when building the set of tasks for a project"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 apply plugin: 'java'
 dependencies {
     compile files { throw new RuntimeException('broken') }

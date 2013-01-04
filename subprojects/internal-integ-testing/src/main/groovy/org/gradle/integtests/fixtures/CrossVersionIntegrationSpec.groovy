@@ -20,14 +20,17 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenRepository
+import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
+import org.gradle.util.TestWorkDirProvider
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.Specification
 
 @RunWith(CrossVersionTestRunner)
-abstract class CrossVersionIntegrationSpec extends Specification {
-    @Rule public final GradleDistribution current = new GradleDistribution()
+abstract class CrossVersionIntegrationSpec extends Specification implements TestWorkDirProvider {
+    @Rule TemporaryFolder temporaryFolder = new TemporaryFolder()
+    final GradleDistribution current = new GradleDistribution(this)
     static BasicGradleDistribution previous
     private MavenFileRepository mavenRepo
 
@@ -36,15 +39,15 @@ abstract class CrossVersionIntegrationSpec extends Specification {
     }
 
     protected TestFile getBuildFile() {
-        testDir.file('build.gradle')
+        testWorkDir.file('build.gradle')
     }
 
-    protected TestFile getTestDir() {
-        current.getTestWorkDir();
+    TestFile getTestWorkDir() {
+        temporaryFolder.getTestWorkDir();
     }
 
     protected TestFile file(Object... path) {
-        testDir.file(path);
+        testWorkDir.file(path);
     }
 
     protected MavenRepository getMavenRepo() {
@@ -59,7 +62,7 @@ abstract class CrossVersionIntegrationSpec extends Specification {
         if (executer instanceof GradleDistributionExecuter) {
             executer.withDeprecationChecksDisabled()
         }
-        executer.inDirectory(testDir)
+        executer.inDirectory(testWorkDir)
         return executer;
     }
 }

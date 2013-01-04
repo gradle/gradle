@@ -35,11 +35,11 @@ class GradlePropertiesCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "tooling api honours jvm args specified in gradle.properties"() {
-        dist.file('build.gradle') << """
+        file('build.gradle') << """
 assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
 assert System.getProperty('some-prop') == 'some-value'
 """
-        dist.file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
+        file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
 
         when:
         BuildEnvironment env = toolingApi.withConnection { connection ->
@@ -56,9 +56,9 @@ assert System.getProperty('some-prop') == 'some-value'
         File javaHome = AvailableJavaHomes.bestAlternative
         String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
 
-        dist.file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
+        file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
 
-        dist.file('gradle.properties') << "org.gradle.java.home=$javaHomePath"
+        file('gradle.properties') << "org.gradle.java.home=$javaHomePath"
 
         when:
         BuildEnvironment env = toolingApi.withConnection { connection ->

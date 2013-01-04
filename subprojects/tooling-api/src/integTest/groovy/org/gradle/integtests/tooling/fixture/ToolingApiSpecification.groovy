@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.tooling.GradleConnector
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.internal.AssumptionViolatedException
@@ -32,8 +33,9 @@ import spock.lang.Specification
 abstract class ToolingApiSpecification extends Specification {
     static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    final ToolingApi toolingApi = new ToolingApi(dist)
+    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    final GradleDistribution dist = new GradleDistribution(temporaryFolder)
+    final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
     private static final ThreadLocal<BasicGradleDistribution> VERSION = new ThreadLocal<BasicGradleDistribution>()
 
     static void selectTargetDist(BasicGradleDistribution version) {
@@ -86,7 +88,7 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     TestFile getProjectDir() {
-        dist.testWorkDir
+        temporaryFolder.testWorkDir
     }
 
     TestFile getBuildFile() {

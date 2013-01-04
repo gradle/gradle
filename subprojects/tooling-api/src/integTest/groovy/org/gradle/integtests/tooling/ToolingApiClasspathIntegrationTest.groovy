@@ -16,14 +16,11 @@
 
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
-import org.junit.Rule
-import spock.lang.Specification
 
-class ToolingApiClasspathIntegrationTest extends Specification {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
+class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
 
     def "tooling api classpath contains only tooling-api jar and slf4j"() {
         when:

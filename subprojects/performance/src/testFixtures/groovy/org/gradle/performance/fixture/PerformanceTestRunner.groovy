@@ -17,17 +17,18 @@
 package org.gradle.performance.fixture
 
 import org.gradle.api.logging.Logging
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.util.TemporaryFolder
 
 public class PerformanceTestRunner {
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
-    def current = new GradleDistribution()
+    def current = new GradleDistribution(new TemporaryFolder())
 
     String testProject
     int runs

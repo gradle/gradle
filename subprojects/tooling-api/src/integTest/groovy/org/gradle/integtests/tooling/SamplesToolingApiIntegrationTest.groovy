@@ -15,16 +15,17 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.util.TextUtil
-import org.junit.Rule
-import spock.lang.Specification
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.IntegrationTestHint
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.util.TextUtil
+import org.junit.Rule
 
-class SamplesToolingApiIntegrationTest extends Specification {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
+class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
+
     @Rule public final Sample sample = new Sample()
 
     @UsesSample('toolingApi/eclipse')

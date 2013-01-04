@@ -53,12 +53,12 @@ class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private void prepareBuild() {
-        def fakeRepo = dist.file("repo")
+        def fakeRepo = file("repo")
         new MavenFileRepository(fakeRepo).module("foo.bar", "coolLib", 2.0).publish()
 
-        dist.file("yetAnotherJar.jar").createFile()
+        file("yetAnotherJar.jar").createFile()
 
-        dist.file('build.gradle').text = """
+        file('build.gradle').text = """
 apply plugin: 'java'
 
 repositories {

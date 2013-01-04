@@ -23,7 +23,7 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "can build the eclipse model for a java project"() {
-        def projectDir = dist.testWorkDir
+        
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 description = 'this is a project'
@@ -80,7 +80,6 @@ description = 'this is a project'
 
     def "does not run any tasks when fetching model"() {
         when:
-        def projectDir = dist.testWorkDir
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 gradle.taskGraph.beforeTask { throw new RuntimeException() }
@@ -92,7 +91,7 @@ gradle.taskGraph.beforeTask { throw new RuntimeException() }
     }
 
     def "can build the eclipse source directories for a java project"() {
-        def projectDir = dist.testWorkDir
+        
         projectDir.file('build.gradle').text = "apply plugin: 'java'"
 
         projectDir.create {
@@ -142,7 +141,7 @@ gradle.taskGraph.beforeTask { throw new RuntimeException() }
     }
 
     def "can build the eclipse external dependencies for a java project"() {
-        def projectDir = dist.testWorkDir
+        
         projectDir.file('settings.gradle').text = '''
 include "a"
 rootProject.name = 'root'
@@ -173,7 +172,7 @@ dependencies {
     //TODO SF: write a test that checks if minimal project has necessary project dependencies
 
     def "can build the minimal Eclipse model for a java project with the idea plugin applied"() {
-        def projectDir = dist.testWorkDir
+        
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -191,7 +190,7 @@ dependencies {
     }
 
     def "can build the eclipse project dependencies for a java project"() {
-        def projectDir = dist.testWorkDir
+        
         projectDir.file('settings.gradle').text = '''
 include "a", "a:b"
 rootProject.name = 'root'
@@ -232,7 +231,7 @@ project(':a') {
     }
 
     def "can build project dependencies with targetProject references for complex scenarios"() {
-        def projectDir = dist.testWorkDir
+        
         projectDir.file('settings.gradle').text = '''
 include "c", "a", "a:b"
 rootProject.name = 'root'
@@ -271,7 +270,7 @@ project(':c') {
     }
 
     def "can build the eclipse project hierarchy for a multi-project build"() {
-        def projectDir = dist.testWorkDir
+        
         projectDir.file('settings.gradle').text = '''
             include "child1", "child2", "child1:grandChild1"
             rootProject.name = 'root'

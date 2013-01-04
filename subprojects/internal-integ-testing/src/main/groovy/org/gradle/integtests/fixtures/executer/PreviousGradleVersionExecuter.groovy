@@ -43,17 +43,15 @@ class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter imp
                 )).create()
     }
 
-    private final GradleDistribution dist
     final GradleVersion version
     private final TestFile versionDir
     private final TestFile zipFile
     private final TestFile homeDir
     private PersistentCache cache
 
-    PreviousGradleVersionExecuter(GradleDistribution dist, String version) {
-        this.dist = dist
+    PreviousGradleVersionExecuter(String version, TestFile versionDir) {
         this.version = GradleVersion.version(version)
-        versionDir = dist.previousVersionsDir.file(version)
+        this.versionDir = versionDir
         zipFile = versionDir.file("gradle-$version-bin.zip")
         homeDir = versionDir.file("gradle-$version")
     }
@@ -144,7 +142,6 @@ class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter imp
     @Override
     protected GradleExecuter configureExecuter() {
         ForkingGradleExecuter executer = new ForkingGradleExecuter(gradleHomeDir)
-        executer.inDirectory(dist.testWorkDir)
         copyTo(executer)
         return executer
     }

@@ -27,7 +27,7 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         given:
-        dist.file('build.gradle') << '''
+        file('build.gradle') << '''
 			apply plugin: "java"
 
 			task zip(type: Zip) {
@@ -64,10 +64,10 @@ class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
 
     def "modelContainsAllProjects"() {
         given:
-        dist.file('settings.gradle') << '''
+        file('settings.gradle') << '''
 include 'project1', 'project2'
 '''
-        dist.file('build.gradle') << '''
+        file('build.gradle') << '''
 apply plugin: 'java'
 '''
 

@@ -18,8 +18,8 @@ package org.gradle.scala.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
-import spock.lang.Issue
 import spock.lang.Ignore
+import spock.lang.Issue
 
 class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
@@ -44,7 +44,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         run("classes")
 
         when: // Update interface, compile should fail
-        distribution.testFile('src/main/scala/IPerson.scala').assertIsFile().copyFrom(distribution.testFile('NewIPerson.scala'))
+        file('src/main/scala/IPerson.scala').assertIsFile().copyFrom(file('NewIPerson.scala'))
 
         then:
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")

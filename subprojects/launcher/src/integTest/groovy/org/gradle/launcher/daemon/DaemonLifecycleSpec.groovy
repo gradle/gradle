@@ -55,7 +55,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         new DaemonEventSequenceBuilder(stateTransitionTimeout * 1000)
 
     def buildDir(buildNum) {
-        distribution.file("builds/$buildNum")
+        file("builds/$buildNum")
     }
 
     def buildDirWithScript(buildNum, buildScript) {

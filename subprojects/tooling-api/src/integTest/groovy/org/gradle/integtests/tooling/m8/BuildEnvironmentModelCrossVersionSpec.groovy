@@ -40,7 +40,7 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
         given:
         toolingApi.isEmbedded = false //cannot be run in embedded mode
 
-        dist.file('build.gradle') <<
+        file('build.gradle') <<
             "project.description = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.join('##')"
 
         when:
@@ -54,7 +54,7 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "informs about java home as in the build script"() {
         given:
-        dist.file('build.gradle') << """
+        file('build.gradle') << """
         description = Jvm.current().javaHome.toString()
         """
 
@@ -68,7 +68,7 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "informs about gradle version as in the build script"() {
         given:
-        dist.file('build.gradle') << "description = GradleVersion.current().getVersion()"
+        file('build.gradle') << "description = GradleVersion.current().getVersion()"
 
         when:
         BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }

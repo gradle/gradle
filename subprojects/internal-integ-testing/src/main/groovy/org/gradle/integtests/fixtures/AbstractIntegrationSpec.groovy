@@ -19,6 +19,7 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.gradle.util.TestWorkDirProvider
 import org.junit.Rule
@@ -30,9 +31,11 @@ import spock.lang.Specification
  * Plan is to bring features over as needed.
  */
 class AbstractIntegrationSpec extends Specification implements TestWorkDirProvider {
-    
-    @Rule final GradleDistribution distribution = new GradleDistribution()
-    @Rule final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+
+    @Rule final TemporaryFolder temporaryFolder = new TemporaryFolder()
+
+    final GradleDistribution distribution = new GradleDistribution(this)
+    final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution, temporaryFolder)
 
     ExecutionResult result
     ExecutionFailure failure
@@ -50,7 +53,7 @@ class AbstractIntegrationSpec extends Specification implements TestWorkDirProvid
     }
 
     TestFile getTestWorkDir() {
-        distribution.testWorkDir
+        temporaryFolder.testWorkDir
     }
 
     protected TestFile file(Object... path) {

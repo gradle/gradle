@@ -19,21 +19,15 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestWorkDirProvider;
-import org.junit.rules.MethodRule;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.Statement;
 
 import java.io.File;
 
 /**
  * Provides access to a Gradle distribution for integration testing.
  */
-public class GradleDistribution implements MethodRule, TestRule, TestWorkDirProvider, BasicGradleDistribution {
+public class GradleDistribution implements BasicGradleDistribution {
     private static final TestFile USER_HOME_DIR;
     private static final TestFile GRADLE_HOME_DIR;
     private static final TestFile SAMPLES_DIR;
@@ -43,9 +37,9 @@ public class GradleDistribution implements MethodRule, TestRule, TestWorkDirProv
     private static final TestFile LIBS_REPO;
     private static final TestFile DAEMON_BASE_DIR;
 
-    private final TemporaryFolder temporaryFolder = new TemporaryFolder();
     private TestFile userHome;
     private boolean usingIsolatedDaemons;
+    private TestWorkDirProvider testWorkDirProvider;
 
     static {
         USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
@@ -59,8 +53,9 @@ public class GradleDistribution implements MethodRule, TestRule, TestWorkDirProv
         DAEMON_BASE_DIR = file("org.gradle.integtest.daemon.registry", "build/daemon");
     }
 
-    public GradleDistribution() {
+    public GradleDistribution(TestWorkDirProvider testWorkDirProvider) {
         this.userHome = USER_HOME_DIR;
+        this.testWorkDirProvider = testWorkDirProvider;
     }
 
     @Override
@@ -120,14 +115,6 @@ public class GradleDistribution implements MethodRule, TestRule, TestWorkDirProv
 
     public void requireIsolatedDaemons() {
         this.usingIsolatedDaemons = true;
-    }
-
-    public Statement apply(Statement base, FrameworkMethod method, Object target) {
-        return temporaryFolder.apply(base, method, target);
-    }
-
-    public Statement apply(Statement base, Description description) {
-        return temporaryFolder.apply(base, description);
     }
 
     private static TestFile file(String propertyName, String defaultFile) {
@@ -202,11 +189,8 @@ public class GradleDistribution implements MethodRule, TestRule, TestWorkDirProv
                 || getUserHomeDir().isSelfOrDescendent(file);
     }
 
-    /**
-     * Returns a scratch-pad directory for the current test. This directory is not shared with any other tests.
-     */
-    public TestFile getTestWorkDir() {
-        return temporaryFolder.getDir();
+    private TestFile getTestWorkDir() {
+        return testWorkDirProvider.getTestWorkDir();
     }
 
     /**
@@ -219,25 +203,13 @@ public class GradleDistribution implements MethodRule, TestRule, TestWorkDirProv
         if (version.equals(this.getVersion())) {
             return this;
         }
-        return new PreviousGradleVersionExecuter(this, version);
+        return new PreviousGradleVersionExecuter(version, getPreviousVersionsDir().file(version));
     }
 
     public GradleDistributionExecuter executer() {
-        return new GradleDistributionExecuter(this);
+        return new GradleDistributionExecuter(this, testWorkDirProvider);
     }
 
-    /**
-     * Returns a scratch-pad file for the current test. Equivalent to getTestDir().file(path)
-     */
-    public TestFile file(Object... path) {
-        return getTestWorkDir().file(path);
-    }
 
-    /**
-     * Returns a scratch-pad file for the current test. Equivalent to getTestDir().file(path)
-     */
-    public TestFile testFile(Object... path) {
-        return getTestWorkDir().file(path);
-    }
 }
 

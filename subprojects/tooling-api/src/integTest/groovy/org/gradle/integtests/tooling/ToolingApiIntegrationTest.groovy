@@ -24,16 +24,22 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
+import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
 class ToolingApiIntegrationTest extends Specification {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    final ToolingApi toolingApi = new ToolingApi(dist)
+    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    final GradleDistribution dist = new GradleDistribution(temporaryFolder)
+    final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
     final BasicGradleDistribution otherVersion = new ReleasedVersions(dist).last
-    TestFile projectDir = dist.testWorkDir
+    TestFile projectDir
+
+    def setup() {
+        projectDir = temporaryFolder.testWorkDir
+    }
 
     def "ensure the previous version supports short-lived daemons"() {
         expect:

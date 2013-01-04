@@ -15,12 +15,11 @@
  */
 package org.gradle.testing.testng
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -33,9 +32,8 @@ import static org.junit.Assert.assertThat
 /**
  * @author Tom Eyckmans
  */
-class TestNGIntegrationTest {
-    @Rule public GradleDistribution dist = new GradleDistribution()
-    @Rule public GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class TestNGIntegrationTest extends AbstractIntegrationTest {
+
     @Rule public TestResources resources = new TestResources()
 
     @Before
@@ -51,7 +49,7 @@ class TestNGIntegrationTest {
         assertThat(result.error, not(containsString('stderr')))
         assertThat(result.error, not(containsString('a warning')))
 
-        new DefaultTestExecutionResult(dist.testWorkDir).testClass('org.gradle.OkTest').assertTestPassed('ok')
+        new DefaultTestExecutionResult(testWorkDir).testClass('org.gradle.OkTest').assertTestPassed('ok')
     }
 
     @Test
@@ -78,7 +76,7 @@ class TestNGIntegrationTest {
     void groovyJdk15Failing() {
         executer.withTasks("test").runWithFailure().assertTestsFailed()
 
-        def result = new DefaultTestExecutionResult(dist.testWorkDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('org.gradle.BadTest')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
     }
@@ -87,7 +85,7 @@ class TestNGIntegrationTest {
     void groovyJdk15Passing() {
         executer.withTasks("test").run()
 
-        def result = new DefaultTestExecutionResult(dist.testWorkDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('org.gradle.OkTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }
@@ -96,7 +94,7 @@ class TestNGIntegrationTest {
     void javaJdk14Failing() {
         executer.withTasks("test").runWithFailure().assertTestsFailed()
 
-        def result = new DefaultTestExecutionResult(dist.testWorkDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('org.gradle.BadTest')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
     }
@@ -111,13 +109,13 @@ class TestNGIntegrationTest {
     private void doJavaJdk15Failing(String testNGVersion) {
         executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertTestsFailed()
 
-        def result = new DefaultTestExecutionResult(dist.testWorkDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite', 'org.gradle.TestWithBrokenMethodDependency')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
         result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('java.lang.RuntimeException: broken'))
         result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestsSkipped('okTest')
 
-        def ngResult = new TestNGExecutionResult(dist.testWorkDir)
+        def ngResult = new TestNGExecutionResult(testWorkDir)
         ngResult.testClass('org.gradle.TestWithBrokenSetup').assertConfigMethodFailed('setup')
         ngResult.testClass('org.gradle.BrokenAfterSuite').assertConfigMethodFailed('cleanup')
         ngResult.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('broken'))
@@ -127,7 +125,7 @@ class TestNGIntegrationTest {
     @Issue("GRADLE-1532")
     @Test
     void supportsThreadPoolSize() {
-        dist.testWorkDir.file('src/test/java/SomeTest.java') << """
+        testWorkDir.file('src/test/java/SomeTest.java') << """
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -139,7 +137,7 @@ public class SomeTest {
 }
 """
 
-        dist.testWorkDir.file("build.gradle") << """
+        testWorkDir.file("build.gradle") << """
 apply plugin: "java"
 
 repositories {
@@ -162,7 +160,7 @@ test {
     @Test
     void supportsTestGroups() {
         executer.withTasks("test").run()
-        def result = new DefaultTestExecutionResult(dist.testWorkDir)
+        def result = new DefaultTestExecutionResult(testWorkDir)
         result.assertTestClassesExecuted('org.gradle.groups.SomeTest')
         result.testClass('org.gradle.groups.SomeTest').assertTestsExecuted("databaseTest")
     }

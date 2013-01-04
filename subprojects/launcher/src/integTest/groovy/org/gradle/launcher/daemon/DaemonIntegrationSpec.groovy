@@ -17,24 +17,19 @@
 package org.gradle.launcher.daemon
 
 import ch.qos.logback.classic.Level
-import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
-import org.junit.Rule
 import org.slf4j.LoggerFactory
-import spock.lang.Specification
-
-import static GradleDistributionExecuter.Executer.daemon
 
 /**
  * by Szczepan Faber, created at: 2/1/12
  */
-class DaemonIntegrationSpec extends Specification {
+class DaemonIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter(daemon)
     String output
 
     def setup() {
+        executer.executerType = GradleDistributionExecuter.Executer.daemon
         distribution.requireIsolatedDaemons()
         LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
     }
@@ -45,7 +40,7 @@ class DaemonIntegrationSpec extends Specification {
     }
 
     void buildSucceeds(String script = '') {
-        distribution.file('build.gradle') << script
+        file('build.gradle') << script
         def result = executer.withArguments("--info").withNoDefaultJvmArgs().run()
         output = result.output
     }

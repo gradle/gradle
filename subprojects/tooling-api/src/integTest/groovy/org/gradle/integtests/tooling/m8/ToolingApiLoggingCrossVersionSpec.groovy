@@ -38,7 +38,7 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
     def "logs necessary information when verbose"() {
         toolingApi.verboseLogging = true
 
-        dist.file("build.gradle") << """
+        file("build.gradle") << """
 System.err.println "sys err logging xxx"
 
 println "println logging yyy"
@@ -83,7 +83,7 @@ project.logger.debug("debug logging yyy");
     def "logs necessary information"() {
         toolingApi.verboseLogging = false
 
-        dist.file("build.gradle") << """
+        file("build.gradle") << """
 System.err.println "sys err logging xxx"
 
 println "println logging yyy"
