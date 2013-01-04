@@ -26,7 +26,8 @@ dependencies {
 
     mvn3Input libraries.maven3
 
-    integTestRuntime rootProject.configurations.testRuntime.allDependencies
+    //this dependency is necessary to run IvySFtpResolverIntegrationTest on ibm jdk
+    integTestRuntime "org.bouncycastle:bcprov-jdk15:1.46@jar"
 }
 
 task jarJarMaven3(type: JarJar) {
