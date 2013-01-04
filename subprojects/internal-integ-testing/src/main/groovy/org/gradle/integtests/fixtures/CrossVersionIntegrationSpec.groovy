@@ -42,6 +42,10 @@ abstract class CrossVersionIntegrationSpec extends Specification implements Test
         testDirectory.file('build.gradle')
     }
 
+    protected TestFile getSettingsFile() {
+        testDirectory.file('settings.gradle')
+    }
+
     TestFile getTestDirectory() {
         temporaryFolder.getTestDirectory();
     }
