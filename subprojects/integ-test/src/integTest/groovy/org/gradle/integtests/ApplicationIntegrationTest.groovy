@@ -144,6 +144,48 @@ class Main {
         result.assertNormalExitValue()
     }
 
+    def canUseDefaultJvmOptsToPassMultipleOptionsWithShellMetacharactersToJvmWhenRunningScript() {
+        //even in single-quoted multi-line strings, backslashes must still be quoted
+        file("build.gradle") << '''
+apply plugin: 'application'
+mainClassName = 'org.gradle.test.Main'
+applicationName = 'application'
+defaultJvmOpts = ['-DtestValue=value',
+                  /-DtestValue2=s\\o"me val'ue/ + '$PATH',
+                  /-DtestValue3=so\\"me value%PATH%/,
+                 ]
+'''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+package org.gradle.test;
+
+class Main {
+    public static void main(String[] args) {
+        if (!"value".equals(System.getProperty("testValue"))) {
+            throw new RuntimeException("Expected system property not specified (testValue)");
+        }
+        if (!"s\\\\o\\"me val'ue$PATH".equals(System.getProperty("testValue2"))) {
+            throw new RuntimeException("Expected system property not specified (testValue2)");
+        }
+        if (!"so\\\\\\"me value%PATH%".equals(System.getProperty("testValue3"))) {
+            throw new RuntimeException("Expected system property not specified (testValue3)");
+        }
+    }
+}
+'''
+
+        when:
+        run 'install'
+
+        def builder = new ScriptExecuter()
+        builder.workingDir distribution.testDir.file('build/install/application/bin')
+        builder.executable "application"
+
+        def result = builder.run()
+
+        then:
+        result.assertNormalExitValue()
+    }
+
     def "can customize application name"() {
         file('settings.gradle') << 'rootProject.name = "application"'
         file('build.gradle') << '''
