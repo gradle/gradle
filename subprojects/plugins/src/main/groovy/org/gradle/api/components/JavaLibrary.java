@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.java;
+package org.gradle.api.components;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
@@ -22,6 +22,9 @@ import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 
+/**
+ * A SoftwareComponent representing a library that runs on a java virtual machine.
+ */
 @Incubating
 public class JavaLibrary implements SoftwareComponentInternal {
 

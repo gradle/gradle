@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.project
 
+import org.gradle.api.component.SoftwareComponentContainer
+
 import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
@@ -102,6 +104,7 @@ class DefaultProjectTest {
     ProcessOperations processOperationsMock = context.mock(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class)
     Instantiator instantiatorMock = context.mock(Instantiator)
+    SoftwareComponentContainer softwareComponentsMock = context.mock(SoftwareComponentContainer.class)
 
     @Before
     void setUp() {
@@ -132,6 +135,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ConfigurationContainerInternal); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
+            allowing(serviceRegistryMock).get(SoftwareComponentContainer); will(returnValue(softwareComponentsMock))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).getFactory(AntBuilder); will(returnValue(antBuilderFactoryMock))
             allowing(serviceRegistryMock).get(PluginContainer); will(returnValue(pluginContainerMock))
@@ -228,6 +232,7 @@ class DefaultProjectTest {
         assertSame(repositoryHandlerMock, project.repositories)
         assert projectRegistry.is(project.projectRegistry)
         assertFalse project.state.executed
+        assert project.components.is(softwareComponentsMock)
     }
 
     @Test public void testNullVersionAndStatus() {
