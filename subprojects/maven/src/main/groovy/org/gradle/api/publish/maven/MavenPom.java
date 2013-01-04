@@ -36,6 +36,7 @@ public interface MavenPom {
      * Allows configuration of the POM, after it has been generated according to the input data.
      *
      * <pre autoTested="true">
+     * apply plugin: "java"
      * apply plugin: "maven-publish"
      *
      * publishing {
