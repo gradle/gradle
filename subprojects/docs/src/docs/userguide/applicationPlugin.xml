@@ -102,7 +102,7 @@
                 <td>
                     <literal>jar</literal>, <literal>startScripts</literal>
                 </td>
-                <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Tar"/></td>
                 <td>Creates a full distribution TAR archive including runtime libraries and OS specific scripts.</td>
             </tr>
         </table>
