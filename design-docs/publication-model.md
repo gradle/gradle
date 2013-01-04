@@ -168,7 +168,7 @@ at this point to start pulling descriptor generation up, so that it can eventual
 * Decent error message when the `withXml` action fails.
 * Descriptor contains non-ascii characters.
 
-## Customising Maven descriptor XML
+## Customising Maven descriptor XML (DONE)
 
 This step will provide some capability to modify the generated `pom.xml` files before publication. It will introduce the ability to use the new
 publication tasks to publish Maven modules.
@@ -261,7 +261,7 @@ It should be possible to implement this as an adapter over the existing MavenPom
 * Decent error message when the `withXml` action fails.
 * Descriptor contains non-ascii characters.
 
-## Allow Ivy module descriptor to be generated without publishing to a repository
+## Allow Ivy module descriptor to be generated without publishing to a repository (DONE)
 
 In this step, the meta-data file generation for an Ivy publication is moved out of the `publish` tasks and into a separate task.
 
@@ -284,80 +284,189 @@ Running `gradle generateIvyMetaData` would generate the `ivy.xml` for the defaul
 
 * Unignore IvyLocalPublishIntTest.canGenerateTheIvyXmlWithoutPublishing().
 
-## Allow Java libraries to be published
+## Publish Java library to Maven repository with correct runtime dependencies
 
-This story starts to introduce some component-specific publication.
+This story introduces the concept of a component and the ability to publish components.
 
-1. Change the publish plugins to publish an empty publication when the `base` plugin has not been applied. Here 'empty' means no artifacts except the
-   descriptor are uploaded and that the generated descriptor contain only the publication identifier.
-2. Fix publishing a Maven publication with no artifacts. Currently, this does not work.
-3. Change the Maven publish plugin to publish artifacts from the `archives` configuration when the `base` plugin has been applied. No dependencies should
-   be included in the generated POM.
-4. Change the Ivy publish plugin to publish artifacts from the `archives` configuration when the `base` plugin has been applied. No dependencies should
-   be included in the generated descriptor. The descriptor should contain a single `artifacts` configuration.
-5. Introduce a `Component` interface that extends `Named` and add a `components` container to `Project`. This container will initially be _read-only_ from
+1. Introduce a `Component` interface that extends `Named` and add a `components` container to `Project`. This container will initially be _read-only_ from
    a user's point of view. Also add an associated `ComponentInternal` interface.
-6. Change the Java plugin to add a `Component` instance called `java` to this container.
-7. Change the Maven publish plugin to include dependencies declared in `configurations.runtime.allDependencies` in the generated POM when the `java`
-   component instance is present. Add the appropriate methods to `ComponentInternal` to allow the component instance to specify which dependencies
-   should be included so that the Maven publish plugin does not have any knowledge of the Java plugin.
-8. Change the Ivy publish plugin to include dependencies declared in `configurations.runtime.allDependencies` in the `runtime` configuration in the
-   generated descriptor. Also include a `default` configuration that extends `runtime`. No other configurations should be included in the generated descriptor.
-   As for the Maven publishing, the Ivy publish plugin should have no knowledge of the Java plugin.
-5. Change the Maven publish plugin to include no dependencies in the generated POM when the `java` plugin has not been applied.
-6. Change the Maven publish plugin to include the dependencies from the `runtime` configuration in the generated POM when the `java` plugin has been applied.
-7. Publishing Java project -> only runtime and default configurations should be included.
+2. Change the Java plugin to add a `Component` instance called `java` to this container.
+3. Change the Maven publish plugin so that it adds no publications by default.
+4. Change the Maven publish plugin so that when the `java` component instance is defined:
+    1. Adds a Maven publication called `maven`.
+    2. Has (groupId, artifactId, version) identifier that defaults to (project.group, project.name, project.version).
+    3. Includes dependencies declared in `configurations.runtime.allDependencies` in the generated POM. Add the appropriate methods to `ComponentInternal` to allow
+       the component instance to specify which dependencies should be included so that the Maven publish plugin does not have any knowledge of the Java plugin.
+    4. Publishes the JAR artifact only.
 
-To publish a Java library:
+To publish a Java library to a Maven repository
 
     apply plugin: 'java'
     apply plugin: 'maven-publish'
 
-    group = 'some.group'
-    version = '1.2'
-
     dependencies {
-        compile 'a:b:c'
-        runtime 'e:f:g'
+        compile 'group:libA:1.2'
+        runtime 'group:libB:1.3'
     }
 
     publishing {
         repositories {
-            maven { url 'http://myorg.com' }
+            maven { url '...' }
         }
     }
 
-When `gradle publish` is run, the Jar and generated POM are uploaded. The generated POM will include:
+Running `gradle publish` will publish the JAR and POM to the repository.
 
-    <dependencies>
-        <dependency>
-            <groupId>a</groupId>
-            <artifactId>b</artifactId>
-            <version>c</version>
-        </dependency>
-        <dependency>
-            <groupId>e</groupId>
-            <artifactId>f</artifactId>
-            <version>g</version>
-        </dependency>
-    </dependencies>
+### Test cases
 
-To publish additional artifacts:
+- Run `gradle publish` for a project with just the `maven-publish` plugin applied. Verify nothing is published.
+- Run `gradle assemble` for a Java project. Verify that the JAR is built.
+- Publish a Java project with compile, runtime and testCompile dependencies. Verify only the compile and runtime dependencies are declared in the POM with runtime scope,
+  and that only the JAR is uploaded.
+- Publish multiple projects with the `java` plugin applied and project dependencies between the projects. Verify the POMs declares the appropriate dependencies.
+- Add a cross version test that verifies that a Java library published to a Maven repository by the current Gradle version can be resolved by a previous Gradle version.
+- Copy existing Maven publication tests for java libraries and rework to use `maven-publish` plugin.
+
+## Publish Web application to Maven repository
+
+This story adds a second type of component and a DSL to define which components are published.
+
+1. Allow `MavenPublication` instances to be added to the publications container.
+    - Default the publication's (groupId, artifactId, version) to (project.group, publication.name, project.version).
+2. Allow zero or one components to be added to a Maven publication.
+3. Change the `maven-publish` plugin so that it does not create any publications by default.
+4. Change the `war` plugin to add a component called `web`. When this component is added to a publication, the WAR artifact is added to the publication.
+5. Fix publishing a Maven publication with no artifacts.
+
+To publish a Java library
 
     apply plugin: 'java'
     apply plugin: 'maven-publish'
 
-    artifacts {
-        archives mySourceJar
+    publishing {
+        repositories {
+            maven { url '...' }
+        }
+        publications {
+            myLib(MavenPublication) {
+                from components.java
+                pom.withXml { ... }
+            }
+        }
     }
 
-When `gradle publish` is run, the source Jar is built and uploaded along with the Jar and POM.
+To publish a Web application
 
-Note that there are several breaking changes here:
+    apply plugin: 'war'
+    apply plugin: 'maven-publish'
 
-1. Only those artifacts from the `archives` configuration are published.
-2. Only dependencies from the Java plugin's `runtime` configuration are included in the generated descriptors.
-3. The Ivy plugin uses the `artifacts` configuration instead of `archives` to represent all the artifacts of the module.
+    publishing {
+        repositories {
+            maven { url '...' }
+        }
+        publications {
+            myWebApp(MavenPublication) {
+                from components.web
+            }
+        }
+    }
+
+Note: there is a breaking change in this story, as nothing is published by default.
+
+TBD - Which publication does a project dependency refer to?
+
+### Test cases
+
+- Run `gradle assemble` for a web project. Verify that the WAR is built.
+- Run `gradle publish` for a project that defines an empty publication. Verify that only a POM is uploaded and that the POM declares no dependencies.
+- Run `gradle publish` for a web application that has compile, runtime and testRuntime dependencies. Verify that the WAR is uploaded and that no dependencies are declared
+  in the generated POM.
+- Run `gradle publish` for a web application assembled from several other projects in the same build. Verify that the WAR is uploaded and that no dependencies are declared
+  in the generated POM.
+- Run `gradle publish` for a project that defines multiple publications.
+- Add a cross version test that verifies that a web application published to a Maven repository by the current Gradle version can be resolved by a previous Gradle version.
+- Copy existing Maven publication tests for web applications and rework to use `maven-publish` plugin.
+
+## Allow outgoing artifacts to be customised for Maven publications
+
+This step allows the outgoing artifacts to be customised for a Maven publication.
+
+1. Add a `MavenArtifact` interface with the following attributes:
+    * `extension`
+    * `classifier`
+    * `file`
+2. Add a `MavenArtifactSet` interface. This is a collection of objects that can be converted to a collection of `MavenArtifact` instances.
+3. Add `mainArtifact` property and `artifacts` collections to `MavenPublication`.
+4. When publishing, validate that (extension, classifier) is unique for each artifact.
+
+To customise a Maven publication:
+
+    apply plugin: 'maven-publish'
+
+    publishing {
+        publications {
+            myLib(MavenPublication) {
+                mainArtifact jar
+                artifacts = [sourceJar, javadocJar]
+                artifact file: distZip, classifier: 'dist'
+            }
+        }
+    }
+
+TBD - applicable artifact conversions
+
+### Test cases
+
+TBD
+
+## Allow outgoing artifacts to be customised for Ivy publications
+
+1. Add an `IvyArtifact` interface with the following attributes:
+    * `name`
+    * `type`
+    * `extension`
+    * `file`
+2. Add an `IvyArtifactSet` interface. This is a collection of objects that can be converted to a collection of `IvyArtifact` instances.
+3. Add an `IvyConfiguration` interface. Add a `configurations` container to `IvyModuleDescriptor`
+4. Add an `artifacts` property to `IvyConfiguration`.
+5. When publishing, validate that (name, extension) is unique for each artifact.
+
+To customise an Ivy publication:
+
+    apply plugin: 'ivy-publish'
+
+    publishing {
+        publications {
+            ivy {
+                descriptor.configurations {
+                    runtime {
+                        artifacts = [jar]
+                    }
+                    distributions {
+                        artifact file: distZip, type: 'java-library-distribution'
+                    }
+                }
+            }
+        }
+    }
+
+TBD - applicable conversions
+
+### Test cases
+
+TBD
+
+## Publish Java libraries and web applications to Ivy repository
+
+1. Allow `IvyPublication` instances to be added to the publications container.
+    - Default (organisation, module, revision) to (project.group, publication.name, project.version)
+2. Allow zero or one publications to be added to an Ivy publication.
+3. Change the `ivy-publishing` plugin so that it no longer defines any publications.
+4. When publishing a web application, declare the providedRuntime dependencies and the WAR artifact in the descriptor.
+5. When publishing a java library, declare the runtime dependencies and the JAR artifact in the descriptor.
+6. Include a default configuration in the descriptor.
+
+Note: there is a breaking change in this story.
 
 ### Test cases
 
@@ -368,7 +477,6 @@ Note that there are several breaking changes here:
   another build.
 * Add a cross-version test that verifies a Java project published by the current version of Gradle can be consumed by a previous version of Gradle,
   and vice versa.
-* Copy existing Maven publication tests for java libraries and rework to use `maven-publish` plugin.
 
 ## Validate publication coordinates
 
@@ -382,24 +490,20 @@ Validate the following prior to publication:
 
 TBD
 
-## Allow other types of components to be published
+## Allow further types of components to be published
 
-* Add a DSL for specifying exactly which components should be published. By default no components will be published.
-* Maven publish fails when attempting to publish multiple components.
-* No pom published when using 'cpp-lib' plugin, due to no main artifact.
-* Publishing War project -> only runtime configuration should be included.
-* Publishing Ear project -> only runtime configuration should be included.
-* Publishing C++ Exe project -> only runtime configuration should be included.
-* Publishing C++ Lib project -> only runtime and headers configurations should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
+* Publishing Ear project -> only runtime dependencies should be included.
+* Publishing C++ Exe project -> only runtime dependencies should be included.
+* Publishing C++ Lib project -> only runtime and headers dependencies should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
+* Fix No pom published when using 'cpp-lib' plugin, due to no main artifact.
 
-### Tests
+### Test cases
 
 * Copy existing Maven publication tests for non-java projects and rework to use `maven-publish` plugin.
-* Lots more TBD
 
 ## Some fixes
 
-* Publishing to Ivy uses archivesBaseName for archive names.
+* Publishing to Ivy currently uses archivesBaseName for archive names.
 * Honour changes to the {organisation, module, revision} made by an ivy.xml XML hook
 * Honour changes to the {group, artifact, version} made by a pom.xml XML hook
 
@@ -449,7 +553,7 @@ To customise the `pom.xml`:
         }
     }
 
-Running `gradle publish` will publish to the remote repostory, with the customisations. Running `gradle publishLocalMaven` will publish to the local
+Running `gradle publish` will publish to the remote repository, with the customisations. Running `gradle publishLocalMaven` will publish to the local
 Maven repository, with the same customisations.
 
 To customise the `ivy.xml`:
@@ -459,7 +563,7 @@ To customise the `ivy.xml`:
     publishing {
         repositories.ivy { ... }
 
-        publications.ivy {
+        publications.ivy(IvyPublication) {
             organisation 'my-organisation'
             module 'my-module'
             revision '1.2'
@@ -530,7 +634,7 @@ To customise a Maven publication:
 
     publishing {
         publications {
-            maven {
+            maven(MavenPublication) {
                 pom.scopes {
                     compile "some-group:some-artifactId:1.2"
                     runtime = [compile, "some-group:some-artifactId:1.2:runtime"]
@@ -546,7 +650,7 @@ To customise an Ivy publication:
 
     publishing {
         publications {
-            ivy {
+            ivy(IvyPublication) {
                 descriptor.configurations {
                     compile "some-group:some-module:1.2"
                     testRuntime = []
@@ -557,83 +661,9 @@ To customise an Ivy publication:
 
 TBD - specify applicable dependency conversions
 
-## Allow outgoing artifacts to be customised
+## Can attach multiple components to a publication
 
-This step allows the outgoing artifacts to be customised for individual publications:
-
-1. Add a `MavenArtifact` interface with the following attributes:
-    * `extension`
-    * `classifier`
-2. Add a `MavenArtifactSet` interface. This is a collection of objects that can be converted to a collection of `MavenArtifact` instances.
-3. Add `mainArtifact` and `artifacts` collections to `MavenPublication`.
-4. Add an `IvyArtifact` interface with the following attributes:
-    * `name`
-    * `type`
-    * `extension`
-5. Add an `IvyArtifactSet` interface. This is a collection of objects that can be converted to a collection of `IvyArtifact` instances.
-6. Add an `artifacts` property to `IvyConfiguration`.
-
-For the singleton `ivy` and `maven` instances, these properties would have defaults as specified earlier.
-
-To customise a Maven publication:
-
-    apply plugin: 'maven-publish'
-
-    publishing {
-        publications {
-            maven {
-                mainArtifact jar
-                artifacts = [sourceJar, javadocJar]
-                artifact file: distZip, classifier: 'dist'
-            }
-        }
-    }
-
-To customise an Ivy publication:
-
-    apply plugin: 'ivy-publish'
-
-    publishing {
-        publications {
-            ivy {
-                descriptor.configurations {
-                    runtime {
-                        artifacts = [jar]
-                    }
-                    distributions {
-                        artifact file: distZip, type: 'java-library-distribution'
-                    }
-                }
-            }
-        }
-    }
-
-TBD - applicable artifact conversions
-
-## Allow additional publications to be defined
-
-In this step, additional publications can be defined.
-
-1. Allow `IvyPublication` and `MavenPublication` instances to be added to the publications container.
-
-To publish multiple Ivy modules:
-
-    apply plugin: 'ivy-publish'
-
-    publishing {
-        repositories { ivy { ... } }
-
-        publications {
-            api(type: IvyPublication) {
-                module 'my-api'
-                ...
-            }
-        }
-    }
-
-Running `gradle publish` will build and upload both modules to the Ivy repositories.
-
-TBD - Which publication does a project dependency refer to? The 'main' one? All of them?
+TBD
 
 ## Signing plugin supports signing a publication
 
