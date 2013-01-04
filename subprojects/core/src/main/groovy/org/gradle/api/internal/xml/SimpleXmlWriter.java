@@ -295,7 +295,29 @@ public class SimpleXmlWriter extends Writer {
     }
 
     private void writeRaw(char c) throws IOException {
-        output.write(c);
+        if(isLegalCharacter(c)){
+            output.write(c);
+        }
+    }
+
+    /**
+     * Is the given character allowed inside an XML document?
+     * <p>See XML 1.0 2.2 <a href="http://www.w3.org/TR/1998/REC-xml-19980210#charsets"> http://www.w3.org/TR/1998/REC-xml-19980210#charsets</a>.</p>
+     * this method is based on same method in DOMElementWriter
+     */
+    private boolean isLegalCharacter(final char c) {
+        if (c == 0x9 || c == 0xA || c == 0xD) {
+            return true;
+        } else if (c < 0x20) {
+            return false;
+        } else if (c <= 0xD7FF) {
+            return true;
+        } else if (c < 0xE000) {
+            return false;
+        } else if (c <= 0xFFFD) {
+            return true;
+        }
+        return false;
     }
 
     private void writeRaw(String message) throws IOException {
