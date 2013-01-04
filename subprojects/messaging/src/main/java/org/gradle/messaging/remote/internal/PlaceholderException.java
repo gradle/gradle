@@ -19,7 +19,7 @@ package org.gradle.messaging.remote.internal;
  * A {@code PlaceholderException} is used when an exception cannot be serialized or deserialized.
  */
 public class PlaceholderException extends RuntimeException {
-    private String exceptionClassName;
+    private final String exceptionClassName;
     private final String toString;
     private final RuntimeException toStringRuntimeEx;
 

@@ -256,10 +256,6 @@ class MessageTest extends Specification {
         public String toString() {
             throw new RuntimeException("broken toString", null);
         }
-
-        private void writeObject(ObjectOutputStream outstr) throws IOException {
-            outstr.writeObject(new Object())
-        }
     }
 
     static class UndeserializableException extends RuntimeException {
