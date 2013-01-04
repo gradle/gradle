@@ -37,6 +37,28 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         m2Repo = m2Installation.mavenRepo()
     }
 
+    def "publishes nothing without component"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        mavenRepo.module('group', 'root', '1.0').assertNotPublished()
+    }
+
     def "can publish simple jar"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -53,54 +75,26 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
+        when:
+        succeeds 'assemble'
+
+        then: "jar is built but not published"
+        mavenRepo.module('group', 'root', '1.0').assertNotPublished()
+        m2Repo.module('group', 'root', '1.0').assertNotPublished()
+        file('build/libs/root-1.0.jar').assertExists()
+
         when:
         succeeds 'publish'
 
-        then:
+        then: "jar is published to defined maven repository"
         mavenRepo.module('group', 'root', '1.0').assertPublishedAsJavaModule()
         m2Repo.module('group', 'root', '1.0').assertNotPublished()
 
         when:
         succeeds 'publishToMavenLocal'
 
-        then:
+        then: "jar is published to maven local repository"
         m2Repo.module('group', 'root', '1.0').assertPublishedAsJavaModule()
-    }
-
-    def "can customise pom xml"() {
-        given:
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
-
-            group = 'group'
-            version = '1.0'
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                publications {
-                    maven {
-                        pom.withXml {
-                            asNode().version[0].value = "foo"
-                        }
-                    }
-                }
-            }
-        """
-        when:
-        succeeds 'publish'
-
-        then:
-        mavenRepo.module('group', 'root', 'foo').assertPublishedAsJavaModule()
-        m2Repo.module('group', 'root', 'foo').assertNotPublished()
-
-        when:
-        succeeds 'publishToMavenLocal'
-
-        then:
-        m2Repo.module('group', 'root', 'foo').assertPublishedAsJavaModule()
     }
 }

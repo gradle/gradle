@@ -41,6 +41,7 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
             dependencies {
                 compile "commons-collections:commons-collections:3.2.1"
                 runtime "commons-io:commons-io:1.4"
+                testCompile "junit:junit:4.11"
             }
 
             publishing {
@@ -57,7 +58,11 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
         def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
         mavenModule.assertPublishedAsJavaModule()
 
+        mavenModule.parsedPom.scopes.runtime.dependencies.size() == 2
         mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
         mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
+        mavenModule.parsedPom.scopes.compile == null
+        mavenModule.parsedPom.scopes.testCompile == null
     }
+
 }
