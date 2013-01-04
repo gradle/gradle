@@ -271,7 +271,7 @@ public class TestFile extends File {
      */
     public TestFile create(Closure structure) {
         assertTrue(isDirectory() || mkdirs());
-        new TestDirHelper(this).apply(structure);
+        new TestWorkspaceBuilder(this).apply(structure);
         return this;
     }
 
