@@ -16,8 +16,8 @@
 
 package org.gradle.test.fixtures.ivy
 
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.util.TestFile
 
 class IvyHttpModule extends AbstractIvyModule {
     private final IvyFileModule backingModule

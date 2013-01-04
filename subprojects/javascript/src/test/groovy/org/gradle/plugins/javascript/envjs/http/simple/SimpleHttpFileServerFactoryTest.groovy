@@ -16,15 +16,16 @@
 
 package org.gradle.plugins.javascript.envjs.http.simple
 
-import spock.lang.Specification
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import org.gradle.util.TemporaryFolder
+import spock.lang.Specification
+
 import java.nio.charset.Charset
-import org.gradle.util.TestFile
 
 class SimpleHttpFileServerFactoryTest extends Specification {
 
-    @Rule TemporaryFolder tmp = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     TestFile root
 
     def setup() {

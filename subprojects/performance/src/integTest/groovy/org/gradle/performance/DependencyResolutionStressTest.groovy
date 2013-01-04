@@ -19,7 +19,7 @@ package org.gradle.performance
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.HttpHeaders
@@ -34,7 +34,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 class DependencyResolutionStressTest extends Specification {
-    @Rule TemporaryFolder workspace = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider()
     GradleDistribution distribution = new GradleDistribution(workspace)
     @Rule StressHttpServer server = new StressHttpServer()
     @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()

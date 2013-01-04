@@ -15,14 +15,14 @@
  */
 package org.gradle.internal.os
 
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
 class OperatingSystemTest extends Specification {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def "uses os.name property to determine OS name"() {
         System.properties['os.name'] = 'GradleOS 1.0'

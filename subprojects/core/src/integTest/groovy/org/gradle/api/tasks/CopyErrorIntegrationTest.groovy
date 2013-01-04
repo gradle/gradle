@@ -15,16 +15,16 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.PreconditionVerifier
 import org.junit.Assert
-import org.junit.Test
 import org.junit.Rule
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.junit.Test
 
 class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     @Rule public PreconditionVerifier verifier = new PreconditionVerifier()

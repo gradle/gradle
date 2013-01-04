@@ -17,7 +17,7 @@ package org.gradle.cache.internal
 
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.internal.Factory
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -25,7 +25,7 @@ class OnDemandFileAccessTest extends Specification {
     final FileLockManager manager = Mock()
     final FileLock targetLock = Mock()
 
-    @Rule TemporaryFolder dir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
     OnDemandFileAccess lock
     File file
 

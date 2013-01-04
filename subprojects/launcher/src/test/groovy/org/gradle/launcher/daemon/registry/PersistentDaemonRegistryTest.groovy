@@ -20,7 +20,7 @@ import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.gradle.messaging.remote.Address
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockU
 
 class PersistentDaemonRegistryTest extends Specification {
 
-    @Rule TemporaryFolder tmp
+    @Rule TestNameTestDirectoryProvider tmp
     
     int addressCounter = 0
     def lockManager = createDefaultFileLockManager()

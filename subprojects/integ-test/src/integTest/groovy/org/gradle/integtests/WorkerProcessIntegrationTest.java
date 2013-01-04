@@ -40,7 +40,7 @@ import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.process.internal.*;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -70,13 +70,13 @@ public class WorkerProcessIntegrationTest {
     private final MessagingServices messagingServices = new MessagingServices(getClass().getClassLoader());
     private final MessagingServer server = messagingServices.get(MessagingServer.class);
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(NativeServices.getInstance().get(ProcessEnvironment.class));
     private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider)).create();
-    private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getDir(), null, CacheUsage.ON, factory);
+    private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getTestDirectory(), null, CacheUsage.ON, factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
-    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestWorkDir()), new LongIdGenerator());
+    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestDirectory()), new LongIdGenerator());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
             TestListenerInterface.class);
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);

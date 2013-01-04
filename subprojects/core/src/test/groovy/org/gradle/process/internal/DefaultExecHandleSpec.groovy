@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
-
+package org.gradle.process.internal
 
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.streams.StreamsHandler
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
 import org.gradle.util.Jvm
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -34,7 +33,7 @@ import java.util.concurrent.Callable
  */
 @Timeout(60)
 class DefaultExecHandleSpec extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     void "forks process"() {
         given:
@@ -305,7 +304,7 @@ class DefaultExecHandleSpec extends Specification {
         new ExecHandleBuilder()
                 .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
                 .setTimeout(20000) //sanity timeout
-                .workingDir(tmpDir.getDir());
+                .workingDir(tmpDir.getTestDirectory());
     }
 
     private List args(Class mainClass, String ... args) {

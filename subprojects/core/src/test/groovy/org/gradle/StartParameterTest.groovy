@@ -17,10 +17,11 @@
 package org.gradle
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.junit.Test
+
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
@@ -30,7 +31,7 @@ import static org.junit.Assert.*
  */
 class StartParameterTest {
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     @Rule
     public SetSystemProperties systemProperties = new SetSystemProperties()
 

@@ -20,7 +20,7 @@ package org.gradle.test.fixtures.maven
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 
 class M2Installation implements Action<GradleExecuter> {
     final TestFile userHomeDir

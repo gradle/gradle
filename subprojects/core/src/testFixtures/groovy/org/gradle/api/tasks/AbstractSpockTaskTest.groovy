@@ -32,10 +32,10 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -49,7 +49,7 @@ import static org.junit.Assert.assertFalse
 public abstract class AbstractSpockTaskTest extends Specification {
     public static final String TEST_TASK_NAME = "taskname"
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     private AbstractProject project = HelperUtil.createRootProject()
 

@@ -17,8 +17,8 @@
 package org.gradle.test.fixtures.maven
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.util.TestFile
 import org.gradle.util.hash.HashUtil
 
 abstract class HttpArtifact extends HttpResource {

@@ -21,7 +21,7 @@ import org.gradle.api.internal.filestore.AbstractFileStoreEntry
 import org.gradle.api.plugins.buildcomparison.outcome.internal.DefaultBuildOutcomeAssociation
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntryComparison
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ import static org.gradle.api.plugins.buildcomparison.compare.internal.Comparison
 
 class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
 
-    @Rule TemporaryFolder dir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
 
     def transformer = Mock(Transformer)
     def comparator = new GeneratedArchiveBuildOutcomeComparator(transformer)

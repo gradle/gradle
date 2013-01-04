@@ -24,7 +24,11 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.*;
-import org.gradle.util.*;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.ReflectionUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -52,8 +56,8 @@ public class AnnotationProcessingTaskFactoryTest {
     private final ITaskFactory delegate = context.mock(ITaskFactory.class);
     private final Map args = new HashMap();
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
-    private final TestFile testDir = tmpDir.getDir();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    private final TestFile testDir = tmpDir.getTestDirectory();
     private final File existingFile = testDir.file("file.txt").touch();
     private final File missingFile = testDir.file("missing.txt");
     private final TestFile existingDir = testDir.file("dir").createDir();

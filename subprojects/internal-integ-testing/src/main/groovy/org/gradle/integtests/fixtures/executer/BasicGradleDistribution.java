@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.TestFile;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.test.fixtures.file.TestFile;
 
 public interface BasicGradleDistribution {
     /**

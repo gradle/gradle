@@ -15,18 +15,17 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-
-import spock.lang.Specification
 import org.gradle.internal.Factory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
 
 class DefaultTemporaryFileProviderTest extends Specification {
-    @Rule TemporaryFolder tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir
     DefaultTemporaryFileProvider provider
 
     def setup() {
-        provider = new DefaultTemporaryFileProvider({tmpDir.dir} as Factory)
+        provider = new DefaultTemporaryFileProvider({tmpDir.testDirectory} as Factory)
     }
 
     def "allocates temp file"() {
@@ -60,6 +59,6 @@ class DefaultTemporaryFileProviderTest extends Specification {
         assert file.exists()
         assert file.name.startsWith("prefix")
         assert file.name.endsWith("suffix")
-        assert file.path.startsWith(new File(tmpDir.dir, "foo/bar").path)
+        assert file.path.startsWith(new File(tmpDir.testDirectory, "foo/bar").path)
     }
 }

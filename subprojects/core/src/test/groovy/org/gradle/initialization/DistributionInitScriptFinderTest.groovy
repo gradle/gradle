@@ -17,13 +17,13 @@ package org.gradle.initialization
 
 import org.gradle.api.internal.GradleDistributionLocator
 import org.gradle.api.internal.GradleInternal
-import org.gradle.util.TemporaryFolder
+import org.gradle.groovy.scripts.UriScriptSource
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.groovy.scripts.UriScriptSource
 
 class DistributionInitScriptFinderTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final def distDir = tmpDir.createDir("gradle-home")
     final GradleDistributionLocator locator = Mock()
     final GradleInternal gradle = Mock()

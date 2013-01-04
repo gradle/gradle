@@ -19,7 +19,7 @@ package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
     protected ExecutionResult runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {

@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.loader
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.actor.ActorFactory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.connection.AdaptedConnection
@@ -27,13 +28,12 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParamet
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleVersion
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Specification
 
 class DefaultToolingImplementationLoaderTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
 
@@ -69,7 +69,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     private getToolingApiResourcesDir(Class implementation) {
         tmpDir.file("META-INF/services/org.gradle.tooling.internal.protocol.ConnectionVersion4") << implementation.name
-        return tmpDir.dir;
+        return tmpDir.testDirectory;
     }
 
     private getVersionResourcesDir() {

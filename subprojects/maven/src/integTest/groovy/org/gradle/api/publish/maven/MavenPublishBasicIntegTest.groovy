@@ -32,7 +32,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
     MavenFileRepository m2Repo
 
     def "setup"() {
-        m2Installation = new M2Installation(testWorkDir)
+        m2Installation = new M2Installation(testDirectory)
         using m2Installation
         m2Repo = m2Installation.mavenRepo()
     }

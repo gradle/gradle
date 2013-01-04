@@ -18,7 +18,7 @@ package org.gradle.api.plugins.buildcomparison.gradle
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -77,7 +77,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         storedFile("target/_jar").list().toList() == ["testBuild.jar"]
 
         and: // old filestore not around
-        !testWorkDir.list().any { it.startsWith(CompareGradleBuilds.TMP_FILESTORAGE_PREFIX) }
+        !testDirectory.list().any { it.startsWith(CompareGradleBuilds.TMP_FILESTORAGE_PREFIX) }
     }
 
     void failedBecauseNotIdentical() {

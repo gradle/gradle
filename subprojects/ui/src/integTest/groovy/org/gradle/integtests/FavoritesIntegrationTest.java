@@ -23,7 +23,7 @@ import org.gradle.foundation.TaskView;
 import org.gradle.foundation.TestUtility;
 import org.gradle.gradleplugin.foundation.favorites.FavoriteTask;
 import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,7 +43,7 @@ import java.util.List;
  */
 public class FavoritesIntegrationTest {
     @Rule
-    public final TemporaryFolder tempDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider();
     private BuildInformation buildInformation;
 
     private ProjectView myRootProject;

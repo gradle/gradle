@@ -18,7 +18,7 @@ package org.gradle.plugins.cpp
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
 
 @RunWith(CppIntegrationTestRunner)

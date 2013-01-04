@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.filestore
 
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.api.Action
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.Action
 
 class PathNormalisingKeyFileStoreTest extends Specification {
 
-    @Rule TemporaryFolder dir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
     TestFile fsBase
     PathNormalisingKeyFileStore store
 

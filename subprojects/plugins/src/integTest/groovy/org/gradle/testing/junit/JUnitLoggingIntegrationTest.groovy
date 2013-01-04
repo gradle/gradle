@@ -104,7 +104,7 @@ public class EncodingTest {
         executer.withTasks("test").runWithFailure()
 
         then:
-        new DefaultTestExecutionResult(testWorkDir)
+        new DefaultTestExecutionResult(testDirectory)
                 .testClass("EncodingTest")
                 .assertTestPassed("encodesCdata")
                 .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))

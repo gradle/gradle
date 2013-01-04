@@ -20,9 +20,9 @@ import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.exec.DefaultBuildActionParameters
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.provider.ConfiguringBuildAction
 import org.gradle.tooling.internal.provider.ExecuteBuildAction
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -34,15 +34,15 @@ import spock.lang.Specification
  */
 class EmbeddedDaemonSmokeTest extends Specification {
 
-    @Rule TemporaryFolder temp
+    @Rule TestNameTestDirectoryProvider temp
 
     def daemonClientServices = new EmbeddedDaemonClientServices()
 
     def "run build"() {
         given:
-        def action = new ConfiguringBuildAction(projectDirectory: temp.dir, searchUpwards: false, tasks: ['echo'],
+        def action = new ConfiguringBuildAction(projectDirectory: temp.testDirectory, searchUpwards: false, tasks: ['echo'],
                 gradleUserHomeDir: temp.createDir("user-home"), action: new ExecuteBuildAction())
-        def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), temp.dir, LogLevel.LIFECYCLE)
+        def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), temp.testDirectory, LogLevel.LIFECYCLE)
         
         and:
         def outputFile = temp.file("output.txt")

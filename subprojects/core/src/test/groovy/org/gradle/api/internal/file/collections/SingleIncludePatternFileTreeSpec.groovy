@@ -18,21 +18,20 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.specs.Spec
-import org.gradle.util.TemporaryFolder
-
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
 
 class SingleIncludePatternFileTreeSpec extends Specification {
-    @Shared @ClassRule TemporaryFolder tempDir
+    @Shared @ClassRule TestNameTestDirectoryProvider tempDir
 
     def visitor = Mock(FileVisitor)
 
     def fileTree
 
     def setupSpec() {
-        tempDir.dir.create {
+        tempDir.testDirectory.create {
             dir1 {
                 file("file1")
                 file("file2")
@@ -62,7 +61,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "include leaf file"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir1/file2")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir1/file2")
         def expectedDir = tempDir.file("dir1")
         def expectedFile = tempDir.file("dir1/file2")
 
@@ -98,7 +97,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "include inner file"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir2/file2")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir2/file2")
 
         when:
         fileTree.visit(visitor)
@@ -110,7 +109,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "include leaf dir"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir2/dir2")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir2/dir2")
 
         when:
         fileTree.visit(visitor)
@@ -122,7 +121,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "include inner dir"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir2")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir2")
 
         when:
         fileTree.visit(visitor)
@@ -135,7 +134,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "include directory non-recursively"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir2/*")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir2/*")
 
         when:
         fileTree.visit(visitor)
@@ -151,7 +150,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "include directory recursively"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, includePattern)
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, includePattern)
 
         when:
         fileTree.visit(visitor)
@@ -173,7 +172,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "find all file1's"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "**/file1")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "**/file1")
 
         when:
         fileTree.visit(visitor)
@@ -192,7 +191,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "find all file1's under dir2"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir2/**/file1")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir2/**/file1")
 
         when:
         fileTree.visit(visitor)
@@ -207,7 +206,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "include everything"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "**")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "**")
 
         when:
         fileTree.visit(visitor)
@@ -234,7 +233,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "inner *"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "*/file1")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "*/file1")
 
         when:
         fileTree.visit(visitor)
@@ -250,7 +249,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "inner ?"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir?/file1")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir?/file1")
 
         when:
         fileTree.visit(visitor)
@@ -266,7 +265,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "stop visiting"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir?/file1")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir?/file1")
 
         when:
         fileTree.visit(visitor)
@@ -278,7 +277,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "use exclude spec"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir?/file1", { it.path.startsWith("dir2") } as Spec)
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir?/file1", { it.path.startsWith("dir2") } as Spec)
 
         when:
         fileTree.visit(visitor)
@@ -292,7 +291,7 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "use backslashes"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir?\\file1")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir?\\file1")
 
         when:
         fileTree.visit(visitor)
@@ -308,9 +307,9 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     }
 
     def "display name"() {
-        fileTree = new SingleIncludePatternFileTree(tempDir.dir, "dir?/file1")
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "dir?/file1")
 
         expect:
-        fileTree.displayName == "directory '$tempDir.dir' include 'dir?/file1'"
+        fileTree.displayName == "directory '$tempDir.testDirectory' include 'dir?/file1'"
     }
 }

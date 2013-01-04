@@ -16,13 +16,14 @@
 
 package org.gradle.wrapper
 
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.assertEquals
 import spock.lang.Specification
-import org.gradle.util.TestFile
+
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
@@ -43,11 +44,11 @@ class InstallTest extends Specification {
     PathAssembler pathAssembler = Mock()
     PathAssembler.LocalDistribution localDistribution = Mock()
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before public void setup() {
         downloadCalled = false
-        testDir = tmpDir.dir
+        testDir = tmpDir.testDirectory
         configuration.zipBase = PathAssembler.PROJECT_STRING
         configuration.zipPath = 'someZipPath'
         configuration.distributionBase = PathAssembler.GRADLE_USER_HOME_STRING

@@ -17,10 +17,10 @@
 package org.gradle.api.plugins.buildcomparison.gradle
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 

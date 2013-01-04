@@ -29,9 +29,9 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TemporaryFolder;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -78,7 +78,7 @@ public class DefaultGradleLauncherTest {
     private TasksCompletionListener tasksCompletionListener = context.mock(TasksCompletionListener.class);
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() {

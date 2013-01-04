@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import spock.lang.Specification
+import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.parser.ParserSettings
 import org.apache.ivy.plugins.repository.Resource
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import org.gradle.util.TemporaryFolder
-import org.apache.ivy.core.settings.IvySettings
+import spock.lang.Specification
 
 class DownloadedIvyModuleDescriptorParserTest extends Specification {
-    @Rule TemporaryFolder tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir
     final DownloadedIvyModuleDescriptorParser parser = new DownloadedIvyModuleDescriptorParser()
 
     def "discards the default attribute"() {

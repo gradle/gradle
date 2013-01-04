@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.messaging.serialize.Serializer;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -35,7 +35,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(JMock.class)
 public class CachingHasherTest {
     @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder();
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Hasher delegate = context.mock(Hasher.class);
     private final PersistentIndexedCache<File, CachingHasher.FileInfo> cache = context.mock(

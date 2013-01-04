@@ -17,10 +17,9 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
-import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,6 +29,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -42,7 +43,7 @@ public class DefaultGradlePropertiesLoaderTest {
     private Map<String, String> envProperties = new HashMap<String, String>();
     private StartParameter startParameter = new StartParameter();
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() {
@@ -205,7 +206,7 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void loadPropertiesWithNoExceptionForNonExistingUserHomeAndSettingsDir() {
-        tmpDir.getDir().deleteDir();
+        tmpDir.getTestDirectory().deleteDir();
         gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
     }
 

@@ -15,20 +15,20 @@
  */
 package org.gradle.initialization.layout
 
-import org.gradle.util.TemporaryFolder
+import org.gradle.StartParameter
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.groovy.scripts.UriScriptSource
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.groovy.scripts.UriScriptSource
-import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.StartParameter
 
 class BuildLayoutFactoryTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final BuildLayoutFactory locator = new BuildLayoutFactory()
 
     def "returns current directory when it contains a settings file"() {
-        def currentDir = tmpDir.dir
+        def currentDir = tmpDir.testDirectory
         def settingsFile = currentDir.createFile("settings.gradle")
 
         expect:
@@ -70,8 +70,8 @@ class BuildLayoutFactoryTest extends Specification {
 
         expect:
         def layout = locator.getLayoutFor(currentDir, true)
-        layout.rootDirectory == tmpDir.dir
-        layout.settingsDir == tmpDir.dir
+        layout.rootDirectory == tmpDir.testDirectory
+        layout.settingsDir == tmpDir.testDirectory
         refersTo(layout.settingsScriptSource, settingsFile)
     }
 
@@ -130,7 +130,7 @@ class BuildLayoutFactoryTest extends Specification {
         def currentDir = tmpDir.createDir("sub/current")
 
         expect:
-        def layout = locator.getLayoutFor(currentDir, tmpDir.dir)
+        def layout = locator.getLayoutFor(currentDir, tmpDir.testDirectory)
         layout.rootDirectory == currentDir
         layout.settingsDir == currentDir
         isEmpty(layout.settingsScriptSource)

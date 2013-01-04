@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import java.util.Map;
-import java.util.HashMap;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
@@ -27,8 +25,8 @@ import org.gradle.api.internal.file.archive.compression.Compressor;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
@@ -40,6 +38,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
 import static org.hamcrest.Matchers.*;
@@ -49,7 +49,7 @@ import static org.junit.Assert.fail;
 @RunWith(JMock.class)
 public class TarCopySpecVisitorTest {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final TarCopyAction copyAction = context.mock(TarCopyAction.class);
     private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
@@ -57,7 +57,7 @@ public class TarCopySpecVisitorTest {
 
     @Test
     public void createsTarFile() {
-        final TestFile tarFile = initializeTarFile(tmpDir.getDir().file("test.tar"),
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
             new SimpleCompressor());
         tarAndUntarAndCheckFileContents(tarFile);
     }
@@ -65,7 +65,7 @@ public class TarCopySpecVisitorTest {
     private void tarAndUntarAndCheckFileContents(TestFile tarFile) {
         tar(file("dir/file1"), file("file2"));
 
-        TestFile expandDir = tmpDir.getDir().file("expanded");
+        TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
         tarFile.untarTo(expandDir);
         expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
         expandDir.file("file2").assertContents(equalTo("contents of file2"));
@@ -73,21 +73,21 @@ public class TarCopySpecVisitorTest {
 
     @Test
     public void createsGzipCompressedTarFile() {
-        final TestFile tarFile = initializeTarFile(tmpDir.getDir().file("test.tgz"),
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tgz"),
             GzipArchiver.getCompressor());
         tarAndUntarAndCheckFileContents(tarFile);
     }
 
     @Test
     public void createsBzip2CompressedTarFile() {
-        final TestFile tarFile = initializeTarFile(tmpDir.getDir().file("test.tbz2"),
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tbz2"),
             Bzip2Archiver.getCompressor());
         tarAndUntarAndCheckFileContents(tarFile);
     }
 
     @Test
     public void tarFileContainsExpectedPermissions() {
-        final TestFile tarFile = initializeTarFile(tmpDir.getDir().file("test.tar"),
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
             new SimpleCompressor());
 
         tar(dir("dir"), file("file"));
@@ -115,7 +115,7 @@ public class TarCopySpecVisitorTest {
 
     @Test
     public void wrapsFailureToAddElement() {
-        final TestFile tarFile = initializeTarFile(tmpDir.getDir().file("test.tar"),
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
             new SimpleCompressor());
 
         visitor.startVisit(copyAction);

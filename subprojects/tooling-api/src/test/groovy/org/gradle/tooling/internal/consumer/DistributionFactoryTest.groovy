@@ -17,17 +17,17 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Network
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
 class DistributionFactoryTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
     final DistributionFactory factory = new DistributionFactory(tmpDir.file('userHome'))
@@ -41,7 +41,7 @@ class DistributionFactoryTest extends Specification {
         tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
 
         expect:
-        factory.getDefaultDistribution(tmpDir.dir, false).displayName == "Gradle distribution '${zipFile.toURI()}'"
+        factory.getDefaultDistribution(tmpDir.testDirectory, false).displayName == "Gradle distribution '${zipFile.toURI()}'"
     }
 
     def usesTheWrapperPropertiesToDetermineTheDefaultDistributionForASubprojectInAMultiProjectBuild() {
@@ -50,19 +50,19 @@ class DistributionFactoryTest extends Specification {
         tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
 
         expect:
-        factory.getDefaultDistribution(tmpDir.dir.createDir("child"), true).displayName == "Gradle distribution '${zipFile.toURI()}'"
+        factory.getDefaultDistribution(tmpDir.testDirectory.createDir("child"), true).displayName == "Gradle distribution '${zipFile.toURI()}'"
     }
 
     def usesTheCurrentVersionAsTheDefaultDistributionWhenNoWrapperPropertiesFilePresent() {
         def uri = new DistributionLocator().getDistributionFor(GradleVersion.current())
 
         expect:
-        factory.getDefaultDistribution(tmpDir.dir, false).displayName == "Gradle distribution '${uri}'"
+        factory.getDefaultDistribution(tmpDir.testDirectory, false).displayName == "Gradle distribution '${uri}'"
     }
 
     def createsADisplayNameForAnInstallation() {
         expect:
-        factory.getDistribution(tmpDir.dir).displayName == "Gradle installation '${tmpDir.dir}'"
+        factory.getDistribution(tmpDir.testDirectory).displayName == "Gradle installation '${tmpDir.testDirectory}'"
     }
 
     def usesContentsOfInstallationLibDirectoryAsImplementationClasspath() {
@@ -70,7 +70,7 @@ class DistributionFactoryTest extends Specification {
         def libB = tmpDir.createFile("lib/b.jar")
 
         expect:
-        def dist = factory.getDistribution(tmpDir.dir)
+        def dist = factory.getDistribution(tmpDir.testDirectory)
         dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles as Set == [libA, libB] as Set
     }
 

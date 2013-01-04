@@ -19,7 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.gradle.api.Project
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.logging.internal.StreamingStyledTextOutput
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.jmock.Expectations
 import org.jmock.integration.junit4.JMock
 import org.jmock.integration.junit4.JUnit4Mockery
@@ -37,12 +37,12 @@ import static org.junit.Assert.assertTrue
 public class TextReportRendererTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     @Rule
-    public final TemporaryFolder testDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     private final TextReportRenderer renderer = new TextReportRenderer();
 
     @Test
     public void writesReportToAFile() throws IOException {
-        File outFile = new File(testDir.getDir(), "report.txt");
+        File outFile = new File(testDir.getTestDirectory(), "report.txt");
         renderer.setOutputFile(outFile);
         assertThat(renderer.getTextOutput(), instanceOf(StreamingStyledTextOutput.class));
 

@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.executer.BasicGradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,7 @@ import java.util.List;
  */
 public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestRunner {
 
-    protected final GradleDistribution current = new GradleDistribution(new TemporaryFolder());
+    protected final GradleDistribution current = new GradleDistribution(new TestNameTestDirectoryProvider());
     protected final List<BasicGradleDistribution> previous;
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {

@@ -17,11 +17,11 @@ package org.gradle.integtests.fixtures;
 
 import com.google.common.collect.Sets;
 import org.gradle.integtests.fixtures.executer.*;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.test.fixtures.ivy.IvyFileRepository;
 import org.gradle.test.fixtures.maven.MavenFileRepository;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
-import org.gradle.util.TestWorkDirProvider;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -29,14 +29,14 @@ import org.junit.Rule;
 import java.io.File;
 import java.util.Set;
 
-public abstract class AbstractIntegrationTest implements TestWorkDirProvider {
-    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+public abstract class AbstractIntegrationTest implements TestDirectoryProvider {
+    @Rule public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
     public final GradleDistribution distribution = new GradleDistribution(this);
     public final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution, this);
 
-    @ClassRule public static final TemporaryFolder SHARED_TEMPORARY_FOLDER = new TemporaryFolder();
-    public static final GradleDistribution SHARED_DISTRIBUTION = new GradleDistribution(SHARED_TEMPORARY_FOLDER);
-    private static final GradleDistributionExecuter SHARED_EXECUTER = new GradleDistributionExecuter(SHARED_DISTRIBUTION, SHARED_TEMPORARY_FOLDER);
+    @ClassRule public static final TestNameTestDirectoryProvider SHARED_TEST_DIRECTORY_PROVIDER = new TestNameTestDirectoryProvider();
+    public static final GradleDistribution SHARED_DISTRIBUTION = new GradleDistribution(SHARED_TEST_DIRECTORY_PROVIDER);
+    private static final GradleDistributionExecuter SHARED_EXECUTER = new GradleDistributionExecuter(SHARED_DISTRIBUTION, SHARED_TEST_DIRECTORY_PROVIDER);
 
     private static final Set<Class<?>> SHARED_BUILD_RUN_CLASSES = Sets.newHashSet();
 
@@ -53,8 +53,8 @@ public abstract class AbstractIntegrationTest implements TestWorkDirProvider {
         return useSharedBuild ? SHARED_EXECUTER : executer;
     }
 
-    protected TemporaryFolder getTemporaryFolder() {
-        return useSharedBuild ? SHARED_TEMPORARY_FOLDER : temporaryFolder;
+    protected TestNameTestDirectoryProvider getTestDirectoryProvider() {
+        return useSharedBuild ? SHARED_TEST_DIRECTORY_PROVIDER : testDirectoryProvider;
     }
 
     protected void runSharedBuild() {}
@@ -68,12 +68,12 @@ public abstract class AbstractIntegrationTest implements TestWorkDirProvider {
         }
     }
 
-    public TestFile getTestWorkDir() {
-        return getTemporaryFolder().getTestWorkDir();
+    public TestFile getTestDirectory() {
+        return getTestDirectoryProvider().getTestDirectory();
     }
 
     public TestFile file(Object... path) {
-        return getTestWorkDir().file(path);
+        return getTestDirectory().file(path);
     }
 
     public TestFile testFile(String name) {
@@ -81,7 +81,7 @@ public abstract class AbstractIntegrationTest implements TestWorkDirProvider {
     }
 
     protected GradleExecuter inTestDirectory() {
-        return inDirectory(getTestWorkDir());
+        return inDirectory(getTestDirectory());
     }
 
     protected GradleExecuter inDirectory(File directory) {
@@ -99,7 +99,7 @@ public abstract class AbstractIntegrationTest implements TestWorkDirProvider {
     protected ArtifactBuilder artifactBuilder() {
         GradleDistributionExecuter gradleExecuter = getDistribution().executer();
         gradleExecuter.withGradleUserHomeDir(getDistribution().getUserHomeDir());
-        return new GradleBackedArtifactBuilder(gradleExecuter, getTestWorkDir().file("artifacts"));
+        return new GradleBackedArtifactBuilder(gradleExecuter, getTestDirectory().file("artifacts"));
     }
 
     public MavenFileRepository maven(TestFile repo) {

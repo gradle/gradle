@@ -18,9 +18,9 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.TestFile;
-import org.gradle.util.TestWorkDirProvider;
 
 import java.io.File;
 
@@ -39,7 +39,7 @@ public class GradleDistribution implements BasicGradleDistribution {
 
     private TestFile userHome;
     private boolean usingIsolatedDaemons;
-    private TestWorkDirProvider testWorkDirProvider;
+    private TestDirectoryProvider testWorkDirProvider;
 
     static {
         USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
@@ -53,7 +53,7 @@ public class GradleDistribution implements BasicGradleDistribution {
         DAEMON_BASE_DIR = file("org.gradle.integtest.daemon.registry", "build/daemon");
     }
 
-    public GradleDistribution(TestWorkDirProvider testWorkDirProvider) {
+    public GradleDistribution(TestDirectoryProvider testWorkDirProvider) {
         this.userHome = USER_HOME_DIR;
         this.testWorkDirProvider = testWorkDirProvider;
     }
@@ -190,7 +190,7 @@ public class GradleDistribution implements BasicGradleDistribution {
     }
 
     private TestFile getTestWorkDir() {
-        return testWorkDirProvider.getTestWorkDir();
+        return testWorkDirProvider.getTestDirectory();
     }
 
     /**

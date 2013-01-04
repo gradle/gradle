@@ -21,9 +21,9 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.Resources
 import org.gradle.internal.SystemProperties
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Resources
 import org.hamcrest.Matchers
 import org.junit.Assert
 import org.junit.Before

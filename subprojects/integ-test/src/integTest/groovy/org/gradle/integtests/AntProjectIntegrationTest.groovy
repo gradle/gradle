@@ -15,11 +15,12 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.util.TestFile
-import org.junit.Test
-import static org.hamcrest.Matchers.*
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.test.fixtures.file.TestFile
+import org.junit.Test
+
+import static org.hamcrest.Matchers.startsWith
 
 public class AntProjectIntegrationTest extends AbstractIntegrationTest {
     @Test

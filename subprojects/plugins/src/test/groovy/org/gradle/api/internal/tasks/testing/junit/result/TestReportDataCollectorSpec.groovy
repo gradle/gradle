@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
+import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.api.tasks.testing.TestOutputEvent
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.internal.tasks.testing.*
 
 import static java.util.Arrays.asList
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
@@ -35,8 +35,8 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 class TestReportDataCollectorSpec extends Specification {
 
     @Rule
-    private TemporaryFolder temp = new TemporaryFolder()
-    private collector = new TestReportDataCollector(temp.dir)
+    private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    private collector = new TestReportDataCollector(temp.testDirectory)
 
     def "validates results directory"() {
         temp.file("foo.txt").createNewFile()
@@ -48,7 +48,7 @@ class TestReportDataCollectorSpec extends Specification {
         thrown(IllegalArgumentException);
 
         when:
-        new TestReportDataCollector(temp.dir)
+        new TestReportDataCollector(temp.testDirectory)
         then:
         thrown(IllegalArgumentException);
 
@@ -126,8 +126,8 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
 
         then:
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr"), "err")
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stdout"), "out")
+        1 * collector.cachingFileWriter.write(new File(temp.testDirectory, "FooTest.stderr"), "err")
+        1 * collector.cachingFileWriter.write(new File(temp.testDirectory, "FooTest.stdout"), "out")
         0 * collector.cachingFileWriter._
     }
 
@@ -139,7 +139,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "hey ]]> foo"))
 
         then:
-        1 * collector.cachingFileWriter.write(new File(temp.dir, "FooTest.stderr"), "hey ]]> foo")
+        1 * collector.cachingFileWriter.write(new File(temp.testDirectory, "FooTest.stderr"), "hey ]]> foo")
     }
 
     def "provides outputs"() {

@@ -21,8 +21,9 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
+
 import static org.hamcrest.Matchers.equalTo
 
 public class ArchiveIntegrationTest extends AbstractIntegrationSpec {

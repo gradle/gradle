@@ -33,7 +33,10 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.util.*;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.GUtil;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
@@ -52,7 +55,7 @@ import static org.junit.Assert.*;
 public abstract class AbstractTaskTest {
     public static final String TEST_TASK_NAME = "taskname";
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);

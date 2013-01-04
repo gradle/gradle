@@ -326,7 +326,7 @@ eclipse {
     @Test
     @Issue("GRADLE-1157")
     void canHandleDependencyWithoutSourceJarInFlatDirRepo() {
-        def repoDir = testWorkDir.createDir("repo")
+        def repoDir = testDirectory.createDir("repo")
         repoDir.createFile("lib-1.0.jar")
 
         runEclipseTask """

@@ -15,16 +15,14 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import java.util.Map;
-import java.util.HashMap;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
-import org.gradle.util.TestFile;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
@@ -37,15 +35,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class ZipCopySpecVisitorTest {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
     private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
@@ -54,7 +55,7 @@ public class ZipCopySpecVisitorTest {
 
     @Before
     public void setup() {
-        zipFile = tmpDir.getDir().file("test.zip");
+        zipFile = tmpDir.getTestDirectory().file("test.zip");
         context.checking(new Expectations(){{
             allowing(copyAction).getArchivePath();
             will(returnValue(zipFile));
@@ -65,7 +66,7 @@ public class ZipCopySpecVisitorTest {
     public void createsZipFile() {
         zip(dir("dir"), file("dir/file1"), file("file2"));
 
-        TestFile expandDir = tmpDir.getDir().file("expanded");
+        TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
         zipFile.unzipTo(expandDir);
         expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
         expandDir.file("file2").assertContents(equalTo("contents of file2"));

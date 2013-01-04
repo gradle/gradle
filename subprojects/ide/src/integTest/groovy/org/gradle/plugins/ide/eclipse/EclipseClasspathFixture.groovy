@@ -15,9 +15,10 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import java.util.regex.Pattern
-import org.gradle.util.TestFile
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
+import org.gradle.test.fixtures.file.TestFile
+
+import java.util.regex.Pattern
 
 class EclipseClasspathFixture {
     final TestFile projectDir

@@ -19,7 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -39,7 +39,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(JMock.class)
 public class UserHomeInitScriptFinderTest {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final GradleInternal gradleMock = context.mock(GradleInternal.class);
     private final StartParameter testStartParameter = new StartParameter();
@@ -47,7 +47,7 @@ public class UserHomeInitScriptFinderTest {
 
     @Before
     public void setup() {
-        testStartParameter.setGradleUserHomeDir(tmpDir.getDir());
+        testStartParameter.setGradleUserHomeDir(tmpDir.getTestDirectory());
         context.checking(new Expectations() {{
             allowing(gradleMock).getStartParameter();
             will(returnValue(testStartParameter));

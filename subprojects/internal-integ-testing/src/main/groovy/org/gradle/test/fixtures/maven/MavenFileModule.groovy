@@ -16,7 +16,7 @@
 package org.gradle.test.fixtures.maven
 
 import groovy.xml.MarkupBuilder
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.hash.HashUtil
 
 import java.text.SimpleDateFormat

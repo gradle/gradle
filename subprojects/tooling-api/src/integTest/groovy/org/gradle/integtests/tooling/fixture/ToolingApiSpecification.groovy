@@ -17,11 +17,11 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.internal.AssumptionViolatedException
 import org.junit.runner.RunWith
@@ -33,7 +33,7 @@ import spock.lang.Specification
 abstract class ToolingApiSpecification extends Specification {
     static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
-    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new GradleDistribution(temporaryFolder)
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
     private static final ThreadLocal<BasicGradleDistribution> VERSION = new ThreadLocal<BasicGradleDistribution>()
@@ -88,7 +88,7 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     TestFile getProjectDir() {
-        temporaryFolder.testWorkDir
+        temporaryFolder.testDirectory
     }
 
     TestFile getBuildFile() {

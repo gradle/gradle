@@ -18,20 +18,20 @@ package org.gradle.api.internal.artifacts.resolutioncache
 
 import org.gradle.CacheUsage
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
+import org.gradle.api.internal.externalresource.cached.DefaultCachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
-import org.gradle.testfixtures.internal.InMemoryCacheFactory
-import org.gradle.util.TemporaryFolder
 import org.gradle.internal.TimeProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
-import org.gradle.api.internal.externalresource.cached.DefaultCachedExternalResourceIndex
-import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 
 class DefaultArtifactResolutionCacheTest extends Specification {
 
-    @Rule TemporaryFolder tmp = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     Date time = new Date(0)
     TimeProvider timeProvider = new TimeProvider() {

@@ -15,15 +15,16 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
 import static org.gradle.cache.internal.FileLockManager.LockMode.None
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 
 class DefaultPersistentDirectoryStoreTest extends Specification {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final FileLockManager lockManager = Mock()
     final FileLock lock = Mock()
     final cacheDir = tmpDir.file("dir")

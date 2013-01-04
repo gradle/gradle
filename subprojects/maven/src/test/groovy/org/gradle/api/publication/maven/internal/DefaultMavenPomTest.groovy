@@ -22,8 +22,8 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -37,7 +37,7 @@ class DefaultMavenPomTest extends Specification {
     static final String EXPECTED_VERSION = "v\u00E9rsi\u00F8n"; // note the utf-8 chars
 
     @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     Conf2ScopeMappingContainer conf2ScopeMappingContainer = Mock()
     PomDependenciesConverter pomDependenciesConverterStub = Mock()

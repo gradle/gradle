@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 

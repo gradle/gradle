@@ -17,15 +17,15 @@ package org.gradle.internal.nativeplatform.jna
 
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
 class ProcessEnvironmentTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
     final ProcessEnvironment env = NativeServices.getInstance().get(ProcessEnvironment)
 
@@ -59,11 +59,11 @@ class ProcessEnvironmentTest extends Specification {
         File originalDir = new File(System.getProperty("user.dir"))
 
         when:
-        env.setProcessDir(tmpDir.dir)
+        env.setProcessDir(tmpDir.testDirectory)
 
         then:
-        env.processDir.canonicalFile == tmpDir.dir
-        new File(".").canonicalFile == tmpDir.dir
+        env.processDir.canonicalFile == tmpDir.testDirectory
+        new File(".").canonicalFile == tmpDir.testDirectory
 
         cleanup:
         System.setProperty("user.dir", originalDir.absolutePath)

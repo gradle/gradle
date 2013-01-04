@@ -16,7 +16,7 @@
 
 package org.gradle.test.fixtures.ivy;
 
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.Map;
 

@@ -16,17 +16,16 @@
 
 package org.gradle.process.internal.child
 
-import spock.lang.Specification
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import org.gradle.cache.CacheRepository
-import org.gradle.cache.CacheBuilder
-import org.gradle.cache.PersistentCache
-import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.cache.CacheRepository
+import org.gradle.cache.DirectoryCacheBuilder
+import org.gradle.cache.PersistentCache
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
 
 class WorkerProcessClassPathProviderTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final CacheRepository cacheRepository = Mock()
     final ModuleRegistry moduleRegistry = Mock()
     final WorkerProcessClassPathProvider provider = new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry)
@@ -37,7 +36,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
     }
 
     def createsTheWorkerClasspathOnDemand() {
-        def cacheDir = tmpDir.dir
+        def cacheDir = tmpDir.testDirectory
         def jarFile = cacheDir.file('gradle-worker.jar')
         DirectoryCacheBuilder cacheBuilder = Mock()
         PersistentCache cache = Mock()
@@ -57,7 +56,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
     }
 
     def reusesTheCachedClasspath() {
-        def cacheDir = tmpDir.dir
+        def cacheDir = tmpDir.testDirectory
         def jarFile = cacheDir.file('gradle-worker.jar')
         DirectoryCacheBuilder cacheBuilder = Mock()
         PersistentCache cache = Mock()

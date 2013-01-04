@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
+package org.gradle.test.fixtures.file
 
-import java.util.zip.ZipInputStream
+import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.Expand
 import org.apache.tools.ant.taskdefs.Tar
 import org.apache.tools.ant.taskdefs.Untar
 import org.apache.tools.ant.taskdefs.Zip
+
+import java.util.zip.ZipInputStream
+
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
-import org.apache.commons.io.FileUtils
 
 class TestFileHelper {
     TestFile file

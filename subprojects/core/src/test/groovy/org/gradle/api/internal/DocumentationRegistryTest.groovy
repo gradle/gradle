@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal
 
-import spock.lang.Specification
-import org.junit.Rule
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
+import org.junit.Rule
+import spock.lang.Specification
 
 class DocumentationRegistryTest extends Specification {
-    @Rule TemporaryFolder tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir
     final GradleDistributionLocator locator = Mock()
     final GradleVersion gradleVersion = GradleVersion.current()
     final DocumentationRegistry registry = new DocumentationRegistry(locator, gradleVersion)

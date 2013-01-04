@@ -15,11 +15,11 @@
  */
 package org.gradle.reporting
 
-import spock.lang.Specification
-import org.w3c.dom.Element
-import org.junit.Rule
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
+import org.junit.Rule
+import org.w3c.dom.Element
+import spock.lang.Specification
 
 class HtmlReportRendererTest extends Specification {
     final DomReportRenderer<String> domRenderer = new DomReportRenderer<String>() {
@@ -28,7 +28,7 @@ class HtmlReportRendererTest extends Specification {
             parent.appendChild(parent.ownerDocument.createElement(model))
         }
     }
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final HtmlReportRenderer renderer = new HtmlReportRenderer()
 
     def "renders report to stream"() {

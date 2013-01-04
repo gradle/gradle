@@ -17,8 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
 
 import static org.junit.Assert.assertTrue
@@ -72,7 +72,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "directory permissions are preserved in copy action"() {
         given:
-        TestFile parent = getTestWorkDir().createDir("testparent")
+        TestFile parent = getTestDirectory().createDir("testparent")
         TestFile child = parent.createDir("testchild")
         child.file("reference.txt") << "test file"
 
@@ -145,7 +145,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "dirMode can be modified in copy task"() {
         given:
-        TestFile parent = getTestWorkDir().createDir("testparent")
+        TestFile parent = getTestDirectory().createDir("testparent")
         TestFile child = parent.createDir("testchild")
         child.file("reference.txt") << "test file"
 

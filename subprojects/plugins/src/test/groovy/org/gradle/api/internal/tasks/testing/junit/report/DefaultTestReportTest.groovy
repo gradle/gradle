@@ -23,15 +23,15 @@ import org.gradle.api.internal.tasks.testing.logging.SimpleTestResult
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultTestReportTest extends Specification {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final Test task = Mock();
     final DefaultTestReport report = new DefaultTestReport(task)
     final TestFile reportDir = tmpDir.file('report')

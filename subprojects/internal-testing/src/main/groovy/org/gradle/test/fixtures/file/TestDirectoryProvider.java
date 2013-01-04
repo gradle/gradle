@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.test.fixtures.file;
 
-public interface TestWorkDirProvider {
-    TestFile getTestWorkDir();
+/**
+ * Implementations provide a working space to be used in tests.
+ *
+ * The client is not responsible for removing any files.
+ */
+public interface TestDirectoryProvider {
+
+    /**
+     * The directory to use, guaranteed to exist.
+     *
+     * @return The directory to use, guaranteed to exist.
+     */
+    TestFile getTestDirectory();
+
 }

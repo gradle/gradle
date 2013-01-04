@@ -18,7 +18,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.UncheckedIOException
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -27,7 +27,7 @@ import static org.gradle.api.internal.IoActions.writeFile
 
 class IoActionsTest extends Specification {
 
-    @Rule TemporaryFolder tmp
+    @Rule TestNameTestDirectoryProvider tmp
 
     def "can use file action to write to file"() {
         given:

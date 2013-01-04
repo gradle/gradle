@@ -17,7 +17,7 @@
 package org.gradle.external.javadoc.internal
 
 import org.gradle.external.javadoc.JavadocOptionFileOption
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -25,7 +25,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class JavadocOptionFileWriterTest extends Specification {
 
-    @Rule TemporaryFolder temporaryFolder
+    @Rule TestNameTestDirectoryProvider temporaryFolder
 
     JavadocOptionFile optionfile = Mock()
     JavadocOptionFileWriter javadocOptionFileWriter = new JavadocOptionFileWriter(optionfile)

@@ -22,15 +22,15 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Factory
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.ExecutionListener
+import org.gradle.logging.*
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.logging.internal.StreamingStyledTextOutput
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.logging.*
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule
@@ -38,7 +38,7 @@ class CommandLineActionFactoryTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();
     @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder();
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final ExecutionListener executionListener = Mock()
     final ServiceRegistry loggingServices = Mock()
     final CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = Mock()

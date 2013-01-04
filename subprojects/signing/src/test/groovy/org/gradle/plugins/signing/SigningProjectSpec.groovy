@@ -15,18 +15,18 @@
  */
 package org.gradle.plugins.signing
 
-import spock.lang.*
 import org.gradle.api.Project
-import org.gradle.api.tasks.bundling.*
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.HelperUtil
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
+import spock.lang.Specification
 
 class SigningProjectSpec extends Specification {
     
     static final DEFAULT_KEY_SET = "gradle"
     
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
         
     Project project = HelperUtil.createRootProject()
     

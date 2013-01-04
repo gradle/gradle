@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -25,7 +25,7 @@ import spock.lang.Specification
  */
 class CachingFileWriterSpec extends Specification {
 
-    private @Rule TemporaryFolder temp = new TemporaryFolder()
+    private @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private writer = new CachingFileWriter(2)
 
     def cleanup() {

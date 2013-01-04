@@ -20,14 +20,14 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.parser.ParserSettings
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Issue
+import spock.lang.Specification
 
 class GradlePomModuleDescriptorParserTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser()
     final ParserSettings ivySettings = Mock()
     TestFile pomFile

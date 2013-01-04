@@ -15,14 +15,14 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Matchers
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 
 class FileReferenceFactoryTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final TestFile rootDir = tmpDir.createDir("root")
     final FileReferenceFactory factory = new FileReferenceFactory()
 

@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
-import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Rule
@@ -78,7 +78,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
-        def failure = executer.withEnvironmentVars('JAVA_HOME': testWorkDir).withTasks('checkJavaHome').runWithFailure()
+        def failure = executer.withEnvironmentVars('JAVA_HOME': testDirectory).withTasks('checkJavaHome').runWithFailure()
         assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
     }
 
@@ -185,7 +185,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
         assert result.output.contains("my app")
 
         // Don't follow links when cleaning up test files
-        testWorkDir.usingNativeTools().deleteDir()
+        testDirectory.usingNativeTools().deleteDir()
     }
 
     @Test

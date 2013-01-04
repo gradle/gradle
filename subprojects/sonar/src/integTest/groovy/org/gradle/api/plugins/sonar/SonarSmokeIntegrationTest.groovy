@@ -17,17 +17,15 @@
 package org.gradle.api.plugins.sonar
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.AvailablePortFinder
+import org.gradle.util.ClasspathUtil
+import org.junit.Rule
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.webapp.WebAppContext
-import org.gradle.integtests.fixtures.TestResources
-
-import org.junit.Rule
-import spock.lang.Shared
 import spock.lang.AutoCleanup
-import org.gradle.util.Resources
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.ClasspathUtil
-import org.gradle.util.AvailablePortFinder
+import spock.lang.Shared
 
 class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
     @Shared
@@ -37,7 +35,7 @@ class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
     Server webServer = new Server(0)
 
     @Rule
-    TemporaryFolder tempDir = new TemporaryFolder()
+    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     @Rule
     TestResources testResources

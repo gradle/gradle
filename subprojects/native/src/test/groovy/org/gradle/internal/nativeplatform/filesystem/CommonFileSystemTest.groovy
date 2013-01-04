@@ -15,14 +15,14 @@
  */
 package org.gradle.internal.nativeplatform.filesystem
 
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
 class CommonFileSystemTest extends Specification {
-    @Rule TemporaryFolder tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir
 
     def fs = FileSystems.default
 

@@ -16,17 +16,18 @@
 
 package org.gradle.api.internal.classpath
 
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
+
 import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 import java.util.zip.ZipEntry
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import spock.lang.Specification
 
 public class ManifestUtilTest extends Specification {
     @Rule
-    final TemporaryFolder tmpDir = new TemporaryFolder()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def jarFile = tmpDir.file("mydir/jarfile.jar").createFile()
 
     def "creates manifest classpath with relative urls"() {
@@ -39,7 +40,7 @@ public class ManifestUtilTest extends Specification {
 
     def "creates manifest classpath with absolute urls"() {
         when:
-        def tmpDirPath = tmpDir.dir.toURI().rawPath
+        def tmpDirPath = tmpDir.testDirectory.toURI().rawPath
         def file1 = tmpDir.file('different/jar1.jar')
         def file2 = tmpDir.file('different/nested/jar2.jar')
         

@@ -26,7 +26,7 @@ import org.gradle.api.internal.externalresource.cached.CachedExternalResourceInd
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.filestore.FileStore
 import org.gradle.api.internal.filestore.FileStoreEntry
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -43,7 +43,7 @@ class DownloadingRepositoryCacheManagerTest extends Specification {
     FileStoreEntry fileStoreEntry = Mock()
     DownloadingRepositoryCacheManager downloadingRepositoryCacheManager = new DownloadingRepositoryCacheManager("TestCacheManager", fileStore, artifactUrlCachedResolutionIndex, tmpFileProvider, lockingManager)
 
-    @Rule TemporaryFolder temporaryFolder;
+    @Rule TestNameTestDirectoryProvider temporaryFolder;
 
     void "downloadArtifactFile downloads artifact to temporary file and then moves it into the file store"() {
         setup:

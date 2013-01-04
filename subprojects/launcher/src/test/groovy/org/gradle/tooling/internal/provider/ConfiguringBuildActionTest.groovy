@@ -18,8 +18,7 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.StartParameter
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -27,7 +26,7 @@ import spock.lang.Specification
  * by Szczepan Faber, created at: 3/6/12
  */
 class ConfiguringBuildActionTest extends Specification {
-    @Rule TemporaryFolder temp
+    @Rule TestNameTestDirectoryProvider temp
 
     def "allows configuring the start parameter with build arguments"() {
         when:

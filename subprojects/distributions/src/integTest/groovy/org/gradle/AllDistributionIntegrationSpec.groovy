@@ -17,7 +17,7 @@
 package org.gradle
 
 import groovy.io.FileType
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 
 import static org.hamcrest.Matchers.containsString
 

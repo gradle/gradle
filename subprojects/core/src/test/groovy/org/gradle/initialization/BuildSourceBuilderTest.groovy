@@ -28,9 +28,9 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.FileLockManager
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.jmock.api.Action
 import org.junit.After
 import org.junit.Before
@@ -46,7 +46,7 @@ import static org.junit.Assert.assertEquals
  */
 @RunWith(org.jmock.integration.junit4.JMock)
 class BuildSourceBuilderTest {
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     BuildSourceBuilder buildSourceBuilder
     GradleLauncherFactory gradleFactoryMock = context.mock(GradleLauncherFactory.class)

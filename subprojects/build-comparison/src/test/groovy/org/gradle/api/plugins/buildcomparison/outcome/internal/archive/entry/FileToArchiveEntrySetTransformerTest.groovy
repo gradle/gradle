@@ -16,14 +16,14 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry
 
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class FileToArchiveEntrySetTransformerTest extends Specification {
 
-    @Rule TemporaryFolder dir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
     Set<ArchiveEntry> entrySet
 
     def transformer = new FileToArchiveEntrySetTransformer(new ZipEntryToArchiveEntryTransformer())

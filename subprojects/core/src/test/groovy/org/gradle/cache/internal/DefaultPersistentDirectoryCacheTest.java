@@ -20,10 +20,10 @@ import org.gradle.api.Action;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -39,14 +39,12 @@ import java.util.Properties;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultPersistentDirectoryCacheTest {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ProcessMetaDataProvider metaDataProvider = context.mock(ProcessMetaDataProvider.class);
     private final FileLockManager lockManager = new DefaultFileLockManager(metaDataProvider);
@@ -67,7 +65,7 @@ public class DefaultPersistentDirectoryCacheTest {
 
     @Test
     public void initialisesCacheWhenCacheDirDoesNotExist() {
-        TestFile emptyDir = tmpDir.getDir().file("dir");
+        TestFile emptyDir = tmpDir.getTestDirectory().file("dir");
         emptyDir.assertDoesNotExist();
 
         context.checking(new Expectations() {{
@@ -81,7 +79,7 @@ public class DefaultPersistentDirectoryCacheTest {
 
     @Test
     public void initializesCacheWhenPropertiesFileDoesNotExist() {
-        TestFile dir = tmpDir.getDir().file("dir").createDir();
+        TestFile dir = tmpDir.getTestDirectory().file("dir").createDir();
 
         context.checking(new Expectations() {{
             one(action).execute(with(notNullValue(PersistentCache.class)));
@@ -162,7 +160,7 @@ public class DefaultPersistentDirectoryCacheTest {
 
     @Test
     public void rebuildsCacheWhenInitialiserFailedOnPreviousOpen() {
-        TestFile dir = tmpDir.getDir().file("dir").createDir();
+        TestFile dir = tmpDir.getTestDirectory().file("dir").createDir();
         final RuntimeException failure = new RuntimeException();
 
         context.checking(new Expectations() {{
@@ -206,7 +204,7 @@ public class DefaultPersistentDirectoryCacheTest {
     }
 
     private TestFile createCacheDir(String... extraProps) {
-        TestFile dir = tmpDir.getDir();
+        TestFile dir = tmpDir.getTestDirectory();
 
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.putAll(this.properties);

@@ -22,13 +22,13 @@ import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
 public class PerformanceTestRunner {
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
-    def current = new GradleDistribution(new TemporaryFolder())
+    def current = new GradleDistribution(new TestNameTestDirectoryProvider())
 
     String testProject
     int runs

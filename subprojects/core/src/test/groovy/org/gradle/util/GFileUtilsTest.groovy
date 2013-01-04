@@ -16,19 +16,20 @@
 
 package org.gradle.util
 
+import org.gradle.api.UncheckedIOException
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.GFileUtils.mkdirs
 import static org.gradle.util.GFileUtils.parentMkdirs
-import org.gradle.api.UncheckedIOException
 
 /**
  * by Szczepan Faber, created at: 2/28/12
  */
 class GFileUtilsTest extends Specification {
 
-    @Rule TemporaryFolder temp
+    @Rule TestNameTestDirectoryProvider temp
 
     def "can read the file's tail"() {
         def f = temp.file("foo.txt") << """

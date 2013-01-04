@@ -26,9 +26,9 @@ import org.gradle.openapi.external.foundation.TaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
 import org.gradle.openapi.external.ui.*
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
 import org.junit.Assert
 import org.junit.ClassRule
@@ -50,7 +50,7 @@ import static org.hamcrest.Matchers.*
 @Requires(TestPrecondition.SWING)
 class OpenApiUiTest {
 
-    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     GradleDistribution dist = new GradleDistribution(temporaryFolder)
     @Rule public TestResources resources = new TestResources('testproject')
     @Rule public OpenApiFixture openApi = new OpenApiFixture()
@@ -582,7 +582,7 @@ class OpenApiUiTest {
             throw new AssertionError("Failed to extract single pane: Caused by " + e.getMessage())
         }
 
-        File illegalDirectory = temporaryFolder.testWorkDir.file("non-existant").createDir();
+        File illegalDirectory = temporaryFolder.testDirectory.file("non-existant").createDir();
         if (illegalDirectory.equals(singlePane.getCurrentDirectory())) {
             throw new AssertionError("Directory already set to 'test' directory. The test is not setup correctly.");
         }

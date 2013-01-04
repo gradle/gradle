@@ -16,16 +16,16 @@
 
 package org.gradle.cache.internal
 
-import spock.lang.Specification
-import org.junit.Rule
-import org.gradle.util.TemporaryFolder
-import spock.lang.Unroll
-import org.gradle.internal.Factory
 import org.gradle.cache.CacheOpenException
+import org.gradle.internal.Factory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
+import spock.lang.Unroll
 
 class DelegateOnDemandPersistentDirectoryCacheSpec extends Specification {
 
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     DefaultPersistentDirectoryCache delegateCache = Mock()
     File dir = tmpDir.createDir("cacheDir")
     String displayName = "test display name"

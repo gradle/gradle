@@ -18,7 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
 import static org.hamcrest.Matchers.startsWith

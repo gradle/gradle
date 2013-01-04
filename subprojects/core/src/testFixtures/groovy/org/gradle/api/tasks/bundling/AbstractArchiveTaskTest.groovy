@@ -20,7 +20,9 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.junit.Test
-import static org.junit.Assert.*
+
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 
 /**
  * @author Hans Dockter
@@ -44,7 +46,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.appendix = 'testappendix'
         archiveTask.version = '1.0'
         archiveTask.classifier = 'src'
-        archiveTask.destinationDir = new File(tmpDir.dir, 'destinationDir')
+        archiveTask.destinationDir = new File(tmpDir.testDirectory, 'destinationDir')
     }
 
     @Test public void testExecute() {

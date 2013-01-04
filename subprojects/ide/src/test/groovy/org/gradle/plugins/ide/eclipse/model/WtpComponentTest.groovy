@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.custommonkey.xmlunit.XMLUnit
 import org.gradle.api.internal.xml.XmlTransformer
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -32,7 +32,7 @@ public class WtpComponentTest extends Specification {
     private final WtpComponent component = new WtpComponent(new XmlTransformer())
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def "load existing XML file"() {
         when:

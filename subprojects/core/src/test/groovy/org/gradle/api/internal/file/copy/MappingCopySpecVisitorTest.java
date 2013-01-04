@@ -20,9 +20,9 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -48,7 +48,7 @@ public class MappingCopySpecVisitorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
 
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final CopySpecVisitor delegate = context.mock(CopySpecVisitor.class);
     private final ReadableCopySpec spec = context.mock(ReadableCopySpec.class);
     private final FileVisitDetails details = context.mock(FileVisitDetails.class);
@@ -219,7 +219,7 @@ public class MappingCopySpecVisitorTest {
 
         mappedDetails.filter(HelperUtil.toClosure("{ 'PREFIX: ' + it } "));
 
-        TestFile destDir = tmpDir.getDir().file("test.txt");
+        TestFile destDir = tmpDir.getTestDirectory().file("test.txt");
         mappedDetails.copyTo(destDir);
         destDir.assertContents(equalTo("PREFIX: content"));
     }
@@ -227,7 +227,7 @@ public class MappingCopySpecVisitorTest {
     @Test
     public void explicitFileModeDefinitionIsAppliedToTarget() throws IOException {
         final FileCopyDetails mappedDetails = expectActionExecutedWhenFileVisited();
-        final TestFile destFile = tmpDir.getDir().file("test.txt").createFile();
+        final TestFile destFile = tmpDir.getTestDirectory().file("test.txt").createFile();
 
         // set file permissions explicitly
         mappedDetails.setMode(0645);

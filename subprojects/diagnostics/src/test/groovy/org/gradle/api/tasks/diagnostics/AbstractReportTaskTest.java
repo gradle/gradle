@@ -19,8 +19,8 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -46,7 +46,7 @@ public class AbstractReportTaskTest {
     private TestReportTask task;
     private ReportRenderer renderer;
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() throws Exception {
@@ -79,7 +79,7 @@ public class AbstractReportTaskTest {
 
     @Test
     public void setsOutputFileNameOnRendererBeforeGeneration() throws IOException {
-        final File file = tmpDir.getDir().file("report.txt");
+        final File file = tmpDir.getTestDirectory().file("report.txt");
 
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("sequence");

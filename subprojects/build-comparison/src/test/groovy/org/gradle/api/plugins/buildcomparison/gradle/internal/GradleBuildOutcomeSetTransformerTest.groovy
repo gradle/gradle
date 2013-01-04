@@ -16,22 +16,22 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle.internal
 
+import org.gradle.api.Action
+import org.gradle.api.internal.filestore.AbstractFileStoreEntry
 import org.gradle.api.internal.filestore.FileStore
 import org.gradle.api.internal.filestore.FileStoreEntry
 import org.gradle.api.plugins.buildcomparison.fixtures.ProjectOutcomesBuilder
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome
+import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*
-import org.gradle.api.internal.filestore.AbstractFileStoreEntry
-import org.gradle.util.TestFile
-import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
-import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome
-import org.gradle.api.Action
-import org.junit.Rule
-import org.gradle.util.TemporaryFolder
 
 class GradleBuildOutcomeSetTransformerTest extends Specification {
 
@@ -62,12 +62,12 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
     }
 
     def transformer = new GradleBuildOutcomeSetTransformer(store, "things")
-    @Rule TemporaryFolder dir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
 
     def "can transform"() {
         given:
         ProjectOutcomesBuilder builder = new ProjectOutcomesBuilder()
-        ProjectOutcomes projectOutput = builder.build(dir.dir) {
+        ProjectOutcomes projectOutput = builder.build(dir.testDirectory) {
             createChild("a") {
                 addFile "a1", JAR_ARTIFACT.typeIdentifier
             }

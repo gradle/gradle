@@ -18,8 +18,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
-import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 
@@ -40,7 +40,7 @@ class OsgiProjectSampleIntegrationTest extends AbstractIntegrationTest {
         long start = System.currentTimeMillis()
         TestFile osgiProjectDir = sample.dir
         executer.inDirectory(osgiProjectDir).withTasks('clean', 'assemble').run()
-        TestFile tmpDir = testWorkDir
+        TestFile tmpDir = testDirectory
         osgiProjectDir.file('build/libs/osgi-1.0.jar').unzipTo(tmpDir)
         tmpDir.file('META-INF/MANIFEST.MF').withInputStream { InputStream instr ->
             Manifest manifest = new Manifest(instr)

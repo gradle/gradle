@@ -17,9 +17,9 @@
 package org.gradle
 
 import org.apache.tools.ant.taskdefs.Expand
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.AntUtil
 import org.gradle.util.Requires
-import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
 
 class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {

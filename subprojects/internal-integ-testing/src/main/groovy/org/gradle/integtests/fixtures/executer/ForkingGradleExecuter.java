@@ -22,7 +22,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.process.internal.ExecHandleBuilder;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

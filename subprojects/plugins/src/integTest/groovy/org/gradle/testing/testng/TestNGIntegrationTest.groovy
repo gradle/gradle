@@ -49,7 +49,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
         assertThat(result.error, not(containsString('stderr')))
         assertThat(result.error, not(containsString('a warning')))
 
-        new DefaultTestExecutionResult(testWorkDir).testClass('org.gradle.OkTest').assertTestPassed('ok')
+        new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.OkTest').assertTestPassed('ok')
     }
 
     @Test
@@ -76,7 +76,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
     void groovyJdk15Failing() {
         executer.withTasks("test").runWithFailure().assertTestsFailed()
 
-        def result = new DefaultTestExecutionResult(testWorkDir)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.BadTest')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
     }
@@ -85,7 +85,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
     void groovyJdk15Passing() {
         executer.withTasks("test").run()
 
-        def result = new DefaultTestExecutionResult(testWorkDir)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.OkTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }
@@ -94,7 +94,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
     void javaJdk14Failing() {
         executer.withTasks("test").runWithFailure().assertTestsFailed()
 
-        def result = new DefaultTestExecutionResult(testWorkDir)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.BadTest')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
     }
@@ -109,13 +109,13 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
     private void doJavaJdk15Failing(String testNGVersion) {
         executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertTestsFailed()
 
-        def result = new DefaultTestExecutionResult(testWorkDir)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite', 'org.gradle.TestWithBrokenMethodDependency')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
         result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('java.lang.RuntimeException: broken'))
         result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestsSkipped('okTest')
 
-        def ngResult = new TestNGExecutionResult(testWorkDir)
+        def ngResult = new TestNGExecutionResult(testDirectory)
         ngResult.testClass('org.gradle.TestWithBrokenSetup').assertConfigMethodFailed('setup')
         ngResult.testClass('org.gradle.BrokenAfterSuite').assertConfigMethodFailed('cleanup')
         ngResult.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('broken'))
@@ -125,7 +125,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
     @Issue("GRADLE-1532")
     @Test
     void supportsThreadPoolSize() {
-        testWorkDir.file('src/test/java/SomeTest.java') << """
+        testDirectory.file('src/test/java/SomeTest.java') << """
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -137,7 +137,7 @@ public class SomeTest {
 }
 """
 
-        testWorkDir.file("build.gradle") << """
+        testDirectory.file("build.gradle") << """
 apply plugin: "java"
 
 repositories {
@@ -160,7 +160,7 @@ test {
     @Test
     void supportsTestGroups() {
         executer.withTasks("test").run()
-        def result = new DefaultTestExecutionResult(testWorkDir)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.groups.SomeTest')
         result.testClass('org.gradle.groups.SomeTest').assertTestsExecuted("databaseTest")
     }

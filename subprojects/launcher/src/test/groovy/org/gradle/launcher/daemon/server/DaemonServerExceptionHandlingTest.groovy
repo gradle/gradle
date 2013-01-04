@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server
 
 import org.gradle.BuildResult
 import org.gradle.GradleLauncher
+import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.initialization.DefaultGradleLauncherFactory
 import org.gradle.initialization.GradleLauncherAction
@@ -31,18 +32,17 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.logging.LogLevel
 
 /**
  * by Szczepan Faber, created at: 12/21/11
  */
 class DaemonServerExceptionHandlingTest extends Specification {
 
-    @Rule TemporaryFolder temp = new TemporaryFolder()
-    def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.dir, LogLevel.ERROR)
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR)
 
     static class DummyLauncherAction implements GradleLauncherAction, Serializable {
         Object someState

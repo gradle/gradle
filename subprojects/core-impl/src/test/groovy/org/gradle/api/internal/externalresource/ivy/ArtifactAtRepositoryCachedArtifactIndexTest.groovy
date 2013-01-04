@@ -22,7 +22,7 @@ import org.gradle.api.internal.externalresource.cached.CachedArtifact
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.TimeProvider
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -34,7 +34,7 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
     ExternalResourceMetaData metaData = Mock()
     CachingModuleVersionRepository moduleVersionRepository = Mock()
 
-    @Rule TemporaryFolder folder = new TemporaryFolder();
+    @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider();
 
     PersistentIndexedCache persistentIndexedCache = Mock()
 

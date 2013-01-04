@@ -24,14 +24,14 @@ import org.gradle.api.plugins.PluginInstantiationException
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.ObjectInstantiationException
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultPluginRegistryTest extends Specification {
     @Rule
-    final TemporaryFolder testDir = new TemporaryFolder()
+    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
     final Instantiator instantiator = Mock()
     final ClassLoader classLoader = Mock()
     private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(classLoader, instantiator)

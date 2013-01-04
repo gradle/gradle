@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.internal.SystemProperties
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.Test
 
@@ -45,7 +45,7 @@ class WaterProjectIntegrationTest {
     final static String KRILL_NAME = 'krill'
     final static String PHYTOPLANKTON_NAME = 'phytoplankton'
 
-    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
     private final GradleDistribution dist = new GradleDistribution(temporaryFolder);
     private final GradleDistributionExecuter executer = new GradleDistributionExecuter(dist, temporaryFolder);
 

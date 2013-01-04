@@ -17,7 +17,7 @@ package org.gradle.test.fixtures.ivy
 
 import org.apache.ivy.core.IvyPatternHelper
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 
 class IvyFileRepository implements IvyRepository {
     final TestFile rootDir

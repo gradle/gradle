@@ -24,10 +24,10 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.internal.id.RandomLongIdGenerator;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.testfixtures.internal.InMemoryCacheFactory;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
 import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Rule;
@@ -43,7 +43,7 @@ import static org.junit.Assert.*;
 
 public class DefaultTaskArtifactStateRepositoryTest {
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final ProjectInternal project = HelperUtil.createRootProject();
     private final Gradle gradle = project.getGradle();
     private final TestFile outputFile = tmpDir.file("output-file");

@@ -17,9 +17,9 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.PreconditionVerifier
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Shared
 
@@ -53,7 +53,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected TestFile unpackDistribution(type = getDistributionLabel()) {
         TestFile zip = getZip(type)
-        zip.usingNativeTools().unzipTo(testWorkDir)
+        zip.usingNativeTools().unzipTo(testDirectory)
         TestFile contentsDir = file("gradle-$version")
         contentsDir
     }

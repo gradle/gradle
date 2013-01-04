@@ -18,14 +18,14 @@ package org.gradle.cache.internal
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.internal.Factory
 import org.gradle.messaging.serialize.Serializer
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.*
 
 class DefaultCacheAccessTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileLockManager lockManager = Mock()
     final File lockFile = tmpDir.file('lock.bin')
     final File targetFile = tmpDir.file('cache.bin')

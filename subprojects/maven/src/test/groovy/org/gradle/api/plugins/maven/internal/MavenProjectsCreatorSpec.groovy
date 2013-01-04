@@ -16,19 +16,19 @@
 
 package org.gradle.api.plugins.maven.internal
 
-import spock.lang.Specification
-import org.junit.Rule
-import org.gradle.util.TemporaryFolder
+import org.gradle.api.GradleException
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
-import org.gradle.api.GradleException
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
 
 /**
  * by Szczepan Faber, created at: 10/15/12
  */
 class MavenProjectsCreatorSpec extends Specification {
 
-    @Rule TemporaryFolder temp
+    @Rule TestNameTestDirectoryProvider temp
     private settings = new DefaultMavenSettingsProvider({} as MavenFileLocations)
     private creator = new MavenProjectsCreator()
 

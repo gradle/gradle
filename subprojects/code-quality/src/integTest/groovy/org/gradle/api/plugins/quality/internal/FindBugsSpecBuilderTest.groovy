@@ -19,16 +19,14 @@ package org.gradle.api.plugins.quality.internal
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.FileCollection
-import org.gradle.api.reporting.SingleFileReport
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
-import org.gradle.util.TemporaryFolder
-
+import org.gradle.api.reporting.SingleFileReport
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-
 import spock.lang.Specification
 
 class FindBugsSpecBuilderTest extends Specification {
-    @Rule TemporaryFolder tempFolder = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tempFolder = new TestNameTestDirectoryProvider()
 
     FileCollection classes = Mock()
     FindBugsSpecBuilder builder = new FindBugsSpecBuilder(classes)

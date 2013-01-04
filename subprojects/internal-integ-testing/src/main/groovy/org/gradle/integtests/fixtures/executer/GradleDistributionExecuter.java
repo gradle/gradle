@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.TestFile;
-import org.gradle.util.TestWorkDirProvider;
 import org.gradle.util.TextUtil;
 
 import java.io.File;
@@ -40,7 +40,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
     private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
 
-    private TestWorkDirProvider testWorkDirProvider;
+    private TestDirectoryProvider testWorkDirProvider;
     private GradleDistribution dist;
 
     private boolean workingDirSet;
@@ -87,7 +87,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         this(getSystemPropertyExecuter(), dist);
     }
 
-    public GradleDistributionExecuter(GradleDistribution dist, TestWorkDirProvider testWorkDirProvider) {
+    public GradleDistributionExecuter(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
         this(getSystemPropertyExecuter(), dist, testWorkDirProvider);
     }
 
@@ -97,7 +97,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         reset();
     }
 
-    public GradleDistributionExecuter(Executer executerType, GradleDistribution dist, TestWorkDirProvider testWorkDirProvider) {
+    public GradleDistributionExecuter(Executer executerType, GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
         this.executerType = executerType;
         this.dist = dist;
         this.testWorkDirProvider = testWorkDirProvider;
@@ -226,7 +226,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     protected GradleExecuter configureExecuter() {
         if (!workingDirSet) {
-            inDirectory(testWorkDirProvider.getTestWorkDir());
+            inDirectory(testWorkDirProvider.getTestDirectory());
         }
         if (!gradleUserHomeDirSet) {
             withGradleUserHomeDir(dist.getUserHomeDir());

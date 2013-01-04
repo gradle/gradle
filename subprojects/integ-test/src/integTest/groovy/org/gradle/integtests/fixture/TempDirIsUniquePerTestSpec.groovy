@@ -17,7 +17,7 @@
 
 package org.gradle.integtests.fixture
 
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -26,19 +26,19 @@ import spock.lang.Specification
  */
 class TempDirIsUniquePerTestSpec extends Specification {
 
-    @Rule TemporaryFolder tmp = new TemporaryFolder();
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider();
     static tests = new HashSet()
     static tmpDirs = new HashSet()
 
     def setup() {
         //it's very important we try to access the test dir in the setup()
-        tmp.testWorkDir
+        tmp.testDirectory
     }
     
     def "testOne"() {
         when:
         tests << "testOne"
-        tmpDirs << tmp.testWorkDir
+        tmpDirs << tmp.testDirectory
         
         then:
         tests.size() == tmpDirs.size()
@@ -47,7 +47,7 @@ class TempDirIsUniquePerTestSpec extends Specification {
     def "testTwo"() {
         when:
         tests << "testTwo"
-        tmpDirs << tmp.testWorkDir
+        tmpDirs << tmp.testDirectory
 
         then:
         tests.size() == tmpDirs.size()

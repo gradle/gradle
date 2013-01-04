@@ -19,9 +19,9 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.openapi.external.ui.OutputUILordVersion1
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
 import org.junit.Assert
 import org.junit.ClassRule
@@ -30,7 +30,6 @@ import org.junit.Test
 
 import javax.swing.*
 import java.awt.*
-import java.util.List
 import java.util.concurrent.TimeUnit
 
 import static org.hamcrest.Matchers.startsWith
@@ -43,7 +42,7 @@ import static org.hamcrest.Matchers.startsWith
 @Requires(TestPrecondition.SWING)
 class OutputUILordTest {
 
-    @Rule TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     GradleDistribution dist = new GradleDistribution(temporaryFolder)
 
     @Rule public OpenApiFixture openApi = new OpenApiFixture()
@@ -62,7 +61,7 @@ class OutputUILordTest {
         OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
 
         outputUILord.addFileExtension('.txt', ':')
-        List extensions = outputUILord.getFileExtensions()
+        java.util.List extensions = outputUILord.getFileExtensions()
         Assert.assertTrue(extensions.contains('.txt'))
     }
 

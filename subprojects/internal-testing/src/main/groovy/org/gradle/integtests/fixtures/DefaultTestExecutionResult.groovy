@@ -16,7 +16,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.util.slurpersupport.GPathResult
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
 import static org.hamcrest.Matchers.*

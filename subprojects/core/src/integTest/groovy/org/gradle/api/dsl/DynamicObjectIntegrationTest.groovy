@@ -16,7 +16,7 @@
 package org.gradle.api.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 import spock.lang.Issue
 

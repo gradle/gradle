@@ -22,8 +22,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.logging.ShowStacktrace;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ import static org.junit.Assert.assertThat;
  */
 public class DefaultCommandLineConverterTest {
     @Rule
-    public TemporaryFolder testDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
 
     private TestFile currentDir = testDir.file("current-dir");
     private File expectedBuildFile;

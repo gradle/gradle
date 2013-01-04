@@ -18,7 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "executes init.gradle from user home dir"() {

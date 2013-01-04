@@ -15,20 +15,20 @@
  */
 package org.gradle.api.internal.changedetection
 
-
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.ChangeListener
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
-import org.junit.runner.RunWith
-import org.junit.Test
 import org.junit.Rule
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
-import org.gradle.api.file.FileCollection
-import org.gradle.util.ChangeListener
-import org.gradle.api.file.FileTree
+import org.junit.Test
+import org.junit.runner.RunWith
+
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.notNullValue
+import static org.junit.Assert.assertThat
 
 @RunWith(JMock.class)
 public class DefaultFileSnapshotterTest {
@@ -38,7 +38,7 @@ public class DefaultFileSnapshotterTest {
     private ChangeListener listener = context.mock(ChangeListener.class)
     private final DefaultFileSnapshotter snapshotter = new DefaultFileSnapshotter(hasher)
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Test
     public void getFilesReturnsOnlyTheFilesWhichExisted() {

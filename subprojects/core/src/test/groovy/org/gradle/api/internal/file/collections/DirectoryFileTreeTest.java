@@ -20,9 +20,9 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.copy.CopySpecVisitor;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -49,7 +49,7 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class DirectoryFileTreeTest {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private JUnit4Mockery context = new JUnit4GroovyMockery();
     private CopySpecVisitor visitor;
 
@@ -253,17 +253,17 @@ public class DirectoryFileTreeTest {
 
     @Test
     public void hasUsefulDisplayName() {
-        DirectoryFileTree treeWithNoIncludesOrExcludes = new DirectoryFileTree(tmpDir.getDir());
+        DirectoryFileTree treeWithNoIncludesOrExcludes = new DirectoryFileTree(tmpDir.getTestDirectory());
         PatternSet includesOnly = new PatternSet();
         includesOnly.include("a/b", "c");
-        DirectoryFileTree treeWithIncludes = new DirectoryFileTree(tmpDir.getDir(), includesOnly);
+        DirectoryFileTree treeWithIncludes = new DirectoryFileTree(tmpDir.getTestDirectory(), includesOnly);
         PatternSet excludesOnly = new PatternSet();
         excludesOnly.exclude("a/b", "c");
-        DirectoryFileTree treeWithExcludes = new DirectoryFileTree(tmpDir.getDir(), excludesOnly);
+        DirectoryFileTree treeWithExcludes = new DirectoryFileTree(tmpDir.getTestDirectory(), excludesOnly);
 
-        assertThat(treeWithNoIncludesOrExcludes.getDisplayName(), equalTo(String.format("directory '%s'", tmpDir.getDir())));
-        assertThat(treeWithIncludes.getDisplayName(), equalTo(String.format("directory '%s' include 'a/b', 'c'", tmpDir.getDir())));
-        assertThat(treeWithExcludes.getDisplayName(), equalTo(String.format("directory '%s' exclude 'a/b', 'c'", tmpDir.getDir())));
+        assertThat(treeWithNoIncludesOrExcludes.getDisplayName(), equalTo(String.format("directory '%s'", tmpDir.getTestDirectory())));
+        assertThat(treeWithIncludes.getDisplayName(), equalTo(String.format("directory '%s' include 'a/b', 'c'", tmpDir.getTestDirectory())));
+        assertThat(treeWithExcludes.getDisplayName(), equalTo(String.format("directory '%s' exclude 'a/b', 'c'", tmpDir.getTestDirectory())));
     }
 
     private Action stopVisiting() {

@@ -18,7 +18,11 @@ package org.gradle.api.tasks.wrapper;
 
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
-import org.gradle.util.*;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.GUtil;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.WrapUtil;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.WrapperExecutor;
 import org.junit.Before;
@@ -42,7 +46,7 @@ public class WrapperTest extends AbstractTaskTest {
     private TestFile expectedTargetWrapperJar;
     private File expectedTargetWrapperProperties;
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() {

@@ -18,10 +18,10 @@ package org.gradle.api.internal.file;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeplatform.filesystem.Chmod;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.junit.Rule;
@@ -38,7 +38,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(JMock.class)
 public class AbstractFileTreeElementTest {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     final Chmod chmod = context.mock(Chmod.class);
 
@@ -81,7 +81,7 @@ public class AbstractFileTreeElementTest {
 
     @Test
     public void defaultPermissionValuesAreUsed() {
-        TestFileTreeElement dir = new TestFileTreeElement(tmpDir.getDir());
+        TestFileTreeElement dir = new TestFileTreeElement(tmpDir.getTestDirectory());
         TestFileTreeElement file = new TestFileTreeElement(tmpDir.file("someFile"));
 
         assertThat(dir.getMode(), equalTo(FileSystem.DEFAULT_DIR_MODE));

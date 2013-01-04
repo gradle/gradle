@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.openapi.external.runner.GradleRunnerFactory
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1
 import org.gradle.openapi.external.runner.GradleRunnerVersion1
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -38,13 +38,13 @@ class GradleRunnerTest {
 
   private File javaprojectDir
 
-  @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+  @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
   final GradleDistribution dist = new GradleDistribution(temporaryFolder)
   @Rule public final TestResources resources = new TestResources('testproject')
 
   @Before
   void setUp() {
-      javaprojectDir = temporaryFolder.testWorkDir
+      javaprojectDir = temporaryFolder.testDirectory
   }
 
   /**

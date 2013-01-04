@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
+import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.settings.IvySettings
@@ -25,22 +26,20 @@ import org.apache.ivy.plugins.conflict.NoConflictManager
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
-import org.gradle.util.TemporaryFolder
 import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.text.ParseException
 
-import org.apache.ivy.core.module.descriptor.*
-
 import static junit.framework.Assert.*
 import static org.junit.Assert.assertThat
 
 class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule public final Resources resources = new Resources()
-    @Rule TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
     IvySettings settings = new IvySettings()

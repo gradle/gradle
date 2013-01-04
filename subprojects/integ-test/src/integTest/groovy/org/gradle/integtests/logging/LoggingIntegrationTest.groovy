@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.SystemProperties
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
@@ -219,7 +219,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
 
     def run(LogLevel level) {
         resources.maybeCopy('LoggingIntegrationTest/logging')
-        TestFile loggingDir = testWorkDir
+        TestFile loggingDir = testDirectory
         loggingDir.file("buildSrc/build/.gradle").deleteDir()
         loggingDir.file("nestedBuild/buildSrc/.gradle").deleteDir()
 
@@ -229,7 +229,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
     }
 
     def runBroken(LogLevel level) {
-        TestFile loggingDir = testWorkDir
+        TestFile loggingDir = testDirectory
 
         return executer.setAllowExtraLogging(false).inDirectory(loggingDir).withTasks('broken').runWithFailure()
     }

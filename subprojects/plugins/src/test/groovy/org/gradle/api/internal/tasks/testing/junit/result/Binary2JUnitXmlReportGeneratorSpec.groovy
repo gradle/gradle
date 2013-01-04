@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -27,9 +27,9 @@ import spock.lang.Specification
  */
 class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
-    @Rule private TemporaryFolder temp = new TemporaryFolder()
+    @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     private resultsProvider = Mock(TestResultsProvider)
-    private generator = new Binary2JUnitXmlReportGenerator(temp.dir, resultsProvider)
+    private generator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider)
 
     def setup() {
         generator.saxWriter = Mock(JUnitXmlResultWriter)

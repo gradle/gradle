@@ -57,7 +57,7 @@ class MultiLineSuite extends FunSuite {
         then:
         succeeds("test")
 
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testWorkDir)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("org.gradle.MultiLineSuite")
 	    result.testClass("org.gradle.MultiLineSuite").assertTestPassed("This test method name\nspans many\nlines")
     }

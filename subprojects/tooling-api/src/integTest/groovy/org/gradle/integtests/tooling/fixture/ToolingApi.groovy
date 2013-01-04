@@ -19,10 +19,10 @@ import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.util.TestWorkDirProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -32,18 +32,18 @@ class ToolingApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
 
     private BasicGradleDistribution dist
-    private TestWorkDirProvider testWorkDirProvider
+    private TestDirectoryProvider testWorkDirProvider
     private File userHomeDir
 
     private final List<Closure> connectorConfigurers = []
     boolean isEmbedded
     boolean verboseLogging = LOGGER.debugEnabled
 
-    ToolingApi(GradleDistribution dist, TestWorkDirProvider testWorkDirProvider) {
+    ToolingApi(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
         this(dist, dist.userHomeDir, testWorkDirProvider, GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded)
     }
 
-    ToolingApi(BasicGradleDistribution dist, File userHomeDir, TestWorkDirProvider testWorkDirProvider, boolean isEmbedded) {
+    ToolingApi(BasicGradleDistribution dist, File userHomeDir, TestDirectoryProvider testWorkDirProvider, boolean isEmbedded) {
         this.dist = dist
         this.userHomeDir = userHomeDir
         this.testWorkDirProvider = testWorkDirProvider
@@ -88,7 +88,7 @@ class ToolingApi {
     GradleConnector connector() {
         GradleConnector connector = GradleConnector.newConnector()
         connector.useGradleUserHomeDir(userHomeDir)
-        connector.forProjectDirectory(testWorkDirProvider.testWorkDir)
+        connector.forProjectDirectory(testWorkDirProvider.testDirectory)
         connector.searchUpwards(false)
         connector.daemonMaxIdleTime(60, TimeUnit.SECONDS)
         if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {

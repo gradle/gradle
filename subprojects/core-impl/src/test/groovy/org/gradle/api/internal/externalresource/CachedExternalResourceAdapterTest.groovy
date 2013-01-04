@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.externalresource;
+package org.gradle.api.internal.externalresource
 
+import org.gradle.api.internal.externalresource.cached.CachedExternalResource
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter
+import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.hash.HashUtil
 import org.gradle.util.hash.HashValue
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter
-import org.gradle.api.internal.externalresource.cached.CachedExternalResource
-import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 
 public class CachedExternalResourceAdapterTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     ExternalResourceAccessor accessor = Mock()
     CachedExternalResource cachedExternalResource = Mock()

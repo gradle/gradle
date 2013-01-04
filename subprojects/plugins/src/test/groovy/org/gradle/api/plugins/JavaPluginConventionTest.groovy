@@ -22,13 +22,14 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertThat
@@ -43,7 +44,7 @@ class JavaPluginConventionTest {
     private JavaPluginConvention convention
 
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Before public void setUp() {
         project.plugins.apply(ReportingBasePlugin)

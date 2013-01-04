@@ -27,8 +27,8 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.internal.OutputEventListener
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -36,7 +36,7 @@ class BuildActionsFactoryTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();
     @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder();
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final CommandLineConverter<StartParameter> startParameterConverter = Mock()
     final ServiceRegistry loggingServices = Mock()
     final BuildActionsFactory factory = new BuildActionsFactory(loggingServices, startParameterConverter)

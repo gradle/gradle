@@ -21,9 +21,9 @@ import org.apache.tools.ant.taskdefs.Delete
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.internal.SystemProperties
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AntUtil
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.gradle.util.TextUtil
 import org.junit.Assert
 import org.junit.runner.Description
@@ -39,12 +39,12 @@ class UserGuideSamplesRunner extends Runner {
     private Class<?> testClass
     private Description description
     private Map<Description, SampleRun> samples
-    private TemporaryFolder temporaryFolder = new TemporaryFolder()
+    private TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     private GradleDistribution dist = new GradleDistribution(temporaryFolder)
     private GradleDistributionExecuter executer = new GradleDistributionExecuter(dist, temporaryFolder)
     private Pattern dirFilter
     private List excludes
-    private TestFile baseExecutionDir = temporaryFolder.testWorkDir
+    private TestFile baseExecutionDir = temporaryFolder.testDirectory
 
     UserGuideSamplesRunner(Class<?> testClass) {
         this.testClass = testClass
@@ -110,7 +110,7 @@ class UserGuideSamplesRunner extends Runner {
 
     private void cleanup(SampleRun run) {
         // Clean up previous runs in the same subdir
-        File rootProjectDir = temporaryFolder.testWorkDir.file(run.subDir)
+        File rootProjectDir = temporaryFolder.testDirectory.file(run.subDir)
         if (rootProjectDir.exists()) {
             def delete = new Delete()
             delete.dir = rootProjectDir

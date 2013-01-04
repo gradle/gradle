@@ -17,9 +17,10 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestDirectoryProviderFinder;
+import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.RuleHelper;
-import org.gradle.util.TestFile;
-import org.gradle.util.TestWorkDirProvider;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -47,10 +48,10 @@ public class Sample implements MethodRule {
 
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         final GradleDistribution dist = RuleHelper.getField(target, GradleDistribution.class);
-        final TestWorkDirProvider testWorkDirProvider = RuleHelper.getField(target, TestWorkDirProvider.class);
+        final TestDirectoryProvider testDirectoryProvider = new TestDirectoryProviderFinder().findFor(target);
 
         final String sampleName = getSampleName(method);
-        sampleDir = sampleName == null ? null : testWorkDirProvider.getTestWorkDir().file(sampleName);
+        sampleDir = sampleName == null ? null : testDirectoryProvider.getTestDirectory().file(sampleName);
 
         return new Statement() {
             @Override

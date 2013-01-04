@@ -17,11 +17,11 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.*
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
-import org.gradle.util.TestWorkDirProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -30,9 +30,9 @@ import spock.lang.Specification
  * 
  * Plan is to bring features over as needed.
  */
-class AbstractIntegrationSpec extends Specification implements TestWorkDirProvider {
+class AbstractIntegrationSpec extends Specification implements TestDirectoryProvider {
 
-    @Rule final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     final GradleDistribution distribution = new GradleDistribution(this)
     final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution, temporaryFolder)
@@ -45,19 +45,19 @@ class AbstractIntegrationSpec extends Specification implements TestWorkDirProvid
     private List<Closure> executerActions = []
 
     protected TestFile getBuildFile() {
-        testWorkDir.file('build.gradle')
+        testDirectory.file('build.gradle')
     }
 
     protected TestFile getSettingsFile() {
-        testWorkDir.file('settings.gradle')
+        testDirectory.file('settings.gradle')
     }
 
-    TestFile getTestWorkDir() {
-        temporaryFolder.testWorkDir
+    TestFile getTestDirectory() {
+        temporaryFolder.testDirectory
     }
 
     protected TestFile file(Object... path) {
-        getTestWorkDir().file(path);
+        getTestDirectory().file(path);
     }
 
     protected GradleExecuter sample(Sample sample) {
@@ -155,7 +155,7 @@ class AbstractIntegrationSpec extends Specification implements TestWorkDirProvid
     ArtifactBuilder artifactBuilder() {
         def executer = distribution.executer()
         executer.withGradleUserHomeDir(distribution.getUserHomeDir())
-        return new GradleBackedArtifactBuilder(executer, getTestWorkDir().file("artifacts"))
+        return new GradleBackedArtifactBuilder(executer, getTestDirectory().file("artifacts"))
     }
 
     public MavenFileRepository maven(TestFile repo) {

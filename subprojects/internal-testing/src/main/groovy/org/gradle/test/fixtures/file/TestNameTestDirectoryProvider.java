@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
+package org.gradle.test.fixtures.file;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.rules.MethodRule;
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * A JUnit rule which provides a unique temporary folder for the test.
  */
-public class TemporaryFolder implements MethodRule, TestRule, TestWorkDirProvider {
+public class TestNameTestDirectoryProvider implements MethodRule, TestRule, TestDirectoryProvider {
     private TestFile dir;
     private String prefix;
     private static TestFile root;
@@ -37,23 +37,6 @@ public class TemporaryFolder implements MethodRule, TestRule, TestWorkDirProvide
     static {
         // NOTE: the space in the directory name is intentional
         root = new TestFile(new File("build/tmp/test files"));
-    }
-
-    public TestFile getDir() {
-        if (dir == null) {
-            if (prefix == null) {
-                // This can happen if this is used in a constructor or a @Before method. It also happens when using
-                // @RunWith(SomeRunner) when the runner does not support rules.
-                prefix = determinePrefix();
-            }
-            for (int counter = 1; true; counter++) {
-                dir = root.file(counter == 1 ? prefix : String.format("%s%d", prefix, counter));
-                if (dir.mkdirs()) {
-                    break;
-                }
-            }
-        }
-        return dir;
     }
 
     private String determinePrefix() {
@@ -72,7 +55,7 @@ public class TemporaryFolder implements MethodRule, TestRule, TestWorkDirProvide
             @Override
             public void evaluate() throws Throwable {
                 base.evaluate();
-                getDir().maybeDeleteDir();
+                getTestDirectory().maybeDeleteDir();
                 // Don't delete on failure
             }
         };
@@ -84,7 +67,7 @@ public class TemporaryFolder implements MethodRule, TestRule, TestWorkDirProvide
             @Override
             public void evaluate() throws Throwable {
                 base.evaluate();
-                getDir().maybeDeleteDir();
+                getTestDirectory().maybeDeleteDir();
                 // Don't delete on failure
             }
         };
@@ -104,22 +87,35 @@ public class TemporaryFolder implements MethodRule, TestRule, TestWorkDirProvide
         }
     }
 
-    public static TemporaryFolder newInstance() {
-        return new TemporaryFolder();
+    public static TestNameTestDirectoryProvider newInstance() {
+        return new TestNameTestDirectoryProvider();
     }
 
-    public static TemporaryFolder newInstance(FrameworkMethod method, Object target) {
-        TemporaryFolder temporaryFolder = new TemporaryFolder();
-        temporaryFolder.init(method.getName(), target.getClass().getSimpleName());
-        return temporaryFolder;
+    public static TestNameTestDirectoryProvider newInstance(FrameworkMethod method, Object target) {
+        TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
+        testDirectoryProvider.init(method.getName(), target.getClass().getSimpleName());
+        return testDirectoryProvider;
     }
 
-    public TestFile getTestWorkDir() {
-        return getDir();
+    public TestFile getTestDirectory() {
+        if (dir == null) {
+            if (prefix == null) {
+                // This can happen if this is used in a constructor or a @Before method. It also happens when using
+                // @RunWith(SomeRunner) when the runner does not support rules.
+                prefix = determinePrefix();
+            }
+            for (int counter = 1; true; counter++) {
+                dir = root.file(counter == 1 ? prefix : String.format("%s%d", prefix, counter));
+                if (dir.mkdirs()) {
+                    break;
+                }
+            }
+        }
+        return dir;
     }
 
     public TestFile file(Object... path) {
-        return getDir().file((Object[]) path);
+        return getTestDirectory().file((Object[]) path);
     }
 
     public TestFile createFile(Object... path) {

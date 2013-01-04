@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.diagnostics
 
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -25,7 +25,7 @@ import spock.lang.Specification
  */
 class DaemonDiagnosticsTest extends Specification {
 
-    @Rule TemporaryFolder temp
+    @Rule TestNameTestDirectoryProvider temp
 
     def "tailing the daemon log is always safe"() {
         given:

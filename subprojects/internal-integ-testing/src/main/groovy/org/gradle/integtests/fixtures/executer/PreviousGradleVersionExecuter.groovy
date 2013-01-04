@@ -27,9 +27,9 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
-import org.gradle.util.TestFile
 
 class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter implements BasicGradleDistribution {
     private static final CACHE_FACTORY = createCacheFactory()

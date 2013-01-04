@@ -36,6 +36,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 
 import java.rmi.server.UID
@@ -73,7 +74,7 @@ class HelperUtil {
      }
 
      static DefaultProject createRootProject() {
-         createRootProject(TemporaryFolder.newInstance().dir)
+         createRootProject(TestNameTestDirectoryProvider.newInstance().testDirectory)
      }
 
      static DefaultProject createRootProject(File rootDir) {

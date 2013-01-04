@@ -22,7 +22,7 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
 
@@ -81,7 +81,7 @@ apply plugin: 'idea'
 
     @Test
     void worksWithNonStandardLayout() {
-        executer.inDirectory(testWorkDir.file('root')).withTasks('idea').run()
+        executer.inDirectory(testDirectory.file('root')).withTasks('idea').run()
 
         assertHasExpectedContents('root/root.ipr')
         assertHasExpectedContents('root/root.iml')
@@ -336,8 +336,8 @@ apply plugin: "idea"
     }
 
     private void assertHasExpectedContents(String path) {
-        TestFile file = testWorkDir.file(path).assertIsFile()
-        TestFile expectedFile = testWorkDir.file("expectedFiles/${path}.xml").assertIsFile()
+        TestFile file = testDirectory.file(path).assertIsFile()
+        TestFile expectedFile = testDirectory.file("expectedFiles/${path}.xml").assertIsFile()
 
         def expectedXml = expectedFile.text
 

@@ -18,18 +18,18 @@ package org.gradle.integtests.fixtures
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenRepository
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
-import org.gradle.util.TestWorkDirProvider
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.Specification
 
 @RunWith(CrossVersionTestRunner)
-abstract class CrossVersionIntegrationSpec extends Specification implements TestWorkDirProvider {
-    @Rule TemporaryFolder temporaryFolder = new TemporaryFolder()
+abstract class CrossVersionIntegrationSpec extends Specification implements TestDirectoryProvider {
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution current = new GradleDistribution(this)
     static BasicGradleDistribution previous
     private MavenFileRepository mavenRepo
@@ -39,15 +39,15 @@ abstract class CrossVersionIntegrationSpec extends Specification implements Test
     }
 
     protected TestFile getBuildFile() {
-        testWorkDir.file('build.gradle')
+        testDirectory.file('build.gradle')
     }
 
-    TestFile getTestWorkDir() {
-        temporaryFolder.getTestWorkDir();
+    TestFile getTestDirectory() {
+        temporaryFolder.getTestDirectory();
     }
 
     protected TestFile file(Object... path) {
-        testWorkDir.file(path);
+        testDirectory.file(path);
     }
 
     protected MavenRepository getMavenRepo() {
@@ -62,7 +62,7 @@ abstract class CrossVersionIntegrationSpec extends Specification implements Test
         if (executer instanceof GradleDistributionExecuter) {
             executer.withDeprecationChecksDisabled()
         }
-        executer.inDirectory(testWorkDir)
+        executer.inDirectory(testDirectory)
         return executer;
     }
 }

@@ -15,43 +15,35 @@
  */
 package org.gradle.api.internal.tasks.testing.junit
 
+import junit.extensions.TestSetup
 import junit.framework.TestCase
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
-import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.internal.tasks.testing.TestStartEvent
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo
-import org.gradle.util.JUnit4GroovyMockery
+import junit.framework.TestSuite
+import org.gradle.api.internal.tasks.testing.*
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.id.LongIdGenerator
-import org.gradle.util.TemporaryFolder
+import org.gradle.logging.StandardOutputRedirector
+import org.gradle.messaging.actor.ActorFactory
+import org.gradle.messaging.actor.TestActorFactory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
-import org.junit.Before
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
+
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.logging.StandardOutputRedirector
-import org.junit.BeforeClass
-import junit.extensions.TestSetup
-import org.junit.After
-import org.gradle.api.tasks.testing.TestResult
-import junit.framework.TestSuite
-import org.gradle.messaging.actor.ActorFactory
-import org.gradle.messaging.actor.TestActorFactory
+import static org.junit.Assert.assertThat
 
 @RunWith(JMock.class)
 class JUnitTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final ActorFactory actorFactory = new TestActorFactory()
-    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
+    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.testDirectory, new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
 
     @Test
     public void executesAJUnit4TestClass() {

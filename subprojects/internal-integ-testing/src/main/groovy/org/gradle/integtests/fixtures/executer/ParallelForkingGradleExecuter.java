@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.ExecHandleBuilder;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.ArrayList;
 import java.util.List;

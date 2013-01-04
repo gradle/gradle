@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.*
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
@@ -29,6 +30,7 @@ import org.gradle.configuration.DefaultScriptPluginFactory
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory
 import org.gradle.groovy.scripts.ScriptCompilerFactory
+import org.gradle.initialization.*
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -41,14 +43,12 @@ import org.gradle.messaging.remote.MessagingServer
 import org.gradle.process.internal.DefaultWorkerProcessFactory
 import org.gradle.process.internal.WorkerProcessBuilder
 import org.gradle.profile.ProfileEventAdapter
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ClassLoaderFactory
 import org.gradle.util.MultiParentClassLoader
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
-import org.gradle.api.internal.*
-import org.gradle.initialization.*
 
 import static org.hamcrest.Matchers.instanceOf
 import static org.hamcrest.Matchers.sameInstance
@@ -56,7 +56,7 @@ import static org.junit.Assert.assertThat
 
 public class TopLevelBuildServiceRegistryTest extends Specification {
     @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     StartParameter startParameter = new StartParameter()
     ServiceRegistry parent = Mock()
     Factory<CacheFactory> cacheFactoryFactory = Mock()
@@ -66,7 +66,7 @@ public class TopLevelBuildServiceRegistryTest extends Specification {
     TopLevelBuildServiceRegistry registry = new TopLevelBuildServiceRegistry(parent, startParameter)
 
     def setup() {
-        startParameter.gradleUserHomeDir = tmpDir.dir
+        startParameter.gradleUserHomeDir = tmpDir.testDirectory
         parent.getFactory(CacheFactory) >> cacheFactoryFactory
         cacheFactoryFactory.create() >> cacheFactory
         parent.get(ClassLoaderRegistry) >> classLoaderRegistry

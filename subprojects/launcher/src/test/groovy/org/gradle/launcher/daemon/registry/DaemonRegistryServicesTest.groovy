@@ -18,12 +18,12 @@ package org.gradle.launcher.daemon.registry
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.messaging.remote.internal.inet.SocketInetAddress
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonRegistryServicesTest extends Specification {
-    @Rule TemporaryFolder tmp = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     def registry(baseDir) {
         new DaemonRegistryServices(tmp.createDir(baseDir))

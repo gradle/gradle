@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestDirectoryProviderFinder;
+import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.Resources;
-import org.gradle.util.RuleHelper;
-import org.gradle.util.TestFile;
-import org.gradle.util.TestWorkDirProvider;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -37,7 +37,7 @@ import java.util.Collection;
  */
 public class TestResources implements MethodRule {
     private final Logger logger = LoggerFactory.getLogger(TestResources.class);
-    private TestWorkDirProvider testWorkDirProvider;
+    private TestDirectoryProvider testWorkDirProvider;
     private final Collection<String> extraResources;
     private final Resources resources = new Resources();
 
@@ -51,12 +51,12 @@ public class TestResources implements MethodRule {
     }
 
     public TestFile getDir() {
-        return testWorkDirProvider.getTestWorkDir();
+        return testWorkDirProvider.getTestDirectory();
     }
 
     public Statement apply(Statement base, final FrameworkMethod method, Object target) {
         final Statement statement = resources.apply(base, method, target);
-        testWorkDirProvider = findTestWorkDirProvider(target);
+        testWorkDirProvider = new TestDirectoryProviderFinder().findFor(target);
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
@@ -69,19 +69,6 @@ public class TestResources implements MethodRule {
                 statement.evaluate();
             }
         };
-    }
-
-    private TestWorkDirProvider findTestWorkDirProvider(Object target) {
-        if (target instanceof TestWorkDirProvider) {
-            return (TestWorkDirProvider) target;
-        }
-        TestWorkDirProvider dist = RuleHelper.findField(target, TestWorkDirProvider.class);
-        if (dist != null) {
-            return dist;
-        }
-        throw new RuntimeException(String.format(
-                "Test class %s does not implement %s and has no field of this type",
-                target.getClass().getName(), TestWorkDirProvider.class.getName()));
     }
 
     /**

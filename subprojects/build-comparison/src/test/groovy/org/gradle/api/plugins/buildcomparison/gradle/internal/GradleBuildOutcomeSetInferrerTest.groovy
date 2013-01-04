@@ -20,11 +20,11 @@ import org.gradle.api.internal.filestore.PathNormalisingKeyFileStore
 import org.gradle.api.plugins.buildcomparison.fixtures.ProjectOutcomesBuilder
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -32,7 +32,7 @@ import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*
 
 class GradleBuildOutcomeSetInferrerTest extends Specification {
 
-    @Rule TemporaryFolder dir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
 
     def inferBase = dir.createDir("infer-base")
     def store = new PathNormalisingKeyFileStore(dir.createDir("fs"))

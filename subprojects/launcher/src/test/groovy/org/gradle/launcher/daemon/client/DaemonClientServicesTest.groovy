@@ -19,13 +19,13 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
 import org.gradle.logging.LoggingServiceRegistry
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonClientServicesTest extends Specification {
-    @Rule TemporaryFolder tmp = new TemporaryFolder()
-    final DaemonParameters parameters = new DaemonParameters(baseDir: tmp.testWorkDir)
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    final DaemonParameters parameters = new DaemonParameters(baseDir: tmp.testDirectory)
     final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), parameters, System.in)
 
     def "makes a DaemonRegistry available"() {

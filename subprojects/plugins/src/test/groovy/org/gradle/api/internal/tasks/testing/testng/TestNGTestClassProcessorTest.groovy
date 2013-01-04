@@ -24,20 +24,20 @@ import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.logging.StandardOutputRedirector
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.testng.annotations.*
 import spock.lang.Ignore
 import spock.lang.Specification
-import org.testng.annotations.*
 
 class TestNGTestClassProcessorTest extends Specification {
 
-    @Rule TemporaryFolder reportDir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider reportDir = new TestNameTestDirectoryProvider()
 
     private resultProcessor = Mock(TestResultProcessor)
 
-    private TestNGOptions options = new TestNGOptions(reportDir.dir)
-    private TestNGTestClassProcessor processor  = new TestNGTestClassProcessor(reportDir.dir, options, [], new LongIdGenerator(), {} as StandardOutputRedirector, true);
+    private TestNGOptions options = new TestNGOptions(reportDir.testDirectory)
+    private TestNGTestClassProcessor processor  = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector, true);
 
     void "executes the test class"() {
         when:

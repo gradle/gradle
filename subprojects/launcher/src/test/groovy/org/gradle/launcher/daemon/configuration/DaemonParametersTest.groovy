@@ -18,12 +18,12 @@ package org.gradle.launcher.daemon.configuration
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonParametersTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final DaemonParameters parameters = new DaemonParameters()
 
     def "has reasonable default values"() {
@@ -109,7 +109,7 @@ class DaemonParametersTest extends Specification {
         }
 
         when:
-        parameters.configureFromBuildDir(tmpDir.dir, true)
+        parameters.configureFromBuildDir(tmpDir.testDirectory, true)
 
         then:
         parameters.effectiveJvmArgs.contains('-Xmx1024m')
@@ -126,7 +126,7 @@ class DaemonParametersTest extends Specification {
         }
 
         when:
-        parameters.configureFromBuildDir(tmpDir.dir, true)
+        parameters.configureFromBuildDir(tmpDir.testDirectory, true)
 
         then:
         parameters.idleTimeout == 1450
@@ -139,7 +139,7 @@ class DaemonParametersTest extends Specification {
         }
 
         when:
-        parameters.configureFromGradleUserHome(tmpDir.dir)
+        parameters.configureFromGradleUserHome(tmpDir.testDirectory)
 
         then:
         parameters.effectiveJvmArgs.contains('-Xmx1024m')
@@ -172,7 +172,7 @@ class DaemonParametersTest extends Specification {
         }
 
         when:
-        parameters.configureFromBuildDir(tmpDir.dir, true)
+        parameters.configureFromBuildDir(tmpDir.testDirectory, true)
 
         then:
         parameters.enabled

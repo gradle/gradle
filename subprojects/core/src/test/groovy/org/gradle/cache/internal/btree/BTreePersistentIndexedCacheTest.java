@@ -17,8 +17,8 @@ package org.gradle.cache.internal.btree;
 
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,7 +34,7 @@ import static org.junit.Assert.assertThat;
 
 public class BTreePersistentIndexedCacheTest {
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final Serializer<String> stringSerializer = new DefaultSerializer<String>();
     private final Serializer<Integer> integerSerializer = new DefaultSerializer<Integer>();
     private BTreePersistentIndexedCache<String, Integer> cache;

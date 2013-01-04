@@ -53,7 +53,7 @@ abstract class ApiGroovyCompilerIntegrationSpec extends GroovyCompilerIntegratio
 
         then:
         noExceptionThrown()
-        def result = new DefaultTestExecutionResult(testWorkDir)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("Person")
         result.testClass("Person").assertTestPassed("testMe")
     }

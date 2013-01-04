@@ -20,10 +20,10 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
-import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

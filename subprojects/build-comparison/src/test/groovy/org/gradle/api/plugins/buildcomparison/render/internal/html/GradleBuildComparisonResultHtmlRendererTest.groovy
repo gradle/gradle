@@ -31,7 +31,7 @@ import org.gradle.api.plugins.buildcomparison.outcome.string.StringBuildOutcomeH
 import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer
 import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory
 import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeRendererFactory
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Rule
@@ -41,7 +41,7 @@ import java.nio.charset.Charset
 
 class GradleBuildComparisonResultHtmlRendererTest extends Specification {
 
-    @Rule TemporaryFolder dir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
 
     def comparisonRenderers = new DefaultBuildOutcomeComparisonResultRendererFactory(HtmlRenderContext)
     def outcomeRenderers = new DefaultBuildOutcomeRendererFactory(HtmlRenderContext)
@@ -56,7 +56,7 @@ class GradleBuildComparisonResultHtmlRendererTest extends Specification {
 
     def sourceBuildDir = dir.createDir("source")
     def targetBuildDir = dir.createDir("target")
-    def resolver = TestFiles.resolver(dir.dir)
+    def resolver = TestFiles.resolver(dir.testDirectory)
     def sourceBuildSpec = new DefaultGradleBuildInvocationSpec(resolver, sourceBuildDir)
     def targetBuildSpec = new DefaultGradleBuildInvocationSpec(resolver, targetBuildDir)
     def sourceBuildExecuter = new ComparableGradleBuildExecuter(sourceBuildSpec)

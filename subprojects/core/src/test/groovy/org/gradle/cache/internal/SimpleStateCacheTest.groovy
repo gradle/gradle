@@ -15,17 +15,17 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.messaging.serialize.DefaultSerializer
 import org.gradle.cache.PersistentStateCache
+import org.gradle.messaging.serialize.DefaultSerializer
 import org.gradle.messaging.serialize.Serializer
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.isIntegrityViolated
+
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.*
 
 class SimpleStateCacheTest extends Specification {
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileAccess fileAccess = Mock()
     final File file = tmpDir.file("state.bin")
     final SimpleStateCache<String> cache = createStateCache(fileAccess)

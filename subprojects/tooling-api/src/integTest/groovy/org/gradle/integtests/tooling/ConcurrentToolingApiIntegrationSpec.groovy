@@ -24,14 +24,14 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -42,7 +42,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
-    @Rule final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new GradleDistribution(temporaryFolder)
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
 
@@ -64,7 +64,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
         when:
         threads.times {
-            concurrent.start { useToolingApi(new GradleDistribution(new TemporaryFolder())) }
+            concurrent.start { useToolingApi(new GradleDistribution(new TestNameTestDirectoryProvider())) }
         }
 
         then:

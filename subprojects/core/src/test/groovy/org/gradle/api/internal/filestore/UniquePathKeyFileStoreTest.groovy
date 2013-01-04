@@ -17,13 +17,13 @@
 package org.gradle.api.internal.filestore
 
 import org.gradle.api.Action
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class UniquePathKeyFileStoreTest extends Specification {
 
-    @Rule TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
     Action<File> action = Mock()
 
     UniquePathKeyFileStore uniquePathKeyFileStore

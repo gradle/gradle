@@ -17,7 +17,7 @@
 
 package org.gradle.test.fixtures.maven
 
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 
 /**
  * A fixture for dealing with local Maven repositories.
