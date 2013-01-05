@@ -20,7 +20,6 @@ import org.gradle.api.*;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -83,8 +82,6 @@ public class MavenPublishPlugin implements Plugin<Project> {
     }
 
     private MavenPublication createPublication(final String name, final Project project, SoftwareComponent component) {
-        SoftwareComponentInternal componentInternal = (SoftwareComponentInternal) component;
-
         Callable<Object> pomDirCallable = new Callable<Object>() {
             public Object call() {
                 return new File(project.getBuildDir(), "publications/" + name);
@@ -95,8 +92,10 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         DefaultMavenPublication publication = instantiator.newInstance(
                 DefaultMavenPublication.class,
-                name, instantiator, projectIdentity, componentInternal, null
+                name, instantiator, projectIdentity, null
         );
+
+        publication.from(component);
 
         ConventionMapping descriptorConventionMapping = new DslObject(publication).getConventionMapping();
         descriptorConventionMapping.map("pomDir", pomDirCallable);

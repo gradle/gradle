@@ -17,28 +17,32 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
+import java.util.Collections;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private final String name;
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
-    private final SoftwareComponentInternal component;
     private final File pomDir;
+    private SoftwareComponentInternal component;
 
     public DefaultMavenPublication(
-            String name, Instantiator instantiator, MavenProjectIdentity projectIdentity, SoftwareComponentInternal component, File pomDir
+            String name, Instantiator instantiator, MavenProjectIdentity projectIdentity, File pomDir
     ) {
         this.name = name;
         this.pom = instantiator.newInstance(DefaultMavenPom.class);
         this.projectIdentity = projectIdentity;
-        this.component = component;
         this.pomDir = pomDir;
     }
 
@@ -54,11 +58,24 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         configure.execute(pom);
     }
 
+    public void from(SoftwareComponent component) {
+        if (this.component != null) {
+            throw new IllegalStateException("Cannot add multiple components to MavenPublication");
+        }
+        this.component = (SoftwareComponentInternal) component;
+    }
+
     public FileCollection getPublishableFiles() {
+        if (component == null) {
+            return new SimpleFileCollection();
+        }
         return component.getArtifacts().getFiles();
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
+        if (component == null) {
+            return new MavenNormalizedPublication(projectIdentity, Collections.<PublishArtifact>emptyList(), Collections.<Dependency>emptyList(), pom.getXmlAction());
+        }
         return new MavenNormalizedPublication(projectIdentity, component.getArtifacts(), component.getRuntimeDependencies(), pom.getXmlAction());
     }
 

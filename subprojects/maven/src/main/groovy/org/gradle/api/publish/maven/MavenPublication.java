@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.api.publish.Publication;
 
@@ -64,5 +65,7 @@ public interface MavenPublication extends Publication {
      * @param configure The configuration action.
      */
     void pom(Action<? super MavenPom> configure);
+
+    void from(SoftwareComponent component);
 
 }
