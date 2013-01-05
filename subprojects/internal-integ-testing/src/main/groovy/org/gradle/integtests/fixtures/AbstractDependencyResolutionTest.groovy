@@ -31,7 +31,7 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
 
     def "setup"() {
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
-        requireOwnUserHomeDir()
+        requireOwnGradleUserHomeDir()
     }
 
     IvyFileRepository ivyRepo(def dir = 'ivy-repo') {

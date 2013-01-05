@@ -80,7 +80,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         dependencyList = false;
         searchUpwards = false;
         executable = null;
-        gradleUserHomeDir = buildContext.getGradleUserHomeDir();
         javaHome = null;
         environmentVars.clear();
         stdin = null;

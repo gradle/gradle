@@ -50,7 +50,7 @@ task echo << {
         def readEnd = new PipedInputStream(writeEnd)
 
         given:
-        requireOwnUserHomeDir()
+        requireOwnGradleUserHomeDir()
         buildFile << '''
 task echo << {
     def reader = new BufferedReader(new InputStreamReader(System.in))

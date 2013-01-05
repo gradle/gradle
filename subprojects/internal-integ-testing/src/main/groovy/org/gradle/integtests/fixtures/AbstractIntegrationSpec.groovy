@@ -76,7 +76,7 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         executer.usingProjectDirectory(file(path))
     }
 
-    protected GradleExecuter requireOwnUserHomeDir() {
+    protected GradleExecuter requireOwnGradleUserHomeDir() {
         executer.requireOwnGradleUserHomeDir()
         executer
     }

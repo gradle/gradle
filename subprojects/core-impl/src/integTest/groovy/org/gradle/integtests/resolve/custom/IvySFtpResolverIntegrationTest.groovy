@@ -29,7 +29,7 @@ class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
     @Rule ProgressLoggingFixture progressLogging
 
     def "setup"() {
-        requireOwnUserHomeDir()
+        requireOwnGradleUserHomeDir()
     }
 
     public void "can resolve and cache dependencies from an SFTP Ivy repository"() {

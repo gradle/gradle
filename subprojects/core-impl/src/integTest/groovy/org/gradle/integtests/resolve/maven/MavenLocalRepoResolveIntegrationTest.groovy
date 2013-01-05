@@ -29,7 +29,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
     M2Installation m2Installation;
 
     public void setup() {
-        requireOwnUserHomeDir()
+        requireOwnGradleUserHomeDir()
         buildFile << """
                 repositories {
                     mavenLocal()

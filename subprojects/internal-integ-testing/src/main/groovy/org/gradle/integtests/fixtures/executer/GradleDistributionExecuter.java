@@ -111,7 +111,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     public GradleDistributionExecuter reset() {
         super.reset();
         workingDirSet = false;
-        gradleUserHomeDirSet = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
         DeprecationLogger.reset();
