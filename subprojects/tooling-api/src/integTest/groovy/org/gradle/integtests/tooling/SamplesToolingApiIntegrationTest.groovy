@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
@@ -87,7 +88,7 @@ repositories {
     maven { url "${distribution.libsRepo.toURI()}" }
 }
 run {
-    args = ["${TextUtil.escapeString(distribution.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(executer.userHomeDir.absolutePath)}"]
+    args = ["${TextUtil.escapeString(new IntegrationTestBuildContext().gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)}"]
     systemProperty 'org.gradle.daemon.idletimeout', 10000
     systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
 }
@@ -102,6 +103,7 @@ run {
     private ExecutionResult run() {
         try {
             return new GradleDistributionExecuter(distribution, temporaryFolder)
+                    .inDirectory(sample.dir)
                     .withTasks('run')
                     .withDaemonIdleTimeoutSecs(60)
                     .run()
