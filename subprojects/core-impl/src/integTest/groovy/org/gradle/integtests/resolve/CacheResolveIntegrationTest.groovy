@@ -15,7 +15,8 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest;
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.file.TestFile;
 
 
 public class CacheResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -26,7 +27,7 @@ public class CacheResolveIntegrationTest extends AbstractDependencyResolutionTes
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
-        def cacheDir = distribution.userHomeDir.file('caches').toURI()
+        def cacheDir = new TestFile(executer.gradleUserHomeDir).file('caches').toURI()
 
         and:
         buildFile << """

@@ -73,7 +73,7 @@ that's likely to change over time. This version executes the command via GradleP
         GradlePluginLord gradlePluginLord = new GradlePluginLord();
         gradlePluginLord.setCurrentDirectory(multiProjectDirectory);
         gradlePluginLord.setGradleHomeDirectory(distribution.gradleHomeDir);
-        gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(distribution.userHomeDir))
+        gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir))
 
         gradlePluginLord.startExecutionQueue(); //for tests, we'll need to explicitly start the execution queue (unless we do a refresh via the TestUtility).
 
@@ -102,7 +102,7 @@ that's likely to change over time. This version executes the command via GradleR
         TestExecutionInteraction executionInteraction = new TestExecutionInteraction();
 
         //execute a command. We don't really care what the command is, just something that generates output
-        def cl = new ExtraTestCommandLineOptionsListener(distribution.userHomeDir).getAdditionalCommandLineArguments('') + ' tasks'
+        def cl = new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir).getAdditionalCommandLineArguments('') + ' tasks'
         gradleRunner.executeCommand(cl, org.gradle.api.logging.LogLevel.LIFECYCLE,
                                             ShowStacktrace.INTERNAL_EXCEPTIONS,
                                             executionInteraction);

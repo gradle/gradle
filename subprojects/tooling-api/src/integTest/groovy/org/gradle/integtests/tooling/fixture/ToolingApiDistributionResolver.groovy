@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.ProjectInternalServiceRegistry
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.HelperUtil
 
@@ -70,7 +71,7 @@ class ToolingApiDistributionResolver {
     private DependencyResolutionServices createResolutionServices() {
         GlobalServicesRegistry globalRegistry = new GlobalServicesRegistry()
         StartParameter startParameter = new StartParameter()
-        startParameter.gradleUserHomeDir = currentGradleDistribution.userHomeDir
+        startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         TopLevelBuildServiceRegistry topLevelRegistry = new TopLevelBuildServiceRegistry(globalRegistry, startParameter)
         ProjectInternalServiceRegistry projectRegistry = new ProjectInternalServiceRegistry(topLevelRegistry, HelperUtil.createRootProject())
         projectRegistry.get(DependencyResolutionServices)

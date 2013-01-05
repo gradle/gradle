@@ -25,7 +25,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 class ResolutionResultApiIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        distribution.requireOwnUserHomeDir()
+        executer.requireOwnGradleUserHomeDir()
     }
 
     /*

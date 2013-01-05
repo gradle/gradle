@@ -22,7 +22,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        distribution.requireOwnUserHomeDir()
+        executer.requireOwnGradleUserHomeDir()
     }
 
     def "omits repeated dependencies in case of circular dependencies"() {

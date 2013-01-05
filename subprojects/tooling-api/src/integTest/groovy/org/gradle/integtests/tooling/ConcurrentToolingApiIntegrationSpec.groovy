@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.classpath.ClassPath
@@ -93,7 +94,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
     }
 
     def useToolingApi(BasicGradleDistribution target) {
-        new ToolingApi(target, dist.userHomeDir, temporaryFolder, false).withConnection { ProjectConnection connection ->
+        new ToolingApi(target, new IntegrationTestBuildContext().gradleUserHomeDir, temporaryFolder, false).withConnection { ProjectConnection connection ->
             try {
                 def model = connection.getModel(IdeaProject)
                 assert model != null

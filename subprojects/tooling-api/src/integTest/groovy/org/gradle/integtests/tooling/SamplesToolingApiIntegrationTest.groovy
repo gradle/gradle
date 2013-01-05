@@ -87,7 +87,7 @@ repositories {
     maven { url "${distribution.libsRepo.toURI()}" }
 }
 run {
-    args = ["${TextUtil.escapeString(distribution.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(distribution.userHomeDir.absolutePath)}"]
+    args = ["${TextUtil.escapeString(distribution.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(executer.userHomeDir.absolutePath)}"]
     systemProperty 'org.gradle.daemon.idletimeout', 10000
     systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
 }

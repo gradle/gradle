@@ -18,9 +18,9 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 
 @IgnoreIf({ GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.daemon })
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
@@ -28,7 +28,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         // Need forking executer
         // '-ea' is always set on the forked process. So I've added it explicitly here. // TODO:DAZ Clean this up
         executer.withForkingExecuter().withEnvironmentVars(["JAVA_OPTS": "-ea"])
-        distribution.requireIsolatedDaemons()
+        executer.requireIsolatedDaemons()
     }
 
     def "stops single use daemon on build complete"() {

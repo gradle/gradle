@@ -35,7 +35,7 @@ public class DependenciesResolveIntegrationTest {
 
     @Test
     public void testResolve() {
-        dist.requireOwnUserHomeDir();
+        executer.requireOwnGradleUserHomeDir();
 
         // the actual testing is done in the build script.
         File projectDir = sample.getDir();

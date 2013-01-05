@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -40,7 +41,7 @@ class ToolingApi {
     boolean verboseLogging = LOGGER.debugEnabled
 
     ToolingApi(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
-        this(dist, dist.userHomeDir, testWorkDirProvider, GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded)
+        this(dist, new IntegrationTestBuildContext().gradleUserHomeDir, testWorkDirProvider, GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded)
     }
 
     ToolingApi(BasicGradleDistribution dist, File userHomeDir, TestDirectoryProvider testWorkDirProvider, boolean isEmbedded) {

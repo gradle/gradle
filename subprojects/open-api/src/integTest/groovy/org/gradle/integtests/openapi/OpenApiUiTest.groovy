@@ -16,7 +16,7 @@
 package org.gradle.integtests.openapi
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.openapi.external.ExternalUtility
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion2
@@ -51,7 +51,7 @@ import static org.hamcrest.Matchers.*
 class OpenApiUiTest {
 
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    GradleDistribution dist = new GradleDistribution(temporaryFolder)
+    private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
     @Rule public TestResources resources = new TestResources('testproject')
     @Rule public OpenApiFixture openApi = new OpenApiFixture()
     @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()
@@ -577,7 +577,7 @@ class OpenApiUiTest {
         TestSingleDualPaneUIInteractionVersion1 testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), settingsNode);
         SinglePaneUIVersion1 singlePane = null;
         try {
-            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), dist.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
+            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), buildContext.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
         } catch (Exception e) {
             throw new AssertionError("Failed to extract single pane: Caused by " + e.getMessage())
         }
@@ -599,7 +599,7 @@ class OpenApiUiTest {
         //now instantiate it again
         testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), settingsNode);
         try {
-            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), dist.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
+            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), buildContext.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
         } catch (Exception e) {
             throw new AssertionError("Failed to extract single pane (second time): Caused by " + e.getMessage())
         }
@@ -679,7 +679,7 @@ class OpenApiUiTest {
 
         Assert.assertFalse("Empty version number", version.trim().equals(""))       //shouldn't be empty
 
-        File gradleJar = ExternalUtility.getGradleJar(dist.gradleHomeDir)
+        File gradleJar = ExternalUtility.getGradleJar(buildContext.gradleHomeDir)
 
         Assert.assertNotNull("Missing gradle jar", gradleJar)                         //we should have a gradle jar
 
@@ -700,7 +700,7 @@ class OpenApiUiTest {
     void testGradleHomeDirectory() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
 
-        Assert.assertEquals(dist.gradleHomeDir, singlePane.getGradleHomeDirectory())
+        Assert.assertEquals(buildContext.gradleHomeDir, singlePane.getGradleHomeDirectory())
     }
 
     /**
@@ -854,7 +854,7 @@ class OpenApiUiTest {
         //gradle file (but it'll be the custom one.
         String name = OperatingSystem.current().getScriptName("bin/gradle");
 
-        File gradleExecutor = new File(dist.getGradleHomeDir(), name)
+        File gradleExecutor = new File(buildContext.getGradleHomeDir(), name)
 
         //make sure the executable exists
         Assert.assertTrue("Missing gradle executable at: " + gradleExecutor, gradleExecutor.exists())

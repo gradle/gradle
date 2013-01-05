@@ -33,7 +33,7 @@ import spock.lang.IgnoreIf
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
-        distribution.requireIsolatedDaemons()
+        executer.requireIsolatedDaemons()
     }
 
     def buildSucceeds(String script) {

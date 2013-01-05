@@ -76,9 +76,9 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         executer.usingProjectDirectory(file(path))
     }
 
-    protected GradleDistribution requireOwnUserHomeDir() {
-        distribution.requireOwnUserHomeDir()
-        distribution
+    protected GradleExecuter requireOwnUserHomeDir() {
+        executer.requireOwnGradleUserHomeDir()
+        executer
     }
 
     /**
@@ -154,7 +154,7 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
 
     ArtifactBuilder artifactBuilder() {
         def executer = distribution.executer()
-        executer.withGradleUserHomeDir(distribution.getUserHomeDir())
+        executer.withGradleUserHomeDir(this.executer.getGradleUserHomeDir())
         return new GradleBackedArtifactBuilder(executer, getTestDirectory().file("artifacts"))
     }
 

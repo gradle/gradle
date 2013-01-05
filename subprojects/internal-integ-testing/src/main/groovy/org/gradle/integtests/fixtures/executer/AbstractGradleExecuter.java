@@ -40,6 +40,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     // This is primarily to avoid filling ~/.gradle on CI builds
     private static final String DEFAULT_DAEMON_REGISTRY_DIR_PROPERTY = "org.gradle.integtest.daemon.registry";
 
+    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private File workingDir;
@@ -50,7 +52,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private List<File> initScripts = new ArrayList<File>();
     private String executable;
-    private File gradleUserHomeDir;
+    private File gradleUserHomeDir = buildContext.getGradleUserHomeDir();
     private File userHomeDir;
     private File javaHome;
     private File buildScript;
@@ -78,7 +80,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         dependencyList = false;
         searchUpwards = false;
         executable = null;
-        gradleUserHomeDir = null;
+        gradleUserHomeDir = buildContext.getGradleUserHomeDir();
         javaHome = null;
         environmentVars.clear();
         stdin = null;
@@ -178,6 +180,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter usingInitScript(File initScript) {
         initScripts.add(initScript);
         return this;
+    }
+
+    public File getGradleUserHomeDir() {
+        return gradleUserHomeDir;
     }
 
     public GradleExecuter withGradleUserHomeDir(File userHomeDir) {

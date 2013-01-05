@@ -341,7 +341,7 @@ apply plugin: "idea"
 
         def expectedXml = expectedFile.text
 
-        def homeDir = distribution.userHomeDir.absolutePath.replace(File.separator, '/')
+        def homeDir = executer.gradleUserHomeDir.absolutePath.replace(File.separator, '/')
         def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/artifacts-\\d+/filestore/([^/]+/[^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
         def actualXml = file.text.replaceAll(pattern, '@CACHE_DIR@/$1/@SHA1@/')
 

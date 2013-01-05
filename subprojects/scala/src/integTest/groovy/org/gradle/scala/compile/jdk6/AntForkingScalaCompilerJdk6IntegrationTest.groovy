@@ -22,7 +22,7 @@ import org.gradle.scala.compile.BasicScalaCompilerIntegrationTest
 @TargetVersions(["2.10.0-RC1"])
 class AntForkingScalaCompilerJdk6IntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
-        distribution.requireIsolatedDaemons()
+        executer.requireIsolatedDaemons()
     }
 
     String compilerConfiguration() {

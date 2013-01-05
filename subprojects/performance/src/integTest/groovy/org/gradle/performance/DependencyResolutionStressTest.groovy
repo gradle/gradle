@@ -40,7 +40,6 @@ class DependencyResolutionStressTest extends Specification {
     @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
     def setup() {
-        distribution.requireOwnUserHomeDir()
         concurrent.shortTimeout = 180000
     }
 
@@ -79,7 +78,7 @@ task check << {
         """
 
                 GradleDistributionExecuter executer = distribution.executer()
-                executer.withForkingExecuter()
+                executer.withForkingExecuter().requireOwnGradleUserHomeDir()
                 10.times {
                     executer.inDirectory(buildDir).withArgument("--refresh-dependencies").withTasks('check').run()
                 }

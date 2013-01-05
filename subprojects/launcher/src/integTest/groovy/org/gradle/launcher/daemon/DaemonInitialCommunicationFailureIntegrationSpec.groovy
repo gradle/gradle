@@ -45,7 +45,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         then:
         //there should be one idle daemon
-        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).daemon
+        def daemon = new DaemonLogsAnalyzer(executer.daemonBaseDir).daemon
 
         when:
         // Wait until the daemon has finished updating the registry. Killing it halfway through the registry update will leave the registry corrupted,
@@ -81,7 +81,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         buildSucceeds()
 
         then:
-        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).daemon
+        def daemon = new DaemonLogsAnalyzer(executer.daemonBaseDir).daemon
 
         when:
         daemon.waitUntilIdle()
@@ -111,7 +111,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         buildSucceeds()
 
         then:
-        def daemon = new DaemonLogsAnalyzer(distribution.daemonBaseDir).daemon
+        def daemon = new DaemonLogsAnalyzer(executer.daemonBaseDir).daemon
 
         when:
         daemon.waitUntilIdle()
@@ -121,7 +121,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         buildSucceeds()
 
         and:
-        def analyzer = new DaemonLogsAnalyzer(distribution.daemonBaseDir)
+        def analyzer = new DaemonLogsAnalyzer(executer.daemonBaseDir)
         analyzer.daemons.size() == 2        //2 daemon participated
         analyzer.registry.all.size() == 1   //only one address in the registry
     }

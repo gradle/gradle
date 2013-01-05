@@ -16,7 +16,6 @@
 package org.gradle.integtests.openapi
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.openapi.external.ui.OutputUILordVersion1
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -43,7 +42,6 @@ import static org.hamcrest.Matchers.startsWith
 class OutputUILordTest {
 
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    GradleDistribution dist = new GradleDistribution(temporaryFolder)
 
     @Rule public OpenApiFixture openApi = new OpenApiFixture()
     @Rule public TestResources resources = new TestResources('testProject')

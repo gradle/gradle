@@ -33,7 +33,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     public void setup() {
-        distribution.requireOwnUserHomeDir()
+        executer.requireOwnGradleUserHomeDir()
     }
 
     @Test

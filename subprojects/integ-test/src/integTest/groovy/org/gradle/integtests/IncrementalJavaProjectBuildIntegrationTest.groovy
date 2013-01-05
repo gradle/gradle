@@ -39,7 +39,7 @@ class IncrementalJavaProjectBuildIntegrationTest extends AbstractIntegrationTest
     @Test
     public void doesNotRebuildJarIfSourceHasNotChanged() {
         // Use own home dir so we don't blast the shared one when we run with -C rebuild
-        distribution.requireOwnUserHomeDir()
+        executer.requireOwnGradleUserHomeDir()
 
         file("src/main/java/BuildClass.java") << 'public class BuildClass { }'
         file("build.gradle") << "apply plugin: 'java'"

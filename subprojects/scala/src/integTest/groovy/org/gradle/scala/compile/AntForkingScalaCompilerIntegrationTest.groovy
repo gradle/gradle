@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 @TargetVersions(["2.8.2", "2.9.2"])
 class AntForkingScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
-        distribution.requireIsolatedDaemons()
+        executer.requireIsolatedDaemons()
     }
 
     String compilerConfiguration() {

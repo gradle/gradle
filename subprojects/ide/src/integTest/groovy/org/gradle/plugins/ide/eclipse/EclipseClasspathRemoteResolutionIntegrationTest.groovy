@@ -16,11 +16,11 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.test.fixtures.maven.MavenHttpRepository
 
 class EclipseClasspathRemoteResolutionIntegrationTest extends AbstractEclipseIntegrationTest {
 
@@ -30,7 +30,7 @@ class EclipseClasspathRemoteResolutionIntegrationTest extends AbstractEclipseInt
 
     @Before
     void "setup"() {
-        distribution.requireOwnUserHomeDir()
+        executer.requireOwnGradleUserHomeDir()
     }
 
     @Test

@@ -36,12 +36,13 @@ import static org.gradle.util.Matchers.matchesRegexp;
  * Gradle in the current process.
  */
 public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter {
+
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
     private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
     private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
 
     private TestDirectoryProvider testWorkDirProvider;
-    private GradleDistribution dist;
+    private BasicGradleDistribution dist;
 
     private boolean workingDirSet;
     private boolean gradleUserHomeDirSet;
@@ -50,6 +51,9 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private Executer executerType;
 
     private boolean allowExtraLogging = true;
+    private boolean usingIsolatedDaemons;
+
+    private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
     public enum Executer {
         embedded(false),
@@ -83,6 +87,24 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         this.executerType = executerType;
         this.dist = dist;
         this.testWorkDirProvider = testWorkDirProvider;
+    }
+
+    // Methods specific to this impl
+
+    public void requireIsolatedDaemons() {
+        this.usingIsolatedDaemons = true;
+    }
+
+    public TestFile getDaemonBaseDir() {
+        if (usingIsolatedDaemons) {
+            return testWorkDirProvider.getTestDirectory().file("daemon");
+        } else {
+            return buildContext.getDaemonBaseDir();
+        }
+    }
+
+    public GradleDistributionExecuter requireOwnGradleUserHomeDir() {
+        return withGradleUserHomeDir(testWorkDirProvider.getTestDirectory().file("user-home"));
     }
 
     @Override
@@ -211,17 +233,17 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
             inDirectory(testWorkDirProvider.getTestDirectory());
         }
         if (!gradleUserHomeDirSet) {
-            withGradleUserHomeDir(dist.getUserHomeDir());
+            withGradleUserHomeDir(buildContext.getGradleUserHomeDir());
         }
         if (getDaemonIdleTimeoutSecs() == null) {
-            if (dist.isUsingIsolatedDaemons() || getDaemonBaseDir() != null) {
+            if (usingIsolatedDaemons || getDaemonBaseDir() != null) {
                 withDaemonIdleTimeoutSecs(20);
             } else {
                 withDaemonIdleTimeoutSecs(DEFAULT_DAEMON_IDLE_TIMEOUT_SECS);
             }
         }
         if (getDaemonBaseDir() == null) {
-            withDaemonBaseDir(dist.getDaemonBaseDir());
+            withDaemonBaseDir(getDaemonBaseDir());
         }
 
         if (!getClass().desiredAssertionStatus()) {
@@ -258,7 +280,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
             case embedded:
                 return new InProcessGradleExecuter();
             case daemon:
-                return new DaemonGradleExecuter(dist, !isQuiet() && allowExtraLogging, noDefaultJvmArgs);
+                return new DaemonGradleExecuter(dist.getGradleHomeDir(), !isQuiet() && allowExtraLogging, noDefaultJvmArgs);
             case parallel:
                 return new ParallelForkingGradleExecuter(dist.getGradleHomeDir());
             case forking:
@@ -276,13 +298,17 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     private void configureForSettingsFile(GradleExecuter gradleExecuter) {
         boolean settingsFound = false;
-        for (
-                TestFile dir = new TestFile(getWorkingDir()); dir != null && dist.isFileUnderTest(dir) && !settingsFound;
-                dir = dir.getParentFile()) {
+
+        TestFile workingDir = new TestFile(getWorkingDir());
+        TestFile dir = workingDir;
+        while (dir != null && testWorkDirProvider.getTestDirectory().isSelfOrDescendent(dir)) {
             if (dir.file("settings.gradle").isFile()) {
                 settingsFound = true;
+                break;
             }
+            dir = dir.getParentFile();
         }
+
         if (settingsFound) {
             gradleExecuter.withSearchUpwards();
         }

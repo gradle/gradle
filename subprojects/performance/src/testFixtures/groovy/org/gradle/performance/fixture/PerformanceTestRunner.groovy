@@ -106,7 +106,7 @@ public class PerformanceTestRunner {
         } else {
             executer = dist.executer()
         }
-        executer.withGradleUserHomeDir(current.userHomeDir)
+        executer.withGradleUserHomeDir(executer.gradleUserHomeDir)
         return executer.withArguments('-u').inDirectory(projectDir).withTasks(tasksToRun).withArguments(args)
     }
 }

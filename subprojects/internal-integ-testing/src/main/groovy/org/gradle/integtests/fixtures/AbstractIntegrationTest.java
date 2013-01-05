@@ -98,7 +98,7 @@ public abstract class AbstractIntegrationTest implements TestDirectoryProvider {
 
     protected ArtifactBuilder artifactBuilder() {
         GradleDistributionExecuter gradleExecuter = getDistribution().executer();
-        gradleExecuter.withGradleUserHomeDir(getDistribution().getUserHomeDir());
+        gradleExecuter.withGradleUserHomeDir(getExecuter().getGradleUserHomeDir());
         return new GradleBackedArtifactBuilder(gradleExecuter, getTestDirectory().file("artifacts"));
     }
 

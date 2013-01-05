@@ -50,7 +50,7 @@ class MultiprojectProjectAndTaskListIntegrationTest extends AbstractIntegrationT
     void setUp() {
         gradlePluginLord.setCurrentDirectory(sample.dir);
         gradlePluginLord.setGradleHomeDirectory(distribution.gradleHomeDir);
-        gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(distribution.userHomeDir))
+        gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir))
     }
 
     /*

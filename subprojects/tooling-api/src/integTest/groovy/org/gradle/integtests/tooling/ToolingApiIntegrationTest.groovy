@@ -15,26 +15,22 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
-import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Specification
 
-class ToolingApiIntegrationTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final GradleDistribution dist = new GradleDistribution(temporaryFolder)
-    final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
-    final BasicGradleDistribution otherVersion = new ReleasedVersions(dist).last
+class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
+
+    final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
+    final BasicGradleDistribution otherVersion = new ReleasedVersions(distribution).last
     TestFile projectDir
 
     def setup() {
@@ -63,7 +59,7 @@ class ToolingApiIntegrationTest extends Specification {
 task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
 task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
 """
-        dist.executer().withTasks('wrapper').run()
+        executer.withTasks('wrapper').run()
 
         when:
         toolingApi.withConnector { connector ->
@@ -86,7 +82,7 @@ allprojects {
 }
 """
         projectDir.file('child').createDir()
-        dist.executer().withTasks('wrapper').run()
+        executer.withTasks('wrapper').run()
 
         when:
         toolingApi.withConnector { connector ->
@@ -143,15 +139,15 @@ allprojects {
     }
 
     def "tooling api reports an error when the specified gradle version does not support the tooling api"() {
-        def dist = dist.previousVersion('0.9.2').binDistribution
+        def distroZip = distribution.previousVersion('0.9.2').binDistribution
 
         when:
-        toolingApi.withConnector { connector -> connector.useDistribution(dist.toURI()) }
+        toolingApi.withConnector { connector -> connector.useDistribution(distroZip.toURI()) }
         toolingApi.maybeFailWithConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The specified Gradle distribution '${dist.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
+        e.message == "The specified Gradle distribution '${distroZip.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
     }
 
     @Issue("GRADLE-2419")
@@ -163,24 +159,26 @@ allprojects {
         def stopTimeoutMs = 10000
         def retryIntervalMs = 500
 
+        def path = executer.gradleUserHomeDir.absolutePath
+        def path1 = distribution.gradleHomeDir.absolutePath
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'application'
 
             repositories {
-                maven { url "${dist.libsRepo.toURI()}" }
+                maven { url "${distribution.libsRepo.toURI()}" }
                 maven { url "http://repo.gradle.org/gradle/repo" }
             }
 
             dependencies {
-                compile "org.gradle:gradle-tooling-api:${dist.version}"
+                compile "org.gradle:gradle-tooling-api:${distribution.version}"
                 runtime 'org.slf4j:slf4j-simple:1.7.2'
             }
 
             mainClassName = 'Main'
 
             run {
-                args = ["${TextUtil.escapeString(dist.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(dist.userHomeDir.absolutePath)}"]
+                args = ["${TextUtil.escapeString(path1)}", "${TextUtil.escapeString(path)}"]
                 systemProperty 'org.gradle.daemon.idletimeout', 10000
                 systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
             }
@@ -248,8 +246,7 @@ allprojects {
         """
 
         when:
-        GradleHandle handle = dist.executer()
-                .inDirectory(projectDir)
+        GradleHandle handle = executer.inDirectory(projectDir)
                 .withTasks('run')
                 .withDaemonIdleTimeoutSecs(60)
                 .start()

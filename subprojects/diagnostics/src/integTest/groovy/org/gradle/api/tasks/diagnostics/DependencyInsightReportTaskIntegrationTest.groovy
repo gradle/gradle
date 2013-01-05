@@ -22,7 +22,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        distribution.requireOwnUserHomeDir()
+        executer.requireOwnGradleUserHomeDir()
     }
 
     def "shows basic single tree with repeated dependency"() {

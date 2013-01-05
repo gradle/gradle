@@ -50,12 +50,12 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     @Before
     public void setUp() {
         // Use own home dir so we don't blast the shared one when we run with -C rebuild
-        distribution.requireOwnUserHomeDir()
+        executer.requireOwnGradleUserHomeDir()
 
         String version = GradleVersion.current().version
         projectDir = file("project")
         projectDir.mkdirs()
-        userHomeDir = distribution.getUserHomeDir()
+        userHomeDir = new TestFile(executer.gradleUserHomeDir)
         buildFile = projectDir.file('build.gradle')
         ScriptSource source = new UriScriptSource("build file", buildFile)
         propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/cache.properties")

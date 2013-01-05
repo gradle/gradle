@@ -30,7 +30,7 @@ class DaemonIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
         executer.executerType = GradleDistributionExecuter.Executer.daemon
-        distribution.requireIsolatedDaemons()
+        executer.requireIsolatedDaemons()
         LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
     }
 
