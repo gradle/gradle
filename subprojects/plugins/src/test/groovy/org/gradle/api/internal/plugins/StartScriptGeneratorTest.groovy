@@ -70,4 +70,24 @@ class StartScriptGeneratorTest extends Specification {
         then:
         windowsScriptContent.split(TextUtil.windowsLineSeparator).length == 90
     }
+
+    def "defaultJvmOpts is expanded properly in windows script"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=bar', '-Xint']
+        generator.scriptRelPath = "bin"
+        when:
+        String windowsScriptContent = generator.generateWindowsScriptContent()
+        then:
+        windowsScriptContent.contains("set DEFAULT_JVM_OPTS=-Dfoo=bar -Xint")
+    }
+
+    def "defaultJvmOpts is expanded properly in unix script"() {
+        given:
+        generator.defaultJvmOpts = ['-Dfoo=bar', '-Xint']
+        generator.scriptRelPath = "bin"
+        when:
+        String unixScriptContent = generator.generateUnixScriptContent()
+        then:
+        unixScriptContent.contains('DEFAULT_JVM_OPTS="-Dfoo=bar -Xint"')
+    }
 }
