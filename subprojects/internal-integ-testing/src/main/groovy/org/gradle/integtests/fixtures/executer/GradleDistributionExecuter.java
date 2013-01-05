@@ -95,7 +95,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         this.usingIsolatedDaemons = true;
     }
 
-    public TestFile getDaemonBaseDir() {
+    public TestFile getDefaultDaemonBaseDir() {
         if (usingIsolatedDaemons) {
             return testWorkDirProvider.getTestDirectory().file("daemon");
         } else {
@@ -242,7 +242,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
             }
         }
         if (getDaemonBaseDir() == null) {
-            withDaemonBaseDir(getDaemonBaseDir());
+            withDaemonBaseDir(getDefaultDaemonBaseDir());
         }
 
         if (!getClass().desiredAssertionStatus()) {
