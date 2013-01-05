@@ -16,13 +16,12 @@
 
 package org.gradle.api.publish.maven.internal;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.maven.MavenPublication;
 
 import java.io.File;
 
-public interface MavenPublicationInternal extends MavenPublication, Buildable {
+public interface MavenPublicationInternal extends MavenPublication {
 
     MavenPomInternal getPom();
 

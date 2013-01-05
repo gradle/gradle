@@ -17,15 +17,12 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.publish.maven.MavenPom;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
-import java.util.Set;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
 
@@ -59,10 +56,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public FileCollection getPublishableFiles() {
         return component.getArtifacts().getFiles();
-    }
-
-    public TaskDependency getBuildDependencies() {
-        return getPublishableFiles().getBuildDependencies();
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
