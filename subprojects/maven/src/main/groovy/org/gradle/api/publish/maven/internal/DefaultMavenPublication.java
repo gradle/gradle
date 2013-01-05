@@ -72,8 +72,4 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     public File getPomDir() {
         return pomDir;
     }
-
-    public Set<PublishArtifact> getArtifacts() {
-        return component.getArtifacts();
-    }
 }

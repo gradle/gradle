@@ -91,8 +91,7 @@ public interface PublishingExtension {
      * The ability to create different kinds of publications is provided by different plugins. The “publishing” plugin itself does not provide a way
      * to create publications.
      * <p>
-     * Please see {@link org.gradle.api.publish.ivy.IvyPublication} for information on publishing in the Ivy format.
-     * At this time it is not possible to publish in the Maven format with this mechanism.
+     * Please see {@link org.gradle.api.publish.ivy.IvyPublication} and {@link org.gradle.api.publish.maven.MavenPublication} for more information on publishing in these specific formats.
      *
      * @param configure The action or closure to configure the publications with.
      */

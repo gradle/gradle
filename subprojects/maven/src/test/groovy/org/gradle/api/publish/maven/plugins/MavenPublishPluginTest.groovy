@@ -23,7 +23,6 @@ import org.gradle.api.publish.maven.internal.DefaultMavenPublication
 import org.gradle.api.publish.maven.internal.MavenPublicationInternal
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -66,8 +65,7 @@ class MavenPublishPluginTest extends Specification {
         javaPluginApplied()
 
         then:
-        mainPublication.artifacts.size() == 1
-        mainPublication.artifacts.find { it.archiveTask instanceof Jar }
+        mainPublication.publishableFiles.singleFile.name ==~ /.*\.jar/;
     }
 
     protected MavenPublicationInternal getMainPublication() {
