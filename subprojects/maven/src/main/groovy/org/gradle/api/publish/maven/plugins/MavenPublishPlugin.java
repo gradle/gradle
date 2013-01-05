@@ -16,12 +16,16 @@
 
 package org.gradle.api.publish.maven.plugins;
 
-import org.gradle.api.*;
-import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.PublicationContainerInternal;
+import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication;
 import org.gradle.api.publish.maven.internal.MavenPublishDynamicTaskCreator;
@@ -57,16 +61,9 @@ public class MavenPublishPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPlugins().apply(PublishingPlugin.class);
         final PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
-
-        // Create the default publication for any components
-        project.getComponents().all(new Action<SoftwareComponent>() {
-            public void execute(SoftwareComponent softwareComponent) {
-                if (!extension.getPublications().withType(MavenPublication.class).isEmpty()) {
-                    throw new IllegalStateException("Cannot publish multiple components to Maven : need to fix this before we add another softwareComponent");
-                }
-                extension.getPublications().add(createPublication("maven", project, softwareComponent));
-            }
-        });
+        
+        final PublicationContainerInternal publicationContainer = (PublicationContainerInternal) extension.getPublications();
+        publicationContainer.registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, project));
 
         TaskContainer tasks = project.getTasks();
 
@@ -81,26 +78,36 @@ public class MavenPublishPlugin implements Plugin<Project> {
         publishLocalTaskCreator.monitor(extension.getPublications());
     }
 
-    private MavenPublication createPublication(final String name, final Project project, SoftwareComponent component) {
-        Callable<Object> pomDirCallable = new Callable<Object>() {
-            public Object call() {
-                return new File(project.getBuildDir(), "publications/" + name);
-            }
-        };
+    private class MavenPublicationFactory implements PublicationFactory {
+        private final Instantiator instantiator;
+        private final DependencyMetaDataProvider dependencyMetaDataProvider;
+        private final Project project;
 
-        ModuleBackedMavenProjectIdentity projectIdentity = new ModuleBackedMavenProjectIdentity(dependencyMetaDataProvider.getModule());
+        private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, Project project) {
+            this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+            this.instantiator = instantiator;
+            this.project = project;
+        }
 
-        DefaultMavenPublication publication = instantiator.newInstance(
-                DefaultMavenPublication.class,
-                name, instantiator, projectIdentity, null
-        );
+        public MavenPublication create(final String name) {
 
-        publication.from(component);
+            Callable<Object> pomDirCallable = new Callable<Object>() {
+                public Object call() {
+                    return new File(project.getBuildDir(), "publications/" + name);
+                }
+            };
 
-        ConventionMapping descriptorConventionMapping = new DslObject(publication).getConventionMapping();
-        descriptorConventionMapping.map("pomDir", pomDirCallable);
+            ModuleBackedMavenProjectIdentity projectIdentity = new ModuleBackedMavenProjectIdentity(dependencyMetaDataProvider.getModule());
 
-        return publication;
+            DefaultMavenPublication publication = instantiator.newInstance(
+                    DefaultMavenPublication.class,
+                    name, instantiator, projectIdentity, null
+            );
+
+            ConventionMapping descriptorConventionMapping = new DslObject(publication).getConventionMapping();
+            descriptorConventionMapping.map("pomDir", pomDirCallable);
+
+            return publication;
+        }
     }
-
 }

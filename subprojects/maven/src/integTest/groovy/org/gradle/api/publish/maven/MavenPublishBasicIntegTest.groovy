@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Ignore
 
 /**
  * Tests “simple” maven publishing scenarios
@@ -37,7 +38,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         m2Repo = m2Installation.mavenRepo()
     }
 
-    def "publishes nothing without component"() {
+    def "publishes nothing without defined publication"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -59,6 +60,32 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         mavenRepo.module('group', 'root', '1.0').assertNotPublished()
     }
 
+    @Ignore("Not yet implemented") // TODO:DAZ
+    def "publishes empty pom without component"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    add('maven', org.gradle.api.publish.maven.MavenPublication)
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        mavenRepo.module('group', 'root', '1.0').pomFile.exists()
+    }
+
     def "can publish simple jar"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -72,6 +99,11 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
             publishing {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['java']
+                    }
                 }
             }
         """

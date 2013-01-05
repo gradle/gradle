@@ -50,6 +50,11 @@ publishing {
     repositories {
         maven { url "${repo.uri}" }
     }
+    publications {
+        add('maven', org.gradle.api.publish.maven.MavenPublication) {
+            from components['java']
+        }
+    }
 }
 """
 

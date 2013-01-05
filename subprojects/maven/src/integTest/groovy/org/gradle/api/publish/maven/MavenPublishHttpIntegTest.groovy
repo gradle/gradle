@@ -61,6 +61,11 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
                         url "$mavenRemoteRepo.uri"
                     }
                 }
+                publications {
+                    add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['java']
+                    }
+                }
             }
         """
     }

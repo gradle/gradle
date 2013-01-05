@@ -41,7 +41,8 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    maven {
+                    add('mavenJava', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['java']
                         pom.withXml {
                             asNode().groupId[0].value = "changed-group"
                             asNode().artifactId[0].value = "changed-artifact"
@@ -91,7 +92,8 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    maven {
+                    add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['java']
                         pom.withXml {
                             asNode().appendNode('description', "${description}")
                         }
@@ -123,7 +125,8 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    maven {
+                    add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['java']
                         pom.withXml {
                             asNode().foo = 'this is not a real element'
                         }

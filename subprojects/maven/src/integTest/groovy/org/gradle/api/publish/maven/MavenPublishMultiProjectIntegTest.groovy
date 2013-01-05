@@ -217,6 +217,11 @@ subprojects {
         repositories {
             maven { url "file:///\$rootProject.projectDir/maven-repo" }
         }
+        publications {
+            add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                from components['java']
+            }
+        }
     }
 }
 

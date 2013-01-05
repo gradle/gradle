@@ -16,14 +16,17 @@
 
 package org.gradle.api.publish.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.publish.Publication;
-import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.UnknownPublicationException;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.ConfigureUtil;
 
-public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Publication> implements PublicationContainer {
+public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Publication> implements PublicationContainerInternal {
+
+    private final CompositePublicationFactory publicationFactories = new CompositePublicationFactory();
 
     public DefaultPublicationContainer(Instantiator instantiator) {
         super(Publication.class, instantiator);
@@ -32,5 +35,21 @@ public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Pub
     @Override
     protected UnknownDomainObjectException createNotFoundException(String name) {
         return new UnknownPublicationException(String.format("Publication with name '%s' not found", name));
+    }
+
+    public Publication add(String name, Class<? extends Publication> type) {
+        Publication publication = publicationFactories.create(type, name);
+        add(publication);
+        return publication;
+    }
+
+    public Publication add(String name, Class<? extends Publication> type, Closure configureClosure) {
+        Publication publication = add(name, type);
+        ConfigureUtil.configure(configureClosure, publication);
+        return publication;
+    }
+
+    public void registerFactory(Class<? extends Publication> type, PublicationFactory publicationFactory) {
+        publicationFactories.register(type, publicationFactory);
     }
 }

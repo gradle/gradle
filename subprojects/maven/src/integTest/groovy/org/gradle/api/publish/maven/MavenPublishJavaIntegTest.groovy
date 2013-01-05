@@ -48,6 +48,11 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
+                publications {
+                    add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['java']
+                    }
+                }
             }
 """
 

@@ -23,6 +23,12 @@ publishing {
         }
     }
 // END SNIPPET repositories
+    publications {
+        add('maven', org.gradle.api.publish.maven.MavenPublication) {
+            from components['java']
+        }
+    }
+
 // END SNIPPET minimal-build
 // START SNIPPET pom-modification
     publications {
