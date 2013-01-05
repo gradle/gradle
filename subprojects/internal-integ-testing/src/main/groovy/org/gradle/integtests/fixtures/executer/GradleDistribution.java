@@ -27,12 +27,12 @@ import org.gradle.util.GradleVersion;
  */
 public class GradleDistribution implements BasicGradleDistribution {
 
-    private TestDirectoryProvider testWorkDirProvider;
+    private TestDirectoryProvider testDirectoryProvider;
 
     private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
     public GradleDistribution(TestDirectoryProvider testWorkDirProvider) {
-        this.testWorkDirProvider = testWorkDirProvider;
+        this.testDirectoryProvider = testWorkDirProvider;
     }
 
     @Override
@@ -119,10 +119,6 @@ public class GradleDistribution implements BasicGradleDistribution {
         return buildContext.getGradleUserHomeDir().getParentFile().file("previousVersion");
     }
 
-    private TestFile getTestWorkDir() {
-        return testWorkDirProvider.getTestDirectory();
-    }
-
     /**
      * Returns a previous version of Gradle.
      *
@@ -133,11 +129,11 @@ public class GradleDistribution implements BasicGradleDistribution {
         if (version.equals(this.getVersion())) {
             return this;
         }
-        return new PreviousGradleVersionExecuter(version, getPreviousVersionsDir().file(version));
+        return new PreviousGradleVersionExecuter(version, getPreviousVersionsDir().file(version), testDirectoryProvider);
     }
 
     public GradleDistributionExecuter executer() {
-        return new GradleDistributionExecuter(this, testWorkDirProvider);
+        return new GradleDistributionExecuter(this, testDirectoryProvider);
     }
 
 

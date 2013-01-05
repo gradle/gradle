@@ -44,6 +44,7 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.DeprecationLogger;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -62,7 +63,12 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 class InProcessGradleExecuter extends AbstractGradleExecuter {
+
     private final ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
+
+    InProcessGradleExecuter(TestDirectoryProvider testDirectoryProvider) {
+        super(testDirectoryProvider);
+    }
 
     @Override
     protected ExecutionResult doRun() {

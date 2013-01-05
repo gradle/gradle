@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.JavaVersion;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.ArrayList;
@@ -28,8 +29,8 @@ class DaemonGradleExecuter extends ForkingGradleExecuter {
     private final boolean allowExtraLogging;
     private final boolean noDefaultJvmArgs;
 
-    public DaemonGradleExecuter(TestFile gradleHomeDir, boolean allowExtraLogging, boolean noDefaultJvmArgs) {
-        super(gradleHomeDir);
+    public DaemonGradleExecuter(TestDirectoryProvider testDirectoryProvider, TestFile gradleHomeDir, boolean allowExtraLogging, boolean noDefaultJvmArgs) {
+        super(testDirectoryProvider, gradleHomeDir);
         this.allowExtraLogging = allowExtraLogging;
         this.noDefaultJvmArgs = noDefaultJvmArgs;
     }

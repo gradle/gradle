@@ -16,8 +16,14 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExecuter {
+
+    protected AbstractDelegatingGradleExecuter(TestDirectoryProvider testDirectoryProvider) {
+        super(testDirectoryProvider);
+    }
+
     @Override
     protected ExecutionResult doRun() {
         return checkResult(configureExecuter().run());

@@ -28,12 +28,17 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.StreamBackedStandardOutputListener;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 import java.lang.management.ManagementFactory;
 
 class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
     private final EmbeddedDaemonClientServices daemonClientServices = new EmbeddedDaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), false);
+
+    EmbeddedDaemonGradleExecuter(TestDirectoryProvider testDirectoryProvider) {
+        super(testDirectoryProvider);
+    }
 
     public DaemonRegistry getDaemonRegistry() {
         return daemonClientServices.get(DaemonRegistry.class);

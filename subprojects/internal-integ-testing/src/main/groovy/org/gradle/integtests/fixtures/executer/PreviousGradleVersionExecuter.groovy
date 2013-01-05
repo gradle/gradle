@@ -27,6 +27,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -49,7 +50,8 @@ class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter imp
     private final TestFile homeDir
     private PersistentCache cache
 
-    PreviousGradleVersionExecuter(String version, TestFile versionDir) {
+    PreviousGradleVersionExecuter(String version, TestFile versionDir, TestDirectoryProvider testDirectoryProvider) {
+        super(testDirectoryProvider)
         this.version = GradleVersion.version(version)
         this.versionDir = versionDir
         zipFile = versionDir.file("gradle-$version-bin.zip")
@@ -141,7 +143,7 @@ class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter imp
 
     @Override
     protected GradleExecuter configureExecuter() {
-        ForkingGradleExecuter executer = new ForkingGradleExecuter(gradleHomeDir)
+        ForkingGradleExecuter executer = new ForkingGradleExecuter(testDirectoryProvider, gradleHomeDir)
         copyTo(executer)
         return executer
     }

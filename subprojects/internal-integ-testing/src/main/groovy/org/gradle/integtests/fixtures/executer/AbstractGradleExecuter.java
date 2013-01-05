@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.listener.ActionBroadcast;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.TextUtil;
 
 import java.io.ByteArrayInputStream;
@@ -31,14 +32,6 @@ import java.util.*;
 import static java.util.Arrays.asList;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
-
-    // If no explicit timeout is specified, this will be used.
-    // This is to avoid daemons “accidentally” launched hanging around for a long time.
-    private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 10;
-
-    // Specified in the build config to point under /build
-    // This is primarily to avoid filling ~/.gradle on CI builds
-    private static final String DEFAULT_DAEMON_REGISTRY_DIR_PROPERTY = "org.gradle.integtest.daemon.registry";
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
@@ -60,12 +53,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File settingsFile;
     private InputStream stdin;
     private String defaultCharacterEncoding;
-    private Integer daemonIdleTimeoutSecs;
+    private Integer daemonIdleTimeoutSecs = 10;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
     protected boolean noDefaultJvmArgs;
     private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
+
+    private final TestDirectoryProvider testDirectoryProvider;
+
+    protected AbstractGradleExecuter(TestDirectoryProvider testDirectoryProvider) {
+        this.testDirectoryProvider = testDirectoryProvider;
+    }
 
     public GradleExecuter reset() {
         args.clear();
@@ -84,9 +83,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         environmentVars.clear();
         stdin = null;
         defaultCharacterEncoding = null;
-        daemonIdleTimeoutSecs = null;
         noDefaultJvmArgs = false;
         return this;
+    }
+
+    public TestDirectoryProvider getTestDirectoryProvider() {
+        return testDirectoryProvider;
     }
 
     public void beforeExecute(Action<? super GradleExecuter> action) {
@@ -103,10 +105,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public File getWorkingDir() {
-        return workingDir;
+        return workingDir == null ? getTestDirectoryProvider().getTestDirectory() : workingDir;
     }
 
     protected void copyTo(GradleExecuter executer) {
+        executer.withGradleUserHomeDir(gradleUserHomeDir);
+        executer.withDaemonIdleTimeoutSecs(daemonIdleTimeoutSecs);
+        executer.withDaemonBaseDir(daemonBaseDir);
+
         if (workingDir != null) {
             executer.inDirectory(workingDir);
         }
@@ -138,7 +144,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (dependencyList) {
             executer.withDependencyList();
         }
-        executer.withGradleUserHomeDir(gradleUserHomeDir);
+
         if (userHomeDir != null) {
             executer.withUserHomeDir(userHomeDir);
         }
@@ -149,10 +155,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
         }
         executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
-        if (daemonIdleTimeoutSecs != null) {
-            executer.withDaemonIdleTimeoutSecs(daemonIdleTimeoutSecs);
-        }
-        executer.withDaemonBaseDir(daemonBaseDir);
         if (noDefaultJvmArgs) {
             executer.withNoDefaultJvmArgs();
         }
@@ -185,6 +187,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter withGradleUserHomeDir(File userHomeDir) {
         this.gradleUserHomeDir = userHomeDir;
         return this;
+    }
+
+    public GradleExecuter requireOwnGradleUserHomeDir() {
+        return withGradleUserHomeDir(testDirectoryProvider.getTestDirectory().file("user-home"));
     }
 
     public File getUserHomeDir() {
@@ -312,13 +318,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    protected Integer getDaemonIdleTimeoutSecs() {
-        return daemonIdleTimeoutSecs;
-    }
-
     public GradleExecuter withDaemonBaseDir(File daemonBaseDir) {
         this.daemonBaseDir = daemonBaseDir;
         return this;
+    }
+
+    public GradleExecuter requireIsolatedDaemons() {
+        return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
 
     protected File getDaemonBaseDir() {
@@ -360,20 +366,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add(gradleUserHomeDir.getAbsolutePath());
         }
 
-        // Prevent from running with the default idle timeout as it causes CI chaos
-        int effectiveDaemonIdleTimeoutSecs = daemonIdleTimeoutSecs == null ? DEFAULT_DAEMON_IDLE_TIMEOUT_SECS : daemonIdleTimeoutSecs;
-        allArgs.add("-Dorg.gradle.daemon.idletimeout=" + effectiveDaemonIdleTimeoutSecs * 1000);
-
-        // Prevent from running with the default daemon dir (~/.gradle/daemon) as it fills up on the CI server
-        String effectiveDaemonBaseDir = null;
-        if (daemonBaseDir == null) {
-            effectiveDaemonBaseDir = System.getProperty(DEFAULT_DAEMON_REGISTRY_DIR_PROPERTY);
-        } else {
-            effectiveDaemonBaseDir = daemonBaseDir.getAbsolutePath();
-        }
-        if (effectiveDaemonBaseDir != null) {
-            args.add("-Dorg.gradle.daemon.registry.base=" + effectiveDaemonBaseDir);
-        }
+        allArgs.add("-Dorg.gradle.daemon.idletimeout=" + daemonIdleTimeoutSecs * 1000);
+        allArgs.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
 
         allArgs.addAll(args);
         allArgs.addAll(tasks);

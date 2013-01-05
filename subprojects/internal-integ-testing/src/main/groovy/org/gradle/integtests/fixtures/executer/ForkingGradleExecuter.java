@@ -22,6 +22,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,8 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final TestFile gradleHomeDir;
 
-    public ForkingGradleExecuter(TestFile gradleHomeDir) {
+    public ForkingGradleExecuter(TestDirectoryProvider testDirectoryProvider, TestFile gradleHomeDir) {
+        super(testDirectoryProvider);
         this.gradleHomeDir = gradleHomeDir;
         gradleOpts.add("-ea");
         //uncomment for debugging

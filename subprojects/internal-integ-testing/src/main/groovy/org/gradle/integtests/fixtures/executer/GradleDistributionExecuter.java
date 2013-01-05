@@ -39,21 +39,14 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
     private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
-    private static final int DEFAULT_DAEMON_IDLE_TIMEOUT_SECS = 2 * 60;
 
-    private TestDirectoryProvider testWorkDirProvider;
     private BasicGradleDistribution dist;
 
-    private boolean workingDirSet;
-    private boolean gradleUserHomeDirSet;
     private boolean deprecationChecksOn = true;
     private boolean stackTraceChecksOn = true;
     private Executer executerType;
 
     private boolean allowExtraLogging = true;
-    private boolean usingIsolatedDaemons;
-
-    private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
     public enum Executer {
         embedded(false),
@@ -83,43 +76,18 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         this(getSystemPropertyExecuter(), dist, testWorkDirProvider);
     }
 
-    private GradleDistributionExecuter(Executer executerType, GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
+    private GradleDistributionExecuter(Executer executerType, GradleDistribution dist, TestDirectoryProvider testDirectoryProviders) {
+        super(testDirectoryProviders);
         this.executerType = executerType;
         this.dist = dist;
-        this.testWorkDirProvider = testWorkDirProvider;
-    }
-
-    // Methods specific to this impl
-
-    public void requireIsolatedDaemons() {
-        withDaemonBaseDir(testWorkDirProvider.getTestDirectory().file("daemon"));
-    }
-
-    public GradleDistributionExecuter requireOwnGradleUserHomeDir() {
-        return withGradleUserHomeDir(testWorkDirProvider.getTestDirectory().file("user-home"));
     }
 
     @Override
     public GradleDistributionExecuter reset() {
         super.reset();
-        workingDirSet = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
         DeprecationLogger.reset();
-        return this;
-    }
-
-    @Override
-    public GradleDistributionExecuter inDirectory(File directory) {
-        super.inDirectory(directory);
-        workingDirSet = true;
-        return this;
-    }
-
-    @Override
-    public GradleDistributionExecuter withGradleUserHomeDir(File userHomeDir) {
-        super.withGradleUserHomeDir(userHomeDir);
-        gradleUserHomeDirSet = true;
         return this;
     }
 
@@ -220,19 +188,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     }
 
     protected GradleExecuter configureExecuter() {
-        if (!workingDirSet) {
-            inDirectory(testWorkDirProvider.getTestDirectory());
-        }
-        if (!gradleUserHomeDirSet) {
-            withGradleUserHomeDir(buildContext.getGradleUserHomeDir());
-        }
-        if (getDaemonIdleTimeoutSecs() == null) {
-            if (usingIsolatedDaemons || getDaemonBaseDir() != null) {
-                withDaemonIdleTimeoutSecs(20);
-            } else {
-                withDaemonIdleTimeoutSecs(DEFAULT_DAEMON_IDLE_TIMEOUT_SECS);
-            }
-        }
 
         if (!getClass().desiredAssertionStatus()) {
             throw new RuntimeException("Assertions must be enabled when running integration tests.");
@@ -243,7 +198,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         try {
             gradleExecuter.assertCanExecute();
         } catch (AssertionError assertionError) {
-            gradleExecuter = new ForkingGradleExecuter(dist.getGradleHomeDir());
+            gradleExecuter = new ForkingGradleExecuter(getTestDirectoryProvider(), dist.getGradleHomeDir());
             configureExecuter(gradleExecuter);
         }
 
@@ -264,15 +219,15 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private GradleExecuter createExecuter(Executer executerType) {
         switch (executerType) {
             case embeddedDaemon:
-                return new EmbeddedDaemonGradleExecuter();
+                return new EmbeddedDaemonGradleExecuter(getTestDirectoryProvider());
             case embedded:
-                return new InProcessGradleExecuter();
+                return new InProcessGradleExecuter(getTestDirectoryProvider());
             case daemon:
-                return new DaemonGradleExecuter(dist.getGradleHomeDir(), !isQuiet() && allowExtraLogging, noDefaultJvmArgs);
+                return new DaemonGradleExecuter(getTestDirectoryProvider(), dist.getGradleHomeDir(), !isQuiet() && allowExtraLogging, noDefaultJvmArgs);
             case parallel:
-                return new ParallelForkingGradleExecuter(dist.getGradleHomeDir());
+                return new ParallelForkingGradleExecuter(getTestDirectoryProvider(), dist.getGradleHomeDir());
             case forking:
-                return new ForkingGradleExecuter(dist.getGradleHomeDir());
+                return new ForkingGradleExecuter(getTestDirectoryProvider(), dist.getGradleHomeDir());
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }
@@ -289,7 +244,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
         TestFile workingDir = new TestFile(getWorkingDir());
         TestFile dir = workingDir;
-        while (dir != null && testWorkDirProvider.getTestDirectory().isSelfOrDescendent(dir)) {
+        while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
             if (dir.file("settings.gradle").isFile()) {
                 settingsFound = true;
                 break;
