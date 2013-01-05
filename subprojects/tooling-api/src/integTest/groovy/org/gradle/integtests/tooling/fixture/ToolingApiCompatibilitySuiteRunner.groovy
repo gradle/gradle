@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.*
 
 /**
@@ -146,15 +147,12 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowPackage('org.codehaus.groovy')
             sharedClassLoader.allowPackage('spock')
             sharedClassLoader.allowPackage('org.spockframework')
-            sharedClassLoader.allowClass(TestFile)
             sharedClassLoader.allowClass(SetSystemProperties)
             sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
             sharedClassLoader.allowPackage('org.gradle.test.fixtures')
             sharedClassLoader.allowClass(OperatingSystem)
             sharedClassLoader.allowClass(Requires)
             sharedClassLoader.allowClass(TestPrecondition)
-            sharedClassLoader.allowClass(TemporaryFolder)
-            sharedClassLoader.allowClass(TestWorkDirProvider)
             sharedClassLoader.allowResources(target.name.replace('.', '/'))
 
             def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
