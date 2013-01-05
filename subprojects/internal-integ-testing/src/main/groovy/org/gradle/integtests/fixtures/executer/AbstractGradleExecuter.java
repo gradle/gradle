@@ -61,7 +61,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private InputStream stdin;
     private String defaultCharacterEncoding;
     private Integer daemonIdleTimeoutSecs;
-    private File daemonBaseDir;
+    private File daemonBaseDir = buildContext.getDaemonBaseDir();
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
     protected boolean noDefaultJvmArgs;
@@ -85,7 +85,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         stdin = null;
         defaultCharacterEncoding = null;
         daemonIdleTimeoutSecs = null;
-        daemonBaseDir = null;
         noDefaultJvmArgs = false;
         return this;
     }
@@ -153,9 +152,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (daemonIdleTimeoutSecs != null) {
             executer.withDaemonIdleTimeoutSecs(daemonIdleTimeoutSecs);
         }
-        if (daemonBaseDir != null) {
-            executer.withDaemonBaseDir(daemonBaseDir);
-        }
+        executer.withDaemonBaseDir(daemonBaseDir);
         if (noDefaultJvmArgs) {
             executer.withNoDefaultJvmArgs();
         }

@@ -92,15 +92,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     // Methods specific to this impl
 
     public void requireIsolatedDaemons() {
-        this.usingIsolatedDaemons = true;
-    }
-
-    public TestFile getDefaultDaemonBaseDir() {
-        if (usingIsolatedDaemons) {
-            return testWorkDirProvider.getTestDirectory().file("daemon");
-        } else {
-            return buildContext.getDaemonBaseDir();
-        }
+        withDaemonBaseDir(testWorkDirProvider.getTestDirectory().file("daemon"));
     }
 
     public GradleDistributionExecuter requireOwnGradleUserHomeDir() {
@@ -240,9 +232,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
             } else {
                 withDaemonIdleTimeoutSecs(DEFAULT_DAEMON_IDLE_TIMEOUT_SECS);
             }
-        }
-        if (getDaemonBaseDir() == null) {
-            withDaemonBaseDir(getDefaultDaemonBaseDir());
         }
 
         if (!getClass().desiredAssertionStatus()) {
