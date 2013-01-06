@@ -18,8 +18,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -48,7 +48,7 @@ class WaterProjectIntegrationTest {
 
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
     private final GradleDistribution dist = new GradleDistribution(temporaryFolder);
-    private final GradleExecuter executer = new GradleDistributionExecuter(dist, temporaryFolder);
+    private final GradleExecuter executer = new GradleContextualExecuter(dist, temporaryFolder);
 
     @Rule public final Sample sample = new Sample(WATER_NAME)
 

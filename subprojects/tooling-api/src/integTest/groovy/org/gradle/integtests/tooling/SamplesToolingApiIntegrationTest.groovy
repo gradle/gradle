@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -102,7 +102,7 @@ run {
 
     private ExecutionResult run() {
         try {
-            return new GradleDistributionExecuter(distribution, temporaryFolder)
+            return new GradleContextualExecuter(distribution, temporaryFolder)
                     .inDirectory(sample.dir)
                     .withTasks('run')
                     .withDaemonIdleTimeoutSecs(60)

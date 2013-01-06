@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests;
+package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
 import static org.hamcrest.Matchers.containsString
-import spock.lang.IgnoreIf
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 
 public class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
 
@@ -179,7 +179,7 @@ project(':c') {
         jarsNotBuilt 'a', 'b', 'c'
     }
 
-    @IgnoreIf({GradleDistributionExecuter.systemPropertyExecuter.executeParallel})  // 'c' + 'd' _may_ be built with parallel executer
+    @IgnoreIf({GradleContextualExecuter.systemPropertyExecuter.executeParallel})  // 'c' + 'd' _may_ be built with parallel executer
     def "project dependency a->[b,c] and c->d and b fails"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'c', to: ['d']

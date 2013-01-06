@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTest {
@@ -146,7 +146,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         run 'retrieve'
     }
 
-    @IgnoreIf({ GradleDistributionExecuter.systemPropertyExecuter.executeParallel })
+    @IgnoreIf({ GradleContextualExecuter.systemPropertyExecuter.executeParallel })
     def "hit each remote repo only once per build and missing module"() {
         given:
         server.start()

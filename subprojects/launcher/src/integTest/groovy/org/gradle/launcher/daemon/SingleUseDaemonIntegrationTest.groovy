@@ -18,11 +18,11 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.daemon })
+@IgnoreIf({ GradleContextualExecuter.systemPropertyExecuter == GradleContextualExecuter.Executer.daemon })
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         // Need forking executer

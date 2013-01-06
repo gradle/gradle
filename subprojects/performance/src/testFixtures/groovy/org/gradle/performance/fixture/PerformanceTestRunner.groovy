@@ -19,8 +19,8 @@ package org.gradle.performance.fixture
 import org.gradle.api.logging.Logging
 import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
@@ -100,7 +100,7 @@ public class PerformanceTestRunner {
     GradleExecuter executer(BasicGradleDistribution dist, File projectDir) {
         def executer
         if (dist instanceof GradleDistribution) {
-            executer = new GradleDistributionExecuter(dist, testDirectoryProvider).requireGradleHome(true)
+            executer = new GradleContextualExecuter(dist, testDirectoryProvider).requireGradleHome(true)
             executer.withDeprecationChecksDisabled()
             executer.withStackTraceChecksDisabled()
         } else {

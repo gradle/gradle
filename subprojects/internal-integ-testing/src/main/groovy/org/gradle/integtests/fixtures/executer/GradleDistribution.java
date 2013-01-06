@@ -133,7 +133,7 @@ public class GradleDistribution implements BasicGradleDistribution {
     }
 
     public GradleExecuter executer() {
-        return new GradleDistributionExecuter(this, testDirectoryProvider);
+        return new GradleContextualExecuter(this, testDirectoryProvider);
     }
 
 

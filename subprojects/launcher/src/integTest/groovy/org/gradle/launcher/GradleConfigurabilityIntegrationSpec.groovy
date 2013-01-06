@@ -18,7 +18,7 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.util.Requires
@@ -29,7 +29,7 @@ import spock.lang.IgnoreIf
 /**
  * by Szczepan Faber, created at: 1/20/12
  */
-@IgnoreIf( { !GradleDistributionExecuter.getSystemPropertyExecuter().forks })
+@IgnoreIf( { !GradleContextualExecuter.getSystemPropertyExecuter().forks })
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {

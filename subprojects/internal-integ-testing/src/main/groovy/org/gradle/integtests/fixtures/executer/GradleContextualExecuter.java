@@ -17,7 +17,12 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
-public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter {
+/**
+ * Selects a different executer implementation based on the value of a system property.
+ *
+ * Facilitates running the same test in different execution modes.
+ */
+public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
     private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
@@ -50,11 +55,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()));
     }
 
-    public GradleDistributionExecuter(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
+    public GradleContextualExecuter(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
         this(getSystemPropertyExecuter(), dist, testWorkDirProvider);
     }
 
-    private GradleDistributionExecuter(Executer executerType, GradleDistribution dist, TestDirectoryProvider testDirectoryProvider) {
+    private GradleContextualExecuter(Executer executerType, GradleDistribution dist, TestDirectoryProvider testDirectoryProvider) {
         super(testDirectoryProvider);
         this.executerType = executerType;
         this.dist = dist;

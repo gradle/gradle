@@ -18,8 +18,8 @@ package org.gradle.integtests.fixtures
 import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,7 +41,7 @@ class UserGuideSamplesRunner extends Runner {
     private Map<Description, SampleRun> samples
     private TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     private GradleDistribution dist = new GradleDistribution(temporaryFolder)
-    private GradleExecuter executer = new GradleDistributionExecuter(dist, temporaryFolder)
+    private GradleExecuter executer = new GradleContextualExecuter(dist, temporaryFolder)
     private Pattern dirFilter
     private List excludes
     private TestFile baseExecutionDir = temporaryFolder.testDirectory
