@@ -71,6 +71,12 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
+    public GradleExecuter reset() {
+        DeprecationLogger.reset();
+        return super.reset();
+    }
+
+    @Override
     protected ExecutionResult doRun() {
         OutputListenerImpl outputListener = new OutputListenerImpl();
         OutputListenerImpl errorListener = new OutputListenerImpl();

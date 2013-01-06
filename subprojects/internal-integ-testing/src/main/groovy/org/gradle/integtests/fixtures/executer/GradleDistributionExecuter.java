@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.util.DeprecationLogger;
 
 
 
@@ -79,13 +78,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
      */
     public GradleDistributionExecuter setAllowExtraLogging(boolean allowExtraLogging) {
         this.allowExtraLogging = allowExtraLogging;
-        return this;
-    }
-
-    @Override
-    public GradleDistributionExecuter reset() {
-        super.reset();
-        DeprecationLogger.reset();
         return this;
     }
 
