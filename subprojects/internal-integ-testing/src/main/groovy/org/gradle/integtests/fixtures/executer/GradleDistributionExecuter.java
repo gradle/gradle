@@ -89,10 +89,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         return this;
     }
 
-    public Executer getExecuterType() {
-        return executerType;
-    }
-
     public void setExecuterType(Executer executerType) {
         this.executerType = executerType;
     }
