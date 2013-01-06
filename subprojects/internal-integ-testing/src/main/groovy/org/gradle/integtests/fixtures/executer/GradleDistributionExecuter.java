@@ -17,24 +17,12 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
-
-
-/**
- * A JUnit rule which provides a {@link GradleExecuter} implementation that executes Gradle using a given {@link
- * GradleDistribution}. If not supplied in the constructor, this rule locates a field on the test object with type
- * {@link GradleDistribution}.
- *
- * By default, this executer will execute Gradle in a forked process. There is a system property which enables executing
- * Gradle in the current process.
- */
 public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter {
 
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
     private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
 
     private BasicGradleDistribution dist;
-
-    private boolean allowExtraLogging = true;
 
     private Executer executerType;
 
@@ -72,26 +60,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         this.dist = dist;
     }
 
-    /**
-     * set true to allow the executer to increase the log level if necessary
-     * to help out debugging. Set false to make the executer never update the log level.
-     */
-    public GradleDistributionExecuter setAllowExtraLogging(boolean allowExtraLogging) {
-        this.allowExtraLogging = allowExtraLogging;
-        return this;
-    }
-
-    public void setExecuterType(Executer executerType) {
-        this.executerType = executerType;
-    }
-
-    public GradleDistributionExecuter withForkingExecuter() {
-        if (!executerType.forks) {
-            executerType = Executer.forking;
-        }
-        return this;
-    }
-
     protected GradleExecuter configureExecuter() {
         if (!getClass().desiredAssertionStatus()) {
             throw new RuntimeException("Assertions must be enabled when running integration tests.");
@@ -124,7 +92,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
             case embedded:
                 return new InProcessGradleExecuter(getTestDirectoryProvider());
             case daemon:
-                return new DaemonGradleExecuter(getTestDirectoryProvider(), dist.getGradleHomeDir(), !isQuiet() && allowExtraLogging, noDefaultJvmArgs);
+                return new DaemonGradleExecuter(getTestDirectoryProvider(), dist.getGradleHomeDir());
             case parallel:
                 return new ParallelForkingGradleExecuter(getTestDirectoryProvider(), dist.getGradleHomeDir());
             case forking:

@@ -24,7 +24,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.MANDATORY_FILE_LOCKING)
     def "clean failure message indicates file"() {
         given:
-        executer.withForkingExecuter()
+        executer.requireGradleHome(true)
         buildFile << """
             apply plugin: 'base'
         """

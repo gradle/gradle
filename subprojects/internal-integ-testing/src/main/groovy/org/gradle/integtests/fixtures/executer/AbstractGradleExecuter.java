@@ -35,10 +35,11 @@ import static org.gradle.util.Matchers.*;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
 
-    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
+    protected boolean allowExtraLogging = true;
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
@@ -60,6 +61,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
     protected boolean noDefaultJvmArgs;
+    private boolean requireGradleHome;
 
     private boolean deprecationChecksOn = true;
     private boolean stackTraceChecksOn = true;
@@ -92,6 +94,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         noDefaultJvmArgs = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
+        allowExtraLogging = true;
         return this;
     }
 
@@ -166,6 +169,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (noDefaultJvmArgs) {
             executer.withNoDefaultJvmArgs();
         }
+        executer.setAllowExtraLogging(allowExtraLogging);
 
         if (!deprecationChecksOn) {
             executer.withDeprecationChecksDisabled();
@@ -173,6 +177,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!stackTraceChecksOn) {
             executer.withStackTraceChecksDisabled();
         }
+        executer.requireGradleHome(isRequireGradleHome());
     }
 
     public GradleExecuter usingBuildScript(File buildScript) {
@@ -533,4 +538,25 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return new TestFile(getWorkingDir(), "tmp");
     }
 
+    /**
+     * set true to allow the executer to increase the log level if necessary
+     * to help out debugging. Set false to make the executer never update the log level.
+     */
+    public GradleExecuter setAllowExtraLogging(boolean allowExtraLogging) {
+        this.allowExtraLogging = allowExtraLogging;
+        return this;
+    }
+
+    public boolean isAllowExtraLogging() {
+        return allowExtraLogging;
+    }
+
+    public boolean isRequireGradleHome() {
+        return requireGradleHome;
+    }
+
+    public GradleExecuter requireGradleHome(boolean requireGradleHome) {
+        this.requireGradleHome = requireGradleHome;
+        return this;
+    }
 }

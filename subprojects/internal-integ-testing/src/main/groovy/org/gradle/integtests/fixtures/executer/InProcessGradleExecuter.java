@@ -179,6 +179,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         assertNull(getExecutable());
         assertEquals(getJavaHome(), Jvm.current().getJavaHome());
         assertEquals(getDefaultCharacterEncoding(), Charset.defaultCharset().name());
+        assertFalse(isRequireGradleHome());
     }
 
     private static class BuildListenerImpl implements TaskExecutionGraphListener, BuildListener {

@@ -75,7 +75,7 @@ sonar.embeddedDatabase.port=$databasePort
         // also the Sonar dependencies with "provided" scope. Hence, the Sonar dependencies get loaded by
         // the wrong class loader.
         when:
-        executer.withForkingExecuter()
+        executer.requireGradleHome(true)
                 .withArgument("-PserverUrl=http://localhost:${webServer.connectors[0].localPort}")
                 .withArgument("-PdatabaseUrl=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
                 .withTasks("sonarAnalyze").run()

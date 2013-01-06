@@ -33,7 +33,7 @@ class SamplesCodeQualityIntegrationTest extends AbstractIntegrationTest {
         TestFile projectDir = sample.dir
         TestFile buildDir = projectDir.file('build')
 
-        executer.inDirectory(projectDir).withForkingExecuter().withTasks('check').run()
+        executer.inDirectory(projectDir).requireGradleHome(true).withTasks('check').run()
 
         buildDir.file('reports/checkstyle/main.xml').assertIsFile()
         buildDir.file('reports/codenarc/main.html').assertIsFile()

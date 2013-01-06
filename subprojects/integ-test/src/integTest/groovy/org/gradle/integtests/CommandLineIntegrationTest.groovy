@@ -36,7 +36,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setup() {
-        executer.withForkingExecuter()
+        executer.requireGradleHome(true)
     }
 
     @Test

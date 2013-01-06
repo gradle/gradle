@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 @TargetVersions(['1.6.9', '1.7.10', '1.7.11' , '1.8.6', '1.8.8', '2.0.5'])
 class AntInProcessGroovyCompilerIntegrationTest extends BasicGroovyCompilerIntegrationSpec {
     def setup() {
-        executer.withForkingExecuter()
+        executer.requireGradleHome(true)
     }
 
     @Override

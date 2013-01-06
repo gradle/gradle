@@ -25,14 +25,10 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-class DaemonGradleExecuter extends ForkingGradleExecuter {
-    private final boolean allowExtraLogging;
-    private final boolean noDefaultJvmArgs;
+public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
-    public DaemonGradleExecuter(TestDirectoryProvider testDirectoryProvider, TestFile gradleHomeDir, boolean allowExtraLogging, boolean noDefaultJvmArgs) {
+    public DaemonGradleExecuter(TestDirectoryProvider testDirectoryProvider, TestFile gradleHomeDir) {
         super(testDirectoryProvider, gradleHomeDir);
-        this.allowExtraLogging = allowExtraLogging;
-        this.noDefaultJvmArgs = noDefaultJvmArgs;
     }
 
     @Override
@@ -54,7 +50,7 @@ class DaemonGradleExecuter extends ForkingGradleExecuter {
     }
 
     private void configureDefaultLogging(List<String> args) {
-        if(!allowExtraLogging) {
+        if(isQuiet() || !isAllowExtraLogging()) {
             return;
         }
         List logOptions = asList("-i", "--info", "-d", "--debug", "-q", "--quiet");

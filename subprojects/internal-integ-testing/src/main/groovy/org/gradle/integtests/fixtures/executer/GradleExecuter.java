@@ -208,4 +208,14 @@ public interface GradleExecuter {
     GradleExecuter withDeprecationChecksDisabled();
 
     GradleExecuter withStackTraceChecksDisabled();
+
+    GradleExecuter setAllowExtraLogging(boolean allowExtraLogging);
+
+    boolean isRequireGradleHome();
+
+    GradleExecuter requireGradleHome(boolean requireGradleHome);
+
+    GradleExecuter requireIsolatedDaemons();
+
+    GradleExecuter requireOwnGradleUserHomeDir();
 }

@@ -78,7 +78,7 @@ task check << {
         """
 
                 GradleDistributionExecuter executer = distribution.executer()
-                executer.withForkingExecuter().requireOwnGradleUserHomeDir()
+                executer.requireGradleHome(true).requireOwnGradleUserHomeDir()
                 10.times {
                     executer.inDirectory(buildDir).withArgument("--refresh-dependencies").withTasks('check').run()
                 }
