@@ -54,8 +54,8 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         this(getSystemPropertyExecuter(), dist, testWorkDirProvider);
     }
 
-    private GradleDistributionExecuter(Executer executerType, GradleDistribution dist, TestDirectoryProvider testDirectoryProviders) {
-        super(testDirectoryProviders);
+    private GradleDistributionExecuter(Executer executerType, GradleDistribution dist, TestDirectoryProvider testDirectoryProvider) {
+        super(testDirectoryProvider);
         this.executerType = executerType;
         this.dist = dist;
     }
