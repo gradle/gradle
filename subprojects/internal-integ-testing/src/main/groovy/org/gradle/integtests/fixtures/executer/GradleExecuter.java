@@ -204,4 +204,8 @@ public interface GradleExecuter {
     void beforeExecute(Closure action);
 
     TestDirectoryProvider getTestDirectoryProvider();
+
+    GradleExecuter withDeprecationChecksDisabled();
+
+    GradleExecuter withStackTraceChecksDisabled();
 }

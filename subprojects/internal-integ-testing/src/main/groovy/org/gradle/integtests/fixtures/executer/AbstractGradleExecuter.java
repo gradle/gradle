@@ -21,6 +21,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.TextUtil;
 
 import java.io.ByteArrayInputStream;
@@ -30,6 +31,7 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static org.gradle.util.Matchers.*;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
 
@@ -58,6 +60,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
     protected boolean noDefaultJvmArgs;
+
+    private boolean deprecationChecksOn = true;
+    private boolean stackTraceChecksOn = true;
+
     private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
 
     private final TestDirectoryProvider testDirectoryProvider;
@@ -84,6 +90,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         stdin = null;
         defaultCharacterEncoding = null;
         noDefaultJvmArgs = false;
+        deprecationChecksOn = true;
+        stackTraceChecksOn = true;
         return this;
     }
 
@@ -157,6 +165,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
         if (noDefaultJvmArgs) {
             executer.withNoDefaultJvmArgs();
+        }
+
+        if (!deprecationChecksOn) {
+            executer.withDeprecationChecksDisabled();
+        }
+        if (!stackTraceChecksOn) {
+            executer.withStackTraceChecksDisabled();
         }
     }
 
@@ -358,9 +373,23 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (dependencyList) {
             allArgs.add("dependencies");
         }
+
         if (!searchUpwards) {
-            allArgs.add("--no-search-upward");
+            boolean settingsFoundAboveInTestDir = false;
+            TestFile dir = new TestFile(getWorkingDir());
+            while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
+                if (dir.file("settings.gradle").isFile()) {
+                    settingsFoundAboveInTestDir = true;
+                    break;
+                }
+                dir = dir.getParentFile();
+            }
+
+            if (!settingsFoundAboveInTestDir) {
+                allArgs.add("--no-search-upward");
+            }
         }
+
         if (gradleUserHomeDir != null) {
             allArgs.add("--gradle-user-home");
             allArgs.add(gradleUserHomeDir.getAbsolutePath());
@@ -368,6 +397,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         allArgs.add("-Dorg.gradle.daemon.idletimeout=" + daemonIdleTimeoutSecs * 1000);
         allArgs.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
+
+        TestFile tmpDir = getTmpDir();
+        tmpDir.createDir();
+        allArgs.add(String.format("-Djava.io.tmpdir=%s", tmpDir));
 
         allArgs.addAll(args);
         allArgs.addAll(tasks);
@@ -388,7 +421,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         fireBeforeExecute();
         assertCanExecute();
         try {
-            return doRun();
+            return checkResult(doRun());
         } finally {
             reset();
         }
@@ -398,7 +431,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         fireBeforeExecute();
         assertCanExecute();
         try {
-            return doRunWithFailure();
+            return checkResult(doRunWithFailure());
         } finally {
             reset();
         }
@@ -423,4 +456,81 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         this.gradleOpts.addAll(asList(gradleOpts));
         return this;
     }
+
+    protected <T extends ExecutionResult> T checkResult(T result) {
+        if (stackTraceChecksOn) {
+            // Assert that nothing unexpected was logged
+            assertOutputHasNoStackTraces(result);
+            assertErrorHasNoStackTraces(result);
+        }
+        if (deprecationChecksOn) {
+            assertOutputHasNoDeprecationWarnings(result);
+        }
+
+        if (getExecutable() == null) {
+            // Assert that no temp files are left lying around
+            // Note: don't do this if a custom executable is used, as we don't know (and probably don't care) whether the executable cleans up or not
+            List<String> unexpectedFiles = new ArrayList<String>();
+            for (File file : getTmpDir().listFiles()) {
+                if (!file.getName().matches("maven-artifact\\d+.tmp")) {
+                    unexpectedFiles.add(file.getName());
+                }
+            }
+//            Assert.assertThat(unexpectedFiles, Matchers.isEmpty());
+        }
+
+        return result;
+    }
+
+    private void assertOutputHasNoStackTraces(ExecutionResult result) {
+        assertNoStackTraces(result.getOutput(), "Standard output");
+    }
+
+    public void assertErrorHasNoStackTraces(ExecutionResult result) {
+        String error = result.getError();
+        if (result instanceof ExecutionFailure) {
+            // Axe everything after the expected exception
+            int pos = error.indexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
+            if (pos >= 0) {
+                error = error.substring(0, pos);
+            }
+        }
+        assertNoStackTraces(error, "Standard error");
+    }
+
+    public void assertOutputHasNoDeprecationWarnings(ExecutionResult result) {
+        assertNoDeprecationWarnings(result.getOutput(), "Standard output");
+        assertNoDeprecationWarnings(result.getError(), "Standard error");
+    }
+
+    private void assertNoDeprecationWarnings(String output, String displayName) {
+        boolean javacWarning = containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
+        boolean deprecationWarning = containsLine(matchesRegexp(".* deprecated.*")).matches(output);
+        if (deprecationWarning && !javacWarning) {
+            throw new AssertionError(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
+        }
+    }
+
+    private void assertNoStackTraces(String output, String displayName) {
+        if (containsLine(matchesRegexp("\\s+(at\\s+)?[\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
+            throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
+        }
+    }
+
+    public GradleExecuter withDeprecationChecksDisabled() {
+        deprecationChecksOn = false;
+        // turn off stack traces too
+        stackTraceChecksOn = false;
+        return this;
+    }
+
+    public GradleExecuter withStackTraceChecksDisabled() {
+        stackTraceChecksOn = false;
+        return this;
+    }
+
+    private TestFile getTmpDir() {
+        return new TestFile(getWorkingDir(), "tmp");
+    }
+
 }

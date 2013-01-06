@@ -26,12 +26,12 @@ public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExe
 
     @Override
     protected ExecutionResult doRun() {
-        return checkResult(configureExecuter().run());
+        return configureExecuter().run();
     }
 
     @Override
     protected ExecutionFailure doRunWithFailure() {
-        return checkResult(configureExecuter().runWithFailure());
+        return configureExecuter().runWithFailure();
     }
 
     public DaemonRegistry getDaemonRegistry() {
@@ -49,7 +49,4 @@ public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExe
 
     protected abstract GradleExecuter configureExecuter();
 
-    protected <T extends ExecutionResult> T checkResult(T result) {
-        return result;
-    }
 }

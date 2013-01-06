@@ -16,16 +16,9 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.TextUtil;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
-import static org.gradle.util.Matchers.containsLine;
-import static org.gradle.util.Matchers.matchesRegexp;
 
 /**
  * A JUnit rule which provides a {@link GradleExecuter} implementation that executes Gradle using a given {@link
@@ -42,11 +35,9 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     private BasicGradleDistribution dist;
 
-    private boolean deprecationChecksOn = true;
-    private boolean stackTraceChecksOn = true;
-    private Executer executerType;
-
     private boolean allowExtraLogging = true;
+
+    private Executer executerType;
 
     public enum Executer {
         embedded(false),
@@ -82,24 +73,19 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         this.dist = dist;
     }
 
+    /**
+     * set true to allow the executer to increase the log level if necessary
+     * to help out debugging. Set false to make the executer never update the log level.
+     */
+    public GradleDistributionExecuter setAllowExtraLogging(boolean allowExtraLogging) {
+        this.allowExtraLogging = allowExtraLogging;
+        return this;
+    }
+
     @Override
     public GradleDistributionExecuter reset() {
         super.reset();
-        deprecationChecksOn = true;
-        stackTraceChecksOn = true;
         DeprecationLogger.reset();
-        return this;
-    }
-
-    public GradleDistributionExecuter withDeprecationChecksDisabled() {
-        deprecationChecksOn = false;
-        // turn off stack traces too
-        stackTraceChecksOn = false;
-        return this;
-    }
-
-    public GradleDistributionExecuter withStackTraceChecksDisabled() {
-        stackTraceChecksOn = false;
         return this;
     }
 
@@ -118,77 +104,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         return this;
     }
 
-    protected <T extends ExecutionResult> T checkResult(T result) {
-        if (stackTraceChecksOn) {
-            // Assert that nothing unexpected was logged
-            assertOutputHasNoStackTraces(result);
-            assertErrorHasNoStackTraces(result);
-        }
-        if (deprecationChecksOn) {
-            assertOutputHasNoDeprecationWarnings(result);
-        }
-
-        if (getExecutable() == null) {
-            // Assert that no temp files are left lying around
-            // Note: don't do this if a custom executable is used, as we don't know (and probably don't care) whether the executable cleans up or not
-            List<String> unexpectedFiles = new ArrayList<String>();
-            for (File file : getTmpDir().listFiles()) {
-                if (!file.getName().matches("maven-artifact\\d+.tmp")) {
-                    unexpectedFiles.add(file.getName());
-                }
-            }
-//            Assert.assertThat(unexpectedFiles, Matchers.isEmpty());
-        }
-
-        return result;
-    }
-
-    private void assertOutputHasNoStackTraces(ExecutionResult result) {
-        assertNoStackTraces(result.getOutput(), "Standard output");
-    }
-
-    public void assertErrorHasNoStackTraces(ExecutionResult result) {
-        String error = result.getError();
-        if (result instanceof ExecutionFailure) {
-            // Axe everything after the expected exception
-            int pos = error.indexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
-            if (pos >= 0) {
-                error = error.substring(0, pos);
-            }
-        }
-        assertNoStackTraces(error, "Standard error");
-    }
-
-    public void assertOutputHasNoDeprecationWarnings(ExecutionResult result) {
-        assertNoDeprecationWarnings(result.getOutput(), "Standard output");
-        assertNoDeprecationWarnings(result.getError(), "Standard error");
-    }
-
-    private void assertNoDeprecationWarnings(String output, String displayName) {
-        boolean javacWarning = containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
-        boolean deprecationWarning = containsLine(matchesRegexp(".* deprecated.*")).matches(output);
-        if (deprecationWarning && !javacWarning) {
-            throw new AssertionError(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
-        }
-    }
-
-    private void assertNoStackTraces(String output, String displayName) {
-        if (containsLine(matchesRegexp("\\s+(at\\s+)?[\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
-            throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
-        }
-    }
-
-    /**
-     * set true to allow the executer to increase the log level if necessary
-     * to help out debugging. Set false to make the executer never update the log level.
-     */
-    public GradleDistributionExecuter setAllowExtraLogging(boolean allowExtraLogging) {
-        this.allowExtraLogging = allowExtraLogging;
-        return this;
-    }
-
     protected GradleExecuter configureExecuter() {
-
         if (!getClass().desiredAssertionStatus()) {
             throw new RuntimeException("Assertions must be enabled when running integration tests.");
         }
@@ -207,9 +123,6 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     private void configureExecuter(GradleExecuter gradleExecuter) {
         copyTo(gradleExecuter);
-
-        configureTmpDir(gradleExecuter);
-        configureForSettingsFile(gradleExecuter);
 
         if (System.getProperty(UNKNOWN_OS_SYS_PROP) != null) {
             gradleExecuter.withGradleOpts("-Dos.arch=unknown architecture", "-Dos.name=unknown operating system", "-Dos.version=unknown version");
@@ -233,31 +146,4 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         }
     }
 
-    private void configureTmpDir(GradleExecuter gradleExecuter) {
-        TestFile tmpDir = getTmpDir();
-        tmpDir.createDir();
-        gradleExecuter.withGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
-    }
-
-    private void configureForSettingsFile(GradleExecuter gradleExecuter) {
-        boolean settingsFound = false;
-
-        TestFile workingDir = new TestFile(getWorkingDir());
-        TestFile dir = workingDir;
-        while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
-            if (dir.file("settings.gradle").isFile()) {
-                settingsFound = true;
-                break;
-            }
-            dir = dir.getParentFile();
-        }
-
-        if (settingsFound) {
-            gradleExecuter.withSearchUpwards();
-        }
-    }
-
-    private TestFile getTmpDir() {
-        return new TestFile(getWorkingDir(), "tmp");
-    }
 }
