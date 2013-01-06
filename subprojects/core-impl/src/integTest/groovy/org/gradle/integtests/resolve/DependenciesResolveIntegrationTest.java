@@ -31,7 +31,7 @@ import java.io.File;
 public class DependenciesResolveIntegrationTest {
     @Rule public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
     private final GradleDistribution dist = new GradleDistribution(testDirectoryProvider);
-    private final GradleExecuter executer = new GradleContextualExecuter(dist, testDirectoryProvider);
+    private final GradleExecuter executer = new GradleContextualExecuter(testDirectoryProvider, dist.getGradleHomeDir());
     @Rule public final Sample sample = new Sample("dependencies");
 
     @Test

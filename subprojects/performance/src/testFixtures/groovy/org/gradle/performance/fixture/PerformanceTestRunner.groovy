@@ -100,7 +100,7 @@ public class PerformanceTestRunner {
     GradleExecuter executer(BasicGradleDistribution dist, File projectDir) {
         def executer
         if (dist instanceof GradleDistribution) {
-            executer = new GradleContextualExecuter(dist, testDirectoryProvider).requireGradleHome(true)
+            executer = new GradleContextualExecuter(testDirectoryProvider, dist.getGradleHomeDir()).requireGradleHome(true)
             executer.withDeprecationChecksDisabled()
             executer.withStackTraceChecksDisabled()
         } else {
