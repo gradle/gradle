@@ -62,7 +62,7 @@ class JUnitXmlResultWriterSpec extends Specification {
             .assertStderr(equalTo("err"))
 
         and:
-        xml.startsWith """<?xml version="1.0" encoding="UTF-8"?>
+        xml.startsWith """<?xml version="1.1" encoding="UTF-8"?>
   <testsuite name="com.foo.FooTest" tests="4" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
   <properties/>
     <testcase name="some test" classname="com.foo.FooTest" time="0.015"/>
@@ -88,7 +88,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         def xml = getXml("com.foo.FooTest", result)
 
         then:
-        xml == """<?xml version="1.0" encoding="UTF-8"?>
+        xml == """<?xml version="1.1" encoding="UTF-8"?>
   <testsuite name="com.foo.FooTest" tests="1" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
   <properties/>
     <testcase name="some test" classname="com.foo.FooTest" time="0.2"/>
@@ -121,7 +121,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         def xml = getXml("com.foo.IgnoredTest", result)
 
         then:
-        xml == """<?xml version="1.0" encoding="UTF-8"?>
+        xml == """<?xml version="1.1" encoding="UTF-8"?>
   <testsuite name="com.foo.IgnoredTest" tests="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.0">
   <properties/>
   <system-out><![CDATA[]]></system-out>
