@@ -28,7 +28,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
 
     private BasicGradleDistribution dist;
-
     private Executer executerType;
 
     private static enum Executer {
@@ -51,6 +50,10 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         }
     }
 
+    private static Executer getSystemPropertyExecuter() {
+        return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()));
+    }
+
     public static boolean isEmbedded() {
         return !getSystemPropertyExecuter().forks;
     }
@@ -63,18 +66,11 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter().executeParallel;
     }
 
-    private static Executer getSystemPropertyExecuter() {
-        return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()));
-    }
-
     public GradleContextualExecuter(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
-        this(getSystemPropertyExecuter(), dist, testWorkDirProvider);
-    }
-
-    private GradleContextualExecuter(Executer executerType, GradleDistribution dist, TestDirectoryProvider testDirectoryProvider) {
-        super(testDirectoryProvider);
-        this.executerType = executerType;
+        super(testWorkDirProvider);
+        this.executerType = getSystemPropertyExecuter();
         this.dist = dist;
+
     }
 
     protected GradleExecuter configureExecuter() {
