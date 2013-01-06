@@ -41,7 +41,7 @@ public class SimpleXmlWriter extends Writer {
 
     public SimpleXmlWriter(OutputStream output) throws IOException {
         this.output = new OutputStreamWriter(output, "UTF-8");
-        writeXmlDeclaration("UTF-8", "1.0");
+        writeXmlDeclaration("UTF-8", "1.1");
     }
 
     private void writeXmlDeclaration(String encoding, String ver) throws IOException {
@@ -150,16 +150,22 @@ public class SimpleXmlWriter extends Writer {
         }
     }
 
-    private void writeCDATA(char c) throws IOException {
-        if (needsCDATAEscaping(c)) {
+    private void writeCDATA(char ch) throws IOException {
+        if (needsCDATAEscaping(ch)) {
             writeRaw("]]><![CDATA[>");
+        } else if (!isLegalCharacter(ch)) {
+            throw new IllegalArgumentException(String.format("Illegal XML character 0x%s", Integer.toHexString(ch)));
+        } else if (isRestrictedCharacter(ch)) {
+            writeRaw("]]>&#x");
+            writeRaw(Integer.toHexString(ch));
+            writeRaw(";<![CDATA[");
         } else {
-            writeRaw(c);
+            writeRaw(ch);
         }
     }
 
-    private boolean needsCDATAEscaping(char c) {
-        switch (c) {
+    private boolean needsCDATAEscaping(char ch) {
+        switch (ch) {
             case ']':
                 squareBrackets++;
                 return false;
@@ -295,26 +301,30 @@ public class SimpleXmlWriter extends Writer {
     }
 
     private void writeRaw(char c) throws IOException {
-        if(isLegalCharacter(c)){
-            output.write(c);
-        }
+        output.write(c);
     }
 
-    /**
-     * Is the given character allowed inside an XML document?
-     * <p>See XML 1.0 2.2 <a href="http://www.w3.org/TR/1998/REC-xml-19980210#charsets"> http://www.w3.org/TR/1998/REC-xml-19980210#charsets</a>.</p>
-     * this method is based on same method in DOMElementWriter
-     */
     private boolean isLegalCharacter(final char c) {
-        if (c == 0x9 || c == 0xA || c == 0xD) {
-            return true;
-        } else if (c < 0x20) {
+        if (c == 0) {
             return false;
         } else if (c <= 0xD7FF) {
             return true;
         } else if (c < 0xE000) {
             return false;
         } else if (c <= 0xFFFD) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isRestrictedCharacter(char c) {
+        if (c == 0x9 || c == 0xA || c == 0xD || c == 0x85) {
+            return false;
+        } else if (c <= 0x1F) {
+            return true;
+        } else if (c < 0x7F) {
+            return false;
+        } else if (c <= 0x9F) {
             return true;
         }
         return false;
@@ -368,6 +378,12 @@ public class SimpleXmlWriter extends Writer {
             writeRaw("&amp;");
         } else if (ch == '"') {
             writeRaw("&quot;");
+        } else if (!isLegalCharacter(ch)) {
+            throw new IllegalArgumentException(String.format("Illegal XML character 0x%s", Integer.toHexString(ch)));
+        } else if (isRestrictedCharacter(ch)) {
+            writeRaw("&#x");
+            writeRaw(Integer.toHexString(ch));
+            writeRaw(";");
         } else {
             writeRaw(ch);
         }

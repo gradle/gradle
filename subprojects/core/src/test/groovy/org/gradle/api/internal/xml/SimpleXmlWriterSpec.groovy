@@ -36,7 +36,7 @@ class SimpleXmlWriterSpec extends Specification {
         return text
     }
 
-    def "writes basic xml"() {
+    def "writes basic XML"() {
         when:
         writer.startElement("root").attribute("items", "9")
         writer.startElement("item").endElement()
@@ -50,44 +50,32 @@ class SimpleXmlWriterSpec extends Specification {
         writer.endElement()
 
         then:
-        xml == '<?xml version="1.0" encoding="UTF-8"?><root items="9"><item/><item size="10m">some chars and some other chars.<foo> </foo></item></root>'
+        xml == '<?xml version="1.1" encoding="UTF-8"?><root items="9"><item/><item size="10m">some chars and some other chars.<foo> </foo></item></root>'
     }
 
-    def "encodes for xml"() {
+    def "escapes reserved characters in text content"() {
         when:
         writer.startElement("root")
-        writer.startElement("item").attribute("size", "encoded: &lt; < > ' \"")
-        writer.characters("chars with interesting stuff: &lt; < > ' \" ]]>")
+        writer.characters("chars with interesting stuff: &lt; < > ' \" ]]> \r\n \t")
+        writer.endElement()
+
+        then:
+        xml.contains('<root>chars with interesting stuff: &amp;lt; &lt; &gt; \' &quot; ]]&gt; \r\n \t</root>')
+    }
+
+    def "escapes reserved characters in attribute values"() {
+        when:
+        writer.startElement("root")
+        writer.startElement("item").attribute("description", "encoded: \t &lt; < > ' \n\r\"  ")
         writer.endElement()
         writer.endElement()
 
         then:
-        xml.contains('<item size="encoded: &amp;lt; &lt; &gt; \' &quot;">chars with interesting stuff: &amp;lt; &lt; &gt; \' &quot; ]]&gt;</item>')
-    }
+        xml.contains('<item description="encoded: &#9; &amp;lt; &lt; &gt; \' &#10;&#13;&quot;  "/>')
 
-    def "encodes \\r \\t and \n for attributes only"() {
-        when:
-        writer.startElement("root")
-        writer.startElement("item").attribute("description", "encoded: \t &lt; < > ' \n\r\"")
-        writer.characters("chars with interesting stuff: &lt; < > ' \" ]]>")
-        writer.endElement()
-        writer.endElement()
-
-        then:
-        xml.contains('<item description="encoded: &#9; &amp;lt; &lt; &gt; \' &#10;&#13;&quot;">chars with interesting stuff: &amp;lt; &lt; &gt; \' &quot; ]]&gt;</item>')
         and:
         def item = new XmlSlurper().parseText(xml).item
-        item.@description.text() == "encoded: \t &lt; < > ' \n\r\""
-    }
-
-    def "encodes non-ascii characters"() {
-        when:
-        writer.startElement("\u0200").attribute("\u0201", "\u0202")
-        writer.characters("\u0203")
-        writer.endElement()
-
-        then:
-        xml.contains('<\u0200 \u0201="\u0202">\u0203</\u0200>')
+        item.@description.text() == "encoded: \t &lt; < > ' \n\r\"  "
     }
 
     def "writes CDATA"() {
@@ -147,6 +135,58 @@ class SimpleXmlWriterSpec extends Specification {
 
         then:
         xml.contains('<root><![CDATA[stuff ]]]]><![CDATA[> more stuff]]></root>')
+    }
+
+    def "encodes non-ASCII characters"() {
+        when:
+        writer.startElement("\u0200").attribute("\u0201", "\u0202")
+        writer.characters("\u0203")
+        writer.startCDATA().characters("\u0204").endCDATA()
+        writer.endElement()
+
+        then:
+        xml.contains('<\u0200 \u0201="\u0202">\u0203<![CDATA[\u0204]]></\u0200>')
+    }
+
+    def "escapes restricted characters in text content"() {
+        when:
+        writer.startElement("root")
+        writer.attribute("name", "\u0084\u0002")
+        writer.characters("\u0084\u0002\u009f")
+        writer.startCDATA().characters("\u0084\u0002").endCDATA()
+        writer.endElement()
+
+        then:
+        xml.contains('<root name="&#x84;&#x2;">&#x84;&#x2;&#x9f;<![CDATA[]]>&#x84;<![CDATA[]]>&#x2;<![CDATA[]]></root>')
+    }
+
+    def "validates characters in text content"() {
+        given:
+        writer.startElement("root")
+
+        when:
+        writer.characters(chars)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message.startsWith("Illegal XML character 0x")
+
+        when:
+        writer.startElement("broken").attribute("name", chars)
+
+        then:
+        e = thrown()
+        e.message.startsWith("Illegal XML character 0x")
+
+        when:
+        writer.startCDATA().characters(chars)
+
+        then:
+        e = thrown()
+        e.message.startsWith("Illegal XML character 0x")
+
+        where:
+        chars << ["\u0000", "\ud800", "\udfff", "\ufffe"]
     }
 
     def "is a Writer implementation that escapes characters"() {
