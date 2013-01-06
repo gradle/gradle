@@ -32,11 +32,11 @@ import java.util.Set;
 public abstract class AbstractIntegrationTest implements TestDirectoryProvider {
     @Rule public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
     public final GradleDistribution distribution = new GradleDistribution(this);
-    public final GradleDistributionExecuter executer = new GradleDistributionExecuter(distribution, this);
+    public final GradleExecuter executer = new GradleDistributionExecuter(distribution, this);
 
     @ClassRule public static final TestNameTestDirectoryProvider SHARED_TEST_DIRECTORY_PROVIDER = new TestNameTestDirectoryProvider();
     public static final GradleDistribution SHARED_DISTRIBUTION = new GradleDistribution(SHARED_TEST_DIRECTORY_PROVIDER);
-    private static final GradleDistributionExecuter SHARED_EXECUTER = new GradleDistributionExecuter(SHARED_DISTRIBUTION, SHARED_TEST_DIRECTORY_PROVIDER);
+    private static final GradleExecuter SHARED_EXECUTER = new GradleDistributionExecuter(SHARED_DISTRIBUTION, SHARED_TEST_DIRECTORY_PROVIDER);
 
     private static final Set<Class<?>> SHARED_BUILD_RUN_CLASSES = Sets.newHashSet();
 
@@ -49,7 +49,7 @@ public abstract class AbstractIntegrationTest implements TestDirectoryProvider {
         return useSharedBuild ? SHARED_DISTRIBUTION : distribution;
     }
 
-    protected GradleDistributionExecuter getExecuter() {
+    protected GradleExecuter getExecuter() {
         return useSharedBuild ? SHARED_EXECUTER : executer;
     }
 
@@ -97,7 +97,7 @@ public abstract class AbstractIntegrationTest implements TestDirectoryProvider {
     }
 
     protected ArtifactBuilder artifactBuilder() {
-        GradleDistributionExecuter gradleExecuter = getDistribution().executer();
+        GradleExecuter gradleExecuter = getDistribution().executer();
         gradleExecuter.withGradleUserHomeDir(getExecuter().getGradleUserHomeDir());
         return new GradleBackedArtifactBuilder(gradleExecuter, getTestDirectory().file("artifacts"));
     }

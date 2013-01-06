@@ -17,7 +17,7 @@
 package org.gradle.performance
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -77,7 +77,7 @@ task check << {
 }
         """
 
-                GradleDistributionExecuter executer = distribution.executer()
+                GradleExecuter executer = distribution.executer()
                 executer.requireGradleHome(true).requireOwnGradleUserHomeDir()
                 10.times {
                     executer.inDirectory(buildDir).withArgument("--refresh-dependencies").withTasks('check').run()

@@ -19,7 +19,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.GradleVersion
@@ -45,7 +45,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
         server.expectUserAgent(matchesNameAndVersion("gradlew", GradleVersion.current().getVersion()))
     }
 
-    GradleDistributionExecuter getWrapperExecuter() {
+    GradleExecuter getWrapperExecuter() {
         executer.usingExecutable('gradlew').inDirectory(testDirectory)
     }
 

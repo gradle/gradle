@@ -132,7 +132,7 @@ public class GradleDistribution implements BasicGradleDistribution {
         return new PreviousGradleVersionExecuter(version, getPreviousVersionsDir().file(version), testDirectoryProvider);
     }
 
-    public GradleDistributionExecuter executer() {
+    public GradleExecuter executer() {
         return new GradleDistributionExecuter(this, testDirectoryProvider);
     }
 

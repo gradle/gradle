@@ -218,4 +218,6 @@ public interface GradleExecuter {
     GradleExecuter requireIsolatedDaemons();
 
     GradleExecuter requireOwnGradleUserHomeDir();
+
+    File getGradleUserHomeDir();
 }
