@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests;
+package org.gradle.process.internal;
 
 import org.apache.tools.ant.Project;
 import org.gradle.CacheUsage;
@@ -38,7 +38,6 @@ import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.MessagingServices;
-import org.gradle.process.internal.*;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
