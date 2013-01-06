@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleBuiltDistribution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -30,11 +30,11 @@ import spock.lang.Specification
 @RunWith(CrossVersionTestRunner)
 abstract class CrossVersionIntegrationSpec extends Specification implements TestDirectoryProvider {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final BasicGradleDistribution current = new GradleDistribution(this)
-    static BasicGradleDistribution previous
+    final GradleDistribution current = new GradleBuiltDistribution(this)
+    static GradleDistribution previous
     private MavenFileRepository mavenRepo
 
-    BasicGradleDistribution getPrevious() {
+    GradleDistribution getPrevious() {
         return previous
     }
 
@@ -61,7 +61,7 @@ abstract class CrossVersionIntegrationSpec extends Specification implements Test
         return mavenRepo
     }
 
-    def version(BasicGradleDistribution dist) {
+    def version(GradleDistribution dist) {
         def executer = dist.executer();
         if (executer instanceof GradleContextualExecuter) {
             executer.withDeprecationChecksDisabled()

@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
@@ -29,7 +29,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         checkWrapperWorksWith(current, previous)
     }
 
-    void checkWrapperWorksWith(BasicGradleDistribution wrapperGenVersion, BasicGradleDistribution executionVersion) {
+    void checkWrapperWorksWith(GradleDistribution wrapperGenVersion, GradleDistribution executionVersion) {
         if (!wrapperGenVersion.wrapperCanExecute(executionVersion.version)) {
             println "skipping $wrapperGenVersion as its wrapper cannot execute version ${executionVersion.version}"
             return

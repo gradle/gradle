@@ -20,7 +20,7 @@ package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleBuiltDistribution
 
 /**
  * by Szczepan Faber, created at: 11/27/12
@@ -36,6 +36,6 @@ abstract class AbstractCacheReuseCrossVersionIntegrationTest extends CrossVersio
      */
 
     void setup() {
-        assert DefaultCacheLockingManager.CACHE_LAYOUT_VERSION == new GradleDistribution(this).artifactCacheLayoutVersion
+        assert DefaultCacheLockingManager.CACHE_LAYOUT_VERSION == new GradleBuiltDistribution(this).artifactCacheLayoutVersion
     }
 }

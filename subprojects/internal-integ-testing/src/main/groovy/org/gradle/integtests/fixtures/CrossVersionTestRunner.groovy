@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.util.GradleVersion
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 
 /**
  * <p>Executes instances of {@link CrossVersionIntegrationSpec} against each previous Gradle version.
@@ -33,12 +33,12 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
 
     @Override
     protected void createExecutions() {
-        for (BasicGradleDistribution version : previous) {
+        for (GradleDistribution version : previous) {
             add(new PreviousVersionExecution(version, isEnabled(version)))
         }
     }
 
-    protected boolean isEnabled(BasicGradleDistribution previousVersion) {
+    protected boolean isEnabled(GradleDistribution previousVersion) {
         Closure ignoreVersions = getAnnotationClosure(target, IgnoreVersions, {})
         if (ignoreVersions(previousVersion)) {
             return false
@@ -72,10 +72,10 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
     }
 
     private static class PreviousVersionExecution extends AbstractMultiTestRunner.Execution {
-        final BasicGradleDistribution previousVersion
+        final GradleDistribution previousVersion
         final boolean enabled
 
-        PreviousVersionExecution(BasicGradleDistribution previousVersion, boolean enabled) {
+        PreviousVersionExecution(GradleDistribution previousVersion, boolean enabled) {
             this.previousVersion = previousVersion
             this.enabled = enabled
         }

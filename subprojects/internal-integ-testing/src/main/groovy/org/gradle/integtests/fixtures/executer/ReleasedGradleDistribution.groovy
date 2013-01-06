@@ -32,7 +32,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 
-class ReleasedGradleDistribution implements BasicGradleDistribution {
+class ReleasedGradleDistribution implements GradleDistribution {
     private static final CACHE_FACTORY = createCacheFactory()
 
     private static CacheFactory createCacheFactory() {

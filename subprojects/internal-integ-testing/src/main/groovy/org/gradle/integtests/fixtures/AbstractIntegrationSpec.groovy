@@ -34,7 +34,7 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
 
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    BasicGradleDistribution distribution = new GradleDistribution(this)
+    GradleDistribution distribution = new GradleBuiltDistribution(this)
     GradleExecuter executer = new GradleContextualExecuter(temporaryFolder, distribution.gradleHomeDir)
 
     ExecutionResult result

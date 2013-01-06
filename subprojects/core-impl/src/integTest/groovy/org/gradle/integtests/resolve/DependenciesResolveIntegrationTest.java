@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve;
 
 import org.gradle.integtests.fixtures.Sample;
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution;
+import org.gradle.integtests.fixtures.executer.GradleBuiltDistribution;
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
@@ -31,7 +31,7 @@ import java.io.File;
  */
 public class DependenciesResolveIntegrationTest {
     @Rule public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
-    private final BasicGradleDistribution dist = new GradleDistribution(testDirectoryProvider);
+    private final GradleDistribution dist = new GradleBuiltDistribution(testDirectoryProvider);
     private final GradleExecuter executer = new GradleContextualExecuter(testDirectoryProvider, dist.getGradleHomeDir());
     @Rule public final Sample sample = new Sample("dependencies");
 

@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.api.Transformer;
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution;
+import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.versions.VersionsInfo;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -43,7 +43,7 @@ public class ReleasedVersions {
     /**
      * @return last released version. Never returns the RC.
      */
-    public BasicGradleDistribution getLast() {
+    public GradleDistribution getLast() {
         for (String v : VERSIONS) {
             if (!version(v).isSnapshot()) {
                 return buildContext.getReleasedDistribution(v, testDirectoryProvider);
@@ -52,9 +52,9 @@ public class ReleasedVersions {
         throw new RuntimeException("Unable to get the last version");
     }
 
-    public List<BasicGradleDistribution> getAll() {
-        return CollectionUtils.collect(VERSIONS, new Transformer<BasicGradleDistribution, String>() {
-            public BasicGradleDistribution transform(String original) {
+    public List<GradleDistribution> getAll() {
+        return CollectionUtils.collect(VERSIONS, new Transformer<GradleDistribution, String>() {
+            public GradleDistribution transform(String original) {
                 return buildContext.getReleasedDistribution(original, testDirectoryProvider);
             }
         });

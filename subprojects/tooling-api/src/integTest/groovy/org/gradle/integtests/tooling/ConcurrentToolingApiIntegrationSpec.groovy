@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.ReleasedVersions
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleBuiltDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
@@ -44,7 +44,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final BasicGradleDistribution dist = new GradleDistribution(temporaryFolder)
+    final GradleDistribution dist = new GradleBuiltDistribution(temporaryFolder)
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
 
     int threads = 3
@@ -65,7 +65,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
         when:
         threads.times {
-            concurrent.start { useToolingApi(new GradleDistribution(new TestNameTestDirectoryProvider())) }
+            concurrent.start { useToolingApi(new GradleBuiltDistribution(new TestNameTestDirectoryProvider())) }
         }
 
         then:
@@ -93,7 +93,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
         concurrent.finished()
     }
 
-    def useToolingApi(BasicGradleDistribution target) {
+    def useToolingApi(GradleDistribution target) {
         new ToolingApi(target, new IntegrationTestBuildContext().gradleUserHomeDir, temporaryFolder, false).withConnection { ProjectConnection connection ->
             try {
                 def model = connection.getModel(IdeaProject)

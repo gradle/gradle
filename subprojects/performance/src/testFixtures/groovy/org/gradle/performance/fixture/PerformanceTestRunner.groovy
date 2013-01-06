@@ -26,7 +26,7 @@ public class PerformanceTestRunner {
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
     def testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def current = new GradleDistribution(testDirectoryProvider)
+    def current = new GradleBuiltDistribution(testDirectoryProvider)
     def buildContext = new IntegrationTestBuildContext()
 
     String testProject
@@ -86,7 +86,7 @@ public class PerformanceTestRunner {
         runOnce(current, projectDir, results.current)
     }
 
-    void runOnce(BasicGradleDistribution dist, File projectDir, MeasuredOperationList results) {
+    void runOnce(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
         def executer = this.executer(dist, projectDir)
         def operation = MeasuredOperation.measure { MeasuredOperation operation ->
             executer.run()
@@ -95,9 +95,9 @@ public class PerformanceTestRunner {
         results.add(operation)
     }
 
-    GradleExecuter executer(BasicGradleDistribution dist, File projectDir) {
+    GradleExecuter executer(GradleDistribution dist, File projectDir) {
         def executer
-        if (dist instanceof GradleDistribution) {
+        if (dist instanceof GradleBuiltDistribution) {
             executer = new GradleContextualExecuter(testDirectoryProvider, dist.getGradleHomeDir()).requireGradleHome(true)
             executer.withDeprecationChecksDisabled()
             executer.withStackTraceChecksDisabled()

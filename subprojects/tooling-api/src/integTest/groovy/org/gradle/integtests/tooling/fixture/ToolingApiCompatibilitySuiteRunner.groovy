@@ -17,7 +17,7 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.*
 
@@ -58,9 +58,9 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
     private class Permutation extends AbstractMultiTestRunner.Execution {
         final ToolingApiDistribution toolingApi
-        final BasicGradleDistribution gradle
+        final GradleDistribution gradle
 
-        Permutation(ToolingApiDistribution toolingApi, BasicGradleDistribution gradle) {
+        Permutation(ToolingApiDistribution toolingApi, GradleDistribution gradle) {
             this.toolingApi = toolingApi
             this.gradle = gradle
         }

@@ -17,7 +17,7 @@ package org.gradle.integtests.openapi
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.DefaultClassLoaderFactory
 import org.gradle.util.Requires
@@ -42,7 +42,7 @@ class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSp
         checkCanBuildUsing(previous, current)
     }
 
-    void checkCanBuildUsing(BasicGradleDistribution openApiVersion, BasicGradleDistribution buildVersion) {
+    void checkCanBuildUsing(GradleDistribution openApiVersion, GradleDistribution buildVersion) {
         if (!buildVersion.openApiSupported) {
             System.out.println("skipping $buildVersion as it does not support the open API.")
             return

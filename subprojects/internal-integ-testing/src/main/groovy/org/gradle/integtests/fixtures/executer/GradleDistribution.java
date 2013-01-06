@@ -13,85 +13,70 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.GradleVersion;
 
-/**
- * Provides access to a Gradle distribution for integration testing.
- */
-public class GradleDistribution implements BasicGradleDistribution {
-
-    private TestDirectoryProvider testDirectoryProvider;
-
-    private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
-
-    public GradleDistribution(TestDirectoryProvider testWorkDirProvider) {
-        this.testDirectoryProvider = testWorkDirProvider;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Gradle %s", GradleVersion.current().getVersion());
-    }
-
-    public boolean worksWith(Jvm jvm) {
-        // Works with anything >= Java 5
-        return jvm.getJavaVersion().isJava5Compatible();
-    }
-
-    public boolean worksWith(OperatingSystem os) {
-        return true;
-    }
-
-    public boolean isDaemonSupported() {
-        return true;
-    }
-
-    public boolean isDaemonIdleTimeoutConfigurable() {
-        return true;
-    }
-
-    public boolean isOpenApiSupported() {
-        return true;
-    }
-
-    public boolean isToolingApiSupported() {
-        return true;
-    }
-
-    public int getArtifactCacheLayoutVersion() {
-        return 23;
-    }
-
-    public boolean wrapperCanExecute(String version) {
-        // Current wrapper works with anything > 0.8
-        return GradleVersion.version(version).compareTo(GradleVersion.version("0.8")) > 0;
-    }
+public interface GradleDistribution {
+    /**
+     * Returns the root directory of the installed distribution
+     */
+    TestFile getGradleHomeDir();
 
     /**
-     * The distribution for the current test. This is usually shared with other tests.
+     * Returns the binary distribution.
      */
-    public TestFile getGradleHomeDir() {
-        return buildContext.getGradleHomeDir();
-    }
+    TestFile getBinDistribution();
 
-    public String getVersion() {
-        return buildContext.getVersion().getVersion();
-    }
+    /**
+     * Returns the version of this distribution.
+     */
+    String getVersion();
 
-    public TestFile getBinDistribution() {
-        return buildContext.getDistributionsDir().file(String.format("gradle-%s-bin.zip", getVersion()));
-    }
+    /**
+     * Creates an executer which will use this distribution.
+     */
+    GradleExecuter executer();
 
-    public GradleExecuter executer() {
-        return new GradleContextualExecuter(testDirectoryProvider, getGradleHomeDir());
-    }
+    /**
+     * Returns true if this distribution supports the given JVM.
+     */
+    boolean worksWith(Jvm jvm);
 
+    /**
+     * Returns true if this distribution supports the given Operating system.
+     */
+    boolean worksWith(OperatingSystem os);
+
+    /**
+     * Returns true if the daemon is supported by this distribution.
+     */
+    boolean isDaemonSupported();
+
+    /**
+     * Returns true if the configuring daemon idle timeout feature is supported by this distribution.
+     */
+    boolean isDaemonIdleTimeoutConfigurable();
+
+    /**
+     * Returns true if the tooling API is supported by this distribution.
+     */
+    boolean isToolingApiSupported();
+
+    /**
+     * Returns the version of the artifact cache layout
+     */
+    int getArtifactCacheLayoutVersion();
+
+    /**
+     * Returns true if the open API is supported by this distribution.
+     */
+    boolean isOpenApiSupported();
+
+    /**
+     * Returns true if the wrapper from this distribution can execute a build using the specified version.
+     */
+    boolean wrapperCanExecute(String version);
 }
-

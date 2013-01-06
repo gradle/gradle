@@ -63,7 +63,7 @@ public class IntegrationTestBuildContext {
         return GradleVersion.current();
     }
 
-    public BasicGradleDistribution getReleasedDistribution(String version, TestDirectoryProvider testDirectoryProvider) {
+    public GradleDistribution getReleasedDistribution(String version, TestDirectoryProvider testDirectoryProvider) {
         TestFile previousVersionDir = getGradleUserHomeDir().getParentFile().file("previousVersion");
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version), testDirectoryProvider);
     }
