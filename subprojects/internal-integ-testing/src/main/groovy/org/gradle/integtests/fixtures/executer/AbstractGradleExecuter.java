@@ -475,13 +475,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (getExecutable() == null) {
             // Assert that no temp files are left lying around
             // Note: don't do this if a custom executable is used, as we don't know (and probably don't care) whether the executable cleans up or not
-            List<String> unexpectedFiles = new ArrayList<String>();
-            for (File file : getTmpDir().listFiles()) {
-                if (!file.getName().matches("maven-artifact\\d+.tmp")) {
-                    unexpectedFiles.add(file.getName());
+            TestFile[] testFiles = getTmpDir().listFiles();
+            if (testFiles != null) {
+                List<String> unexpectedFiles = new ArrayList<String>();
+                for (File file : testFiles) {
+                    if (!file.getName().matches("maven-artifact\\d+.tmp")) {
+                        unexpectedFiles.add(file.getName());
+                    }
                 }
-            }
 //            Assert.assertThat(unexpectedFiles, Matchers.isEmpty());
+            }
         }
 
         return result;
@@ -535,7 +538,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private TestFile getTmpDir() {
-        return new TestFile(getWorkingDir(), "tmp");
+        return new TestFile(getTestDirectoryProvider().getTestDirectory(), "tmp");
     }
 
     /**
