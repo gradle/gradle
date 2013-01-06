@@ -49,7 +49,7 @@ class ProgressLoggingFixture implements MethodRule {
 
     Statement apply(Statement base, FrameworkMethod method, Object target) {
         TestFile initFile
-        GradleExecuter executer = RuleHelper.getField(target, GradleContextualExecuter)
+        GradleExecuter executer = RuleHelper.getField(target, GradleExecuter)
         TestDirectoryProvider testDirectoryProvider = new TestDirectoryProviderFinder().findFor(target)
         TestFile temporaryFolder = testDirectoryProvider.testDirectory
         loggingOutputFile = temporaryFolder.file("loggingoutput.log")
