@@ -17,6 +17,7 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
@@ -34,7 +35,8 @@ abstract class ToolingApiSpecification extends Specification {
     static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final GradleDistribution dist = new GradleDistribution(temporaryFolder)
+    final BasicGradleDistribution dist = new GradleDistribution(temporaryFolder)
+    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
     private static final ThreadLocal<BasicGradleDistribution> VERSION = new ThreadLocal<BasicGradleDistribution>()
 
@@ -57,7 +59,7 @@ abstract class ToolingApiSpecification extends Specification {
         this.toolingApi.withConnector {
             if (consumerGradle.version != target.version) {
                 LOGGER.info("Overriding daemon tooling API provider to use installation: " + target);
-                def targetGradle = dist.previousVersion(target.version)
+                def targetGradle = buildContext.getReleasedDistribution(target.version, temporaryFolder)
                 it.useInstallation(new File(targetGradle.gradleHomeDir.absolutePath))
                 it.embedded(false)
             }

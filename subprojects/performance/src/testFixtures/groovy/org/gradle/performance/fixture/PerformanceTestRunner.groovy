@@ -18,10 +18,7 @@ package org.gradle.performance.fixture
 
 import org.gradle.api.logging.Logging
 import org.gradle.integtests.fixtures.ReleasedVersions
-import org.gradle.integtests.fixtures.executer.BasicGradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.*
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
 public class PerformanceTestRunner {
@@ -30,6 +27,7 @@ public class PerformanceTestRunner {
 
     def testDirectoryProvider = new TestNameTestDirectoryProvider()
     def current = new GradleDistribution(testDirectoryProvider)
+    def buildContext = new IntegrationTestBuildContext()
 
     String testProject
     int runs
@@ -52,7 +50,7 @@ public class PerformanceTestRunner {
 
         def baselineVersions = []
         targetVersions.eachWithIndex { it, idx ->
-            def ver = it == 'last'? new ReleasedVersions(current).last.version : it
+            def ver = it == 'last'? new ReleasedVersions(testDirectoryProvider).last.version : it
             baselineVersions << new BaselineVersion(version: ver,
                     maxExecutionTimeRegression: maxExecutionTimeRegression[idx],
                     maxMemoryRegression: maxMemoryRegression[idx],
@@ -81,7 +79,7 @@ public class PerformanceTestRunner {
         File projectDir = new TestProjectLocator().findProjectDir(testProject)
         results.baselineVersions.reverse().each {
             println "Gradle ${it.version}..."
-            runOnce(current.previousVersion(it.version), projectDir, it.results)
+            runOnce(buildContext.getReleasedDistribution(it.version, testDirectoryProvider), projectDir, it.results)
         }
 
         println "Current Gradle..."

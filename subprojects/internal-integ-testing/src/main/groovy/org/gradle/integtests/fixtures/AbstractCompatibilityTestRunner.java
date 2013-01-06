@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.executer.BasicGradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
 import java.util.ArrayList;
@@ -29,7 +30,8 @@ import java.util.List;
  */
 public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestRunner {
 
-    protected final GradleDistribution current = new GradleDistribution(new TestNameTestDirectoryProvider());
+    private final TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
+    protected final BasicGradleDistribution current = new GradleDistribution(testDirectoryProvider);
     protected final List<BasicGradleDistribution> previous;
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {
@@ -44,7 +46,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
         if (versionStr == null) {
             versionStr = System.getProperty("org.gradle.integtest.versions", "latest");
         }
-        ReleasedVersions previousVersions = new ReleasedVersions(current);
+        ReleasedVersions previousVersions = new ReleasedVersions(testDirectoryProvider);
         if (!versionStr.equals("all")) {
             previous.add(previousVersions.getLast());
         } else {

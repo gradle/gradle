@@ -30,7 +30,7 @@ import spock.lang.Specification
 @RunWith(CrossVersionTestRunner)
 abstract class CrossVersionIntegrationSpec extends Specification implements TestDirectoryProvider {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final GradleDistribution current = new GradleDistribution(this)
+    final BasicGradleDistribution current = new GradleDistribution(this)
     static BasicGradleDistribution previous
     private MavenFileRepository mavenRepo
 

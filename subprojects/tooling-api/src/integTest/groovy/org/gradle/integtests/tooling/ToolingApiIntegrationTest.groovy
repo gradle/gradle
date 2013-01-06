@@ -31,7 +31,9 @@ import spock.lang.Issue
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
-    final BasicGradleDistribution otherVersion = new ReleasedVersions(distribution).last
+    final BasicGradleDistribution otherVersion = new ReleasedVersions(temporaryFolder).last
+    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+
     TestFile projectDir
 
     def setup() {
@@ -140,7 +142,7 @@ allprojects {
     }
 
     def "tooling api reports an error when the specified gradle version does not support the tooling api"() {
-        def distroZip = distribution.previousVersion('0.9.2').binDistribution
+        def distroZip = buildContext.getReleasedDistribution('0.9.2', temporaryFolder).binDistribution
 
         when:
         toolingApi.withConnector { connector -> connector.useDistribution(distroZip.toURI()) }

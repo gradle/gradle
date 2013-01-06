@@ -18,8 +18,9 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.executer.BasicGradleDistribution;
-import org.gradle.integtests.fixtures.executer.GradleDistribution;
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.versions.VersionsInfo;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
@@ -32,11 +33,11 @@ import static org.gradle.util.GradleVersion.version;
 public class ReleasedVersions {
 
     private final static List<String> VERSIONS = new VersionsInfo().getVersions();
+    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+    private final TestDirectoryProvider testDirectoryProvider;
 
-    private final GradleDistribution current;
-
-    public ReleasedVersions(GradleDistribution current) {
-        this.current = current;
+    public ReleasedVersions(TestDirectoryProvider testDirectoryProvider) {
+        this.testDirectoryProvider = testDirectoryProvider;
     }
 
     /**
@@ -45,7 +46,7 @@ public class ReleasedVersions {
     public BasicGradleDistribution getLast() {
         for (String v : VERSIONS) {
             if (!version(v).isSnapshot()) {
-                return current.previousVersion(v);
+                return buildContext.getReleasedDistribution(v, testDirectoryProvider);
             }
         }
         throw new RuntimeException("Unable to get the last version");
@@ -54,7 +55,7 @@ public class ReleasedVersions {
     public List<BasicGradleDistribution> getAll() {
         return CollectionUtils.collect(VERSIONS, new Transformer<BasicGradleDistribution, String>() {
             public BasicGradleDistribution transform(String original) {
-                return current.previousVersion(original);
+                return buildContext.getReleasedDistribution(original, testDirectoryProvider);
             }
         });
     }

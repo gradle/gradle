@@ -44,7 +44,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final GradleDistribution dist = new GradleDistribution(temporaryFolder)
+    final BasicGradleDistribution dist = new GradleDistribution(temporaryFolder)
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
 
     int threads = 3
@@ -79,7 +79,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
     def "handles different target gradle versions concurrently"() {
         given:
         def current = dist
-        def last = new ReleasedVersions(dist).getLast()
+        def last = new ReleasedVersions(temporaryFolder).getLast()
         assert current != last
         println "Combination of versions used: current - $current, last - $last"
 

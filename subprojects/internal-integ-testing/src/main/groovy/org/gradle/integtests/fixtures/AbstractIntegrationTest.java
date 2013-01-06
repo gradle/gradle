@@ -31,11 +31,11 @@ import java.util.Set;
 
 public abstract class AbstractIntegrationTest implements TestDirectoryProvider {
     @Rule public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
-    public final GradleDistribution distribution = new GradleDistribution(this);
+    public final BasicGradleDistribution distribution = new GradleDistribution(this);
     public final GradleExecuter executer = new GradleContextualExecuter(this, distribution.getGradleHomeDir());
 
     @ClassRule public static final TestNameTestDirectoryProvider SHARED_TEST_DIRECTORY_PROVIDER = new TestNameTestDirectoryProvider();
-    public static final GradleDistribution SHARED_DISTRIBUTION = new GradleDistribution(SHARED_TEST_DIRECTORY_PROVIDER);
+    public static final BasicGradleDistribution SHARED_DISTRIBUTION = new GradleDistribution(SHARED_TEST_DIRECTORY_PROVIDER);
     private static final GradleExecuter SHARED_EXECUTER = new GradleContextualExecuter(SHARED_TEST_DIRECTORY_PROVIDER, SHARED_DISTRIBUTION.getGradleHomeDir());
 
     private static final Set<Class<?>> SHARED_BUILD_RUN_CLASSES = Sets.newHashSet();
@@ -45,7 +45,7 @@ public abstract class AbstractIntegrationTest implements TestDirectoryProvider {
     private MavenFileRepository mavenRepo;
     private IvyFileRepository ivyRepo;
 
-    protected GradleDistribution getDistribution() {
+    protected BasicGradleDistribution getDistribution() {
         return useSharedBuild ? SHARED_DISTRIBUTION : distribution;
     }
 

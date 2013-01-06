@@ -89,25 +89,9 @@ public class GradleDistribution implements BasicGradleDistribution {
         return buildContext.getDistributionsDir().file(String.format("gradle-%s-bin.zip", getVersion()));
     }
 
-    /**
-     * Returns a previous version of Gradle.
-     *
-     * @param version The Gradle version
-     * @return An executer
-     */
-    public BasicGradleDistribution previousVersion(String version) {
-        if (version.equals(this.getVersion())) {
-            return this;
-        }
-
-        TestFile previousVersionDir = buildContext.getGradleUserHomeDir().getParentFile().file("previousVersion");
-        return new ReleasedGradleDistribution(version, previousVersionDir.file(version), testDirectoryProvider);
-    }
-
     public GradleExecuter executer() {
         return new GradleContextualExecuter(testDirectoryProvider, getGradleHomeDir());
     }
-
 
 }
 
