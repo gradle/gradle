@@ -26,6 +26,7 @@ import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.*
 import static org.hamcrest.Matchers.equalTo
+import org.gradle.internal.SystemProperties
 
 /**
  * by Szczepan Faber, created at: 11/16/12
@@ -63,20 +64,22 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         xml.startsWith """<?xml version="1.1" encoding="UTF-8"?>
-  <testsuite name="com.foo.FooTest" tests="4" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
+<testsuite name="com.foo.FooTest" tests="4" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
   <properties/>
-    <testcase name="some test" classname="com.foo.FooTest" time="0.015"/>
-    <testcase name="some test two" classname="com.foo.FooTest" time="0.015"/>
-    <testcase name="some failing test" classname="com.foo.FooTest" time="0.01">
-      <failure message="java.lang.RuntimeException: Boo!" type="java.lang.RuntimeException">java.lang.RuntimeException: Boo!"""
+  <testcase name="some test" classname="com.foo.FooTest" time="0.015"/>
+  <testcase name="some test two" classname="com.foo.FooTest" time="0.015"/>
+  <testcase name="some failing test" classname="com.foo.FooTest" time="0.01">
+    <failure message="java.lang.RuntimeException: Boo!" type="java.lang.RuntimeException">java.lang.RuntimeException: Boo!"""
 
-        xml.endsWith """</failure></testcase>
-    <ignored-testcase name="some skipped test" classname="com.foo.FooTest" time="0.01"/>
+        xml.endsWith """</failure>
+  </testcase>
+  <ignored-testcase name="some skipped test" classname="com.foo.FooTest" time="0.01"/>
   <system-out><![CDATA[1st output message
 2nd output message
 ]]></system-out>
   <system-err><![CDATA[err]]></system-err>
-</testsuite>"""
+</testsuite>
+"""
     }
 
     def "writes results with empty outputs"() {
@@ -89,12 +92,13 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         xml == """<?xml version="1.1" encoding="UTF-8"?>
-  <testsuite name="com.foo.FooTest" tests="1" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
+<testsuite name="com.foo.FooTest" tests="1" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
   <properties/>
-    <testcase name="some test" classname="com.foo.FooTest" time="0.2"/>
+  <testcase name="some test" classname="com.foo.FooTest" time="0.2"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
-</testsuite>"""
+</testsuite>
+"""
     }
 
     def "encodes xml"() {
@@ -122,16 +126,17 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         xml == """<?xml version="1.1" encoding="UTF-8"?>
-  <testsuite name="com.foo.IgnoredTest" tests="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.0">
+<testsuite name="com.foo.IgnoredTest" tests="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.0">
   <properties/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
-</testsuite>"""
+</testsuite>
+"""
     }
 
     def getXml(String className, TestClassResult result) {
         def text = new ByteArrayOutputStream()
         generator.write(className, result, text)
-        return text.toString("UTF-8")
+        return text.toString("UTF-8").replace(SystemProperties.lineSeparator, "\n")
     }
 }

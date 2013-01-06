@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.xml;
 
+import org.gradle.internal.SystemProperties;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -23,7 +25,7 @@ import java.io.Writer;
 import java.util.LinkedList;
 
 /**
- * <p>A basic XML writer. Encodes characters and CDATA. Provides only basic state validation.</p>
+ * <p>A streaming XML writer. Encodes characters and CDATA. Provides only basic state validation, and some simple indentation.</p>
  *
  * <p>This class also is-a Writer, and any characters written to this writer will be encoded as appropriate.</p>
  *
@@ -31,15 +33,21 @@ import java.util.LinkedList;
  */
 public class SimpleXmlWriter extends Writer {
     private enum Context {
-        Character, CData, StartTag
+        Outside, Text, CData, StartTag, ElementContent
     }
 
     private final Writer output;
     private final LinkedList<String> elements = new LinkedList<String>();
-    private Context context = Context.Character;
+    private Context context = Context.Outside;
     private int squareBrackets;
+    private final String indent;
 
     public SimpleXmlWriter(OutputStream output) throws IOException {
+        this(output, null);
+    }
+
+    public SimpleXmlWriter(OutputStream output, String indent) throws IOException {
+        this.indent = indent;
         this.output = new OutputStreamWriter(output, "UTF-8");
         writeXmlDeclaration("UTF-8", "1.1");
     }
@@ -73,29 +81,39 @@ public class SimpleXmlWriter extends Writer {
     }
 
     public SimpleXmlWriter characters(char[] characters, int start, int count) throws IOException {
-        maybeFinishElement();
-        if (context == Context.Character) {
-            writeXmlEncoded(characters, start, count);
-        } else {
+        if (context == Context.CData) {
             writeCDATA(characters, start, count);
+        } else {
+            maybeStartText();
+            writeXmlEncoded(characters, start, count);
         }
         return this;
     }
 
     public SimpleXmlWriter characters(CharSequence characters) throws IOException {
-        maybeFinishElement();
-        if (context == Context.Character) {
-            writeXmlEncoded(characters);
-        } else {
+        if (context == Context.CData) {
             writeCDATA(characters);
+        } else {
+            maybeStartText();
+            writeXmlEncoded(characters);
         }
         return this;
     }
 
-    private void maybeFinishElement() throws IOException {
+    private void maybeStartText() throws IOException {
+        if (context == Context.Outside) {
+            throw new IllegalStateException("Cannot write text, as there are no started elements.");
+        }
         if (context == Context.StartTag) {
             writeRaw(">");
-            context = Context.Character;
+        }
+        context = Context.Text;
+    }
+
+    private void maybeFinishStartTag() throws IOException {
+        if (context == Context.StartTag) {
+            writeRaw(">");
+            context = Context.ElementContent;
         }
     }
 
@@ -106,7 +124,13 @@ public class SimpleXmlWriter extends Writer {
         if (context == Context.CData) {
             throw new IllegalStateException("Cannot start element, as current CDATA node has not been closed.");
         }
-        maybeFinishElement();
+        maybeFinishStartTag();
+        if (indent != null) {
+            writeRaw(SystemProperties.getLineSeparator());
+            for (int i = 0; i < elements.size(); i++) {
+                writeRaw(indent);
+            }
+        }
         context = Context.StartTag;
         elements.add(name);
         writeRaw("<");
@@ -115,7 +139,7 @@ public class SimpleXmlWriter extends Writer {
     }
 
     public SimpleXmlWriter endElement() throws IOException {
-        if (elements.isEmpty()) {
+        if (context == Context.Outside) {
             throw new IllegalStateException("Cannot end element, as there are no started elements.");
         }
         if (context == Context.CData) {
@@ -125,13 +149,24 @@ public class SimpleXmlWriter extends Writer {
             writeRaw("/>");
             elements.removeLast();
         } else {
+            if (context != Context.Text && indent != null) {
+                writeRaw(SystemProperties.getLineSeparator());
+                for (int i = 1; i < elements.size(); i++) {
+                    writeRaw(indent);
+                }
+            }
             writeRaw("</");
             writeRaw(elements.removeLast());
             writeRaw(">");
         }
-        context = Context.Character;
         if (elements.isEmpty()) {
+            if (indent != null) {
+                writeRaw(SystemProperties.getLineSeparator());
+            }
             output.flush();
+            context = Context.Outside;
+        } else {
+            context = Context.ElementContent;
         }
         return this;
     }
@@ -185,7 +220,7 @@ public class SimpleXmlWriter extends Writer {
         if (context == Context.CData) {
             throw new IllegalStateException("Cannot start CDATA node, as current CDATA node has not been closed.");
         }
-        maybeFinishElement();
+        maybeFinishStartTag();
         writeRaw("<![CDATA[");
         context = Context.CData;
         squareBrackets = 0;
@@ -197,7 +232,7 @@ public class SimpleXmlWriter extends Writer {
             throw new IllegalStateException("Cannot end CDATA node, as not currently in a CDATA node.");
         }
         writeRaw("]]>");
-        context = Context.Character;
+        context = Context.Text;
         return this;
     }
 

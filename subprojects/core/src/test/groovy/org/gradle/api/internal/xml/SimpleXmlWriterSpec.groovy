@@ -19,6 +19,7 @@ package org.gradle.api.internal.xml
 import spock.lang.Specification
 
 import javax.xml.parsers.DocumentBuilderFactory
+import org.gradle.util.TextUtil
 
 /**
  * by Szczepan Faber, created at: 12/3/12
@@ -217,6 +218,26 @@ class SimpleXmlWriterSpec extends Specification {
         e.message == 'Cannot end element, as there are no started elements.'
     }
 
+    def "cannot write characters when stack is empty"() {
+        when:
+        writer.characters("text")
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot write text, as there are no started elements.'
+
+        given:
+
+        when:
+        writer.startElement("root")
+        writer.endElement()
+        writer.characters("text")
+
+        then:
+        e = thrown()
+        e.message == 'Cannot write text, as there are no started elements.'
+    }
+
     def "cannot end element when CDATA node is open"() {
         writer.startElement("root")
         writer.startCDATA()
@@ -306,6 +327,57 @@ class SimpleXmlWriterSpec extends Specification {
 
         then:
         xml.contains('<root><empty/><empty property="value"/></root>')
+    }
+
+    def "writes indented XML when enabled"() {
+        sw.reset()
+        def writer = new SimpleXmlWriter(sw, "    ")
+
+        when:
+        writer.startElement("root").attribute("items", "9")
+        writer.startElement("item").endElement()
+        writer.startElement("item").characters("some text").endElement()
+        writer.startElement("item")
+        writer.startElement("nested-1")
+        writer.startElement("nested-2").characters(" ").endElement()
+        writer.endElement()
+        writer.endElement()
+        writer.startElement("item")
+        writer.startElement("thing").characters("some text").endElement()
+        writer.startElement("thing").startCDATA().characters("some text").endCDATA().endElement()
+        writer.endElement()
+        writer.startElement("mixed")
+        writer.characters("text")
+        writer.startElement("mixed-1").endElement()
+        writer.characters("text")
+        writer.startElement("mixed-2").characters("123").endElement()
+        writer.startElement("mixed-3").startElement("empty").endElement().endElement()
+        writer.characters("text")
+        writer.endElement()
+        writer.endElement()
+
+        then:
+        xml == TextUtil.toPlatformLineSeparators('''<?xml version="1.1" encoding="UTF-8"?>
+<root items="9">
+    <item/>
+    <item>some text</item>
+    <item>
+        <nested-1>
+            <nested-2> </nested-2>
+        </nested-1>
+    </item>
+    <item>
+        <thing>some text</thing>
+        <thing><![CDATA[some text]]></thing>
+    </item>
+    <mixed>text
+        <mixed-1/>text
+        <mixed-2>123</mixed-2>
+        <mixed-3>
+            <empty/>
+        </mixed-3>text</mixed>
+</root>
+''')
     }
 
     def "allows valid tag names"() {
