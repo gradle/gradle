@@ -101,7 +101,7 @@ public class GradleDistribution implements BasicGradleDistribution {
         }
 
         TestFile previousVersionDir = buildContext.getGradleUserHomeDir().getParentFile().file("previousVersion");
-        return new PreviousGradleVersionExecuter(version, previousVersionDir.file(version), testDirectoryProvider);
+        return new ReleasedGradleDistribution(version, previousVersionDir.file(version), testDirectoryProvider);
     }
 
     public GradleExecuter executer() {

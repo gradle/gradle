@@ -32,7 +32,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 
-class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter implements BasicGradleDistribution {
+class ReleasedGradleDistribution implements BasicGradleDistribution {
     private static final CACHE_FACTORY = createCacheFactory()
 
     private static CacheFactory createCacheFactory() {
@@ -44,21 +44,23 @@ class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter imp
                 )).create()
     }
 
+    private final TestDirectoryProvider testDirectoryProvider
+
     final GradleVersion version
     private final TestFile versionDir
     private final TestFile zipFile
     private final TestFile homeDir
     private PersistentCache cache
 
-    PreviousGradleVersionExecuter(String version, TestFile versionDir, TestDirectoryProvider testDirectoryProvider) {
-        super(testDirectoryProvider)
+    ReleasedGradleDistribution(String version, TestFile versionDir, TestDirectoryProvider testDirectoryProvider) {
+        this.testDirectoryProvider = testDirectoryProvider
         this.version = GradleVersion.version(version)
         this.versionDir = versionDir
         zipFile = versionDir.file("gradle-$version-bin.zip")
         homeDir = versionDir.file("gradle-$version")
     }
 
-    def String toString() {
+    String toString() {
         version.toString()
     }
 
@@ -141,15 +143,8 @@ class PreviousGradleVersionExecuter extends AbstractDelegatingGradleExecuter imp
         return true
     }
 
-    @Override
-    protected GradleExecuter configureExecuter() {
-        ForkingGradleExecuter executer = new ForkingGradleExecuter(testDirectoryProvider, gradleHomeDir)
-        copyTo(executer)
-        return executer
-    }
-
     GradleExecuter executer() {
-        this
+        new ForkingGradleExecuter(testDirectoryProvider, gradleHomeDir)
     }
 
     TestFile getBinDistribution() {
