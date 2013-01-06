@@ -146,7 +146,7 @@ class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTe
         run 'retrieve'
     }
 
-    @IgnoreIf({ GradleContextualExecuter.systemPropertyExecuter.executeParallel })
+    @IgnoreIf({ GradleContextualExecuter.isParallel() })
     def "hit each remote repo only once per build and missing module"() {
         given:
         server.start()

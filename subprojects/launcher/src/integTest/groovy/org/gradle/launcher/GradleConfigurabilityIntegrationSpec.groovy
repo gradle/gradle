@@ -29,7 +29,7 @@ import spock.lang.IgnoreIf
 /**
  * by Szczepan Faber, created at: 1/20/12
  */
-@IgnoreIf( { !GradleContextualExecuter.getSystemPropertyExecuter().forks })
+@IgnoreIf( { GradleContextualExecuter.embedded })
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {

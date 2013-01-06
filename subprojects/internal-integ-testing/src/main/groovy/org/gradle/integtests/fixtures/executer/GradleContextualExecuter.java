@@ -31,7 +31,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     private Executer executerType;
 
-    public enum Executer {
+    private enum Executer {
         embedded(false),
         forking(true),
         daemon(true),
@@ -51,7 +51,19 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         }
     }
 
-    public static Executer getSystemPropertyExecuter() {
+    public static boolean isEmbedded() {
+        return !getSystemPropertyExecuter().forks;
+    }
+
+    public static boolean isDaemon() {
+        return getSystemPropertyExecuter() == Executer.daemon;
+    }
+
+    public static boolean isParallel() {
+        return getSystemPropertyExecuter().executeParallel;
+    }
+
+    private static Executer getSystemPropertyExecuter() {
         return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()));
     }
 

@@ -65,7 +65,7 @@ class ToolingApiDistributionResolver {
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
         !useExternalToolingApiDistribution &&
         toolingApiVersion == currentGradleDistribution.version &&
-        GradleContextualExecuter.systemPropertyExecuter == GradleContextualExecuter.Executer.embedded
+                GradleContextualExecuter.embedded
     }
 
     private DependencyResolutionServices createResolutionServices() {

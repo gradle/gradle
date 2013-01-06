@@ -16,9 +16,8 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
-
-import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.getSystemPropertyExecuter
 
 /**
  * Verifies that Gradle doesn't pollute the system class loader.
@@ -40,7 +39,7 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
         for a class it doesn't have, it simply returns null. I've not been able to find any official documentation
         explaining why this is.
     */
-    @IgnoreIf({ !getSystemPropertyExecuter().forks })
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "daemon bootstrap classpath is bare bones"() {
         given:
         buildFile << """

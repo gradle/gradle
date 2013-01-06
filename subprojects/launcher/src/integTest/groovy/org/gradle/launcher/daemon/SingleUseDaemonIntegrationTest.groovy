@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.systemPropertyExecuter == GradleContextualExecuter.Executer.daemon })
+@IgnoreIf({ GradleContextualExecuter.isDaemon() })
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         // Need forking executer

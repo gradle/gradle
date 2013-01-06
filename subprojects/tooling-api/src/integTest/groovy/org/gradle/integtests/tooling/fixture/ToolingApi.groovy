@@ -41,7 +41,7 @@ class ToolingApi {
     boolean verboseLogging = LOGGER.debugEnabled
 
     ToolingApi(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
-        this(dist, new IntegrationTestBuildContext().gradleUserHomeDir, testWorkDirProvider, GradleContextualExecuter.systemPropertyExecuter == GradleContextualExecuter.Executer.embedded)
+        this(dist, new IntegrationTestBuildContext().gradleUserHomeDir, testWorkDirProvider, GradleContextualExecuter.embedded)
     }
 
     ToolingApi(BasicGradleDistribution dist, File userHomeDir, TestDirectoryProvider testWorkDirProvider, boolean isEmbedded) {

@@ -23,7 +23,7 @@ import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
-@IgnoreIf({ !GradleContextualExecuter.systemPropertyExecuter.forks })
+@IgnoreIf({ GradleContextualExecuter.embedded })
 class CharacterEncodingIntegTest extends AbstractIntegrationSpec {
 
     def executerEncoding(String inputEncoding) {

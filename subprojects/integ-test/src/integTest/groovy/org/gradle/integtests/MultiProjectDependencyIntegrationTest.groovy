@@ -179,7 +179,7 @@ project(':c') {
         jarsNotBuilt 'a', 'b', 'c'
     }
 
-    @IgnoreIf({GradleContextualExecuter.systemPropertyExecuter.executeParallel})  // 'c' + 'd' _may_ be built with parallel executer
+    @IgnoreIf({GradleContextualExecuter.parallel})  // 'c' + 'd' _may_ be built with parallel executer
     def "project dependency a->[b,c] and c->d and b fails"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'c', to: ['d']
