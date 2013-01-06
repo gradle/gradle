@@ -67,8 +67,8 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter().executeParallel;
     }
 
-    public GradleContextualExecuter(TestDirectoryProvider testWorkDirProvider, TestFile gradleHomeDir) {
-        super(testWorkDirProvider);
+    public GradleContextualExecuter(TestDirectoryProvider testDirectoryProvider, TestFile gradleHomeDir) {
+        super(testDirectoryProvider);
         this.executerType = getSystemPropertyExecuter();
         this.gradleHomeDir = gradleHomeDir;
     }
