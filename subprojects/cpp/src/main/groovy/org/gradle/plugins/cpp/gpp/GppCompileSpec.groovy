@@ -170,7 +170,9 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     }
 
     void includes(Iterable<File> includeRoots) {
-        includeRoots.each { task.inputs.dir(it) }
+        for (File includeRoot in includeRoots) {
+            task.inputs.dir(includeRoot)
+        }
         includes.from(includeRoots)
     }
 
