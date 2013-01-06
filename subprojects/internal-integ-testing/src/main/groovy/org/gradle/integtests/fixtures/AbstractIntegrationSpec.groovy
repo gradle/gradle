@@ -34,7 +34,7 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
 
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    GradleDistribution distribution = new GradleBuiltDistribution(this)
+    GradleDistribution distribution = new GradleBuiltDistribution()
     GradleExecuter executer = new GradleContextualExecuter(temporaryFolder, distribution.gradleHomeDir)
 
     ExecutionResult result
@@ -153,7 +153,7 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     ArtifactBuilder artifactBuilder() {
-        def executer = distribution.executer()
+        def executer = distribution.executer(temporaryFolder)
         executer.withGradleUserHomeDir(this.executer.getGradleUserHomeDir())
         return new GradleBackedArtifactBuilder(executer, getTestDirectory().file("artifacts"))
     }

@@ -35,7 +35,7 @@ abstract class ToolingApiSpecification extends Specification {
     static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final GradleDistribution dist = new GradleBuiltDistribution(temporaryFolder)
+    final GradleDistribution dist = new GradleBuiltDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
@@ -59,7 +59,7 @@ abstract class ToolingApiSpecification extends Specification {
         this.toolingApi.withConnector {
             if (consumerGradle.version != target.version) {
                 LOGGER.info("Overriding daemon tooling API provider to use installation: " + target);
-                def targetGradle = buildContext.getReleasedDistribution(target.version, temporaryFolder)
+                def targetGradle = buildContext.releasedDistribution(target.version)
                 it.useInstallation(new File(targetGradle.gradleHomeDir.absolutePath))
                 it.embedded(false)
             }

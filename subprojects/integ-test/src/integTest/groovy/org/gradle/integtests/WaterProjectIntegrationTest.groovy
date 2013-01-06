@@ -44,7 +44,7 @@ class WaterProjectIntegrationTest {
     final static String PHYTOPLANKTON_NAME = 'phytoplankton'
 
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
-    private final GradleDistribution dist = new GradleBuiltDistribution(temporaryFolder);
+    private final GradleDistribution dist = new GradleBuiltDistribution();
     private final GradleExecuter executer = new GradleContextualExecuter(temporaryFolder, dist.gradleHomeDir);
 
     @Rule public final Sample sample = new Sample(WATER_NAME)

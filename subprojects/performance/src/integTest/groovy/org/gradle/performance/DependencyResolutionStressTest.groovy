@@ -36,7 +36,7 @@ import java.util.zip.ZipOutputStream
 
 class DependencyResolutionStressTest extends Specification {
     @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider()
-    GradleDistribution distribution = new GradleBuiltDistribution(workspace)
+    GradleDistribution distribution = new GradleBuiltDistribution()
     @Rule StressHttpServer server = new StressHttpServer()
     @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
@@ -78,7 +78,7 @@ task check << {
 }
         """
 
-                GradleExecuter executer = distribution.executer()
+                GradleExecuter executer = distribution.executer(workspace)
                 executer.requireGradleHome(true).requireOwnGradleUserHomeDir()
                 10.times {
                     executer.inDirectory(buildDir).withArgument("--refresh-dependencies").withTasks('check').run()

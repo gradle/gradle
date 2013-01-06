@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
 public interface GradleDistribution {
@@ -38,7 +39,7 @@ public interface GradleDistribution {
     /**
      * Creates an executer which will use this distribution.
      */
-    GradleExecuter executer();
+    GradleExecuter executer(TestDirectoryProvider testDirectoryProvider);
 
     /**
      * Returns true if this distribution supports the given JVM.

@@ -31,7 +31,7 @@ import java.util.List;
 public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestRunner {
 
     private final TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
-    protected final GradleDistribution current = new GradleBuiltDistribution(testDirectoryProvider);
+    protected final GradleDistribution current = new GradleBuiltDistribution();
     protected final List<GradleDistribution> previous;
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {

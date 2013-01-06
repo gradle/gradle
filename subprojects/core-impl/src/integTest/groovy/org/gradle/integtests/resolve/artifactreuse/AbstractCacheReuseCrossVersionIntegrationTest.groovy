@@ -36,6 +36,6 @@ abstract class AbstractCacheReuseCrossVersionIntegrationTest extends CrossVersio
      */
 
     void setup() {
-        assert DefaultCacheLockingManager.CACHE_LAYOUT_VERSION == new GradleBuiltDistribution(this).artifactCacheLayoutVersion
+        assert DefaultCacheLockingManager.CACHE_LAYOUT_VERSION == new GradleBuiltDistribution().artifactCacheLayoutVersion
     }
 }

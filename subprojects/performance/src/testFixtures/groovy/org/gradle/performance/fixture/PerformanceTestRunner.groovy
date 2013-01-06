@@ -26,7 +26,7 @@ public class PerformanceTestRunner {
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
     def testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def current = new GradleBuiltDistribution(testDirectoryProvider)
+    def current = new GradleBuiltDistribution()
     def buildContext = new IntegrationTestBuildContext()
 
     String testProject
@@ -79,7 +79,7 @@ public class PerformanceTestRunner {
         File projectDir = new TestProjectLocator().findProjectDir(testProject)
         results.baselineVersions.reverse().each {
             println "Gradle ${it.version}..."
-            runOnce(buildContext.getReleasedDistribution(it.version, testDirectoryProvider), projectDir, it.results)
+            runOnce(buildContext.releasedDistribution(it.version), projectDir, it.results)
         }
 
         println "Current Gradle..."
@@ -102,7 +102,7 @@ public class PerformanceTestRunner {
             executer.withDeprecationChecksDisabled()
             executer.withStackTraceChecksDisabled()
         } else {
-            executer = dist.executer()
+            executer = dist.executer(testDirectoryProvider)
         }
         executer.withGradleUserHomeDir(executer.gradleUserHomeDir)
         return executer.withArguments('-u').inDirectory(projectDir).withTasks(tasksToRun).withArguments(args)

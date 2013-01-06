@@ -46,7 +46,7 @@ public class ReleasedVersions {
     public GradleDistribution getLast() {
         for (String v : VERSIONS) {
             if (!version(v).isSnapshot()) {
-                return buildContext.getReleasedDistribution(v, testDirectoryProvider);
+                return buildContext.releasedDistribution(v);
             }
         }
         throw new RuntimeException("Unable to get the last version");
@@ -55,7 +55,7 @@ public class ReleasedVersions {
     public List<GradleDistribution> getAll() {
         return CollectionUtils.collect(VERSIONS, new Transformer<GradleDistribution, String>() {
             public GradleDistribution transform(String original) {
-                return buildContext.getReleasedDistribution(original, testDirectoryProvider);
+                return buildContext.releasedDistribution(original);
             }
         });
     }

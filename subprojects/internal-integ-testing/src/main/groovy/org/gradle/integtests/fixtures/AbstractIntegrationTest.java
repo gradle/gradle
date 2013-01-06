@@ -31,11 +31,11 @@ import java.util.Set;
 
 public abstract class AbstractIntegrationTest implements TestDirectoryProvider {
     @Rule public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
-    public final GradleDistribution distribution = new GradleBuiltDistribution(this);
+    public final GradleDistribution distribution = new GradleBuiltDistribution();
     public final GradleExecuter executer = new GradleContextualExecuter(this, distribution.getGradleHomeDir());
 
     @ClassRule public static final TestNameTestDirectoryProvider SHARED_TEST_DIRECTORY_PROVIDER = new TestNameTestDirectoryProvider();
-    public static final GradleDistribution SHARED_DISTRIBUTION = new GradleBuiltDistribution(SHARED_TEST_DIRECTORY_PROVIDER);
+    public static final GradleDistribution SHARED_DISTRIBUTION = new GradleBuiltDistribution();
     private static final GradleExecuter SHARED_EXECUTER = new GradleContextualExecuter(SHARED_TEST_DIRECTORY_PROVIDER, SHARED_DISTRIBUTION.getGradleHomeDir());
 
     private static final Set<Class<?>> SHARED_BUILD_RUN_CLASSES = Sets.newHashSet();
@@ -97,7 +97,7 @@ public abstract class AbstractIntegrationTest implements TestDirectoryProvider {
     }
 
     protected ArtifactBuilder artifactBuilder() {
-        GradleExecuter gradleExecuter = getDistribution().executer();
+        GradleExecuter gradleExecuter = getDistribution().executer(testDirectoryProvider);
         gradleExecuter.withGradleUserHomeDir(getExecuter().getGradleUserHomeDir());
         return new GradleBackedArtifactBuilder(gradleExecuter, getTestDirectory().file("artifacts"));
     }

@@ -30,7 +30,7 @@ import spock.lang.Specification
 @RunWith(CrossVersionTestRunner)
 abstract class CrossVersionIntegrationSpec extends Specification implements TestDirectoryProvider {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final GradleDistribution current = new GradleBuiltDistribution(this)
+    final GradleDistribution current = new GradleBuiltDistribution()
     static GradleDistribution previous
     private MavenFileRepository mavenRepo
 
@@ -62,7 +62,7 @@ abstract class CrossVersionIntegrationSpec extends Specification implements Test
     }
 
     def version(GradleDistribution dist) {
-        def executer = dist.executer();
+        def executer = dist.executer(temporaryFolder);
         if (executer instanceof GradleContextualExecuter) {
             executer.withDeprecationChecksDisabled()
         }

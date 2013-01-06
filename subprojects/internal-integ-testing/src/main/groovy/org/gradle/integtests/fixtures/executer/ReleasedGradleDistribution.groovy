@@ -44,7 +44,6 @@ class ReleasedGradleDistribution implements GradleDistribution {
                 )).create()
     }
 
-    private final TestDirectoryProvider testDirectoryProvider
 
     final GradleVersion version
     private final TestFile versionDir
@@ -52,8 +51,7 @@ class ReleasedGradleDistribution implements GradleDistribution {
     private final TestFile homeDir
     private PersistentCache cache
 
-    ReleasedGradleDistribution(String version, TestFile versionDir, TestDirectoryProvider testDirectoryProvider) {
-        this.testDirectoryProvider = testDirectoryProvider
+    ReleasedGradleDistribution(String version, TestFile versionDir) {
         this.version = GradleVersion.version(version)
         this.versionDir = versionDir
         zipFile = versionDir.file("gradle-$version-bin.zip")
@@ -143,7 +141,7 @@ class ReleasedGradleDistribution implements GradleDistribution {
         return true
     }
 
-    GradleExecuter executer() {
+    GradleExecuter executer(TestDirectoryProvider testDirectoryProvider) {
         new ForkingGradleExecuter(testDirectoryProvider, gradleHomeDir)
     }
 

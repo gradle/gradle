@@ -27,13 +27,7 @@ import org.gradle.util.GradleVersion;
  */
 public class GradleBuiltDistribution implements GradleDistribution {
 
-    private TestDirectoryProvider testDirectoryProvider;
-
-    private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
-
-    public GradleBuiltDistribution(TestDirectoryProvider testWorkDirProvider) {
-        this.testDirectoryProvider = testWorkDirProvider;
-    }
+    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
     @Override
     public String toString() {
@@ -86,7 +80,7 @@ public class GradleBuiltDistribution implements GradleDistribution {
         return buildContext.getDistributionsDir().file(String.format("gradle-%s-bin.zip", getVersion()));
     }
 
-    public GradleExecuter executer() {
+    public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider) {
         return new GradleContextualExecuter(testDirectoryProvider, getGradleHomeDir());
     }
 

@@ -142,7 +142,7 @@ allprojects {
     }
 
     def "tooling api reports an error when the specified gradle version does not support the tooling api"() {
-        def distroZip = buildContext.getReleasedDistribution('0.9.2', temporaryFolder).binDistribution
+        def distroZip = buildContext.releasedDistribution('0.9.2').binDistribution
 
         when:
         toolingApi.withConnector { connector -> connector.useDistribution(distroZip.toURI()) }

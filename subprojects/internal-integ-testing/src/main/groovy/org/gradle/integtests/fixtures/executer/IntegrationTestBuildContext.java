@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
@@ -63,9 +62,9 @@ public class IntegrationTestBuildContext {
         return GradleVersion.current();
     }
 
-    public GradleDistribution getReleasedDistribution(String version, TestDirectoryProvider testDirectoryProvider) {
+    public GradleDistribution releasedDistribution(String version) {
         TestFile previousVersionDir = getGradleUserHomeDir().getParentFile().file("previousVersion");
-        return new ReleasedGradleDistribution(version, previousVersionDir.file(version), testDirectoryProvider);
+        return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }
 
     private static TestFile file(String propertyName, String defaultFile) {

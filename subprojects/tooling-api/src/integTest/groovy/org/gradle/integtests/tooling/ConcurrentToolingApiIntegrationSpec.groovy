@@ -44,7 +44,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final GradleDistribution dist = new GradleBuiltDistribution(temporaryFolder)
+    final GradleDistribution dist = new GradleBuiltDistribution()
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
 
     int threads = 3
@@ -65,7 +65,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
         when:
         threads.times {
-            concurrent.start { useToolingApi(new GradleBuiltDistribution(new TestNameTestDirectoryProvider())) }
+            concurrent.start { useToolingApi(new GradleBuiltDistribution()) }
         }
 
         then:

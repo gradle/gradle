@@ -40,7 +40,7 @@ class GradleRunnerTest {
   private File javaprojectDir
 
   @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-  final GradleDistribution dist = new GradleBuiltDistribution(temporaryFolder)
+  final GradleDistribution dist = new GradleBuiltDistribution()
   @Rule public final TestResources resources = new TestResources('testproject')
 
   @Before
