@@ -82,41 +82,11 @@ public class GradleDistribution implements BasicGradleDistribution {
     }
 
     public String getVersion() {
-        return GradleVersion.current().getVersion();
+        return buildContext.getVersion().getVersion();
     }
 
     public TestFile getBinDistribution() {
-        return getDistributionsDir().file(String.format("gradle-%s-bin.zip", getVersion()));
-    }
-
-    /**
-     * The samples from the distribution. These are usually shared with other tests.
-     */
-    public TestFile getSamplesDir() {
-        return buildContext.getSamplesDir();
-    }
-
-    public TestFile getUserGuideInfoDir() {
-        return buildContext.getUserGuildeInfoDir();
-    }
-
-    public TestFile getUserGuideOutputDir() {
-        return buildContext.getUserGuideOutputDir();
-    }
-
-    /**
-     * The directory containing the distribution Zips
-     */
-    public TestFile getDistributionsDir() {
-        return buildContext.getDistributionsDir();
-    }
-
-    public TestFile getLibsRepo() {
-        return buildContext.getLibsRepo();
-    }
-
-    public TestFile getPreviousVersionsDir() {
-        return buildContext.getGradleUserHomeDir().getParentFile().file("previousVersion");
+        return buildContext.getDistributionsDir().file(String.format("gradle-%s-bin.zip", getVersion()));
     }
 
     /**
@@ -129,7 +99,9 @@ public class GradleDistribution implements BasicGradleDistribution {
         if (version.equals(this.getVersion())) {
             return this;
         }
-        return new PreviousGradleVersionExecuter(version, getPreviousVersionsDir().file(version), testDirectoryProvider);
+
+        TestFile previousVersionDir = buildContext.getGradleUserHomeDir().getParentFile().file("previousVersion");
+        return new PreviousGradleVersionExecuter(version, previousVersionDir.file(version), testDirectoryProvider);
     }
 
     public GradleExecuter executer() {

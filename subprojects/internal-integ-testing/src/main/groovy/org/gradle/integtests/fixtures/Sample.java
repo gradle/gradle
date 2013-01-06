@@ -16,11 +16,10 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution;
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestDirectoryProviderFinder;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.RuleHelper;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -47,7 +46,6 @@ public class Sample implements MethodRule {
     }
 
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
-        final GradleDistribution dist = RuleHelper.getField(target, GradleDistribution.class);
         final TestDirectoryProvider testDirectoryProvider = new TestDirectoryProviderFinder().findFor(target);
 
         final String sampleName = getSampleName(method);
@@ -57,7 +55,7 @@ public class Sample implements MethodRule {
             @Override
             public void evaluate() throws Throwable {
                 if (sampleName != null) {
-                    TestFile srcDir = dist.getSamplesDir().file(sampleName).assertIsDir();
+                    TestFile srcDir = new IntegrationTestBuildContext().getSamplesDir().file(sampleName).assertIsDir();
                     logger.debug("Copying sample '{}' to test directory.", sampleName);
                     srcDir.copyTo(sampleDir);
                 } else {

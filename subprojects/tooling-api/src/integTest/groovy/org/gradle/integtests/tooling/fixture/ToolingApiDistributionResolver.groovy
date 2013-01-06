@@ -24,20 +24,18 @@ import org.gradle.api.internal.project.GlobalServicesRegistry
 import org.gradle.api.internal.project.ProjectInternalServiceRegistry
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.HelperUtil
 
 class ToolingApiDistributionResolver {
     private final DependencyResolutionServices resolutionServices
     private final Map<String, ToolingApiDistribution> distributions = [:]
-    private final GradleDistribution currentGradleDistribution = new GradleDistribution(new TestNameTestDirectoryProvider())
+    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private boolean useExternalToolingApiDistribution = false;
 
     ToolingApiDistributionResolver() {
         resolutionServices = createResolutionServices()
-        resolutionServices.resolveRepositoryHandler.maven { url currentGradleDistribution.libsRepo.toURI().toURL() }
+        resolutionServices.resolveRepositoryHandler.maven { url buildContext.libsRepo.toURI().toURL() }
     }
 
     ToolingApiDistributionResolver withRepository(String repositoryUrl) {
@@ -64,7 +62,7 @@ class ToolingApiDistributionResolver {
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
         !useExternalToolingApiDistribution &&
-        toolingApiVersion == currentGradleDistribution.version &&
+        toolingApiVersion == buildContext.version.version &&
                 GradleContextualExecuter.embedded
     }
 

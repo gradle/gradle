@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 
@@ -37,7 +38,7 @@ public class IntegrationTestBuildContext {
         return file("integTest.userGuideOutputDir", "subprojects/docs/src/samples/userguideOutput");
     }
     
-    public TestFile getUserGuildeInfoDir() {
+    public TestFile getUserGuideInfoDir() {
         return file("integTest.userGuideInfoDir", "subprojects/docs/build/src");    
     }
     
@@ -57,6 +58,10 @@ public class IntegrationTestBuildContext {
         return file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
     }
 
+    public GradleVersion getVersion() {
+        return GradleVersion.current();
+    }
+
     private static TestFile file(String propertyName, String defaultFile) {
         String path = System.getProperty(propertyName, defaultFile);
         if (path == null) {
@@ -65,5 +70,6 @@ public class IntegrationTestBuildContext {
         }
         return new TestFile(new File(path));
     }
+
 
 }

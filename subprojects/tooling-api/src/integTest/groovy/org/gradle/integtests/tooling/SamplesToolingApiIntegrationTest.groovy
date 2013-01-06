@@ -29,6 +29,8 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample()
 
+    private IntegrationTestBuildContext buildContext
+
     @UsesSample('toolingApi/eclipse')
     def "can use tooling API to build Eclipse model"() {
         tweakProject()
@@ -83,12 +85,13 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         def buildScript = buildFile.text
         def index = buildScript.indexOf('repositories {')
         assert index >= 0
+        buildContext = new IntegrationTestBuildContext()
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url "${distribution.libsRepo.toURI()}" }
+    maven { url "${buildContext.libsRepo.toURI()}" }
 }
 run {
-    args = ["${TextUtil.escapeString(new IntegrationTestBuildContext().gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)}"]
+    args = ["${TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)}"]
     systemProperty 'org.gradle.daemon.idletimeout', 10000
     systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
 }

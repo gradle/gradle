@@ -17,6 +17,7 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.PreconditionVerifier
@@ -59,7 +60,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     protected TestFile getZip(String type = getDistributionLabel()) {
-        distribution.distributionsDir.file("gradle-$version-${type}.zip")
+        new IntegrationTestBuildContext().distributionsDir.file("gradle-$version-${type}.zip")
     }
 
     protected void checkMinimalContents(TestFile contentsDir) {

@@ -21,6 +21,7 @@ import org.apache.tools.ant.taskdefs.Delete
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -42,6 +43,7 @@ class UserGuideSamplesRunner extends Runner {
     private Map<Description, SampleRun> samples
     private TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     private GradleDistribution dist = new GradleDistribution(temporaryFolder)
+    private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private GradleExecuter executer = new GradleContextualExecuter(temporaryFolder, dist.gradleHomeDir)
     private Pattern dirFilter
     private List excludes
@@ -53,7 +55,7 @@ class UserGuideSamplesRunner extends Runner {
         this.dirFilter = initDirFilterPattern()
         this.excludes = initExcludes()
         samples = new LinkedHashMap()
-        for (sample in getScriptsForSamples(dist.userGuideInfoDir)) {
+        for (sample in getScriptsForSamples(buildContext.userGuideInfoDir)) {
             if (shouldInclude(sample)) {
                 Description childDescription = Description.createTestDescription(testClass, sample.id)
                 description.addChild(childDescription)
@@ -65,7 +67,7 @@ class UserGuideSamplesRunner extends Runner {
         }
 
         // have to copy everything upfront because build scripts of some samples refer to files of other samples
-        dist.samplesDir.copyTo(baseExecutionDir)
+        buildContext.samplesDir.copyTo(baseExecutionDir)
     }
 
     private Pattern initDirFilterPattern() {
@@ -128,7 +130,7 @@ class UserGuideSamplesRunner extends Runner {
 
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
-                def expectedResult = replaceWithPlatformNewLines(dist.userGuideOutputDir.file(run.outputFile).text)
+                def expectedResult = replaceWithPlatformNewLines(buildContext.userGuideOutputDir.file(run.outputFile).text)
                 expectedResult = replaceWithRealSamplesDir(expectedResult)
                 try {
                     result.assertOutputEquals(expectedResult, run.ignoreExtraLines)
