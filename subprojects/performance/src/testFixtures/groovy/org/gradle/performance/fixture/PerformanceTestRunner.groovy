@@ -79,7 +79,7 @@ public class PerformanceTestRunner {
         File projectDir = new TestProjectLocator().findProjectDir(testProject)
         results.baselineVersions.reverse().each {
             println "Gradle ${it.version}..."
-            runOnce(buildContext.releasedDistribution(it.version), projectDir, it.results)
+            runOnce(buildContext.distribution(it.version), projectDir, it.results)
         }
 
         println "Current Gradle..."

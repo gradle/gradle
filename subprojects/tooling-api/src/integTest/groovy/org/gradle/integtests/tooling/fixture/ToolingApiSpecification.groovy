@@ -59,7 +59,7 @@ abstract class ToolingApiSpecification extends Specification {
         this.toolingApi.withConnector {
             if (consumerGradle.version != target.version) {
                 LOGGER.info("Overriding daemon tooling API provider to use installation: " + target);
-                def targetGradle = buildContext.releasedDistribution(target.version)
+                def targetGradle = buildContext.distribution(target.version)
                 it.useInstallation(new File(targetGradle.gradleHomeDir.absolutePath))
                 it.embedded(false)
             }
