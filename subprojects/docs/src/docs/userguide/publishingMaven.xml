@@ -30,6 +30,12 @@
         This chapter describes how to publish build artifacts to a <ulink url="http://maven.apache.org/">Apache Maven</ulink> Repository.
         A module published to a Maven repository can be consumed by Maven, Gradle (see <xref linkend="dependency_management" />) and other tools that understand the Maven repository format.
     </para>
+    <note>
+        <para>
+            It is currently only possible to publish '<literal>java</literal>' projects using the <literal>maven-publish</literal> plugin. If the <literal>java</literal> plugin is not
+            applied (either directly or indirectly) then no publication will be created.
+        </para>
+    </note>
     <section>
         <title>The <literal>maven-publish</literal> Plugin</title>
         <para>
@@ -44,12 +50,18 @@
         <itemizedlist>
             <listitem>Applies the <literal>publishing</literal> plugin</listitem>
             <listitem>
-                Creates a publication in the <literal>publishing.publications</literal> container of type <apilink class="org.gradle.api.publish.maven.MavenPublication" /> named “<literal>maven</literal>”
-                (see <xref linkend="publishing_maven:publications"/>)
-            </listitem>
-            <listitem>
-                Establish a rule to automatically create an <apilink class="org.gradle.api.publish.maven.tasks.PublishToMavenRepository" /> task for each Maven publishing repository added
-                (see <xref linkend="publishing_maven:repositories"/>)
+                If the project has the <literal>java</literal> plugin applied:
+                <itemizedlist>
+                    <listitem>
+                        Creates a publication in the <literal>publishing.publications</literal> container
+                        of type <apilink class="org.gradle.api.publish.maven.MavenPublication" /> named “<literal>maven</literal>”
+                        (see <xref linkend="publishing_maven:publications"/>)
+                    </listitem>
+                    <listitem>
+                        Establish a rule to automatically create an <apilink class="org.gradle.api.publish.maven.tasks.PublishToMavenRepository" /> task for each Maven publishing repository added
+                        (see <xref linkend="publishing_maven:repositories"/>)
+                    </listitem>
+                </itemizedlist>
             </listitem>
         </itemizedlist>
         <para>
@@ -61,7 +73,7 @@
     <section id="publishing_maven:publications">
         <title>Publications</title>
         <para>
-            When the “<literal>maven-publish</literal>” plugin is applied it creates a single publication named “<literal>maven</literal>”.
+            When the “<literal>maven-publish</literal>” plugin is applied together with the “<literal>java</literal>”plugin, it creates a single publication named “<literal>maven</literal>”.
             This publication will publish the artifacts of the project and the associated POM file.
         </para>
         <para>

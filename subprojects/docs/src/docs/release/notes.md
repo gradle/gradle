@@ -377,12 +377,12 @@ As a workaround you can dynamically check if the AppleScriptEngine is available:
 
 ### Changes to new Ivy Publication support (incubating)
 
-#### Removed `descriptorFile` property from IvyPublication
+**Removed `descriptorFile` property from IvyPublication**
 
 In Gradle 1.3, it was possible to set the `descriptorFile` property on an IvyPublication object. This property has been removed with the introduction of the new
 GenerateIvyDescriptor task. To specify where the `ivy.xml` file should be generated, set the `destination` property of the GenerateIvyDescriptor task.
 
-#### Generated XML descriptor does not include all configurations
+**Generated XML descriptor does not include all configurations**
 
 As part of improving the way we publish modules to an Ivy repository, we no longer publish _all_ configurations to the generated `ivy.xml`. Only the 'archives' configuration,
 together with the 'default' configuration and its ancestors will be published. In practice, this means that a Java project's 'testCompile' and 'testRuntime' configurations will
