@@ -94,7 +94,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         noDefaultJvmArgs = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
-        allowExtraLogging = true;
         return this;
     }
 
