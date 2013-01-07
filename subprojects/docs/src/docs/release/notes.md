@@ -392,11 +392,10 @@ no longer be published by default.
 
 The default value for TestNGOptions.useDefaultListeners has changed from `true` to `false` as Gradle now generates test results and reports for JUnit and TestNG.
 
-### Updated default versions of Checkstyle, CodeNarc, and FindBugs
+### Updated default versions of Checkstyle and CodeNarc
 
 * Checkstyle plugin: default Checkstyle version changed from 5.5 to 5.6.
 * CodeNarc plugin: default CodeNarc version changed from 0.16.1 to 0.18.
-* FindBugs plugin: default FindBugs version changed from 2.0.1 to 2.0.2.
 
 ## External contributions
 

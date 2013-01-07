@@ -63,7 +63,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     protected CodeQualityExtension createExtension() {
         extension = project.extensions.create("findbugs", FindBugsExtension)
         extension.with {
-            toolVersion = "2.0.2"
+            toolVersion = "2.0.1"
         }
         return extension
     }
