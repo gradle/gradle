@@ -22,11 +22,28 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
+import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
 
 /**
  * by Szczepan Faber, created at: 9/21/12
  */
 class InvertedRenderableDependencyResultTest extends Specification {
+    def "renders name"() {
+        given:
+        def requested = newSelector('org.mockito', 'mockito-core', '1.0')
+        def same = newModule('org.mockito', 'mockito-core', '1.0')
+        def differentVersion = newModule('org.mockito', 'mockito-core', '2.0')
+        def differentName = newModule('org.mockito', 'mockito', '1.0')
+        def differentGroup = newModule('com.mockito', 'mockito', '2.0')
+
+        expect:
+        dep(requested, same).name == 'org.mockito:mockito-core:1.0'
+        dep(requested, differentVersion).name == 'org.mockito:mockito-core:1.0 -> 2.0'
+        dep(requested, differentName).name == 'org.mockito:mockito-core:1.0 -> mockito:1.0'
+        dep(requested, differentGroup).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
+    }
 
     def "uses dependents as children"() {
         expect:
@@ -60,6 +77,14 @@ class InvertedRenderableDependencyResultTest extends Specification {
 
         then:
         result.children*.name == ['org:x:1.0', 'org:y:1.0']
+    }
+
+    private InvertedRenderableDependencyResult dep(ModuleVersionSelector requested, ResolvedModuleVersionResult selected) {
+        ResolvedDependencyResult dependencyResult = Stub() {
+            getRequested() >> requested
+            getSelected() >> selected
+        }
+        return new InvertedRenderableDependencyResult(dependencyResult, null)
     }
 
     static DefaultResolvedDependencyResult newDependency(String group='a', String module='a', String version='1', String requested = version,

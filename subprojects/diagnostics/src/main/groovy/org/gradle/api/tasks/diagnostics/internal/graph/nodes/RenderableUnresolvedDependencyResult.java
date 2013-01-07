@@ -25,12 +25,23 @@ import java.util.Collections;
 import java.util.Set;
 
 public class RenderableUnresolvedDependencyResult extends AbstractRenderableDependencyResult {
-    private ModuleVersionIdentifier actual;
+    private final ModuleVersionIdentifier actual;
+    private final UnresolvedDependencyResult dependency;
 
     public RenderableUnresolvedDependencyResult(UnresolvedDependencyResult dependency) {
-        super(dependency, null);
+        this.dependency = dependency;
         ModuleVersionSelector attempted = dependency.getAttempted();
         this.actual = DefaultModuleVersionIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
+    }
+
+    @Override
+    public boolean isResolvable() {
+        return false;
+    }
+
+    @Override
+    protected ModuleVersionSelector getRequested() {
+        return dependency.getRequested();
     }
 
     @Override

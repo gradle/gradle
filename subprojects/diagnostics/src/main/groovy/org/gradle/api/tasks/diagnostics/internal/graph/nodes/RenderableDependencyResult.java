@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
@@ -27,8 +29,25 @@ import java.util.Set;
  * by Szczepan Faber, created at: 7/27/12
  */
 public class RenderableDependencyResult extends AbstractRenderableDependencyResult {
+    private final ResolvedDependencyResult dependency;
+
     public RenderableDependencyResult(ResolvedDependencyResult dependency) {
-        super(dependency, null);
+        this.dependency = dependency;
+    }
+
+    @Override
+    public boolean isResolvable() {
+        return true;
+    }
+
+    @Override
+    protected ModuleVersionIdentifier getActual() {
+        return dependency.getSelected().getId();
+    }
+
+    @Override
+    protected ModuleVersionSelector getRequested() {
+        return dependency.getRequested();
     }
 
     public Set<RenderableDependency> getChildren() {

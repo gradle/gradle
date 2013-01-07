@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 8/10/12
  */
-public class RenderableModuleResult extends AbstractRenderableModuleResult implements RenderableDependency {
+public class RenderableModuleResult extends AbstractRenderableModuleResult {
 
     public RenderableModuleResult(ResolvedModuleVersionResult module) {
         super(module);

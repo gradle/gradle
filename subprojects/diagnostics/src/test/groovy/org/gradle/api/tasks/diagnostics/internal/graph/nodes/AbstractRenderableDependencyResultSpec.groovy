@@ -16,13 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
-import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 /**
  * by Szczepan Faber, created at: 10/9/12
@@ -34,14 +33,32 @@ class AbstractRenderableDependencyResultSpec extends Specification {
         def requested = newSelector('org.mockito', 'mockito-core', '1.0')
 
         expect:
-        dep(requested, newModule('org.mockito', 'mockito-core', '1.0')).name == 'org.mockito:mockito-core:1.0'
-        dep(requested, newModule('org.mockito', 'mockito-core', '2.0')).name == 'org.mockito:mockito-core:1.0 -> 2.0'
-        dep(requested, newModule('org.mockito', 'mockito', '1.0')).name == 'org.mockito:mockito-core:1.0 -> mockito:1.0'
-        dep(requested, newModule('com.mockito', 'mockito', '2.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
-        dep(requested, null).name == 'org.mockito:mockito-core:1.0'
+        dep(requested, newId('org.mockito', 'mockito-core', '1.0')).name == 'org.mockito:mockito-core:1.0'
+        dep(requested, newId('org.mockito', 'mockito-core', '2.0')).name == 'org.mockito:mockito-core:1.0 -> 2.0'
+        dep(requested, newId('org.mockito', 'mockito', '1.0')).name == 'org.mockito:mockito-core:1.0 -> mockito:1.0'
+        dep(requested, newId('com.mockito', 'mockito', '2.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
     }
 
-    private RenderableDependency dep(ModuleVersionSelector requested, ResolvedModuleVersionResult selected) {
-        Spy(AbstractRenderableDependencyResult, constructorArgs: [new DefaultResolvedDependencyResult(requested, selected, newModule()), null])
+    private AbstractRenderableDependencyResult dep(ModuleVersionSelector requested, ModuleVersionIdentifier selected) {
+        return new AbstractRenderableDependencyResult() {
+            @Override
+            protected ModuleVersionSelector getRequested() {
+                return requested
+            }
+
+            @Override
+            protected ModuleVersionIdentifier getActual() {
+                return selected
+            }
+
+            @Override
+            boolean isResolvable() {
+                throw new UnsupportedOperationException()
+            }
+
+            Set<RenderableDependency> getChildren() {
+                throw new UnsupportedOperationException()
+            }
+        }
     }
 }

@@ -16,7 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -26,10 +31,37 @@ import java.util.Set;
  *
  * by Szczepan Faber, created at: 7/27/12
  */
-public class InvertedRenderableDependencyResult extends AbstractRenderableDependencyResult implements RenderableDependency {
+public class InvertedRenderableDependencyResult extends AbstractRenderableDependencyResult {
+    private final DependencyResult dependency;
+    private final String description;
 
     public InvertedRenderableDependencyResult(DependencyResult dependency, String description) {
-        super(dependency, description);
+        this.dependency = dependency;
+        this.description = description;
+    }
+
+    @Override
+    public boolean isResolvable() {
+        return dependency instanceof ResolvedDependencyResult;
+    }
+
+    @Override
+    protected ModuleVersionSelector getRequested() {
+        return dependency.getRequested();
+    }
+
+    @Override
+    protected ModuleVersionIdentifier getActual() {
+        if (dependency instanceof UnresolvedDependencyResult) {
+            ModuleVersionSelector attempted = ((UnresolvedDependencyResult) dependency).getAttempted();
+            return DefaultModuleVersionIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
+        }
+        return dependency.getSelected().getId();
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
     }
 
     public Set<RenderableDependency> getChildren() {

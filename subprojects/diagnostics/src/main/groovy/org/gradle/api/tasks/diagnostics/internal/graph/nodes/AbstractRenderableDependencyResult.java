@@ -18,20 +18,10 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
 public abstract class AbstractRenderableDependencyResult implements RenderableDependency {
-    protected final DependencyResult dependency;
-    protected final String description;
-
-    public AbstractRenderableDependencyResult(DependencyResult dependency, @Nullable String description) {
-        this.dependency = dependency;
-        this.description = description;
-    }
-
     public ModuleVersionIdentifier getId() {
-        return dependency.getSelected().getId();
+        return getActual();
     }
 
     public String getName() {
@@ -41,25 +31,24 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
         return getVerboseName();
     }
 
-    public boolean isResolvable() {
-        return dependency instanceof ResolvedDependencyResult;
-    }
+    public abstract boolean isResolvable();
 
     private boolean requestedEqualsSelected() {
-        return dependency.getSelected() == null || dependency.getRequested().matchesStrictly(dependency.getSelected().getId());
+        return getRequested().matchesStrictly(getActual());
     }
 
     @Nullable
     public String getDescription() {
-        return description;
+        return null;
     }
 
     private String getSimpleName() {
-        return dependency.getRequested().getGroup() + ":" + dependency.getRequested().getName() + ":" + dependency.getRequested().getVersion();
+        ModuleVersionSelector requested = getRequested();
+        return requested.getGroup() + ":" + requested.getName() + ":" + requested.getVersion();
     }
 
     private String getVerboseName() {
-        ModuleVersionSelector requested = dependency.getRequested();
+        ModuleVersionSelector requested = getRequested();
         ModuleVersionIdentifier selected = getActual();
         if(!selected.getGroup().equals(requested.getGroup())) {
             return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getName() + ":" + selected.getVersion();
@@ -73,12 +62,7 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
         return getSimpleName();
     }
 
-    protected ModuleVersionIdentifier getActual() {
-        return dependency.getSelected().getId();
-    }
+    protected abstract ModuleVersionSelector getRequested();
 
-    @Override
-    public String toString() {
-        return dependency.toString();
-    }
+    protected abstract ModuleVersionIdentifier getActual();
 }

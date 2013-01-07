@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * by Szczepan Faber, created at: 8/10/12
  */
-public class InvertedRenderableModuleResult extends RenderableModuleResult implements RenderableDependency {
+public class InvertedRenderableModuleResult extends RenderableModuleResult {
 
     public InvertedRenderableModuleResult(ResolvedModuleVersionResult module) {
         super(module);
