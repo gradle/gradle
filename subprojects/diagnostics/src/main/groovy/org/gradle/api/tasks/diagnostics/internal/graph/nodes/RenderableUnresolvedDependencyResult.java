@@ -16,30 +16,29 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.Set;
 
-/**
- * by Szczepan Faber, created at: 7/27/12
- */
-public class RenderableDependencyResult extends AbstractRenderableDependencyResult {
-    public RenderableDependencyResult(ResolvedDependencyResult dependency) {
+public class RenderableUnresolvedDependencyResult extends AbstractRenderableDependencyResult {
+    private ModuleVersionIdentifier actual;
+
+    public RenderableUnresolvedDependencyResult(UnresolvedDependencyResult dependency) {
         super(dependency, null);
+        ModuleVersionSelector attempted = dependency.getAttempted();
+        this.actual = DefaultModuleVersionIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
+    }
+
+    @Override
+    protected ModuleVersionIdentifier getActual() {
+        return actual;
     }
 
     public Set<RenderableDependency> getChildren() {
-        Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
-        for (DependencyResult d : dependency.getSelected().getDependencies()) {
-            if (d instanceof UnresolvedDependencyResult) {
-                out.add(new RenderableUnresolvedDependencyResult((UnresolvedDependencyResult) d));
-            } else {
-                out.add(new RenderableDependencyResult((ResolvedDependencyResult) d));
-            }
-        }
-        return out;
+        return Collections.emptySet();
     }
 }
