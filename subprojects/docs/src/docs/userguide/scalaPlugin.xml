@@ -162,7 +162,7 @@
         <para>
             Scala projects need to add a <literal>scala-library</literal> dependency to the appropriate configuration(s). This dependency will then
             be used as a compile and runtime dependency for the project's Scala code. It will also be used to infer a <literal>scala-compiler</literal>
-            dependency for executing the Scala compiler and Scaladoc tool, respectively.
+            dependency for executing the Scala compiler and Scaladoc tool.
             <footnote>
                 More precisely, if a <literal>ScalaCompile</literal> or <literal>ScalaDoc</literal> task's <literal>scalaClasspath</literal> is empty,
                 and the project has at least one repository declared, the plugin searches the task's <literal>classpath</literal> for a
@@ -186,9 +186,9 @@
             <sourcefile file="build.gradle" snippet="scala-test-dependency"/>
         </sample>
         <para>
-            In earlier Gradle versions, it was necessary to add the <literal>scala-compiler</literal> dependency to the <literal>scalaTools</literal>
-            configuration. This is now deprecated in favor of automatic configuration of <literal>scala-compiler</literal> (see above), which is more
-            convenient and makes it easier to compile against multiple Scala versions.
+            In earlier Gradle versions, it was necessary to add a <literal>scala-compiler</literal> dependency to the <literal>scalaTools</literal>
+            configuration. Although typically no longer necessary (because the compiler dependency is inferred), this is still supported for
+            backwards compatibility.
         </para>
     </section>
 

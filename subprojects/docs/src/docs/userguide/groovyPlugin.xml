@@ -188,9 +188,9 @@
         <sample id="bundledGroovyDependency" dir="userguide/groovy/groovyDependency" title="Configuration of bundled Groovy dependency">
             <sourcefile file="build.gradle" snippet="bundled-groovy-dependency"/>
         </sample>
-        <para>In earlier Gradle versions, the Groovy dependency was instead added to the <literal>groovy</literal> configuration.
-            This is now deprecated in favor of adding it to a "standard" configuration like <literal>compile</literal> or <literal>testCompile</literal>,
-            which gives more control over what (not) to use Groovy for, and makes it easier to compile against multiple Groovy versions.
+        <para>
+            In earlier Gradle versions, the Groovy dependency was instead added to the <literal>groovy</literal> configuration.
+            This is no longer the preferred approach, but is still supported for backwards compatibility.
         </para>
         <sample id="groovyConfiguration" dir="userguide/groovy/groovyDependency" title="Configuration of Groovy configuration">
             <sourcefile file="build.gradle" snippet="groovy-configuration"/>
