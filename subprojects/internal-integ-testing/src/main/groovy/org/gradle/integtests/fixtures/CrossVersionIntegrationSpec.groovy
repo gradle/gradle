@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleBuiltDistribution
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -62,10 +61,8 @@ abstract class CrossVersionIntegrationSpec extends Specification implements Test
     }
 
     def version(GradleDistribution dist) {
-        def executer = dist.executer(temporaryFolder);
-        if (executer instanceof GradleContextualExecuter) {
-            executer.withDeprecationChecksDisabled()
-        }
+        def executer = dist.executer(temporaryFolder)
+        executer.withDeprecationChecksDisabled()
         executer.inDirectory(testDirectory)
         return executer;
     }
