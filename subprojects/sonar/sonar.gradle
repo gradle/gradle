@@ -33,8 +33,8 @@ dependencies {
     provided "commons-configuration:commons-configuration:1.6@jar"
 
     //integTestRuntime "com.h2database:h2:1.3.168"
-    integTestRuntime "org.gradle.sonar:sonar-test-server:3.4@war"
-    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.4@zip"
+    integTestRuntime "org.gradle.sonar:sonar-test-server:3.2@war"
+    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.2@zip"
 }
 
 useTestFixtures()
