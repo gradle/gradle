@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
 
@@ -39,7 +40,7 @@ public class CachingDependencyResultFactory {
     private final Map<List, DefaultResolvedDependencyResult> resolvedDependencies = new HashMap<List, DefaultResolvedDependencyResult>();
 
     public UnresolvedDependencyResult createUnresolvedDependency(ModuleVersionSelector requested, ResolvedModuleVersionResult from,
-                                                       @Nullable ResolvedModuleVersionResult selected, Exception failure) {
+                                                       @Nullable ResolvedModuleVersionResult selected, ModuleVersionResolveException failure) {
         List<Object> key = asList(requested, from);
         if (!unresolvedDependencies.containsKey(key)) {
             unresolvedDependencies.put(key, new DefaultUnresolvedDependencyResult(requested, selected, from, failure));

@@ -17,11 +17,22 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 
 /**
  * A dependency that couldn't be resolved.
  */
 @Incubating
 public interface UnresolvedDependencyResult extends DependencyResult {
+    /**
+     * Returns the module version selector that was attempted to be resolved. This may not be the same as the requested selector.
+     */
+    ModuleVersionSelector getAttempted();
+
+    /**
+     * Returns the reasons why the failed selector was attempted.
+     */
+    ModuleVersionSelectionReason getAttemptedReason();
+
     Exception getFailure();
 }

@@ -18,23 +18,34 @@ package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 /**
  * by Szczepan Faber, created at: 7/26/12
  */
 public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult implements UnresolvedDependencyResult {
-    private final Exception failure;
+    private final ModuleVersionResolveException failure;
 
     public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, @Nullable ResolvedModuleVersionResult selected,
-                                             ResolvedModuleVersionResult from, Exception failure) {
+                                             ResolvedModuleVersionResult from, ModuleVersionResolveException failure) {
         super(requested, selected, from);
         this.failure = failure;
     }
 
-    public Exception getFailure() {
+    public ModuleVersionResolveException getFailure() {
         return failure;
+    }
+
+    public ModuleVersionSelector getAttempted() {
+        return failure.getSelector();
+    }
+
+    public ModuleVersionSelectionReason getAttemptedReason() {
+        return getSelected() == null ? VersionSelectionReasons.REQUESTED : getSelected().getSelectionReason();
     }
 
     @Override

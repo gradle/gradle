@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 /**
  * by Szczepan Faber, created at: 8/24/12
@@ -26,7 +27,9 @@ public interface InternalDependencyResult {
 
     ModuleVersionSelector getRequested();
 
-    @Nullable Exception getFailure();
+    @Nullable
+    ModuleVersionResolveException getFailure();
 
-    @Nullable ModuleVersionSelection getSelected();
+    @Nullable
+    ModuleVersionSelection getSelected();
 }

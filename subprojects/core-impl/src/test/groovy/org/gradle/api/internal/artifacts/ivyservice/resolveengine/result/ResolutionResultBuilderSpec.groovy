@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.*
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 
 /**
  * by Szczepan Faber, created at: 8/27/12
@@ -203,7 +204,7 @@ class ResolutionResultBuilderSpec extends Specification {
         print(result.root) == """x:a:1
   x:b:1 [a]
   x:c:1 [a]
-  x:U:1 - unresolved!
+  x:U:1 - Could not resolve x:U:1.
 """
     }
 
@@ -220,7 +221,9 @@ class ResolutionResultBuilderSpec extends Specification {
 
     private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         def selection = new DummyModuleVersionSelection(selectedId: newId("x", selected, "1"), selectionReason: selectionReason)
-        new DummyInternalDependencyResult(requested: newSelector("x", requested, "1"), selected: selection, failure: failure)
+        def selector = newSelector("x", requested, "1")
+        failure = failure == null ? null : new ModuleVersionResolveException(selector, failure)
+        new DummyInternalDependencyResult(requested: selector, selected: selection, failure: failure)
     }
 
     private ModuleVersionIdentifier confId(String module) {
@@ -259,6 +262,6 @@ class ResolutionResultBuilderSpec extends Specification {
     class DummyInternalDependencyResult implements InternalDependencyResult {
         ModuleVersionSelector requested
         ModuleVersionSelection selected
-        Exception failure
+        ModuleVersionResolveException failure
     }
 }

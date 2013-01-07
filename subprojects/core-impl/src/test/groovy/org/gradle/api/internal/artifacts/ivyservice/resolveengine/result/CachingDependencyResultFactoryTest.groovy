@@ -20,6 +20,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 
 /**
  * by Szczepan Faber, created at: 10/1/12
@@ -52,12 +53,12 @@ class CachingDependencyResultFactoryTest extends Specification {
         def selectedModule = newModule('selected')
 
         when:
-        def dep = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new RuntimeException("foo"))
-        def same = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new RuntimeException("foo"))
+        def dep = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new ModuleVersionResolveException(selector('requested'), "foo"))
+        def same = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new ModuleVersionResolveException(selector('requested'), "foo"))
 
-        def differentRequested = factory.createUnresolvedDependency(selector('xxx'), fromModule, selectedModule, new RuntimeException("foo"))
-        def differentFrom = factory.createUnresolvedDependency(selector('requested'), newModule('xxx'), selectedModule, new RuntimeException("foo"))
-        def differentFailure = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new RuntimeException("xxx"))
+        def differentRequested = factory.createUnresolvedDependency(selector('xxx'), fromModule, selectedModule, new ModuleVersionResolveException(selector('xxx'), "foo"))
+        def differentFrom = factory.createUnresolvedDependency(selector('requested'), newModule('xxx'), selectedModule, new ModuleVersionResolveException(selector('requested'), "foo"))
+        def differentFailure = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new ModuleVersionResolveException(selector('requested'), "foo"))
 
         then:
         dep.is(same)

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 
 /**
  * by Szczepan Faber, created at: 10/2/12
@@ -32,7 +33,8 @@ class ResolutionResultDataBuilder {
     }
 
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
-        new DefaultUnresolvedDependencyResult(newSelector(group, module, version), newModule(group, module, selectedVersion), newModule(), new RuntimeException("boo!"))
+        def requested = newSelector(group, module, version)
+        new DefaultUnresolvedDependencyResult(requested, newModule(group, module, selectedVersion), newModule(), new ModuleVersionResolveException(requested, "broken"))
     }
 
     static DefaultResolvedModuleVersionResult newModule(String group='a', String module='a', String version='1',

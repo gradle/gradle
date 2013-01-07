@@ -49,5 +49,7 @@ class DependencyResultPrinterSpec extends Specification {
         ResolvedModuleVersionResult selected
         ResolvedModuleVersionResult from
         Exception failure
+        ModuleVersionSelector attempted
+        ModuleVersionSelectionReason attemptedReason
     }
 }
