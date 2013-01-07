@@ -36,7 +36,7 @@ class ToolingApiDistributionInitScriptHandlingCrossVersionIntegrationTest extend
     TestFile createDistribution(int i) {
         def distro = file("distro$i")
         distro.copyFrom(getTargetDist().getGradleHomeDir())
-        distro.file("bin", OperatingSystem.current().getScriptName("gradle")).setExecutable(true)
+        distro.file("bin", OperatingSystem.current().getScriptName("gradle")).permissions = 'rwx------'
         distro.file("init.d/init.gradle") << """
             gradle.allprojects {
                 task echo << { println "from distro $i" }
