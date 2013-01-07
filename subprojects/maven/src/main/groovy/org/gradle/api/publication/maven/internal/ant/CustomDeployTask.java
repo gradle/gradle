@@ -16,6 +16,9 @@
 package org.gradle.api.publication.maven.internal.ant;
 
 import org.apache.maven.artifact.ant.DeployTask;
+import org.apache.maven.artifact.ant.Pom;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.PlexusContainer;
 
@@ -39,6 +42,15 @@ public class CustomDeployTask extends DeployTask implements CustomInstallDeployT
     public void doExecute() {
         LoggingHelper.injectLogger(getContainer(), getProject());
         super.doExecute();
+    }
+
+    @Override
+    public Pom initializePom(ArtifactRepository localArtifactRepository) {
+        // Pom initialization is not thread-safe, as it holds static state in the maven classes.
+        // This class-level lock means this piece of code will never execute concurrently for a given instance of the maven classes
+        synchronized (MavenProjectBuilder.class) {
+            return super.initializePom(localArtifactRepository);
+        }
     }
 
     public void clearAttachedArtifactsList() {
