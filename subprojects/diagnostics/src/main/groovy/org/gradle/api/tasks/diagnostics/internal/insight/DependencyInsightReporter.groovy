@@ -16,15 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
+
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
-import org.gradle.api.artifacts.result.ResolvedDependencyResult
-import org.gradle.api.tasks.diagnostics.internal.graph.nodes.InvertedRenderableDependencyResult
-import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
-import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
-import org.gradle.api.tasks.diagnostics.internal.graph.nodes.InvertedRenderableUnresolvedDependencyResult
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.*
 
 /**
  * Created: 23/08/2012
@@ -35,30 +32,35 @@ public class DependencyInsightReporter {
 
     Collection<RenderableDependency> prepare(Collection<DependencyResult> input) {
         def out = new LinkedList<RenderableDependency>()
-        def sorted = DependencyResultSorter.sort(input)
+        def sorted = DependencyResultSorter.sort(input).collect {
+            if (it instanceof UnresolvedDependencyResult) {
+                return new InvertedRenderableUnresolvedDependencyResult(it, "")
+            } else {
+                return new InvertedRenderableDependencyResult(it, "")
+            }
+        }
 
         //remember if module id was annotated
         def annotated = new HashSet<ModuleVersionIdentifier>()
+        def current = null
 
-        for (DependencyResult dependency: sorted) {
-            def description = null
+        for (InvertedRenderableDependency dependency: sorted) {
             //add description only to the first module
-            if (annotated.add(dependency.selected.id)) {
+            if (annotated.add(dependency.actual)) {
                 //add a heading dependency with the annotation if the dependency does not exist in the graph
-                if (!dependency.requested.matchesStrictly(dependency.selected.id)) {
-                    def name = dependency.selected.id.group + ":" + dependency.selected.id.name + ":" + dependency.selected.id.version
-                    out << new SimpleDependency(name, dependency.selected instanceof ResolvedDependencyResult,
-                            describeReason(dependency.selected.selectionReason))
+                if (!dependency.requested.matchesStrictly(dependency.actual)) {
+                    out << new RequestedVersion(dependency.actual, dependency.resolvable, describeReason(dependency.reason))
+                    current = new RequestedVersion(dependency.requested, dependency.actual, dependency.resolvable, null)
+                    out << current
                 } else {
-                    description = describeReason(dependency.selected.selectionReason)
+                    current = new RequestedVersion(dependency.requested, dependency.actual, dependency.resolvable, describeReason(dependency.reason))
+                    out << current
                 }
+            } else if (current.requested != dependency.requested) {
+                current = new RequestedVersion(dependency.requested, dependency.actual, dependency.resolvable, null)
+                out << current
             }
-
-            if (dependency instanceof UnresolvedDependencyResult) {
-                out << new InvertedRenderableUnresolvedDependencyResult(dependency, description)
-            } else {
-                out << new InvertedRenderableDependencyResult(dependency, description)
-            }
+            current.addChild(dependency)
         }
 
         out

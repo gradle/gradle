@@ -232,7 +232,7 @@ org:leaf:1.0 -> 2.0
 
         then:
         output.contains(toPlatformLineSeparators("""
-org:leaf:1.5 (forced) FAILED
+org:leaf:1.5 (forced)
 
 org:leaf:1.0 -> 1.5
 \\--- org:foo:1.0

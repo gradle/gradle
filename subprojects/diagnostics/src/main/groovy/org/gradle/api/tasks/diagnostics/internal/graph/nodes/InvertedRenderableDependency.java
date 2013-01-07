@@ -17,16 +17,13 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 
-import java.util.Set;
+public interface InvertedRenderableDependency extends RenderableDependency {
+    ModuleVersionSelector getRequested();
 
-/**
-* by Szczepan Faber, created at: 7/27/12
-*/
-public interface RenderableDependency {
-    ModuleVersionIdentifier getId();
-    String getName();
-    String getDescription();
-    boolean isResolvable();
-    Set<? extends RenderableDependency> getChildren();
+    ModuleVersionIdentifier getActual();
+
+    ModuleVersionSelectionReason getReason();
 }

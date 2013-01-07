@@ -16,11 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.internal.artifacts.version.LatestVersionSemanticComparator;
-import org.gradle.api.specs.Spec;
-import org.gradle.util.CollectionUtils;
 
 import java.util.*;
 
@@ -37,13 +34,7 @@ public class DependencyResultSorter {
      * so that the dependency that was selected is more prominent.
      */
     public static Collection<DependencyResult> sort(Collection<DependencyResult> input) {
-        //dependencies with the same 'requested' should be presented in a single tree
-        final Set<ModuleVersionSelector> uniqueRequested = new HashSet<ModuleVersionSelector>();
-        List<DependencyResult> out = CollectionUtils.filter(input, new LinkedList<DependencyResult>(), new Spec<DependencyResult>() {
-            public boolean isSatisfiedBy(DependencyResult element) {
-                return uniqueRequested.add(element.getRequested());
-            }
-        });
+        List<DependencyResult> out = new ArrayList<DependencyResult>(input);
         Collections.sort(out, new DependencyComparator());
         return out;
     }

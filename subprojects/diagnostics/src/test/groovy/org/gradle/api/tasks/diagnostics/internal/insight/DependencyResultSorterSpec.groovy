@@ -59,7 +59,7 @@ class DependencyResultSorterSpec extends Specification {
         sorted == [d2, d1]
     }
 
-    def "excludes dependencies with the same requested->selected"() {
+    def "retains dependencies with the same requested->selected"() {
         def d1 = newDependency(newSelector("org.gradle", "core", "2.0"), newId("org.gradle", "core", "2.0"), "foo")
         def d2 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), "bar")
         def d3 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), "baz")
@@ -68,7 +68,7 @@ class DependencyResultSorterSpec extends Specification {
         def sorted = DependencyResultSorter.sort([d3, d2, d1])
 
         then:
-        sorted == [d1, d3]
+        sorted == [d1, d3, d2]
     }
 
     private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, String from = 'whatever') {

@@ -18,10 +18,10 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * by Szczepan Faber, created at: 7/27/12
  */
-public class InvertedRenderableDependencyResult extends AbstractRenderableDependencyResult {
+public class InvertedRenderableDependencyResult extends AbstractRenderableDependencyResult implements InvertedRenderableDependency {
     private final ResolvedDependencyResult dependency;
     private final String description;
 
@@ -44,12 +44,16 @@ public class InvertedRenderableDependencyResult extends AbstractRenderableDepend
     }
 
     @Override
-    protected ModuleVersionSelector getRequested() {
+    public ModuleVersionSelector getRequested() {
         return dependency.getRequested();
     }
 
+    public ModuleVersionSelectionReason getReason() {
+        return dependency.getSelected().getSelectionReason();
+    }
+
     @Override
-    protected ModuleVersionIdentifier getActual() {
+    public ModuleVersionIdentifier getActual() {
         return dependency.getSelected().getId();
     }
 
@@ -58,15 +62,7 @@ public class InvertedRenderableDependencyResult extends AbstractRenderableDepend
         return description;
     }
 
-    public Set<RenderableDependency> getChildren() {
-        Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
-        for (DependencyResult d : dependency.getSelected().getDependents()) {
-            //we want only the dependents that match the requested
-            if (d.getRequested().equals(dependency.getRequested())) {
-                out.add(new InvertedRenderableModuleResult(d.getFrom()));
-            }
-        }
-
-        return out;
+    public Set<? extends RenderableDependency> getChildren() {
+        return Collections.singleton(new InvertedRenderableModuleResult(dependency.getFrom()));
     }
 }
