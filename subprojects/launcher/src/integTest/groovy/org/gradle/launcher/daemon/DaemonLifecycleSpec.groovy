@@ -148,6 +148,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
         executer.withArguments("--foreground", "--info", "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}")
         foregroundDaemons << executer.start()
+        executer.withJavaHome(null)
     }
 
     //this is a windows-safe way of killing the process
