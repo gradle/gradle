@@ -116,8 +116,7 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         Dependency mavenDependency =  new Dependency();
         mavenDependency.setGroupId(dependency.getGroup());
         if (dependency instanceof ProjectDependency) {
-            String artifactId = new ProjectDependencyArtifactIdExtractorHack((ProjectDependency) dependency).extract();
-            mavenDependency.setArtifactId(artifactId);
+            mavenDependency.setArtifactId(determineProjectDependencyArtifactId((ProjectDependency) dependency));
         } else {
             mavenDependency.setArtifactId(name);
         }
@@ -128,6 +127,10 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         mavenDependency.setClassifier(classifier);
         mavenDependency.setExclusions(getExclusions(dependency, configurations));
         return mavenDependency;
+    }
+
+    protected String determineProjectDependencyArtifactId(ProjectDependency dependency) {
+        return new ProjectDependencyArtifactIdExtractorHack(dependency).extract();
     }
 
     private List<Exclusion> getExclusions(ModuleDependency dependency, Set<Configuration> configurations) {

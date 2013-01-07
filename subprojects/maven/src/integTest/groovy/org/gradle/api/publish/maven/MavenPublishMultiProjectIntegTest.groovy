@@ -21,7 +21,7 @@ import spock.lang.Ignore
 class MavenPublishMultiProjectIntegTest extends AbstractIntegrationSpec {
     def project1module = mavenRepo.module("org.gradle.test", "project1", "1.9")
 
-    def "project dependency correctly reflected in POM if publication coordinates are unchanged"() {
+    def "project dependency correctly reflected in POM"() {
         createBuildScripts("""
 project(":project1") {
     dependencies {
@@ -31,14 +31,13 @@ project(":project1") {
         """)
 
         when:
-        run ":project1:publish"
+        run "publish"
 
         then:
-        def pom = project1module.parsedPom
-        pom.scopes.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
+        projectsCorrectlyPublished()
     }
 
-    def "project dependency correctly reflected in POM if archivesBaseName is changed"() {
+    def "maven-publish plugin does not take archivesBaseName into account when publishing"() {
         createBuildScripts("""
 project(":project1") {
     dependencies {
@@ -52,14 +51,13 @@ project(":project2") {
         """)
 
         when:
-        run ":project1:publish"
+        run "publish"
 
         then:
-        def pom = project1module.parsedPom
-        pom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
+        projectsCorrectlyPublished()
     }
 
-    def "project dependency correctly reflected in POM if mavenDeployer.pom.artifactId is changed"() {
+    def "maven-publish plugin does not take mavenDeployer.pom.artifactId into account when publishing"() {
         createBuildScripts("""
 project(":project1") {
     dependencies {
@@ -81,11 +79,61 @@ project(":project2") {
         """)
 
         when:
-        run ":project1:publish"
+        run "publish"
 
         then:
-        def pom = project1module.parsedPom
-        pom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
+        projectsCorrectlyPublished()
+    }
+
+    private def projectsCorrectlyPublished() {
+        def project2 = mavenRepo.module("org.gradle.test", "project2", "1.9")
+        project2.assertPublishedAsJavaModule()
+
+        def project1pom = project1module.parsedPom
+        project1pom.scopes.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
+
+        return true
+    }
+
+
+    def "maven-publish plugin will use target project archivesBaseName for project dependency when target project does not have maven-publish plugin applied"() {
+        given:
+        settingsFile << """
+include "project1", "project2"
+        """
+
+        buildFile << """
+allprojects {
+    group = "org.gradle.test"
+    version = 1.9
+}
+
+project(":project1") {
+    apply plugin: "java"
+    apply plugin: "maven-publish"
+
+    dependencies {
+        compile project(":project2")
+    }
+
+    publishing {
+        repositories {
+            maven { url "file:///\$rootProject.projectDir/maven-repo" }
+        }
+    }
+}
+project(":project2") {
+    apply plugin: 'maven'
+    archivesBaseName = "changed"
+}
+        """
+
+        when:
+        run "publish"
+
+        then:
+        def project1pom = project1module.parsedPom
+        project1pom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
     }
 
     @Ignore("This does not work: fix this as part of making the project coordinates customisable via DSL") // TODO:DAZ
@@ -118,35 +166,7 @@ project(":project2") {
         pom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
     }
 
-    @Ignore("This test currently proves nothing, since the maven-publish plugin does not include artifacts from the 'archives' configuration") // TODO:DAZ
-    def "project dependency correctly reflected in POM if second artifact is published which differs in classifier"() {
-        createBuildScripts("""
-project(":project1") {
-    dependencies {
-        compile project(":project2")
-    }
-}
-
-project(":project2") {
-    task jar2(type: Jar) {
-        classifier = "other"
-    }
-
-    artifacts {
-        archives jar2
-    }
-}
-        """)
-
-        when:
-        run ":project1:publish"
-
-        then:
-        def pom = project1module.parsedPom
-        pom.scopes.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
-    }
-
-    def "mulitple project dependencies correctly reflected in POMs"() {
+    def "multiple project dependencies correctly reflected in POMs"() {
         createBuildScripts("""
 project(":project1") {
     dependencies {
@@ -177,7 +197,6 @@ project(":project2") {
         def pom3 = mavenRepo.module("org.gradle.test", "project3", "1.9").parsedPom
         pom3.scopes.runtime == null
     }
-
 
     private void createBuildScripts(String append = "") {
         settingsFile << """

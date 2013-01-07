@@ -29,6 +29,8 @@ import org.gradle.api.publication.maven.internal.DeployerFactory;
 import org.gradle.api.publication.maven.internal.PomDependenciesConverter;
 import org.gradle.api.publication.maven.internal.ant.DefaultExcludeRuleConverter;
 import org.gradle.api.publication.maven.internal.ant.DefaultPomDependenciesConverter;
+import org.gradle.api.publication.maven.internal.ant.ProjectDependencyArtifactIdExtractorHack;
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
 import org.gradle.internal.Factory;
 
 import java.util.Collections;
@@ -39,7 +41,7 @@ public class MavenPublisher {
     private final DeployerFactory deployerFactory;
     private final Factory<Configuration> configurationFactory;
     private final ArtifactPublisher artifactPublisher;
-    private final PomDependenciesConverter pomDependenciesConverter = new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter());
+    private final PomDependenciesConverter pomDependenciesConverter = new MavenPublishPomDependenciesConverter();
 
     public MavenPublisher(DeployerFactory deployerFactory, Factory<Configuration> configurationFactory, ArtifactPublisher artifactPublisher) {
         this.deployerFactory = deployerFactory;
@@ -92,4 +94,18 @@ public class MavenPublisher {
         return configuration;
     }
 
+    private static class MavenPublishPomDependenciesConverter extends DefaultPomDependenciesConverter {
+        public MavenPublishPomDependenciesConverter() {
+            super(new DefaultExcludeRuleConverter());
+        }
+
+        @Override
+        protected String determineProjectDependencyArtifactId(ProjectDependency dependency) {
+            // Don't use artifact id hacks when the target project has the maven-publish plugin applied
+            if (dependency.getDependencyProject().getPlugins().hasPlugin(MavenPublishPlugin.class)) {
+                return dependency.getDependencyProject().getName();
+            }
+            return new ProjectDependencyArtifactIdExtractorHack(dependency).extract();
+        }
+    }
 }
