@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 /**
  * @author Szczepan Faber, @date 03.03.11
  */
-class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
+class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
-    void "forces multiple modules by action"()
+    void "forces multiple modules by rule"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
@@ -62,7 +62,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "module forced by action has correct selection reason"()
+    void "module forced by rule has correct selection reason"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
@@ -92,7 +92,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	            assert deps*.selected.id.name == ['foo', 'impl', 'api']
 	            assert deps*.selected.id.version == ['2.0', '1.5', '1.5']
 	            assert deps*.selected.selectionReason.forced         == [false, false, false]
-	            assert deps*.selected.selectionReason.selectedByAction == [false, true, true]
+	            assert deps*.selected.selectionReason.selectedByRule == [false, true, true]
 	        }
 """
 
@@ -103,7 +103,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "all actions are executed orderly and last one wins"()
+    void "all rules are executed orderly and last one wins"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
@@ -140,8 +140,8 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 assert deps.size() == 2
                 deps.each {
 	                assert it.selected.id.version == '1.5'
-	                assert it.selected.selectionReason.selectedByAction
-	                assert it.selected.selectionReason.description == 'selected by action'
+	                assert it.selected.selectionReason.selectedByRule
+	                assert it.selected.selectionReason.description == 'selected by rule'
 	            }
 	        }
 """
@@ -183,7 +183,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	                assert it.selected.id.version == '1.3'
                     def reason = it.selected.selectionReason
                     assert !reason.forced
-                    assert reason.selectedByAction
+                    assert reason.selectedByRule
 	            }
 	        }
 """
@@ -195,7 +195,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "actions are applied after forced modules"()
+    void "rule are applied after forced modules"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
@@ -226,7 +226,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
 	                assert it.selected.id.version == '1.3'
                     def reason = it.selected.selectionReason
                     assert !reason.forced
-                    assert reason.selectedByAction
+                    assert reason.selectedByRule
 	            }
 	        }
 """
@@ -238,7 +238,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "forced modules and actions coexist"()
+    void "forced modules and rules coexist"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
@@ -270,14 +270,14 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                     it.selected.id.name == 'impl' &&
                     it.selected.id.version == '1.5' &&
                     it.selected.selectionReason.forced &&
-                    !it.selected.selectionReason.selectedByAction
+                    !it.selected.selectionReason.selectedByRule
                 }
 
                 assert deps.find {
 	                it.selected.id.name == 'api' &&
                     it.selected.id.version == '1.5' &&
                     !it.selected.selectionReason.forced &&
-                    it.selected.selectionReason.selectedByAction
+                    it.selected.selectionReason.selectedByRule
 	            }
 	        }
 """
@@ -289,7 +289,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "action selects a dynamic version"()
+    void "rule selects a dynamic version"()
     {
         mavenRepo.module("org.utils", "api", '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.4').publish()
@@ -312,7 +312,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 assert deps[0].requested.version == '1.3'
                 assert deps[0].selected.id.version == '1.5'
                 assert !deps[0].selected.selectionReason.forced
-                assert deps[0].selected.selectionReason.selectedByAction
+                assert deps[0].selected.selectionReason.selectedByRule
 	        }
 """
 
@@ -349,9 +349,9 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 def a = modules.find { it.id.name == 'a' }
                 assert a.id.version == '1.4'
                 assert a.selectionReason.conflictResolution
-                assert a.selectionReason.selectedByAction
+                assert a.selectionReason.selectedByRule
                 assert !a.selectionReason.forced
-                assert a.selectionReason.description == 'conflict resolution by action'
+                assert a.selectionReason.description == 'conflict resolution by rule'
 	        }
 """
 
@@ -387,7 +387,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 def a = modules.find { it.id.name == 'a' }
                 assert a.id.version == '1.3'
                 assert a.selectionReason.conflictResolution
-                assert !a.selectionReason.selectedByAction
+                assert !a.selectionReason.selectedByRule
                 assert !a.selectionReason.forced
 	        }
 """
@@ -421,7 +421,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 assert deps.size() == 1
                 deps[0].requested.version == 'default'
                 deps[0].selected.id.version == '1.3'
-                deps[0].selected.selectionReason.selectedByAction
+                deps[0].selected.selectionReason.selectedByRule
 	        }
 """
 
@@ -456,7 +456,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
                 def api = deps.find { it.requested.name == 'api' }
                 api.requested.version == 'default'
                 api.selected.id.version == '1.3'
-                api.selected.selectionReason.selectedByAction
+                api.selected.selectionReason.selectedByRule
 	        }
 """
 
@@ -467,7 +467,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "action selects unavailable version"()
+    void "rule selects unavailable version"()
     {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
@@ -500,7 +500,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
             .assertHasCause("Could not find org.utils:api:1.123.15")
     }
 
-    void "actions triggered exactly once per the same dependency"()
+    void "rules triggered exactly once per the same dependency"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.3').publish()
@@ -549,7 +549,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "runtime exception when evaluating action yields decent exception"()
+    void "runtime exception when evaluating rule yields decent exception"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.3').publish()

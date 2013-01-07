@@ -30,11 +30,11 @@ import java.util.Map;
 /**
 * by Szczepan Faber, created at: 11/29/12
 */
-public class ModuleForcingResolveAction implements Action<DependencyResolveDetailsInternal> {
+public class ModuleForcingResolveRule implements Action<DependencyResolveDetailsInternal> {
 
     private final Map<ModuleIdentifier, String> forcedModules;
 
-    public ModuleForcingResolveAction(Collection<? extends ModuleVersionSelector> forcedModules) {
+    public ModuleForcingResolveRule(Collection<? extends ModuleVersionSelector> forcedModules) {
         if (!forcedModules.isEmpty()) {
             this.forcedModules = new HashMap<ModuleIdentifier, String>();
             for (ModuleVersionSelector module : forcedModules) {

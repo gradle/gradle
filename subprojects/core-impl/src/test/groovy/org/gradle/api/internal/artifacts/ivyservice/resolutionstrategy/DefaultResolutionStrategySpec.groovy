@@ -66,24 +66,24 @@ public class DefaultResolutionStrategySpec extends Specification {
         versions[1].group == 'g'
     }
 
-    def "provides no op resolve action when no actions or forced modules configured"() {
+    def "provides no op resolve rule when no rules or forced modules configured"() {
         given:
         def details = Mock(DependencyResolveDetailsInternal)
 
         when:
-        strategy.dependencyResolveAction.execute(details)
+        strategy.dependencyResolveRule.execute(details)
 
         then:
         0 * details._
     }
 
-    def "provides dependency resolve action that forces modules"() {
+    def "provides dependency resolve rule that forces modules"() {
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
         def details = Mock(DependencyResolveDetailsInternal)
 
         when:
-        strategy.dependencyResolveAction.execute(details)
+        strategy.dependencyResolveRule.execute(details)
 
         then:
         _ * details.getRequested() >> newSelector("org", "foo", "1.0")
@@ -91,14 +91,14 @@ public class DefaultResolutionStrategySpec extends Specification {
         0 * details._
     }
 
-    def "provides dependency resolve action that orderly aggregates user specified actions"() {
+    def "provides dependency resolve rule that orderly aggregates user specified rules"() {
         given:
         strategy.eachDependency({ it.useVersion("1.0") } as Action)
         strategy.eachDependency({ it.useVersion("2.0") } as Action)
         def details = Mock(DependencyResolveDetailsInternal)
 
         when:
-        strategy.dependencyResolveAction.execute(details)
+        strategy.dependencyResolveRule.execute(details)
 
         then:
         1 * details.useVersion("1.0")
@@ -107,7 +107,7 @@ public class DefaultResolutionStrategySpec extends Specification {
         0 * details._
     }
 
-    def "provides dependency resolve action with forced modules first and then user specified actions"() {
+    def "provides dependency resolve rule with forced modules first and then user specified rules"() {
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
         strategy.eachDependency({ it.useVersion("5.0") } as Action)
@@ -116,13 +116,13 @@ public class DefaultResolutionStrategySpec extends Specification {
         def details = Mock(DependencyResolveDetailsInternal)
 
         when:
-        strategy.dependencyResolveAction.execute(details)
+        strategy.dependencyResolveRule.execute(details)
 
         then: //forced modules:
         _ * details.requested >> newSelector("org", "foo", "1.0")
         1 * details.useVersion("2.0", VersionSelectionReasons.FORCED)
 
-        then: //user actions, in order:
+        then: //user rules, in order:
         1 * details.useVersion("5.0")
         then:
         1 * details.useVersion("6.0")
@@ -155,7 +155,7 @@ public class DefaultResolutionStrategySpec extends Specification {
 
         then:
         copy.forcedModules == strategy.forcedModules
-        copy.dependencyResolveActions == strategy.dependencyResolveActions
+        copy.dependencyResolveRules == strategy.dependencyResolveRules
         copy.conflictResolution instanceof StrictConflictResolution
 
         strategy.cachePolicy == cachePolicy

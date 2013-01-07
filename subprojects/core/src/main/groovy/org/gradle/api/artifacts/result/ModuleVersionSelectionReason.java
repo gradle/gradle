@@ -42,12 +42,12 @@ public interface ModuleVersionSelectionReason {
     boolean isConflictResolution();
 
     /**
-     * Informs whether the module was selected by an dependency resolve action.
-     * Users can configure dependency resolve actions via {@link org.gradle.api.artifacts.ResolutionStrategy#eachDependency(org.gradle.api.Action)}
+     * Informs whether the module was selected by the dependency resolve rule.
+     * Users can configure dependency resolve rules via {@link org.gradle.api.artifacts.ResolutionStrategy#eachDependency(org.gradle.api.Action)}
      *
      * @since 1.4
      */
-    boolean isSelectedByAction();
+    boolean isSelectedByRule();
 
     /**
      * Describes this selection reason.

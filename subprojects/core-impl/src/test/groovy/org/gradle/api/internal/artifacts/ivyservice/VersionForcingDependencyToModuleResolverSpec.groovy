@@ -44,7 +44,7 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         0 * target._
     }
 
-    def "replaces dependency by action"() {
+    def "replaces dependency by rule"() {
         def dep = dependency('org', 'module', '0.5')
         def modified = dependency('org', 'module', '1.0')
 
@@ -57,7 +57,7 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
 
         then:
         result.result == resolvedVersion
-        result.selectionReason == VersionSelectionReasons.SELECTED_BY_ACTION
+        result.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
 
         and:
         1 * dep.clone(new ModuleRevisionId(new ModuleId('org', 'module'), '1.0')) >> modified
@@ -65,7 +65,7 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         0 * target._
     }
 
-    def "explosive action yields failure result that provides context"() {
+    def "explosive rule yields failure result that provides context"() {
         def force = { throw new Error("Boo!") } as Action
         def resolver = new VersionForcingDependencyToModuleResolver(target, force)
 

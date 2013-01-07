@@ -45,7 +45,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == requested
         details.target == requested
         details.updated
-        details.selectionReason == VersionSelectionReasons.SELECTED_BY_ACTION
+        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
 
         when:
         details.useVersion("2.0") //different version
@@ -54,7 +54,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == requested
         details.target != requested
         details.updated
-        details.selectionReason == VersionSelectionReasons.SELECTED_BY_ACTION
+        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
 
         details.target.version == "2.0"
         details.target.name == requested.name
@@ -92,7 +92,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         when:
         details.useVersion("2.0", VersionSelectionReasons.FORCED)
-        details.useVersion("3.0", VersionSelectionReasons.SELECTED_BY_ACTION)
+        details.useVersion("3.0", VersionSelectionReasons.SELECTED_BY_RULE)
 
         then:
         details.requested == requested
@@ -100,7 +100,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.target.name == requested.name
         details.target.group == requested.group
         details.updated
-        details.selectionReason == VersionSelectionReasons.SELECTED_BY_ACTION
+        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
     }
 
     def "does not allow null version"() {
@@ -113,7 +113,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         thrown(IllegalArgumentException)
 
         when:
-        details.useVersion(null, VersionSelectionReasons.SELECTED_BY_ACTION)
+        details.useVersion(null, VersionSelectionReasons.SELECTED_BY_RULE)
 
         then:
         thrown(IllegalArgumentException)

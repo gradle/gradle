@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  *     //  *replace existing forced modules with new ones:
  *     forcedModules = ['asm:asm-all:3.3.1']
  *
- *     // add a dependency resolve action
+ *     // add a dependency resolve rule
  *     eachDependency { DependencyResolveDetails details ->
  *       //specifying a fixed version for all libraries with 'org.gradle' group
  *       if (details.requested.group == 'org.gradle') {
@@ -136,7 +136,7 @@ public interface ResolutionStrategy {
     Set<ModuleVersionSelector> getForcedModules();
 
     /**
-     * Adds a dependency resolve action that is triggered for every dependency (including transitive)
+     * Adds a dependency resolve rule that is triggered for every dependency (including transitive)
      * when the configuration is being resolved. The action receives an instance of {@link DependencyResolveDetails}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
      * Example:
@@ -158,13 +158,13 @@ public interface ResolutionStrategy {
      * }
      * </pre>
      *
-     * The actions are evaluated in order they are declared. Actions are evaluated after forced modules are applied (see {@link #force(Object...)}
+     * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link #force(Object...)}
      *
      * @return this
      * @since 1.4
      */
     @Incubating
-    ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> action);
+    ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule);
 
     /**
      * Sets the length of time that dynamic versions will be cached, with units expressed as a String.

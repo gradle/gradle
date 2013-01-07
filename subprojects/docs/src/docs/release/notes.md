@@ -177,17 +177,17 @@ The following are the new incubating features or changes to existing incubating 
 
 In order to make Gradle's dependency resolution even more robust
 we added a new way of influencing the dependency resolution process.
-Since Gradle 1.4 it is possible to specify *dependency resolve actions*.
-An action is executed for each resolved dependency and offers ways
+Since Gradle 1.4 it is possible to specify *dependency resolve rules*.
+The rule is executed for each resolved dependency and offers ways
 to manipulate the dependency metadata before the dependency is resolved.
 
 The feature is incubating for now and not entire dependency metadata can be manipulated at this time.
 We are very keen on your feedback and we will definitely grow this feature,
 allowing more metadata to be manipulated, and more dependency resolution corner cases solved.
-Even though dependency resolve actions are lower level hooks
+Even though dependency resolve rules are lower level hooks
 in future we will use them to provide many high level features in Gradle's dependency engine.
 
-Many interesting use cases that can be implemented with the dependency resolve actions:
+Many interesting use cases that can be implemented with the dependency resolve rules:
 
 * [Blacklisting a version] (userguide/userguide_single.html#sec:blacklisting_version) with a replacement.
 * Implementing a [custom versioning scheme](userguide/userguide_single.html#sec:custom_versioning_scheme).
@@ -203,7 +203,7 @@ See below example on how to make all libraries from group 'org.gradle' use a con
         }
     }
 
-For more information, including more code samples, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_actions).
+For more information, including more code samples, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_rule).
 
 ### Generate `ivy.xml` without publishing
 

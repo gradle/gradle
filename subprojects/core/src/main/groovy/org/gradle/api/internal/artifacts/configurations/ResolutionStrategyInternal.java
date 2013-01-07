@@ -45,9 +45,9 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     ResolutionRules getResolutionRules();
 
     /**
-     * @return the dependency resolve action (may aggregate multiple actions)
+     * @return the dependency resolve rule (may aggregate multiple rules)
      */
-    Action<DependencyResolveDetailsInternal> getDependencyResolveAction();
+    Action<DependencyResolveDetailsInternal> getDependencyResolveRule();
 
     /**
      * @return copy of this resolution strategy. See the contract of {@link org.gradle.api.artifacts.Configuration#copy()}.

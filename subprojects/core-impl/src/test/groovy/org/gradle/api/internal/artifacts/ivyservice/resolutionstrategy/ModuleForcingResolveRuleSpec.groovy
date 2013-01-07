@@ -25,14 +25,14 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 /**
  * by Szczepan Faber, created at: 11/29/12
  */
-class ModuleForcingResolveActionSpec extends Specification {
+class ModuleForcingResolveRuleSpec extends Specification {
 
     def "forces modules"() {
         given:
         def details = Mock(DependencyResolveDetailsInternal)
 
         when:
-        new ModuleForcingResolveAction([
+        new ModuleForcingResolveRule([
             newSelector("org",  "module1", "1.0"),
             newSelector("org",  "module2", "2.0"),
             //exotic module with colon in the name
@@ -58,7 +58,7 @@ class ModuleForcingResolveActionSpec extends Specification {
         def details = Mock(DependencyResolveDetailsInternal)
 
         when:
-        new ModuleForcingResolveAction([
+        new ModuleForcingResolveRule([
             newSelector("org",  "module1", "1.0"),
             newSelector("org",  "module2", "2.0"),
             newSelector("org",  "module:with:colon", "3.0"),
@@ -84,7 +84,7 @@ class ModuleForcingResolveActionSpec extends Specification {
         def details = Mock(DependencyResolveDetailsInternal)
 
         when:
-        new ModuleForcingResolveAction([]).execute(details)
+        new ModuleForcingResolveRule([]).execute(details)
 
         then:
         0 * details._

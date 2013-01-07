@@ -41,7 +41,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     }
 
     public void useVersion(String version) {
-        useVersion(version, VersionSelectionReasons.SELECTED_BY_ACTION);
+        useVersion(version, VersionSelectionReasons.SELECTED_BY_RULE);
     }
 
     public void useVersion(String version, ModuleVersionSelectionReason selectionReason) {

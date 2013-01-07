@@ -55,7 +55,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         dependencyResolver = new ClientModuleResolver(dependencyResolver);
         dependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver);
         DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, ivyAdapter.getResolveData().getSettings().getVersionMatcher());
-        idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveAction());
+        idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveRule());
 
         ModuleConflictResolver conflictResolver;
         if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {

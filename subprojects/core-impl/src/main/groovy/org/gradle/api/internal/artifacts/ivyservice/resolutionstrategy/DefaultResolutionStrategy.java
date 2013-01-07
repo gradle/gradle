@@ -42,16 +42,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
 
-    final Set<Action<? super DependencyResolveDetails>> dependencyResolveActions;
+    final Set<Action<? super DependencyResolveDetails>> dependencyResolveRules;
     private final DefaultCachePolicy cachePolicy;
 
     public DefaultResolutionStrategy() {
         this(new DefaultCachePolicy(), new LinkedHashSet<Action<? super DependencyResolveDetails>>());
     }
 
-    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, Set<Action<? super DependencyResolveDetails>> dependencyResolveActions) {
+    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, Set<Action<? super DependencyResolveDetails>> dependencyResolveRules) {
         this.cachePolicy = cachePolicy;
-        this.dependencyResolveActions = dependencyResolveActions;
+        this.dependencyResolveRules = dependencyResolveRules;
     }
 
     public Set<ModuleVersionSelector> getForcedModules() {
@@ -78,14 +78,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> action) {
-        dependencyResolveActions.add(action);
+    public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule) {
+        dependencyResolveRules.add(rule);
         return this;
     }
 
-    public Action<DependencyResolveDetailsInternal> getDependencyResolveAction() {
-        Collection allActions = flattenElements(new ModuleForcingResolveAction(forcedModules), dependencyResolveActions);
-        return Actions.composite(allActions);
+    public Action<DependencyResolveDetailsInternal> getDependencyResolveRule() {
+        Collection allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencyResolveRules);
+        return Actions.composite(allRules);
     }
 
     public DefaultResolutionStrategy setForcedModules(Object ... forcedModuleNotations) {
@@ -118,7 +118,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public DefaultResolutionStrategy copy() {
         DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(),
-                new LinkedHashSet<Action<? super DependencyResolveDetails>>(dependencyResolveActions));
+                new LinkedHashSet<Action<? super DependencyResolveDetails>>(dependencyResolveRules));
 
         if (conflictResolution instanceof StrictConflictResolution) {
             out.failOnVersionConflict();

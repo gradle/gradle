@@ -861,15 +861,15 @@ someroot/[artifact]-[revision].[ext]
                 For an example, see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
             </para>
         </section>
-        <section id='sec:dependency_resolve_actions'>
-            <title>Dependency resolve actions</title>
-            <para>A dependency resolve action is executed for each resolved dependency and offers ways
+        <section id='sec:dependency_resolve_rules'>
+            <title>Dependency resolve rules</title>
+            <para>A dependency resolve rule is executed for each resolved dependency and offers ways
                 to manipulate the dependency metadata when the dependency is resolved.
                 This feature is incubating, not entire dependency metadata can be manipulated at this time.
-                At the moment, the dependency resolve action can be used to manipulate the dependency version.</para>
+                At the moment, the dependency resolve rule can be used to manipulate the dependency version.</para>
             <section id='sec:releasable_unit'>
                 <title>Modelling releaseable units</title>
-                <para>One of the use cases for dependency resolve actions was the requirement
+                <para>One of the use cases for dependency resolve rules was the requirement
                     of resolving all dependencies from a single releasable unit with the same consistent version.
                     Lets consider that the releasable unit is a set of libraries that are built, tested and published together.
                     Lets imagine that the releasable unit are all libraries that have 'org.gradle' group and we want them to use a consistent version:
@@ -881,12 +881,12 @@ someroot/[artifact]-[revision].[ext]
             </section>
             <section id='sec:custom_versioning_scheme'>
                 <title>Custom versioning scheme</title>
-                <para>Another use case that supports the dependency resolve actions is a custom versioning scheme.
+                <para>Another use case that supports the dependency resolve rules is a custom versioning scheme.
                     Imagine an environment where the versions of libraries that can be declared in gradle builds are maintained and audited externally.
                     In the build script, the developer declares dependencies using group, name and a placeholder for version, for example a String value: 'default'.
-                    The 'default' version is resolved to a specific version via a dependency resolve action, which looks up the version in some corporate catalog.
-                    The dependency resolve action implementation can be neatly encapsulated in a suite of corporate plugins.
-                    Here is an example of such dependency resolve action:
+                    The 'default' version is resolved to a specific version via a dependency resolve rule, which looks up the version in some corporate catalog.
+                    The dependency resolve rule implementation can be neatly encapsulated in a suite of corporate plugins.
+                    Here is an example of such dependency resolve rule:
                     <sample id="custom-versioning-scheme" dir="userguide/artifacts/resolutionStrategy" title="Using a custom versioning scheme">
                         <sourcefile file="build.gradle" snippet="custom-versioning-scheme"/>
                     </sample>
@@ -895,9 +895,9 @@ someroot/[artifact]-[revision].[ext]
             </section>
             <section id='sec:blacklisting_version'>
                 <title>Blacklisting a version with a replacement</title>
-                <para>One of the interesting scenarios for dependency resolve actions is blacklisting a certain version of a dependency
+                <para>One of the interesting scenarios for dependency resolve rules is blacklisting a certain version of a dependency
                     and providing a replacement version. This is extremely useful if an unwanted transitive dependency is pulled in to the dependency graph.
-                    In this scenario the dependency resolve action can be used to specify a different version of an unwanted dependency.
+                    In this scenario the dependency resolve rule can be used to specify a different version of an unwanted dependency.
                     Why a transitive dependency might be unwanted? For example, it was published with troublesome metadata
                     that causes the dependency resolution to fail. More specifically, our unwanted transitive dependency
                     declares dependency to a library that cannot be found in any of the public repositories.

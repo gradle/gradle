@@ -26,20 +26,20 @@ public class VersionSelectionReasons {
     public static final ModuleVersionSelectionReason ROOT = new DefaultModuleVersionSelectionReason(false, false, false, "root");
     public static final ModuleVersionSelectionReason FORCED = new DefaultModuleVersionSelectionReason(true, false, false, "forced");
     public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION = new DefaultModuleVersionSelectionReason(false, true, false, "conflict resolution");
-    public static final ModuleVersionSelectionReason SELECTED_BY_ACTION = new DefaultModuleVersionSelectionReason(false, false, true, "selected by action");
-    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION_BY_ACTION = new DefaultModuleVersionSelectionReason(false, true, true, "conflict resolution by action");
+    public static final ModuleVersionSelectionReason SELECTED_BY_RULE = new DefaultModuleVersionSelectionReason(false, false, true, "selected by rule");
+    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION_BY_RULE = new DefaultModuleVersionSelectionReason(false, true, true, "conflict resolution by rule");
 
     private static class DefaultModuleVersionSelectionReason implements ModuleVersionSelectionReason {
 
         private final boolean forced;
         private final boolean conflictResolution;
-        private final boolean selectedByAction;
+        private final boolean selectedByRule;
         private final String description;
 
-        private DefaultModuleVersionSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByAction, String description) {
+        private DefaultModuleVersionSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByRule, String description) {
             this.forced = forced;
             this.conflictResolution = conflictResolution;
-            this.selectedByAction = selectedByAction;
+            this.selectedByRule = selectedByRule;
             assert description != null;
             this.description = description;
         }
@@ -52,8 +52,8 @@ public class VersionSelectionReasons {
             return conflictResolution;
         }
 
-        public boolean isSelectedByAction() {
-            return selectedByAction;
+        public boolean isSelectedByRule() {
+            return selectedByRule;
         }
 
         public String getDescription() {

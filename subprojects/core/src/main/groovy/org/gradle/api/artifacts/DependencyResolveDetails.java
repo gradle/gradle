@@ -29,7 +29,7 @@ public interface DependencyResolveDetails {
 
     /**
      * The module, before it is resolved.
-     * The requested module does not change even if there are multiple dependency resolve actions
+     * The requested module does not change even if there are multiple dependency resolve rules
      * that manipulate the dependency metadata.
      */
     ModuleVersionSelector getRequested();

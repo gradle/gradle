@@ -961,8 +961,8 @@ public class DependencyGraphBuilder {
             }
             //TODO SF unit test
             DefaultModuleRevisionResolveState out = (DefaultModuleRevisionResolveState) resolver.select(candidates, root);
-            if (out.selectionReason == VersionSelectionReasons.SELECTED_BY_ACTION) {
-                out.selectionReason = VersionSelectionReasons.CONFLICT_RESOLUTION_BY_ACTION;
+            if (out.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE) {
+                out.selectionReason = VersionSelectionReasons.CONFLICT_RESOLUTION_BY_RULE;
             } else {
                 out.selectionReason = VersionSelectionReasons.CONFLICT_RESOLUTION;
             }

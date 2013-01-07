@@ -27,20 +27,20 @@ import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 
 public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionIdResolver resolver;
-    private Action<DependencyResolveDetailsInternal> action;
+    private Action<DependencyResolveDetailsInternal> rule;
 
-    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Action<DependencyResolveDetailsInternal> action) {
+    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Action<DependencyResolveDetailsInternal> rule) {
         this.resolver = resolver;
-        this.action = action;
+        this.rule = rule;
     }
 
     public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
         ModuleVersionSelector module = new DefaultModuleVersionSelector(dependencyDescriptor.getDependencyRevisionId().getOrganisation(), dependencyDescriptor.getDependencyRevisionId().getName(), dependencyDescriptor.getDependencyRevisionId().getRevision());
         DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails(module);
         try {
-            action.execute(details);
+            rule.execute(details);
         } catch (Throwable e) {
-            return new FailedDependencyResolveActionResult(module, e);
+            return new FailedDependencyResolveRuleResult(module, e);
         }
         if (details.isUpdated()) {
             ModuleId moduleId = new ModuleId(details.getTarget().getGroup(), details.getTarget().getName());
@@ -52,11 +52,11 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
         return resolver.resolve(dependencyDescriptor);
     }
 
-    private class FailedDependencyResolveActionResult implements ModuleVersionIdResolveResult {
+    private class FailedDependencyResolveRuleResult implements ModuleVersionIdResolveResult {
 
         private final ModuleVersionResolveException failure;
 
-        public FailedDependencyResolveActionResult(ModuleVersionSelector module, Throwable problem) {
+        public FailedDependencyResolveRuleResult(ModuleVersionSelector module, Throwable problem) {
             this.failure = new ModuleVersionResolveException(module, problem);
         }
 
