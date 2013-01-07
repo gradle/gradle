@@ -15,9 +15,18 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.internal.DynamicObject;
+import org.gradle.api.tasks.TaskContainer;
 
 public interface TaskContainerInternal extends TaskContainer, TaskResolver {
     DynamicObject getTasksAsDynamicObject();
+
+    /**
+     * Force the entire graph to come into existence.
+     *
+     * Tasks may have dependencies that are abstract (e.g. a dependency on a task _name_). Calling this method
+     * will force all task dependencies to be actualised, which may mean new tasks are created because of things
+     * like task rules etc.
+     */
+    void actualize();
 }

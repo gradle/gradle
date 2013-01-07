@@ -23,20 +23,23 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.action.CustomAction;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Collections;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultTaskContainerTest {
@@ -259,6 +262,40 @@ public class DefaultTaskContainerTest {
         Task task = addTask("task");
         expectTaskLookupInOtherProject(":", "task", task);
         assertThat(container.resolveTask(new StringBuilder(":task")), sameInstance(task));
+    }
+
+    @Test public void actualizing() {
+        final Task task = addTask("a");
+        context.checking(new Expectations(){{
+            allowing(task).dependsOn("b");
+            allowing(task).getTaskDependencies();
+            TaskDependency aTaskDependency = context.mock(TaskDependency.class);
+            will(returnValue(aTaskDependency));
+
+            final Task b = task("b");
+            one(taskFactory).createTask(singletonMap(Task.TASK_NAME, "b"));
+            will(returnValue(b));
+
+            TaskDependency bTaskDependency = context.mock(TaskDependency.class, "bTaskDependency");
+            allowing(b).getTaskDependencies();
+            will(returnValue(bTaskDependency));
+            allowing(bTaskDependency).getDependencies(b);
+            will(returnValue(Collections.emptySet()));
+
+            allowing(aTaskDependency).getDependencies(task);
+            will(new CustomAction("create task b") {
+                public Object invoke(Invocation invocation) throws Throwable {
+                    container.add("b");
+                    return Collections.singleton(b);
+                }
+            });
+
+        }});
+        task.dependsOn("b");
+
+        assertEquals(1, container.size());
+        container.actualize();
+        assertEquals(2, container.size());
     }
     
     private void expectTaskLookupInOtherProject(final String projectPath, final String taskName, final Task task) {

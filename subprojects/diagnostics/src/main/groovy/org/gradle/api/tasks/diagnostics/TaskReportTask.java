@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.diagnostics.internal.*;
 
 import java.io.IOException;
@@ -59,7 +60,9 @@ public class TaskReportTask extends AbstractReportTask {
 
         SingleProjectTaskReportModel projectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
         ProjectInternal projectInternal = (ProjectInternal) project;
-        projectTaskModel.build(Sets.union(projectInternal.getTasks(), projectInternal.getImplicitTasks()));
+        TaskContainerInternal tasks = projectInternal.getTasks();
+        tasks.actualize();
+        projectTaskModel.build(Sets.union(tasks, projectInternal.getImplicitTasks()));
         aggregateModel.add(projectTaskModel);
 
         for (Project subprojects : project.getSubprojects()) {
