@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.InvertedRenderableDependencyResult
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.InvertedRenderableUnresolvedDependencyResult
 
 /**
  * Created: 23/08/2012
@@ -52,7 +54,11 @@ public class DependencyInsightReporter {
                 }
             }
 
-            out << new InvertedRenderableDependencyResult(dependency, description)
+            if (dependency instanceof UnresolvedDependencyResult) {
+                out << new InvertedRenderableUnresolvedDependencyResult(dependency, description)
+            } else {
+                out << new InvertedRenderableDependencyResult(dependency, description)
+            }
         }
 
         out

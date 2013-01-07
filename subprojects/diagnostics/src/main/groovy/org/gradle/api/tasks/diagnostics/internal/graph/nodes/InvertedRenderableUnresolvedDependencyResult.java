@@ -19,7 +19,8 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -29,18 +30,21 @@ import java.util.Set;
  *
  * by Szczepan Faber, created at: 7/27/12
  */
-public class InvertedRenderableDependencyResult extends AbstractRenderableDependencyResult {
-    private final ResolvedDependencyResult dependency;
+public class InvertedRenderableUnresolvedDependencyResult extends AbstractRenderableDependencyResult {
+    private final UnresolvedDependencyResult dependency;
+    private final ModuleVersionIdentifier actual;
     private final String description;
 
-    public InvertedRenderableDependencyResult(ResolvedDependencyResult dependency, String description) {
+    public InvertedRenderableUnresolvedDependencyResult(UnresolvedDependencyResult dependency, String description) {
         this.dependency = dependency;
         this.description = description;
+        ModuleVersionSelector attempted = dependency.getAttempted();
+        actual = DefaultModuleVersionIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
     }
 
     @Override
     public boolean isResolvable() {
-        return true;
+        return false;
     }
 
     @Override
@@ -50,7 +54,7 @@ public class InvertedRenderableDependencyResult extends AbstractRenderableDepend
 
     @Override
     protected ModuleVersionIdentifier getActual() {
-        return dependency.getSelected().getId();
+        return actual;
     }
 
     @Override
