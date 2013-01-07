@@ -203,7 +203,7 @@ See below example on how to make all libraries from group 'org.gradle' use a con
         }
     }
 
-For more information, including more code samples, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_rule).
+For more information, including more code samples, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_rules).
 
 ### Generate `ivy.xml` without publishing
 
