@@ -147,6 +147,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         if (getUserHomeDir() != null) {
             System.setProperty("user.home", getUserHomeDir().getPath());
         }
+        System.setProperty("java.io.tmpdir", getTmpDir().createDir().getAbsolutePath());
 
         DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
         factory.addListener(listener);

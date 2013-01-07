@@ -403,10 +403,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         allArgs.add("-Dorg.gradle.daemon.idletimeout=" + daemonIdleTimeoutSecs * 1000);
         allArgs.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
 
-        TestFile tmpDir = getTmpDir();
-        tmpDir.createDir();
-        allArgs.add(String.format("-Djava.io.tmpdir=%s", tmpDir));
-
         allArgs.addAll(args);
         allArgs.addAll(tasks);
         return allArgs;
@@ -533,7 +529,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    private TestFile getTmpDir() {
+    protected TestFile getTmpDir() {
         return new TestFile(getTestDirectoryProvider().getTestDirectory(), "tmp");
     }
 

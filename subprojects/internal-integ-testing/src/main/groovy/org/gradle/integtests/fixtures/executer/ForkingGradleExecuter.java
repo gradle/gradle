@@ -125,6 +125,8 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
             gradleOpts.add(String.format("-Duser.home=%s", getUserHomeDir()));
         }
 
+        gradleOpts.add(String.format("-Djava.io.tmpdir=%s", getTmpDir().createDir().getAbsolutePath()));
+
         StringBuilder result = new StringBuilder();
         for (String gradleOpt : gradleOpts) {
             if (result.length() > 0) {
