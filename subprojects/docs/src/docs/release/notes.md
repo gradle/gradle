@@ -187,7 +187,7 @@ allowing more metadata to be manipulated, and more dependency resolution corner 
 Even though dependency resolve rules are lower level hooks
 in future we will use them to provide many high level features in Gradle's dependency engine.
 
-Many interesting use cases that can be implemented with the dependency resolve rules:
+Many interesting use cases can be implemented with the dependency resolve rules:
 
 * [Blacklisting a version] (userguide/userguide_single.html#sec:blacklisting_version) with a replacement.
 * Implementing a [custom versioning scheme](userguide/userguide_single.html#sec:custom_versioning_scheme).
@@ -391,7 +391,13 @@ no longer be published by default.
 ### Changed default value for TestNGOptions.useDefaultListeners
 
 The default value for TestNGOptions.useDefaultListeners has changed from `true` to `false` as Gradle now generates test results and reports for JUnit and TestNG.
-  
+
+### Updated default versions of Checkstyle, CodeNarc, and FindBugs
+
+* Checkstyle plugin: default Checkstyle version changed from 5.5 to 5.6.
+* CodeNarc plugin: default CodeNarc version changed from 0.16.1 to 0.18.
+* FindBugs plugin: default FindBugs version changed from 2.0.1 to 2.0.2.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
