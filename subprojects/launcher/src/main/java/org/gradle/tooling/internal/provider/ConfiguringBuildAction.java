@@ -41,6 +41,9 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
     private File gradleUserHomeDir;
     private Boolean searchUpwards;
 
+    // Important that this is constructed on the client so that it has the right gradleHomeDir internally
+    private final StartParameter startParameterTemplate = new StartParameter();
+
     public ConfiguringBuildAction() {}
 
     public ConfiguringBuildAction(ProviderOperationParameters parameters, GradleLauncherAction<T> action) {
@@ -54,7 +57,7 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
     }
 
     public StartParameter configureStartParameter() {
-        StartParameter startParameter = new StartParameter();
+        StartParameter startParameter = startParameterTemplate.newInstance();
         startParameter.setProjectDir(projectDirectory);
         if (gradleUserHomeDir != null) {
             startParameter.setGradleUserHomeDir(gradleUserHomeDir);

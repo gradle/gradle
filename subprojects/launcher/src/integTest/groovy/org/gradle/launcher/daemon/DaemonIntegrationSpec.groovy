@@ -29,6 +29,11 @@ class DaemonIntegrationSpec extends AbstractIntegrationSpec {
 
     String output
 
+    @Override
+    DaemonGradleExecuter getExecuter() {
+        super.executer as DaemonGradleExecuter
+    }
+
     def setup() {
         executer = new DaemonGradleExecuter(temporaryFolder, new IntegrationTestBuildContext().gradleHomeDir)
         executer.requireIsolatedDaemons()

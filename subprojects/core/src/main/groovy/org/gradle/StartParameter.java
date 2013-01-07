@@ -21,6 +21,10 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.initialization.CompositeInitScriptFinder;
+import org.gradle.initialization.DistributionInitScriptFinder;
+import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.GFileUtils;
@@ -54,6 +58,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
+    private File gradleHomeDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
     private File settingsFile;
     private boolean useEmptySettings;
@@ -68,6 +73,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean refreshDependencies;
     private boolean recompileScripts;
     private int parallelThreadCount;
+
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -98,6 +104,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         }
 
         gradleUserHomeDir = GFileUtils.canonicalise(new File(gradleUserHome));
+        gradleHomeDir = new DefaultModuleRegistry().getGradleHome();
+
         setCurrentDir(null);
     }
 
@@ -119,6 +127,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.projectProperties = projectProperties;
         startParameter.systemPropertiesArgs = systemPropertiesArgs;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
+        startParameter.gradleHomeDir = gradleHomeDir;
         startParameter.cacheUsage = cacheUsage;
         startParameter.initScripts = new ArrayList<File>(initScripts);
         startParameter.setLogLevel(getLogLevel());
@@ -133,6 +142,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.offline = offline;
         startParameter.refreshDependencies = refreshDependencies;
         startParameter.parallelThreadCount = parallelThreadCount;
+
         return startParameter;
     }
 
@@ -459,6 +469,21 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
+     * Returns all init scripts, including explicit init scripts and implicit init scripts.
+     *
+     * @return All init scripts, including explicit init scripts and implicit init scripts.
+     */
+    public List<File> getAllInitScripts() {
+        CompositeInitScriptFinder initScriptFinder = new CompositeInitScriptFinder(
+                new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir)
+        );
+
+        List<File> scripts = new ArrayList<File>(getInitScripts());
+        initScriptFinder.findScripts(scripts);
+        return Collections.unmodifiableList(scripts);
+    }
+
+    /**
      * Sets the project directory to use to select the default project. Use null to use the default criteria for selecting the default project.
      *
      * @param projectDir The project directory. May be null.
@@ -628,6 +653,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", projectProperties=" + projectProperties
                 + ", systemPropertiesArgs=" + systemPropertiesArgs
                 + ", gradleUserHomeDir=" + gradleUserHomeDir
+                + ", gradleHome=" + gradleHomeDir
                 + ", cacheUsage=" + cacheUsage
                 + ", logLevel=" + getLogLevel()
                 + ", showStacktrace=" + getShowStacktrace()
@@ -639,5 +665,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", offline=" + offline
                 + ", refreshDependencies=" + refreshDependencies
                 + '}';
+    }
+
+    /**
+     * Package scope for testing purposes.
+     */
+    void setGradleHomeDir(File gradleHomeDir) {
+        this.gradleHomeDir = gradleHomeDir;
     }
 }

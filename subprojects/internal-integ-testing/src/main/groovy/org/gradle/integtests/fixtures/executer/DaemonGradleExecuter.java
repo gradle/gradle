@@ -69,4 +69,10 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
             args.add(0, jvmArgs);
         }
     }
+
+    public DaemonGradleExecuter copyForGradleHome(TestFile gradleHome) {
+        DaemonGradleExecuter daemonGradleExecuter = new DaemonGradleExecuter(getTestDirectoryProvider(), gradleHome);
+        copyTo(daemonGradleExecuter);
+        return daemonGradleExecuter;
+    }
 }

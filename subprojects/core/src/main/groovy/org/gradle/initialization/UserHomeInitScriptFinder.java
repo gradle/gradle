@@ -15,19 +15,21 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.UriScriptSource;
-
 import java.io.File;
 import java.util.Collection;
 
 public class UserHomeInitScriptFinder extends DirectoryInitScriptFinder implements InitScriptFinder {
-    public void findScripts(GradleInternal gradle, Collection<ScriptSource> scripts) {
-        File userHomeDir = gradle.getStartParameter().getGradleUserHomeDir();
+
+    private final File userHomeDir;
+
+    public UserHomeInitScriptFinder(File userHomeDir) {
+        this.userHomeDir = userHomeDir;
+    }
+
+    public void findScripts(Collection<File> scripts) {
         File userInitScript = new File(userHomeDir, "init.gradle");
         if (userInitScript.isFile()) {
-            scripts.add(new UriScriptSource("initialization script", userInitScript));
+            scripts.add(userInitScript);
         }
         findScriptsInDir(new File(userHomeDir, "init.d"), scripts);
     }

@@ -16,22 +16,20 @@
 package org.gradle.initialization
 
 import spock.lang.Specification
-import org.gradle.api.internal.GradleInternal
 
 class CompositeInitScriptFinderTest extends Specification {
     final InitScriptFinder target1 = Mock()
     final InitScriptFinder target2 = Mock()
-    final GradleInternal gradle = Mock()
     final CompositeInitScriptFinder finder = new CompositeInitScriptFinder(target1, target2)
     
     def "collects up scripts from all finders"() {
         def result = []
 
         when:
-        finder.findScripts(gradle, result)
+        finder.findScripts(result)
 
         then:
-        1 * target1.findScripts(gradle, result)
-        1 * target2.findScripts(gradle, result)
+        1 * target1.findScripts(result)
+        1 * target2.findScripts(result)
     }
 }

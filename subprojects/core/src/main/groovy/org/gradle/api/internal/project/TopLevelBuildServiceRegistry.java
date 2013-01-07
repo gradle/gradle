@@ -181,14 +181,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected InitScriptHandler createInitScriptHandler() {
         return new InitScriptHandler(
-                new CompositeInitScriptFinder(
-                        new ProvidedInitScriptFinder(),
-                        new UserHomeInitScriptFinder(),
-                        new DistributionInitScriptFinder(
-                                get(GradleDistributionLocator.class))),
-                new DefaultInitScriptProcessor(
-                        get(ScriptPluginFactory.class)));
-
+                new DefaultInitScriptProcessor(get(ScriptPluginFactory.class))
+        );
     }
 
     protected SettingsProcessor createSettingsProcessor() {

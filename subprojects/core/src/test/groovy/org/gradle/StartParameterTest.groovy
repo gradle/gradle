@@ -230,4 +230,29 @@ class StartParameterTest {
         assert p(a: "2", b: "3") == [a: "2", b: "3"]
         assert p() == [a: "1"]
     }
+
+    @Test
+    public void testGetAllInitScripts() {
+        def gradleUserHomeDir = tmpDir.testDirectory.createDir("gradleUserHomeDie")
+        def gradleHomeDir = tmpDir.testDirectory.createDir("gradleHomeDir")
+        StartParameter parameter = new StartParameter()
+
+        parameter.gradleUserHomeDir = gradleUserHomeDir
+        parameter.gradleHomeDir = gradleHomeDir
+
+        assert parameter.allInitScripts.empty
+
+        def userMainInit = gradleUserHomeDir.createFile("init.gradle")
+        assert parameter.allInitScripts == [userMainInit]
+
+        def userInit1 = gradleUserHomeDir.createFile("init.d/1.gradle")
+        def userInit2 = gradleUserHomeDir.createFile("init.d/2.gradle")
+
+        assert parameter.allInitScripts == [userMainInit, userInit1, userInit2]
+
+        def distroInit1 = gradleHomeDir.createFile("init.d/1.gradle")
+        def distroInit2 = gradleHomeDir.createFile("init.d/2.gradle")
+
+        assert parameter.allInitScripts == [userMainInit, userInit1, userInit2, distroInit1, distroInit2]
+    }
 }

@@ -15,31 +15,40 @@
  */
 package org.gradle.initialization
 
-import spock.lang.Specification
-import org.gradle.configuration.InitScriptProcessor
+import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
-import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.configuration.InitScriptProcessor
+import org.gradle.groovy.scripts.UriScriptSource
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
 
 class InitScriptHandlerTest extends Specification {
-    final InitScriptFinder finder = Mock()
+
+    @Rule TestNameTestDirectoryProvider testDirectoryProvider
+
     final InitScriptProcessor processor = Mock()
     final GradleInternal gradle = Mock()
-    final InitScriptHandler handler = new InitScriptHandler(finder, processor)
+    final InitScriptHandler handler = new InitScriptHandler(processor)
     
     def "finds and processes init scripts"() {
-        ScriptSource script1 = Mock()
-        ScriptSource script2 = Mock()
+        File script1 = testDirectoryProvider.createFile("script1.gradle")
+        File script2 = testDirectoryProvider.createFile("script2.gradle")
 
         when:
         handler.executeScripts(gradle)
         
         then:
-        1 * finder.findScripts(gradle, !null) >> {gradle, scripts -> 
-            scripts << script1
-            scripts << script2
+        _ * gradle.startParameter >> {
+            Mock(StartParameter) {
+                getAllInitScripts() >> {
+                    [script1, script2]
+                }
+            }
         }
-        1 * processor.process(script1, gradle)
-        1 * processor.process(script2, gradle)
+
+        1 * processor.process({ UriScriptSource source -> source.resource.file == script1 }, gradle)
+        1 * processor.process({ UriScriptSource source -> source.resource.file == script2 }, gradle)
         0 * _._
     }
 }
