@@ -415,11 +415,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public final GradleHandle start() {
         fireBeforeExecute();
         assertCanExecute();
-        try {
-            return doStart();
-        } finally {
-            reset();
-        }
+        return doStart();
     }
 
     public final ExecutionResult run() {
