@@ -29,23 +29,23 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
  * by Szczepan Faber, created at: 8/22/12
  */
 class DependencyResultSorterSpec extends Specification {
-    def "sorts"() {
-        def d1 = newDependency(newSelector("org.gradle", "core", "2.0"), newId("org.gradle", "core", "2.0"))
-        def d2 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"))
-        def d3 = newDependency(newSelector("org.gradle", "core", "1.5"), newId("org.gradle", "core", "2.0"))
+    def "sorts by requested version and prefers exact matching selected version over inexact"() {
+        def d1 = newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))
 
-        def d4 = newDependency(newSelector("org.gradle", "xxxx", "1.0"), newId("org.gradle", "xxxx", "1.0"))
+        def d2 = newDependency(newSelector("org.gradle", "core", "2.0"), newId("org.gradle", "core", "2.0"))
+        def d3 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"))
+        def d4 = newDependency(newSelector("org.gradle", "core", "1.5"), newId("org.gradle", "core", "2.0"))
 
-        def d5 = newDependency(newSelector("org.gradle", "zzzz", "1.5"), newId("org.gradle", "zzzz", "3.0"))
-        def d6 = newDependency(newSelector("org.gradle", "zzzz", "2.0"), newId("org.gradle", "zzzz", "3.0"))
+        def d5 = newDependency(newSelector("org.gradle", "xxxx", "1.0"), newId("org.gradle", "xxxx", "1.0"))
 
-        def d7 = newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))
+        def d6 = newDependency(newSelector("org.gradle", "zzzz", "1.5"), newId("org.gradle", "zzzz", "3.0"))
+        def d7 = newDependency(newSelector("org.gradle", "zzzz", "2.0"), newId("org.gradle", "zzzz", "3.0"))
 
         when:
         def sorted = DependencyResultSorter.sort([d5, d3, d6, d1, d2, d7, d4])
 
         then:
-        sorted == [d7, d1, d2, d3, d4, d5, d6]
+        sorted == [d1, d2, d3, d4, d5, d6, d7]
     }
 
     def "semantically compares versions"() {
@@ -59,20 +59,26 @@ class DependencyResultSorterSpec extends Specification {
         sorted == [d2, d1]
     }
 
-    def "retains dependencies with the same requested->selected"() {
-        def d1 = newDependency(newSelector("org.gradle", "core", "2.0"), newId("org.gradle", "core", "2.0"), "foo")
-        def d2 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), "bar")
-        def d3 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), "baz")
+    def "sorts by from when requested version is the same"() {
+        def d1 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), newId("org.a", "a", "1.0"))
+        def d2 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), newId("org.b", "a", "1.0"))
+        def d3 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), newId("org.b", "b", "0.8"))
+        def d4 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), newId("org.b", "b", "1.12"))
+        def d5 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), newId("org.b", "b", "2.0"))
+        def d6 = newDependency(newSelector("org.gradle", "core", "1.0"), newId("org.gradle", "core", "2.0"), newId("org.b", "c", "0.9"))
+        def d7 = newDependency(newSelector("org.gradle", "other", "1.0"), newId("org.gradle", "other", "1.0"), newId("org.b", "a", "0.9"))
+        def d8 = newDependency(newSelector("org.gradle", "other", "1.0"), newId("org.gradle", "other", "1.0"), newId("org.b", "a", "0.9.1"))
 
         when:
-        def sorted = DependencyResultSorter.sort([d3, d2, d1])
+        def sorted = DependencyResultSorter.sort([d7, d8, d1, d3, d5, d2, d4, d6])
+
 
         then:
-        sorted == [d1, d3, d2]
+        sorted == [d1, d2, d3, d4, d5, d6, d7, d8]
     }
 
-    private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, String from = 'whatever') {
+    private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, ModuleVersionIdentifier from = newId("org", "a", "1.0")) {
         new DefaultResolvedDependencyResult(requested, new DefaultResolvedModuleVersionResult(selected),
-                new DefaultResolvedModuleVersionResult(newId("org", from, "1.0")))
+                new DefaultResolvedModuleVersionResult(from))
     }
 }

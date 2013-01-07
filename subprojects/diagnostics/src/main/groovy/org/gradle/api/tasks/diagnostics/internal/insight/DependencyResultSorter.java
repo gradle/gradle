@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.internal.artifacts.version.LatestVersionSemanticComparator;
 
@@ -44,24 +46,45 @@ public class DependencyResultSorter {
         private final LatestVersionSemanticComparator versionComparator = new LatestVersionSemanticComparator();
 
         public int compare(DependencyResult left, DependencyResult right) {
-            int byGroup = left.getRequested().getGroup().compareTo(right.getRequested().getGroup());
+            ModuleVersionSelector leftRequested = left.getRequested();
+            ModuleVersionSelector rightRequested = right.getRequested();
+            int byGroup = leftRequested.getGroup().compareTo(rightRequested.getGroup());
             if (byGroup != 0) {
                 return byGroup;
             }
 
-            int byModule = left.getRequested().getName().compareTo(right.getRequested().getName());
+            int byModule = leftRequested.getName().compareTo(rightRequested.getName());
             if (byModule != 0) {
                 return byModule;
             }
 
             //if selected matches requested version comparison is overridden
-            if (left.getRequested().matchesStrictly(left.getSelected().getId())) {
+            boolean leftMatches = leftRequested.matchesStrictly(left.getSelected().getId());
+            boolean rightMatches = rightRequested.matchesStrictly(right.getSelected().getId());
+            if (leftMatches && !rightMatches) {
                 return -1;
-            } else if (right.getRequested().matchesStrictly(right.getSelected().getId())) {
+            } else if (!leftMatches && rightMatches) {
                 return 1;
             }
 
-            return versionComparator.compare(left.getRequested().getVersion(), right.getRequested().getVersion());
+            int byVersion = versionComparator.compare(leftRequested.getVersion(), rightRequested.getVersion());
+            if (byVersion != 0) {
+                return byVersion;
+            }
+
+            ModuleVersionIdentifier leftFrom = left.getFrom().getId();
+            ModuleVersionIdentifier rightFrom = right.getFrom().getId();
+            byGroup = leftFrom.getGroup().compareTo(rightFrom.getGroup());
+            if (byGroup != 0) {
+                return byGroup;
+            }
+
+            byModule = leftFrom.getName().compareTo(rightFrom.getName());
+            if (byModule != 0) {
+                return byModule;
+            }
+
+            return versionComparator.compare(leftFrom.getVersion(), rightFrom.getVersion());
         }
     }
 }

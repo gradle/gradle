@@ -56,10 +56,10 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         then:
         output.contains(toPlatformLineSeparators("""
 org:leaf2:1.0
-+--- org:top:1.0
-|    \\--- conf
-\\--- org:middle:1.0
-     \\--- org:top:1.0 (*)
++--- org:middle:1.0
+|    \\--- org:top:1.0
+|         \\--- conf
+\\--- org:top:1.0 (*)
 
 (*) - dependencies omitted (listed previously)
 """))
