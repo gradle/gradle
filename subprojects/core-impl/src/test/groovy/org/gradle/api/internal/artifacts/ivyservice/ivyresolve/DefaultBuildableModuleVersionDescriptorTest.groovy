@@ -21,6 +21,8 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+
 class DefaultBuildableModuleVersionDescriptorTest extends Specification {
     final DefaultBuildableModuleVersionDescriptor descriptor = new DefaultBuildableModuleVersionDescriptor()
     ModuleSource moduleSource = Mock()
@@ -49,7 +51,7 @@ class DefaultBuildableModuleVersionDescriptorTest extends Specification {
     }
 
     def "can mark as failed"() {
-        def failure = new ModuleVersionResolveException("broken")
+        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
 
         when:
         descriptor.failed(failure)
@@ -94,7 +96,7 @@ class DefaultBuildableModuleVersionDescriptorTest extends Specification {
 
     def "cannot get result when failed"() {
         given:
-        def failure = new ModuleVersionResolveException("broken")
+        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
         descriptor.failed(failure)
 
         when:
@@ -129,7 +131,7 @@ class DefaultBuildableModuleVersionDescriptorTest extends Specification {
 
     def "cannot get ModuleSource when failed"() {
         given:
-        def failure = new ModuleVersionResolveException("broken")
+        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
         descriptor.failed(failure)
 
         when:

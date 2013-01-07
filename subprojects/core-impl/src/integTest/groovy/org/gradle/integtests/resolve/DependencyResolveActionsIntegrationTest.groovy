@@ -580,7 +580,7 @@ class DependencyResolveActionsIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.dependencyResolutionFailure
                 .assertFailedConfiguration(":conf")
-                .assertHasCause("Problems executing resolve action for dependency: org.utils:impl:1.3.")
+                .assertHasCause("Could not resolve org.utils:impl:1.3.")
                 .assertHasCause("Unhappy :(")
                 .assertFailedDependencyRequiredBy(":root:1.0")
     }

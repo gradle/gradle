@@ -17,17 +17,22 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 
 public class ModuleVersionNotFoundException extends ModuleVersionResolveException {
+    public ModuleVersionNotFoundException(ModuleVersionSelector selector, String messageFormat) {
+        super(selector, messageFormat);
+    }
+
+    public ModuleVersionNotFoundException(ModuleRevisionId id, String messageFormat) {
+        super(id, messageFormat);
+    }
+
     public ModuleVersionNotFoundException(ModuleRevisionId id) {
-        super(String.format("Could not find %s:%s:%s.", id.getOrganisation(), id.getName(), id.getRevision()));
+        super(id, "Could not find %s.");
     }
 
     public ModuleVersionNotFoundException(ModuleVersionIdentifier id) {
-        super(String.format("Could not find %s:%s:%s.", id.getGroup(), id.getName(), id.getVersion()));
-    }
-
-    public ModuleVersionNotFoundException(String message) {
-        super(message);
+        super(id, "Could not find %s.");
     }
 }

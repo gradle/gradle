@@ -16,9 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.AbstractMultiCauseException;
 import org.gradle.api.internal.Contextual;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.UncheckedException;
 
 import java.util.ArrayList;
@@ -29,44 +31,58 @@ import java.util.List;
 @Contextual
 public class ModuleVersionResolveException extends AbstractMultiCauseException {
     private final List<List<ModuleRevisionId>> paths = new ArrayList<List<ModuleRevisionId>>();
+    private final String messageFormat;
+    private final ModuleVersionSelector selector;
 
-    public ModuleVersionResolveException(String message) {
-        super(message);
+    public ModuleVersionResolveException(ModuleVersionSelector selector, String messageFormat) {
+        super(format(messageFormat, selector));
+        this.selector = selector;
+        this.messageFormat = messageFormat;
     }
 
-    public ModuleVersionResolveException(String message, ModuleVersionSelector selector, Throwable cause) {
-        super(format(message, selector), cause);
+    public ModuleVersionResolveException(ModuleRevisionId id, String messageFormat) {
+        this(DefaultModuleVersionSelector.newSelector(id.getOrganisation(), id.getName(), id.getRevision()), messageFormat);
+    }
+
+    public ModuleVersionResolveException(ModuleVersionIdentifier id, String messageFormat) {
+        this(DefaultModuleVersionSelector.newSelector(id.getGroup(), id.getName(), id.getVersion()), messageFormat);
+    }
+
+    public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {
+        this(selector, "Could not resolve %s.");
+        initCause(cause);
     }
 
     public ModuleVersionResolveException(ModuleRevisionId id, Throwable cause) {
-        super(format("Could not resolve ", id), cause);
+        this(id, "Could not resolve %s.");
+        initCause(cause);
     }
 
     public ModuleVersionResolveException(ModuleRevisionId id, Iterable<? extends Throwable> causes) {
-        super(format("Could not resolve ", id), causes);
+        this(id, "Could not resolve %s.");
+        initCauses(causes);
     }
 
-    public ModuleVersionResolveException(String message, Throwable cause) {
-        super(message, cause);
+    /**
+     * Returns the selector that could not be resolved.
+     */
+    public ModuleVersionSelector getSelector() {
+        return selector;
     }
 
-    private static String format(String message, ModuleRevisionId id) {
-        return format(message, id.getOrganisation(), id.getName(), id.getRevision());
+    private static String format(String messageFormat, ModuleVersionSelector id) {
+        return format(messageFormat, id.getGroup(), id.getName(), id.getVersion());
     }
 
-    private static String format(String message, ModuleVersionSelector id) {
-        return format(message, id.getGroup(), id.getName(), id.getVersion());
-    }
-
-    private static String format(String message, String group, String name, String version) {
-        return String.format(message + "%s:%s:%s.", group, name, version);
+    private static String format(String messageFormat, String group, String name, String version) {
+        return String.format(messageFormat, String.format("%s:%s:%s", group, name, version));
     }
 
     /**
      * Creates a copy of this exception, with the given incoming paths.
      */
     public ModuleVersionResolveException withIncomingPaths(Collection<? extends List<ModuleRevisionId>> paths) {
-        ModuleVersionResolveException copy = createCopy(super.getMessage());
+        ModuleVersionResolveException copy = createCopy();
         copy.paths.addAll(paths);
         copy.initCauses(getCauses());
         copy.setStackTrace(getStackTrace());
@@ -93,9 +109,9 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
         return String.format("%s:%s:%s", moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
     }
 
-    protected ModuleVersionResolveException createCopy(String message) {
+    protected ModuleVersionResolveException createCopy() {
         try {
-            return getClass().getConstructor(String.class).newInstance(message);
+            return getClass().getConstructor(ModuleVersionSelector.class, String.class).newInstance(selector, messageFormat);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

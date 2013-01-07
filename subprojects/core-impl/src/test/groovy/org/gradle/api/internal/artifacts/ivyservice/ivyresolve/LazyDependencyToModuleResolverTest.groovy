@@ -25,6 +25,9 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.*
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
+
 class LazyDependencyToModuleResolverTest extends Specification {
     final DependencyToModuleResolver target = Mock()
     final VersionMatcher matcher = Mock()
@@ -110,7 +113,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
     def "collects failure to resolve module"() {
         def dependency = dependency()
-        def failure = new ModuleVersionResolveException("broken")
+        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
 
         when:
         def idFailureResult = resolver.resolve(dependency)
@@ -153,7 +156,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         resolveResult.failure.message == "Could not find group:module:1.0."
 
         and:
-        1 * target.resolve(dependency, _) >> { args -> args[1].failed(new ModuleVersionNotFoundException("broken"))}
+        1 * target.resolve(dependency, _) >> { args -> args[1].failed(new ModuleVersionNotFoundException(newId("org", "a", "1.2")))}
     }
 
     def "collects and wraps unexpected module resolve failure"() {
@@ -182,10 +185,10 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         then:
         idResolveResult.failure instanceof ModuleVersionNotFoundException
-        idResolveResult.failure.message == "Could not find any version that matches group:group, module:module, version:1.0."
+        idResolveResult.failure.message == "Could not find any version that matches group:module:1.0."
 
         and:
-        1 * target.resolve(dependency, _) >> { args -> args[1].failed(new ModuleVersionNotFoundException("missing"))}
+        1 * target.resolve(dependency, _) >> { args -> args[1].failed(new ModuleVersionNotFoundException(newId("org", "a", "1.2")))}
 
         when:
         idResolveResult.id

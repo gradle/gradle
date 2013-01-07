@@ -98,21 +98,21 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.milestone.'
+        failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.milestone.'
+        failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.milestone.'
+        failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus('milestone').publish()
@@ -153,14 +153,14 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.release.'
+        failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.release.'
+        failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
@@ -168,7 +168,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:latest.release.'
+        failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus('release').publish()
@@ -206,7 +206,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:1.2+'
+        failureHasCause 'Could not find any version that matches org.test:projectA:1.2+'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.2').withNoMetaData().publish()
@@ -264,7 +264,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'retrieve'
 
         then:
-        failureHasCause 'Could not find any version that matches group:org.test, module:projectA, version:[1.2,2.0]'
+        failureHasCause 'Could not find any version that matches org.test:projectA:[1.2,2.0]'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.2').withNoMetaData().publish()

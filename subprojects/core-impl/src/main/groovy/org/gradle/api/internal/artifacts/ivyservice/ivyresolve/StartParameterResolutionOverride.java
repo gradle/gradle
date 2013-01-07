@@ -98,7 +98,7 @@ public class StartParameterResolutionOverride {
         }
 
         public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
-            result.failed(new ModuleVersionResolveException("No cached version available for offline mode"));
+            result.failed(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), "No cached version of %s available for offline mode."));
         }
 
         public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {

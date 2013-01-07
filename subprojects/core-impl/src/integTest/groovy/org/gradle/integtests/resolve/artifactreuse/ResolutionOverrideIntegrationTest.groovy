@@ -217,6 +217,6 @@ task listJars << {
         and:
         failure.assertHasDescription('Execution failed for task \':listJars\'.')
         failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString('No cached version available for offline mode'))
+        failure.assertThatCause(Matchers.containsString('No cached version of org.name:projectA:1.2 available for offline mode'))
     }
 }

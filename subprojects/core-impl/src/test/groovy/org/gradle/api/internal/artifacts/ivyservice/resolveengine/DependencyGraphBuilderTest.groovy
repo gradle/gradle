@@ -36,6 +36,7 @@ import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
@@ -854,7 +855,7 @@ class DependencyGraphBuilderTest extends Specification {
         def idResolveResult = selectorResolvesTo(descriptor, moduleVersionIdentifier)
         ModuleVersionResolveResult resolveResult = Mock()
         1 * idResolveResult.resolve() >> resolveResult
-        1 * resolveResult.id >> { throw new ModuleVersionNotFoundException("missing") }
+        1 * resolveResult.id >> { throw new ModuleVersionNotFoundException(newId("org", "a", "1.2")) }
     }
 
     def traversesBroken(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
@@ -863,7 +864,7 @@ class DependencyGraphBuilderTest extends Specification {
         def idResolveResult = selectorResolvesTo(descriptor, moduleVersionIdentifier)
         ModuleVersionResolveResult resolveResult = Mock()
         1 * idResolveResult.resolve() >> resolveResult
-        1 * resolveResult.id >> { throw new ModuleVersionResolveException("broken") }
+        1 * resolveResult.id >> { throw new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken") }
     }
 
     ModuleVersionIdentifier toModuleVersionIdentifier(ModuleRevisionId moduleRevisionId) {
@@ -878,7 +879,7 @@ class DependencyGraphBuilderTest extends Specification {
         def descriptor = dependsOn(args, from, ModuleRevisionId.newInstance("group", to, "1.0"))
         ModuleVersionIdResolveResult result = Mock()
         (0..1) * dependencyResolver.resolve(descriptor) >> result
-        _ * result.failure >> new ModuleVersionResolveException("broken")
+        _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
         0 * result._
     }
 

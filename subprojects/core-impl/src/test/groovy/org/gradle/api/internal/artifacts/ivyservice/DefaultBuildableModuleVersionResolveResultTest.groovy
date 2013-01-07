@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import spock.lang.Specification
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     def result = new DefaultBuildableModuleVersionResolveResult()
@@ -60,7 +61,7 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     }
 
     def "cannot get id when resolve failed"() {
-        def failure = new ModuleVersionResolveException("broken")
+        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
 
         when:
         result.failed(failure)
@@ -72,7 +73,7 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     }
 
     def "cannot get descriptor when resolve failed"() {
-        def failure = new ModuleVersionResolveException("broken")
+        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
 
         when:
         result.failed(failure)
@@ -84,7 +85,7 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     }
 
     def "cannot get artifact resolver when resolve failed"() {
-        def failure = new ModuleVersionResolveException("broken")
+        def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
 
         when:
         result.failed(failure)

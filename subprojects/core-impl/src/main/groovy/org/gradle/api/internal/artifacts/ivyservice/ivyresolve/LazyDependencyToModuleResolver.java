@@ -120,8 +120,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             for (Configuration configuration : descriptor.getConfigurations()) {
                 for (String parent : configuration.getExtends()) {
                     if (descriptor.getConfiguration(parent) == null) {
-                        throw new ModuleVersionResolveException(String.format("Configuration '%s' extends unknown configuration '%s' in module descriptor for group:%s, module:%s, version:%s.",
-                                configuration.getName(), parent, id.getOrganisation(), id.getName(), id.getRevision()));
+                        throw new ModuleVersionResolveException(id, String.format("Configuration '%s' extends unknown configuration '%s' in module descriptor for %%s.", configuration.getName(), parent));
                     }
                 }
             }
@@ -137,7 +136,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
         }
 
         protected void onUnexpectedModuleRevisionId(ModuleDescriptor descriptor) {
-            throw new ModuleVersionResolveException(String.format("Received unexpected module descriptor %s for dependency %s.", descriptor.getModuleRevisionId(), dependencyDescriptor.getDependencyRevisionId()));
+            throw new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), String.format("Received unexpected module descriptor %s for dependency %%s.", descriptor.getModuleRevisionId()));
         }
     }
 
@@ -158,7 +157,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
 
         @Override
         protected ModuleVersionNotFoundException notFound(ModuleRevisionId id) {
-            return new ModuleVersionNotFoundException(String.format("Could not find any version that matches group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()));
+            return new ModuleVersionNotFoundException(id, "Could not find any version that matches %s.");
         }
 
         @Override

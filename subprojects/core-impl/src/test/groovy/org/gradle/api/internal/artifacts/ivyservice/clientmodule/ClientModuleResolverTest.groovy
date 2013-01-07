@@ -26,6 +26,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+
 /**
  * @author Hans Dockter
  */
@@ -74,7 +76,7 @@ class ClientModuleResolverTest extends Specification {
 
         then:
         1 * target.resolve(dependencyDescriptor, result)
-        _ * result.failure >> new ModuleVersionResolveException("broken")
+        _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
         0 * result._
     }
 }
