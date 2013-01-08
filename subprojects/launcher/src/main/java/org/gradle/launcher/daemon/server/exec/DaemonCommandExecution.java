@@ -40,7 +40,6 @@ public class DaemonCommandExecution {
 
     private Throwable exception;
     private Object result;
-    private final List<Runnable> finalizers = new LinkedList<Runnable>();
 
     public DaemonCommandExecution(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned, List<DaemonCommandAction> actions) {
         this.connection = connection;
@@ -131,16 +130,5 @@ public class DaemonCommandExecution {
     @Override
     public String toString() {
         return String.format("DaemonCommandExecution[command = %s, connection = %s]", command, connection);
-    }
-
-    public void addFinalizer(Runnable runnable) {
-        assert runnable != null;
-        finalizers.add(runnable);
-    }
-
-    public void executeFinalizers() {
-        for (Runnable finalizer : finalizers) {
-            finalizer.run();
-        }
     }
 }
