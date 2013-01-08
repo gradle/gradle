@@ -17,7 +17,8 @@ These improvements are in addition to the new support for [Dependency Resolve Ru
 
 #### Correctly treat Snapshot artifacts with classifiers as 'changing'
 
-Gradle treats any artifact matching the '\*\-SNAPSHOT' pattern as _changing_, which means that we'll check for updated content based on the [cacheChangingModulesFor](dsl/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:cacheChangingModulesFor) setting.
+Gradle treats any artifact matching the '\*\-SNAPSHOT' pattern as _changing_, which means that we'll check for updated content based on the setting of
+[cacheChangingModulesFor](/userguide/dependency_management.html#sec:controlling_caching).
 This strict pattern matching meant that '\*\-SNAPSHOT-sources.jar' and '\*\-SNAPSHOT-javadoc.jar' were not considered _changing_, so these artifacts weren't being updated automatically
 on dependency resolution. This issue has now been fixed: see GRADLE-2175 and GRADLE-2218.
 
