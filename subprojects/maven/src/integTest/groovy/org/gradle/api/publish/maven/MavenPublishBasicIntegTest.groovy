@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.publish.maven
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -63,11 +62,11 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
     @Ignore("Not yet implemented") // TODO:DAZ
     def "publishes empty pom without component"() {
         given:
-        settingsFile << "rootProject.name = 'root'"
+        settingsFile << "rootProject.name = 'empty-project'"
         buildFile << """
             apply plugin: 'maven-publish'
 
-            group = 'group'
+            group = 'org.gradle.test'
             version = '1.0'
 
             publishing {
@@ -83,7 +82,9 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        mavenRepo.module('group', 'root', '1.0').pomFile.exists()
+        def module = mavenRepo.module('org.gradle.test', 'empty-project', '1.0')
+        module.assertPublished()
+        module.parsedPom.scopes.isEmpty()
     }
 
     def "can publish simple jar"() {
