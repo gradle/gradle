@@ -16,10 +16,10 @@
 
 package org.gradle.execution
 
-import spock.lang.Specification
-import org.gradle.api.internal.GradleInternal
 import org.gradle.StartParameter
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.DefaultProject
+import spock.lang.Specification
 
 /**
  * by Szczepan Faber, created at: 1/8/13
@@ -30,25 +30,39 @@ class ProjectEvaluatingActionTest extends Specification {
     private context = Mock(BuildExecutionContext)
     private startParameter = Mock(StartParameter)
     private gradle = Mock(GradleInternal)
+    private project = Mock(DefaultProject)
 
     private action = new ProjectEvaluatingAction(evaluator)
 
-    def "evaluates projects by task paths and proceeds"() {
-        def project = Mock(DefaultProject)
+    def setup() {
+        context.gradle >> gradle
+        gradle.startParameter >> startParameter
+        gradle.defaultProject >> project
+    }
 
+    def "evaluates projects by task paths and proceeds"() {
         when:
         action.configure(context)
 
         then:
-        context.gradle >> gradle
-        gradle.startParameter >> startParameter
-        gradle.defaultProject >> project
         startParameter.taskNames >> ['foo', "bar:baz"]
 
         1 * context.proceed()
         1 * evaluator.evaluateByPath(project, 'foo')
         1 * evaluator.evaluateByPath(project, 'bar:baz')
         0 * evaluator._
-        0 * context._
+    }
+
+    def "evaluates the default project even if the task names are empty"() {
+        when:
+        action.configure(context)
+
+        then:
+        startParameter.taskNames >> []
+
+        1 * context.proceed()
+        1 * project.evaluate()
+        0 * project._
+        0 * evaluator._
     }
 }
