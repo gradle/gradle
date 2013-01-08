@@ -97,12 +97,21 @@ class MavenFileModule implements MavenModule {
         pomFile.assertDoesNotExist()
     }
 
-    void assertPublishedAsJavaModule() {
+    void assertPublished() {
         assert pomFile.assertExists()
         assert parsedPom.groupId == groupId
         assert parsedPom.artifactId == artifactId
         assert parsedPom.version == version
+    }
+
+    void assertPublishedAsJavaModule() {
+        assertPublished()
         assertArtifactsPublished("${artifactId}-${version}.jar", "${artifactId}-${version}.pom")
+    }
+
+    void assertPublishedAsWebModule() {
+        assertPublished()
+        assertArtifactsPublished("${artifactId}-${version}.war", "${artifactId}-${version}.pom")
     }
 
     /**

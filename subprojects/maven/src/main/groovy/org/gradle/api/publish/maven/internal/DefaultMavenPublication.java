@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
@@ -60,7 +61,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public void from(SoftwareComponent component) {
         if (this.component != null) {
-            throw new IllegalStateException("Cannot add multiple components to MavenPublication");
+            throw new InvalidUserDataException("A MavenPublication cannot include multiple components");
         }
         this.component = (SoftwareComponentInternal) component;
     }

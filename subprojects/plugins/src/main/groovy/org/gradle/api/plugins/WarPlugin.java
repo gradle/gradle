@@ -21,9 +21,11 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
+import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.War;
 
@@ -74,8 +76,10 @@ public class WarPlugin implements Plugin<Project> {
         War war = project.getTasks().add(WAR_TASK_NAME, War.class);
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
         war.setGroup(BasePlugin.BUILD_GROUP);
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(war));
+        ArchivePublishArtifact warArtifact = new ArchivePublishArtifact(war);
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
         configureConfigurations(project.getConfigurations());
+        configureComponent(project, warArtifact);
     }
 
     public void configureConfigurations(ConfigurationContainer configurationContainer) {
@@ -86,5 +90,9 @@ public class WarPlugin implements Plugin<Project> {
                 setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
         configurationContainer.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+    }
+
+    private void configureComponent(Project project, PublishArtifact warArtifact) {
+        project.getComponents().add(new WebApplication(warArtifact));
     }
 }

@@ -95,7 +95,6 @@ project(":project2") {
         return true
     }
 
-
     def "maven-publish plugin will use target project archivesBaseName for project dependency when target project does not have maven-publish plugin applied"() {
         given:
         settingsFile << """
