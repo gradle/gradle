@@ -204,7 +204,7 @@ class ResolutionResultBuilderSpec extends Specification {
         print(result.root) == """x:a:1
   x:b:1 [a]
   x:c:1 [a]
-  x:U:1 - Could not resolve x:U:1.
+  x:U:1 -> x:U:1 - Could not resolve x:U:1.
 """
     }
 
@@ -263,5 +263,6 @@ class ResolutionResultBuilderSpec extends Specification {
         ModuleVersionSelector requested
         ModuleVersionSelection selected
         ModuleVersionResolveException failure
+        ModuleVersionSelectionReason reason
     }
 }

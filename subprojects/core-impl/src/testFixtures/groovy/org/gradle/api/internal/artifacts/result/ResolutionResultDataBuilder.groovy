@@ -34,7 +34,7 @@ class ResolutionResultDataBuilder {
 
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
         def requested = newSelector(group, module, version)
-        new DefaultUnresolvedDependencyResult(requested, newModule(group, module, selectedVersion), newModule(), new ModuleVersionResolveException(requested, "broken"))
+        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.REQUESTED, newModule(group, module, selectedVersion), new ModuleVersionResolveException(requested, "broken"))
     }
 
     static DefaultResolvedModuleVersionResult newModule(String group='a', String module='a', String version='1',

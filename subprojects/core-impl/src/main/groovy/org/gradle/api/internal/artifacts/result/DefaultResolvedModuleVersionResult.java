@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
@@ -27,12 +28,12 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
-* by Szczepan Faber, created at: 8/10/12
-*/
+ * by Szczepan Faber, created at: 8/10/12
+ */
 public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersionResult {
     private final ModuleVersionIdentifier id;
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
-    private final Set<DependencyResult> dependents = new LinkedHashSet<DependencyResult>();
+    private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
     private final ModuleVersionSelectionReason selectionReason;
 
     public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id) {
@@ -55,7 +56,7 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return Collections.unmodifiableSet(dependencies);
     }
 
-    public Set<DependencyResult> getDependents() {
+    public Set<ResolvedDependencyResult> getDependents() {
         return Collections.unmodifiableSet(dependents);
     }
 
@@ -64,7 +65,7 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return this;
     }
 
-    public DefaultResolvedModuleVersionResult addDependent(DependencyResult dependent) {
+    public DefaultResolvedModuleVersionResult addDependent(ResolvedDependencyResult dependent) {
         this.dependents.add(dependent);
         return this;
     }

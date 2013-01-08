@@ -412,6 +412,10 @@ public class DependencyGraphBuilder {
             return selector.module.selected;
         }
 
+        public ModuleVersionSelectionReason getReason() {
+            return selector.module.selected == null ? VersionSelectionReasons.REQUESTED : selector.module.selected.selectionReason;
+        }
+
         public void collectFailures(FailureState failureState) {
             if (isFailed()) {
                 failureState.addUnresolvedDependency(this, selector.descriptor.getDependencyRevisionId(), getFailure());

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
@@ -25,35 +24,22 @@ import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
  * by Szczepan Faber, created at: 7/26/12
  */
 public class AbstractDependencyResult implements DependencyResult {
-
     private final ModuleVersionSelector requested;
-    private final ResolvedModuleVersionResult selected;
     private final ResolvedModuleVersionResult from;
 
-    public AbstractDependencyResult(ModuleVersionSelector requested, @Nullable ResolvedModuleVersionResult selected, ResolvedModuleVersionResult from) {
+    public AbstractDependencyResult(ModuleVersionSelector requested, ResolvedModuleVersionResult from) {
         assert requested != null;
         assert from != null;
 
         this.from = from;
         this.requested = requested;
-        this.selected = selected;
     }
 
     public ModuleVersionSelector getRequested() {
         return requested;
     }
 
-    @Nullable
-    public ResolvedModuleVersionResult getSelected() {
-        return selected;
-    }
-
     public ResolvedModuleVersionResult getFrom() {
         return from;
-    }
-
-    @Override
-    public String toString() {
-        return DependencyResultPrinter.print(this);
     }
 }

@@ -17,14 +17,10 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
 /**
- * An edge in the dependency graph. Provides information on the origin of the dependency,
- * the requested module version, and the selected module version. Requested and selected version
- * can differ for several reasons: conflict resolution, forcing of a version, or use of a dynamic version.
- * For more information on these terms, see the user guide.
+ * An edge in the dependency graph. Provides information about the origin of the dependency and the requested module version.
  *
  * @see ResolutionResult
  */
@@ -36,16 +32,6 @@ public interface DependencyResult {
      * @return the requested module version
      */
     ModuleVersionSelector getRequested();
-
-    /**
-     * Returns the selected module version, or {@code null}
-     * if the requested module version cannot be resolved.
-     *
-     * @return the selected module version, or {@code null}
-     * if the requested module version cannot be resolved
-     */
-    @Nullable
-    ResolvedModuleVersionResult getSelected();
 
     /**
      * Returns the origin of the dependency.

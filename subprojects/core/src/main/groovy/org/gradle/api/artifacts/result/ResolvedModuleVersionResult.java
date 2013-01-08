@@ -48,7 +48,7 @@ public interface ResolvedModuleVersionResult {
      *
      * @return the dependents of the resolved module
      */
-    Set<? extends DependencyResult> getDependents();
+    Set<? extends ResolvedDependencyResult> getDependents();
 
     /**
      * Returns the reason for selecting the module.

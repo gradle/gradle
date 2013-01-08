@@ -21,6 +21,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
 
 /**
  * by Szczepan Faber, created at: 10/1/12
@@ -50,7 +51,7 @@ class CachingDependencyResultFactoryTest extends Specification {
 
     def "creates and caches unresolved dependencies"() {
         def fromModule = newModule('from')
-        def selectedModule = newModule('selected')
+        def selectedModule = Mock(ModuleVersionSelectionReason)
 
         when:
         def dep = factory.createUnresolvedDependency(selector('requested'), fromModule, selectedModule, new ModuleVersionResolveException(selector('requested'), "foo"))

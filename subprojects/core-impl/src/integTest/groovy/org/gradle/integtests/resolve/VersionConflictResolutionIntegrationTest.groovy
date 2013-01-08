@@ -724,11 +724,11 @@ task checkDeps << {
                 def result = configurations.conf.incoming.resolutionResult
                 assert result.allModuleVersions.size() == 3
                 def root = result.root
-                assert root.dependencies*.toString() == ['org:a:1.0 -> 2.0', 'org:a:2.0']
+                assert root.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0', 'org:a:2.0']
                 def a = result.allModuleVersions.find { it.id.name == 'a' }
                 assert a.dependencies*.toString() == ['org:b:2.0']
                 def b = result.allModuleVersions.find { it.id.name == 'b' }
-                assert b.dependencies*.toString() == ['org:a:1.0 -> 2.0']
+                assert b.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0']
             }
         """
 
@@ -798,7 +798,7 @@ task checkDeps << {
             def result = configurations.conf.incoming.resolutionResult
             assert result.allModuleVersions.size() == 7
             def a = result.allModuleVersions.find { it.id.name == 'a' }
-            assert a.dependencies*.toString() == ['org:in-conflict:1.0 -> 2.0']
+            assert a.dependencies*.toString() == ['org:in-conflict:1.0 -> org:in-conflict:2.0']
             def bChild = result.allModuleVersions.find { it.id.name == 'b-child' }
             assert bChild.dependencies*.toString() == ['org:in-conflict:2.0']
             def target = result.allModuleVersions.find { it.id.name == 'target' }

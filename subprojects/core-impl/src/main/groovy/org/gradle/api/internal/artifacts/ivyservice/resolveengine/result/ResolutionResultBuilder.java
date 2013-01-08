@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 
@@ -55,25 +55,16 @@ public class ResolutionResultBuilder implements ResolvedConfigurationListener {
     public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
         for (InternalDependencyResult d : dependencies) {
             DefaultResolvedModuleVersionResult from = modules.get(id);
-            DefaultResolvedModuleVersionResult selected = createOrGet(d);
             DependencyResult dependency;
             if (d.getFailure() != null) {
-                dependency = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, selected, d.getFailure());
+                dependency = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getReason(), d.getFailure());
             } else {
+                DefaultResolvedModuleVersionResult selected = modules.get(d.getSelected().getSelectedId());
                 dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
+                selected.addDependent((ResolvedDependencyResult) dependency);
             }
             from.addDependency(dependency);
-            if (selected != null) {
-                selected.addDependent(dependency);
-            }
         }
-    }
-
-    @Nullable
-    private DefaultResolvedModuleVersionResult createOrGet(InternalDependencyResult dependency) {
-        ModuleVersionSelection selected = dependency.getSelected();
-        if (selected == null) { return null; }
-        return createOrGet(selected.getSelectedId(), selected.getSelectionReason());
     }
 
     private DefaultResolvedModuleVersionResult createOrGet(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
