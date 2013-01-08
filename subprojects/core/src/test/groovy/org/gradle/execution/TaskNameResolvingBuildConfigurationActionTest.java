@@ -18,6 +18,7 @@ package org.gradle.execution;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.StartParameter;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.AbstractProject;
@@ -372,7 +373,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         try {
             action.configure(executionContext);
             fail();
-        } catch (TaskSelectionException e) {
+        } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("Project 'a' is ambiguous in [project]. Candidates are: 'aa', 'ab'."));
         }
     }
