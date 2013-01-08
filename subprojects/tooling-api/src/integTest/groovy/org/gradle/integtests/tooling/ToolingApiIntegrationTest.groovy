@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
@@ -60,7 +61,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
         projectDir.file('build.gradle').text = """
 task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
-task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
+task check << { assert gradle.gradleVersion == '${otherVersion.version.version}' }
 """
         executer.withTasks('wrapper').run()
 
@@ -81,7 +82,7 @@ task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
         projectDir.file('build.gradle') << """
 task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
 allprojects {
-    task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
+    task check << { assert gradle.gradleVersion == '${otherVersion.version.version}' }
 }
 """
         projectDir.file('child').createDir()
@@ -101,7 +102,7 @@ allprojects {
 
     def "can specify a gradle installation to use"() {
         toolingApi.isEmbedded = false
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
         toolingApi.withConnector { connector ->
@@ -115,7 +116,7 @@ allprojects {
 
     def "can specify a gradle distribution to use"() {
         toolingApi.isEmbedded = false
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
         toolingApi.withConnector { connector ->
@@ -129,11 +130,11 @@ allprojects {
 
     def "can specify a gradle version to use"() {
         toolingApi.isEmbedded = false
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
-        toolingApi.withConnector { connector ->
-            connector.useGradleVersion(otherVersion.version)
+        toolingApi.withConnector { GradleConnector connector ->
+            connector.useGradleVersion(otherVersion.version.version)
         }
         GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
@@ -174,7 +175,7 @@ allprojects {
             }
 
             dependencies {
-                compile "org.gradle:gradle-tooling-api:${distribution.version}"
+                compile "org.gradle:gradle-tooling-api:${distribution.version.version}"
                 runtime 'org.slf4j:slf4j-simple:1.7.2'
             }
 

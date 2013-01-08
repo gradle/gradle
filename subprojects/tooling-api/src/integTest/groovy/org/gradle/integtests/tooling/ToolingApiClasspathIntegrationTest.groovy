@@ -25,7 +25,7 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
     def "tooling api classpath contains only tooling-api jar and slf4j"() {
         when:
         ToolingApiDistributionResolver resolver = new ToolingApiDistributionResolver().withDefaultRepository().withExternalToolingApiDistribution()
-        ToolingApiDistribution resolve = resolver.resolve(distribution.getVersion())
+        ToolingApiDistribution resolve = resolver.resolve(distribution.getVersion().version)
 
         then:
         resolve.classpath.files.size() == 2

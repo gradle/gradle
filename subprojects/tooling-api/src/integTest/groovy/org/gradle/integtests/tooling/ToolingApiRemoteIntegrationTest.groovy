@@ -38,7 +38,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     }
 
     public void "downloads distribution with valid useragent information"() {
-        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :binZip task"
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
         expect:
         server.allowGetOrHead("/dist", distribution.binDistribution)
         server.expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion()))
