@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,6 +35,10 @@ public class DefaultMavenDeployment implements MavenDeployment {
         this.pomArtifact = pomArtifact;
         this.mainArtifact = mainArtifact;
         this.attachedArtifacts = Sets.newLinkedHashSet(attachedArtifacts);
+    }
+
+    public DefaultMavenDeployment(PublishArtifact pomArtifact) {
+        this(pomArtifact, pomArtifact, new ArrayList<PublishArtifact>());
     }
 
     public void addArtifact(PublishArtifact artifact) {

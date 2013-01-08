@@ -31,7 +31,6 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
-            apply plugin: 'java'
 
             group = 'group'
             version = '1.0'
@@ -41,8 +40,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    add('mavenJava', org.gradle.api.publish.maven.MavenPublication) {
-                        from components['java']
+                    add('mavenCustom', org.gradle.api.publish.maven.MavenPublication) {
                         pom.withXml {
                             asNode().groupId[0].value = "changed-group"
                             asNode().artifactId[0].value = "changed-artifact"
@@ -64,7 +62,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
 
         then:
         def module = mavenRepo.module('changed-group', 'changed-artifact', 'changed-version')
-        module.assertPublishedAsJavaModule()
+        module.assertPublished()
         module.parsedPom.description == 'custom-description'
         module.parsedPom.scopes.runtime.assertDependsOn("junit", "junit", "4.11")
     }

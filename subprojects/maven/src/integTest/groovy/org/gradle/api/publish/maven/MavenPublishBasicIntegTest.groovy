@@ -20,8 +20,6 @@ import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import spock.lang.Ignore
-
 /**
  * Tests “simple” maven publishing scenarios
  */
@@ -59,7 +57,6 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         mavenRepo.module('group', 'root', '1.0').assertNotPublished()
     }
 
-    @Ignore("Not yet implemented") // TODO:DAZ
     def "publishes empty pom without component"() {
         given:
         settingsFile << "rootProject.name = 'empty-project'"
