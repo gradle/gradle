@@ -31,7 +31,7 @@ import spock.lang.Issue
 @MinToolingApiVersion('1.4')
 @MinTargetGradleVersion('1.4')
 @Issue("http://issues.gradle.org/browse/GRADLE-2408")
-class ToolingApiDistributionInitScriptHandlingCrossVersionIntegrationTest extends ToolingApiSpecification {
+class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecification {
 
     TestFile createDistribution(int i) {
         def distro = file("distro$i")
