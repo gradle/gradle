@@ -18,8 +18,8 @@ package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.internal.artifacts.version.LatestVersionSemanticComparator;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 
 import java.util.*;
 
@@ -35,17 +35,17 @@ public class DependencyResultSorter {
      * If requested matches selected then it will override the version comparison
      * so that the dependency that was selected is more prominent.
      */
-    public static Collection<DependencyResult> sort(Collection<DependencyResult> input) {
-        List<DependencyResult> out = new ArrayList<DependencyResult>(input);
+    public static Collection<DependencyEdge> sort(Collection<DependencyEdge> input) {
+        List<DependencyEdge> out = new ArrayList<DependencyEdge>(input);
         Collections.sort(out, new DependencyComparator());
         return out;
     }
 
-    private static class DependencyComparator implements Comparator<DependencyResult> {
+    private static class DependencyComparator implements Comparator<DependencyEdge> {
 
         private final LatestVersionSemanticComparator versionComparator = new LatestVersionSemanticComparator();
 
-        public int compare(DependencyResult left, DependencyResult right) {
+        public int compare(DependencyEdge left, DependencyEdge right) {
             ModuleVersionSelector leftRequested = left.getRequested();
             ModuleVersionSelector rightRequested = right.getRequested();
             int byGroup = leftRequested.getGroup().compareTo(rightRequested.getGroup());
@@ -59,8 +59,8 @@ public class DependencyResultSorter {
             }
 
             //if selected matches requested version comparison is overridden
-            boolean leftMatches = leftRequested.matchesStrictly(left.getSelected().getId());
-            boolean rightMatches = rightRequested.matchesStrictly(right.getSelected().getId());
+            boolean leftMatches = leftRequested.matchesStrictly(left.getActual());
+            boolean rightMatches = rightRequested.matchesStrictly(right.getActual());
             if (leftMatches && !rightMatches) {
                 return -1;
             } else if (!leftMatches && rightMatches) {
@@ -72,8 +72,8 @@ public class DependencyResultSorter {
                 return byVersion;
             }
 
-            ModuleVersionIdentifier leftFrom = left.getFrom().getId();
-            ModuleVersionIdentifier rightFrom = right.getFrom().getId();
+            ModuleVersionIdentifier leftFrom = left.getFrom();
+            ModuleVersionIdentifier rightFrom = right.getFrom();
             byGroup = leftFrom.getGroup().compareTo(rightFrom.getGroup());
             if (byGroup != 0) {
                 return byGroup;

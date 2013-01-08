@@ -25,34 +25,24 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import java.util.Collections;
 import java.util.Set;
 
-/**
- * Children of this renderable dependency node are its dependents.
- *
- * by Szczepan Faber, created at: 7/27/12
- */
-public class InvertedRenderableUnresolvedDependencyResult extends AbstractRenderableDependencyResult implements InvertedRenderableDependency {
+public class InvertedRenderableUnresolvedDependencyResult implements DependencyEdge {
     private final UnresolvedDependencyResult dependency;
     private final ModuleVersionIdentifier actual;
-    private final String description;
 
-    public InvertedRenderableUnresolvedDependencyResult(UnresolvedDependencyResult dependency, String description) {
+    public InvertedRenderableUnresolvedDependencyResult(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
-        this.description = description;
         ModuleVersionSelector attempted = dependency.getAttempted();
         actual = DefaultModuleVersionIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
     }
 
-    @Override
     public boolean isResolvable() {
         return false;
     }
 
-    @Override
     public ModuleVersionSelector getRequested() {
         return dependency.getRequested();
     }
 
-    @Override
     public ModuleVersionIdentifier getActual() {
         return actual;
     }
@@ -61,9 +51,8 @@ public class InvertedRenderableUnresolvedDependencyResult extends AbstractRender
         return dependency.getAttemptedReason();
     }
 
-    @Override
-    public String getDescription() {
-        return description;
+    public ModuleVersionIdentifier getFrom() {
+        return dependency.getFrom().getId();
     }
 
     public Set<? extends RenderableDependency> getChildren() {

@@ -18,8 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
-import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -78,7 +77,10 @@ class DependencyResultSorterSpec extends Specification {
     }
 
     private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, ModuleVersionIdentifier from = newId("org", "a", "1.0")) {
-        new DefaultResolvedDependencyResult(requested, new DefaultResolvedModuleVersionResult(selected),
-                new DefaultResolvedModuleVersionResult(from))
+        return Stub(DependencyEdge) {
+            getRequested() >> requested
+            getActual() >> selected
+            getFrom() >> from
+        }
     }
 }

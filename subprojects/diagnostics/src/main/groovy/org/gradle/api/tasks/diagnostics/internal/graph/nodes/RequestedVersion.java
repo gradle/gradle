@@ -41,7 +41,7 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
         this.description = description;
     }
 
-    public void addChild(InvertedRenderableDependency child) {
+    public void addChild(DependencyEdge child) {
         children.addAll(child.getChildren());
     }
 

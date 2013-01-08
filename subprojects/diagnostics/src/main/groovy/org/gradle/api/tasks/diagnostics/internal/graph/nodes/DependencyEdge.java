@@ -20,10 +20,18 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 
-public interface InvertedRenderableDependency extends RenderableDependency {
+import java.util.Set;
+
+public interface DependencyEdge {
+    boolean isResolvable();
+
     ModuleVersionSelector getRequested();
 
     ModuleVersionIdentifier getActual();
 
+    ModuleVersionIdentifier getFrom();
+
     ModuleVersionSelectionReason getReason();
+
+    Set<? extends RenderableDependency> getChildren();
 }

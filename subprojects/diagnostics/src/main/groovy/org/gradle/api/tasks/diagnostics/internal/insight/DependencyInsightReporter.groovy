@@ -32,19 +32,21 @@ public class DependencyInsightReporter {
 
     Collection<RenderableDependency> prepare(Collection<DependencyResult> input) {
         def out = new LinkedList<RenderableDependency>()
-        def sorted = DependencyResultSorter.sort(input).collect {
+        def dependencies = input.collect {
             if (it instanceof UnresolvedDependencyResult) {
-                return new InvertedRenderableUnresolvedDependencyResult(it, "")
+                return new InvertedRenderableUnresolvedDependencyResult(it)
             } else {
-                return new InvertedRenderableDependencyResult(it, "")
+                return new InvertedRenderableDependencyResult(it)
             }
         }
+
+        def sorted = DependencyResultSorter.sort(dependencies)
 
         //remember if module id was annotated
         def annotated = new HashSet<ModuleVersionIdentifier>()
         def current = null
 
-        for (InvertedRenderableDependency dependency: sorted) {
+        for (DependencyEdge dependency: sorted) {
             //add description only to the first module
             if (annotated.add(dependency.actual)) {
                 //add a heading dependency with the annotation if the dependency does not exist in the graph

@@ -24,26 +24,17 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import java.util.Collections;
 import java.util.Set;
 
-/**
- * Children of this renderable dependency node are its dependents.
- *
- * by Szczepan Faber, created at: 7/27/12
- */
-public class InvertedRenderableDependencyResult extends AbstractRenderableDependencyResult implements InvertedRenderableDependency {
+public class InvertedRenderableDependencyResult implements DependencyEdge {
     private final ResolvedDependencyResult dependency;
-    private final String description;
 
-    public InvertedRenderableDependencyResult(ResolvedDependencyResult dependency, String description) {
+    public InvertedRenderableDependencyResult(ResolvedDependencyResult dependency) {
         this.dependency = dependency;
-        this.description = description;
     }
 
-    @Override
     public boolean isResolvable() {
         return true;
     }
 
-    @Override
     public ModuleVersionSelector getRequested() {
         return dependency.getRequested();
     }
@@ -52,14 +43,12 @@ public class InvertedRenderableDependencyResult extends AbstractRenderableDepend
         return dependency.getSelected().getSelectionReason();
     }
 
-    @Override
     public ModuleVersionIdentifier getActual() {
         return dependency.getSelected().getId();
     }
 
-    @Override
-    public String getDescription() {
-        return description;
+    public ModuleVersionIdentifier getFrom() {
+        return dependency.getFrom().getId();
     }
 
     public Set<? extends RenderableDependency> getChildren() {
