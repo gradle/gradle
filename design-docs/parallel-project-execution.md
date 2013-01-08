@@ -25,9 +25,20 @@ To execute a multi-project build in parallel the user must declare that they wou
     --parallel-threads=4
         \\ Tells Gradle to execute decouple projects in parallel, using the specified number of executors.
 
+## Build environment property
+
+Similar to the Gradle Daemon, it should be possible to enable/configure parallel execution on a per-user and per-project basis.
+This could be done via a build environment property set in `gradle.properties`:
+
+    org.gradle.parallel: When set to `true`, Gradle will execute with the parallel executer
+
+    org.gradle.parallel.threads: Specify the maximum number of threads to use for parallel execution. This property does not in itself enable parallel execution,
+                                 but the value will be used whether Gradle is executed with `--parallel` or `org.gradle.parallel=true`.
+
 ## Project decoupling
 
-To execute a multi-project build in parallel the user must first declare which projects are/should-be decoupled. This will be done via the settings DSL (TBD).
+To execute a multi-project build in parallel the user must first declare which projects are/should-be decoupled.
+This will be done via the settings DSL in the `settings.gradle` file.
 
 Two ways to define coupled projects in settings.gradle. In both cases A and B are coupled and cannot be executed in parallel, as are C & D.
 
@@ -258,8 +269,11 @@ Sad-day:
 - Introduce a GradleExecuter test fixture that will execute a build using the parallel option. Configure an experimental CI build that uses this executer.
 - Increase integration test coverage for multi-project builds, for all forms of execution. Add additional integration tests for cases specific to parallel execution.
 - Report on all failures for a build: for --continue and --parallel
+
+- Added build environment properties for enabling/configuring parallel execution: `org.gradle.parallel` and `org.gradle.parallel.threads`.
 - Update status bar to provide feedback on current build status for --parallel and --continue
-- Review and fix thread-safety of: compiler daemon, profiler, task up-to-date checking, dependency resolution and publication code.
+- Fix thread-safety of compiler daemon by serialising access. Only one project can utilise the compiler daemon at any one time.
+- Review and fix thread-safety of: profiler, task up-to-date checking, dependency resolution and publication.
 
 - Warn when project coupling is detected while executing projects in parallel
 - When using the parallel executer, give each project a copy of the model. This will prevent things sporadically failing due to timing issues.
