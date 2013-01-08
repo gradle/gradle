@@ -133,14 +133,15 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     protected boolean isSameOrNewer(String otherVersion) {
-        return version.compareTo(GradleVersion.version(otherVersion)) >= 0;
+        return isVersion(otherVersion) || version.compareTo(GradleVersion.version(otherVersion)) > 0;
     }
 
     protected boolean isSameOrOlder(String otherVersion) {
-        return version.compareTo(GradleVersion.version(otherVersion)) <= 0;
+        return isVersion(otherVersion) || version.compareTo(GradleVersion.version(otherVersion)) <= 0;
     }
 
     protected boolean isVersion(String otherVersion) {
-        return version.compareTo(GradleVersion.version(otherVersion)) == 0;
+        return version.compareTo(GradleVersion.version(otherVersion)) == 0 || (version.isSnapshot() && version.getVersionBase().equals(otherVersion));
     }
+
 }
