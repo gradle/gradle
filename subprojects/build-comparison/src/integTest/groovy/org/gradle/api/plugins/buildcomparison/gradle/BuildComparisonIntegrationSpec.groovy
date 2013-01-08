@@ -157,7 +157,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         fails "compareGradleBuilds"
 
         and:
-        failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: 1.0-rc-1, target: ${distribution.version})")
+        failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: 1.0-rc-1, target: ${distribution.version.version})")
     }
 
     def "can ignore errors"() {
@@ -201,7 +201,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         fails "compareGradleBuilds"
 
         and:
-        failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: ${distribution.version}, target: 1.0-rc-1)")
+        failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: ${distribution.version.version}, target: 1.0-rc-1)")
     }
 
     def "can handle artifact not existing on source side"() {
