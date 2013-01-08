@@ -59,7 +59,7 @@ class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSp
         def builder = classloader.loadClass(CrossVersionBuilder.class.name).newInstance()
         builder.targetGradleHomeDir = buildVersion.gradleHomeDir
         builder.currentDir = testDirectory
-        builder.version = buildVersion.version
+        builder.version = buildVersion.version.version
         builder.build()
     }
 }
