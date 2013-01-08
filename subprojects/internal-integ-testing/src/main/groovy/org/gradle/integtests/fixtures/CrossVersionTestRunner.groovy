@@ -51,7 +51,7 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
 
         List<String> targetGradleVersions = versionsAnnotation.value()
         for (String targetGradleVersion : targetGradleVersions) {
-            if (isMatching(targetGradleVersion, previousVersion.version)) {
+            if (isMatching(targetGradleVersion, previousVersion.version.version)) {
                 return true
             }
         }
