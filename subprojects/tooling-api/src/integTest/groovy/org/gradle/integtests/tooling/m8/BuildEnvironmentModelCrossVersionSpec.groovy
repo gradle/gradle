@@ -31,7 +31,7 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
         BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }
 
         then:
-        model.gradle.gradleVersion == targetDist.version
+        model.gradle.gradleVersion == targetDist.version.version
         model.java.javaHome
         !model.java.jvmArguments.empty
     }
