@@ -50,7 +50,7 @@ abstract class ToolingApiSpecification extends Specification {
 
     void setup() {
         def consumerGradle = GradleVersion.current()
-        def target = GradleVersion.version(VERSION.get().version)
+        def target = GradleVersion.version(VERSION.get().version.version)
         LOGGER.info(" Using Tooling API consumer ${consumerGradle}, provider ${target}")
         boolean accept = accept(consumerGradle, target)
         if (!accept) {

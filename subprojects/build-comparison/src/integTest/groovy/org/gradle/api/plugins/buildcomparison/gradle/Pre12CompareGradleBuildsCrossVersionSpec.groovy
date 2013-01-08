@@ -39,7 +39,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         buildFile << "apply plugin: 'java'"
         versionGuard { """
             compareGradleBuilds {
-                sourceBuild.gradleVersion "${previous.version}"
+                sourceBuild.gradleVersion "${previous.version.version}"
             }
         """ }
 
@@ -51,8 +51,8 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         sourceWasInferred()
 
         then:
-        sourceBuildVersion == previous.version
-        targetBuildVersion == current.version
+        sourceBuildVersion == previous.version.version
+        targetBuildVersion == current.version.version
     }
 
     def "can compare identical builds with target pre 1.2"() {
@@ -83,7 +83,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         buildFile << "apply plugin: 'java'"
         versionGuard { """
             compareGradleBuilds {
-                sourceBuild.gradleVersion "${previous.version}"
+                sourceBuild.gradleVersion "${previous.version.version}"
             }
 
             compileJava { options.debug = !options.debug }
@@ -97,8 +97,8 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         sourceWasInferred()
 
         then:
-        sourceBuildVersion == previous.version
-        targetBuildVersion == current.version
+        sourceBuildVersion == previous.version.version
+        targetBuildVersion == current.version.version
     }
 
     def "can compare different builds with target pre 1.2"() {
@@ -107,7 +107,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         buildFile << "apply plugin: 'java'"
         versionGuard { """
             compareGradleBuilds {
-                targetBuild.gradleVersion "${previous.version}"
+                targetBuild.gradleVersion "${previous.version.version}"
             }
 
             compileJava { options.debug = !options.debug }
@@ -121,12 +121,12 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
         targetWasInferred()
 
         then:
-        sourceBuildVersion == current.version
-        targetBuildVersion == previous.version
+        sourceBuildVersion == current.version.version
+        targetBuildVersion == previous.version.version
     }
 
     protected versionGuard(TestFile file = buildFile, Closure string) {
-        file << "\nif (GradleVersion.current().version == '${current.version}') {\n"
+        file << "\nif (GradleVersion.current().version == '${current.version.version}') {\n"
         file << string()
         file << "\n}\n"
     }

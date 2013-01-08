@@ -31,7 +31,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     void checkWrapperWorksWith(GradleDistribution wrapperGenVersion, GradleDistribution executionVersion) {
         if (!wrapperGenVersion.wrapperCanExecute(executionVersion.version)) {
-            println "skipping $wrapperGenVersion as its wrapper cannot execute version ${executionVersion.version}"
+            println "skipping $wrapperGenVersion as its wrapper cannot execute version ${executionVersion.version.version}"
             return
         }
 
@@ -40,7 +40,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         buildFile << """
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '$executionVersion.version'
+    gradleVersion = '$executionVersion.version.version'
 }
 
 //(SF) not sure if we want to keep coverage for old 'urlRoot' that was already removed
@@ -61,7 +61,7 @@ task hello {
 """
         version(wrapperGenVersion).withTasks('wrapper').run()
         def result = version(wrapperGenVersion).usingExecutable('gradlew').withDeprecationChecksDisabled().withTasks('hello').run()
-        assert result.output.contains("hello from $executionVersion.version")
+        assert result.output.contains("hello from $executionVersion.version.version")
     }
 }
 

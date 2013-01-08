@@ -47,11 +47,11 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     protected void createExecutions() {
         ToolingApiDistributionResolver resolver = new ToolingApiDistributionResolver().withDefaultRepository()
 
-        add(new Permutation(resolver.resolve(current.version), current))
+        add(new Permutation(resolver.resolve(current.version.version), current))
         previous.each {
             if (it.toolingApiSupported) {
-                add(new Permutation(resolver.resolve(current.version), it))
-                add(new Permutation(resolver.resolve(it.version), current))
+                add(new Permutation(resolver.resolve(current.version.version), it))
+                add(new Permutation(resolver.resolve(it.version.version), current))
             }
         }
     }
@@ -67,14 +67,14 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
         @Override
         protected String getDisplayName() {
-            return "${displayName(toolingApi)} -> ${displayName(gradle)}"
+            return "${displayName(GradleVersion.version(toolingApi.version))} -> ${displayName(gradle.version)}"
         }
 
-        private String displayName(dist) {
-            if (dist.version == GradleVersion.current().version) {
+        private String displayName(GradleVersion version) {
+            if (version == GradleVersion.current()) {
                 return "current"
             }
-            return dist.version
+            return version
         }
 
         @Override
@@ -94,11 +94,11 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
                 return false
             }
             MinTargetGradleVersion minTargetGradleVersion = target.getAnnotation(MinTargetGradleVersion)
-            if (minTargetGradleVersion && GradleVersion.version(gradle.version) < extractVersion(minTargetGradleVersion)) {
+            if (minTargetGradleVersion && gradle.version < extractVersion(minTargetGradleVersion)) {
                 return false
             }
             MaxTargetGradleVersion maxTargetGradleVersion = target.getAnnotation(MaxTargetGradleVersion)
-            if (maxTargetGradleVersion && GradleVersion.version(gradle.version) > extractVersion(maxTargetGradleVersion)) {
+            if (maxTargetGradleVersion && gradle.version > extractVersion(maxTargetGradleVersion)) {
                 return false
             }
 
