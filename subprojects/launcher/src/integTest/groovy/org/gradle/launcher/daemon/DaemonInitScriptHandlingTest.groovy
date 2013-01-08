@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
+import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
@@ -39,7 +41,8 @@ class DaemonInitScriptHandlingTest extends DaemonIntegrationSpec {
     }
 
     def runWithGradleHome(TestFile gradleHome) {
-        executer.copyForGradleHome(gradleHome).run()
+        def copiedDistro = new DefaultGradleDistribution(executer.distribution.version, gradleHome, null)
+        executer.copyTo(new DaemonGradleExecuter(copiedDistro, executer.testDirectoryProvider)).run()
     }
 
     def "init scripts from client distribution are used, not from the test"() {

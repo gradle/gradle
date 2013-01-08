@@ -17,8 +17,8 @@ package org.gradle.integtests.openapi
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.GradleBuiltDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.openapi.external.runner.GradleRunnerFactory
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1
 import org.gradle.openapi.external.runner.GradleRunnerVersion1
@@ -40,7 +40,7 @@ class GradleRunnerTest {
   private File javaprojectDir
 
   @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-  final GradleDistribution dist = new GradleBuiltDistribution()
+  final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
   @Rule public final TestResources resources = new TestResources('testproject')
 
   @Before

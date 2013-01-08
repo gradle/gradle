@@ -26,7 +26,10 @@ import org.gradle.messaging.serialize.Serializer;
 import java.io.File;
 
 public class DefaultCacheLockingManager implements CacheLockingManager {
+
+    // If you update this, also update DefaultGradleDistribution.getArtifactCacheLayoutVersion() (which is the historical record)
     public static final int CACHE_LAYOUT_VERSION = 23;
+
     private final PersistentCache cache;
 
     public DefaultCacheLockingManager(CacheRepository cacheRepository) {

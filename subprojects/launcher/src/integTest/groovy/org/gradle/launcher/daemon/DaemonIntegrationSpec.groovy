@@ -19,7 +19,6 @@ package org.gradle.launcher.daemon
 import ch.qos.logback.classic.Level
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.slf4j.LoggerFactory
 
 /**
@@ -35,7 +34,7 @@ class DaemonIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def setup() {
-        executer = new DaemonGradleExecuter(temporaryFolder, new IntegrationTestBuildContext().gradleHomeDir)
+        executer = new DaemonGradleExecuter(distribution, temporaryFolder)
         executer.requireIsolatedDaemons()
         LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
     }

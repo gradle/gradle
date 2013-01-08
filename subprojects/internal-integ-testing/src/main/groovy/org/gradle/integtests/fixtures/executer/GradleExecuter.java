@@ -220,4 +220,14 @@ public interface GradleExecuter {
     GradleExecuter requireOwnGradleUserHomeDir();
 
     File getGradleUserHomeDir();
+
+    GradleDistribution getDistribution();
+
+    /**
+     * Copies the settings from this executer to the given executer.
+     *
+     * @param executer The executer to copy to
+     * @return The passed in executer
+     */
+    GradleExecuter copyTo(GradleExecuter executer);
 }

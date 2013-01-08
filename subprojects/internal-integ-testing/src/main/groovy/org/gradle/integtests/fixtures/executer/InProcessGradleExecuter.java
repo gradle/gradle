@@ -66,8 +66,8 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     private final ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
 
-    InProcessGradleExecuter(TestDirectoryProvider testDirectoryProvider) {
-        super(testDirectoryProvider);
+    InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
+        super(distribution, testDirectoryProvider);
     }
 
     @Override

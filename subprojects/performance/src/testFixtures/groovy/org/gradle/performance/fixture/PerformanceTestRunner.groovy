@@ -26,7 +26,7 @@ public class PerformanceTestRunner {
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
     def testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def current = new GradleBuiltDistribution()
+    def current = new UnderDevelopmentGradleDistribution()
     def buildContext = new IntegrationTestBuildContext()
 
     String testProject
@@ -97,8 +97,8 @@ public class PerformanceTestRunner {
 
     GradleExecuter executer(GradleDistribution dist, File projectDir) {
         def executer
-        if (dist instanceof GradleBuiltDistribution) {
-            executer = new GradleContextualExecuter(testDirectoryProvider, dist.getGradleHomeDir()).requireGradleHome(true)
+        if (dist instanceof UnderDevelopmentGradleDistribution) {
+            executer = new GradleContextualExecuter(dist, testDirectoryProvider).requireGradleHome(true)
             executer.withDeprecationChecksDisabled()
             executer.withStackTraceChecksDisabled()
         } else {

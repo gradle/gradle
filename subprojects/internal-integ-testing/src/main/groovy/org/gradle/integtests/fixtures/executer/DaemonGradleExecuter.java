@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures.executer;
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.JavaVersion;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +26,8 @@ import static java.util.Arrays.asList;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
-    public DaemonGradleExecuter(TestDirectoryProvider testDirectoryProvider, TestFile gradleHomeDir) {
-        super(testDirectoryProvider, gradleHomeDir);
+    public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
+        super(distribution, testDirectoryProvider);
     }
 
     @Override
@@ -70,9 +69,4 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         }
     }
 
-    public DaemonGradleExecuter copyForGradleHome(TestFile gradleHome) {
-        DaemonGradleExecuter daemonGradleExecuter = new DaemonGradleExecuter(getTestDirectoryProvider(), gradleHome);
-        copyTo(daemonGradleExecuter);
-        return daemonGradleExecuter;
-    }
 }

@@ -69,8 +69,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
 
     private final TestDirectoryProvider testDirectoryProvider;
+    private final GradleDistribution distribution;
 
-    protected AbstractGradleExecuter(TestDirectoryProvider testDirectoryProvider) {
+    protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
+        this.distribution = distribution;
         this.testDirectoryProvider = testDirectoryProvider;
     }
 
@@ -97,6 +99,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleDistribution getDistribution() {
+        return distribution;
+    }
+
     public TestDirectoryProvider getTestDirectoryProvider() {
         return testDirectoryProvider;
     }
@@ -118,7 +124,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return workingDir == null ? getTestDirectoryProvider().getTestDirectory() : workingDir;
     }
 
-    protected void copyTo(GradleExecuter executer) {
+    public GradleExecuter copyTo(GradleExecuter executer) {
         executer.withGradleUserHomeDir(gradleUserHomeDir);
         executer.withDaemonIdleTimeoutSecs(daemonIdleTimeoutSecs);
         executer.withDaemonBaseDir(daemonBaseDir);
@@ -177,6 +183,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.withStackTraceChecksDisabled();
         }
         executer.requireGradleHome(isRequireGradleHome());
+
+        return executer;
     }
 
     public GradleExecuter usingBuildScript(File buildScript) {

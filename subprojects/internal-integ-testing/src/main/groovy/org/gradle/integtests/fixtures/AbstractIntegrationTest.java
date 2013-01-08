@@ -31,12 +31,12 @@ import java.util.Set;
 
 public abstract class AbstractIntegrationTest implements TestDirectoryProvider {
     @Rule public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
-    public final GradleDistribution distribution = new GradleBuiltDistribution();
-    public final GradleExecuter executer = new GradleContextualExecuter(this, distribution.getGradleHomeDir());
+    public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution();
+    public final GradleExecuter executer = new GradleContextualExecuter(distribution, this);
 
     @ClassRule public static final TestNameTestDirectoryProvider SHARED_TEST_DIRECTORY_PROVIDER = new TestNameTestDirectoryProvider();
-    public static final GradleDistribution SHARED_DISTRIBUTION = new GradleBuiltDistribution();
-    private static final GradleExecuter SHARED_EXECUTER = new GradleContextualExecuter(SHARED_TEST_DIRECTORY_PROVIDER, SHARED_DISTRIBUTION.getGradleHomeDir());
+    public static final GradleDistribution SHARED_DISTRIBUTION = new UnderDevelopmentGradleDistribution();
+    private static final GradleExecuter SHARED_EXECUTER = new GradleContextualExecuter(SHARED_DISTRIBUTION, SHARED_TEST_DIRECTORY_PROVIDER);
 
     private static final Set<Class<?>> SHARED_BUILD_RUN_CLASSES = Sets.newHashSet();
 

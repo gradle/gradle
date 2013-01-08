@@ -105,7 +105,7 @@ run {
 
     private ExecutionResult run() {
         try {
-            return new GradleContextualExecuter(temporaryFolder, distribution.gradleHomeDir)
+            return new GradleContextualExecuter(distribution, temporaryFolder)
                     .inDirectory(sample.dir)
                     .withTasks('run')
                     .withDaemonIdleTimeoutSecs(60)

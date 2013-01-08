@@ -17,9 +17,9 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.ReleasedVersions
-import org.gradle.integtests.fixtures.executer.GradleBuiltDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.classpath.ClassPath
@@ -44,7 +44,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final GradleDistribution dist = new GradleBuiltDistribution()
+    final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
 
     int threads = 3
@@ -65,7 +65,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
         when:
         threads.times {
-            concurrent.start { useToolingApi(new GradleBuiltDistribution()) }
+            concurrent.start { useToolingApi(new UnderDevelopmentGradleDistribution()) }
         }
 
         then:

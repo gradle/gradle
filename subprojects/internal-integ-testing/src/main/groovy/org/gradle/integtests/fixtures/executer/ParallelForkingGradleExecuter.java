@@ -19,14 +19,13 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.ArrayList;
 import java.util.List;
 
 class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
-    public ParallelForkingGradleExecuter(TestDirectoryProvider testDirectoryProvider, TestFile gradleHomeDir) {
-        super(testDirectoryProvider, gradleHomeDir);
+    public ParallelForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
+        super(distribution, testDirectoryProvider);
     }
 
     @Override

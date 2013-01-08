@@ -20,8 +20,8 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 public abstract class AbstractDelegatingGradleExecuter extends AbstractGradleExecuter {
 
-    protected AbstractDelegatingGradleExecuter(TestDirectoryProvider testDirectoryProvider) {
-        super(testDirectoryProvider);
+    protected AbstractDelegatingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
+        super(distribution, testDirectoryProvider);
     }
 
     @Override

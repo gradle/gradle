@@ -19,6 +19,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.GradleVersion;
 
 public interface GradleDistribution {
     /**
@@ -34,7 +35,7 @@ public interface GradleDistribution {
     /**
      * Returns the version of this distribution.
      */
-    String getVersion();
+    GradleVersion getVersion();
 
     /**
      * Creates an executer which will use this distribution.
@@ -78,6 +79,8 @@ public interface GradleDistribution {
 
     /**
      * Returns true if the wrapper from this distribution can execute a build using the specified version.
+     * @param version
      */
-    boolean wrapperCanExecute(String version);
+    boolean wrapperCanExecute(GradleVersion version);
+
 }

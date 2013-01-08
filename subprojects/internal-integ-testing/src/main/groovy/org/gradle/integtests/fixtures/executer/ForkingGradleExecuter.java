@@ -35,11 +35,9 @@ import static org.junit.Assert.fail;
 
 class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
-    private final TestFile gradleHomeDir;
 
-    public ForkingGradleExecuter(TestDirectoryProvider testDirectoryProvider, TestFile gradleHomeDir) {
-        super(testDirectoryProvider);
-        this.gradleHomeDir = gradleHomeDir;
+    public ForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
+        super(distribution, testDirectoryProvider);
         gradleOpts.add("-ea");
         //uncomment for debugging
 //        gradleOpts.add("-Xdebug");
@@ -63,6 +61,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     private ExecHandleBuilder createExecHandleBuilder() {
+        TestFile gradleHomeDir = getDistribution().getGradleHomeDir();
         if (!gradleHomeDir.isDirectory()) {
             fail(gradleHomeDir + " is not a directory.\n"
                     + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
@@ -163,7 +162,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
             }
             builder.executable("cmd");
             builder.args("/c", cmd);
-            String gradleHome = gradleHomeDir.getAbsolutePath();
+            String gradleHome = getDistribution().getGradleHomeDir().getAbsolutePath();
 
             // NOTE: Windows uses Path, but allows asking for PATH, and PATH
             //       is set within builder object for some things such
@@ -193,7 +192,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
                     builder.executable(String.format("%s/%s", getWorkingDir().getAbsolutePath(), getExecutable()));
                 }
             } else {
-                builder.executable(String.format("%s/bin/gradle", gradleHomeDir.getAbsolutePath()));
+                builder.executable(String.format("%s/bin/gradle", getDistribution().getGradleHomeDir().getAbsolutePath()));
             }
         }
     }

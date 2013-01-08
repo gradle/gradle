@@ -15,9 +15,9 @@
  */
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.integtests.fixtures.executer.GradleBuiltDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
@@ -35,7 +35,7 @@ abstract class ToolingApiSpecification extends Specification {
     static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final GradleDistribution dist = new GradleBuiltDistribution()
+    final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()

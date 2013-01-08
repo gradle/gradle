@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.test.fixtures.file.TestFile;
 
 /**
  * Selects a different executer implementation based on the value of a system property.
@@ -27,7 +26,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
     private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
-    private final TestFile gradleHomeDir;
 
     private Executer executerType;
 
@@ -67,10 +65,9 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter().executeParallel;
     }
 
-    public GradleContextualExecuter(TestDirectoryProvider testDirectoryProvider, TestFile gradleHomeDir) {
-        super(testDirectoryProvider);
+    public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
+        super(distribution, testDirectoryProvider);
         this.executerType = getSystemPropertyExecuter();
-        this.gradleHomeDir = gradleHomeDir;
     }
 
     protected GradleExecuter configureExecuter() {
@@ -83,7 +80,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         try {
             gradleExecuter.assertCanExecute();
         } catch (AssertionError assertionError) {
-            gradleExecuter = new ForkingGradleExecuter(getTestDirectoryProvider(), gradleHomeDir);
+            gradleExecuter = new ForkingGradleExecuter(getDistribution(), getTestDirectoryProvider());
             configureExecuter(gradleExecuter);
         }
 
@@ -101,15 +98,15 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     private GradleExecuter createExecuter(Executer executerType) {
         switch (executerType) {
             case embeddedDaemon:
-                return new EmbeddedDaemonGradleExecuter(getTestDirectoryProvider());
+                return new EmbeddedDaemonGradleExecuter(getDistribution(), getTestDirectoryProvider());
             case embedded:
-                return new InProcessGradleExecuter(getTestDirectoryProvider());
+                return new InProcessGradleExecuter(getDistribution(), getTestDirectoryProvider());
             case daemon:
-                return new DaemonGradleExecuter(getTestDirectoryProvider(), gradleHomeDir);
+                return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider());
             case parallel:
-                return new ParallelForkingGradleExecuter(getTestDirectoryProvider(), gradleHomeDir);
+                return new ParallelForkingGradleExecuter(getDistribution(), getTestDirectoryProvider());
             case forking:
-                return new ForkingGradleExecuter(getTestDirectoryProvider(), gradleHomeDir);
+                return new ForkingGradleExecuter(getDistribution(), getTestDirectoryProvider());
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }

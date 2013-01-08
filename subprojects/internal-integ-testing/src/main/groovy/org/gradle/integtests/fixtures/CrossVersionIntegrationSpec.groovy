@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.executer.GradleBuiltDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,7 +29,7 @@ import spock.lang.Specification
 @RunWith(CrossVersionTestRunner)
 abstract class CrossVersionIntegrationSpec extends Specification implements TestDirectoryProvider {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    final GradleDistribution current = new GradleBuiltDistribution()
+    final GradleDistribution current = new UnderDevelopmentGradleDistribution()
     static GradleDistribution previous
     private MavenFileRepository mavenRepo
 

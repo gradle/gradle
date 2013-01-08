@@ -16,9 +16,9 @@
 
 package org.gradle.performance
 
-import org.gradle.integtests.fixtures.executer.GradleBuiltDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -36,7 +36,7 @@ import java.util.zip.ZipOutputStream
 
 class DependencyResolutionStressTest extends Specification {
     @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider()
-    GradleDistribution distribution = new GradleBuiltDistribution()
+    GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
     @Rule StressHttpServer server = new StressHttpServer()
     @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 

@@ -36,8 +36,8 @@ class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
     private final EmbeddedDaemonClientServices daemonClientServices = new EmbeddedDaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), false);
 
-    EmbeddedDaemonGradleExecuter(TestDirectoryProvider testDirectoryProvider) {
-        super(testDirectoryProvider);
+    EmbeddedDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
+        super(distribution, testDirectoryProvider);
     }
 
     public DaemonRegistry getDaemonRegistry() {
