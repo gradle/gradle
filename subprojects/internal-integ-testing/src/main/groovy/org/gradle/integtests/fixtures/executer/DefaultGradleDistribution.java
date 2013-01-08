@@ -128,6 +128,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return true;
     }
 
+    public boolean isSupportsSpacesInGradleAndJavaOpts() {
+        return isSameOrNewer("1.0-milestone-5");
+    }
+
     protected boolean isSameOrNewer(String otherVersion) {
         return version.compareTo(GradleVersion.version(otherVersion)) >= 0;
     }

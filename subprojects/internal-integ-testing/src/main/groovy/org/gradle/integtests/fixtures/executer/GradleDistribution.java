@@ -83,4 +83,8 @@ public interface GradleDistribution {
      */
     boolean wrapperCanExecute(GradleVersion version);
 
+    /**
+     * Early versions had bugs that prevented any values having spaces in them in GRADLE_OPTS or JAVA_OPTS.
+     */
+    boolean isSupportsSpacesInGradleAndJavaOpts();
 }
