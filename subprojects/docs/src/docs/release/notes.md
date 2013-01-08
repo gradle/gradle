@@ -11,11 +11,33 @@ All other third-party dependencies are packaged inside the Jar and shaded to avo
 
 ### Dependency resolution improvements
 
-- GRADLE-2175 - Source, javadoc and classifier artifacts from Maven snapshots are correctly treated as changing.
-- GRADLE-2364 - `--offline` works after resolving against a broken repository.
-- GRADLE-2185 - Faster resolution of Maven snapshots.
-- GRADLE-1919 - Added `m2Compatible` option.
-- GRADLE-2546 - Faster searching for local candidates.
+In this release we've continued to improve our dependency resolution, with bug fixes, performance improvements and other tweaks.
+
+These improvements are in addition to the new support for [Dependency Resolve Rules](#hooking-into-dependency-resolution), which give you more control over dependency resolution.
+
+#### Correctly treat Snapshot artifacts with classifiers as 'changing'
+
+Gradle treats any artifact matching the '\*\-SNAPSHOT' pattern as _changing_, which means that we'll check for updated content based on the [cacheChangingModulesFor](dsl/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:cacheChangingModulesFor) setting.
+This strict pattern matching meant that '\*\-SNAPSHOT-sources.jar' and '\*\-SNAPSHOT-javadoc.jar' were not considered _changing_, so these artifacts weren't being updated automatically
+on dependency resolution. This issue has now been fixed: see GRADLE-2175 and GRADLE-2218.
+
+#### `--offline` works after resolving against a broken repository
+
+Often the first time you realise a remote repository is down is when Gradle fails to resolve dependencies against that repository. One solution in this case is to switch to running
+Gradle in `--offline` mode, so that all resolution will be performed with cached dependencies.
+In the past this has been problematic, since Gradle threw away the previously cached value before attempting to retrieve a new one. In 1.4 this has been fixed: Gradle will no longer
+throw away a previously cached value when resolving against a broken/missing repository, so you'll be able to switch to `--offline` mode and keep on working. (GRADLE-2364)
+
+#### Performance improvements
+
+We've cut down on the number HTTP requests required to resolve a maven snapshot. We were requesting the `maven-metadata.xml` file multiple times per resolve, now we're only requesting it once. (GRADLE-2585)
+
+The search for local candidates (used to avoid downloading a jar from a remote repository) has been made faster. (GRADLE-2546)
+
+#### m2Compatible option on ivy repository
+
+By default, an ivy repository would store the module "org.group:module:version" under `baseurl/org.my.group/module`, while a maven repository would store the same module under `baseurl/org/my/group/module`.
+It is now possible to configure an `ivy` repository that uses the maven directory layout, [using the new `m2compatible` flag with the `pattern` layout](userguide/userguide_single.html#N14575).
 
 ### Improvements to dependency resolution reports
 
