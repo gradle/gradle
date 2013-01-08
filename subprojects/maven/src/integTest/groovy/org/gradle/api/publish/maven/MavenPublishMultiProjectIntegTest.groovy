@@ -119,6 +119,11 @@ project(":project1") {
         repositories {
             maven { url "file:///\$rootProject.projectDir/maven-repo" }
         }
+        publications {
+            add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                from components['java']
+            }
+        }
     }
 }
 project(":project2") {
@@ -131,8 +136,9 @@ project(":project2") {
         run "publish"
 
         then:
-        def project1pom = project1module.parsedPom
-        project1pom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
+
+        project1module.assertPublishedAsJavaModule()
+        project1module.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
     }
 
     @Ignore("This does not work: fix this as part of making the project coordinates customisable via DSL") // TODO:DAZ
