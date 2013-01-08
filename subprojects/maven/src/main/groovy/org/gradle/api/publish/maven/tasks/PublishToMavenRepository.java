@@ -24,8 +24,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.publication.maven.internal.*;
-import org.gradle.api.publication.maven.internal.ant.NoInstallDeployTaskFactory;
+import org.gradle.api.publication.maven.internal.MavenPomMetaInfoProvider;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.MavenNormalizedPublication;
@@ -156,27 +155,19 @@ public class PublishToMavenRepository extends DefaultTask {
                         return getProject().getConfigurations().detachedConfiguration();
                     }
                 };
-                MavenPublisher publisher = new MavenPublisher(createDeployerFactory(), configurationFactory, publicationServices.createArtifactPublisher());
+                MavenPublisher publisher = new MavenPublisher(configurationFactory, loggingManagerFactory, fileResolver, getProject().getConfigurations(), getTemporaryDirFactory(), getPomMetaInfoProvider());
                 MavenNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
                 publisher.publish(normalizedPublication, repository);
             }
         }.run();
     }
 
-    private DeployerFactory createDeployerFactory() {
-        return new CustomTaskFactoryDeployerFactory(
-                new DefaultMavenFactory(),
-                loggingManagerFactory,
-                fileResolver,
-                new MavenPomMetaInfoProvider() {
-                    public File getMavenPomDir() {
-                        return publication.getPomDir();
-                    }
-                },
-                getProject().getConfigurations(), // these won't actually be used, but it's the easiest way to get a ConfigurationContainer.
-                new DefaultConf2ScopeMappingContainer(),
-                new NoInstallDeployTaskFactory(getTemporaryDirFactory())
-        );
+    private MavenPomMetaInfoProvider getPomMetaInfoProvider() {
+        return new MavenPomMetaInfoProvider() {
+            public File getMavenPomDir() {
+                return publication.getPomDir();
+            }
+        };
     }
 
 }

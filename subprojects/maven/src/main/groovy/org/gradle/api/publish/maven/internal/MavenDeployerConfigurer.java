@@ -35,7 +35,7 @@ public class MavenDeployerConfigurer implements Action<MavenDeployer> {
         deployer.setRepository(createRepository());
     }
 
-    private RemoteRepository createRepository() {
+    public RemoteRepository createRepository() {
         RemoteRepository remoteRepository = new RemoteRepository();
         remoteRepository.setUrl(artifactRepository.getUrl().toString());
 

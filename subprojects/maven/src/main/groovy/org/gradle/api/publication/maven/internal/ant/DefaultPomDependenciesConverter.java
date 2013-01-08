@@ -41,10 +41,12 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         Map<ModuleDependency, String> dependenciesMap = createDependencyToScopeMap(conf2ScopeMappingContainer, dependencyToConfigurations);
         List<org.apache.maven.model.Dependency> mavenDependencies = new ArrayList<org.apache.maven.model.Dependency>();
         for (ModuleDependency dependency : dependenciesMap.keySet()) {
+            String scope = dependenciesMap.get(dependency);
+            Set<Configuration> dependencyConfigurations = dependencyToConfigurations.get(dependency);
             if (dependency.getArtifacts().size() == 0) {
-                addFromDependencyDescriptor(mavenDependencies, dependency, dependenciesMap.get(dependency), dependencyToConfigurations.get(dependency));
+                addFromDependencyDescriptor(mavenDependencies, dependency, scope, dependencyConfigurations);
             } else {
-                addFromArtifactDescriptor(mavenDependencies, dependency, dependenciesMap.get(dependency), dependencyToConfigurations.get(dependency));
+                addFromArtifactDescriptor(mavenDependencies, dependency, scope, dependencyConfigurations);
             }
         }
         return mavenDependencies;

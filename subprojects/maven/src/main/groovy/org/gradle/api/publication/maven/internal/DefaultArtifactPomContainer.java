@@ -65,16 +65,6 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
             PublishArtifact pomArtifact = activeArtifactPom.writePom(pomFile);
             mavenDeployments.add(new DefaultMavenDeployment(pomArtifact, activeArtifactPom.getArtifact(), activeArtifactPom.getAttachedArtifacts()));
         }
-        // TODO:DAZ This is crappy - need to ensure the deployments are configured correctly up-front (when no artifacts).
-        if (mavenDeployments.isEmpty()) {
-            PomFilter defaultFilter = pomFilterContainer.getActivePomFilters().iterator().next();
-            String defaultArtifactName = defaultFilter.getName();
-            ArtifactPom artifactPom = artifactPomFactory.createArtifactPom(defaultFilter.getPomTemplate());
-            artifactPom.getPom().setPackaging("pom");
-            File pomFile = createPomFile(defaultArtifactName);
-            PublishArtifact pomPublishArtifact = artifactPom.writePom(pomFile);
-            mavenDeployments.add(new DefaultMavenDeployment(pomPublishArtifact));
-        }
         return mavenDeployments;
     }
 

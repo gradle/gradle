@@ -37,10 +37,6 @@ public class DefaultMavenDeployment implements MavenDeployment {
         this.attachedArtifacts = Sets.newLinkedHashSet(attachedArtifacts);
     }
 
-    public DefaultMavenDeployment(PublishArtifact pomArtifact) {
-        this(pomArtifact, pomArtifact, new ArrayList<PublishArtifact>());
-    }
-
     public void addArtifact(PublishArtifact artifact) {
         attachedArtifacts.add(artifact);
     }
