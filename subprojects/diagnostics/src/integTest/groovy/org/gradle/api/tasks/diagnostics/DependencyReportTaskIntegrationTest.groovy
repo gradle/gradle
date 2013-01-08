@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -524,9 +523,7 @@ conf2
         !output.contains("conf1")
     }
 
-    @Ignore //TODO exposes NPE problem with dependency report
-    void "runtime exception when evaluating action yields decent exception"()
-    {
+    void "runtime exception when evaluating action yields decent exception"() {
         mavenRepo.module("org.utils", "impl", '1.3').publish()
 
         buildFile << """
@@ -548,9 +545,11 @@ conf2
 """
 
         when:
-        def failure = runAndFail("dependencies", "-s")
+        run "dependencies"
 
         then:
-        failure.error.contains("Ka-booom!")
+        output.contains(toPlatformLineSeparators("""conf
+\\--- org.utils:impl:1.3 FAILED
+"""))
     }
 }
