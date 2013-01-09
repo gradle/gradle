@@ -210,27 +210,12 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the new incubating features or changes to existing incubating features in this Gradle release.
 
-### Hooking into dependency resolution
+### Dependency resolve rules
 
-In order to make Gradle's dependency resolution even more robust
-we added a new way of influencing the dependency resolution process.
-Since Gradle 1.4 it is possible to specify *dependency resolve rules*.
-The rule is executed for each resolved dependency and offers ways
-to manipulate the dependency metadata before the dependency is resolved.
+A “dependency resolve rule” is a user specified algorithm that can influence the resolution of a particular dependency.
+Dependency resolve rules can be used to solve many challenging dependency management problems.
 
-The feature is incubating for now and not entire dependency metadata can be manipulated at this time.
-We are very keen on your feedback and we will definitely grow this feature,
-allowing more metadata to be manipulated, and more dependency resolution corner cases solved.
-Even though dependency resolve rules are lower level hooks
-in future we will use them to provide many high level features in Gradle's dependency engine.
-
-Many interesting use cases can be implemented with the dependency resolve rules:
-
-* [Blacklisting a version] (userguide/userguide_single.html#sec:blacklisting_version) with a replacement.
-* Implementing a [custom versioning scheme](userguide/userguide_single.html#sec:custom_versioning_scheme).
-* [Modelling a releasable unit](userguide/userguide_single.html#sec:releasable_unit) - a set of related libraries that require a consistent version
-
-See below example on how to make all libraries from group 'org.gradle' use a consistent version:
+For example, a dependency resolve rule can be used to force all versions with a particular “group” to be of the same version:
 
     configurations.all {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
@@ -240,7 +225,21 @@ See below example on how to make all libraries from group 'org.gradle' use a con
         }
     }
 
-For more information, including more code samples, please refer to this [user guide section](userguide/userguide_single.html#sec:dependency_resolve_rules).
+The rule (i.e. the closure given to the `eachDependency` method above) is called for each dependency that is to be resolved. The 
+[`DependencyResolveDetails`](javadoc/org/gradle/api/artifacts/DependencyResolveDetails.html)
+object passed to the rule implementation represents the originally _requested_ and the finally _selected_ version (after conflict resolution
+has been applied). The rule can make a programmatic choice to change how the dependency should be resolved.
+
+This is an “incubating” feature. In Gradle 1.4, it is only possible to affect the version of the dependency that will be resolved. In future versions,
+more control will be allowed via the `DependencyResolveDetails` type.
+
+Many interesting use cases can be implemented with the dependency resolve rules:
+
+* [Blacklisting a version](userguide/dependency_management.html#sec:blacklisting_version) with a replacement
+* Implementing a [custom versioning scheme](userguide/dependency_management.html#sec:custom_versioning_scheme)
+* [Modelling a releasable unit](userguide/dependency_management.html#sec:releasable_unit) - a set of related libraries that require a consistent version
+
+For more information, including more code samples, please refer to this [user guide section](userguide/dependency_management.html#sec:dependency_resolve_rules).
 
 ### Generate `ivy.xml` without publishing
 
