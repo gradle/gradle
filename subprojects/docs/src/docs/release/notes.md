@@ -251,7 +251,8 @@ For more information, including more code samples, please refer to this [user gu
 
 ### Generate `ivy.xml` without publishing
 
-The '`ivy-publish`' plugin introduces a new `GenerateIvyDescriptor` task generates the Ivy metadata file (a.k.a. `ivy.xml`) for publication. The task name for the default Ivy publication is '`generateIvyModuleDescriptor`'.
+The '`ivy-publish`' plugin introduces a new `GenerateIvyDescriptor` task generates the Ivy metadata file (a.k.a. `ivy.xml`) for publication.
+The task name for the default Ivy publication is '`generateIvyModuleDescriptor`'.
 
 This function used to be performed internally by the `PublishToIvyRepository` task. By having this function be performed by a separate task
 you can generate the `ivy.xml` metadata file without having to publish your module to an Ivy repository, which makes it easier to test/check
@@ -368,7 +369,8 @@ To add further files to the distribution, configure the `distZip` task according
 ### Changing certain task configuration during and after execution
 
 Much of a task's configuration influences how, or even if, a task should execute. After the task has executed, changing the configuration has no useful effect.
-For example, it does not make sense to add an action via the `doFirst()` method to a task that is executing or has already executed. Changing such configuration has been deprecated and this will eventually become an error condition.
+For example, it does not make sense to add an action via the `doFirst()` method to a task that is executing or has already executed.
+Changing such configuration has been deprecated and this will eventually become an error condition.
 
 #### Changing the action list
 
