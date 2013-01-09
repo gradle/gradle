@@ -146,7 +146,7 @@ decorateReleaseNotes {
             def name = topicHeading.text()
             def anchor = topicHeading.attr("id")
             
-            toc.append("<li><a href='#$anchor'>$name</a></li>").children().last()
+            toc.append("<li><a/></li>").children().last().select("a").first().text(name).attr("href", "#$anchor")
             
             def subs = topic.select("h3")
             if (subs) {
@@ -154,7 +154,7 @@ decorateReleaseNotes {
                 subs.each {
                     def subName = it.text()
                     def subAnchorName = it.attr("id")
-                    sublist.append("<li><a href='#$subAnchorName'>$subName</a></li>")
+                    sublist.append("<li><a/></li>").children().last().select("a").first().text(subName).attr("href", "#$subAnchorName")
                 }
             }
             
