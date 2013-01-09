@@ -54,7 +54,8 @@ Here is an example for the `dependencies` task:
 <pre><tt>compile - Classpath for compiling the sources.
 \--- foo:bar:1.0
      \--- foo:baz:2.0 FAILED
-</tt></pre>
+</tt>
+</pre>
 
 The `FAILED` marker indicates that `foo:baz:2.0`, which is depended upon by `foo:bar:1.0`, couldn't be resolved.
 
@@ -64,7 +65,9 @@ A similar improvement has been made to the `dependencyInsight` task:
 
 foo:baz:1.0 -> 2.0 FAILED
 \--- foo:bar:1.0
-     \--- compile</tt></pre>
+     \--- compile
+</tt>
+</pre>
 
 In this example, `foo:baz` was forced to version `2.0`, and that version couldn't be resolved.
 
@@ -156,7 +159,8 @@ to the corresponding `ScalaCompile` and `ScalaDoc` tasks. Nevertheless, running 
 
 <pre><tt>$ ls build/libs
 scala2_10.jar scala2_8.jar  scala2_9.jar
-</tt></pre>
+</tt>
+</pre>
 
 With build variants becoming a first-class Gradle feature, building multiple artifact variants targeting different
 Scala versions will only get easier.
@@ -319,7 +323,8 @@ Let's walk through a small example. Let's assume we have a project with the foll
 | | |____dir2
 | | | |____file2.txt
 | | |____file1.txt
-</tt></pre>
+</tt>
+</pre>
 
 In the past, it was necessary to declare a custom `zip` task that assembles the distribution. Now, the Java Library Distribution Plugin will do the job for you:
 
