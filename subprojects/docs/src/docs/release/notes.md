@@ -426,21 +426,22 @@ and enabled the HTML report generation for TestNG by default.
 
 ## Potential breaking changes
 
-### Incubating DependencyInsightReport throws better exception
+### DependencyInsightReportTask (e.g. dependencyInsight) throws better exception on bad configuration
 
-For consistency, InvalidUserDataException is thrown instead of ReportException when user incorrectly uses the dependency insight report.
+Previously, when the task's configuration was invalid a `ReportException` would be thrown when the task started to execute. For consistency with other tasks, it
+now throws a `InvalidUserDataException`.
 
-### Copying configurations also copies the resolution strategy
+### Copying a Configuration also copies the resolution strategy
 
-Previously, after performing the copy, the resolution strategy was shared between the target and source configuration.
-This behavior is now corrected.
-Copy operation copies all the resolution strategy settings and the target configuration contains own instance of the resolution strategy.
-The impact of this change is minimal - it is mentioned here only for completeness. The new behavior is much better for all users.
+Previously, a copied `Configuration` object shared the same `resolutionStrategy` object as the `Configuration` that it was copied from. This meant that changes 
+to `resolutionStrategy` of the source or the copy effected both instances and resulted in undesirable side affects. Copying a `Configuration` now also creates a
+discrete copy of the `resolutionStrategy`.
 
 ### Removed getSupportsAppleScript() in org.gradle.util.Jvm
 
-In the deprecated internal class `org.gradle.util.Jvm` we removed the method `getSupportsAppleScript()` to check that AppleScriptEngine is available on the JVM.
-As a workaround you can dynamically check if the AppleScriptEngine is available:
+In the deprecated internal class `org.gradle.util.Jvm` the method `getSupportsAppleScript()` has been removed.
+
+If you need to check if the running JVM supports AppleScript, you can use the following code:
 
     import javax.script.ScriptEngine
     import javax.script.ScriptEngineManager
@@ -449,18 +450,15 @@ As a workaround you can dynamically check if the AppleScriptEngine is available:
     ScriptEngine engine = mgr.getEngineByName("AppleScript");
     boolean isAppleScriptAvailable = engine != null;
 
-### Changes to new Ivy Publication support (incubating)
+### Changes to new Ivy publishing support
 
-**Removed `descriptorFile` property from IvyPublication**
+Breaking changes have been made to the new, incubating, Ivy publishing support.
 
-In Gradle 1.3, it was possible to set the `descriptorFile` property on an IvyPublication object. This property has been removed with the introduction of the new
-GenerateIvyDescriptor task. To specify where the `ivy.xml` file should be generated, set the `destination` property of the GenerateIvyDescriptor task.
+Previously, it was possible to set the `descriptorFile` property on an IvyPublication object. This property has been removed with the introduction of the new
+`GenerateIvyDescriptor` task. To specify where the `ivy.xml` file should be generated, set the `destination` property of the `GenerateIvyDescriptor` task.
 
-**Generated XML descriptor does not include all configurations**
-
-As part of improving the way we publish modules to an Ivy repository, we no longer publish _all_ configurations to the generated `ivy.xml`. Only the 'archives' configuration,
-together with the 'default' configuration and its ancestors will be published. In practice, this means that a Java project's 'testCompile' and 'testRuntime' configurations will
-no longer be published by default.
+Previously _all_ configurations of the project were published. Now, only the ‘`archives`’ configuration together with the ‘`default`’ configuration and its 
+ancestors will be published. In practice, this means that a Java project's 'testCompile' and 'testRuntime' configurations will no longer be published by default.
 
 ### Changed default value for TestNGOptions.useDefaultListeners
 
@@ -468,8 +466,9 @@ The default value for TestNGOptions.useDefaultListeners has changed from `true` 
 
 ### Updated default versions of Checkstyle and CodeNarc
 
-* Checkstyle plugin: default Checkstyle version changed from 5.5 to 5.6.
-* CodeNarc plugin: default CodeNarc version changed from 0.16.1 to 0.18.
+The default version of Checkstyle used for the '`checkstyle`' plugin has been updated from `5.5` to `5.6`.
+
+The default version of CodeNarc used for the '`codenarc`' plugin has been updated from `0.16.1` to `0.18`.
 
 ## External contributions
 
