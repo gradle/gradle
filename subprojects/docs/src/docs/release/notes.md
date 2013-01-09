@@ -12,30 +12,38 @@ All other dependencies are packaged inside the Jar and shaded to avoid conflicts
 
 As with every release, the dependency resolution engine has been improved with bug fixes and performance optimizations.
 
-These improvements are in addition to the new support for [Dependency Resolve Rules](#hooking-into-dependency-resolution), which give you more control over dependency resolution.
+These improvements are in addition to the new support for [Dependency Resolve Rules](#dependency-resolve-rules), which give you more control over dependency resolution.
 
 #### Maven SNAPSHOT artifacts with classifiers are now correctly “changing”
 
-For dependencies originating in Maven repositories, Gradle follows Maven semantics and treats any dependency artifact whose version number ends in '`-SNAPSHOT`' as “changing”, 
+For dependencies originating in Maven repositories, Gradle follows Maven semantics and treats any dependency artifact whose version number ends 
+in '`-SNAPSHOT`' as “changing”, 
 which means that it can change over time and Gradle should periodically check for updates instead of caching indefinitely 
-(see “[controlling caching](/userguide/dependency_management.html#sec:controlling_caching)”). Previously, artifacts with classifiers (e.g `sources` or `javadoc`) were not being checked for changes. This has been fixed in this release (GRADLE-2175).
+(see “[controlling caching](/userguide/dependency_management.html#sec:controlling_caching)”). Previously, artifacts with classifiers 
+(e.g `sources` or `javadoc`) were not being checked for changes. This has been fixed in this release (GRADLE-2175).
 
 #### More robust `--offline` mode
 
-Previously, Gradle discarded cached artifacts just prior to attempting to fetch an updated version from the remote source. If the fetch of the remote artifact failed (e.g. network disruption), 
-there was no longer a cached version available to be used in `--offline` mode. This could result in situations where trying to use `--offline` mode in response to unexpected network issues would not work well. 
+Previously, Gradle discarded cached artifacts just prior to attempting to fetch an updated version from the remote source. If the fetch of the remote 
+artifact failed (e.g. network disruption), 
+there was no longer a cached version available to be used in `--offline` mode. This could result in situations where trying to use `--offline` 
+mode in response to unexpected network issues would not work well. 
 
 Gradle now only discards old artifacts after a newer version has been cached, which makes `--offline` mode more reliable and useful (GRADLE-2364).
 
 #### Fewer network requests when checking for Maven SNAPSHOT artifact updates (performance)
 
-When checking whether a Maven SNAPSHOT dependency has been updated remotely, fewer network requests are now made to the repository. Previously, multiple requests were made to the `maven-metadata.xml` file where now only one request is made (GRADLE-2585).
+When checking whether a Maven SNAPSHOT dependency has been updated remotely, fewer network requests are now made to the repository. Previously, multiple 
+requests were made to the `maven-metadata.xml` file where now only one request is made (GRADLE-2585).
 
 This results in faster dependency resolution when using Maven SNAPSHOT dependencies.
 
 #### Faster searching for locally available dependency artifacts (performance)
 
-Before Gradle downloads a dependency artifact from a remote repository, it will selectively search the local file system for that exact same file (i.e. a file with the exact same checksum). For example, Gradle will search the user's “local maven” repository. If the file is found, it will be copied from this location which is much faster than downloading the file (which would be exactly the same) over the network. This is completely transparent and safe.
+Before Gradle downloads a dependency artifact from a remote repository, it will selectively search the local file system for that exact same file 
+(i.e. a file with the exact same checksum). For example, Gradle will search the user's “local maven” repository. If the file is found, it will be 
+copied from this location which is much faster than downloading the file (which would be exactly the same) over the network. This is completely 
+transparent and safe.
 
 The algorithm used to search for “local candidates” has been improved and is now faster. This affects all builds using dependency management, especially when building for the first 
 time (GRADLE-2546).
