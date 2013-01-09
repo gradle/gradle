@@ -274,10 +274,11 @@ This is done by setting the `destination` property of the task:
 Executing `gradle generateIvyModuleDescriptor` will result in the Ivy module descriptor being written to the file specified. This task is automatically wired
 into the respective `PublishToIvyRepository` tasks, so you do not need to explicitly call this task to publish your module.
 
-### The new maven-publish plugin
+### The new ‘maven-publish’ plugin
 
-Continuing our work to improve the way that Gradle models and publishes your build artifacts, we have introduced the new 'maven-publish' plugin.
-This plugin is the companion to the 'ivy-publish' plugin that was introduced in Gradle 1.3, but handles publishing modules to Maven repositories.
+The new ‘maven-publish’ plugin is an alternative to the existing ‘maven’ plugin, and will eventually replace it. This plugin builds on the new publishing model
+that was introduced in Gradle 1.3 with the ‘ivy-publish’ plugin. The new publication mechanism (which is currently “incubating”, including this plugin) will
+expand and improve over the subsequent Gradle releases to provide more convenience and flexibility than the traditional publication mechanism.
 
 In the simplest case, publishing to a Maven repository looks like…
 
@@ -310,7 +311,7 @@ To modify the generated POM file, you can use a programmatic hook that modifies 
         }
     }
 
-In this example we are adding a 'description' element for the generated POM. With this hook, you can modify any aspect of the POM.
+In this example we are adding a ‘`description`’ element for the generated POM. With this hook, you can modify any aspect of the POM.
 For example, you could replace the version range for a dependency with the actual version used to produce the build.
 This allows the POM file to describe how the module should be consumed, rather than be a description of how the module was built.
 
