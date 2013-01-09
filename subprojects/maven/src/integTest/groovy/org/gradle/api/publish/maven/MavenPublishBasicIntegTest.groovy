@@ -86,6 +86,10 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
 
     def "can publish simple jar"() {
         given:
+        def repoModule = mavenRepo.module('group', 'root', '1.0')
+        def localModule = m2Repo.module('group', 'root', '1.0')
+
+        and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
@@ -110,21 +114,21 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         succeeds 'assemble'
 
         then: "jar is built but not published"
-        mavenRepo.module('group', 'root', '1.0').assertNotPublished()
-        m2Repo.module('group', 'root', '1.0').assertNotPublished()
+        repoModule.assertNotPublished()
+        localModule.assertNotPublished()
         file('build/libs/root-1.0.jar').assertExists()
 
         when:
         succeeds 'publish'
 
         then: "jar is published to defined maven repository"
-        mavenRepo.module('group', 'root', '1.0').assertPublishedAsJavaModule()
-        m2Repo.module('group', 'root', '1.0').assertNotPublished()
+        repoModule.assertPublishedAsJavaModule()
+        localModule.assertNotPublished()
 
         when:
         succeeds 'publishToMavenLocal'
 
         then: "jar is published to maven local repository"
-        m2Repo.module('group', 'root', '1.0').assertPublishedAsJavaModule()
+        localModule.assertPublishedAsJavaModule()
     }
 }
