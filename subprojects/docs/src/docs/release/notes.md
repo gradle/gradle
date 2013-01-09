@@ -27,11 +27,18 @@ there was no longer a cached version available to be used in `--offline` mode. T
 
 Gradle now only discards old artifacts after a newer version has been cached, which makes `--offline` mode more reliable and useful (GRADLE-2364).
 
-#### Performance improvements
+#### Fewer network requests when checking for Maven SNAPSHOT artifact updates (performance)
 
-We've cut down on the number HTTP requests required to resolve a maven snapshot. We were requesting the `maven-metadata.xml` file multiple times per resolve, now we're only requesting it once. (GRADLE-2585)
+When checking whether a Maven SNAPSHOT dependency has been updated remotely, fewer network requests are now made to the repository. Previously, multiple requests were made to the `maven-metadata.xml` file where now only one request is made (GRADLE-2585).
 
-The search for local candidates (used to avoid downloading a jar from a remote repository) has been made faster. (GRADLE-2546)
+This results in faster dependency resolution when using Maven SNAPSHOT dependencies.
+
+#### Faster searching for locally available dependency artifacts (performance)
+
+Before Gradle downloads a dependency artifact from a remote repository, it will selectively search the local file system for that exact same file (i.e. a file with the exact same checksum). For example, Gradle will search the user's “local maven” repository. If the file is found, it will be copied from this location which is much faster than downloading the file (which would be exactly the same) over the network. This is completely transparent and safe.
+
+The algorithm used to search for “local candidates” has been improved and is now faster. This affects all builds using dependency management, especially when building for the first 
+time (GRADLE-2546).
 
 #### m2Compatible option on ivy repository
 
