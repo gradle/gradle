@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.apache.tools.ant.util.DateUtils;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.internal.PlaceholderException;
 
 import java.io.IOException;
@@ -67,7 +67,7 @@ public class JUnitXmlResultWriter {
             writer.endElement();
             writer.endElement();
         } catch (IOException e) {
-            throw new UncheckedIOException("Problems writing the XML results for class: " + className, e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
