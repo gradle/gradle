@@ -161,6 +161,47 @@ org:leaf:2.0 -> 1.0
 """))
     }
 
+    def "shows substituted versions"() {
+        given:
+        mavenRepo.module("org", "leaf", 1.0).publish()
+        mavenRepo.module("org", "leaf", 2.0).publish()
+
+        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy.eachDependency { if (it.requested.name == 'leaf') { it.useVersion('1.0') } }
+                }
+            }
+            dependencies {
+                conf 'org:foo:1.0', 'org:bar:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                configuration = configurations.conf
+                setDependencySpec { it.requested.name == 'leaf' }
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf:1.0 (selected by rule)
+\\--- org:foo:1.0
+     \\--- conf
+
+org:leaf:2.0 -> 1.0
+\\--- org:bar:1.0
+     \\--- conf
+"""))
+    }
+
     def "forced version matches the conflict resolution"() {
         given:
         mavenRepo.module("org", "leaf", 1.0).publish()
@@ -448,6 +489,42 @@ org:middle:2.0 (conflict resolution) FAILED
 \\--- conf
 
 org:middle:1.0 -> 2.0 FAILED
+\\--- org:top:1.0
+     \\--- conf
+"""))
+    }
+
+    def "marks modules that can't be resolved after substitution as 'FAILED'"() {
+        given:
+        mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
+        mavenRepo.module("org", "middle", "1.0").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy.eachDependency { if (it.requested.name == 'middle') { it.useVersion('2.0+') } }
+                }
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                setDependencySpec { it.requested.name == 'middle' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:middle:2.0+ (selected by rule) FAILED
+
+org:middle:1.0 -> 2.0+ FAILED
 \\--- org:top:1.0
      \\--- conf
 """))

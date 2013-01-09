@@ -89,6 +89,40 @@ foo
         ))
     }
 
+    def "marks dynamic versions that can't be resolved as 'FAILED'"() {
+        given:
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations { foo }
+            dependencies {
+                foo 'org:unknown:1.2+'
+                foo 'org:unknown:[1.0,2.0]'
+                foo 'org:unknown:latest.integration'
+                foo 'org:unknown:latest.release'
+                foo 'org:other:1.2'
+                foo 'org:other:2.0+'
+            }
+        """
+
+        when:
+        executer.allowExtraLogging = false
+        run "dependencies"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+foo
++--- org:unknown:1.2+ FAILED
++--- org:unknown:[1.0,2.0] FAILED
++--- org:unknown:latest.integration FAILED
++--- org:unknown:latest.release FAILED
++--- org:other:1.2 FAILED
+\\--- org:other:2.0+ FAILED
+"""
+        ))
+    }
+
     def "marks modules that can't be resolved after conflict resolution as 'FAILED'"() {
         given:
         mavenRepo.module("foo", "bar", 1.0).dependsOn("foo", "baz", "2.0").publish()
@@ -121,8 +155,9 @@ config
 
     def "marks modules that can't be resolved after forcing a different version as 'FAILED'"() {
         given:
-        mavenRepo.module("foo", "bar", 1.0).dependsOn("foo", "baz", "1.0").publish()
-        mavenRepo.module("foo", "baz", 1.0).publish()
+        mavenRepo.module("org", "libA", 1.0).dependsOn("org", "libB", "1.0").dependsOn("org", "libC", "1.0").publish()
+        mavenRepo.module("org", "libB", 1.0).publish()
+        mavenRepo.module("org", "libC", 1.0).publish()
 
         file("build.gradle") << """
             repositories {
@@ -131,12 +166,13 @@ config
             configurations {
               config {
                 resolutionStrategy {
-                  force('foo:baz:2.0')
+                  force('org:libB:2.0')
+                  force('org:libC:1.2+')
                 }
               }
             }
             dependencies {
-              config 'foo:bar:1.0'
+              config 'org:libA:1.0'
             }
         """
 
@@ -147,8 +183,9 @@ config
         then:
         output.contains(toPlatformLineSeparators("""
 config
-\\--- foo:bar:1.0
-     \\--- foo:baz:1.0 -> 2.0 FAILED
+\\--- org:libA:1.0
+     +--- org:libB:1.0 -> 2.0 FAILED
+     \\--- org:libC:1.0 -> 1.2+ FAILED
 """
         ))
     }
@@ -523,7 +560,7 @@ conf2
         !output.contains("conf1")
     }
 
-    void "runtime exception when evaluating action yields decent exception"() {
+    void "marks module that cannot be resolved due to broken dependency rule as 'FAILED'"() {
         mavenRepo.module("org.utils", "impl", '1.3').publish()
 
         buildFile << """
