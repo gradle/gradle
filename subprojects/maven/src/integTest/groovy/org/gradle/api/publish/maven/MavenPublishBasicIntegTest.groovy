@@ -106,7 +106,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     maven(MavenPublication) {
-                        from components['java']
+                        from components.java
                     }
                 }
             }
@@ -150,8 +150,8 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     maven(MavenPublication) {
-                        from components['java']
-                        from components['web']
+                        from components.java
+                        from components.web
                     }
                 }
             }
@@ -180,10 +180,10 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     maven(MavenPublication) {
-                        from components['java']
+                        from components.java
                     }
                     maven(MavenPublication) {
-                        from components['web']
+                        from components.web
                     }
                 }
             }
@@ -213,10 +213,10 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     mavenJava(MavenPublication) {
-                        from components['java']
+                        from components.java
                     }
                     mavenWeb(MavenPublication) {
-                        from components['web']
+                        from components.web
                     }
                 }
             }

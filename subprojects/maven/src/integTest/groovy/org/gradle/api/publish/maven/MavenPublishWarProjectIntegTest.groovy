@@ -48,7 +48,7 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     maven(MavenPublication) {
-                        from components['web']
+                        from components.web
                     }
                 }
             }
@@ -97,7 +97,7 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
             publishing {
                 publications {
                     maven(MavenPublication) {
-                        from components['web']
+                        from components.web
                     }
                 }
             }
@@ -107,7 +107,7 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
             publishing {
                 publications {
                     maven(MavenPublication) {
-                        from components['java']
+                        from components.java
                     }
                 }
             }
@@ -117,7 +117,7 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
             publishing {
                 publications {
                     maven(MavenPublication) {
-                        from components['web']
+                        from components.web
                     }
                 }
             }

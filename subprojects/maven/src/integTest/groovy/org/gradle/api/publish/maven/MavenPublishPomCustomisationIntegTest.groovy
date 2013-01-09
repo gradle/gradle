@@ -91,7 +91,6 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     maven(MavenPublication) {
-                        from components['java']
                         pom.withXml {
                             asNode().appendNode('description', "${description}")
                         }
@@ -124,7 +123,6 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     maven(MavenPublication) {
-                        from components['java']
                         pom.withXml {
                             asNode().foo = 'this is not a real element'
                         }

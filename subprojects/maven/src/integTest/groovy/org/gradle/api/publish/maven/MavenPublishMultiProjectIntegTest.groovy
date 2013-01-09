@@ -121,7 +121,7 @@ project(":project1") {
         }
         publications {
             maven(MavenPublication) {
-                from components['java']
+                from components.java
             }
         }
     }
@@ -224,7 +224,7 @@ subprojects {
         }
         publications {
             maven(MavenPublication) {
-                from components['java']
+                from components.java
             }
         }
     }

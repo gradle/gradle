@@ -50,7 +50,7 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     maven(MavenPublication) {
-                        from components['java']
+                        from components.java
                     }
                 }
             }
