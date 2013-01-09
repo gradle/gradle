@@ -251,10 +251,13 @@ For more information, including more code samples, please refer to this [user gu
 
 ### Generate `ivy.xml` without publishing
 
-The 'ivy-publish' plugin introduces a new GenerateIvyDescriptor task, which permits the generation of the `ivy.xml` metadata file without also publishing
-your module to an Ivy repository. The task name for the default Ivy publication is 'generateIvyModuleDescriptor'.
+The '`ivy-publish`' plugin introduces a new `GenerateIvyDescriptor` task generates the Ivy metadata file (a.k.a. `ivy.xml`) for publication. The task name for the default Ivy publication is '`generateIvyModuleDescriptor`'.
 
-The `GenerateIvyDescriptor` task also allows the location of the generated Ivy descriptor file to changed from its default location at `build/publications/ivy/ivy.xml`.
+This function used to be performed internally by the `PublishToIvyRepository` task. By having this function be performed by a separate task
+you can generate the `ivy.xml` metadata file without having to publish your module to an Ivy repository, which makes it easier to test/check
+the descriptor. 
+
+The `GenerateIvyDescriptor` task also allows the location of the generated Ivy descriptor file to changed from its default location at ‘`build/publications/ivy/ivy.xml`’.
 This is done by setting the `destination` property of the task:
 
     apply plugin: 'ivy-publish'
@@ -269,7 +272,7 @@ This is done by setting the `destination` property of the task:
     }
 
 Executing `gradle generateIvyModuleDescriptor` will result in the Ivy module descriptor being written to the file specified. This task is automatically wired
-into the respective PublishToIvyRepository tasks, so you do not need to explicitly call this task to publish your module.
+into the respective `PublishToIvyRepository` tasks, so you do not need to explicitly call this task to publish your module.
 
 ### The new maven-publish plugin
 
