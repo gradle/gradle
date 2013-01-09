@@ -74,7 +74,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             if (version == GradleVersion.current()) {
                 return "current"
             }
-            return version
+            return version.version
         }
 
         @Override

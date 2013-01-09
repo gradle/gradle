@@ -37,6 +37,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
@@ -880,6 +881,7 @@ class DependencyGraphBuilderTest extends Specification {
         ModuleVersionIdResolveResult result = Mock()
         (0..1) * dependencyResolver.resolve(descriptor) >> result
         _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
+        _ * result.selectionReason >> VersionSelectionReasons.REQUESTED
         0 * result._
     }
 

@@ -413,7 +413,7 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleVersionSelectionReason getReason() {
-            return selector.module.selected == null ? VersionSelectionReasons.REQUESTED : selector.module.selected.selectionReason;
+            return selector.module.selected == null ? selector.idSelectionReason : selector.module.selected.selectionReason;
         }
 
         public void collectFailures(FailureState failureState) {
@@ -881,6 +881,7 @@ public class DependencyGraphBuilder {
         final ResolveState resolveState;
         final ModuleResolveState module;
         ModuleVersionResolveException failure;
+        ModuleVersionSelectionReason idSelectionReason;
         DefaultModuleRevisionResolveState targetModuleRevision;
         ModuleVersionIdResolveResult idResolveResult;
         ModuleVersionResolveResult resolveResult;
@@ -913,6 +914,7 @@ public class DependencyGraphBuilder {
             }
 
             idResolveResult = resolver.resolve(descriptor);
+            idSelectionReason = idResolveResult.getSelectionReason();
             if (idResolveResult.getFailure() != null) {
                 failure = idResolveResult.getFailure();
                 return null;

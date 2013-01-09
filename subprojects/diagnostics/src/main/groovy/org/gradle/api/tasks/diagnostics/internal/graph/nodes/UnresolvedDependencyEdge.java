@@ -19,32 +19,36 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class InvertedRenderableDependencyResult implements DependencyEdge {
-    private final ResolvedDependencyResult dependency;
+public class UnresolvedDependencyEdge implements DependencyEdge {
+    private final UnresolvedDependencyResult dependency;
+    private final ModuleVersionIdentifier actual;
 
-    public InvertedRenderableDependencyResult(ResolvedDependencyResult dependency) {
+    public UnresolvedDependencyEdge(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
+        ModuleVersionSelector attempted = dependency.getAttempted();
+        actual = DefaultModuleVersionIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
     }
 
     public boolean isResolvable() {
-        return true;
+        return false;
     }
 
     public ModuleVersionSelector getRequested() {
         return dependency.getRequested();
     }
 
-    public ModuleVersionSelectionReason getReason() {
-        return dependency.getSelected().getSelectionReason();
+    public ModuleVersionIdentifier getActual() {
+        return actual;
     }
 
-    public ModuleVersionIdentifier getActual() {
-        return dependency.getSelected().getId();
+    public ModuleVersionSelectionReason getReason() {
+        return dependency.getAttemptedReason();
     }
 
     public ModuleVersionIdentifier getFrom() {

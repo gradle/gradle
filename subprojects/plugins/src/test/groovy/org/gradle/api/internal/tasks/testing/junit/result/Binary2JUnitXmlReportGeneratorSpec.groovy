@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.api.UncheckedIOException
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.GradleException
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -65,8 +65,8 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         generator.generate()
 
         then:
-        def ex = thrown(UncheckedIOException)
-        ex.message.contains('FooTest')
+        def ex = thrown(GradleException)
+        ex.message.startsWith('Could not write XML test results for FooTest')
         ex.cause.message == "Boo!"
     }
 }

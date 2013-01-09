@@ -82,7 +82,7 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
 
         @Override
         String getDisplayName() {
-            return previousVersion.version
+            return previousVersion.version.version
         }
 
         @Override

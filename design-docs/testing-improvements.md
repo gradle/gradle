@@ -9,7 +9,7 @@ Improve TestNG test execution/reporting
 
 # Implementation plan
 
-## Story: TestNG XML generation is efficient
+## Story: TestNG XML generation is efficient (DONE)
 
 -test events/output stored in binary format (internal format geared towards efficiency)
     -2 files per test class (events and output, the latter is streamed), cache of open files
@@ -29,7 +29,7 @@ Improve TestNG test execution/reporting
 
 -story introduces negligible breaking change: if the worker process / parent process crashes, no XML results are generated at all. Previously, partial XML results are available.
 
-## Story: TestNG produces the new XML/HTML result by default
+## Story: TestNG produces the new XML/HTML result by default (DONE)
 
 - Change the Test `testReport` default value to `true`.
 - Change the Test `testNGOptions.useDefaultListeners` default value to `false`.
@@ -66,6 +66,16 @@ Use the same mechanism as TestNG for XML result generation
 
 - No partial XML results available when process crashes (see first story for more)
 
+## Story: Aggregate HTML test report can be generated using internal class
+
+- Rename `DefaultTestReport`.
+- Restore `DefaultTestReport` from the revision released for Gradle 1.3.
+- Refactor to share as much implementation as practical, while keeping the public API of `DefaultTestReport` backwards compatible with 1.3.
+
+### Test coverage
+
+- A basic integration test to smoke test that it generates something without blowing up.
+
 ## Story: HTML test report generation is efficient
 
 HTML report is generated from the binary format, not from XML results
@@ -73,6 +83,13 @@ HTML report is generated from the binary format, not from XML results
 - Change `DefaultTestReport` to use `TestResultsProvider` to get results instead of loading from XML.
 - Spike using [jatl](http://code.google.com/p/jatl/) to generate the report instead of using the DOM.
 - Change the report rendering so that it copies the test output directly from `TestResultsProvider` to file, rather than loading it into heap.
+
+## Story: Aggregate HTML test report can be generated
+
+- Change test task to persist test results in internal format.
+- Add test report task.
+- Deprecate internal test report class `DefaultTestReport` and log deprecation message when used. Log message should mention that the class will be
+  removed in the next minor release of Gradle.
 
 ## Story: HTML test report shows output per test
 

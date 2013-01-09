@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionIdResolver resolver;
@@ -73,7 +74,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
         }
 
         public ModuleVersionSelectionReason getSelectionReason() {
-            throw failure;
+            return VersionSelectionReasons.REQUESTED;
         }
     }
 }

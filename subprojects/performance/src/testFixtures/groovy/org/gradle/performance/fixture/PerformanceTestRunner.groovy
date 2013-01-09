@@ -17,8 +17,8 @@
 package org.gradle.performance.fixture
 
 import org.gradle.api.logging.Logging
-import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.fixtures.executer.*
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
 public class PerformanceTestRunner {
@@ -50,7 +50,7 @@ public class PerformanceTestRunner {
 
         def baselineVersions = []
         targetVersions.eachWithIndex { it, idx ->
-            def ver = it == 'last'? new ReleasedVersions(testDirectoryProvider).last.version : it
+            def ver = it == 'last' ? new ReleasedVersionDistributions().mostRecentFinalRelease.version : it
             baselineVersions << new BaselineVersion(version: ver,
                     maxExecutionTimeRegression: maxExecutionTimeRegression[idx],
                     maxMemoryRegression: maxMemoryRegression[idx],

@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.classpath.ClassPath
@@ -79,7 +79,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
     def "handles different target gradle versions concurrently"() {
         given:
         def current = dist
-        def last = new ReleasedVersions(temporaryFolder).getLast()
+        def last = new ReleasedVersionDistributions().getMostRecentFinalRelease() 
         assert current != last
         println "Combination of versions used: current - $current, last - $last"
 

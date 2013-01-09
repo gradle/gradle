@@ -40,8 +40,7 @@ public interface ModuleVersionIdResolveResult {
     ModuleVersionResolveResult resolve() throws ModuleVersionResolveException;
 
     /**
-     * @return why given id was selected
-     * @throws ModuleVersionResolveException If id resolution was unsuccessful and the id is unknown.
+     * @return why given id was selected. Should return a value even if the resolve failed.
      */
-    ModuleVersionSelectionReason getSelectionReason() throws ModuleVersionResolveException;
+    ModuleVersionSelectionReason getSelectionReason();
 }

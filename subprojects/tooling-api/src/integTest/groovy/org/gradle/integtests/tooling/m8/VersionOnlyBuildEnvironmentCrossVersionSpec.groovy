@@ -33,7 +33,7 @@ class VersionOnlyBuildEnvironmentCrossVersionSpec extends ToolingApiSpecificatio
         BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }
 
         then:
-        model.gradle.gradleVersion == targetDist.version
+        model.gradle.gradleVersion == targetDist.version.version
     }
 
     def "fails gracefully for other info"() {

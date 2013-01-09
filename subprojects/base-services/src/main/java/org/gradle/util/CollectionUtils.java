@@ -45,6 +45,12 @@ public abstract class CollectionUtils {
         return filter(list, new LinkedList<T>(), filter);
     }
 
+    public static <T> List<T> sort(List<? extends T> list, Comparator<? super T> comparator) {
+        List<T> sortedList = new ArrayList<T>(list);
+        Collections.sort(sortedList, comparator);
+        return sortedList;
+    }
+
     public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, Spec<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {

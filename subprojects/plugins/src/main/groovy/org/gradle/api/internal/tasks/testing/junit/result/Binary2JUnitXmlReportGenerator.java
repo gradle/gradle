@@ -17,12 +17,15 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -56,8 +59,8 @@ public class Binary2JUnitXmlReportGenerator {
                 output = new BufferedOutputStream(new FileOutputStream(file));
                 saxWriter.write(className, result, output);
                 output.close();
-            } catch (IOException e) {
-                throw new UncheckedIOException("Problems writing XML test results to file: " + file, e);
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not write XML test results for %s to file %s.", className, file), e);
             } finally {
                 IOUtils.closeQuietly(output);
             }

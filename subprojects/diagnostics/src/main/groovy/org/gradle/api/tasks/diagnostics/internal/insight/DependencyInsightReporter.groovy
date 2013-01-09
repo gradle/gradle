@@ -34,9 +34,9 @@ public class DependencyInsightReporter {
         def out = new LinkedList<RenderableDependency>()
         def dependencies = input.collect {
             if (it instanceof UnresolvedDependencyResult) {
-                return new InvertedRenderableUnresolvedDependencyResult(it)
+                return new UnresolvedDependencyEdge(it)
             } else {
-                return new InvertedRenderableDependencyResult(it)
+                return new ResolvedDependencyEdge(it)
             }
         }
 
@@ -69,7 +69,7 @@ public class DependencyInsightReporter {
     }
 
     private String describeReason(ModuleVersionSelectionReason reason) {
-        if (reason.conflictResolution || reason.forced) {
+        if (reason.conflictResolution || reason.forced || reason.selectedByRule) {
             return reason.description
         } else {
             return null

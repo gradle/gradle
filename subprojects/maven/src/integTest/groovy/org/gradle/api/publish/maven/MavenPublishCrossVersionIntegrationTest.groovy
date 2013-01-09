@@ -70,19 +70,19 @@ configurations {
 }
 repositories {
     mavenCentral()
-    maven { url "${repo.uri}" }
+    mavenRepo(urls: ['${repo.uri}'])
 }
 dependencies {
     lib 'org.gradle.crossversion:published:1.9'
 }
-task retrieve(type: Sync) {
-    into 'build'
+task retrieve(type: Copy) {
+    into 'build/resolved'
     from configurations.lib
 }
 """
 
-        version previous withTasks 'retrieve' run()
+        version previous withDeprecationChecksDisabled() withTasks 'retrieve' run()
 
-        file('build').assertHasDescendants('published-1.9.jar', 'commons-collections-3.0.jar')
+        file('build/resolved').assertHasDescendants('published-1.9.jar', 'commons-collections-3.0.jar')
     }
 }
