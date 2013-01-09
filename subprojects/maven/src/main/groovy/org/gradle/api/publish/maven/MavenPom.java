@@ -40,7 +40,7 @@ public interface MavenPom {
      *
      * publishing {
      *   publications {
-     *     add("maven", org.gradle.api.publish.maven.MavenPublication) {
+     *     maven(MavenPublication) {
      *       pom.withXml {
      *         asNode().appendNode('description', 'A demonstration of maven pom customisation')
      *       }

@@ -24,8 +24,8 @@ publishing {
     }
 // END SNIPPET repositories
     publications {
-        add('maven', org.gradle.api.publish.maven.MavenPublication) {
-            from components['java']
+        maven(MavenPublication) {
+            from components.java
         }
     }
 
