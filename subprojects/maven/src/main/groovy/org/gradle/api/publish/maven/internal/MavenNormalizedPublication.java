@@ -21,14 +21,16 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 
+import java.util.Set;
+
 public class MavenNormalizedPublication implements MavenProjectIdentity {
 
     private final MavenProjectIdentity projectIdentity;
-    private final Iterable<PublishArtifact> artifacts;
-    private final Iterable<Dependency> runtimeDependencies;
+    private final Set<PublishArtifact> artifacts;
+    private final Set<Dependency> runtimeDependencies;
     private final Action<XmlProvider> pomWithXmlAction;
 
-    public MavenNormalizedPublication(MavenProjectIdentity projectIdentity, Iterable<PublishArtifact> artifacts, Iterable<Dependency> runtimeDependencies, Action<XmlProvider> pomWithXmlAction) {
+    public MavenNormalizedPublication(MavenProjectIdentity projectIdentity, Set<PublishArtifact> artifacts, Set<Dependency> runtimeDependencies, Action<XmlProvider> pomWithXmlAction) {
         this.projectIdentity = projectIdentity;
         this.artifacts = artifacts;
         this.runtimeDependencies = runtimeDependencies;
@@ -51,11 +53,11 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
         return projectIdentity.getPackaging();
     }
 
-    public Iterable<PublishArtifact> getArtifacts() {
+    public Set<PublishArtifact> getArtifacts() {
         return artifacts;
     }
 
-    public Iterable<Dependency> getRuntimeDependencies() {
+    public Set<Dependency> getRuntimeDependencies() {
         return runtimeDependencies;
     }
 

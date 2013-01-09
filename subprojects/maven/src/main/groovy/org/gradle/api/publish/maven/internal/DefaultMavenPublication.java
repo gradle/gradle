@@ -75,7 +75,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public MavenNormalizedPublication asNormalisedPublication() {
         if (component == null) {
-            return new MavenNormalizedPublication(projectIdentity, Collections.<PublishArtifact>emptyList(), Collections.<Dependency>emptyList(), pom.getXmlAction());
+            return new MavenNormalizedPublication(projectIdentity, Collections.<PublishArtifact>emptySet(), Collections.<Dependency>emptySet(), pom.getXmlAction());
         }
         return new MavenNormalizedPublication(projectIdentity, component.getArtifacts(), component.getRuntimeDependencies(), pom.getXmlAction());
     }

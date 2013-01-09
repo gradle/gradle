@@ -20,6 +20,8 @@ import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Ignore
+
 /**
  * Tests “simple” maven publishing scenarios
  */
@@ -57,7 +59,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         mavenRepo.module('group', 'root', '1.0').assertNotPublished()
     }
 
-    def "publishes empty pom without component"() {
+    def "publishes empty pom when publication has no added component"() {
         given:
         settingsFile << "rootProject.name = 'empty-project'"
         buildFile << """
@@ -130,5 +132,100 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
 
         then: "jar is published to maven local repository"
         localModule.assertPublishedAsJavaModule()
+    }
+
+    def "cannot add multiple components to same publication"() {
+        given:
+        settingsFile << "rootProject.name = 'bad-project'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'war'
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['java']
+                        from components['web']
+                    }
+                }
+            }
+        """
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
+        failure.assertHasCause("A MavenPublication cannot include multiple components")
+    }
+
+    def "cannot add multiple publications with the same name"() {
+        given:
+        settingsFile << "rootProject.name = 'bad-project'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'war'
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    add('mavenJava', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['java']
+                    }
+                    add('mavenJava', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['web']
+                    }
+                }
+            }
+        """
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
+        failure.assertHasCause("Publication with name 'mavenJava' added multiple times")
+    }
+
+    @Ignore("Not yet implemented - currently the second publication will overwrite") // TODO:DAZ
+    def "cannot publish multiple maven publications with the same identity"() {
+        given:
+        settingsFile << "rootProject.name = 'bad-project'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'war'
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    add('mavenJava', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['java']
+                    }
+                    add('mavenWeb', org.gradle.api.publish.maven.MavenPublication) {
+                        from components['web']
+                    }
+                }
+            }
+        """
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
+        failure.assertHasCause("Publication with name 'mavenJava' already exists")
     }
 }

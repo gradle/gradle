@@ -19,6 +19,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
     public void "publishes war and meta-data for web component with external dependencies"() {
+        def webModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
+
         given:
         settingsFile << "rootProject.name = 'project1'"
 
@@ -51,14 +53,18 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
                 }
             }
 """
+        when:
+        succeeds 'assemble'
+
+        then: "war is built but not published"
+        webModule.assertNotPublished()
+        file('build/libs/project1-1.9.war').assertExists()
 
         when:
         run "publish"
 
         then:
-        def webModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
         webModule.assertPublishedAsWebModule()
-
         webModule.parsedPom.scopes.isEmpty()
     }
 
