@@ -1,6 +1,10 @@
 dependencies {
     groovy libraries.groovy
     compile project(':core')
+    compile 'com.googlecode.jatl:jatl:0.2.2'
+
+    testCompile 'org.jodd:jodd-lagarto:3.4.1'
+    integTestRuntime project(':codeQuality')
 }
 
 useTestFixtures()
