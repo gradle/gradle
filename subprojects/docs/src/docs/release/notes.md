@@ -40,28 +40,31 @@ Before Gradle downloads a dependency artifact from a remote repository, it will 
 The algorithm used to search for “local candidates” has been improved and is now faster. This affects all builds using dependency management, especially when building for the first 
 time (GRADLE-2546).
 
-#### m2Compatible option on ivy repository
+#### Using a “maven” layout with an Ivy repository
 
 By default, an ivy repository would store the module "org.group:module:version" under `baseurl/org.my.group/module`, while a maven repository would store the same module under `baseurl/org/my/group/module`.
 It is now possible to configure an `ivy` repository that uses the maven directory layout, [using the new `m2compatible` flag with the `pattern` layout](userguide/userguide_single.html#N14575).
 
-### Improvements to dependency resolution reports
+### Dependencies that failed to be resolved are now listed in dependency reports
 
-Dependency resolution reports now show dependencies that couldn't be resolved. Here is an example for the `dependencies` task:
+Dependency resolution reports now show dependencies that couldn't be resolved. 
 
-    compile - Classpath for compiling the sources.
-    \--- foo:bar:1.0
-         \--- foo:baz:2.0 FAILED
+Here is an example for the `dependencies` task:
+
+<pre><tt>compile - Classpath for compiling the sources.
+\--- foo:bar:1.0
+     \--- foo:baz:2.0 FAILED
+</tt></pre>
 
 The `FAILED` marker indicates that `foo:baz:2.0`, which is depended upon by `foo:bar:1.0`, couldn't be resolved.
 
 A similar improvement has been made to the `dependencyInsight` task:
 
-    foo:baz:2.0 (forced) FAILED
+<pre><tt>foo:baz:2.0 (forced) FAILED
 
-    foo:baz:1.0 -> 2.0 FAILED
-    \--- foo:bar:1.0
-         \--- compile
+foo:baz:1.0 -> 2.0 FAILED
+\--- foo:bar:1.0
+     \--- compile</tt></pre>
 
 In this example, `foo:baz` was forced to version `2.0`, and that version couldn't be resolved.
 
@@ -151,8 +154,9 @@ Automatic configuration makes it easier to build multiple artifact variants targ
 Note that we didn't have to declare the different `scala-compiler` dependencies, nor did we have to assign them
 to the corresponding `ScalaCompile` and `ScalaDoc` tasks. Nevertheless, running `gradle assemble` produces:
 
-    $ ls build/libs
-    scala2_10.jar scala2_8.jar  scala2_9.jar
+<pre><tt>$ ls build/libs
+scala2_10.jar scala2_8.jar  scala2_9.jar
+</tt></pre>
 
 With build variants becoming a first-class Gradle feature, building multiple artifact variants targeting different
 Scala versions will only get easier.
@@ -303,18 +307,19 @@ Thanks to a contribution by Sébastien Cogneau, it is now much easier to create 
 
 Let's walk through a small example. Let's assume we have a project with the following layout:
 
-    MyLibrary
-    |____build.gradle
-    |____libs // a directory containing third party libraries
-    | |____a.jar
-    |____src
-    | |____main
-    | | |____java
-    | | | |____SomeLibrary.java
-    | |____dist // additional files that should go into the distribution
-    | | |____dir2
-    | | | |____file2.txt
-    | | |____file1.txt
+<pre><tt>MyLibrary
+|____build.gradle
+|____libs // a directory containing third party libraries
+| |____a.jar
+|____src
+| |____main
+| | |____java
+| | | |____SomeLibrary.java
+| |____dist // additional files that should go into the distribution
+| | |____dir2
+| | | |____file2.txt
+| | |____file1.txt
+</tt></pre>
 
 In the past, it was necessary to declare a custom `zip` task that assembles the distribution. Now, the Java Library Distribution Plugin will do the job for you:
 
