@@ -91,6 +91,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     maven(MavenPublication) {
+                        from components.java
                         pom.withXml {
                             asNode().appendNode('description', "${description}")
                         }
