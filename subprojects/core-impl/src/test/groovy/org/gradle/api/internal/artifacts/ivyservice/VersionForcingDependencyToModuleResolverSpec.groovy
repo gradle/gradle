@@ -75,6 +75,7 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         then:
         result.failure.message == "Could not resolve org:module:0.5."
         result.failure.cause.message == 'Boo!'
+        result.selectionReason == VersionSelectionReasons.REQUESTED
     }
 
     def "failed result uses correct exception"() {
@@ -84,21 +85,17 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
 
         when:
         result.getId()
+
         then:
         def ex = thrown(ModuleVersionResolveException)
         ex == result.failure
 
         when:
-        result.getSelectionReason()
+        result.resolve()
+
         then:
         def ex2 = thrown(ModuleVersionResolveException)
         ex2 == result.failure
-
-        when:
-        result.resolve()
-        then:
-        def ex3 = thrown(ModuleVersionResolveException)
-        ex3 == result.failure
     }
 
     def dependency(String group, String module, String version) {
