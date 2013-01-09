@@ -70,7 +70,7 @@ repositories {
 dependencies {
     lib 'org.gradle.crossversion:published:1.9'
 }
-task retrieve(type: Sync) {
+task retrieve(type: Copy) {
     into 'build'
     from configurations.lib
 }
