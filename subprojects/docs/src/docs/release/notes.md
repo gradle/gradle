@@ -317,9 +317,10 @@ This allows the POM file to describe how the module should be consumed, rather t
 
 For more information on the new publishing mechanism, see the [new User Guide chapter](userguide/publishing_maven.html).
 
-### [Java Library Distribution Plugin](userguide/javaLibraryDistributionPlugin.html)
+### The new 'java-library-distribution' plugin
 
-Thanks to a contribution by Sébastien Cogneau, it is now much easier to create a standalone distribution for a JVM library.
+The new '[`java-library-distribution`](userguide/javaLibraryDistributionPlugin.html)' plugin, contributed by Sébastien Cogneau, makes it is much easier to create a 
+standalone distribution for a JVM library.
 
 Let's walk through a small example. Let's assume we have a project with the following layout:
 
@@ -338,7 +339,7 @@ Let's walk through a small example. Let's assume we have a project with the foll
 </tt>
 </pre>
 
-In the past, it was necessary to declare a custom `zip` task that assembles the distribution. Now, the Java Library Distribution Plugin will do the job for you:
+In the past, it was necessary to declare a custom `zip` task that assembles the distribution. Now, the 'java-library-distribution' will do the job for you:
 
     apply plugin: 'java-library-distribution'
 
