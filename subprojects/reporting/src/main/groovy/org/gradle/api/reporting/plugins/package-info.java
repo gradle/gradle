@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting;
-
 /**
- * The reporting configuration for the the {@link GenerateBuildDashboard} task.
+ * Plugins for reporting
  */
-public interface BuildDashboardReports extends ReportContainer<SingleFileReport> {
-    /**
-     * The build dashboard html report
-     *
-     * @return The build dashboard html report
-     */
-    SingleFileReport getHtml();
-}
+package org.gradle.api.reporting.plugins;

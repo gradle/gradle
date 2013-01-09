@@ -26,20 +26,26 @@ import java.io.File;
 public class SimpleReport implements Report {
                           
     private String name;
+    private String displayName;
     private FileResolver fileResolver;
 
     private Object destination;
     private boolean enabled;
     private OutputType outputType;
 
-    public SimpleReport(String name, OutputType outputType, FileResolver fileResolver) {
+    public SimpleReport(String name, String displayName, OutputType outputType, FileResolver fileResolver) {
         this.name = name;
+        this.displayName = displayName;
         this.fileResolver = fileResolver;
         this.outputType = outputType;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     public String toString() {
