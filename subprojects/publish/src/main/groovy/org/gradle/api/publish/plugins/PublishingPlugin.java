@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
-import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
+import org.gradle.api.publish.internal.GroovyPublicationContainer;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -50,7 +50,7 @@ public class PublishingPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
-        PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
+        PublicationContainer publications = instantiator.newInstance(GroovyPublicationContainer.class, instantiator);
         project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 
         project.getTasks().add(PUBLISH_LIFECYCLE_TASK_NAME);

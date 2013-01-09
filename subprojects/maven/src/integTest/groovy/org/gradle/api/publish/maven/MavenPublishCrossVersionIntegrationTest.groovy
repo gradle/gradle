@@ -63,7 +63,7 @@ publishing {
         maven { url "${repo.uri}" }
     }
     publications {
-        add('maven', org.gradle.api.publish.maven.MavenPublication) {
+        maven(MavenPublication) {
             from components['${componentToPublish}']
         }
     }

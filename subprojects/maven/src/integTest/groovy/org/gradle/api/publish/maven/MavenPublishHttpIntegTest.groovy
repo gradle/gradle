@@ -62,7 +62,7 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
                     }
                 }
                 publications {
-                    add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                    maven(MavenPublication) {
                         from components['java']
                     }
                 }

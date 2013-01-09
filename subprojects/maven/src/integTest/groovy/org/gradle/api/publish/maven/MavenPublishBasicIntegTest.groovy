@@ -73,7 +73,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    add('maven', org.gradle.api.publish.maven.MavenPublication)
+                    maven(MavenPublication)
                 }
             }
         """
@@ -105,7 +105,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                    maven(MavenPublication) {
                         from components['java']
                     }
                 }
@@ -149,7 +149,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    add('maven', org.gradle.api.publish.maven.MavenPublication) {
+                    maven(MavenPublication) {
                         from components['java']
                         from components['web']
                     }
@@ -179,10 +179,10 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    add('mavenJava', org.gradle.api.publish.maven.MavenPublication) {
+                    maven(MavenPublication) {
                         from components['java']
                     }
-                    add('mavenJava', org.gradle.api.publish.maven.MavenPublication) {
+                    maven(MavenPublication) {
                         from components['web']
                     }
                 }
@@ -193,7 +193,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
-        failure.assertHasCause("Publication with name 'mavenJava' added multiple times")
+        failure.assertHasCause("Publication with name 'maven' added multiple times")
     }
 
     @Ignore("Not yet implemented - currently the second publication will overwrite") // TODO:DAZ
@@ -212,10 +212,10 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    add('mavenJava', org.gradle.api.publish.maven.MavenPublication) {
+                    mavenJava(MavenPublication) {
                         from components['java']
                     }
-                    add('mavenWeb', org.gradle.api.publish.maven.MavenPublication) {
+                    mavenWeb(MavenPublication) {
                         from components['web']
                     }
                 }

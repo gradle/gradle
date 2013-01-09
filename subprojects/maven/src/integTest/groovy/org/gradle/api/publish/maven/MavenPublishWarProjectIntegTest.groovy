@@ -47,7 +47,7 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    add('mavenWeb', org.gradle.api.publish.maven.MavenPublication) {
+                    maven(MavenPublication) {
                         from components['web']
                     }
                 }
@@ -96,7 +96,7 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
 
             publishing {
                 publications {
-                    add('mavenWeb', org.gradle.api.publish.maven.MavenPublication) {
+                    maven(MavenPublication) {
                         from components['web']
                     }
                 }
@@ -106,7 +106,7 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
         project(":depProject1") {
             publishing {
                 publications {
-                    add('mavenJava', org.gradle.api.publish.maven.MavenPublication) {
+                    maven(MavenPublication) {
                         from components['java']
                     }
                 }
@@ -116,7 +116,7 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
         project(":depProject2") {
             publishing {
                 publications {
-                    add('mavenJava', org.gradle.api.publish.maven.MavenPublication) {
+                    maven(MavenPublication) {
                         from components['web']
                     }
                 }

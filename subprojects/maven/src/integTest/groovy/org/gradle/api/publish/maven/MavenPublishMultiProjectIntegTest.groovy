@@ -120,7 +120,7 @@ project(":project1") {
             maven { url "file:///\$rootProject.projectDir/maven-repo" }
         }
         publications {
-            add('maven', org.gradle.api.publish.maven.MavenPublication) {
+            maven(MavenPublication) {
                 from components['java']
             }
         }
@@ -223,7 +223,7 @@ subprojects {
             maven { url "file:///\$rootProject.projectDir/maven-repo" }
         }
         publications {
-            add('maven', org.gradle.api.publish.maven.MavenPublication) {
+            maven(MavenPublication) {
                 from components['java']
             }
         }
