@@ -4,10 +4,9 @@ Here are the new features introduced in this Gradle release.
 
 ### Easier embedding of Gradle via [Tooling API](userguide/embedding.html)
 
-We are continuously looking for ways to improve the experience of embedding Gradle.
-The standard way to embed Gradle, the [Tooling API](userguide/embedding.html) used to ship as multiple Jars, some of which were third-party libraries.
-In Gradle 1.4, we refactored the publication and packaging of the Tooling API. It now ships as a single Jar whose only external dependency is SLF4J.
-All other third-party dependencies are packaged inside the Jar and shaded to avoid conflicts with the embedder's classpath. Happy embedding! Now go and embed Gradle!
+The [Tooling API](userguide/embedding.html), the standard way to embed Gradle, is now more convenient to use. 
+As of Gradle 1.4 it ships as a single jar with the only external dependency being an SLF4J implementation.
+All other dependencies are packaged inside the Jar and shaded to avoid conflicts with the embedder's classpath.
 
 ### Dependency resolution improvements
 
