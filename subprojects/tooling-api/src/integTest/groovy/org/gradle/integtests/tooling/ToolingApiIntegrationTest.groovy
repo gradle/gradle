@@ -16,10 +16,10 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestFile
@@ -32,7 +32,7 @@ import spock.lang.Issue
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
-    final GradleDistribution otherVersion = new ReleasedVersions(temporaryFolder).last
+    final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentFinalRelease
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     TestFile projectDir

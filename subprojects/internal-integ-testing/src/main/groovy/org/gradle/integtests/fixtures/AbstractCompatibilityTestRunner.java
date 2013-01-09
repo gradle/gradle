@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -46,9 +47,9 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
         if (versionStr == null) {
             versionStr = System.getProperty("org.gradle.integtest.versions", "latest");
         }
-        ReleasedVersions previousVersions = new ReleasedVersions(testDirectoryProvider);
+        ReleasedVersionDistributions previousVersions = new ReleasedVersionDistributions();
         if (!versionStr.equals("all")) {
-            previous.add(previousVersions.getLast());
+            previous.add(previousVersions.getMostRecentFinalRelease());
         } else {
             List<GradleDistribution> all = previousVersions.getAll();
             for (GradleDistribution previous : all) {
