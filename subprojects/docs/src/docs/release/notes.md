@@ -10,16 +10,15 @@ All other dependencies are packaged inside the Jar and shaded to avoid conflicts
 
 ### Dependency resolution improvements
 
-In this release we've continued to improve our dependency resolution, with bug fixes, performance improvements and other tweaks.
+As with every release, the dependency resolution engine has been improved with bug fixes and performance optimizations.
 
 These improvements are in addition to the new support for [Dependency Resolve Rules](#hooking-into-dependency-resolution), which give you more control over dependency resolution.
 
-#### Correctly treat Snapshot artifacts with classifiers as 'changing'
+#### Maven SNAPSHOT artifacts with classifiers are now correctly “changing”
 
-Gradle treats any artifact matching the '\*\-SNAPSHOT' pattern as _changing_, which means that we'll check for updated content based on the setting of
-[cacheChangingModulesFor](/userguide/dependency_management.html#sec:controlling_caching).
-This strict pattern matching meant that '\*\-SNAPSHOT-sources.jar' and '\*\-SNAPSHOT-javadoc.jar' were not considered _changing_, so these artifacts weren't being updated automatically
-on dependency resolution. This issue has now been fixed: see GRADLE-2175 and GRADLE-2218.
+For dependencies originating in Maven repositories, Gradle follows Maven semantics and treats any dependency artifact whose version number ends in '`-SNAPSHOT`' as “changing”, 
+which means that it can change over time and Gradle should periodically check for updates instead of caching indefinitely 
+(see “[controlling caching](/userguide/dependency_management.html#sec:controlling_caching)”). Previously, artifacts with classifiers (e.g `sources` or `javadoc`) were not being checked for changes. This has been fixed in this release (GRADLE-2175).
 
 #### `--offline` works after resolving against a broken repository
 
