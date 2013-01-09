@@ -365,36 +365,59 @@ To add further files to the distribution, configure the `distZip` task according
 
 ## Deprecations
 
-### Certain task configuration after execution of task has been started.
+### Changing certain task configuration during and after execution
 
-Changing certain task configuration does not make sense when the task is already being executed.
-For example, imagine that at execution time, the task adds yet another doFirst {} action.
-The task is already being executed so adding a *before* action is too late and it is probably a user mistake.
-In order to provide quicker and higher quality feedback on user mistakes
-we want to prevent configuring certain task properties when the task is already being executed.
-For backwards compatibility reasons, certain task configuration is deprecated. This includes:
+Much of a task's configuration influences how, or even if, a task should execute. After the task has executed, changing the configuration has no useful effect.
+For example, it does not make sense to add an action via the `doFirst()` method to a task that is executing or has already executed. Changing such configuration has been deprecated and this will eventually become an error condition.
 
-* Mutating Task.getActions()
-* Calling Task.setActions()
-* Calling Task.dependsOn()
-* Calling Task.setDependsOn()
-* Calling Task.onlyIf()
-* Calling Task.setOnlyIf()
-* Calling Task.doLast()
-* Calling Task.doFirst()
-* Calling Task.leftShift()
-* Calling Task.setEnabled()
-* Calling TaskInputs.files()
-* Calling TaskInputs.file()
-* Calling TaskInputs.dir()
-* Calling TaskInputs.property()
-* Calling TaskInputs.properties()
-* Calling TaskInputs.source()
-* Calling TaskInputs.sourceDir()
-* Calling TaskOutputs.upToDateWhen()
-* Calling TaskOutputs.files()
-* Calling TaskOutputs.file()
-* Calling TaskOutputs.dir()
+#### Changing the action list
+
+Once a task has started executing, its action list should no longer be changed. This includes calling the following methods on `Task` objects:
+
+* `setActions()`
+* `doLast()` - including using the synonymous `<<` operator
+* `doFirst()`
+
+Mutating the collection returned by `getActions()` is also deprecated after the task has started executing.
+
+#### Changing task dependencies 
+
+Once a task has started executing, its dependencies should no longer be changed. This includes calling the following methods on `Task` objects:
+
+* `dependsOn()`
+* `setDependsOn()`
+
+#### Changing execution conditions
+
+Once a task has started executing, its configuration controlling whether it will be execution should no longer be changed. 
+This includes calling the following methods on `Task` objects:
+
+* `onlyIf()`
+* `setOnlyIf()`
+* `setEnabled()`
+
+#### Changing task inputs
+
+Once a task has started executing, its “inputs” configuration should no longer be changed. 
+This includes calling the following methods on `TaskInputs` objects:
+
+* `files()`
+* `file()`
+* `dir()`
+* `property()`
+* `properties()`
+* `source()`
+* `sourceDir()`
+
+#### Changing task outputs
+
+Once a task has started executing, its “outputs” configuration should no longer be changed. 
+This includes calling the following methods on `TaskOutputs` objects:
+
+* `upToDateWhen()`
+* `files()`
+* `file()`
+* `dir()`
 
 ### TestNGOptions.useDefaultListeners
 
