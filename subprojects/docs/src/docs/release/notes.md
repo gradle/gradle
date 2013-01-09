@@ -74,7 +74,7 @@ In this example, `foo:baz` was forced to version `2.0`, and that version couldn'
 ### Automatic configuration of Groovy dependency used by GroovyCompile and Groovydoc tasks
 
 The `groovy-base` plugin now automatically detects the Groovy dependency used on the class path of any `GroovyCompile` or `Groovydoc` task,
-and adds a corresponding dependency declaration (e.g. `org.codehaus.groovy:groovy-all:2.0.5`) for the task's `groovyClasspath`.
+and appropriately configures the task's `groovyClasspath`.
 As a consequence, the Groovy dependency can now be configured directly for the configuration(s) that need it, and it is no longer necessary
 to use the `groovy` configuration.
 
@@ -104,7 +104,7 @@ in the project.
 ### Automatic configuration of Scala dependency used by ScalaCompile and Scaladoc tasks
 
 The `scala-base` plugin now automatically detects the `scala-library` dependency used on the class path of any `ScalaCompile` or `ScalaDoc` task,
-and adds a corresponding dependency declaration (e.g. `org.scala-lang:scala-compiler:2.9.2`) for the task's `scalaClasspath`.
+and appropriately configures for the task's `scalaClasspath`.
 As a consequence, it is no longer necessary to use the `scalaTools` configuration.
 
 Old (and still supported):
