@@ -20,12 +20,12 @@ For dependencies originating in Maven repositories, Gradle follows Maven semanti
 which means that it can change over time and Gradle should periodically check for updates instead of caching indefinitely 
 (see “[controlling caching](/userguide/dependency_management.html#sec:controlling_caching)”). Previously, artifacts with classifiers (e.g `sources` or `javadoc`) were not being checked for changes. This has been fixed in this release (GRADLE-2175).
 
-#### `--offline` works after resolving against a broken repository
+#### More robust `--offline` mode
 
-Often the first time you realise a remote repository is down is when Gradle fails to resolve dependencies against that repository. One solution in this case is to switch to running
-Gradle in `--offline` mode, so that all resolution will be performed with cached dependencies.
-In the past this has been problematic, since Gradle threw away the previously cached value before attempting to retrieve a new one. In 1.4 this has been fixed: Gradle will no longer
-throw away a previously cached value when resolving against a broken/missing repository, so you'll be able to switch to `--offline` mode and keep on working. (GRADLE-2364)
+Previously, Gradle discarded cached artifacts just prior to attempting to fetch an updated version from the remote source. If the fetch of the remote artifact failed (e.g. network disruption), 
+there was no longer a cached version available to be used in `--offline` mode. This could result in situations where trying to use `--offline` mode in response to unexpected network issues would not work well. 
+
+Gradle now only discards old artifacts after a newer version has been cached, which makes `--offline` mode more reliable and useful (GRADLE-2364).
 
 #### Performance improvements
 
