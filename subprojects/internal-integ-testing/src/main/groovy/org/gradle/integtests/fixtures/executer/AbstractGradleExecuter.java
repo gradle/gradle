@@ -42,11 +42,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private final Logger logger;
 
-    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
-    protected boolean allowExtraLogging = true;
+    private boolean allowExtraLogging = true;
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
@@ -65,9 +65,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private String defaultCharacterEncoding;
     private Integer daemonIdleTimeoutSecs = 10;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
-    //gradle opts make sense only for forking executer but having them here makes more sense
     private final List<String> gradleOpts = new ArrayList<String>();
-    protected boolean noDefaultJvmArgs;
+    private boolean noDefaultJvmArgs;
     private boolean requireGradleHome;
 
     private boolean deprecationChecksOn = true;
@@ -373,6 +372,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected File getDaemonBaseDir() {
         return daemonBaseDir;
+    }
+
+    protected boolean isNoDefaultJvmArgs() {
+        return noDefaultJvmArgs;
     }
 
     protected List<String> getAllArgs() {

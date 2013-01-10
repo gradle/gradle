@@ -46,7 +46,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
     @Override
     public List<String> getGradleOpts() {
-        if (noDefaultJvmArgs) {
+        if (isNoDefaultJvmArgs()) {
             return super.getGradleOpts();
         } else {
             List<String> gradleOpts = new ArrayList<String>(super.getGradleOpts());
