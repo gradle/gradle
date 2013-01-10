@@ -25,7 +25,7 @@ archivesBaseName = 'gradle'
 extensions.buildTypes = new BuildTypes(project)
 
 buildTypes {
-    sanityCheck "classes", "doc:checkstyleApi", "docs:check"
+    sanityCheck "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
 
     // The minimum to be run before check-in
     preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test", noDistTests: true
