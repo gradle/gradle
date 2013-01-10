@@ -161,30 +161,19 @@ class SimpleXmlWriterSpec extends Specification {
         xml.contains('<root name="&#x84;&#x2;">&#x84;&#x2;&#x9f;<![CDATA[]]>&#x84;<![CDATA[]]>&#x2;<![CDATA[]]></root>')
     }
 
-    def "validates characters in text content"() {
+    def "replaces illegal characters in text content"() {
         given:
+
+        when:
         writer.startElement("root")
-
-        when:
         writer.characters(chars)
-
-        then:
-        IllegalArgumentException e = thrown()
-        e.message.startsWith("Illegal XML character 0x")
-
-        when:
         writer.startElement("broken").attribute("name", chars)
+        writer.startCDATA().characters(chars).endCDATA()
+        writer.endElement()
+        writer.endElement()
 
         then:
-        e = thrown()
-        e.message.startsWith("Illegal XML character 0x")
-
-        when:
-        writer.startCDATA().characters(chars)
-
-        then:
-        e = thrown()
-        e.message.startsWith("Illegal XML character 0x")
+        xml.contains('<root>?<broken name="?"><![CDATA[?]]></broken></root>')
 
         where:
         chars << ["\u0000", "\ud800", "\udfff", "\ufffe"]

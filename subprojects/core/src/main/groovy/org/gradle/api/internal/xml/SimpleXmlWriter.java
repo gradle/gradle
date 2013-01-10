@@ -189,7 +189,7 @@ public class SimpleXmlWriter extends Writer {
         if (needsCDATAEscaping(ch)) {
             writeRaw("]]><![CDATA[>");
         } else if (!isLegalCharacter(ch)) {
-            throw new IllegalArgumentException(String.format("Illegal XML character 0x%s", Integer.toHexString(ch)));
+            writeRaw('?');
         } else if (isRestrictedCharacter(ch)) {
             writeRaw("]]>&#x");
             writeRaw(Integer.toHexString(ch));
@@ -414,7 +414,7 @@ public class SimpleXmlWriter extends Writer {
         } else if (ch == '"') {
             writeRaw("&quot;");
         } else if (!isLegalCharacter(ch)) {
-            throw new IllegalArgumentException(String.format("Illegal XML character 0x%s", Integer.toHexString(ch)));
+            writeRaw('?');
         } else if (isRestrictedCharacter(ch)) {
             writeRaw("&#x");
             writeRaw(Integer.toHexString(ch));
