@@ -112,6 +112,7 @@ Running `gradle publish` will publish the JAR and POM to the repository.
 - Publish multiple projects with the `java` plugin applied and project dependencies between the projects. Verify the POMs declares the appropriate dependencies.
 - Add a cross version test that verifies that a Java library published to a Maven repository by the current Gradle version can be resolved by a previous Gradle version.
 - Copy existing Maven publication tests for java libraries and rework to use `maven-publish` plugin.
+- Publish a Java project to an HTTP repository. Verify that progress logging was generated.
 
 ## Publish Web application to Maven repository
 
