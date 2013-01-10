@@ -37,6 +37,8 @@ public class ProjectEvaluatingAction implements BuildConfigurationAction {
         List<String> taskNames = context.getGradle().getStartParameter().getTaskNames();
         ProjectInternal project = context.getGradle().getDefaultProject();
 
+        project.evaluate();
+
         for (String path : taskNames) {
             evaluator.evaluateByPath(project, path);
         }

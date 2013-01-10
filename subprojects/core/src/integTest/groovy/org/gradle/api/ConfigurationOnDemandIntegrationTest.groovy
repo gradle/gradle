@@ -154,5 +154,19 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         result.assertProjectsEvaluated(":", ":api")
     }
 
-    //TODO SF: default tasks
+    def "works with default tasks"() {
+        settingsFile << "include 'api', 'impl'"
+        file("api/build.gradle") << """
+            task foo
+            defaultTasks 'foo'
+        """
+
+        when:
+        inDirectory('api')
+        run()
+
+        then:
+        result.assertProjectsEvaluated(":", ":api")
+        result.assertTasksExecuted(':api:foo')
+    }
 }
