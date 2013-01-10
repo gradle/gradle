@@ -24,7 +24,25 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
     @Issue("http://issues.gradle.org/browse/GRADLE-2023")
     def "can deal with tasks with named task dependencies that are created by rules"() {
         when:
-        buildFile << """
+        buildFile << getBuildScriptContent()
+
+        then:
+        succeeds "tasks", "--all"
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2023")
+    def "can deal with tasks with named task dependencies that are created by rules - multiproject"() {
+        when:
+        settingsFile << "include 'module'"
+
+        file("module/build.gradle") << getBuildScriptContent()
+
+        then:
+        succeeds "tasks", "--all"
+    }
+
+    protected static String getBuildScriptContent() {
+        """
             tasks.addRule("test rule") {
                 if (it.startsWith("autoCreate")) {
                     def name = it - "autoCreate"
@@ -36,11 +54,9 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
 
             // Source task must be alphabetically before task that is created by dependency
-            task aaa { dependsOn(":autoCreateFoo") }
+            task aaa { dependsOn("autoCreateFoo") }
             task foo
         """
-
-        then:
-        succeeds "tasks", "--all"
     }
+
 }

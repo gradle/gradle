@@ -16,12 +16,17 @@
 package org.gradle.integtests.fixtures.executer;
 
 import groovy.lang.Closure;
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TextUtil;
 
 import java.io.ByteArrayInputStream;
@@ -35,11 +40,13 @@ import static org.gradle.util.Matchers.*;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
 
-    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+    private final Logger logger;
+
+    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
-    protected boolean allowExtraLogging = true;
+    private boolean allowExtraLogging = true;
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
@@ -58,9 +65,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private String defaultCharacterEncoding;
     private Integer daemonIdleTimeoutSecs = 10;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
-    //gradle opts make sense only for forking executer but having them here makes more sense
-    protected final List<String> gradleOpts = new ArrayList<String>();
-    protected boolean noDefaultJvmArgs;
+    private final List<String> gradleOpts = new ArrayList<String>();
+    private boolean noDefaultJvmArgs;
     private boolean requireGradleHome;
 
     private boolean deprecationChecksOn = true;
@@ -74,6 +80,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
         this.testDirectoryProvider = testDirectoryProvider;
+        logger = Logging.getLogger(getClass());
+    }
+
+    protected Logger getLogger() {
+        return logger;
     }
 
     public GradleExecuter reset() {
@@ -98,6 +109,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         stackTraceChecksOn = true;
         return this;
     }
+
 
     public GradleDistribution getDistribution() {
         return distribution;
@@ -222,6 +234,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public File getUserHomeDir() {
         return userHomeDir;
+    }
+
+    public List<String> getGradleOpts() {
+        return gradleOpts;
     }
 
     public GradleExecuter withUserHomeDir(File userHomeDir) {
@@ -358,6 +374,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return daemonBaseDir;
     }
 
+    protected boolean isNoDefaultJvmArgs() {
+        return noDefaultJvmArgs;
+    }
+
     protected List<String> getAllArgs() {
         List<String> allArgs = new ArrayList<String>();
         if (buildScript != null) {
@@ -402,17 +422,27 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             }
         }
 
-        if (gradleUserHomeDir != null) {
-            allArgs.add("--gradle-user-home");
-            allArgs.add(gradleUserHomeDir.getAbsolutePath());
-        }
-
-        allArgs.add("-Dorg.gradle.daemon.idletimeout=" + daemonIdleTimeoutSecs * 1000);
-        allArgs.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
-
         allArgs.addAll(args);
         allArgs.addAll(tasks);
         return allArgs;
+    }
+
+    protected Map<String, String> getImplicitJvmSystemProperties() {
+        Map<String, String> properties = new LinkedHashMap<String, String>();
+
+        if (getUserHomeDir() != null) {
+            properties.put("user.home", getUserHomeDir().getAbsolutePath());
+        }
+        if (getGradleUserHomeDir() != null) {
+            properties.put(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, getGradleUserHomeDir().getAbsolutePath());
+        }
+
+        properties.put(DaemonParameters.IDLE_TIMEOUT_SYS_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
+        properties.put(DaemonParameters.BASE_DIR_SYS_PROPERTY, daemonBaseDir.getAbsolutePath());
+        properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
+
+        properties.put("java.io.tmpdir", getTmpDir().createDir().getAbsolutePath());
+        return properties;
     }
 
     public final GradleHandle start() {

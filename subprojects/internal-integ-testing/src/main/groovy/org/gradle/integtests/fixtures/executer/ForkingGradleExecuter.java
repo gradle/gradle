@@ -24,24 +24,16 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.fail;
 
 class ForkingGradleExecuter extends AbstractGradleExecuter {
-    private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
 
     public ForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
-        gradleOpts.add("-ea");
-        //uncomment for debugging
-//        gradleOpts.add("-Xdebug");
-//        gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
     }
 
     public DaemonRegistry getDaemonRegistry() {
@@ -79,21 +71,19 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         // Override some of the user's environment
         builder.environment("GRADLE_HOME", "");
         builder.environment("JAVA_HOME", getJavaHome());
-        builder.environment("GRADLE_OPTS", formatGradleOpts());
+        builder.environment("GRADLE_OPTS", getGradleOptsString());
         builder.environment("JAVA_OPTS", "");
 
         builder.environment(getAllEnvironmentVars());
         builder.workingDir(getWorkingDir());
         builder.setStandardInput(getStdin());
 
-        ExecHandlerConfigurer configurer = OperatingSystem.current().isWindows() ? new WindowsConfigurer()
-                : new UnixConfigurer();
-        configurer.configure(builder);
-
         builder.args(getAllArgs());
 
-        LOG.info(String.format("Execute in %s with: %s %s", builder.getWorkingDir(), builder.getExecutable(),
-                builder.getArgs()));
+        ExecHandlerConfigurer configurer = OperatingSystem.current().isWindows() ? new WindowsConfigurer() : new UnixConfigurer();
+        configurer.configure(builder);
+
+        getLogger().info(String.format("Execute in %s with: %s %s", builder.getWorkingDir(), builder.getExecutable(), builder.getArgs()));
 
         return builder;
     }
@@ -119,18 +109,42 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         return start().waitForFailure();
     }
 
-    private String formatGradleOpts() {
-        if (getUserHomeDir() != null) {
-            gradleOpts.add(String.format("-Duser.home=%s", getUserHomeDir()));
+    @Override
+    public List<String> getGradleOpts() {
+        List<String> gradleOpts = new ArrayList<java.lang.String>(super.getGradleOpts());
+        for (Map.Entry<String, String> entry : getImplicitJvmSystemProperties().entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            if (value.contains(" ") && !getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
+                getLogger().warn("Removing '%s' from GRADLE_OPTS (value: %s) as it contains spaces, and this Gradle version (%s) cannot handle spaces in GRADLE_OPTS",
+                        key, value, getDistribution().getVersion().getVersion()
+                );
+                continue;
+            }
+
+            gradleOpts.add(String.format("-D%s=%s", key, value));
         }
 
-        String tmpDirPath = getTmpDir().createDir().getAbsolutePath();
-        if (!tmpDirPath.contains(" ") || getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
-            gradleOpts.add(String.format("-Djava.io.tmpdir=%s", tmpDirPath));
-        }
+        gradleOpts.add("-ea");
 
+        //uncomment for debugging
+//        gradleOpts.add("-Xdebug");
+//        gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+
+        return gradleOpts;
+    }
+
+    @Override
+    protected Map<String, String> getImplicitJvmSystemProperties() {
+        Map<String, String> implicitJvmSystemProperties = new LinkedHashMap<String, String>(super.getImplicitJvmSystemProperties());
+        implicitJvmSystemProperties.put("file.encoding", getDefaultCharacterEncoding());
+        return implicitJvmSystemProperties;
+    }
+
+    private String getGradleOptsString() {
         StringBuilder result = new StringBuilder();
-        for (String gradleOpt : gradleOpts) {
+        for (String gradleOpt : getGradleOpts()) {
             if (result.length() > 0) {
                 result.append(" ");
             }
@@ -143,10 +157,6 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
                 result.append(gradleOpt);
             }
         }
-
-        result.append(" -Dfile.encoding=");
-        result.append(getDefaultCharacterEncoding());
-        result.append(" -Dorg.gradle.deprecation.trace=true");
 
         return result.toString();
     }
@@ -164,7 +174,11 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
                 cmd = "gradle";
             }
             builder.executable("cmd");
-            builder.args("/c", cmd);
+
+            List<String> allArgs = builder.getArgs();
+            builder.setArgs(Arrays.asList("/c", cmd));
+            builder.args(allArgs);
+
             String gradleHome = getDistribution().getGradleHomeDir().getAbsolutePath();
 
             // NOTE: Windows uses Path, but allows asking for PATH, and PATH
@@ -175,12 +189,10 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
             if (path == null) {
                 path = builder.getEnvironment().get("Path");
             }
-            builder.environment("Path", String.format("%s\\bin;%s",
-                                                      gradleHome,
-                                                      path));
+            builder.environment("Path", String.format("%s\\bin;%s", gradleHome, path));
             builder.environment("GRADLE_EXIT_CONSOLE", "true");
 
-            LOG.info("Initializing windows process so that child process will be fully detached...");
+            getLogger().info("Initializing windows process so that child process will be fully detached...");
             new WindowsHandlesManipulator().uninheritStandardStreams();
         }
     }

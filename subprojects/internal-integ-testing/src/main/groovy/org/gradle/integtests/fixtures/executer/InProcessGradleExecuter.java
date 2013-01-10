@@ -120,12 +120,23 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         }).start();
     }
 
-    private BuildResult doRun(final OutputListenerImpl outputListener, OutputListenerImpl errorListener,
-                              BuildListenerImpl listener) {
+    private BuildResult doRun(final OutputListenerImpl outputListener, OutputListenerImpl errorListener, BuildListenerImpl listener) {
+        // Capture the current state of things that we will change during execution
         InputStream originalStdIn = System.in;
+        Properties originalSysProperties = new Properties();
+        originalSysProperties.putAll(System.getProperties());
+        File originalUserDir = new File(originalSysProperties.getProperty("user.dir"));
+        Map<String, String> originalEnv = System.getenv();
+
+        // Augment the environment for the execution
         System.setIn(getStdin());
-        
-        File userDir = new File(System.getProperty("user.dir"));
+        processEnvironment.maybeSetProcessDir(getWorkingDir());
+        for (Map.Entry<String, String> entry : getEnvironmentVars().entrySet()) {
+            processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());
+        }
+        Map<String, String> implicitJvmSystemProperties = getImplicitJvmSystemProperties();
+        System.getProperties().putAll(implicitJvmSystemProperties);
+
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setSearchUpwards(true);
@@ -136,19 +147,6 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         converter.configure(parser);
         converter.convert(parser.parse(getAllArgs()), parameter);
 
-        Properties originalSysProperties = new Properties();
-        originalSysProperties.putAll(System.getProperties());
-        processEnvironment.maybeSetProcessDir(getWorkingDir());
-        Map<String, String> previousEnv = new HashMap<String, String>();
-        for (Map.Entry<String, String> entry : getEnvironmentVars().entrySet()) {
-            previousEnv.put(entry.getKey(), System.getenv(entry.getKey()));
-            processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());
-        }
-        if (getUserHomeDir() != null) {
-            System.setProperty("user.home", getUserHomeDir().getPath());
-        }
-        System.setProperty("java.io.tmpdir", getTmpDir().createDir().getAbsolutePath());
-
         DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
         factory.addListener(listener);
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
@@ -157,9 +155,10 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         try {
             return gradleLauncher.run();
         } finally {
+            // Restore the environment
             System.setProperties(originalSysProperties);
-            processEnvironment.maybeSetProcessDir(userDir);
-            for (Map.Entry<String, String> entry : previousEnv.entrySet()) {
+            processEnvironment.maybeSetProcessDir(originalUserDir);
+            for (Map.Entry<String, String> entry : originalEnv.entrySet()) {
                 String oldValue = entry.getValue();
                 if (oldValue != null) {
                     processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), oldValue);

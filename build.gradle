@@ -25,9 +25,11 @@ archivesBaseName = 'gradle'
 extensions.buildTypes = new BuildTypes(project)
 
 buildTypes {
+    sanityCheck "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
+
     // The minimum to be run before check-in
-    preCommitBuild "doc:checkstyleApi", "codeQuality", "classes", "test", noDistTests: true
-    quickCheck "doc:checkstyleApi", "codeQuality", "classes", "test", noDistTests: true
+    preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test", noDistTests: true
+    quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test", noDistTests: true
 
     // A full (in-process) test
     developerBuild "check"
@@ -51,10 +53,10 @@ buildTypes {
     crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
 
     // Used to build production distros and smoke test them
-    packageBuild "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest"
+    packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
 
     // Used to build production distros and smoke test them
-    promotionBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest", "uploadArchives"
+    promotionBuild "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
 }
 
 ext {
