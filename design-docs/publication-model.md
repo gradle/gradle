@@ -68,7 +68,7 @@ Note: for the following discussion, all changes are `@Incubating` unless specifi
 
 ## Completed stories
 
-See [finished stories](done/publication-model.md)
+See [completed stories](done/publication-model.md)
 
 ## Publish Java library to Maven repository with correct runtime dependencies
 
@@ -108,7 +108,7 @@ Running `gradle publish` will publish the JAR and POM to the repository.
 - Run `gradle publish` for a project with just the `maven-publish` plugin applied. Verify nothing is published.
 - Run `gradle assemble` for a Java project. Verify that the JAR is built.
 - Publish a Java project with compile, runtime and testCompile dependencies. Verify only the compile and runtime dependencies are declared in the POM with runtime scope,
-  and that only the JAR is uploaded.
+  and that only the JAR is uploaded. Verify that the packaging declared in the POM is `jar`.
 - Publish multiple projects with the `java` plugin applied and project dependencies between the projects. Verify the POMs declares the appropriate dependencies.
 - Add a cross version test that verifies that a Java library published to a Maven repository by the current Gradle version can be resolved by a previous Gradle version.
 - Copy existing Maven publication tests for java libraries and rework to use `maven-publish` plugin.
@@ -166,7 +166,7 @@ TBD - Which publication does a project dependency refer to?
 - Run `gradle assemble` for a web project. Verify that the WAR is built.
 - Run `gradle publish` for a project that defines an empty publication. Verify that only a POM is uploaded and that the POM declares no dependencies.
 - Run `gradle publish` for a web application that has compile, runtime and testRuntime dependencies. Verify that the WAR is uploaded and that no dependencies are declared
-  in the generated POM.
+  in the generated POM. Verify that the packaging declared in the POM is `war`.
 - Run `gradle publish` for a web application assembled from several other projects in the same build. Verify that the WAR is uploaded and that no dependencies are declared
   in the generated POM.
 - Run `gradle publish` for a project that defines multiple publications.
@@ -499,6 +499,10 @@ Add a WebDAV resource transport and allow this to be used in an Ivy or Maven rep
 6. Remove Maven 2 as a dependency.
 7. Remove jarjar hacks from Maven 3 classes.
 
+## Publish components in dependency order
+
+Ensure that when publishing multiple components to a given destination, that they are published in dependency order.
+
 ## Remove old DSL
 
 These would be mixed in to various steps above (TBD), rather than as one change at the end. They are grouped together here for now:
@@ -554,8 +558,7 @@ TBD - consuming components.
 
 # Open issues
 
-* Which things are published, say, when the 'java', 'war' and 'ejb' plugins are all applied to a project?
-* How do components fit into all this? What happens when a project produces multiple components?
+* Add a packaging to a publication, add multiple packagings to a publication.
 * How to get rid of `Configuration.artifacts`?
 * How to map a project dependency to Ivy publication or Maven publication when generating descriptor?
 * Add in local publications.

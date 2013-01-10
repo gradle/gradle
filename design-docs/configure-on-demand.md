@@ -65,6 +65,8 @@ TBD
 
 - Root project is no longer configured by default.
 
+## Rename usages of `evaluate` to `configure`
+
 ## Warn build author when projects are coupled
 
 - This will be split into a number of stories as there are a few ways that projects can be coupled. We might also interleave warning about a particular type of
