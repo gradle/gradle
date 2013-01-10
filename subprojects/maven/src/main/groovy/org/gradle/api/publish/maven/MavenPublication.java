@@ -66,6 +66,13 @@ public interface MavenPublication extends Publication {
      */
     void pom(Action<? super MavenPom> configure);
 
+    /**
+     * Provides the software component that should be published.
+     *
+     * The artifacts and runtime dependencies of this component will be included in the publication.
+     *
+     * @param component The software component to publish.
+     */
     void from(SoftwareComponent component);
 
 }
