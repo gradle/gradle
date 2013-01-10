@@ -68,6 +68,12 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void canUseWildcardVersions() throws IOException {
+        File buildFile = testFile("projectWithWildcardVersions.gradle");
+        usingBuildFile(buildFile).run();
+    }
+
+    @Test
     public void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
         testFile('settings.gradle') << 'include "a", "b"'
         testFile('build.gradle') << """
