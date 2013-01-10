@@ -107,11 +107,13 @@ class MavenFileModule implements MavenModule {
     void assertPublishedAsJavaModule() {
         assertPublished()
         assertArtifactsPublished("${artifactId}-${version}.jar", "${artifactId}-${version}.pom")
+        assert parsedPom.packaging == null
     }
 
     void assertPublishedAsWebModule() {
         assertPublished()
         assertArtifactsPublished("${artifactId}-${version}.war", "${artifactId}-${version}.pom")
+        assert parsedPom.packaging == 'war'
     }
 
     /**
