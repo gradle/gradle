@@ -67,7 +67,10 @@ public class TaskReportTask extends AbstractReportTask {
 
         for (Project subproject : project.getSubprojects()) {
             SingleProjectTaskReportModel subprojectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
-            subprojectTaskModel.build(subproject.getTasks());
+            ProjectInternal subprojectInternal = (ProjectInternal) subproject;
+            TaskContainerInternal subprojectTasks = subprojectInternal.getTasks();
+            subprojectTasks.actualize();
+            subprojectTaskModel.build(subprojectTasks);
             aggregateModel.add(subprojectTaskModel);
         }
 
