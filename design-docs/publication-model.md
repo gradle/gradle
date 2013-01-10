@@ -198,12 +198,28 @@ To customise a Maven publication:
             }
         }
     }
+    
+    publishing.publications.myLib.mainArtifact.classifier = 'custom'
+    publishing.publications.myLib.artifacts.each {
+        ...
+    }
 
 TBD - applicable artifact conversions
 
 ### Test cases
 
-TBD
+* Existing empty publication test: Verify empty `mainArtifact` and `artifacts`.
+* Existing publish 'java' & 'web' tests: Verify `mainArtifact` attributes and that `mainArtifact` is the only element of `artifacts`.
+* Publish with java component, add source and javadoc jars as additional artifacts. Verify classifiers of additional artifacts.
+* Run `gradle publish` with no component where mainArtifact and artifacts are taken from custom AbstractArchiveTasks. 
+    * Verify that archives are automatically built and published.
+    * Verify that classifier and extension from AbstractArchiveTask is honoured.
+    * Verify that classifier and extension specified in publication DSL overrides that of AbstractArchiveTask.
+* Run `gradle publish` where mainArtifact and custom artifacts specified via file[,classifier,extension].
+    * Verify that extension is taken from file name by default, and can be overridden in DSL.
+    * Verify that classifier is empty by default, and can be overridden in DSL.
+* Publish with java component. Verify that the publishing DSL can be used to update the classifier & exension of mainArtifact taken from component.
+    * `publishing.publications.myLib.mainArtifact.classifier = 'custom'`
 
 ## Allow outgoing artifacts to be customised for Ivy publications
 
