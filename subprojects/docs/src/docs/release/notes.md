@@ -183,7 +183,8 @@ In Gradle 1.4 the improved reports are turned on by default.
 The TestNG users will be delighted to learn that:
 
 * The new html report is much easier to read and browse than the standard TestNG report. It's also quite pretty.
-* Both reports, XML (for your CI server) and HTML (for you), contain the test output (i.e. messages logged to the standard streams or via the standard logging toolkits). This is extremely useful for debugging certain test failures.
+* Both reports, XML (for your CI server) and HTML (for you), contain the test output (i.e. messages logged to the standard streams or via the standard logging toolkits).
+This is extremely useful for debugging certain test failures.
 * The reports neatly work with Gradle parallel testing ([test.maxParallelForks](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:maxParallelForks)).
 
 The implementation of the new reports is now a part of Gradle.
