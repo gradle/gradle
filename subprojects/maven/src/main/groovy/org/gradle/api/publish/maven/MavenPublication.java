@@ -69,7 +69,21 @@ public interface MavenPublication extends Publication {
     /**
      * Provides the software component that should be published.
      *
-     * The artifacts and runtime dependencies of this component will be included in the publication.
+     * The artifacts and runtime dependencies defined by the published component will be included in the publication.
+     *
+     * The following example demonstrates how to publish the 'java' component to a maven repository.
+     * <pre autoTested="true">
+     * apply plugin: "java"
+     * apply plugin: "maven-publish"
+     *
+     * publishing {
+     *   publications {
+     *     maven(MavenPublication) {
+     *       from components.java
+     *     }
+     *   }
+     * }
+     * </pre>
      *
      * @param component The software component to publish.
      */
