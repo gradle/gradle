@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.JavaVersion;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
@@ -23,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static org.apache.commons.collections.CollectionUtils.containsAny;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
@@ -32,40 +32,31 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
     @Override
     protected List<String> getAllArgs() {
-        List<String> originalArgs = super.getAllArgs();
+        List<String> args = new ArrayList<String>(super.getAllArgs());
+        args.add(0, "--daemon");
 
-        List<String> args = new ArrayList<String>();
-        args.add("--daemon");
-
-        args.addAll(originalArgs);
-        configureJvmArgs(args);
-        configureDefaultLogging(args);
-
-        if (getUserHomeDir() != null) {
-            args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
+        if(!isQuiet() && isAllowExtraLogging()) {
+            if (!containsAny(args, asList("-i", "--info", "-d", "--debug", "-q", "--quiet"))) {
+                args.add(0, "-i");
+            }
         }
 
         return args;
     }
 
-    private void configureDefaultLogging(List<String> args) {
-        if(isQuiet() || !isAllowExtraLogging()) {
-            return;
-        }
-        List logOptions = asList("-i", "--info", "-d", "--debug", "-q", "--quiet");
-        boolean alreadyConfigured = CollectionUtils.containsAny(args, logOptions);
-        if (!alreadyConfigured) {
-            args.add("-i");
-        }
-    }
-
-    private void configureJvmArgs(List<String> args) {
-        if(!noDefaultJvmArgs) {
-            String jvmArgs  = "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError";
+    @Override
+    public List<String> getGradleOpts() {
+        if (noDefaultJvmArgs) {
+            return super.getGradleOpts();
+        } else {
+            List<String> gradleOpts = new ArrayList<String>(super.getGradleOpts());
+            gradleOpts.add(0, "-XX:MaxPermSize=256m");
+            gradleOpts.add(0, "-XX:+HeapDumpOnOutOfMemoryError");
             if (JavaVersion.current().isJava5()) {
-                jvmArgs = String.format("%s -XX:+CMSPermGenSweepingEnabled -Dcom.sun.management.jmxremote", jvmArgs);
+                gradleOpts.add("-XX:+CMSPermGenSweepingEnabled");
+                gradleOpts.add("-Dcom.sun.management.jmxremote");
             }
-            args.add(0, jvmArgs);
+            return gradleOpts;
         }
     }
 
