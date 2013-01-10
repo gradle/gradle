@@ -21,6 +21,8 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class MavenNormalizedPublication implements MavenProjectIdentity {
@@ -50,7 +52,28 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
     }
 
     public String getPackaging() {
-        return projectIdentity.getPackaging();
+        if (projectIdentity.getPackaging() != null) {
+            return projectIdentity.getPackaging();
+        }
+        return getMainArtifact() == null ? "pom" : getMainArtifact().getType();
+    }
+
+    public PublishArtifact getMainArtifact() {
+        for (PublishArtifact artifact : artifacts) {
+            if (artifact.getClassifier() == null || artifact.getClassifier().length() == 0) {
+                return artifact;
+            }
+        }
+        return null;
+    }
+
+    public Set<PublishArtifact> getAdditionalArtifacts() {
+        if (artifacts.isEmpty()) {
+            return Collections.emptySet();
+        }
+        Set<PublishArtifact> additionalArtifacts = new LinkedHashSet<PublishArtifact>(artifacts);
+        additionalArtifacts.remove(getMainArtifact());
+        return additionalArtifacts;
     }
 
     public Set<PublishArtifact> getArtifacts() {

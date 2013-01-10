@@ -16,9 +16,6 @@
 
 package org.gradle.api.publish.maven.internal;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
@@ -26,39 +23,39 @@ import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.publication.maven.internal.*;
+import org.gradle.api.publication.maven.internal.DefaultConf2ScopeMappingContainer;
+import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
+import org.gradle.api.publication.maven.internal.MavenPomMetaInfoProvider;
+import org.gradle.api.publication.maven.internal.PomDependenciesConverter;
 import org.gradle.api.publication.maven.internal.ant.*;
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public class MavenPublisher {
     private final Factory<Configuration> configurationFactory;
     private final PomDependenciesConverter pomDependenciesConverter = new MavenPublishPomDependenciesConverter();
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
 
-    private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyPublisher.class);
+    private static Logger logger = LoggerFactory.getLogger(MavenPublisher.class);
     private final FileResolver fileResolver;
     private final ConfigurationContainer configurations;
     private final Factory<File> temporaryDirFactory;
@@ -75,22 +72,32 @@ public class MavenPublisher {
     }
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
+        validatePublication(publication);
+
+        File pomFile = createPomFile(publication);
         RemoteRepository mavenRepository = new MavenDeployerConfigurer(artifactRepository).createRepository();
 
-        Factory<MavenPom> mavenPomFactory = new DefaultMavenFactory().createMavenPomFactory(configurations, new DefaultConf2ScopeMappingContainer(), fileResolver);
-        MavenPom deployerPom = mavenPomFactory.create();
-
-        MavenDeploymentFactory mavenDeploymentFactory = new MavenDeploymentFactory(pomMetaInfoProvider, deployerPom);
-
-        copyIdentity(publication, deployerPom);
-        copyDependencies(publication, deployerPom);
-        deployerPom.withXml(publication.getPomWithXmlAction());
-
-        Module module = new MavenProjectIdentityModuleAdapter(publication);
-
         MavenPublishAntTaskAdapter mavenPublishAntTaskAdapter = new MavenPublishAntTaskAdapter(loggingManagerFactory.create());
-        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(module);
-        doPublish(mavenPublishAntTaskAdapter, publication.getArtifacts(), moduleRevisionId, mavenRepository, mavenDeploymentFactory);
+        logger.info("Publishing to repository {}", mavenPublishAntTaskAdapter);
+        mavenPublishAntTaskAdapter.publishToMavenRepository(mavenRepository, pomFile, publication.getMainArtifact(), publication.getAdditionalArtifacts());
+    }
+
+    private void validatePublication(MavenNormalizedPublication publication) {
+        for (PublishArtifact publishArtifact : publication.getArtifacts()) {
+            checkArtifactFileExists(publishArtifact);
+        }
+    }
+
+    private File createPomFile(MavenNormalizedPublication publication) {
+        Factory<MavenPom> mavenPomFactory = new DefaultMavenFactory().createMavenPomFactory(configurations, new DefaultConf2ScopeMappingContainer(), fileResolver);
+        MavenPom mavenPom = mavenPomFactory.create();
+        copyIdentity(publication, mavenPom);
+        copyDependencies(publication, mavenPom);
+        mavenPom.withXml(publication.getPomWithXmlAction());
+
+        File pomFile = new File(pomMetaInfoProvider.getMavenPomDir(), "pom-default.xml");
+        mavenPom.writeTo(pomFile);
+        return pomFile;
     }
 
     private void copyDependencies(MavenNormalizedPublication publication, MavenPom deployerPom) {
@@ -111,46 +118,13 @@ public class MavenPublisher {
         pom.setPackaging(projectIdentity.getPackaging());
     }
 
-    public void doPublish(MavenPublishAntTaskAdapter publishResolver, Iterable<PublishArtifact> publishArtifacts, ModuleRevisionId moduleRevisionId, RemoteRepository mavenRepository, MavenDeploymentFactory artifactPomContainer) {
-        logger.info("Publishing to repository {}", publishResolver);
-
-        for (PublishArtifact publishArtifact : publishArtifacts) {
-            checkArtifactFileExists(publishArtifact, moduleRevisionId);
-        }
-
-        // for each declared published artifact in this descriptor, do:
-        for (PublishArtifact publishArtifact : publishArtifacts) {
-            Artifact artifact = createIvyArtifact(publishArtifact, moduleRevisionId);
-            File artifactFile = publishArtifact.getFile();
-            if (!artifact.getType().equals("ivy")) {
-                artifactPomContainer.addArtifact(artifact, artifactFile);
-            }
-        }
-        MavenDeployment mavenDeployment = artifactPomContainer.createMavenDeployment();
-        publishResolver.publishToMavenRepository(mavenRepository, mavenDeployment);
-    }
-
-    public Artifact createIvyArtifact(PublishArtifact publishArtifact, ModuleRevisionId moduleRevisionId) {
-        Map<String, String> extraAttributes = new HashMap<String, String>();
-        if (GUtil.isTrue(publishArtifact.getClassifier())) {
-            extraAttributes.put(Dependency.CLASSIFIER, publishArtifact.getClassifier());
-        }
-        return new DefaultArtifact(
-                moduleRevisionId,
-                publishArtifact.getDate(),
-                publishArtifact.getName(),
-                publishArtifact.getType(),
-                publishArtifact.getExtension(),
-                extraAttributes);
-    }
-
-    private void checkArtifactFileExists(PublishArtifact publishArtifact, ModuleRevisionId moduleRevisionId) {
+    private void checkArtifactFileExists(PublishArtifact publishArtifact) {
         if (!publishArtifact.getFile().exists()) {
             // TODO:DAZ This hack is required so that we don't log a warning when the Signing plugin is used. We need to allow conditional configurations so we can remove this.
             if (isSigningArtifact(publishArtifact)) {
                 return;
             }
-            String message = String.format("Attempted to publish an artifact '%s' that does not exist '%s'", moduleRevisionId, publishArtifact.getFile());
+            String message = String.format("Attempted to publish an artifact that does not exist '%s'", publishArtifact.getFile());
             DeprecationLogger.nagUserOfDeprecatedBehaviour(message);
         }
     }
@@ -158,41 +132,6 @@ public class MavenPublisher {
     private boolean isSigningArtifact(PublishArtifact artifact) {
         return artifact.getType().endsWith(".asc") || artifact.getType().endsWith(".sig");
     }
-
-    private class MavenDeploymentFactory {
-        private final MavenPomMetaInfoProvider pomMetaInfoProvider;
-        private ArtifactPom artifactPom;
-        private boolean hasArtifacts;
-
-        public MavenDeploymentFactory(MavenPomMetaInfoProvider pomMetaInfoProvider,
-                                      MavenPom pom) {
-            this.pomMetaInfoProvider = pomMetaInfoProvider;
-            this.artifactPom = new DefaultArtifactPom(pom);
-        }
-
-        public void addArtifact(Artifact artifact, File src) {
-            if (artifact == null || src == null) {
-                throw new InvalidUserDataException("Artifact or source file must not be null!");
-            }
-            artifactPom.addArtifact(artifact, src);
-            hasArtifacts = true;
-        }
-
-        public MavenDeployment createMavenDeployment() {
-            if (!hasArtifacts) {
-                artifactPom.getPom().setPackaging("pom");
-            }
-
-            File pomFile = createPomFile();
-            PublishArtifact pomPublishArtifact = artifactPom.writePom(pomFile);
-            return new DefaultMavenDeployment(pomPublishArtifact, artifactPom.getArtifact(), artifactPom.getAttachedArtifacts());
-        }
-
-        private File createPomFile() {
-            return new File(pomMetaInfoProvider.getMavenPomDir(), "pom-default.xml");
-        }
-    }
-
 
     private static class MavenPublishPomDependenciesConverter extends DefaultPomDependenciesConverter {
         public MavenPublishPomDependenciesConverter() {
@@ -218,11 +157,11 @@ public class MavenPublisher {
             this.loggingManager = loggingManager;
         }
 
-        public void publishToMavenRepository(RemoteRepository repository, MavenDeployment mavenDeployment) {
+        public void publishToMavenRepository(RemoteRepository repository, File pomFile, PublishArtifact mainArtifact, Set<PublishArtifact> additionalArtifacts) {
             InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject(), repository);
             mavenSettingsSupplier.supply(installDeployTaskSupport);
             ((CustomInstallDeployTaskSupport) installDeployTaskSupport).clearAttachedArtifactsList();
-            addPomAndArtifact(installDeployTaskSupport, mavenDeployment);
+            addPomAndArtifact(installDeployTaskSupport, pomFile, mainArtifact, additionalArtifacts);
             execute(installDeployTaskSupport);
             mavenSettingsSupplier.done();
         }
@@ -236,16 +175,16 @@ public class MavenPublisher {
             }
         }
 
-        private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, MavenDeployment mavenDeployment) {
+        private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, File pomFile, PublishArtifact mainArtifact, Set<PublishArtifact> additionalArtifacts) {
             Pom pom = new Pom();
             pom.setProject(installOrDeployTask.getProject());
-            pom.setFile(mavenDeployment.getPomArtifact().getFile());
+            pom.setFile(pomFile);
             installOrDeployTask.addPom(pom);
 
-            File artifactFile = mavenDeployment.getMainArtifact() == null ? mavenDeployment.getPomArtifact().getFile() : mavenDeployment.getMainArtifact().getFile();
+            File artifactFile = mainArtifact == null ? pomFile : mainArtifact.getFile();
             installOrDeployTask.setFile(artifactFile);
 
-            for (PublishArtifact classifierArtifact : mavenDeployment.getAttachedArtifacts()) {
+            for (PublishArtifact classifierArtifact : additionalArtifacts) {
                 AttachedArtifact attachedArtifact = installOrDeployTask.createAttach();
                 attachedArtifact.setClassifier(classifierArtifact.getClassifier());
                 attachedArtifact.setFile(classifierArtifact.getFile());
@@ -277,6 +216,4 @@ public class MavenPublisher {
             return Collections.emptyList();
         }
     }
-
-
 }
