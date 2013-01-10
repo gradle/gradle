@@ -41,6 +41,11 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
             }
         }
 
+        // Workaround for http://issues.gradle.org/browse/GRADLE-2625
+        if (getUserHomeDir() != null) {
+            args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
+        }
+
         return args;
     }
 
