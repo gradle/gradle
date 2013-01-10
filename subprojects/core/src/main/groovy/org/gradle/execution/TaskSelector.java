@@ -23,12 +23,12 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.NameMatcher;
 
-import java.util.Map;
 import java.util.Set;
 
 public class TaskSelector {
     private final TaskNameResolver taskNameResolver;
     private final GradleInternal gradle;
+    private final ProjectFinderByTaskPath projectFinder = new ProjectFinderByTaskPath();
 
     public TaskSelector(GradleInternal gradle) {
         this(gradle, new TaskNameResolver());
@@ -47,9 +47,7 @@ public class TaskSelector {
         ProjectInternal project = gradle.getDefaultProject();
 
         if (path.contains(Project.PATH_SEPARATOR)) {
-            String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
-            projectPath = projectPath.length() == 0 ? Project.PATH_SEPARATOR : projectPath;
-            project = findProject(project, projectPath);
+            project = projectFinder.findProject(path, project);
             baseName = StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR);
             prefix = project.getPath() + Project.PATH_SEPARATOR;
 
@@ -76,31 +74,6 @@ public class TaskSelector {
         }
 
         throw new TaskSelectionException(matcher.formatErrorMessage("task", project));
-    }
-
-    private static ProjectInternal findProject(ProjectInternal startFrom, String path) {
-        if (path.equals(Project.PATH_SEPARATOR)) {
-            return startFrom.getRootProject();
-        }
-        Project current = startFrom;
-        if (path.startsWith(Project.PATH_SEPARATOR)) {
-            current = current.getRootProject();
-            path = path.substring(1);
-        }
-        for (String pattern : path.split(Project.PATH_SEPARATOR)) {
-            Map<String, Project> children = current.getChildProjects();
-
-            NameMatcher matcher = new NameMatcher();
-            Project child = matcher.find(pattern, children);
-            if (child != null) {
-                current = child;
-                continue;
-            }
-
-            throw new TaskSelectionException(matcher.formatErrorMessage("project", current));
-        }
-
-        return (ProjectInternal) current;
     }
 
     public static class TaskSelection {

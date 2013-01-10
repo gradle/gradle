@@ -153,4 +153,6 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertProjectsEvaluated(":", ":api")
     }
+
+    //TODO SF: default tasks
 }
