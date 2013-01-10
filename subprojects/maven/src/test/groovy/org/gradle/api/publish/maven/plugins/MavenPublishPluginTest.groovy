@@ -16,15 +16,15 @@
 
 package org.gradle.api.publish.maven.plugins
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication
-import org.gradle.api.publish.maven.internal.MavenPublicationInternal
+import org.gradle.api.publish.maven.internal.MavenNormalizedPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.util.HelperUtil
@@ -75,21 +75,25 @@ class MavenPublishPluginTest extends Specification {
     }
 
     def "publication has artifacts from component"() {
+        given:
+        PublishArtifactSet artifactSet = Mock()
+        PublishArtifact artifact = Stub() {
+            getFile() >> Mock(File)
+        }
+
         when:
         publishing.publications.add("test", MavenPublication) {
             from component
         }
+        MavenNormalizedPublication pub = publishing.publications.test.asNormalisedPublication();
 
         then:
-        publishing.publications.test.publishableFiles == componentArtifacts;
-    }
+        pub.artifacts.size() == 1
+        pub.artifacts.iterator().next().file == artifact.getFile()
 
-    protected MavenPublicationInternal getMainPublication() {
-        publishing.publications.maven
-    }
-
-    def javaPluginApplied() {
-        project.plugins.apply(JavaPlugin)
+        and:
+        component.artifacts >> artifactSet
+        artifactSet.iterator() >> [artifact].iterator()
     }
 
     def "task is created for publishing to mavenLocal"() {

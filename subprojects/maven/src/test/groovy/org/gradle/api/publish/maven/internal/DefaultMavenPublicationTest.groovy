@@ -16,8 +16,8 @@
 package org.gradle.api.publish.maven.internal
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -68,36 +68,48 @@ public class DefaultMavenPublicationTest extends Specification {
         def publication = createPublication()
         SoftwareComponentInternal component = Mock()
         PublishArtifactSet publishArtifactSet = Mock()
+        PublishArtifact artifact = Stub() {
+            getClassifier() >> "classy"
+            getFile() >> new File(pomDir, "classyfile")
+        }
         DependencySet dependencySet = Mock()
-        FileCollection files = Mock()
-        publication.from(component)
 
         when:
-        def publishableFiles = publication.publishableFiles
+        publication.from(component)
 
         then:
         component.artifacts >> publishArtifactSet
-        publishArtifactSet.files >> files
+        publishArtifactSet.iterator() >> [artifact].iterator()
 
         and:
-        publishableFiles == files
+        publication.publishableFiles.singleFile.name == "classyfile"
 
         when:
         def normalisedPublication = publication.asNormalisedPublication()
 
         then:
-        component.artifacts >> publishArtifactSet
         component.runtimeDependencies >> dependencySet
 
         and:
-        normalisedPublication.artifacts == publishArtifactSet
+        normalisedPublication.artifacts.size() == 1
+        normalisedPublication.artifacts.iterator().next().classifier == "classy"
+        normalisedPublication.artifacts.iterator().next().file.name == "classyfile"
+
         normalisedPublication.runtimeDependencies == dependencySet
     }
 
     def "cannot add multiple components"() {
         given:
         def publication = createPublication()
-        publication.from(Mock(SoftwareComponentInternal))
+        SoftwareComponentInternal component = Mock()
+        PublishArtifactSet publishArtifactSet = Mock()
+
+        when:
+        publication.from(component)
+
+        then:
+        component.artifacts >> publishArtifactSet
+        publishArtifactSet.iterator() >> [].iterator()
 
         when:
         publication.from(Mock(SoftwareComponentInternal))

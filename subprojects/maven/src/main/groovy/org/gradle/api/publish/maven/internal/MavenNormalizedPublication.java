@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven.internal;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.publish.maven.MavenArtifact;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -28,15 +28,15 @@ import java.util.Set;
 public class MavenNormalizedPublication implements MavenProjectIdentity {
 
     private final MavenProjectIdentity projectIdentity;
-    private final Set<PublishArtifact> artifacts;
+    private final Set<MavenArtifact> artifacts;
     private final Set<Dependency> runtimeDependencies;
     private final Action<XmlProvider> pomWithXmlAction;
 
-    public MavenNormalizedPublication(MavenProjectIdentity projectIdentity, Set<PublishArtifact> artifacts, Set<Dependency> runtimeDependencies, Action<XmlProvider> pomWithXmlAction) {
+    public MavenNormalizedPublication(MavenProjectIdentity projectIdentity, Set<MavenArtifact> artifacts, Set<Dependency> runtimeDependencies, Action<XmlProvider> pomWithXmlAction) {
         this.projectIdentity = projectIdentity;
-        this.artifacts = artifacts;
         this.runtimeDependencies = runtimeDependencies;
         this.pomWithXmlAction = pomWithXmlAction;
+        this.artifacts = artifacts;
     }
 
     public String getArtifactId() {
@@ -55,11 +55,11 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
         if (projectIdentity.getPackaging() != null) {
             return projectIdentity.getPackaging();
         }
-        return getMainArtifact() == null ? "pom" : getMainArtifact().getType();
+        return getMainArtifact() == null ? "pom" : getMainArtifact().getExtension();
     }
 
-    public PublishArtifact getMainArtifact() {
-        for (PublishArtifact artifact : artifacts) {
+    public MavenArtifact getMainArtifact() {
+        for (MavenArtifact artifact : artifacts) {
             if (artifact.getClassifier() == null || artifact.getClassifier().length() == 0) {
                 return artifact;
             }
@@ -67,16 +67,16 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
         return null;
     }
 
-    public Set<PublishArtifact> getAdditionalArtifacts() {
+    public Set<MavenArtifact> getAdditionalArtifacts() {
         if (artifacts.isEmpty()) {
             return Collections.emptySet();
         }
-        Set<PublishArtifact> additionalArtifacts = new LinkedHashSet<PublishArtifact>(artifacts);
+        Set<MavenArtifact> additionalArtifacts = new LinkedHashSet<MavenArtifact>(artifacts);
         additionalArtifacts.remove(getMainArtifact());
         return additionalArtifacts;
     }
 
-    public Set<PublishArtifact> getArtifacts() {
+    public Set<MavenArtifact> getArtifacts() {
         return artifacts;
     }
 

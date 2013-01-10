@@ -19,7 +19,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 

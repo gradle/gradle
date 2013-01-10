@@ -37,6 +37,7 @@ import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.MavenPomMetaInfoProvider;
 import org.gradle.api.publication.maven.internal.PomDependenciesConverter;
 import org.gradle.api.publication.maven.internal.ant.*;
+import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
@@ -75,15 +76,14 @@ public class MavenPublisher {
         validatePublication(publication);
 
         File pomFile = createPomFile(publication);
-        RemoteRepository mavenRepository = new MavenDeployerConfigurer(artifactRepository).createRepository();
 
         MavenPublishAntTaskAdapter mavenPublishAntTaskAdapter = new MavenPublishAntTaskAdapter(loggingManagerFactory.create());
         logger.info("Publishing to repository {}", mavenPublishAntTaskAdapter);
-        mavenPublishAntTaskAdapter.publishToMavenRepository(mavenRepository, pomFile, publication.getMainArtifact(), publication.getAdditionalArtifacts());
+        mavenPublishAntTaskAdapter.publishToMavenRepository(artifactRepository, pomFile, publication.getMainArtifact(), publication.getAdditionalArtifacts());
     }
 
     private void validatePublication(MavenNormalizedPublication publication) {
-        for (PublishArtifact publishArtifact : publication.getArtifacts()) {
+        for (MavenArtifact publishArtifact : publication.getArtifacts()) {
             checkArtifactFileExists(publishArtifact);
         }
     }
@@ -118,19 +118,11 @@ public class MavenPublisher {
         pom.setPackaging(projectIdentity.getPackaging());
     }
 
-    private void checkArtifactFileExists(PublishArtifact publishArtifact) {
+    private void checkArtifactFileExists(MavenArtifact publishArtifact) {
         if (!publishArtifact.getFile().exists()) {
-            // TODO:DAZ This hack is required so that we don't log a warning when the Signing plugin is used. We need to allow conditional configurations so we can remove this.
-            if (isSigningArtifact(publishArtifact)) {
-                return;
-            }
             String message = String.format("Attempted to publish an artifact that does not exist '%s'", publishArtifact.getFile());
             DeprecationLogger.nagUserOfDeprecatedBehaviour(message);
         }
-    }
-
-    private boolean isSigningArtifact(PublishArtifact artifact) {
-        return artifact.getType().endsWith(".asc") || artifact.getType().endsWith(".sig");
     }
 
     private static class MavenPublishPomDependenciesConverter extends DefaultPomDependenciesConverter {
@@ -157,8 +149,9 @@ public class MavenPublisher {
             this.loggingManager = loggingManager;
         }
 
-        public void publishToMavenRepository(RemoteRepository repository, File pomFile, PublishArtifact mainArtifact, Set<PublishArtifact> additionalArtifacts) {
-            InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject(), repository);
+        public void publishToMavenRepository(MavenArtifactRepository artifactRepository, File pomFile, MavenArtifact mainArtifact, Set<MavenArtifact> additionalArtifacts) {
+            RemoteRepository mavenRepository = new MavenDeployerConfigurer(artifactRepository).createRepository();
+            InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject(), mavenRepository);
             mavenSettingsSupplier.supply(installDeployTaskSupport);
             ((CustomInstallDeployTaskSupport) installDeployTaskSupport).clearAttachedArtifactsList();
             addPomAndArtifact(installDeployTaskSupport, pomFile, mainArtifact, additionalArtifacts);
@@ -175,7 +168,7 @@ public class MavenPublisher {
             }
         }
 
-        private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, File pomFile, PublishArtifact mainArtifact, Set<PublishArtifact> additionalArtifacts) {
+        private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, File pomFile, MavenArtifact mainArtifact, Set<MavenArtifact> attachedArtifacts) {
             Pom pom = new Pom();
             pom.setProject(installOrDeployTask.getProject());
             pom.setFile(pomFile);
@@ -184,11 +177,11 @@ public class MavenPublisher {
             File artifactFile = mainArtifact == null ? pomFile : mainArtifact.getFile();
             installOrDeployTask.setFile(artifactFile);
 
-            for (PublishArtifact classifierArtifact : additionalArtifacts) {
+            for (MavenArtifact classifierArtifact : attachedArtifacts) {
                 AttachedArtifact attachedArtifact = installOrDeployTask.createAttach();
                 attachedArtifact.setClassifier(classifierArtifact.getClassifier());
                 attachedArtifact.setFile(classifierArtifact.getFile());
-                attachedArtifact.setType(classifierArtifact.getType());
+                attachedArtifact.setType(classifierArtifact.getExtension());
             }
         }
 

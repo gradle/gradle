@@ -89,4 +89,11 @@ public interface MavenPublication extends Publication {
      */
     void from(SoftwareComponent component);
 
+    /**
+     * Creates an {@link MavenArtifact} to be included in the publication.
+     *
+     * @param source The source of the artifact content.
+     */
+    void artifact(Object source);
+
 }

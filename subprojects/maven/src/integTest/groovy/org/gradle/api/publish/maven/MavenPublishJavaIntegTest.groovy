@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -24,9 +21,60 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
     public void "can publish jar and meta-data to maven repository"() {
         given:
+        createBuildScripts("""
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+        mavenModule.assertPublishedAsJavaModule()
+
+        mavenModule.parsedPom.scopes.runtime.dependencies.size() == 2
+        mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
+        mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
+        mavenModule.parsedPom.scopes.compile == null
+        mavenModule.parsedPom.scopes.testCompile == null
+    }
+
+    public void "can publish attached artifacts to maven repository"() {
+        given:
+        createBuildScripts("""
+            task sourceJar(type: Jar) {
+                from sourceSets.main.allJava
+                classifier "source"
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        artifact sourceJar
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+        mavenModule.assertPublished()
+        mavenModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9.pom", "publishTest-1.9-source.jar")
+    }
+
+    def createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "
 
-        and:
         buildFile << """
             apply plugin: 'maven-publish'
             apply plugin: 'java'
@@ -48,26 +96,11 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
             }
+
+$append
 """
 
-        when:
-        run "publish"
-
-        then:
-        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
-        mavenModule.assertPublishedAsJavaModule()
-
-        mavenModule.parsedPom.scopes.runtime.dependencies.size() == 2
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
-        mavenModule.parsedPom.scopes.compile == null
-        mavenModule.parsedPom.scopes.testCompile == null
     }
 
 }
