@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Task;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -31,6 +29,7 @@ import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 import java.util.Collection;
@@ -99,42 +98,9 @@ public class DefaultPublishArtifactFactory implements NotationParser<PublishArti
         @Override
         protected PublishArtifact parseType(File file) {
             Module module = metaDataProvider.getModule();
-
-            String name = file.getName();
-            String extension = "";
-            String classifier = "";
-            boolean done = false;
-
-            int startVersion = StringUtils.lastIndexOf(name, "-" + module.getVersion());
-            if (startVersion >= 0) {
-                int endVersion = startVersion + module.getVersion().length() + 1;
-                if (endVersion == name.length()) {
-                    name = name.substring(0, startVersion);
-                    done = true;
-                } else if (endVersion < name.length() && name.charAt(endVersion) == '-') {
-                    String tail = name.substring(endVersion + 1);
-                    name = name.substring(0, startVersion);
-                    classifier = StringUtils.substringBeforeLast(tail, ".");
-                    extension = StringUtils.substringAfterLast(tail, ".");
-                    done = true;
-                } else if (endVersion < name.length() && StringUtils.lastIndexOf(name, ".") == endVersion) {
-                    extension = name.substring(endVersion + 1);
-                    name = name.substring(0, startVersion);
-                    done = true;
-                }
-            }
-            if (!done) {
-                extension = StringUtils.substringAfterLast(name, ".");
-                name = StringUtils.substringBeforeLast(name, ".");
-            }
-            if (extension.length() == 0) {
-                extension = null;
-            }
-            if (classifier.length() == 0) {
-                classifier = null;
-            }
-
-            return instantiator.newInstance(DefaultPublishArtifact.class, name, extension, extension, classifier, null, file, new Task[0]);
+            ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
+            return instantiator.newInstance(DefaultPublishArtifact.class, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(),
+                                            artifactFile.getClassifier(), null, file, new Task[0]);
         }
     }
 }

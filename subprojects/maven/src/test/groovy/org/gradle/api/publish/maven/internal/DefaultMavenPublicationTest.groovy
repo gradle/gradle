@@ -19,36 +19,29 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.internal.reflect.Instantiator
+import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
 
 public class DefaultMavenPublicationTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    Instantiator instantiator = Mock()
     MavenProjectIdentity projectIdentity = Mock()
     MavenPomInternal mavenPom = Mock()
+    NotationParser<MavenArtifact> notationParser = Mock()
     File pomDir
 
     def "setup"() {
         pomDir = testDirectoryProvider.testDirectory
     }
 
-    def "pom is constructed on init"() {
-        when:
-        def publication = new DefaultMavenPublication("pub-name", instantiator, projectIdentity, pomDir)
-
-        then:
-        instantiator.newInstance(DefaultMavenPom) >> mavenPom
-        publication.pom == mavenPom
-    }
-
-    def "name and pomDir properties passed through"() {
+    def "pom, name and pomDir properties passed through"() {
         when:
         def publication = createPublication()
 
         then:
+        publication.pom == mavenPom
         publication.name == "pub-name"
         publication.pomDir == pomDir
     }
@@ -68,33 +61,24 @@ public class DefaultMavenPublicationTest extends Specification {
         def publication = createPublication()
         SoftwareComponentInternal component = Mock()
         PublishArtifactSet publishArtifactSet = Mock()
-        PublishArtifact artifact = Stub() {
-            getClassifier() >> "classy"
-            getFile() >> new File(pomDir, "classyfile")
-        }
+        PublishArtifact artifact = Mock()
         DependencySet dependencySet = Mock()
+
+        MavenArtifact mavenArtifact = Mock()
 
         when:
         publication.from(component)
+        def normalisedPublication = publication.asNormalisedPublication()
 
         then:
         component.artifacts >> publishArtifactSet
         publishArtifactSet.iterator() >> [artifact].iterator()
-
-        and:
-        publication.publishableFiles.singleFile.name == "classyfile"
-
-        when:
-        def normalisedPublication = publication.asNormalisedPublication()
-
-        then:
         component.runtimeDependencies >> dependencySet
 
-        and:
-        normalisedPublication.artifacts.size() == 1
-        normalisedPublication.artifacts.iterator().next().classifier == "classy"
-        normalisedPublication.artifacts.iterator().next().file.name == "classyfile"
+        notationParser.parseNotation(artifact) >> mavenArtifact
 
+        and:
+        normalisedPublication.artifacts == [mavenArtifact] as Set
         normalisedPublication.runtimeDependencies == dependencySet
     }
 
@@ -120,7 +104,6 @@ public class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        instantiator.newInstance(DefaultMavenPom) >> mavenPom
-        return new DefaultMavenPublication("pub-name", instantiator, projectIdentity, pomDir)
+        return new DefaultMavenPublication("pub-name", mavenPom, projectIdentity, pomDir, notationParser)
     }
 }

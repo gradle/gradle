@@ -26,14 +26,13 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 import java.util.Collections;
@@ -46,16 +45,18 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
     private final File pomDir;
-    private SoftwareComponentInternal component;
     private final MavenArtifactSet mavenArtifacts = new MavenArtifactSet();
+    private final NotationParser<MavenArtifact> mavenArtifactParser;
+    private SoftwareComponentInternal component;
 
     public DefaultMavenPublication(
-            String name, Instantiator instantiator, MavenProjectIdentity projectIdentity, File pomDir
+            String name, MavenPomInternal mavenPom, MavenProjectIdentity projectIdentity, File pomDir, NotationParser<MavenArtifact> mavenArtifactParser
     ) {
         this.name = name;
-        this.pom = instantiator.newInstance(DefaultMavenPom.class);
+        this.pom = mavenPom;
         this.projectIdentity = projectIdentity;
         this.pomDir = pomDir;
+        this.mavenArtifactParser = mavenArtifactParser;
     }
 
     public String getName() {
@@ -83,15 +84,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public void artifact(Object source) {
-        if (source instanceof AbstractArchiveTask) {
-            mavenArtifacts.add(new ArchiveTaskAdapter((AbstractArchiveTask) source));
-            return;
-        }
-        if (source instanceof PublishArtifact) {
-            mavenArtifacts.add(new PublishArtifactAdapter((PublishArtifact) source));
-            return;
-        }
-        throw new IllegalArgumentException();
+        mavenArtifacts.add(mavenArtifactParser.parseNotation(source));
     }
 
     public FileCollection getPublishableFiles() {
@@ -140,63 +133,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
         private class ArtifactsTaskDependency extends AbstractTaskDependency {
             public void resolve(TaskDependencyResolveContext context) {
-                for (MavenArtifact publishArtifact : MavenArtifactSet.this) {
-                    context.add(publishArtifact);
+                for (MavenArtifact mavenArtifact : MavenArtifactSet.this) {
+                    if (mavenArtifact instanceof Buildable) {
+                        context.add(mavenArtifact);
+                    }
                 }
             }
         }
     }
-
-    private static class PublishArtifactAdapter implements MavenArtifact, Buildable {
-        private final PublishArtifact delegate;
-
-        private PublishArtifactAdapter(PublishArtifact delegate) {
-            this.delegate = delegate;
-        }
-
-        public String getClassifier() {
-            return delegate.getClassifier();
-        }
-
-        public String getExtension() {
-            return delegate.getExtension();
-        }
-
-        public File getFile() {
-            return delegate.getFile();
-        }
-
-        public TaskDependency getBuildDependencies() {
-            return delegate.getBuildDependencies();
-        }
-    }
-
-    private static class ArchiveTaskAdapter implements MavenArtifact, Buildable {
-        private final AbstractArchiveTask delegate;
-
-        private ArchiveTaskAdapter(AbstractArchiveTask delegate) {
-            this.delegate = delegate;
-        }
-
-        public String getExtension() {
-            return delegate.getExtension();
-        }
-
-        public String getClassifier() {
-            return delegate.getClassifier();
-        }
-
-        public File getFile() {
-            return delegate.getArchivePath();
-        }
-
-        public TaskDependency getBuildDependencies() {
-            return new AbstractTaskDependency() {
-                public void resolve(TaskDependencyResolveContext context) {
-                    context.add(delegate);
-                }
-            };
-        }
-    }
-
 }

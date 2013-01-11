@@ -27,10 +27,8 @@ import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.PublicationContainerInternal;
 import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.maven.MavenPublication;
-import org.gradle.api.publish.maven.internal.DefaultMavenPublication;
-import org.gradle.api.publish.maven.internal.MavenPublishDynamicTaskCreator;
-import org.gradle.api.publish.maven.internal.MavenPublishLocalDynamicTaskCreator;
-import org.gradle.api.publish.maven.internal.ModuleBackedMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.*;
+import org.gradle.api.publish.maven.internal.artifact.MavenArtifactParser;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -98,10 +96,12 @@ public class MavenPublishPlugin implements Plugin<Project> {
             };
 
             ModuleBackedMavenProjectIdentity projectIdentity = new ModuleBackedMavenProjectIdentity(dependencyMetaDataProvider.getModule());
+            MavenArtifactParser artifactNotationParser = new MavenArtifactParser(instantiator, projectIdentity, project);
+            MavenPomInternal mavenPom = instantiator.newInstance(DefaultMavenPom.class);
 
             DefaultMavenPublication publication = instantiator.newInstance(
                     DefaultMavenPublication.class,
-                    name, instantiator, projectIdentity, null
+                    name, mavenPom, projectIdentity, null, artifactNotationParser
             );
 
             ConventionMapping descriptorConventionMapping = new DslObject(publication).getConventionMapping();
