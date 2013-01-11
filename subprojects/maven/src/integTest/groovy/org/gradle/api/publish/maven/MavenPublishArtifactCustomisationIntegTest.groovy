@@ -30,6 +30,13 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
 
             file("output.txt") << 'some content'
 
+            task myTask {
+                ext.destFile = file('some-1.0-docs.html')
+                doLast {
+                    destFile << '<html/>'
+                }
+            }
+
             publishing {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
@@ -37,9 +44,12 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
                 publications {
                     mavenCustom(MavenPublication) {
                         artifact "output.txt"
+                        artifact myTask.destFile
                     }
                 }
             }
+
+            publishMavenCustomPublicationToMavenRepository.dependsOn(myTask)
         """
         when:
         succeeds 'publish'
@@ -48,6 +58,6 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html")
     }
 }
