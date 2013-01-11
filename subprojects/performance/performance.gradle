@@ -140,7 +140,7 @@ task all(dependsOn: generators)
 task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit])
 
 integTestTasks.all {
-    if (buildTypes.isActive('performanceTest')) {
+    if (buildTypes.isActive('performanceTest') || buildTypes.isActive('localPerformanceTest')) {
         dependsOn prepareSamples
     } else {
         enabled = false
