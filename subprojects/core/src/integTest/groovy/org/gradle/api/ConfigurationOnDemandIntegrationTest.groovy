@@ -154,7 +154,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         result.assertProjectsEvaluated(":", ":api")
     }
 
-    def "works with default tasks"() {
+    def "respects default tasks"() {
         settingsFile << "include 'api', 'impl'"
         file("api/build.gradle") << """
             task foo
@@ -168,5 +168,38 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertProjectsEvaluated(":", ":api")
         result.assertTasksExecuted(':api:foo')
+    }
+
+    def "respects evaluationDependsOn"() {
+        settingsFile << "include 'api', 'impl', 'other'"
+        file("api/build.gradle") << """
+            evaluationDependsOn(":impl")
+        """
+
+        when:
+        run("api:tasks")
+
+        then:
+        result.assertProjectsEvaluated(":", ":api", ":impl")
+    }
+
+    def "respects buildProjectDependencies setting"() {
+        settingsFile << "include 'api', 'impl', 'other'"
+        file("build.gradle") << "allprojects { apply plugin: 'java' }"
+        file("impl/build.gradle") << """
+            dependencies { compile project(":api") }
+        """
+
+        when:
+        run("impl:build")
+
+        then:
+        result.assertProjectsEvaluated(":", ":impl", ":api")
+
+        when:
+        run("impl:build", "--no-rebuild")
+
+        then:
+        result.assertProjectsEvaluated(":", ":impl")
     }
 }
