@@ -2,12 +2,6 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Easier embedding of Gradle via [Tooling API](userguide/embedding.html)
-
-The [Tooling API](userguide/embedding.html), the standard way to embed Gradle, is now more convenient to use. 
-As of Gradle 1.4 it ships as a single jar with the only external dependency being an SLF4J implementation.
-All other dependencies are packaged inside the Jar and shaded to avoid conflicts with the embedder's classpath.
-
 ### Dependency resolution improvements
 
 As with every release, the dependency resolution engine has been improved with bug fixes and performance optimizations.
@@ -36,7 +30,7 @@ Gradle now only discards old artifacts after a newer version has been cached, wh
 When checking whether a Maven SNAPSHOT dependency has been updated remotely, fewer network requests are now made to the repository. Previously, multiple 
 requests were made to the `maven-metadata.xml` file where now only one request is made (GRADLE-2585).
 
-This results in faster dependency resolution when using Maven SNAPSHOT dependencies.
+This results in faster dependency resolution when using Maven SNAPSHOT dependencies, in particular when importing into an IDE.
 
 #### Faster searching for locally available dependency artifacts (performance)
 
@@ -50,7 +44,7 @@ time (GRADLE-2546).
 
 #### Using a “maven” layout with an Ivy repository
 
-By default, an ivy repository would store the module "org.group:module:version" under `baseurl/org.my.group/module`, while a maven repository would store the same module under `baseurl/org/my/group/module`.
+By default, an Ivy repository would store the module "org.group:module:version" under `baseurl/org.my.group/module`, while a maven repository would store the same module under `baseurl/org/my/group/module`.
 It is now possible to configure an `ivy` repository that uses the maven directory layout, [using the new `m2compatible` flag with the `pattern` layout](userguide/userguide_single.html#N14575).
 
 ### Dependencies that failed to be resolved are now listed in dependency reports
@@ -79,9 +73,9 @@ foo:baz:1.0 -> 2.0 FAILED
 
 In this example, `foo:baz` was forced to version `2.0`, and that version couldn't be resolved.
 
-### Automatic configuration of Groovy dependency used by GroovyCompile and Groovydoc tasks
+### Automatic configuration of Groovy dependency used by `GroovyCompile` and `Groovydoc` tasks
 
-The `groovy-base` plugin now automatically detects the Groovy dependency used on the class path of any `GroovyCompile` or `Groovydoc` task,
+The `groovy-base` plugin now automatically detects the Groovy dependency used on the compile class path of any `GroovyCompile` or `Groovydoc` task,
 and appropriately configures the task's `groovyClasspath`.
 As a consequence, the Groovy dependency can now be configured directly for the configuration(s) that need it, and it is no longer necessary
 to use the `groovy` configuration.
@@ -109,9 +103,9 @@ Apart from the `groovy-all` Jar, Gradle also detects usages of the `groovy` Jar 
 if a task's `groovyClasspath` is non-empty (for example because the `groovy` configuration is used) or no repositories are declared
 in the project.
 
-### Automatic configuration of Scala dependency used by ScalaCompile and Scaladoc tasks
+### Automatic configuration of Scala dependency used by `ScalaCompile` and `Scaladoc` tasks
 
-The `scala-base` plugin now automatically detects the `scala-library` dependency used on the class path of any `ScalaCompile` or `ScalaDoc` task,
+The `scala-base` plugin now automatically detects the `scala-library` dependency used on the compile class path of any `ScalaCompile` or `ScalaDoc` task,
 and appropriately configures for the task's `scalaClasspath`.
 As a consequence, it is no longer necessary to use the `scalaTools` configuration.
 
@@ -182,28 +176,57 @@ Gradle 1.3 introduced several incubating improvements to TestNG reports.
 In Gradle 1.4 the improved reports are turned on by default.
 The TestNG users will be delighted to learn that:
 
-* The new html report is much easier to read and browse than the standard TestNG report. It's also quite pretty.
+* The new HTML report is much easier to read and browse than the standard TestNG report. It's also quite pretty.
 * Both reports, XML (for your CI server) and HTML (for you), contain the test output (i.e. messages logged to the standard streams or via the standard logging toolkits).
 This is extremely useful for debugging certain test failures.
-* The reports neatly work with Gradle parallel testing ([test.maxParallelForks](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:maxParallelForks)).
+* The reports neatly work with TestNG and Gradle parallel testing ([test.maxParallelForks](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:maxParallelForks)).
 
 The implementation of the new reports is now a part of Gradle.
 Previously, the report generation was delegated to TestNG's default listeners that are shipped with TestNG library.
-You can switch off the html report generation by configuring the [test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) property.
+You can switch off the HTML report generation by configuring the [test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) property.
 If you prefer the old TestNG reports you can still configure the test task accordingly.
 First, turn off the [test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) flag.
 Then, configure the [TestNG listeners](groovydoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html#listeners).
-  
-<!--
-### Example new and noteworthy
--->
 
 ### Performance and memory consumption
 
-- Faster snapshot resolution
-- Faster caching, in particular at resolution time
-- Faster test execution and result generation
-- Test logging is streamed to file
+Gradle 1.4 introduces some important performance improvements, resulting in faster builds that use less heap space. These improvements affect
+dependency resolution, task up-to-date checks and test execution. In other words, everything that a typical Java based project uses in its build.
+
+A typical Java project might see a 10-20% improvement in build time. For builds with many small projects and many unit tests, in combination with the
+Gradle daemon, we are seeing a 50% improvement in build time.
+
+#### Faster dependency resolution
+
+As mentioned above, resolution of Maven SNAPSHOT versions is now faster, due to fewer network requests and various other internal changes.
+
+Artifact meta-data is now cached more efficiently, making it much faster to read and write to disk. This means that resolution of all
+dependencies can be performed more quickly. In particular, reading of cached meta-data is much faster, so that resolution of dependencies that
+have been cached is much faster.
+
+This in turn means that task up-to-date checks are faster, as typically a large portion of the time to perform an up-to-date check is made up of
+the time it takes to resolve the dependencies that form the task inputs.
+
+#### Faster test execution
+
+Test execution typically has a significant effect on build time. While your actual test code won't run any faster in Gradle 1.4, Gradle is now much
+more efficient in managing test execution and generating result and report files.
+
+Gradle runs tests in a separate worker JVM, to keep the build and tests isolated from each other. The mechanism for controlling these workers and
+dispatching tests to them is now much more efficient, meaning that tests will start to execute in the worker processes more quickly, and that the CPU
+cores can spend more of their time executing tests. This mechanism is now much more robust and can handle a very large number of test classes, fixing a
+number of deadlock conditions.
+
+Previously, Gradle collected the test results as XML files and generated the HTML report from these XML files. Test results are now written in an
+efficient binary format, and the XML files and HTML report generated from this. The work of generating the results has moved from the test worker
+processes to the parent build process, meaning that the workers can spend more of their time executing tests, while the results are generated
+asynchronously by the parent. In addition, all result and report file generation streams the content to file, keeping heap usage at a minimum.
+
+### Easier embedding of Gradle via [Tooling API](userguide/embedding.html)
+
+The [Tooling API](userguide/embedding.html), the standard way to embed Gradle, is now more convenient to use.
+As of Gradle 1.4 it ships as a single jar with the only external dependency being an SLF4J implementation.
+All other dependencies are packaged inside the Jar and shaded to avoid conflicts with the embedder's classpath.
 
 <!--
 ## Promoted features
@@ -260,7 +283,7 @@ For more information, including more code samples, please refer to this [user gu
 
 ### Generate `ivy.xml` without publishing
 
-The '`ivy-publish`' plugin introduces a new `GenerateIvyDescriptor` task generates the Ivy metadata file (a.k.a. `ivy.xml`) for publication.
+The incubating '`ivy-publish`' plugin introduces a new `GenerateIvyDescriptor` task generates the Ivy metadata file (a.k.a. `ivy.xml`) for publication.
 The task name for the default Ivy publication is '`generateIvyModuleDescriptor`'.
 
 This function used to be performed internally by the `PublishToIvyRepository` task. By having this function be performed by a separate task
@@ -286,9 +309,9 @@ into the respective `PublishToIvyRepository` tasks, so you do not need to explic
 
 ### The new ‘maven-publish’ plugin
 
-The new ‘maven-publish’ plugin is an alternative to the existing ‘maven’ plugin, and will eventually replace it. This plugin builds on the new publishing model
+The new icubating ‘maven-publish’ plugin is an alternative to the existing ‘maven’ plugin, and will eventually replace it. This plugin builds on the new publishing model
 that was introduced in Gradle 1.3 with the ‘ivy-publish’ plugin. The new publication mechanism (which is currently “incubating”, including this plugin) will
-expand and improve over the subsequent Gradle releases to provide more convenience and flexibility than the traditional publication mechanism.
+expand and improve over the subsequent Gradle releases to provide more convenience and flexibility than the existing publication mechanism.
 
 In the simplest case, publishing to a Maven repository looks like…
 
@@ -329,7 +352,7 @@ For more information on the new publishing mechanism, see the [new User Guide ch
 
 ### The new 'java-library-distribution' plugin
 
-The new '[`java-library-distribution`](userguide/javaLibraryDistributionPlugin.html)' plugin, contributed by Sébastien Cogneau, makes it is much easier to create a 
+The new incubating '[`java-library-distribution`](userguide/javaLibraryDistributionPlugin.html)' plugin, contributed by Sébastien Cogneau, makes it is much easier to create a
 standalone distribution for a JVM library.
 
 Let's walk through a small example. Let's assume we have a project with the following layout:
@@ -361,7 +384,7 @@ In the past, it was necessary to declare a custom `zip` task that assembles the 
         name = 'MyLibraryDistribution'
     }
 
-Given this configuration, running `gradle distZip` will produce a zip file named `MyLibraryDistribution` that contains the library itself,
+Given this configuration, running `gradle distZip` will produce a zip file named `MyLibraryDistribution.zip` that contains the library itself,
 its runtime dependencies, and everything in the `src/dist` directory.
 
 To add further files to the distribution, configure the `distZip` task accordingly:
@@ -379,7 +402,7 @@ To add further files to the distribution, configure the `distZip` task according
 
 Much of a task's configuration influences how, or even if, a task should execute. After the task has executed, changing the configuration has no useful effect.
 For example, it does not make sense to add an action via the `doFirst()` method to a task that is executing or has already executed.
-Changing such configuration has been deprecated and this will eventually become an error condition.
+Changing such configuration has been deprecated and this will become an error condition in Gradle 2.0.
 
 #### Changing the action list
 
@@ -430,14 +453,19 @@ This includes calling the following methods on `TaskOutputs` objects:
 * `file()`
 * `dir()`
 
-### TestNGOptions.useDefaultListeners
+### `TestNGOptions.useDefaultListeners`
 
 We deprecated the `useDefaultListeners` property in org.gradle.api.tasks.testing.testng.TestNGOptions as Gradle now always generates test results in XML format for TestNG based Tests
 and enabled the HTML report generation for TestNG by default.
 
 ## Potential breaking changes
 
-### DependencyInsightReportTask (e.g. dependencyInsight) throws better exception on bad configuration
+### `DependencyReportTask` and `DependencyInsightReportTask` no longer fail when dependencies cannot be resolved
+
+Previously, these tasks types would fail if one or more dependencies could not be resolved. Now, they no longer fail and instead display the failed
+dependencies in the appropriate place in the output.
+
+### `DependencyInsightReportTask` throws better exception on bad configuration
 
 Previously, when the task's configuration was invalid a `ReportException` would be thrown when the task started to execute. For consistency with other tasks, it
 now throws a `InvalidUserDataException`.
@@ -448,7 +476,7 @@ Previously, a copied `Configuration` object shared the same `resolutionStrategy`
 to `resolutionStrategy` of the source or the copy effected both instances and resulted in undesirable side affects. Copying a `Configuration` now also creates a
 discrete copy of the `resolutionStrategy`.
 
-### Removed getSupportsAppleScript() in org.gradle.util.Jvm
+### Removed `Jvm.getSupportsAppleScript()`
 
 In the deprecated internal class `org.gradle.util.Jvm` the method `getSupportsAppleScript()` has been removed.
 
@@ -469,9 +497,9 @@ Previously, it was possible to set the `descriptorFile` property on an IvyPublic
 `GenerateIvyDescriptor` task. To specify where the `ivy.xml` file should be generated, set the `destination` property of the `GenerateIvyDescriptor` task.
 
 Previously _all_ configurations of the project were published. Now, only the ‘`archives`’ configuration together with the ‘`default`’ configuration and its 
-ancestors will be published. In practice, this means that a Java project's 'testCompile' and 'testRuntime' configurations will no longer be published by default.
+ancestors will be published. In practice, this means that a Java project's `testCompile` and `testRuntime` configurations will no longer be published by default.
 
-### Changed default value for TestNGOptions.useDefaultListeners
+### Changed default value for `TestNGOptions.useDefaultListeners`
 
 The default value for TestNGOptions.useDefaultListeners has changed from `true` to `false` as Gradle now generates test results and reports for JUnit and TestNG.
 
