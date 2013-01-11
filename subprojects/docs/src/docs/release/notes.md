@@ -184,9 +184,7 @@ This is extremely useful for debugging certain test failures.
 The implementation of the new reports is now a part of Gradle.
 Previously, the report generation was delegated to TestNG's default listeners that are shipped with TestNG library.
 You can switch off the HTML report generation by configuring the [test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) property.
-If you prefer the old TestNG reports you can still configure the test task accordingly.
-First, turn off the [test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) flag.
-Then, configure the [TestNG listeners](groovydoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html#listeners).
+If you prefer the old TestNG reports please refer to the [documentation](groovydoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html#useDefaultListeners).
 
 ### Performance and memory consumption
 
@@ -467,11 +465,6 @@ This includes calling the following methods on `TaskOutputs` objects:
 * `file()`
 * `dir()`
 
-### `TestNGOptions.useDefaultListeners`
-
-We deprecated the `useDefaultListeners` property in org.gradle.api.tasks.testing.testng.TestNGOptions as Gradle now always generates test results in XML format for TestNG based Tests
-and enabled the HTML report generation for TestNG by default.
-
 ## Potential breaking changes
 
 ### `DependencyReportTask` and `DependencyInsightReportTask` no longer fail when dependencies cannot be resolved
@@ -515,7 +508,9 @@ ancestors will be published. In practice, this means that a Java project's `test
 
 ### Changed default value for `TestNGOptions.useDefaultListeners`
 
-The default value for TestNGOptions.useDefaultListeners has changed from `true` to `false` as Gradle now generates test results and reports for JUnit and TestNG.
+The default value for [TestNGOptions.useDefaultListeners](groovydoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html#useDefaultListeners) has changed from `true` to `false`
+so that Gradle can take over generation of the reports.
+This way Gradle can provide invaluable improvements to the reporting - for more information read the earlier section on TestNG reports.
 
 ### Updated default versions of Checkstyle and CodeNarc
 

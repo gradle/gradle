@@ -33,7 +33,6 @@ Improve TestNG test execution/reporting
 
 - Change the Test `testReport` default value to `true`.
 - Change the Test `testNGOptions.useDefaultListeners` default value to `false`.
-- Deprecate the `TestNGOptions.useDefaultListeners` property.
 - Extract a shared `TestReporter` implementation out of `TestNGTestFramework` and `JUnitTestFramework` and remove `TestFramework.report()`.
 - Update the documentation and release notes accordingly.
 
