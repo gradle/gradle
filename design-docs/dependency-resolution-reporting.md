@@ -217,13 +217,14 @@ Should only require changes to the report rendering.
 
 # Open issues / further work
 
-- Dependency reports should include file dependencies.
+- The dependency insight report should render dynamic requested versions in a fixed order.
+- The reports should distinguish between dependencies that cannot be found and dependencies for which there was a failure.
+- Dependency report should include file dependencies.
+- Dependency insight report should show requested+selected+reason for child nodes, not just the top-level nodes.
 - Spike the serialisation of the resolution result to disk, to keep it out of the heap.
 - HTML dependency report.
 - Render locally built things differently to external things (ie show the project dependencies differently to external dependencies).
-- Change the 'dependencies' task instance to default to show the compile configuration only.
-- Model the unresolved dependencies - how to carry the resolution failure?
-- The API of the DependencyInsightReportTask type (the configuration & dependency spec inputs, outputs)
-- Should DependencyInsightReportTask extend AbstractReportTask? In that case we need decide what to do with 'projects' public property on AbstractReportTask.
+- Change the `dependencies` task instance to default to show the compile configuration only.
+- Finalise the API of the `DependencyInsightReportTask type`.
 - If there is a single configuration in the project, should it be used by default by the dependency insight report?
-- The dependency insight report needs to work with the c++ plugins in the same way it works with the java plugin.
+- The dependency insight report needs to work with the C++ plugins in the same way it works with the java plugin.
