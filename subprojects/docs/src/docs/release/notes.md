@@ -27,9 +27,9 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the new incubating features or changes to existing incubating features in this Gradle release.
 
-<!--
-### Example incubating feature
--->
+### Configuration on demand
+
+* respects 'external' task dependencies
 
 ## Deprecations
 

@@ -202,4 +202,19 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertProjectsEvaluated(":", ":impl")
     }
+
+    def "respects external task dependencies"() {
+        settingsFile << "include 'api', 'impl', 'other'"
+        file("build.gradle") << "allprojects { task foo }"
+        file("impl/build.gradle") << """
+            task bar(dependsOn: ":api:foo")
+        """
+
+        when:
+        run("impl:bar")
+
+        then:
+        result.assertProjectsEvaluated(":", ":impl", ":api")
+        result.assertTasksExecuted(":api:foo", ":impl:bar")
+    }
 }
