@@ -24,7 +24,7 @@ public class MemoryInfoCollector implements DataCollector {
     String outputFileName
 
     public void collect(File testProjectDir, MeasuredOperation operation) {
-        def file = new File(testProjectDir, outputFileName)
+        def file = new File(testProjectDir, outputFileName).canonicalFile
         if (!file.exists()) {
             throw new RuntimeException("Cannot find $file. Cannot collect memory information if the build hasn't produced one.")
         }
