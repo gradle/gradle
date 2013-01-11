@@ -25,7 +25,6 @@ import spock.lang.Unroll
 
 class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
 
-
     @IgnoreIf({ AvailableJavaHomes.bestJre == null})
     @Unroll
     def "scala java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
@@ -81,7 +80,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                         compile 'org.scala-lang:scala-library:2.9.2'
                     }
                     """
-        def envVars = System.getenv().findAll { it.key != 'JAVA_HOME' || it.key != 'Path'}
+        def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
         envVars.put("Path", "C:\\Windows\\System32")
         when:
         executer.withEnvironmentVars(envVars).withTasks("compileScala").run()

@@ -16,12 +16,12 @@
 
 package org.gradle.groovy.environment
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
 
@@ -74,7 +74,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
             }
             """
         when:
-        def envVars = System.getenv().findAll { it.key != 'JAVA_HOME' || it.key != 'Path'}
+        def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
         envVars.put("Path", "C:\\Windows\\System32")
         executer.withEnvironmentVars(envVars).withTasks("compileGroovy").run()
 
