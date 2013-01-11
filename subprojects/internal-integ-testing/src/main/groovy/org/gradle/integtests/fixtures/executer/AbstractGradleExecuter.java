@@ -327,6 +327,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
         environmentVars.clear();
         for (Map.Entry<String, ?> entry : environment.entrySet()) {
+            if (entry.getKey().equals("GRADLE_OPTS")) {
+                throw new IllegalArgumentException("GRADLE_OPTS cannot be set via withEnvironmentVars(), use withGradleOpts()");
+            }
             environmentVars.put(entry.getKey(), entry.getValue().toString());
         }
         return this;
