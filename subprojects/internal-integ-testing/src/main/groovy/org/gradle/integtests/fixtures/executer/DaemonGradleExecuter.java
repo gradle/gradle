@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Transformer;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 import java.util.ArrayList;
@@ -23,6 +24,8 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.containsAny;
+import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.CollectionUtils.join;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
@@ -54,13 +57,25 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         if (isNoDefaultJvmArgs()) {
             return super.getGradleOpts();
         } else {
-            List<String> gradleOpts = new ArrayList<String>(super.getGradleOpts());
-            gradleOpts.add(0, "-XX:MaxPermSize=256m");
-            gradleOpts.add(0, "-XX:+HeapDumpOnOutOfMemoryError");
+            // Workaround for http://issues.gradle.org/browse/GRADLE-2629
+            // Instead of just adding these as standalone opts, we need to add to
+            // -Dorg.gradle.jvmArgs in order for them to be effectual
+            List<String> jvmArgs = new ArrayList<String>(4);
+            jvmArgs.add("-XX:MaxPermSize=256m");
+            jvmArgs.add("-XX:+HeapDumpOnOutOfMemoryError");
             if (JavaVersion.current().isJava5()) {
-                gradleOpts.add("-XX:+CMSPermGenSweepingEnabled");
-                gradleOpts.add("-Dcom.sun.management.jmxremote");
+                jvmArgs.add("-XX:+CMSPermGenSweepingEnabled");
+                jvmArgs.add("-Dcom.sun.management.jmxremote");
             }
+
+            String quotedArgs = join(" ", collect(jvmArgs, new Transformer<String, String>() {
+                public String transform(String input) {
+                    return String.format("'%s'", input);
+                }
+            }));
+
+            List<String> gradleOpts = new ArrayList<String>(super.getGradleOpts());
+            gradleOpts.add(String.format("-Dorg.gradle.jvmArgs=%s", quotedArgs));
             return gradleOpts;
         }
     }
