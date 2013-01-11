@@ -61,7 +61,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
                         DeprecationLogger.whileDisabled { options.useAnt = ${useAnt} }
         }
         """
-        def envVars = System.getenv().findAll { it.key != 'JAVA_HOME' || it.key != 'Path'}
+        def envVars = System.getenv().findAll { !(it.key in ['GRADLE_OPTS', 'JAVA_HOME', 'Path']) }
         envVars.put("Path", "C:\\Windows\\System32")
         when:
         executer.withEnvironmentVars(envVars).withTasks("compileJava").run()

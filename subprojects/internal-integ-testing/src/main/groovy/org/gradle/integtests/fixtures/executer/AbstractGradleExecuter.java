@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import groovy.lang.Closure;
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.logging.Logger;
@@ -328,6 +327,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
         environmentVars.clear();
         for (Map.Entry<String, ?> entry : environment.entrySet()) {
+            if (entry.getKey().equals("GRADLE_OPTS")) {
+                throw new IllegalArgumentException("GRADLE_OPTS cannot be set via withEnvironmentVars(), use withGradleOpts()");
+            }
             environmentVars.put(entry.getKey(), entry.getValue().toString());
         }
         return this;
@@ -422,6 +424,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             }
         }
 
+        // This will cause problems on Windows if the path to the Gradle executable that is used has a space in it (e.g. the user's dir is c:/Users/Luke Daley/)
+        // This is fundamentally a windows issue: You can't have arguments with spaces in them if the path to the batch script has a space
+        // We could work around this by setting -Dgradle.user.home but GRADLE-1730 (which affects 1.0-milestone-3) means that that
+        // is problematic as well. For now, we just don't support running the int tests from a path with a space in it on Windows.
+        // When we stop testing against M3 we should change to use the system property.
+        if (getGradleUserHomeDir() != null) {
+            allArgs.add("--gradle-user-home");
+            allArgs.add(getGradleUserHomeDir().getAbsolutePath());
+        }
+
         allArgs.addAll(args);
         allArgs.addAll(tasks);
         return allArgs;
@@ -432,9 +444,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (getUserHomeDir() != null) {
             properties.put("user.home", getUserHomeDir().getAbsolutePath());
-        }
-        if (getGradleUserHomeDir() != null) {
-            properties.put(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, getGradleUserHomeDir().getAbsolutePath());
         }
 
         properties.put(DaemonParameters.IDLE_TIMEOUT_SYS_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
@@ -486,7 +495,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     /**
      * {@inheritDoc}
      */
-    public AbstractGradleExecuter withGradleOpts(String ... gradleOpts) {
+    public AbstractGradleExecuter withGradleOpts(String... gradleOpts) {
         this.gradleOpts.addAll(asList(gradleOpts));
         return this;
     }
@@ -571,8 +580,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     /**
-     * set true to allow the executer to increase the log level if necessary
-     * to help out debugging. Set false to make the executer never update the log level.
+     * set true to allow the executer to increase the log level if necessary to help out debugging. Set false to make the executer never update the log level.
      */
     public GradleExecuter setAllowExtraLogging(boolean allowExtraLogging) {
         this.allowExtraLogging = allowExtraLogging;

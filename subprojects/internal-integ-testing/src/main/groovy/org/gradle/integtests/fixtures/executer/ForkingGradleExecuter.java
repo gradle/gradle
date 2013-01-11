@@ -117,7 +117,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
             String value = entry.getValue();
 
             if (value.contains(" ") && !getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
-                getLogger().warn("Removing '%s' from GRADLE_OPTS (value: %s) as it contains spaces, and this Gradle version (%s) cannot handle spaces in GRADLE_OPTS",
+                getLogger().warn("Removing '{}' from GRADLE_OPTS (value: {}) as it contains spaces, and this Gradle version ({}) cannot handle spaces in GRADLE_OPTS",
                         key, value, getDistribution().getVersion().getVersion()
                 );
                 continue;

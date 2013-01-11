@@ -17,7 +17,10 @@
 package org.gradle.performance.fixture
 
 import org.gradle.api.logging.Logging
-import org.gradle.integtests.fixtures.executer.*
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
@@ -43,14 +46,14 @@ public class PerformanceTestRunner {
 
     PerformanceResults results
 
-
     PerformanceResults run() {
         assert targetVersions.size() == maxExecutionTimeRegression.size()
         assert targetVersions.size() == maxMemoryRegression.size()
 
         def baselineVersions = []
         targetVersions.eachWithIndex { it, idx ->
-            def ver = it == 'last' ? new ReleasedVersionDistributions().mostRecentFinalRelease.version : it
+            def mostRecentFinalRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
+            def ver = (it == 'last') ? mostRecentFinalRelease : it
             baselineVersions << new BaselineVersion(version: ver,
                     maxExecutionTimeRegression: maxExecutionTimeRegression[idx],
                     maxMemoryRegression: maxMemoryRegression[idx],
@@ -96,15 +99,13 @@ public class PerformanceTestRunner {
     }
 
     GradleExecuter executer(GradleDistribution dist, File projectDir) {
-        def executer
-        if (dist instanceof UnderDevelopmentGradleDistribution) {
-            executer = new GradleContextualExecuter(dist, testDirectoryProvider).requireGradleHome(true)
-            executer.withDeprecationChecksDisabled()
-            executer.withStackTraceChecksDisabled()
-        } else {
-            executer = dist.executer(testDirectoryProvider)
-        }
-        executer.withGradleUserHomeDir(executer.gradleUserHomeDir)
-        return executer.withArguments('-u').inDirectory(projectDir).withTasks(tasksToRun).withArguments(args)
+        dist.executer(testDirectoryProvider).
+                requireGradleHome(true).
+                withDeprecationChecksDisabled().
+                withStackTraceChecksDisabled().
+                withArguments('-u').
+                inDirectory(projectDir).
+                withTasks(tasksToRun).
+                withArguments(args)
     }
 }

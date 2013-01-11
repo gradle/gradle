@@ -49,6 +49,9 @@ buildTypes {
     // Run the performance tests
     performanceTest "performance:integTest", useIncomingDistributions: true
 
+    // Run the performance tests
+    localPerformanceTest "performance:integTest"
+
     // Used for cross version tests on CI
     crossVersionTest "forkingIntegTest", crossVersionTestsOnly: "", testAllVersions: "", noDistTests: true, useIncomingDistributions: true
 
