@@ -143,8 +143,9 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
         if (!gradle.getStartParameter().isConfigureOnDemand()) {
             buildListener.projectsEvaluated(gradle);
-            modelConfigurationListener.onConfigure(gradle);
         }
+
+        modelConfigurationListener.onConfigure(gradle);
 
         if (upTo == Stage.Configure) {
             return;

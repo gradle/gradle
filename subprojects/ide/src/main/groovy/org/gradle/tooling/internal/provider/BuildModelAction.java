@@ -17,7 +17,9 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
+import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.TasksCompletionListener;
@@ -64,11 +66,20 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
         } else {
             launcher.addListener(new ModelConfigurationListener() {
                 public void onConfigure(GradleInternal gradle) {
+                    ensureAllProjectsEvaluated(gradle);
                     model = builder.buildAll(gradle);
                 }
             });
             return launcher.getBuildAnalysis();
         }
+    }
+
+    private void ensureAllProjectsEvaluated(GradleInternal gradle) {
+        gradle.getRootProject().allprojects((Action) new Action<ProjectInternal>() {
+            public void execute(ProjectInternal projectInternal) {
+                projectInternal.ensureEvaluated();
+            }
+        });
     }
 
     public ProjectVersion3 getResult() {
