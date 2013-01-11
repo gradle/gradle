@@ -43,8 +43,10 @@
             <varlistentry>
                 <term>Configuration</term>
                 <listitem>
-                    <para>The build scripts of <emphasis>all</emphasis> projects which are part of the build are
-                        executed. This configures the project objects.
+                    <para>During this phase the project objects are configured.
+                        The build scripts of <emphasis>all</emphasis> projects which are part of the build are
+                        executed. Gradle 1.4 introduces an incubating opt-in feature called 'configuration on demand'.
+                        In this mode, Gradle configures only relevant projects (see <xref linkend="sec:configuration_on_demand"/>).
                     </para>
                 </listitem>
             </varlistentry>

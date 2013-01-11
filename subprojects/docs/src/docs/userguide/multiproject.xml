@@ -24,6 +24,50 @@
             its core, so the projects don't have to be java projects. Our first examples are about marine life.
         </para>
         <section>
+            <title>Configuration and execution</title>
+            <para><xref linkend="sec:build_phases"/> describes the phases of every Gradle build.
+                Let's zoom into configuration and execution phases of a multi-project build.
+                The configuration of all projects happens before any task is executed.
+                This means that when a single task, from a single project is requested,
+                <emphasis>all</emphasis> projects of multi-project build are configured first.
+                The reason every project needs to be configured is to support
+                the flexibility of accessing and changing any part of Gradle project model.
+            </para>
+            <section id='sec:configuration_on_demand'>
+                <title>Configuration on demand</title>
+                <para>Configuration injection feature and access to the complete project model
+                    are possible because every project is configured before the execution phase.
+                    Yet, this approach may not be the most efficient in a very large multi-project builds.
+                    There are Gradle builds with a hierarchy of hundreds of subprojects.
+                    Configuration time of huge multi-project builds may become noticeable.
+                    Scalability is an important requirement for Gradle. Hence, starting from version 1.4
+                    new incubating 'configuration on demand' mode is introduced.</para>
+                <para>
+                    Configuration on demand mode attempts to configure only projects that are relevant for requested tasks.
+                    This way, the configuration time of a large multi-project build is greatly improved.
+                    In the long term, this mode may become the default mode, possibly the only mode for Gradle build execution.
+                    The configuration on demand feature is incubating so not every build is guaranteed to work correctly.
+                    The feature should work very well for multi-project builds that have decoupled projects (<xref linkend="sec:decoupled_projects"/>).
+                    In configuration on demand mode projects are configured as follows:
+                    <itemizedlist>
+                        <listitem>Root project is always evaluated.
+                            This way the typical common configuration is supported (allprojects or subprojects script blocks).</listitem>
+                        <listitem>Project that lives in the directory where the build is executed is always evaluated.</listitem>
+                        <listitem>The standard project dependencies are supported.
+                            If project A has a compile dependency on project B then building A causes configuration of both projects: A and B.</listitem>
+                        <listitem>Task requested via task path causes the relevant project configured.
+                            Building 'projectA:projectB:someTask' causes configuration of both: projectA and projectB.
+                        </listitem>
+                    </itemizedlist>
+                </para>
+                <para>
+                    Down the road Gradle will offer first class command line support for configuration on demand mode.
+                    At the moment, to enable this feature please use incubating 'org.gradle.configuration.ondemand' system property.
+                    For reference on using system properties see <xref linkend="sec:gradle_properties_and_system_properties"/>.
+                </para>
+            </section>
+        </section>
+        <section>
             <title>Defining common behavior</title>
             <para>We have the following project tree. This is a multi-project build with a root project
                 <literal>water</literal> and a subproject <literal>bluewhale</literal>.

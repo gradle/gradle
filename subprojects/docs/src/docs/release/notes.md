@@ -350,6 +350,20 @@ This allows the POM file to describe how the module should be consumed, rather t
 
 For more information on the new publishing mechanism, see the [new User Guide chapter](userguide/publishing_maven.html).
 
+### Improved scalability via configuration on demand
+
+In Gradle, all projects are configured before any task gets executed (see [the build lifecycle](userguide/userguide_single.html#sec:build_phases)).
+Huge multi-project builds may have a noticeable configuration time for that reason.
+To improve the experience of working with large multi-project builds `configuration on demand` mode is introduced.
+This mode is incubating and it is not guaranteed to work with every multi-project build.
+It should work very well with builds that have [decoupled projects](userguide/userguide_single.html#sec:decoupled_projects)
+(e.g. avoiding excessive configuration injection and projects accessing each other's model).
+Before you start configuring on demand, please read the section in the [user guide](userguide/userguide_single.html#sec:configuration_on_demand).
+Then update your gradle.properties file:
+
+    #gradle.properties file
+    systemProp.org.gradle.configuration.ondemand=true
+
 ### The new 'java-library-distribution' plugin
 
 The new incubating '[`java-library-distribution`](userguide/javaLibraryDistributionPlugin.html)' plugin, contributed by Sébastien Cogneau, makes it is much easier to create a
