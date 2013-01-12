@@ -46,14 +46,38 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         createBuildScripts("""
             publications {
                 mavenCustom(MavenPublication) {
-                    artifact "customFile.txt", {
+                    artifact("customFile.txt") {
                         classifier "output"
                     }
-                    artifact customFileTask.outputFile, {
+                    artifact(customFileTask.outputFile) {
                         extension "htm"
                         classifier "documentation"
                     }
-                    artifact customJar, {
+                    artifact customJar {
+                        classifier ""
+                        extension "war"
+                    }
+                }
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module("group", "projectText", "1.0")
+        module.assertPublished()
+        module.parsedPom.packaging == "war"
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt")
+    }
+
+    def "can attach custom file artifacts with map notation"() {
+        given:
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact file: "customFile.txt", classifier: "output"
+                    artifact file: customFileTask.outputFile, extension: "htm", classifier: "documentation"
+                    artifact customJar { // TODO:DAZ Maybe we need a notation like "source: XXX, classifier: ''" :: The source value would allow anything that can be converted
                         classifier ""
                         extension "war"
                     }

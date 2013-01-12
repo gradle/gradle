@@ -23,6 +23,8 @@ import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 import org.gradle.api.internal.notations.api.UnsupportedNotationException;
+import org.gradle.api.internal.notations.parsers.MapKey;
+import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.internal.MavenProjectIdentity;
@@ -40,12 +42,14 @@ public class MavenArtifactParser implements NotationParser<MavenArtifact>, TopLe
     public MavenArtifactParser(Instantiator instantiator, MavenProjectIdentity projectIdentity, Project project) {
         this.instantiator = instantiator;
         this.projectIdentity = projectIdentity;
-        delegate = new NotationParserBuilder<MavenArtifact>()
+        FileNotationParser fileNotationParser = new FileNotationParser(project);
+        NotationParserBuilder<MavenArtifact> parserBuilder = new NotationParserBuilder<MavenArtifact>()
                 .resultingType(MavenArtifact.class)
                 .parser(new ArchiveTaskNotationParser())
                 .parser(new PublishArtifactNotationParser())
-                .parser(new FileNotationParser(project))
-                .toComposite();
+                .parser(new FileMapNotationParser(fileNotationParser))
+                .parser(fileNotationParser);
+        delegate = parserBuilder.toComposite();
     }
 
     public void describe(Collection<String> candidateFormats) {
@@ -78,6 +82,18 @@ public class MavenArtifactParser implements NotationParser<MavenArtifact>, TopLe
         }
     }
 
+    private class FileMapNotationParser extends MapNotationParser<MavenArtifact> {
+        private final FileNotationParser fileParser;
+
+        private FileMapNotationParser(FileNotationParser fileParser) {
+            this.fileParser = fileParser;
+        }
+
+        protected MavenArtifact parseMap(@MapKey("file") Object file) {
+            return fileParser.parseNotation(file);
+        }
+    }
+
     private class FileNotationParser implements NotationParser<MavenArtifact> {
         private final Project project;
 
@@ -86,17 +102,21 @@ public class MavenArtifactParser implements NotationParser<MavenArtifact>, TopLe
         }
 
         public MavenArtifact parseNotation(Object notation) throws UnsupportedNotationException {
-            File file = parseToFile(notation);
-            ArtifactFile artifactFile = new ArtifactFile(file, projectIdentity.getVersion());
-            return instantiator.newInstance(FileMavenArtifact.class, file, artifactFile.getExtension(), artifactFile.getClassifier());
+            File file = toProjectFile(notation);
+            return parseFile(file);
         }
 
-        private File parseToFile(Object notation) {
+        private File toProjectFile(Object notation) {
             try {
                 return project.file(notation);
             } catch (Exception e) {
                 throw new UnsupportedNotationException(notation);
             }
+        }
+
+        protected MavenArtifact parseFile(File file) {
+            ArtifactFile artifactFile = new ArtifactFile(file, projectIdentity.getVersion());
+            return instantiator.newInstance(FileMavenArtifact.class, file, artifactFile.getExtension(), artifactFile.getClassifier());
         }
 
         public void describe(Collection<String> candidateFormats) {
