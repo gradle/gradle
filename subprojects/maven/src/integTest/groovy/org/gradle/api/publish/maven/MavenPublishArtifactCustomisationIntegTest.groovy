@@ -16,41 +16,21 @@
 
 package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
 
-    def "can attach file based artifacts"() {
+    def "can attach custom artifacts"() {
         given:
-        settingsFile << "rootProject.name = 'projectText'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-
-            group = 'group'
-            version = '1.0'
-
-            file("output.txt") << 'some content'
-
-            task myTask {
-                ext.destFile = file('some-1.0-docs.html')
-                doLast {
-                    destFile << '<html/>'
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact "customFile.txt"
+                    artifact customFileTask.outputFile
+                    artifact customJar
                 }
             }
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                publications {
-                    mavenCustom(MavenPublication) {
-                        artifact "output.txt"
-                        artifact myTask.destFile
-                    }
-                }
-            }
-
-            publishMavenCustomPublicationToMavenRepository.dependsOn(myTask)
-        """
+""")
         when:
         succeeds 'publish'
 
@@ -58,6 +38,96 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
+    }
+
+    def "can configure custom artifacts when creating"() {
+        given:
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact "customFile.txt", {
+                        classifier "output"
+                    }
+                    artifact customFileTask.outputFile, {
+                        extension "htm"
+                        classifier "documentation"
+                    }
+                    artifact customJar, {
+                        classifier ""
+                        extension "war"
+                    }
+                }
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module("group", "projectText", "1.0")
+        module.assertPublished()
+        module.parsedPom.packaging == "war"
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt")
+    }
+
+    @Ignore("Not yet implemented: requires MavenPublication.getArtifacts() to be added to api")
+    def "can configure custom artifacts post creation"() {
+        given:
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact "customFile.txt"
+                    artifact customFileTask.outputFile
+                    artifact customJar
+                }
+            }
+""", """
+            publishing.publications.mavenCustom.artifacts.each {
+                it.extension = "mod"
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module("group", "projectText", "1.0")
+        module.assertPublished()
+        module.parsedPom.packaging == "mod"
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.mod", "projectText-1.0-docs.mod", "projectText-1.0-customjar.mod")
+    }
+
+    private createBuildScripts(def publications, def append = "") {
+        settingsFile << "rootProject.name = 'projectText'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            file("customFile.txt") << 'some content'
+
+            task customFileTask {
+                ext.outputFile = file('customFile-1.0-docs.html')
+                doLast {
+                    outputFile << '<html/>'
+                }
+            }
+
+            task customJar(type: Jar) {
+                from file("customFile.txt")
+                classifier "customjar"
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                $publications
+            }
+
+            publishMavenCustomPublicationToMavenRepository.dependsOn(customFileTask)
+
+            $append
+        """
     }
 }

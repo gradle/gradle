@@ -83,8 +83,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
     }
 
-    public void artifact(Object source) {
-        mavenArtifacts.add(mavenArtifactParser.parseNotation(source));
+    public MavenArtifact artifact(Object source) {
+        MavenArtifact artifact = mavenArtifactParser.parseNotation(source);
+        mavenArtifacts.add(artifact);
+        return artifact;
+    }
+
+    public MavenArtifact artifact(Object source, Action<MavenArtifact> config) {
+        MavenArtifact artifact = artifact(source);
+        config.execute(artifact);
+        return artifact;
     }
 
     public FileCollection getPublishableFiles() {

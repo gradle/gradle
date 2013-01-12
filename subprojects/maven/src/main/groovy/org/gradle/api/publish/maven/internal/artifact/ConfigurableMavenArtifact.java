@@ -15,33 +15,28 @@
  */
 package org.gradle.api.publish.maven.internal.artifact;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.tasks.TaskDependency;
 
-import java.io.File;
+abstract class ConfigurableMavenArtifact implements MavenArtifact {
+    private String extension;
+    private String classifier;
 
-public class PublishArtifactMavenArtifact extends ConfigurableMavenArtifact implements MavenArtifact, Buildable {
-    private final PublishArtifact delegate;
+    protected abstract String getBaseClassifier();
+    protected abstract String getBaseExtension();
 
-    public PublishArtifactMavenArtifact(PublishArtifact delegate) {
-        this.delegate = delegate;
+    public String getExtension() {
+        return extension == null ? getBaseExtension() : extension;
     }
 
-    public String getBaseExtension() {
-        return delegate.getExtension();
+    public void setExtension(String extension) {
+        this.extension = extension;
     }
 
-    public String getBaseClassifier() {
-        return delegate.getClassifier();
+    public String getClassifier() {
+        return classifier == null ? getBaseClassifier() : classifier;
     }
 
-    public File getFile() {
-        return delegate.getFile();
-    }
-
-    public TaskDependency getBuildDependencies() {
-        return delegate.getBuildDependencies();
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
     }
 }

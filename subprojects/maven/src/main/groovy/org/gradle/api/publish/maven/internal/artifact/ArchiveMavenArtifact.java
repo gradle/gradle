@@ -24,18 +24,18 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import java.io.File;
 
-public class ArchiveMavenArtifact implements MavenArtifact, Buildable {
+public class ArchiveMavenArtifact extends ConfigurableMavenArtifact implements MavenArtifact, Buildable {
     private final AbstractArchiveTask delegate;
 
     public ArchiveMavenArtifact(AbstractArchiveTask delegate) {
         this.delegate = delegate;
     }
 
-    public String getExtension() {
+    public String getBaseExtension() {
         return delegate.getExtension();
     }
 
-    public String getClassifier() {
+    public String getBaseClassifier() {
         return delegate.getClassifier();
     }
 

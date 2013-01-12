@@ -96,6 +96,14 @@ public interface MavenPublication extends Publication {
      *
      * @param source The source of the artifact content.
      */
-    void artifact(Object source);
+    MavenArtifact artifact(Object source);
+
+    /**
+     * Creates an {@link MavenArtifact} to be included in the publication, which is configured by the associated action.
+     *
+     * @param source The source of the artifact.
+     * @param config An action to configure the values of the constructed {@link MavenArtifact}.
+     */
+     MavenArtifact artifact(Object source, Action<MavenArtifact> config);
 
 }

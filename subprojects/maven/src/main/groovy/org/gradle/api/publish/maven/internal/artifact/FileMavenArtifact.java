@@ -19,7 +19,7 @@ import org.gradle.api.publish.maven.MavenArtifact;
 
 import java.io.File;
 
-public class FileMavenArtifact implements MavenArtifact {
+public class FileMavenArtifact extends ConfigurableMavenArtifact implements MavenArtifact {
     private String extension;
     private String classifier;
     private File file;
@@ -30,11 +30,11 @@ public class FileMavenArtifact implements MavenArtifact {
         this.file = file;
     }
 
-    public String getExtension() {
+    public String getBaseExtension() {
         return extension;
     }
 
-    public String getClassifier() {
+    public String getBaseClassifier() {
         return classifier;
     }
 

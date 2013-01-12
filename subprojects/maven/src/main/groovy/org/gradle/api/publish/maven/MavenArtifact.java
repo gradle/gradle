@@ -27,9 +27,21 @@ public interface MavenArtifact {
     String getExtension();
 
     /**
-     * The extension used to publish the artifact file.
+     * Sets the extension used to publish the artifact file.
+     * @param extension The extension.
+     */
+    void setExtension(String extension);
+
+    /**
+     * The classifier used to publish the artifact file.
      */
     String getClassifier();
+
+    /**
+     * Sets the classifier used to publish the artifact file.
+     * @param classifier The classifier.
+     */
+    void setClassifier(String classifier);
 
     /**
      * The actual file contents to publish.
