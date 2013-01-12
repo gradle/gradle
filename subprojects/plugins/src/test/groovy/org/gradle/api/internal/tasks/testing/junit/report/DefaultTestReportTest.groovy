@@ -32,39 +32,17 @@ import spock.lang.Specification
 class DefaultTestReportTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final Test task = Mock();
-    final DefaultTestReport report = new DefaultTestReport(task)
+    final DefaultTestReport report = new DefaultTestReport()
     final TestFile reportDir = tmpDir.file('report')
     final TestFile indexFile = reportDir.file('index.html')
     final TestResultsProvider testResultProvider = Mock()
 
-    def setup() {
-        _ * task.isTestReport() >> true
-        _ * task.getTestReportDir() >> reportDir
-    }
-
-    def skipsReportGenerationWhenDisabledInTestTask() {
-        given:
-        Test testTask = Mock()
-        def reporter = Spy(DefaultTestReport.class, constructorArgs: [testTask])
-        when:
-        1 * testTask.isTestReport() >> false
-        and:
-        reporter.generateReport()
-
-        then:
-        0 * task.getTestResultsDir()
-        0 * task.getTestReportDir()
-        0 * reporter.loadModel()
-        0 * reporter.loadModel()
-        0 * reporter.generateFiles()
-    }
-
     def generatesReportWhenThereAreNoTestResults() {
         given:
         emptyResultSet()
+
         when:
-        report.generateReport(testResultProvider)
+        report.generateReport(testResultProvider, reportDir)
 
         then:
         def index = results(indexFile)
@@ -107,7 +85,7 @@ class DefaultTestReportTest extends Specification {
         }
 
         when:
-        report.generateReport(testTestResults)
+        report.generateReport(testTestResults, reportDir)
 
         then:
         def index = results(indexFile)
@@ -168,7 +146,7 @@ class DefaultTestReportTest extends Specification {
             }
         }
         when:
-        report.generateReport(testTestResults)
+        report.generateReport(testTestResults, reportDir)
 
         then:
         def index = results(indexFile)
@@ -198,12 +176,12 @@ class DefaultTestReportTest extends Specification {
         def testTestResults = buildResults {
             testClassResult("org.gradle.Test") {
                 testcase("test1") {
-                    result.resultType = TestResult.ResultType.SKIPPED
+                    resultType = TestResult.ResultType.SKIPPED
                 }
             }
         }
         when:
-        report.generateReport(testTestResults)
+        report.generateReport(testTestResults, reportDir)
 
         then:
         def index = results(indexFile)
@@ -234,7 +212,7 @@ class DefaultTestReportTest extends Specification {
             }
         }
         when:
-        report.generateReport(testTestResults)
+        report.generateReport(testTestResults, reportDir)
 
         then:
         def index = results(indexFile)
@@ -258,7 +236,7 @@ class DefaultTestReportTest extends Specification {
             }
         }
         when:
-        report.generateReport(testTestResults)
+        report.generateReport(testTestResults, reportDir)
 
         then:
         def testClassFile = results(reportDir.file('org.gradle.Test.html'))
@@ -280,7 +258,7 @@ class DefaultTestReportTest extends Specification {
             }
         }
         when:
-        report.generateReport(testTestResults)
+        report.generateReport(testTestResults, reportDir)
 
         then:
         def testClassFile = results(reportDir.file('org.gradle.Test.html'))
@@ -343,8 +321,9 @@ class TestResultsBuilder implements TestResultsProvider {
     }
 
     private static class BuildableTestMethodResult extends TestMethodResult {
-        String name
         long duration
+        List<Throwable> exceptions = []
+        TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
 
         BuildableTestMethodResult(String name, TestResult result) {
             super(name, result)
@@ -352,7 +331,7 @@ class TestResultsBuilder implements TestResultsProvider {
         }
 
         void failure(String message, String text) {
-            result.exceptions.add(new ResultException(message, text));
+            exceptions.add(new ResultException(message, text));
         }
     }
 

@@ -18,24 +18,51 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.tasks.testing.TestResult;
 
+import java.util.List;
+
 /**
  * by Szczepan Faber, created at: 11/13/12
  */
 public class TestMethodResult {
-
-    public final String name;
-    public final TestResult result;
+    private final String name;
+    private final TestResult.ResultType resultType;
+    private final long duration;
+    private final long endTime;
+    private final List<Throwable> exceptions;
 
     public TestMethodResult(String name, TestResult result) {
         this.name = name;
-        this.result = result;
+        resultType = result.getResultType();
+        duration = result.getEndTime() - result.getStartTime();
+        endTime = result.getEndTime();
+        exceptions = result.getExceptions();
+    }
+
+    public TestMethodResult(String name, TestResult.ResultType resultType, long duration, long endTime, List<Throwable> exceptions) {
+        this.name = name;
+        this.resultType = resultType;
+        this.duration = duration;
+        this.endTime = endTime;
+        this.exceptions = exceptions;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<Throwable> getExceptions() {
+        return exceptions;
+    }
+
+    public TestResult.ResultType getResultType() {
+        return resultType;
     }
 
     public long getDuration() {
-        return result.getEndTime() - result.getStartTime();
+        return duration;
     }
 
     public long getEndTime() {
-        return result.getEndTime();
+        return endTime;
     }
 }

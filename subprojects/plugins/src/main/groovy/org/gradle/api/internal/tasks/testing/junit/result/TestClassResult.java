@@ -18,15 +18,14 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.tasks.testing.TestResult;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * by Szczepan Faber, created at: 11/13/12
  */
 public class TestClassResult {
-
-    Set<TestMethodResult> methodResults = new LinkedHashSet<TestMethodResult>();
+    private final List<TestMethodResult> methodResults = new ArrayList<TestMethodResult>();
     private final long startTime;
     private int failuresCount;
 
@@ -35,14 +34,14 @@ public class TestClassResult {
     }
 
     public TestClassResult add(TestMethodResult methodResult) {
-        if (methodResult.result.getResultType() == TestResult.ResultType.FAILURE) {
+        if (methodResult.getResultType() == TestResult.ResultType.FAILURE) {
             failuresCount++;
         }
         methodResults.add(methodResult);
         return this;
     }
 
-    public Set<TestMethodResult> getResults() {
+    public List<TestMethodResult> getResults() {
         return methodResults;
     }
 

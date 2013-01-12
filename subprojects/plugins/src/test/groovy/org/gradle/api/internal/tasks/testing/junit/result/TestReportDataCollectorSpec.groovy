@@ -36,31 +36,11 @@ class TestReportDataCollectorSpec extends Specification {
 
     @Rule
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    private collector = new TestReportDataCollector(temp.testDirectory)
-
-    def "validates results directory"() {
-        temp.file("foo.txt").createNewFile()
-        temp.file("empty").createDir()
-
-        when:
-        new TestReportDataCollector(new File("don't exist!"))
-        then:
-        thrown(IllegalArgumentException);
-
-        when:
-        new TestReportDataCollector(temp.testDirectory)
-        then:
-        thrown(IllegalArgumentException);
-
-        when:
-        new TestReportDataCollector(temp.file("empty"))
-        then:
-        noExceptionThrown()
-    }
+    private CachingFileWriter fileWriter = Mock()
+    private TestResultSerializer serializer = Mock()
+    private collector = new TestReportDataCollector(temp.testDirectory, fileWriter, serializer)
 
     def "closes all files when root finishes"() {
-        collector.cachingFileWriter = Mock(CachingFileWriter)
-
         def root = new DefaultTestSuiteDescriptor("1", "Suite")
         def clazz = new DecoratingTestDescriptor(new DefaultTestClassDescriptor("1.1", "Class"), root)
 
@@ -70,13 +50,33 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(clazz, dummyResult)
 
         then:
-        0 * collector.cachingFileWriter.closeAll()
+        0 * fileWriter.closeAll()
 
         when:
         collector.afterSuite(root, dummyResult)
 
         then:
-        1 * collector.cachingFileWriter.closeAll()
+        1 * fileWriter.closeAll()
+    }
+
+    def "writes results when root finishes"() {
+        def root = new DefaultTestSuiteDescriptor("1", "Suite")
+        def clazz = new DecoratingTestDescriptor(new DefaultTestClassDescriptor("1.1", "Class"), root)
+
+        def dummyResult = new DefaultTestResult(SUCCESS, 0, 0, 0, 0, 0, asList())
+
+        when:
+        collector.afterSuite(clazz, dummyResult)
+
+        then:
+        0 * serializer._
+
+        when:
+        collector.afterSuite(root, dummyResult)
+
+        then:
+        1 * serializer.write(_, temp.testDirectory)
+        0 * serializer._
     }
 
     def "keeps track of test results"() {
@@ -109,8 +109,8 @@ class TestReportDataCollectorSpec extends Specification {
         fooTest.failuresCount == 1
         fooTest.duration == 200
         fooTest.results.size() == 2
-        fooTest.results.find { it.name == 'testMethod' && it.result == result1 && it.duration == 100 }
-        fooTest.results.find { it.name == 'testMethod2' && it.result == result2 && it.duration == 50 }
+        fooTest.results.find { it.name == 'testMethod' && it.endTime == 200 && it.duration == 100 }
+        fooTest.results.find { it.name == 'testMethod2' && it.endTime == 300 && it.duration == 50 }
     }
 
     def "keeps track of outputs"() {
@@ -118,31 +118,19 @@ class TestReportDataCollectorSpec extends Specification {
         def test2 = new DefaultTestDescriptor("1.1.2", "FooTest", "testMethod2")
         def suite = new DefaultTestSuiteDescriptor("1", "Suite")
 
-        collector.cachingFileWriter = Mock(CachingFileWriter)
-
         when:
         collector.onOutput(suite, new DefaultTestOutputEvent(StdOut, "out"))
         collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "err"))
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
 
         then:
-        1 * collector.cachingFileWriter.write(new File(temp.testDirectory, "FooTest.stderr"), "err")
-        1 * collector.cachingFileWriter.write(new File(temp.testDirectory, "FooTest.stdout"), "out")
-        0 * collector.cachingFileWriter._
-    }
-
-    def "keeps track output in right format"() {
-        def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-        collector.cachingFileWriter = Mock(CachingFileWriter)
-
-        when:
-        collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "hey ]]> foo"))
-
-        then:
-        1 * collector.cachingFileWriter.write(new File(temp.testDirectory, "FooTest.stderr"), "hey ]]> foo")
+        1 * fileWriter.write(new File(temp.testDirectory, "FooTest.stderr"), "err")
+        1 * fileWriter.write(new File(temp.testDirectory, "FooTest.stdout"), "out")
+        0 * fileWriter._
     }
 
     def "provides outputs"() {
+        def collector = new TestReportDataCollector(temp.testDirectory)
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
         def test2 = new DefaultTestDescriptor("1.1.2", "FooTest", "testMethod2")
         def test3 = new DefaultTestDescriptor("1.1.3", "BarTest", "testMethod")

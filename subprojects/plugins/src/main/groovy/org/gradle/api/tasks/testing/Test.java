@@ -121,6 +121,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private List<File> testSrcDirs = new ArrayList<File>();
     private File testClassesDir;
     private File testResultsDir;
+    private File binResultsDir;
     private File testReportDir;
     private PatternFilterable patternSet = new PatternSet();
     private boolean ignoreFailures;
@@ -144,7 +145,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         options.setEnableAssertions(true);
         testExecuter = new DefaultTestExecuter(processBuilderFactory, actorFactory);
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
-        testReporter = new DefaultTestReport(this);
+        testReporter = new DefaultTestReport();
     }
 
     /**
@@ -428,9 +429,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
 
-        File binaryResultsDir = new File(getTemporaryDir(), "binary-test-results");
-        getProject().delete(binaryResultsDir);
-        getProject().mkdir(binaryResultsDir);
+        File binaryResultsDir = getBinResultsDir();
         TestReportDataCollector testReportDataCollector = new TestReportDataCollector(binaryResultsDir);
         addTestListener(testReportDataCollector);
         addTestOutputListener(testReportDataCollector);
@@ -448,10 +447,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             testOutputListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector));
         }
 
-        final Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector);
+        Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector);
         binary2JUnitXmlReportGenerator.generate();
 
-        testReporter.generateReport(testReportDataCollector);
+        if (!isTestReport()) {
+            getLogger().info("Test report disabled, omitting generation of the HTML test report.");
+        } else {
+            testReporter.generateReport(testReportDataCollector, getTestReportDir());
+        }
 
         testFramework = null;
 
@@ -654,9 +657,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Returns the root folder for the test results.
+     * Returns the root folder for the test results in XML format.
      *
-     * @return the test result directory, containing the internal test results, mostly in xml form.
+     * @return the test result directory, containing the test results in XML format.
      */
     @OutputDirectory
     public File getTestResultsDir() {
@@ -670,6 +673,25 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     public void setTestResultsDir(File testResultsDir) {
         this.testResultsDir = testResultsDir;
+    }
+
+    /**
+     * Returns the root folder for the test results in internal binary format.
+     *
+     * @return the test result directory, containing the test results in binary format.
+     */
+    @OutputDirectory
+    public File getBinResultsDir() {
+        return binResultsDir;
+    }
+
+    /**
+     * Sets the root folder for the test results in internal binary format.
+     *
+     * @param binResultsDir The root folder
+     */
+    public void setBinResultsDir(File binResultsDir) {
+        this.binResultsDir = binResultsDir;
     }
 
     /**

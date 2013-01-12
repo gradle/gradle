@@ -30,16 +30,18 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     private final Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
     private final File resultsDir;
-    CachingFileWriter cachingFileWriter = new CachingFileWriter(10); //TODO SF calculate based on parallel forks
+    private final TestResultSerializer serializer;
+    private final CachingFileWriter cachingFileWriter;
 
     public TestReportDataCollector(File resultsDir) {
+        //TODO SF calculate number of open files based on parallel forks
+        this(resultsDir, new CachingFileWriter(10), new TestResultSerializer());
+    }
+
+    TestReportDataCollector(File resultsDir, CachingFileWriter cachingFileWriter, TestResultSerializer serializer) {
         this.resultsDir = resultsDir;
-        if (!resultsDir.isDirectory()) {
-            throw new IllegalArgumentException("Directory [" + resultsDir + "] for binary test results does not exist or it is not a valid folder.");
-        }
-        if (resultsDir.list().length > 0) {
-            throw new IllegalArgumentException("Directory [" + resultsDir + "] for binary test results must be empty!");
-        }
+        this.cachingFileWriter = cachingFileWriter;
+        this.serializer = serializer;
     }
 
     public void beforeSuite(TestDescriptor suite) {
@@ -48,7 +50,12 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null) {
             cachingFileWriter.closeAll();
+            writeResults();
         }
+    }
+
+    private void writeResults() {
+        serializer.write(results, resultsDir);
     }
 
     public void beforeTest(TestDescriptor testDescriptor) {
