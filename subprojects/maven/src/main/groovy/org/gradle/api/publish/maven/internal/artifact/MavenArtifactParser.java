@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.notations.NotationParserBuilder;
@@ -27,7 +28,6 @@ import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.publish.maven.internal.MavenProjectIdentity;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -36,12 +36,12 @@ import java.util.Collection;
 
 public class MavenArtifactParser implements NotationParser<MavenArtifact>, TopLevelNotationParser {
     private final Instantiator instantiator;
-    private final MavenProjectIdentity projectIdentity;
+    private final Module module;
     private final NotationParser<MavenArtifact> delegate;
 
-    public MavenArtifactParser(Instantiator instantiator, MavenProjectIdentity projectIdentity, Project project) {
+    public MavenArtifactParser(Instantiator instantiator, Module module, Project project) {
         this.instantiator = instantiator;
-        this.projectIdentity = projectIdentity;
+        this.module = module;
         FileNotationParser fileNotationParser = new FileNotationParser(project);
         NotationParserBuilder<MavenArtifact> parserBuilder = new NotationParserBuilder<MavenArtifact>()
                 .resultingType(MavenArtifact.class)
@@ -115,7 +115,7 @@ public class MavenArtifactParser implements NotationParser<MavenArtifact>, TopLe
         }
 
         protected MavenArtifact parseFile(File file) {
-            ArtifactFile artifactFile = new ArtifactFile(file, projectIdentity.getVersion());
+            ArtifactFile artifactFile = new ArtifactFile(file, module);
             return instantiator.newInstance(FileMavenArtifact.class, file, artifactFile.getExtension(), artifactFile.getClassifier());
         }
 

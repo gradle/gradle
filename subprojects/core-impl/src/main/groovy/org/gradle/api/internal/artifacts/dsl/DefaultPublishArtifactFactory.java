@@ -98,7 +98,7 @@ public class DefaultPublishArtifactFactory implements NotationParser<PublishArti
         @Override
         protected PublishArtifact parseType(File file) {
             Module module = metaDataProvider.getModule();
-            ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
+            ArtifactFile artifactFile = new ArtifactFile(file, module);
             return instantiator.newInstance(DefaultPublishArtifact.class, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(),
                                             artifactFile.getClassifier(), null, file, new Task[0]);
         }

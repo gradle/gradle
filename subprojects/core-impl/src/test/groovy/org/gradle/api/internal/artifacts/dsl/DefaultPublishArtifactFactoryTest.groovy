@@ -78,7 +78,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
 
     def createArtifactFromFileInMap() {
         Task task = Mock()
-        def file = new File("some.zip")
+        def file = new File("some-file-1.2-classifier.zip")
 
         when:
         def publishArtifact = publishArtifactFactory.parseNotation(file: file, type: 'someType', builtBy: task)
@@ -87,150 +87,10 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact instanceof DefaultPublishArtifact
         publishArtifact.file == file
         publishArtifact.type == 'someType'
+        publishArtifact.name == 'some-file'
+        publishArtifact.extension == 'zip'
+        publishArtifact.classifier == 'classifier'
         publishArtifact.buildDependencies.getDependencies(null) == [task] as Set
-    }
-
-    def determinesArtifactPropertiesFromFileName() {
-        def file1 = new File("some.zip")
-        def file2 = new File("some.zip.zip")
-        def file3 = new File(".zip")
-
-        when:
-        def publishArtifact = publishArtifactFactory.parseNotation(file1)
-
-        then:
-        publishArtifact.name == 'some'
-        publishArtifact.type == 'zip'
-        publishArtifact.extension == 'zip'
-        publishArtifact.classifier == null
-
-        when:
-        publishArtifact = publishArtifactFactory.parseNotation(file2)
-
-        then:
-        publishArtifact.name == 'some.zip'
-        publishArtifact.type == 'zip'
-        publishArtifact.extension == 'zip'
-        publishArtifact.classifier == null
-
-        when:
-        publishArtifact = publishArtifactFactory.parseNotation(file3)
-
-        then:
-        publishArtifact.name == ''
-        publishArtifact.type == 'zip'
-        publishArtifact.extension == 'zip'
-        publishArtifact.classifier == null
-    }
-
-    def handlesFileWithNoExtension() {
-        def file = new File("some-file")
-
-        when:
-        def publishArtifact = publishArtifactFactory.parseNotation(file)
-
-        then:
-        publishArtifact.file == file
-        publishArtifact.name == 'some-file'
-        publishArtifact.type == null
-        publishArtifact.extension == null
-        publishArtifact.classifier == null
-    }
-
-    def removesProjectVersionFromFileName() {
-        def file1 = new File("some-file-1.2.jar")
-        def file2 = new File("some-file-1.2-1.2.jar")
-        def file3 = new File("some-file-1.22.jar")
-        def file4 = new File("some-file-1.2.jar.jar")
-
-        when:
-        def publishArtifact = publishArtifactFactory.parseNotation(file1)
-
-        then:
-        publishArtifact.name == 'some-file'
-        publishArtifact.type == 'jar'
-        publishArtifact.extension == 'jar'
-        publishArtifact.classifier == null
-
-        when:
-        publishArtifact = publishArtifactFactory.parseNotation(file2)
-
-        then:
-        publishArtifact.name == 'some-file-1.2'
-        publishArtifact.type == 'jar'
-        publishArtifact.extension == 'jar'
-        publishArtifact.classifier == null
-
-        when:
-        publishArtifact = publishArtifactFactory.parseNotation(file3)
-
-        then:
-        publishArtifact.name == 'some-file-1.22'
-        publishArtifact.type == 'jar'
-        publishArtifact.extension == 'jar'
-        publishArtifact.classifier == null
-
-        when:
-        publishArtifact = publishArtifactFactory.parseNotation(file4)
-
-        then:
-        publishArtifact.name == 'some-file-1.2.jar'
-        publishArtifact.type == 'jar'
-        publishArtifact.extension == 'jar'
-        publishArtifact.classifier == null
-    }
-
-    def determinesClassifierFromFileName() {
-        def file1 = new File("some-file-1.2-classifier.jar")
-        def file2 = new File("some-file-1.2-classifier-1.2.jar")
-        def file3 = new File("-1.2-classifier.jar")
-        def file4 = new File("some-file-1.2-classifier")
-        def file5 = new File("some-file-1.2-.jar")
-
-        when:
-        def publishArtifact = publishArtifactFactory.parseNotation(file1)
-
-        then:
-        publishArtifact.name == 'some-file'
-        publishArtifact.type == 'jar'
-        publishArtifact.extension == 'jar'
-        publishArtifact.classifier == 'classifier'
-
-        when:
-        publishArtifact = publishArtifactFactory.parseNotation(file2)
-
-        then:
-        publishArtifact.name == 'some-file-1.2-classifier'
-        publishArtifact.type == 'jar'
-        publishArtifact.extension == 'jar'
-        publishArtifact.classifier == null
-
-        when:
-        publishArtifact = publishArtifactFactory.parseNotation(file3)
-
-        then:
-        publishArtifact.name == ''
-        publishArtifact.type == 'jar'
-        publishArtifact.extension == 'jar'
-        publishArtifact.classifier == 'classifier'
-
-        when:
-        publishArtifact = publishArtifactFactory.parseNotation(file4)
-
-        then:
-        publishArtifact.name == 'some-file'
-        publishArtifact.type == null
-        publishArtifact.extension == null
-        publishArtifact.classifier == 'classifier'
-
-        when:
-        publishArtifact = publishArtifactFactory.parseNotation(file5)
-
-        then:
-        publishArtifact.name == 'some-file'
-        publishArtifact.type == 'jar'
-        publishArtifact.extension == 'jar'
-        publishArtifact.classifier == null
     }
 
     public void createArtifactWithNullNotationShouldThrowInvalidUserDataEx() {

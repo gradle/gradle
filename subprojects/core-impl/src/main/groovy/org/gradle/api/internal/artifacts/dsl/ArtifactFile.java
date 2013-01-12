@@ -17,18 +17,23 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.artifacts.Module;
 
 import java.io.File;
 
+/**
+ * Given a Module and a File that is to be an artifact, attempts to determine the appropriate name+classifier+extension from the file name.
+ */
 public class ArtifactFile {
     private String name;
     private String classifier;
     private String extension;
 
-    public ArtifactFile(File file, String version) {
+    public ArtifactFile(File file, Module module) {
         name = file.getName();
         extension = "";
         classifier = "";
+        String version = module.getVersion();
         boolean done = false;
 
         int startVersion = StringUtils.lastIndexOf(name, "-" + version);

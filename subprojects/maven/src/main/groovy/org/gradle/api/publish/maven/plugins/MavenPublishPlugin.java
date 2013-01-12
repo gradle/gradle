@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.plugins.DslObject;
@@ -95,9 +96,10 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 }
             };
 
-            ModuleBackedMavenProjectIdentity projectIdentity = new ModuleBackedMavenProjectIdentity(dependencyMetaDataProvider.getModule());
-            MavenArtifactParser artifactNotationParser = new MavenArtifactParser(instantiator, projectIdentity, project);
+            Module module = dependencyMetaDataProvider.getModule();
+            MavenArtifactParser artifactNotationParser = new MavenArtifactParser(instantiator, module, project);
             MavenPomInternal mavenPom = instantiator.newInstance(DefaultMavenPom.class);
+            ModuleBackedMavenProjectIdentity projectIdentity = new ModuleBackedMavenProjectIdentity(module);
 
             DefaultMavenPublication publication = instantiator.newInstance(
                     DefaultMavenPublication.class,
