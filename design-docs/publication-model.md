@@ -199,7 +199,7 @@ To customise a Maven publication:
             }
         }
     }
-    
+
     publishing.publications.myLib.mainArtifact.classifier = 'custom'
     publishing.publications.myLib.artifacts.each {
         ...
@@ -212,7 +212,7 @@ TBD - applicable artifact conversions
 * Existing empty publication test: Verify empty `mainArtifact` and `artifacts`.
 * Existing publish 'java' & 'web' tests: Verify `mainArtifact` attributes and that `mainArtifact` is the only element of `artifacts`.
 * Publish with java component, add source and javadoc jars as additional artifacts. Verify classifiers of additional artifacts.
-* Run `gradle publish` with no component where mainArtifact and artifacts are taken from custom AbstractArchiveTasks. 
+* Run `gradle publish` with no component where mainArtifact and artifacts are taken from custom AbstractArchiveTasks.
     * Verify that archives are automatically built and published.
     * Verify that classifier and extension from AbstractArchiveTask is honoured.
     * Verify that classifier and extension specified in publication DSL overrides that of AbstractArchiveTask.
@@ -482,6 +482,10 @@ Running `gradle release` will build, sign and upload the artifacts.
 Running `gradle publish` will build and upload the artifacts, but not sign them.
 Running `gradle publishMavenLocal` will build the artifact, but not sign them.
 
+## Reuse the Gradle resource transports for publishing to a Maven repository
+
+To provide progress logging, better error reporting, better handling of authenticated repositories, etc.
+
 ## Add support for resolving and publishing via SFTP
 
 Add an SFTP resource transport and allow this to be used in an Ivy or Maven repository definition.
@@ -499,6 +503,18 @@ Add a WebDAV resource transport and allow this to be used in an Ivy or Maven rep
 5. Change legacy `MavenDeployer` to use `MavenResolver`.
 6. Remove Maven 2 as a dependency.
 7. Remove jarjar hacks from Maven 3 classes.
+
+## Publish components in dependency order
+
+Ensure that when publishing multiple components to a given destination, that they are published in dependency order.
+
+## Validate publish credentials early in the build
+
+Fail fast when user-provided credentials are not valid.
+
+## Publish artifacts as late as possible in the build
+
+Schedule validation tasks before publication tasks, while still respecting task dependencies.
 
 ## Publish components in dependency order
 
