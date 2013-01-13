@@ -73,6 +73,7 @@ public class TestTest extends AbstractConventionTaskTest {
 
     private File classesDir;
     private File resultsDir;
+    private File binResultsDir;
     private File reportDir;
 
     private JUnit4Mockery context = new JUnit4Mockery() {{
@@ -86,12 +87,12 @@ public class TestTest extends AbstractConventionTaskTest {
 
     @Before
     public void setUp() {
-        File rootDir = getProject().getProjectDir();
-        classesDir = new File(rootDir, "testClassesDir");
+        classesDir = tmpDir.createDir("classes");
         File classfile = new File(classesDir, "FileTest.class");
         GFileUtils.touch(classfile);
-        resultsDir = new File(rootDir, "resultDir");
-        reportDir = new File(rootDir, "report/tests");
+        resultsDir = tmpDir.createDir("testResults");
+        binResultsDir = tmpDir.createDir("binResults");
+        reportDir = tmpDir.createDir("report");
 
         test = createTask(Test.class);
     }
@@ -367,6 +368,7 @@ public class TestTest extends AbstractConventionTaskTest {
 
         test.setTestClassesDir(classesDir);
         test.setTestResultsDir(resultsDir);
+        test.setBinResultsDir(binResultsDir);
         test.setTestReportDir(reportDir);
         test.setClasspath(classpathMock);
         test.setTestSrcDirs(Collections.<File>emptyList());
