@@ -17,54 +17,32 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.junit.Rule
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 
 class TestReportIntegrationTest extends AbstractIntegrationSpec {
+    @Rule Sample sample
+
     // TODO - use default value for bin results dir, and deprecate
     // TODO - auto-wiring for test results
     // TODO - warn when duplicate class results are discarded
     // TODO - sample and int test
-    def "can generate report from multiple test result dirs"() {
+    // TODO - user guide + dsl guide
+    // TODO - extract some kind of resolving collection
+
+    @UsesSample("testing/testReport")
+    def "can generate report for subprojects"() {
         given:
-        writeTest("Test1")
-        writeTest("Test2")
-        writeTest("Test3")
-
-        and:
-        buildFile << """
-apply plugin: 'java'
-
-repositories { mavenCentral() }
-dependencies { testCompile 'junit:junit:4.11' }
-
-test { include 'Test1.class' }
-task test2(type: Test) { include 'Test2.class' }
-task test3(type: Test) { include 'Test3.class' }
-
-task report(type: TestReport) {
-    destinationDir = file("\${reporting.baseDir}/all-tests")
-    dependsOn test, test2, test3
-    testResultDirs = [test, test2, test3].collect { it.binResultsDir }
-}
-"""
+        sample sample
 
         when:
-        run "report"
+        run "testReport"
 
         then:
-        file("build/reports/all-tests/index.html").assertIsFile()
-        file("build/reports/all-tests/Test1.html").text.contains("Hi from Test1")
-        file("build/reports/all-tests/Test2.html").text.contains("Hi from Test2")
-        file("build/reports/all-tests/Test3.html").text.contains("Hi from Test3")
-    }
-
-    private void writeTest(String testName) {
-        file("src/test/java/${testName}.java") << """
-public class ${testName} {
-    @org.junit.Test
-    public void test() {
-        System.out.println("Hi from ${testName}");
-    }
-}
-"""
+        def reportDir = sample.dir.file("build/reports/allTests")
+        reportDir.file("index.html").assertIsFile()
+        reportDir.file("org.gradle.sample.CoreTest.html").text.contains("hello from CoreTest.")
+        reportDir.file("org.gradle.sample.UtilTest.html").text.contains("hello from UtilTest.")
     }
 }
