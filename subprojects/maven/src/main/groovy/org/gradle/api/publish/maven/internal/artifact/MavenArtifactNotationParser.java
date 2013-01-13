@@ -34,12 +34,12 @@ import org.gradle.internal.reflect.Instantiator;
 import java.io.File;
 import java.util.Collection;
 
-public class MavenArtifactParser implements NotationParser<MavenArtifact>, TopLevelNotationParser {
+public class MavenArtifactNotationParser implements NotationParser<MavenArtifact>, TopLevelNotationParser {
     private final Instantiator instantiator;
     private final Module module;
     private final NotationParser<MavenArtifact> delegate;
 
-    public MavenArtifactParser(Instantiator instantiator, Module module, Project project) {
+    public MavenArtifactNotationParser(Instantiator instantiator, Module module, Project project) {
         this.instantiator = instantiator;
         this.module = module;
         FileNotationParser fileNotationParser = new FileNotationParser(project);
@@ -78,7 +78,7 @@ public class MavenArtifactParser implements NotationParser<MavenArtifact>, TopLe
 
         @Override
         protected MavenArtifact parseType(PublishArtifact notation) {
-            return new PublishArtifactMavenArtifact(notation);
+            return instantiator.newInstance(PublishArtifactMavenArtifact.class, notation);
         }
     }
 

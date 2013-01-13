@@ -29,7 +29,7 @@ import org.gradle.api.publish.internal.PublicationContainerInternal;
 import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.*;
-import org.gradle.api.publish.maven.internal.artifact.MavenArtifactParser;
+import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParser;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -97,7 +97,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
             };
 
             Module module = dependencyMetaDataProvider.getModule();
-            MavenArtifactParser artifactNotationParser = new MavenArtifactParser(instantiator, module, project);
+            MavenArtifactNotationParser artifactNotationParser = new MavenArtifactNotationParser(instantiator, module, project);
             MavenPomInternal mavenPom = instantiator.newInstance(DefaultMavenPom.class);
             ModuleBackedMavenProjectIdentity projectIdentity = new ModuleBackedMavenProjectIdentity(module);
 

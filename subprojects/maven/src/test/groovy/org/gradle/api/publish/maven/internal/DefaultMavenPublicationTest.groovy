@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.api.publish.maven.internal
+
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.PublishArtifact
@@ -101,6 +103,44 @@ public class DefaultMavenPublicationTest extends Specification {
         then:
         def e = thrown(InvalidUserDataException)
         e.message == "A MavenPublication cannot include multiple components"
+    }
+
+    def "attaches artifacts parsed by notation parser"() {
+        given:
+        def publication = createPublication()
+        Object notation = new Object();
+        MavenArtifact mavenArtifact = Mock()
+
+        when:
+        publication.artifact notation
+
+        then:
+        notationParser.parseNotation(notation) >> mavenArtifact
+
+        and:
+        publication.asNormalisedPublication().artifacts == [mavenArtifact] as Set
+    }
+
+    def "attaches and configures artifacts parsed by notation parser"() {
+        given:
+        def publication = createPublication()
+        Object notation = new Object();
+        MavenArtifact mavenArtifact = Mock()
+
+        when:
+        publication.artifact(notation, new Action<MavenArtifact>() {
+            void execute(MavenArtifact t) {
+                t.extension = 'changed'
+            }
+        })
+
+        then:
+        notationParser.parseNotation(notation) >> mavenArtifact
+        1 * mavenArtifact.setExtension('changed')
+        0 * mavenArtifact._
+
+        and:
+        publication.asNormalisedPublication().artifacts == [mavenArtifact] as Set
     }
 
     def createPublication() {
