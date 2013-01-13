@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.Writer;
@@ -25,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AggregateTestResultsProvider implements TestResultsProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AggregateTestResultsProvider.class);
     private final Iterable<File> binaryResultDirs;
     private Map<String, TestResultsProvider> classOutputProviders;
 
@@ -38,10 +41,12 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
             final BinaryResultBackedTestResultsProvider provider = new BinaryResultBackedTestResultsProvider(dir);
             provider.visitClasses(new Action<TestClassResult>() {
                 public void execute(TestClassResult classResult) {
-                    if (!classOutputProviders.containsKey(classResult.getClassName())) {
-                        classOutputProviders.put(classResult.getClassName(), provider);
-                        visitor.execute(classResult);
+                    if (classOutputProviders.containsKey(classResult.getClassName())) {
+                        LOGGER.warn("Discarding duplicate results for test class {}.", classResult.getClassName());
+                        return;
                     }
+                    classOutputProviders.put(classResult.getClassName(), provider);
+                    visitor.execute(classResult);
                 }
             });
         }
