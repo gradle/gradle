@@ -20,6 +20,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.File;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,15 +32,18 @@ public class BinaryResultBackedTestResultsProvider implements TestResultsProvide
         this.binaryResultDirs = binaryResultDirs;
     }
 
-    public Map<String, TestClassResult> getResults() {
+    public Iterable<TestClassResult> getResults() {
         if (results == null) {
             TestResultSerializer serializer = new TestResultSerializer();
             results = new HashMap<String, TestClassResult>();
             for (File dir : binaryResultDirs) {
-                results.putAll(serializer.read(dir));
+                Collection<TestClassResult> classResults = serializer.read(dir);
+                for (TestClassResult classResult : classResults) {
+                    results.put(classResult.getClassName(), classResult);
+                }
             }
         }
-        return results;
+        return results.values();
     }
 
     public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {

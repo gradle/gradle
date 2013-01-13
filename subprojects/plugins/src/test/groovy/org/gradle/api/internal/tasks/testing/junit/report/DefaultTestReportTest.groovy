@@ -272,7 +272,7 @@ class DefaultTestReportTest extends Specification {
     }
 
     def emptyResultSet() {
-        _ * testResultProvider.results >> [:]
+        _ * testResultProvider.results >> []
     }
 }
 
@@ -280,7 +280,7 @@ class TestResultsBuilder implements TestResultsProvider {
     def testClasses = [:]
 
     void testClassResult(String className, Closure configClosure) {
-        BuildableTestClassResult testSuite = new BuildableTestClassResult(System.currentTimeMillis())
+        BuildableTestClassResult testSuite = new BuildableTestClassResult(className, System.currentTimeMillis())
         ConfigureUtil.configure(configClosure, testSuite)
 
         testClasses[className] = testSuite
@@ -294,17 +294,16 @@ class TestResultsBuilder implements TestResultsProvider {
         }
     }
 
-    Map<String, TestClassResult> getResults() {
-        return testClasses
+    Iterable<TestClassResult> getResults() {
+        return testClasses.values()
     }
 
     private static class BuildableTestClassResult extends TestClassResult {
-
         String stderr;
         String stdout;
 
-        BuildableTestClassResult(long startTime) {
-            super(startTime)
+        BuildableTestClassResult(String className, long startTime) {
+            super(className, startTime)
         }
 
         TestMethodResult testcase(String name) {

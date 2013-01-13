@@ -101,9 +101,10 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, asList(new RuntimeException("Boo!"))))
 
         then:
-        def results = collector.getResults()
+        def results = collector.getResults() as List
         results.size() == 1
-        def fooTest = results['FooTest']
+        def fooTest = results[0]
+        fooTest.className == 'FooTest'
         fooTest.startTime == 100
         fooTest.testsCount == 2
         fooTest.failuresCount == 1

@@ -26,11 +26,17 @@ import java.util.List;
  */
 public class TestClassResult {
     private final List<TestMethodResult> methodResults = new ArrayList<TestMethodResult>();
+    private final String className;
     private final long startTime;
     private int failuresCount;
 
-    public TestClassResult(long startTime) {
+    public TestClassResult(String className, long startTime) {
+        this.className = className;
         this.startTime = startTime;
+    }
+
+    public String getClassName() {
+        return className;
     }
 
     public TestClassResult add(TestMethodResult methodResult) {

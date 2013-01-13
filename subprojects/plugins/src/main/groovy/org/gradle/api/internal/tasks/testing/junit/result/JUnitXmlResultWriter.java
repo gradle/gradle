@@ -41,7 +41,8 @@ public class JUnitXmlResultWriter {
         this.testResultsProvider = testResultsProvider;
     }
 
-    public void write(String className, TestClassResult result, OutputStream output) {
+    public void write(TestClassResult result, OutputStream output) {
+        String className = result.getClassName();
         try {
             SimpleXmlWriter writer = new SimpleXmlWriter(output, "  ");
             writer.startElement("testsuite")

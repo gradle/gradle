@@ -27,23 +27,22 @@ class TestResultSerializerTest extends Specification {
     final TestResultSerializer serializer = new TestResultSerializer()
 
     def "can write and read results"() {
-        def results = [:]
-        def class1 = new TestClassResult(1234)
+        def class1 = new TestClassResult('Class1', 1234)
         def failure = new RuntimeException("broken")
         def method1 = new TestMethodResult("method1", TestResult.ResultType.SUCCESS, 100, 2300, [])
         def method2 = new TestMethodResult("method2", TestResult.ResultType.FAILURE, 200, 2700, [failure])
         class1.add(method1)
         class1.add(method2)
-        def class2 = new TestClassResult(5678)
-        results['Class1'] = class1
-        results['Class2'] = class2
+        def class2 = new TestClassResult('Class2', 5678)
+        def results = [class1, class2]
 
         when:
         def read = serialize(results)
 
         then:
         read.size() == 2
-        def readClass1 = read['Class1']
+        def readClass1 = read[0]
+        readClass1.className == 'Class1'
         readClass1.startTime == 1234
         readClass1.results.size() == 2
 
@@ -64,27 +63,27 @@ class TestResultSerializerTest extends Specification {
         readMethod2.exceptions[0].message == failure.message
         readMethod2.exceptions[0].stackTrace == failure.stackTrace
 
-        def readClass2 = read['Class2']
+        def readClass2 = read[1]
+        readClass2.className == 'Class2'
         readClass2.startTime == 5678
         readClass2.results.empty
     }
 
     def "can write and read exceptions that are not serializable"() {
-        def results = [:]
-        def class1 = new TestClassResult(1234)
+        def class1 = new TestClassResult('Class1', 1234)
         def failure = new RuntimeException("broken") {
             final Object field = new Object()
         }
         def method1 = new TestMethodResult("method1", TestResult.ResultType.FAILURE, 200, 2700, [failure])
         class1.add(method1)
-        results['Class1'] = class1
+        def results = [class1]
 
         when:
         def read = serialize(results)
 
         then:
         read.size() == 1
-        def readClass1 = read['Class1']
+        def readClass1 = read[0]
         def readMethod1 = readClass1.results[0]
         readMethod1.exceptions.size() == 1
         readMethod1.exceptions[0].class == PlaceholderException.class
@@ -93,7 +92,7 @@ class TestResultSerializerTest extends Specification {
         readMethod1.exceptions[0].stackTrace == failure.stackTrace
     }
 
-    Map<String, TestClassResult> serialize(Map<String, TestClassResult> results) {
+    List<TestClassResult> serialize(Collection<TestClassResult> results) {
         def dir = tmp.createDir("results")
         serializer.write(results, dir)
         return serializer.read(dir)

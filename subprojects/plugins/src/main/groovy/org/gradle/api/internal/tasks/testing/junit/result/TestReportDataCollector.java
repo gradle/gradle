@@ -16,20 +16,17 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.*;
 
-import java.io.*;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * by Szczepan Faber, created at: 11/13/12
  */
-public class TestReportDataCollector implements TestListener, TestOutputListener, TestResultsProvider {
-
+public class TestReportDataCollector extends AbstractTestResultProvider implements TestListener, TestOutputListener {
     private final Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
-    private final File resultsDir;
     private final TestResultSerializer serializer;
     private final CachingFileWriter cachingFileWriter;
 
@@ -39,7 +36,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     }
 
     TestReportDataCollector(File resultsDir, CachingFileWriter cachingFileWriter, TestResultSerializer serializer) {
-        this.resultsDir = resultsDir;
+        super(resultsDir);
         this.cachingFileWriter = cachingFileWriter;
         this.serializer = serializer;
     }
@@ -55,7 +52,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     }
 
     private void writeResults() {
-        serializer.write(results, resultsDir);
+        serializer.write(results.values(), getResultsDir());
     }
 
     public void beforeTest(TestDescriptor testDescriptor) {
@@ -67,7 +64,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             TestMethodResult methodResult = new TestMethodResult(testDescriptor.getName(), result);
             TestClassResult classResult = results.get(className);
             if (classResult == null) {
-                classResult = new TestClassResult(result.getStartTime());
+                classResult = new TestClassResult(className, result.getStartTime());
                 results.put(className, classResult);
             }
             classResult.add(methodResult);
@@ -84,43 +81,8 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         cachingFileWriter.write(outputsFile(className, outputEvent.getDestination()), outputEvent.getMessage());
     }
 
-    private File outputsFile(String className, TestOutputEvent.Destination destination) {
-        return destination == TestOutputEvent.Destination.StdOut ? standardOutputFile(className) : standardErrorFile(className);
+    public Iterable<TestClassResult> getResults() {
+        return results.values();
     }
 
-    private File standardErrorFile(String className) {
-        return new File(resultsDir, className + ".stderr");
-    }
-
-    private File standardOutputFile(String className) {
-        return new File(resultsDir, className + ".stdout");
-    }
-
-    public Map<String, TestClassResult> getResults() {
-        return results;
-    }
-
-    public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
-        final File file = outputsFile(className, destination);
-        if (!file.exists()) {
-            return;
-        }
-        try {
-            Reader reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), "UTF-8");
-            try {
-                char[] buffer = new char[2048];
-                while (true) {
-                    int read = reader.read(buffer);
-                    if (read < 0) {
-                        return;
-                    }
-                    writer.write(buffer, 0, read);
-                }
-            } finally {
-                reader.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
 }

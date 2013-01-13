@@ -28,11 +28,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Map;
 
-/**
- * This will replace the existing report generator.
- */
 public class Binary2JUnitXmlReportGenerator {
 
     private final File testResultsDir;
@@ -48,19 +44,16 @@ public class Binary2JUnitXmlReportGenerator {
 
     public void generate() {
         Clock clock = new Clock();
-        Map<String, TestClassResult> results = testResultsProvider.getResults();
-        for (Map.Entry<String, TestClassResult> entry : results.entrySet()) {
-            String className = entry.getKey();
-            TestClassResult result = entry.getValue();
-
-            File file = new File(testResultsDir, "TEST-" + className + ".xml");
+        Iterable<TestClassResult> results = testResultsProvider.getResults();
+        for (TestClassResult result : results) {
+            File file = new File(testResultsDir, "TEST-" + result.getClassName() + ".xml");
             OutputStream output = null;
             try {
                 output = new BufferedOutputStream(new FileOutputStream(file));
-                saxWriter.write(className, result, output);
+                saxWriter.write(result, output);
                 output.close();
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not write XML test results for %s to file %s.", className, file), e);
+                throw new GradleException(String.format("Could not write XML test results for %s to file %s.", result.getClassName(), file), e);
             } finally {
                 IOUtils.closeQuietly(output);
             }

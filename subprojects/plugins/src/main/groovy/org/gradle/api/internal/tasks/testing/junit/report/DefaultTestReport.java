@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultTestReport implements TestReporter {
     private final HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
@@ -51,18 +50,16 @@ public class DefaultTestReport implements TestReporter {
     }
 
     private AllTestResults loadModelFromProvider(TestResultsProvider resultsProvider) {
-        Map<String, TestClassResult> results = resultsProvider.getResults();
+        Iterable<TestClassResult> results = resultsProvider.getResults();
         AllTestResults model = new AllTestResults();
-        for (Map.Entry<String, TestClassResult> stringTestClassResultEntry : results.entrySet()) {
-            final String suiteClassName = stringTestClassResultEntry.getKey();
-            final TestClassResult value = stringTestClassResultEntry.getValue();
-            final List<TestMethodResult> collectedResults = value.getResults();
+        for (TestClassResult classResult : results) {
+            List<TestMethodResult> collectedResults = classResult.getResults();
             for (TestMethodResult collectedResult : collectedResults) {
-                final TestResult testResult = model.addTest(suiteClassName, collectedResult.getName(), collectedResult.getDuration());
+                final TestResult testResult = model.addTest(classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
                 if (collectedResult.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
                     testResult.ignored();
                 } else {
-                    final List<Throwable> failures = collectedResult.getExceptions();
+                    List<Throwable> failures = collectedResult.getExceptions();
                     for (Throwable throwable : failures) {
                         testResult.addFailure(throwable.getMessage(), stackTrace(throwable));
                     }

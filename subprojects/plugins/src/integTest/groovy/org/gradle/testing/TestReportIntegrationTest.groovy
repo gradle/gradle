@@ -20,8 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TestReportIntegrationTest extends AbstractIntegrationSpec {
     // TODO - test output
+    // TODO - use default value for bin results dir, and deprecate
     // TODO - auto-wiring for test results
-    // TODO - aggregate results for classes
+    // TODO - warn when duplicate class results are discarded
     def "can generate report from multiple test result dirs"() {
         given:
         writeTest("Test1")

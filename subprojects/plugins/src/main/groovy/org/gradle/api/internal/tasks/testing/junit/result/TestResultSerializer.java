@@ -30,7 +30,7 @@ public class TestResultSerializer {
     private static final int RESULT_VERSION = 1;
     private static final String RESULTS_FILE_NAME = "results.bin";
 
-    public void write(Map<String, TestClassResult> results, File outputDir) {
+    public void write(Collection<TestClassResult> results, File outputDir) {
         try {
             OutputStream outputStream = new FileOutputStream(new File(outputDir, RESULTS_FILE_NAME));
             try {
@@ -46,15 +46,15 @@ public class TestResultSerializer {
         }
     }
 
-    private void write(Map<String, TestClassResult> results, Output output) throws IOException {
+    private void write(Collection<TestClassResult> results, Output output) throws IOException {
         output.writeInt(results.size(), true);
-        for (Map.Entry<String, TestClassResult> entry : results.entrySet()) {
-            output.writeString(entry.getKey());
-            write(entry.getValue(), output);
+        for (TestClassResult result : results) {
+            write(result, output);
         }
     }
 
     private void write(TestClassResult classResult, Output output) throws IOException {
+        output.writeString(classResult.getClassName());
         output.writeLong(classResult.getStartTime());
         output.writeInt(classResult.getResults().size(), true);
         for (TestMethodResult methodResult : classResult.getResults()) {
@@ -75,7 +75,7 @@ public class TestResultSerializer {
         }
     }
 
-    public Map<String, TestClassResult> read(File inputDir) {
+    public Collection<TestClassResult> read(File inputDir) {
         try {
             InputStream inputStream = new FileInputStream(new File(inputDir, "results.bin"));
             try {
@@ -93,20 +93,20 @@ public class TestResultSerializer {
         }
     }
 
-    private Map<String, TestClassResult> readResults(Input input) throws ClassNotFoundException, IOException {
-        HashMap<String, TestClassResult> results = new HashMap<String, TestClassResult>();
+    private Collection<TestClassResult> readResults(Input input) throws ClassNotFoundException, IOException {
+        Collection<TestClassResult> results = new ArrayList<TestClassResult>();
         int classCount = input.readInt(true);
         for (int i = 0; i < classCount; i++) {
-            String className = input.readString();
             TestClassResult classResult = readClassResult(input);
-            results.put(className, classResult);
+            results.add(classResult);
         }
         return results;
     }
 
     private TestClassResult readClassResult(Input input) throws IOException, ClassNotFoundException {
+        String className = input.readString();
         long startTime = input.readLong();
-        TestClassResult result = new TestClassResult(startTime);
+        TestClassResult result = new TestClassResult(className, startTime);
         int testMethodCount = input.readInt(true);
         for (int i = 0; i < testMethodCount; i++) {
             TestMethodResult methodResult = readMethodResult(input);

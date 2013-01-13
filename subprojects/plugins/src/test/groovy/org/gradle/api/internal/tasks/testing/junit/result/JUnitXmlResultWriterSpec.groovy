@@ -39,7 +39,7 @@ class JUnitXmlResultWriterSpec extends Specification {
     private startTime = 1353344968049
 
     def "writes xml JUnit result"() {
-        TestClassResult result = new TestClassResult(startTime)
+        TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 10, startTime + 25, 1, 1, 0, emptyList())))
         result.add(new TestMethodResult("some test two", new DefaultTestResult(SUCCESS, startTime + 15, startTime + 30, 1, 1, 0, emptyList())))
         result.add(new TestMethodResult("some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
@@ -49,7 +49,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         provider.writeOutputs("com.foo.FooTest", StdErr, _) >> { args -> args[2].write("err") }
 
         when:
-        def xml = getXml("com.foo.FooTest", result)
+        def xml = getXml(result)
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest")
@@ -83,12 +83,12 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     def "writes results with empty outputs"() {
-        TestClassResult result = new TestClassResult(startTime)
+        TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeOutputs(_, _, _)
 
         when:
-        def xml = getXml("com.foo.FooTest", result)
+        def xml = getXml(result)
 
         then:
         xml == """<?xml version="1.1" encoding="UTF-8"?>
@@ -102,13 +102,13 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     def "encodes xml"() {
-        TestClassResult result = new TestClassResult(startTime)
+        TestClassResult result = new TestClassResult("com.foo.FooTest", startTime)
         result.add(new TestMethodResult("some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
         provider.writeOutputs(_, StdErr, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
         provider.writeOutputs(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
 
         when:
-        def xml = getXml("com.foo.FooTest", result)
+        def xml = getXml(result)
 
         then:
         //attribute and text is encoded:
@@ -119,10 +119,10 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     def "writes results with no tests"() {
-        TestClassResult result = new TestClassResult(startTime)
+        TestClassResult result = new TestClassResult("com.foo.IgnoredTest", startTime)
 
         when:
-        def xml = getXml("com.foo.IgnoredTest", result)
+        def xml = getXml(result)
 
         then:
         xml == """<?xml version="1.1" encoding="UTF-8"?>
@@ -134,9 +134,9 @@ class JUnitXmlResultWriterSpec extends Specification {
 """
     }
 
-    def getXml(String className, TestClassResult result) {
+    def getXml(TestClassResult result) {
         def text = new ByteArrayOutputStream()
-        generator.write(className, result, text)
+        generator.write(result, text)
         return text.toString("UTF-8").replace(SystemProperties.lineSeparator, "\n")
     }
 }

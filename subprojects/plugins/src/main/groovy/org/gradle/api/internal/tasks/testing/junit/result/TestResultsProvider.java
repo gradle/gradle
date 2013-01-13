@@ -19,14 +19,15 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.Writer;
-import java.util.Map;
 
 /**
  * by Szczepan Faber, created at: 11/16/12
  */
 public interface TestResultsProvider {
-
     void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer);
 
-    Map<String, TestClassResult> getResults();
+    /**
+     * Returns the results of each test class, in no specific order.
+     */
+    Iterable<TestClassResult> getResults();
 }
