@@ -26,7 +26,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public final Sample sample = new Sample()
 
-    @Test @UsesSample('testng/suitexmlbuilder')
+    @Test @UsesSample('testing/testng/suitexmlbuilder')
     public void suiteXmlBuilder() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
@@ -36,7 +36,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.testng.UserImplTest').assertTestPassed('testOkFirstName')
     }
 
-    @Test @UsesSample('testng/java-jdk14-passing')
+    @Test @UsesSample('testing/testng/java-jdk14-passing')
     public void javaJdk14Passing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
@@ -45,7 +45,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }
     
-    @Test @UsesSample('testng/java-jdk15-passing')
+    @Test @UsesSample('testing/testng/java-jdk15-passing')
     public void javaJdk15Passing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
