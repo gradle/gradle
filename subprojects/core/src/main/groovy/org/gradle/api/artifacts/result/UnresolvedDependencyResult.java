@@ -37,5 +37,5 @@ public interface UnresolvedDependencyResult extends DependencyResult {
     /**
      * The failure that occurred.
      */
-    Exception getFailure();
+    Throwable getFailure();
 }
