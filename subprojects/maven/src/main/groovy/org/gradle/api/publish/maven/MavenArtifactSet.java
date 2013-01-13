@@ -27,7 +27,7 @@ public interface MavenArtifactSet extends DomainObjectSet<MavenArtifact> {
      *
      * @param source The source of the artifact content.
      */
-    MavenArtifact add(Object source);
+    MavenArtifact addArtifact(Object source);
 
     /**
      * Creates and adds a {@link MavenArtifact} to the set, which is configured by the associated action.
@@ -35,5 +35,5 @@ public interface MavenArtifactSet extends DomainObjectSet<MavenArtifact> {
      * @param source The source of the artifact.
      * @param config An action to configure the values of the constructed {@link MavenArtifact}.
      */
-     MavenArtifact add(Object source, Action<MavenArtifact> config);
+     MavenArtifact addArtifact(Object source, Action<MavenArtifact> config);
 }

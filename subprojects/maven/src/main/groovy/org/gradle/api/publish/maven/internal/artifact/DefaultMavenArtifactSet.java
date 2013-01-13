@@ -43,15 +43,15 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     }
 
     // TODO:DAZ Should this be evaluated lazily? (eg if passed a closure that returns a file)
-    public MavenArtifact add(Object source) {
+    public MavenArtifact addArtifact(Object source) {
         MavenArtifact artifact = mavenArtifactParser.parseNotation(source);
         add(artifact);
         return artifact;
     }
 
     // TODO:DAZ Should this be evaluated lazily? (eg evaluate config closure when publishing)
-    public MavenArtifact add(Object source, Action<MavenArtifact> config) {
-        MavenArtifact artifact = add(source);
+    public MavenArtifact addArtifact(Object source, Action<MavenArtifact> config) {
+        MavenArtifact artifact = addArtifact(source);
         config.execute(artifact);
         return artifact;
     }

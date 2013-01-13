@@ -77,11 +77,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenArtifact artifact(Object source) {
-        return mavenArtifacts.add(source);
+        return mavenArtifacts.addArtifact(source);
     }
 
     public MavenArtifact artifact(Object source, Action<MavenArtifact> config) {
-        return mavenArtifacts.add(source, config);
+        return mavenArtifacts.addArtifact(source, config);
     }
 
     public MavenArtifactSet getArtifacts() {
