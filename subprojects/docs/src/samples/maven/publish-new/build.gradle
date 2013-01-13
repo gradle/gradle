@@ -23,12 +23,13 @@ publishing {
         }
     }
 // END SNIPPET repositories
+// START SNIPPET publications
     publications {
-        maven(MavenPublication) {
+        mavenJava(MavenPublication) {
             from components.java
         }
     }
-
+// END SNIPPET publications
 // END SNIPPET minimal-build
 // START SNIPPET pom-modification
     publications {

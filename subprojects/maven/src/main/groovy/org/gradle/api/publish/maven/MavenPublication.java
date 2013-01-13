@@ -70,6 +70,8 @@ public interface MavenPublication extends Publication {
      * Provides the software component that should be published.
      *
      * The artifacts and runtime dependencies defined by the published component will be included in the publication.
+     * Currently 2 types of component are supported: 'components.java' (added by the JavaPlugin) and 'components.web' (added by the WarPlugin).
+     * For any individual MavenPublication, only a single component can be provided in this way.
      *
      * The following example demonstrates how to publish the 'java' component to a maven repository.
      * <pre autoTested="true">
