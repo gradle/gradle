@@ -20,6 +20,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.messaging.remote.internal.PlaceholderException
+import org.gradle.api.Action
 
 class TestResultSerializerTest extends Specification {
     @Rule
@@ -95,6 +96,8 @@ class TestResultSerializerTest extends Specification {
     List<TestClassResult> serialize(Collection<TestClassResult> results) {
         def dir = tmp.createDir("results")
         serializer.write(results, dir)
-        return serializer.read(dir)
+        def result = []
+        serializer.read(dir, { result << it } as Action)
+        return result
     }
 }

@@ -19,10 +19,10 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TestReportIntegrationTest extends AbstractIntegrationSpec {
-    // TODO - test output
     // TODO - use default value for bin results dir, and deprecate
     // TODO - auto-wiring for test results
     // TODO - warn when duplicate class results are discarded
+    // TODO - sample and int test
     def "can generate report from multiple test result dirs"() {
         given:
         writeTest("Test1")
@@ -52,16 +52,18 @@ task report(type: TestReport) {
 
         then:
         file("build/reports/all-tests/index.html").assertIsFile()
-        file("build/reports/all-tests/Test1.html").assertIsFile()
-        file("build/reports/all-tests/Test2.html").assertIsFile()
-        file("build/reports/all-tests/Test3.html").assertIsFile()
+        file("build/reports/all-tests/Test1.html").text.contains("Hi from Test1")
+        file("build/reports/all-tests/Test2.html").text.contains("Hi from Test2")
+        file("build/reports/all-tests/Test3.html").text.contains("Hi from Test3")
     }
 
     private void writeTest(String testName) {
         file("src/test/java/${testName}.java") << """
 public class ${testName} {
     @org.junit.Test
-    public void test() { }
+    public void test() {
+        System.out.println("Hi from ${testName}");
+    }
 }
 """
     }

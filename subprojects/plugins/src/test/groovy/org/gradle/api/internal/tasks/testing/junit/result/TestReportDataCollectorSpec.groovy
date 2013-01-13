@@ -28,6 +28,7 @@ import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
+import org.gradle.api.Action
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -100,8 +101,10 @@ class TestReportDataCollectorSpec extends Specification {
 
         collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, asList(new RuntimeException("Boo!"))))
 
+        def results = []
+        collector.visitClasses({ results << it } as Action)
+
         then:
-        def results = collector.getResults() as List
         results.size() == 1
         def fooTest = results[0]
         fooTest.className == 'FooTest'

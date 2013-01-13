@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.api.GradleException
+import org.gradle.api.Action
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -43,7 +44,10 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
             .add(new TestMethodResult("bar", Mock(TestResult)))
             .add(new TestMethodResult("bar2", Mock(TestResult)))
 
-        resultsProvider.getResults() >> [fooTest, barTest]
+        resultsProvider.visitClasses(_) >> { Action action ->
+            action.execute(fooTest)
+            action.execute(barTest)
+        }
 
         when:
         generator.generate()
@@ -58,7 +62,9 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         def fooTest = new TestClassResult('FooTest', 100)
                 .add(new TestMethodResult("foo", Mock(TestResult)))
 
-        resultsProvider.getResults() >> [fooTest]
+        resultsProvider.visitClasses(_) >> { Action action ->
+            action.execute(fooTest)
+        }
         generator.saxWriter.write(fooTest, _) >> { throw new IOException("Boo!") }
 
         when:

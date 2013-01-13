@@ -16,11 +16,11 @@
 package org.gradle.api.internal.tasks.testing.junit.report
 
 import org.cyberneko.html.parsers.SAXParser
+import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestResult
-import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestFile
@@ -272,7 +272,7 @@ class DefaultTestReportTest extends Specification {
     }
 
     def emptyResultSet() {
-        _ * testResultProvider.results >> []
+        _ * testResultProvider.visitClasses(_)
     }
 }
 
@@ -294,8 +294,10 @@ class TestResultsBuilder implements TestResultsProvider {
         }
     }
 
-    Iterable<TestClassResult> getResults() {
-        return testClasses.values()
+    void visitClasses(Action<? super TestClassResult> visitor) {
+        testClasses.values().each {
+            visitor.execute(it)
+        }
     }
 
     private static class BuildableTestClassResult extends TestClassResult {

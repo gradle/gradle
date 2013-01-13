@@ -19,7 +19,8 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
-import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
+import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -56,7 +57,7 @@ public class TestReport extends DefaultTask {
 
     @TaskAction
     void generateReport() {
-        BinaryResultBackedTestResultsProvider resultsProvider = new BinaryResultBackedTestResultsProvider(testResultDirs);
+        TestResultsProvider resultsProvider = new AggregateTestResultsProvider(testResultDirs);
         DefaultTestReport testReport = new DefaultTestReport();
         testReport.generateReport(resultsProvider, getDestinationDir());
     }

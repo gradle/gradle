@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report;
 
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
@@ -50,22 +51,23 @@ public class DefaultTestReport implements TestReporter {
     }
 
     private AllTestResults loadModelFromProvider(TestResultsProvider resultsProvider) {
-        Iterable<TestClassResult> results = resultsProvider.getResults();
-        AllTestResults model = new AllTestResults();
-        for (TestClassResult classResult : results) {
-            List<TestMethodResult> collectedResults = classResult.getResults();
-            for (TestMethodResult collectedResult : collectedResults) {
-                final TestResult testResult = model.addTest(classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
-                if (collectedResult.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
-                    testResult.ignored();
-                } else {
-                    List<Throwable> failures = collectedResult.getExceptions();
-                    for (Throwable throwable : failures) {
-                        testResult.addFailure(throwable.getMessage(), stackTrace(throwable));
+        final AllTestResults model = new AllTestResults();
+        resultsProvider.visitClasses(new Action<TestClassResult>() {
+            public void execute(TestClassResult classResult) {
+                List<TestMethodResult> collectedResults = classResult.getResults();
+                for (TestMethodResult collectedResult : collectedResults) {
+                    final TestResult testResult = model.addTest(classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
+                    if (collectedResult.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
+                        testResult.ignored();
+                    } else {
+                        List<Throwable> failures = collectedResult.getExceptions();
+                        for (Throwable throwable : failures) {
+                            testResult.addFailure(throwable.getMessage(), stackTrace(throwable));
+                        }
                     }
                 }
             }
-        }
+        });
         return model;
     }
 

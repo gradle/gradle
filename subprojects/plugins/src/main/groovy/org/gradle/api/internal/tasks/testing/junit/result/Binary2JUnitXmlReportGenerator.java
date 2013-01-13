@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -44,20 +45,21 @@ public class Binary2JUnitXmlReportGenerator {
 
     public void generate() {
         Clock clock = new Clock();
-        Iterable<TestClassResult> results = testResultsProvider.getResults();
-        for (TestClassResult result : results) {
-            File file = new File(testResultsDir, "TEST-" + result.getClassName() + ".xml");
-            OutputStream output = null;
-            try {
-                output = new BufferedOutputStream(new FileOutputStream(file));
-                saxWriter.write(result, output);
-                output.close();
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not write XML test results for %s to file %s.", result.getClassName(), file), e);
-            } finally {
-                IOUtils.closeQuietly(output);
+        testResultsProvider.visitClasses(new Action<TestClassResult>() {
+            public void execute(TestClassResult result) {
+                File file = new File(testResultsDir, "TEST-" + result.getClassName() + ".xml");
+                OutputStream output = null;
+                try {
+                    output = new BufferedOutputStream(new FileOutputStream(file));
+                    saxWriter.write(result, output);
+                    output.close();
+                } catch (Exception e) {
+                    throw new GradleException(String.format("Could not write XML test results for %s to file %s.", result.getClassName(), file), e);
+                } finally {
+                    IOUtils.closeQuietly(output);
+                }
             }
-        }
+        });
         LOG.info("Finished generating test XML results (" + clock.getTime() + ")");
     }
 

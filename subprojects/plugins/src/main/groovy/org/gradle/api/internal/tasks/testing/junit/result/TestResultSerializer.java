@@ -18,13 +18,16 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.internal.Message;
 
 import java.io.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class TestResultSerializer {
     private static final int RESULT_VERSION = 1;
@@ -75,7 +78,7 @@ public class TestResultSerializer {
         }
     }
 
-    public Collection<TestClassResult> read(File inputDir) {
+    public void read(File inputDir, Action<? super TestClassResult> visitor) {
         try {
             InputStream inputStream = new FileInputStream(new File(inputDir, "results.bin"));
             try {
@@ -84,7 +87,7 @@ public class TestResultSerializer {
                 if (version != RESULT_VERSION) {
                     throw new IllegalArgumentException(String.format("Unexpected result file version %d found in %s.", version, inputDir));
                 }
-                return readResults(input);
+                readResults(input, visitor);
             } finally {
                 inputStream.close();
             }
@@ -93,14 +96,12 @@ public class TestResultSerializer {
         }
     }
 
-    private Collection<TestClassResult> readResults(Input input) throws ClassNotFoundException, IOException {
-        Collection<TestClassResult> results = new ArrayList<TestClassResult>();
+    private void readResults(Input input, Action<? super TestClassResult> visitor) throws ClassNotFoundException, IOException {
         int classCount = input.readInt(true);
         for (int i = 0; i < classCount; i++) {
             TestClassResult classResult = readClassResult(input);
-            results.add(classResult);
+            visitor.execute(classResult);
         }
-        return results;
     }
 
     private TestClassResult readClassResult(Input input) throws IOException, ClassNotFoundException {

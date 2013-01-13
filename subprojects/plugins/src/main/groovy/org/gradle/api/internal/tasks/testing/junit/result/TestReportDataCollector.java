@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.*;
 
 import java.io.File;
@@ -23,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Assembles test results. Keeps a copy of the results in memory to provide them later and spools test output to file.
+ *
  * by Szczepan Faber, created at: 11/13/12
  */
 public class TestReportDataCollector extends AbstractTestResultProvider implements TestListener, TestOutputListener {
@@ -81,8 +84,9 @@ public class TestReportDataCollector extends AbstractTestResultProvider implemen
         cachingFileWriter.write(outputsFile(className, outputEvent.getDestination()), outputEvent.getMessage());
     }
 
-    public Iterable<TestClassResult> getResults() {
-        return results.values();
+    public void visitClasses(Action<? super TestClassResult> visitor) {
+        for (TestClassResult classResult : results.values()) {
+            visitor.execute(classResult);
+        }
     }
-
 }

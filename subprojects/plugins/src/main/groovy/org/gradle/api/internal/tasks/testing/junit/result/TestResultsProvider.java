@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.Writer;
@@ -24,10 +25,13 @@ import java.io.Writer;
  * by Szczepan Faber, created at: 11/16/12
  */
 public interface TestResultsProvider {
+    /**
+     * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(org.gradle.api.Action)}.
+     */
     void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer);
 
     /**
-     * Returns the results of each test class, in no specific order.
+     * Visits the results of each test class, in no specific order. Each class is visited exactly once.
      */
-    Iterable<TestClassResult> getResults();
+    void visitClasses(Action<? super TestClassResult> visitor);
 }

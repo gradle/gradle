@@ -16,36 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.Action;
 
 import java.io.File;
-import java.io.Writer;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
-public class BinaryResultBackedTestResultsProvider implements TestResultsProvider {
-    private final Iterable<File> binaryResultDirs;
-    private Map<String, TestClassResult> results;
-
-    public BinaryResultBackedTestResultsProvider(Iterable<File> binaryResultDirs) {
-        this.binaryResultDirs = binaryResultDirs;
+public class BinaryResultBackedTestResultsProvider extends AbstractTestResultProvider {
+    public BinaryResultBackedTestResultsProvider(File resultsDir) {
+        super(resultsDir);
     }
 
-    public Iterable<TestClassResult> getResults() {
-        if (results == null) {
-            TestResultSerializer serializer = new TestResultSerializer();
-            results = new HashMap<String, TestClassResult>();
-            for (File dir : binaryResultDirs) {
-                Collection<TestClassResult> classResults = serializer.read(dir);
-                for (TestClassResult classResult : classResults) {
-                    results.put(classResult.getClassName(), classResult);
-                }
-            }
-        }
-        return results.values();
-    }
-
-    public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
+    public void visitClasses(final Action<? super TestClassResult> visitor) {
+        new TestResultSerializer().read(getResultsDir(), visitor);
     }
 }
