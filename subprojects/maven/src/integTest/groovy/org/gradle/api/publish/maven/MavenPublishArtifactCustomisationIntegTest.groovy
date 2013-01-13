@@ -15,8 +15,8 @@
  */
 
 package org.gradle.api.publish.maven
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
 
@@ -94,7 +94,6 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt")
     }
 
-    @Ignore("Not yet implemented: requires MavenPublication.getArtifacts() to be added to api")
     def "can configure custom artifacts post creation"() {
         given:
         createBuildScripts("""

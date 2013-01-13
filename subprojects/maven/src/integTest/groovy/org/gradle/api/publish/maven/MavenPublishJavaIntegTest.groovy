@@ -72,6 +72,32 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
         mavenModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9.pom", "publishTest-1.9-source.jar")
     }
 
+    public void "can configure artifacts added from component"() {
+        given:
+        createBuildScripts("""
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+            publishing.publications.maven.artifacts.each {
+                if (it.extension == 'jar') {
+                    it.classifier = 'classified'
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+        mavenModule.assertPublished()
+        mavenModule.assertArtifactsPublished("publishTest-1.9-classified.jar", "publishTest-1.9.pom")
+    }
+
     def createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "
 

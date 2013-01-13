@@ -104,6 +104,12 @@ public interface MavenPublication extends Publication {
      * @param source The source of the artifact.
      * @param config An action to configure the values of the constructed {@link MavenArtifact}.
      */
-     MavenArtifact artifact(Object source, Action<MavenArtifact> config);
+    MavenArtifact artifact(Object source, Action<MavenArtifact> config);
+
+    /**
+     * Returns the complete set of artifacts for this publication.
+     * @return the artifacts.
+     */
+    MavenArtifactSet getArtifacts();
 
 }

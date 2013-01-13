@@ -17,26 +17,20 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
@@ -45,8 +39,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
     private final File pomDir;
-    private final MavenArtifactSet mavenArtifacts = new MavenArtifactSet();
-    private final NotationParser<MavenArtifact> mavenArtifactParser;
+    private final DefaultMavenArtifactSet mavenArtifacts;
     private SoftwareComponentInternal component;
 
     public DefaultMavenPublication(
@@ -56,7 +49,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.pom = mavenPom;
         this.projectIdentity = projectIdentity;
         this.pomDir = pomDir;
-        this.mavenArtifactParser = mavenArtifactParser;
+        mavenArtifacts = new DefaultMavenArtifactSet(mavenArtifactParser);
     }
 
     public String getName() {
@@ -84,15 +77,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenArtifact artifact(Object source) {
-        MavenArtifact artifact = mavenArtifactParser.parseNotation(source);
-        mavenArtifacts.add(artifact);
-        return artifact;
+        return mavenArtifacts.add(source);
     }
 
     public MavenArtifact artifact(Object source, Action<MavenArtifact> config) {
-        MavenArtifact artifact = artifact(source);
-        config.execute(artifact);
-        return artifact;
+        return mavenArtifacts.add(source, config);
+    }
+
+    public MavenArtifactSet getArtifacts() {
+        return mavenArtifacts;
     }
 
     public FileCollection getPublishableFiles() {
@@ -106,47 +99,5 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public File getPomDir() {
         return pomDir;
-    }
-
-    private static class MavenArtifactSet extends DefaultDomainObjectSet<MavenArtifact> {
-        private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
-        private final ArtifactsFileCollection files = new ArtifactsFileCollection();
-        public MavenArtifactSet() {
-            super(MavenArtifact.class);
-        }
-
-        public FileCollection getFiles() {
-            return files;
-        }
-
-        private class ArtifactsFileCollection extends AbstractFileCollection {
-
-            public String getDisplayName() {
-                return "maven artifacts";
-            }
-
-            @Override
-            public TaskDependency getBuildDependencies() {
-                return builtBy;
-            }
-
-            public Set<File> getFiles() {
-                Set<File> files = new LinkedHashSet<File>();
-                for (MavenArtifact artifact : MavenArtifactSet.this) {
-                    files.add(artifact.getFile());
-                }
-                return files;
-            }
-        }
-
-        private class ArtifactsTaskDependency extends AbstractTaskDependency {
-            public void resolve(TaskDependencyResolveContext context) {
-                for (MavenArtifact mavenArtifact : MavenArtifactSet.this) {
-                    if (mavenArtifact instanceof Buildable) {
-                        context.add(mavenArtifact);
-                    }
-                }
-            }
-        }
     }
 }
