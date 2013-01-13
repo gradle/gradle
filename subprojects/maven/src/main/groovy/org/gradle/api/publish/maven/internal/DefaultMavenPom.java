@@ -17,13 +17,21 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.XmlProvider;
 import org.gradle.listener.ActionBroadcast;
 
+import java.util.Set;
+
 public class DefaultMavenPom implements MavenPomInternal {
 
     private final ActionBroadcast<XmlProvider> xmlAction = new ActionBroadcast<XmlProvider>();
+    private final MavenPublicationInternal mavenPublication;
+
+    public DefaultMavenPom(MavenPublicationInternal mavenPublication) {
+        this.mavenPublication = mavenPublication;
+    }
 
     public void withXml(Action<? super XmlProvider> action) {
         xmlAction.add(new UserCodeAction<XmlProvider>("Could not apply withXml() to generated POM", action));
@@ -33,4 +41,11 @@ public class DefaultMavenPom implements MavenPomInternal {
         return xmlAction;
     }
 
+    public MavenProjectIdentity getProjectIdentity() {
+        return mavenPublication.asNormalisedPublication();
+    }
+
+    public Set<Dependency> getRuntimeDependencies() {
+        return mavenPublication.getRuntimeDependencies();
+    }
 }

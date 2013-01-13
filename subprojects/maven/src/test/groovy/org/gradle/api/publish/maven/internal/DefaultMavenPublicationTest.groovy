@@ -22,8 +22,9 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.notations.api.NotationParser
-import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
+import org.gradle.api.publish.maven.MavenArtifact
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
@@ -42,14 +43,13 @@ public class DefaultMavenPublicationTest extends Specification {
         artifactFile << "some content"
     }
 
-    def "pom, name and pomDir properties passed through"() {
+    def "pom and name properties passed through"() {
         when:
         def publication = createPublication()
 
         then:
         publication.pom == mavenPom
         publication.name == "pub-name"
-        publication.pomDir == pomDir
     }
 
     def "empty publishableFiles and artifacts when no component is added"() {
@@ -59,7 +59,7 @@ public class DefaultMavenPublicationTest extends Specification {
         then:
         publication.publishableFiles.isEmpty()
         publication.asNormalisedPublication().artifacts.empty
-        publication.asNormalisedPublication().runtimeDependencies.empty
+        publication.runtimeDependencies.empty
     }
 
     def "publishableFiles and artifacts when taken from added component"() {
@@ -86,7 +86,7 @@ public class DefaultMavenPublicationTest extends Specification {
 
         and:
         normalisedPublication.artifacts == [mavenArtifact] as Set
-        normalisedPublication.runtimeDependencies == dependencySet
+        publication.runtimeDependencies == dependencySet
     }
 
     def "cannot add multiple components"() {
@@ -252,6 +252,6 @@ public class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        return new DefaultMavenPublication("pub-name", mavenPom, projectIdentity, pomDir, notationParser)
+        return new DefaultMavenPublication("pub-name", projectIdentity, notationParser, new DirectInstantiator());
     }
 }

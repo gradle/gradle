@@ -16,19 +16,23 @@
 
 package org.gradle.api.publish.maven.internal;
 
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.maven.MavenPublication;
 
-import java.io.File;
+import java.util.Set;
 
 public interface MavenPublicationInternal extends MavenPublication {
 
     MavenPomInternal getPom();
 
+    void setPomFile(FileCollection pomFile);
+
     FileCollection getPublishableFiles();
+
+    Set<Dependency> getRuntimeDependencies();
 
     MavenNormalizedPublication asNormalisedPublication();
 
-    File getPomDir();
 }
 

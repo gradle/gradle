@@ -108,6 +108,48 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         module.parsedPom.description == description
     }
 
+    def "can generate pom file without publishing"() {
+        given:
+        settingsFile << "rootProject.name = 'generatePom'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    emptyMaven(MavenPublication) {
+                        pom.withXml {
+                            asNode().appendNode('description', "Test for pom generation")
+                        }
+                    }
+                }
+            }
+            generatePomFileForEmptyMavenPublication {
+                destination = 'build/generated-pom.xml'
+            }
+        """
+
+        when:
+        run "generatePomFileForEmptyMavenPublication"
+
+        then:
+        def mavenModule = mavenRepo.module("org.gradle.test", "generatePom", "1.0")
+        mavenModule.assertNotPublished()
+
+        and:
+        file('build/generated-pom.xml').assertIsFile()
+        def pom = new org.gradle.test.fixtures.maven.MavenPom(file('build/generated-pom.xml'))
+        pom.groupId == "org.gradle.test"
+        pom.artifactId == "generatePom"
+        pom.version == "1.0"
+        pom.description == "Test for pom generation"
+    }
+
     def "has reasonable error message when withXml fails"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -135,7 +177,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'")
+        failure.assertHasDescription("Execution failed for task ':generatePomFileForMavenPublication'")
         failure.assertHasCause("Could not apply withXml() to generated POM")
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
     }

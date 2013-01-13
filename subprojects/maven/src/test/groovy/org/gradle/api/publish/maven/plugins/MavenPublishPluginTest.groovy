@@ -186,19 +186,4 @@ class MavenPublishPluginTest extends Specification {
             version == "changed-version"
         }
     }
-
-    def "pom dir moves with build dir"() {
-        when:
-        publishing.publications.add("test", MavenPublication)
-
-        then:
-        publishing.publications.test.pomDir == new File(project.buildDir, "publications/test")
-
-        when:
-        def newBuildDir = project.file("changed")
-        project.buildDir = newBuildDir
-
-        then:
-        publishing.publications.test.pomDir == new File(newBuildDir, "publications/test")
-    }
 }

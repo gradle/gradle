@@ -23,13 +23,14 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
+import org.gradle.internal.reflect.Instantiator;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
@@ -38,18 +39,17 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final String name;
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
-    private final File pomDir;
     private final DefaultMavenArtifactSet mavenArtifacts;
+    private FileCollection pomFile;
     private SoftwareComponentInternal component;
 
     public DefaultMavenPublication(
-            String name, MavenPomInternal mavenPom, MavenProjectIdentity projectIdentity, File pomDir, NotationParser<MavenArtifact> mavenArtifactParser
+            String name, MavenProjectIdentity projectIdentity, NotationParser<MavenArtifact> mavenArtifactParser, Instantiator instantiator
     ) {
         this.name = name;
-        this.pom = mavenPom;
         this.projectIdentity = projectIdentity;
-        this.pomDir = pomDir;
         mavenArtifacts = new DefaultMavenArtifactSet(mavenArtifactParser);
+        pom = instantiator.newInstance(DefaultMavenPom.class, this);
     }
 
     public String getName() {
@@ -58,6 +58,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public MavenPomInternal getPom() {
         return pom;
+    }
+
+    public void setPomFile(FileCollection pomFile) {
+        this.pomFile = pomFile;
     }
 
     public void pom(Action<? super MavenPom> configure) {
@@ -96,17 +100,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
-        return mavenArtifacts.getFiles();
+        return new UnionFileCollection(mavenArtifacts.getFiles(), pomFile);
+    }
+
+    public Set<Dependency> getRuntimeDependencies() {
+        return component == null ? Collections.<Dependency>emptySet() : component.getRuntimeDependencies();
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
-        Set<Dependency> runtimeDependencies = component == null ? Collections.<Dependency>emptySet() : component.getRuntimeDependencies();
-        MavenNormalizedPublication normalizedPublication = new MavenNormalizedPublication(projectIdentity, mavenArtifacts, runtimeDependencies, pom.getXmlAction());
-        normalizedPublication.validate();
+        MavenNormalizedPublication normalizedPublication = new MavenNormalizedPublication(projectIdentity, pomFile.getSingleFile(), mavenArtifacts);
+        normalizedPublication.validateModel();
         return normalizedPublication;
-    }
-
-    public File getPomDir() {
-        return pomDir;
     }
 }

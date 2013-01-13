@@ -17,14 +17,12 @@
 package org.gradle.api.publish.maven.internal;
 
 import org.apache.commons.lang.ObjectUtils;
-import org.gradle.api.Action;
-import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -33,14 +31,12 @@ import java.util.Set;
 public class MavenNormalizedPublication implements MavenProjectIdentity {
 
     private final MavenProjectIdentity projectIdentity;
+    private final File pomFile;
     private final Set<MavenArtifact> artifacts;
-    private final Set<Dependency> runtimeDependencies;
-    private final Action<XmlProvider> pomWithXmlAction;
 
-    public MavenNormalizedPublication(MavenProjectIdentity projectIdentity, Set<MavenArtifact> artifacts, Set<Dependency> runtimeDependencies, Action<XmlProvider> pomWithXmlAction) {
+    public MavenNormalizedPublication(MavenProjectIdentity projectIdentity, File pomFile, Set<MavenArtifact> artifacts) {
         this.projectIdentity = projectIdentity;
-        this.runtimeDependencies = runtimeDependencies;
-        this.pomWithXmlAction = pomWithXmlAction;
+        this.pomFile = pomFile;
         this.artifacts = artifacts;
     }
 
@@ -61,6 +57,10 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
             return projectIdentity.getPackaging();
         }
         return getMainArtifact() == null ? "pom" : getMainArtifact().getExtension();
+    }
+
+    public File getPomFile() {
+        return pomFile;
     }
 
     public MavenArtifact getMainArtifact() {
@@ -104,17 +104,12 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
         return artifacts;
     }
 
-    public Set<Dependency> getRuntimeDependencies() {
-        return runtimeDependencies;
-    }
-
-    public Action<XmlProvider> getPomWithXmlAction() {
-        return pomWithXmlAction;
-    }
-
-    public void validate() {
+    public void validateModel() {
         getMainArtifact();
         getAdditionalArtifacts();
+    }
+
+    public void validateArtifacts() {
         for (MavenArtifact artifact : artifacts) {
             if (artifact.getFile() == null || !artifact.getFile().exists()) {
                 throw new InvalidMavenPublicationException(String.format("Attempted to publish an artifact that does not exist: '%s'", artifact.getFile()));

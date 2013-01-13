@@ -28,6 +28,8 @@ public interface IvyPublicationInternal extends IvyPublication {
 
     IvyModuleDescriptorInternal getDescriptor();
 
+    void setDescriptorArtifact(PublishArtifact descriptorArtifact);
+
     FileCollection getPublishableFiles();
 
     Module getModule();
@@ -35,6 +37,4 @@ public interface IvyPublicationInternal extends IvyPublication {
     IvyNormalizedPublication asNormalisedPublication();
 
     Set<? extends Configuration> getConfigurations();
-
-    void setDescriptorArtifact(PublishArtifact descriptorArtifact);
 }

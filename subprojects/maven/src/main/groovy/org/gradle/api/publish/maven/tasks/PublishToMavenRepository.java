@@ -19,15 +19,10 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.publication.maven.internal.MavenPomMetaInfoProvider;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.MavenPublication;
-import org.gradle.api.publish.maven.internal.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.MavenPublisher;
 import org.gradle.api.tasks.TaskAction;
@@ -35,7 +30,6 @@ import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
@@ -50,14 +44,10 @@ public class PublishToMavenRepository extends DefaultTask {
     private MavenArtifactRepository repository;
 
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
-    private final FileResolver fileResolver;
-    private final ArtifactPublicationServices publicationServices;
 
     @Inject
-    public PublishToMavenRepository(ArtifactPublicationServices publicationServices, Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver) {
+    public PublishToMavenRepository(Factory<LoggingManagerInternal> loggingManagerFactory) {
         this.loggingManagerFactory = loggingManagerFactory;
-        this.fileResolver = fileResolver;
-        this.publicationServices = publicationServices;
 
 
         // Allow the publication to participate in incremental build
@@ -150,24 +140,9 @@ public class PublishToMavenRepository extends DefaultTask {
         new PublishOperation(publication, repository) {
             @Override
             protected void publish() throws Exception {
-                Factory<Configuration> configurationFactory = new Factory<Configuration>() {
-                    public Configuration create() {
-                        return getProject().getConfigurations().detachedConfiguration();
-                    }
-                };
-                MavenPublisher publisher = new MavenPublisher(configurationFactory, loggingManagerFactory, fileResolver, getProject().getConfigurations(), getTemporaryDirFactory(), getPomMetaInfoProvider());
-                MavenNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
-                publisher.publish(normalizedPublication, repository);
+                MavenPublisher publisher = new MavenPublisher(loggingManagerFactory, getTemporaryDirFactory());
+                publisher.publish(publication.asNormalisedPublication(), repository);
             }
         }.run();
     }
-
-    private MavenPomMetaInfoProvider getPomMetaInfoProvider() {
-        return new MavenPomMetaInfoProvider() {
-            public File getMavenPomDir() {
-                return publication.getPomDir();
-            }
-        };
-    }
-
 }

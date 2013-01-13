@@ -66,6 +66,10 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         TaskContainer tasks = project.getTasks();
 
+        // Create generatePom tasks for any Maven publication
+        GeneratePomTaskCreator descriptorGenerationTaskCreator = new GeneratePomTaskCreator(project);
+        descriptorGenerationTaskCreator.monitor(extension.getPublications());
+
         // Create publish tasks automatically for any Maven publication and repository combinations
         Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
         MavenPublishDynamicTaskCreator publishTaskCreator = new MavenPublishDynamicTaskCreator(tasks, publishLifecycleTask);
@@ -90,26 +94,14 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         public MavenPublication create(final String name) {
 
-            Callable<Object> pomDirCallable = new Callable<Object>() {
-                public Object call() {
-                    return new File(project.getBuildDir(), "publications/" + name);
-                }
-            };
-
             Module module = dependencyMetaDataProvider.getModule();
             MavenArtifactNotationParser artifactNotationParser = new MavenArtifactNotationParser(instantiator, module, project);
-            MavenPomInternal mavenPom = instantiator.newInstance(DefaultMavenPom.class);
             ModuleBackedMavenProjectIdentity projectIdentity = new ModuleBackedMavenProjectIdentity(module);
 
-            DefaultMavenPublication publication = instantiator.newInstance(
+            return instantiator.newInstance(
                     DefaultMavenPublication.class,
-                    name, mavenPom, projectIdentity, null, artifactNotationParser
+                    name, projectIdentity, artifactNotationParser, instantiator
             );
-
-            ConventionMapping descriptorConventionMapping = new DslObject(publication).getConventionMapping();
-            descriptorConventionMapping.map("pomDir", pomDirCallable);
-
-            return publication;
         }
     }
 }

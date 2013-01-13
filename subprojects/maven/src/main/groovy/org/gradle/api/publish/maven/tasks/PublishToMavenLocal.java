@@ -40,7 +40,7 @@ public class PublishToMavenLocal extends PublishToMavenRepository {
     @Inject
     public PublishToMavenLocal(ArtifactPublicationServices publicationServices, Factory<LoggingManagerInternal> loggingManagerFactory,
                                FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices) {
-        super(publicationServices, loggingManagerFactory, fileResolver);
+        super(loggingManagerFactory);
         this.baseRepositoryFactory = dependencyResolutionServices.getBaseRepositoryFactory();
     }
 
