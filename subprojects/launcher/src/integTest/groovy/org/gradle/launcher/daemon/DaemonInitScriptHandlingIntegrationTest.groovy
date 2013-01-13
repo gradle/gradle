@@ -75,9 +75,6 @@ class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
         then:
         distro2Result.output.contains "from distro 2"
         distro1Result.output.contains "runtime gradle home: ${distro1.absolutePath}"
-
-        cleanup:
-        stopDaemonsNow()
     }
 
 }
