@@ -2,7 +2,7 @@
 :processResources UP-TO-DATE
 :classes
 :jar
-:publishMavenPublicationToMavenRepository
+:publishMavenJavaPublicationToMavenRepository
 :publish
 
 BUILD SUCCESSFUL
