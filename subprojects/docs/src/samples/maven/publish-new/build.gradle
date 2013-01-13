@@ -33,7 +33,7 @@ publishing {
 // END SNIPPET minimal-build
 // START SNIPPET pom-modification
     publications {
-        maven {
+        mavenJava {
             pom.withXml {
                 asNode().appendNode('description', 'A demonstration of maven pom customisation')
             }
