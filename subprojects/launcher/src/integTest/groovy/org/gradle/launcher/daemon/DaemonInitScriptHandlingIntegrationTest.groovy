@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
@@ -26,7 +28,7 @@ import spock.lang.Issue
  * Tests that init scripts are used from the _clients_ GRADLE_HOME, not the daemon server's.
  */
 @Issue("http://issues.gradle.org/browse/GRADLE-2408")
-class DaemonInitScriptHandlingTest extends DaemonIntegrationSpec {
+class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
 
     TestFile createDistribution(int i) {
         def distro = file("distro$i")
@@ -53,7 +55,7 @@ class DaemonInitScriptHandlingTest extends DaemonIntegrationSpec {
         and:
         buildFile << """
             echo.doLast {
-                println "runtime gradle home: \${new org.gradle.api.internal.classpath.DefaultModuleRegistry().gradleHome.absolutePath}"
+                println "runtime gradle home: \${gradle.gradleHomeDir}"
             }
         """
 

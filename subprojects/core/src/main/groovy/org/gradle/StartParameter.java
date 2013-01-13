@@ -473,6 +473,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * @return All init scripts, including explicit init scripts and implicit init scripts.
      */
+    @Incubating
     public List<File> getAllInitScripts() {
         CompositeInitScriptFinder initScriptFinder = new CompositeInitScriptFinder(
                 new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir)
