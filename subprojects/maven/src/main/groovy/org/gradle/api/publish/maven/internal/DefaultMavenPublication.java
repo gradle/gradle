@@ -94,7 +94,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public MavenNormalizedPublication asNormalisedPublication() {
         Set<Dependency> runtimeDependencies = component == null ? Collections.<Dependency>emptySet() : component.getRuntimeDependencies();
-        return new MavenNormalizedPublication(projectIdentity, mavenArtifacts, runtimeDependencies, pom.getXmlAction());
+        MavenNormalizedPublication normalizedPublication = new MavenNormalizedPublication(projectIdentity, mavenArtifacts, runtimeDependencies, pom.getXmlAction());
+        normalizedPublication.validate();
+        return normalizedPublication;
     }
 
     public File getPomDir() {

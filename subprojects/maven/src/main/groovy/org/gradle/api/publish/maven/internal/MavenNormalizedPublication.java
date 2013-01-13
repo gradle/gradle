@@ -16,12 +16,16 @@
 
 package org.gradle.api.publish.maven.internal;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -59,20 +63,39 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
     }
 
     public MavenArtifact getMainArtifact() {
-        for (MavenArtifact artifact : artifacts) {
-            if (artifact.getClassifier() == null || artifact.getClassifier().length() == 0) {
-                return artifact;
+        Set<MavenArtifact> candidateMainArtifacts = CollectionUtils.filter(artifacts, new Spec<MavenArtifact>() {
+            public boolean isSatisfiedBy(MavenArtifact element) {
+                return element.getClassifier() == null || element.getClassifier().length() == 0;
             }
+        });
+        if (candidateMainArtifacts.isEmpty()) {
+            return null;
         }
-        return null;
+        if (candidateMainArtifacts.size() > 1) {
+            throw new MavenPublishException("Cannot determine main artifact: multiple artifacts found with empty classifier.");
+        }
+        return candidateMainArtifacts.iterator().next();
     }
 
     public Set<MavenArtifact> getAdditionalArtifacts() {
         if (artifacts.isEmpty()) {
             return Collections.emptySet();
         }
-        Set<MavenArtifact> additionalArtifacts = new LinkedHashSet<MavenArtifact>(artifacts);
-        additionalArtifacts.remove(getMainArtifact());
+        MavenArtifact mainArtifact = getMainArtifact();
+        Set<ArtifactKey> keys = new HashSet<ArtifactKey>();
+        Set<MavenArtifact> additionalArtifacts = new LinkedHashSet<MavenArtifact>();
+        for (MavenArtifact artifact : artifacts) {
+            if (artifact == mainArtifact) {
+                continue;
+            }
+            ArtifactKey key = new ArtifactKey(artifact);
+            if (keys.contains(key)) {
+                throw new MavenPublishException(String.format("Cannot publish 2 artifacts with the identical extension '%s' and classifier '%s'.",
+                        artifact.getExtension(), artifact.getClassifier()));
+            }
+            keys.add(key);
+            additionalArtifacts.add(artifact);
+        }
         return additionalArtifacts;
     }
 
@@ -86,5 +109,36 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
 
     public Action<XmlProvider> getPomWithXmlAction() {
         return pomWithXmlAction;
+    }
+
+    public void validate() {
+        getMainArtifact();
+        getAdditionalArtifacts();
+        for (MavenArtifact artifact : artifacts) {
+            if (artifact.getFile() == null || !artifact.getFile().exists()) {
+                throw new MavenPublishException(String.format("Attempted to publish an artifact that does not exist: '%s'", artifact.getFile()));
+            }
+        }
+    }
+
+    private static class ArtifactKey {
+        private final String extension;
+        private final String classifier;
+
+        public ArtifactKey(MavenArtifact artifact) {
+            this.extension = artifact.getExtension();
+            this.classifier = artifact.getClassifier();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            ArtifactKey other = (ArtifactKey) o;
+            return ObjectUtils.equals(extension, other.extension) && ObjectUtils.equals(classifier, other.classifier);
+        }
+
+        @Override
+        public int hashCode() {
+            return ObjectUtils.hashCode(extension) ^ ObjectUtils.hashCode(classifier);
+        }
     }
 }

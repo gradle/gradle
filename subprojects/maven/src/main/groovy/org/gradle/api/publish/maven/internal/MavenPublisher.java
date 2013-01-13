@@ -23,6 +23,7 @@ import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -41,7 +42,6 @@ import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
-import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,19 +72,11 @@ public class MavenPublisher {
     }
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
-        validatePublication(publication);
-
         File pomFile = createPomFile(publication);
 
         MavenPublishAntTaskAdapter mavenPublishAntTaskAdapter = new MavenPublishAntTaskAdapter(loggingManagerFactory.create());
         logger.info("Publishing to repository {}", mavenPublishAntTaskAdapter);
         mavenPublishAntTaskAdapter.publishToMavenRepository(artifactRepository, pomFile, publication.getMainArtifact(), publication.getAdditionalArtifacts());
-    }
-
-    private void validatePublication(MavenNormalizedPublication publication) {
-        for (MavenArtifact publishArtifact : publication.getArtifacts()) {
-            checkArtifactFileExists(publishArtifact);
-        }
     }
 
     private File createPomFile(MavenNormalizedPublication publication) {
@@ -115,13 +107,6 @@ public class MavenPublisher {
         pom.setGroupId(projectIdentity.getGroupId());
         pom.setVersion(projectIdentity.getVersion());
         pom.setPackaging(projectIdentity.getPackaging());
-    }
-
-    private void checkArtifactFileExists(MavenArtifact publishArtifact) {
-        if (!publishArtifact.getFile().exists()) {
-            String message = String.format("Attempted to publish an artifact that does not exist '%s'", publishArtifact.getFile());
-            DeprecationLogger.nagUserOfDeprecatedBehaviour(message);
-        }
     }
 
     private static class MavenPublishPomDependenciesConverter extends DefaultPomDependenciesConverter {

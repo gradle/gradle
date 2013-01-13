@@ -33,9 +33,12 @@ public class DefaultMavenPublicationTest extends Specification {
     MavenPomInternal mavenPom = Mock()
     NotationParser<MavenArtifact> notationParser = Mock()
     File pomDir
+    File artifactFile
 
     def "setup"() {
         pomDir = testDirectoryProvider.testDirectory
+        artifactFile = new File(testDirectoryProvider.testDirectory, "artifact-file")
+        artifactFile << "some content"
     }
 
     def "pom, name and pomDir properties passed through"() {
@@ -78,6 +81,7 @@ public class DefaultMavenPublicationTest extends Specification {
         component.runtimeDependencies >> dependencySet
 
         notationParser.parseNotation(artifact) >> mavenArtifact
+        mavenArtifact.file >> artifactFile
 
         and:
         normalisedPublication.artifacts == [mavenArtifact] as Set
@@ -113,12 +117,14 @@ public class DefaultMavenPublicationTest extends Specification {
 
         when:
         publication.artifact notation
+        def normalisedPublication = publication.asNormalisedPublication()
 
         then:
         notationParser.parseNotation(notation) >> mavenArtifact
+        mavenArtifact.file >> artifactFile
 
         and:
-        publication.asNormalisedPublication().artifacts == [mavenArtifact] as Set
+        normalisedPublication.artifacts == [mavenArtifact] as Set
     }
 
     def "attaches and configures artifacts parsed by notation parser"() {
@@ -133,14 +139,90 @@ public class DefaultMavenPublicationTest extends Specification {
                 t.extension = 'changed'
             }
         })
+        def normalisedPublication = publication.asNormalisedPublication()
 
         then:
         notationParser.parseNotation(notation) >> mavenArtifact
+        mavenArtifact.file >> artifactFile
+        mavenArtifact.classifier >> null
         1 * mavenArtifact.setExtension('changed')
         0 * mavenArtifact._
 
         and:
-        publication.asNormalisedPublication().artifacts == [mavenArtifact] as Set
+        normalisedPublication.artifacts == [mavenArtifact] as Set
+    }
+
+    def "cannot publish artifact with file that does not exist"() {
+        def publication = createPublication()
+        Object notation = new Object();
+        MavenArtifact mavenArtifact = Mock()
+        def nonExistentFile = new File(pomDir, 'does-not-exist')
+
+        when:
+        publication.artifact notation
+        publication.asNormalisedPublication()
+
+        then:
+        notationParser.parseNotation(notation) >> mavenArtifact
+        mavenArtifact.file >> nonExistentFile
+
+        and:
+        def t = thrown MavenPublishException
+        t.message == "Attempted to publish an artifact that does not exist: '${nonExistentFile}'"
+    }
+
+    def "cannot publish with ambiguous mainArtifact"() {
+        given:
+        def publication = createPublication()
+        MavenArtifact artifact1 = Stub() {
+            getExtension() >> "ext1"
+        }
+        MavenArtifact artifact2 = Stub() {
+            getExtension() >> "ext2"
+        }
+
+        when:
+        publication.artifact "art1"
+        publication.artifact "art2"
+
+        then:
+        notationParser.parseNotation("art1") >> artifact1
+        notationParser.parseNotation("art2") >> artifact2
+
+        when:
+        publication.asNormalisedPublication()
+
+        then:
+        def t = thrown MavenPublishException
+        t.message == "Cannot determine main artifact: multiple artifacts found with empty classifier."
+    }
+
+    def "cannot publish with duplicate artifacts"() {
+        given:
+        def publication = createPublication()
+        MavenArtifact artifact1 = Stub() {
+            getExtension() >> "ext1"
+            getClassifier() >> "classified"
+        }
+        MavenArtifact artifact2 = Stub() {
+            getExtension() >> "ext1"
+            getClassifier() >> "classified"
+        }
+
+        when:
+        publication.artifact "art1"
+        publication.artifact "art2"
+
+        then:
+        notationParser.parseNotation("art1") >> artifact1
+        notationParser.parseNotation("art2") >> artifact2
+
+        when:
+        publication.asNormalisedPublication()
+
+        then:
+        def t = thrown MavenPublishException
+        t.message == "Cannot publish 2 artifacts with the identical extension 'ext1' and classifier 'classified'."
     }
 
     def createPublication() {
