@@ -31,6 +31,35 @@ The following are the new incubating features or changes to existing incubating 
 
 * respects 'external' task dependencies
 
+### Choose a component to publish with the new ‘maven-publish’ plugin
+
+The incubating ‘maven-publish’ plugin is an alternative to the existing ‘maven’ plugin, and will eventually replace it. This release adds the ability to choose which
+software component should be published to a Maven repository. Presently, the set of components available for publishing is limited to 'java' and 'web', added by the 'java'
+and 'war' plugins respectively.
+
+Publishing the 'web' component to a Maven repository looks like…
+
+    apply plugin: 'war'
+    apply plugin: 'maven-publish'
+
+    group = 'group'
+    version = '1.0'
+
+    // … declare dependencies and other config on how to build
+
+    publishing {
+        repositories {
+            maven {
+                url 'http://mycompany.org/repo'
+            }
+        }
+        publications {
+            mavenWeb(MavenPublication) {
+                from components.web
+            }
+        }
+    }
+
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
@@ -44,9 +73,13 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Changes to new Maven publishing support
+
+Breaking changes have been made to the new, incubating, Maven publishing support.
+
+Previously the 'maven-publish' plugin added a MavenPublication for any java component on the project, which meant that with the 'java' plugin applied no addition configuration
+was required to publish the jar file. It is now necessary to explicitly add a MavenPublication to the 'publishing.publications' container. The added publication can include
+a software component ['java', 'web'], custom artifacts or both. If no MavenPublication is added when using the 'maven-publish' plugin, then nothing will be published.
 
 ## External contributions
 
