@@ -20,9 +20,6 @@ import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.artifact.ant.RemoteRepository;
-import org.apache.tools.ant.Project;
-import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -74,9 +71,8 @@ public class MavenPublisher {
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         File pomFile = createPomFile(publication);
 
-        MavenPublishAntTaskAdapter mavenPublishAntTaskAdapter = new MavenPublishAntTaskAdapter(loggingManagerFactory.create());
-        logger.info("Publishing to repository {}", mavenPublishAntTaskAdapter);
-        mavenPublishAntTaskAdapter.publishToMavenRepository(artifactRepository, pomFile, publication.getMainArtifact(), publication.getAdditionalArtifacts());
+        logger.info("Publishing to repository {}", artifactRepository);
+        doPublish(artifactRepository, pomFile, publication.getMainArtifact(), publication.getAdditionalArtifacts());
     }
 
     private File createPomFile(MavenNormalizedPublication publication) {
@@ -120,26 +116,51 @@ public class MavenPublisher {
         }
     }
 
-    private class MavenPublishAntTaskAdapter {
-        private final LoggingManagerInternal loggingManager;
-        protected MavenSettingsSupplier mavenSettingsSupplier = new EmptyMavenSettingsSupplier();
-        private Factory<CustomDeployTask> deployTaskFactory = new NoInstallDeployTaskFactory(temporaryDirFactory);
+    private void doPublish(MavenArtifactRepository artifactRepository, File pomFile, MavenArtifact mainArtifact, Set<MavenArtifact> additionalArtifacts) {
+        CustomDeployTask deployTask = createDeployTask();
 
-        public MavenPublishAntTaskAdapter(LoggingManagerInternal loggingManager) {
-            this.loggingManager = loggingManager;
+        MavenSettingsSupplier mavenSettingsSupplier = new EmptyMavenSettingsSupplier();
+        mavenSettingsSupplier.supply(deployTask);
+
+        addRepository(deployTask, artifactRepository);
+        addPomAndArtifact(deployTask, pomFile, mainArtifact, additionalArtifacts);
+        execute(deployTask);
+
+        mavenSettingsSupplier.done();
+    }
+
+    private CustomDeployTask createDeployTask() {
+        Factory<CustomDeployTask> deployTaskFactory = new NoInstallDeployTaskFactory(temporaryDirFactory);
+        CustomDeployTask deployTask = deployTaskFactory.create();
+        deployTask.setProject(AntUtil.createProject());
+        deployTask.setUniqueVersion(true);
+        return deployTask;
+    }
+
+    private void addRepository(CustomDeployTask deployTask, MavenArtifactRepository artifactRepository) {
+        RemoteRepository mavenRepository = new MavenDeployerConfigurer(artifactRepository).createRepository();
+        deployTask.addRemoteRepository(mavenRepository);
+    }
+
+    private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, File pomFile, MavenArtifact mainArtifact, Set<MavenArtifact> attachedArtifacts) {
+        Pom pom = new Pom();
+        pom.setProject(installOrDeployTask.getProject());
+        pom.setFile(pomFile);
+        installOrDeployTask.addPom(pom);
+
+        File artifactFile = mainArtifact == null ? pomFile : mainArtifact.getFile();
+        installOrDeployTask.setFile(artifactFile);
+
+        for (MavenArtifact classifierArtifact : attachedArtifacts) {
+            AttachedArtifact attachedArtifact = installOrDeployTask.createAttach();
+            attachedArtifact.setClassifier(classifierArtifact.getClassifier());
+            attachedArtifact.setFile(classifierArtifact.getFile());
+            attachedArtifact.setType(classifierArtifact.getExtension());
         }
+    }
 
-        public void publishToMavenRepository(MavenArtifactRepository artifactRepository, File pomFile, MavenArtifact mainArtifact, Set<MavenArtifact> additionalArtifacts) {
-            RemoteRepository mavenRepository = new MavenDeployerConfigurer(artifactRepository).createRepository();
-            InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject(), mavenRepository);
-            mavenSettingsSupplier.supply(installDeployTaskSupport);
-            ((CustomInstallDeployTaskSupport) installDeployTaskSupport).clearAttachedArtifactsList();
-            addPomAndArtifact(installDeployTaskSupport, pomFile, mainArtifact, additionalArtifacts);
-            execute(installDeployTaskSupport);
-            mavenSettingsSupplier.done();
-        }
-
-        private void execute(InstallDeployTaskSupport deployTask) {
+    private void execute(InstallDeployTaskSupport deployTask) {
+            LoggingManagerInternal loggingManager = loggingManagerFactory.create();
             loggingManager.captureStandardOutput(LogLevel.INFO).start();
             try {
                 deployTask.execute();
@@ -148,45 +169,4 @@ public class MavenPublisher {
             }
         }
 
-        private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, File pomFile, MavenArtifact mainArtifact, Set<MavenArtifact> attachedArtifacts) {
-            Pom pom = new Pom();
-            pom.setProject(installOrDeployTask.getProject());
-            pom.setFile(pomFile);
-            installOrDeployTask.addPom(pom);
-
-            File artifactFile = mainArtifact == null ? pomFile : mainArtifact.getFile();
-            installOrDeployTask.setFile(artifactFile);
-
-            for (MavenArtifact classifierArtifact : attachedArtifacts) {
-                AttachedArtifact attachedArtifact = installOrDeployTask.createAttach();
-                attachedArtifact.setClassifier(classifierArtifact.getClassifier());
-                attachedArtifact.setFile(classifierArtifact.getFile());
-                attachedArtifact.setType(classifierArtifact.getExtension());
-            }
-        }
-
-        protected InstallDeployTaskSupport createPreConfiguredTask(Project project, RemoteRepository repository) {
-            CustomDeployTask deployTask = deployTaskFactory.create();
-            deployTask.setProject(project);
-            deployTask.setUniqueVersion(true);
-            addProtocolProvider(deployTask);
-            deployTask.addRemoteRepository(repository);
-            return deployTask;
-        }
-
-        private void addProtocolProvider(CustomDeployTask deployTask) {
-            PlexusContainer plexusContainer = deployTask.getContainer();
-            for (File wagonProviderJar : getJars()) {
-                try {
-                    plexusContainer.addJarResource(wagonProviderJar);
-                } catch (PlexusContainerException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-
-        private List<File> getJars() {
-            return Collections.emptyList();
-        }
-    }
 }
