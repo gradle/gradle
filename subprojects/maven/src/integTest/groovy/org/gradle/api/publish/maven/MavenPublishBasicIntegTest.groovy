@@ -134,7 +134,7 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         localModule.assertPublishedAsJavaModule()
     }
 
-    def "cannot add multiple components to same publication"() {
+    def "reports failure publishing when model validation fails"() {
         given:
         settingsFile << "rootProject.name = 'bad-project'"
         buildFile << """
@@ -162,38 +162,6 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
         failure.assertHasCause("A MavenPublication cannot include multiple components")
-    }
-
-    def "cannot add multiple publications with the same name"() {
-        given:
-        settingsFile << "rootProject.name = 'bad-project'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'war'
-
-            group = 'org.gradle.test'
-            version = '1.0'
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                    maven(MavenPublication) {
-                        from components.web
-                    }
-                }
-            }
-        """
-        when:
-        fails 'publish'
-
-        then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
-        failure.assertHasCause("Publication with name 'maven' added multiple times")
     }
 
     @Ignore("Not yet implemented - currently the second publication will overwrite") // TODO:DAZ
