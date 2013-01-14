@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
@@ -50,7 +49,6 @@ public class UserHomeInitScriptFinderTest {
         List<File> sourceList = new ArrayList<File>();
         finder.findScripts(sourceList);
         assertThat(sourceList.size(), equalTo(1));
-        assertThat(sourceList.get(0), instanceOf(File.class));
         assertThat(sourceList.get(0), equalTo(initScript));
     }
 
@@ -68,7 +66,6 @@ public class UserHomeInitScriptFinderTest {
         List<File> sourceList = new ArrayList<File>();
         finder.findScripts(sourceList);
         assertThat(sourceList.size(), equalTo(1));
-        assertThat(sourceList.get(0), instanceOf(File.class));
         assertThat(sourceList.get(0), equalTo(initScript));
     }
 }
