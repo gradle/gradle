@@ -35,7 +35,6 @@ import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
@@ -74,6 +73,7 @@ public class TestTest extends AbstractConventionTaskTest {
 
     private File classesDir;
     private File resultsDir;
+    private File binResultsDir;
     private File reportDir;
 
     private JUnit4Mockery context = new JUnit4Mockery() {{
@@ -82,18 +82,17 @@ public class TestTest extends AbstractConventionTaskTest {
 
     TestFramework testFrameworkMock = context.mock(TestFramework.class);
     TestExecuter testExecuterMock = context.mock(TestExecuter.class);
-    OutputEventListener outputListenerMock = context.mock(OutputEventListener.class);
     private FileCollection classpathMock = new SimpleFileCollection(new File("classpath"));
     private Test test;
 
     @Before
     public void setUp() {
-        File rootDir = getProject().getProjectDir();
-        classesDir = new File(rootDir, "testClassesDir");
+        classesDir = tmpDir.createDir("classes");
         File classfile = new File(classesDir, "FileTest.class");
         GFileUtils.touch(classfile);
-        resultsDir = new File(rootDir, "resultDir");
-        reportDir = new File(rootDir, "report/tests");
+        resultsDir = tmpDir.createDir("testResults");
+        binResultsDir = tmpDir.createDir("binResults");
+        reportDir = tmpDir.createDir("report");
 
         test = createTask(Test.class);
     }
@@ -130,7 +129,7 @@ public class TestTest extends AbstractConventionTaskTest {
         final TestReporter testReporter = context.mock(TestReporter.class);
         test.setTestReporter(testReporter);
         context.checking(new Expectations() {{
-            one(testReporter).generateReport(with(any(TestResultsProvider.class)));
+            one(testReporter).generateReport(with(any(TestResultsProvider.class)), with(equal(reportDir)));
         }});
 
         test.executeTests();
@@ -369,6 +368,7 @@ public class TestTest extends AbstractConventionTaskTest {
 
         test.setTestClassesDir(classesDir);
         test.setTestResultsDir(resultsDir);
+        test.setBinResultsDir(binResultsDir);
         test.setTestReportDir(reportDir);
         test.setClasspath(classpathMock);
         test.setTestSrcDirs(Collections.<File>emptyList());

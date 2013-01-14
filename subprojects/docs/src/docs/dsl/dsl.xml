@@ -331,6 +331,9 @@
                 <td>org.gradle.api.tasks.testing.Test</td>
             </tr>
             <tr>
+                <td>org.gradle.api.tasks.testing.TestReport</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.Upload</td>
             </tr>
             <tr>

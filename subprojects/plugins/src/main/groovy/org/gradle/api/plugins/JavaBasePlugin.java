@@ -322,6 +322,11 @@ public class JavaBasePlugin implements Plugin<Project> {
                 return convention.getTestReportDir();
             }
         });
+        test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
+            public Object call() throws Exception {
+                return new File(convention.getTestResultsDir(), String.format("binary/%s", test.getName()));
+            }
+        });
         test.workingDir(project.getProjectDir());
     }
 }

@@ -81,7 +81,6 @@ test {
   useTestNG(){
     useDefaultListeners = true
   }
-
 }
 """
         when:

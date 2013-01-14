@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.r14
 
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -28,7 +27,6 @@ import spock.lang.Issue
 /**
  * Tests that init scripts are used from the _clients_ GRADLE_HOME, not the daemon server's.
  */
-@MinToolingApiVersion('1.4')
 @MinTargetGradleVersion('1.4')
 @Issue("http://issues.gradle.org/browse/GRADLE-2408")
 class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecification {
@@ -66,7 +64,7 @@ class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecific
         and:
         buildFile << """
             echo.doLast {
-                println "runtime gradle home: \${new org.gradle.api.internal.classpath.DefaultModuleRegistry().gradleHome.absolutePath}"
+                println "runtime gradle home: \${gradle.gradleHomeDir}"
             }
         """
 

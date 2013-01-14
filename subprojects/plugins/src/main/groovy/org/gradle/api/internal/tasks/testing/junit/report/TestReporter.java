@@ -20,7 +20,5 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import java.io.File;
 
 public interface TestReporter {
-    void setTestReportDir(File reportDir);
-
-    void generateReport(TestResultsProvider testResultsProvider);
+    void generateReport(TestResultsProvider testResultsProvider, File reportDir);
 }

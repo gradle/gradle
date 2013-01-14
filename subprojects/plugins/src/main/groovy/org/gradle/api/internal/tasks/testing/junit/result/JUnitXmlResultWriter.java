@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Set;
 
 /**
  * by Szczepan Faber, created at: 11/13/12
@@ -42,7 +41,8 @@ public class JUnitXmlResultWriter {
         this.testResultsProvider = testResultsProvider;
     }
 
-    public void write(String className, TestClassResult result, OutputStream output) {
+    public void write(TestClassResult result, OutputStream output) {
+        String className = result.getClassName();
         try {
             SimpleXmlWriter writer = new SimpleXmlWriter(output, "  ");
             writer.startElement("testsuite")
@@ -77,15 +77,15 @@ public class JUnitXmlResultWriter {
         writer.endCDATA();
     }
 
-    private void writeTests(SimpleXmlWriter writer, Set<TestMethodResult> methodResults, String className) throws IOException {
+    private void writeTests(SimpleXmlWriter writer, Iterable<TestMethodResult> methodResults, String className) throws IOException {
         for (TestMethodResult methodResult : methodResults) {
-            String testCase = methodResult.result.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
+            String testCase = methodResult.getResultType() == TestResult.ResultType.SKIPPED ? "ignored-testcase" : "testcase";
             writer.startElement(testCase)
-                    .attribute("name", methodResult.name)
+                    .attribute("name", methodResult.getName())
                     .attribute("classname", className)
                     .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0));
 
-            for (Throwable failure : methodResult.result.getExceptions()) {
+            for (Throwable failure : methodResult.getExceptions()) {
                 writer.startElement("failure")
                         .attribute("message", failureMessage(failure))
                         .attribute("type", failure.getClass().getName());

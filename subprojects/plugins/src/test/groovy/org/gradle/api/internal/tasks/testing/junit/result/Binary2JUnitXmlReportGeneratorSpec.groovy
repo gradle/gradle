@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.api.GradleException
+import org.gradle.api.Action
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -36,30 +37,35 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     }
 
     def "writes results"() {
-        def fooTest = new TestClassResult(100)
+        def fooTest = new TestClassResult('FooTest', 100)
             .add(new TestMethodResult("foo", Mock(TestResult)))
 
-        def barTest = new TestClassResult(100)
+        def barTest = new TestClassResult('BarTest', 100)
             .add(new TestMethodResult("bar", Mock(TestResult)))
             .add(new TestMethodResult("bar2", Mock(TestResult)))
 
-        resultsProvider.getResults() >> ['FooTest': fooTest, 'BarTest': barTest]
+        resultsProvider.visitClasses(_) >> { Action action ->
+            action.execute(fooTest)
+            action.execute(barTest)
+        }
 
         when:
         generator.generate()
 
         then:
-        1 * generator.saxWriter.write('FooTest', fooTest, _)
-        1 * generator.saxWriter.write('BarTest', barTest, _)
+        1 * generator.saxWriter.write(fooTest, _)
+        1 * generator.saxWriter.write(barTest, _)
         0 * generator.saxWriter._
     }
 
     def "adds context information to the failure if something goes wrong"() {
-        def fooTest = new TestClassResult(100)
+        def fooTest = new TestClassResult('FooTest', 100)
                 .add(new TestMethodResult("foo", Mock(TestResult)))
 
-        resultsProvider.getResults() >> ['FooTest': fooTest]
-        generator.saxWriter.write('FooTest', fooTest, _) >> { throw new IOException("Boo!") }
+        resultsProvider.visitClasses(_) >> { Action action ->
+            action.execute(fooTest)
+        }
+        generator.saxWriter.write(fooTest, _) >> { throw new IOException("Boo!") }
 
         when:
         generator.generate()

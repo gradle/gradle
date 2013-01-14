@@ -49,4 +49,8 @@ class DaemonIntegrationSpec extends AbstractIntegrationSpec {
         def result = executer.withArguments("--info").withNoDefaultJvmArgs().run()
         output = result.output
     }
+
+    def cleanup() {
+        stopDaemonsNow()
+    }
 }
