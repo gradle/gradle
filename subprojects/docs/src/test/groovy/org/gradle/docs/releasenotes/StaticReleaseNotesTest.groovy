@@ -16,7 +16,28 @@
 
 package org.gradle.docs.releasenotes
 
-class StaticReleaseNotesTest extends AbstractReleaseNotesTest {
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import spock.lang.Shared
+import spock.lang.Specification
+
+class StaticReleaseNotesTest extends Specification {
+
+    @Shared File sourceFile
+    @Shared String sourceText
+
+    @Shared File renderedFile
+    @Shared Document renderedDocument
+    @Shared String renderedText
+
+    def setupSpec() {
+        def context = new ReleaseNotesTestContext()
+        sourceFile = context.sourceFile
+        sourceText = sourceFile.getText("utf-8")
+        renderedFile = context.renderedFile
+        renderedText = renderedFile.getText("utf-8")
+        renderedDocument = Jsoup.parse(renderedText)
+    }
 
     def "has fixed issues holder"() {
         expect:

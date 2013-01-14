@@ -16,19 +16,7 @@
 
 package org.gradle.docs.releasenotes
 
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import spock.lang.Shared
-import spock.lang.Specification
-
-abstract class AbstractReleaseNotesTest extends Specification {
-
-    @Shared File sourceFile
-    @Shared String sourceText
-
-    @Shared File renderedFile
-    @Shared Document renderedDocument
-    @Shared String renderedText
+class ReleaseNotesTestContext {
 
     private static File getSysPropFile(String property) {
         def value = System.getProperty(property)
@@ -38,12 +26,12 @@ abstract class AbstractReleaseNotesTest extends Specification {
         file
     }
 
-    def setupSpec() {
-        sourceFile = getSysPropFile("org.gradle.docs.releasenotes.source")
-        sourceText = sourceFile.getText("utf-8")
-        renderedFile = getSysPropFile("org.gradle.docs.releasenotes.rendered")
-        renderedText = renderedFile.getText("utf-8")
-        renderedDocument = Jsoup.parse(renderedText)
+    File getSourceFile() {
+        getSysPropFile("org.gradle.docs.releasenotes.source")
+    }
+
+    File getRenderedFile() {
+        getSysPropFile("org.gradle.docs.releasenotes.rendered")
     }
 
 }
