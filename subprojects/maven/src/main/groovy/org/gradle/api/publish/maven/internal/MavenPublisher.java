@@ -20,7 +20,6 @@ import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.artifact.ant.RemoteRepository;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;

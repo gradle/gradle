@@ -76,9 +76,10 @@ class MavenPublishPluginTest extends Specification {
 
     def "publication has artifacts from component"() {
         given:
+        File artifactFile = project.file('artifactFile') << "content"
         PublishArtifactSet artifactSet = Mock()
         PublishArtifact artifact = Stub() {
-            getFile() >> Mock(File)
+            getFile() >> artifactFile
         }
 
         when:
