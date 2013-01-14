@@ -222,6 +222,22 @@ TBD - applicable artifact conversions
 * Publish with java component. Verify that the publishing DSL can be used to update the classifier & exension of mainArtifact taken from component.
     * `publishing.publications.myLib.mainArtifact.classifier = 'custom'`
 
+## Allow Maven POM to be generated without publishing to a repository
+
+In this step, the POM generation for a publication is moved out of the `publish` tasks and into a separate task.
+
+1. Add `GenerateMavenPom` task type. Takes a `MavenPom` instance and `destination` file as input. Generates a `pom.xml` from this.
+2. The `maven-publish` task adds a rule to define a `generate${publication}Pom` task for each publication of type `MavenPublication` that is added to
+   the publications container.
+3. Update DSL docs for new task
+4. Update user guide to mention how to generate the POM file for a publication
+
+Running `gradle generateMavenPom` would generate the `pom.xml` for the default Maven publication.
+
+### Test cases
+
+TBD
+
 ## Allow outgoing artifacts to be customised for Ivy publications
 
 1. Add an `IvyArtifact` interface with the following attributes:
@@ -288,45 +304,8 @@ Validate the following prior to publication:
 * The groupId, artifactId and version specified for a Maven publication are non-empty strings.
 * The groupId and artifactId specified for a Maven publication match the regexp `[A-Za-z0-9_\\-.]+` (see `DefaultModelValidator` in Maven source)
 * The organisation, module and revision specified for an Ivy publication are non-empty strings.
-
-## Warn when no repository of the appropriate type has been specified
-
-TBD
-
-## Allow further types of components to be published
-
-* Publishing Ear project -> only runtime dependencies should be included.
-* Publishing C++ Exe project -> only runtime dependencies should be included.
-* Publishing C++ Lib project -> only runtime and headers dependencies should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
-* Fix No pom published when using 'cpp-lib' plugin, due to no main artifact.
-
-### Test cases
-
-* Copy existing Maven publication tests for non-java projects and rework to use `maven-publish` plugin.
-
-## Some fixes
-
-* Publishing to Ivy currently uses archivesBaseName for archive names.
-* Honour changes to the {organisation, module, revision} made by an ivy.xml XML hook
-* Honour changes to the {group, artifact, version} made by a pom.xml XML hook
-
-## Allow Maven POM to be generated without publishing to a repository
-
-In this step, the POM generation for a publication is moved out of the `publish` tasks and into a separate task.
-
-1. Add `GenerateMavenPom` task type. Takes a `MavenPom` instance and `destination` file as input. Generates a `pom.xml` from this.
-2. The `maven-publish` task adds a rule to define a `generate${publication}Pom` task for each publication of type `MavenPublication` that is added to
-   the publications container.
-3. Provide a PublishArtifact as output that is added to the `publishableFiles` of the respective `MavenPublication`.
-4. Change `MavenPublicationInternal` so it is not Buildable. All dependency wiring is done via `getPublishableArtifacts`.
-5. Update DSL docs for new task
-6. Update user guide to mention how to generate the POM file for a publication
-
-Running `gradle generateMavenPom` would generate the `pom.xml` for the default Maven publication.
-
-### Test cases
-
-TBD
+* Each publication identifier in the build (ie every publication in every project) is unique.
+* The XML actions do not change the publication identifier.
 
 ## Customising the Maven and Ivy publication identifier
 
@@ -401,6 +380,48 @@ And:
     3. Assert that another build can resolve project-A from this Ivy repository.
     4. Publish both projects to a Maven repository.
     5. Assert that another build can resolve project-A from this Maven repository.
+
+## Add general purpose polymorphic domain object container
+
+1. Move `PublicationContainer.add()` up to `DomainObjectContainer`
+    - Need to sync up API with `NamedDomainObjectContainer`.
+    - Need to sync up API with `TaskContainer`.
+    - Need to sync up API with `SourceSetContainer`, `ConfigurationContainer`.
+2. Default factory decorates instances when added and applies dependency injection via @Inject.
+3. Allow a type -> implementation type mapping to be declared.
+4. Remove `GroovyPublicationContainer`.
+6. Possibly allow configure-by-map dynamic add methods.
+
+## Fix POM generation issues
+
+* excludes on configuration.
+* dynamic versions.
+* wildcard excludes.
+
+## Warn when no repository of the appropriate type has been specified
+
+TBD
+
+## Web application is published with runtime dependencies
+
+Provided dependencies should be included in the generated POM.
+
+## Allow further types of components to be published
+
+* Publishing Ear project -> only runtime dependencies should be included.
+* Publishing C++ Exe project -> only runtime dependencies should be included.
+* Publishing C++ Lib project -> only runtime and headers dependencies should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
+* Fix No pom published when using 'cpp-lib' plugin, due to no main artifact.
+
+### Test cases
+
+* Copy existing Maven publication tests for non-java projects and rework to use `maven-publish` plugin.
+
+## Some fixes
+
+* Publishing to Ivy currently uses archivesBaseName for archive names.
+* Honour changes to the {organisation, module, revision} made by an ivy.xml XML hook
+* Honour changes to the {group, artifact, version} made by a pom.xml XML hook
 
 ## Allow outgoing dependencies to be customised
 
@@ -575,6 +596,7 @@ TBD - consuming components.
 
 # Open issues
 
+* Live collections of artifacts.
 * Add a packaging to a publication, add multiple packagings to a publication.
 * How to get rid of `Configuration.artifacts`?
 * How to map a project dependency to Ivy publication or Maven publication when generating descriptor?
