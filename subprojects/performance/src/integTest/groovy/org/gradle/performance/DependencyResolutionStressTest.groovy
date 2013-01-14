@@ -48,7 +48,7 @@ class DependencyResolutionStressTest extends Specification {
         expect:
         4.times { count ->
             concurrent.start {
-                def buildDir = distribution.file(count)
+                def buildDir = workspace.file(count)
                 buildDir.file('build.gradle') << """
 import java.util.zip.*
 
