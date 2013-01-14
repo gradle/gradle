@@ -30,8 +30,7 @@ apply plugin: 'jsoup'
 apply plugin: 'javascript-base'
 
 repositories {
-//    javaScript.googleApis()
-    add javaScript.googleApisRepository
+    javaScript.googleApis()
 
     ivy {
         name "Google Fonts"
