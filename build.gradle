@@ -35,16 +35,16 @@ buildTypes {
     developerBuild "check"
 
     // Used by the first phase of the build pipeline
-    quickTest "test", "integTest", noDistTests: true
+    quickTest "test", "integTest", noDistTests: true, noDocsTests: true
 
     // Used for builds to test the code on certain platforms
-    platformTest "test", "forkingIntegTest", noDistTests: true, useIncomingDistributions: true
+    platformTest "test", "forkingIntegTest", noDistTests: true, noDocsTests: true
 
     // Tests using the daemon mode
-    daemonTest "daemonIntegTest", noDistTests: true, useIncomingDistributions: true
+    daemonTest "daemonIntegTest", noDistTests: true, noDocsTests: true, useIncomingDistributions: true
 
     // Run the integration tests using the parallel executer
-    parallelTest "parallelIntegTest", noDistTests: true, useIncomingDistributions: true
+    parallelTest "parallelIntegTest", noDistTests: true, noDocsTests: true, useIncomingDistributions: true
 
     // Run the performance tests
     performanceTest "performance:integTest", useIncomingDistributions: true
