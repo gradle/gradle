@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publish.maven.internal;
+
+package org.gradle.api.publish.maven;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 
-public class MavenPublishException extends GradleException {
-    public MavenPublishException(String message) {
+/**
+ * A {@code MavenPublishValidationException} is thrown when attempting to publish with an invalid {@link MavenPublication}.
+ *
+ * @since 1.4
+ */
+@Incubating
+public class InvalidMavenPublicationException extends GradleException {
+    public InvalidMavenPublicationException(String message) {
         super(message);
     }
 }

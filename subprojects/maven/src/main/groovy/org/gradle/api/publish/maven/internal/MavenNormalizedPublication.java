@@ -20,6 +20,7 @@ import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
@@ -72,7 +73,7 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
             return null;
         }
         if (candidateMainArtifacts.size() > 1) {
-            throw new MavenPublishException("Cannot determine main artifact: multiple artifacts found with empty classifier.");
+            throw new InvalidMavenPublicationException("Cannot determine main artifact: multiple artifacts found with empty classifier.");
         }
         return candidateMainArtifacts.iterator().next();
     }
@@ -90,7 +91,7 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
             }
             ArtifactKey key = new ArtifactKey(artifact);
             if (keys.contains(key)) {
-                throw new MavenPublishException(String.format("Cannot publish 2 artifacts with the identical extension '%s' and classifier '%s'.",
+                throw new InvalidMavenPublicationException(String.format("Cannot publish 2 artifacts with the identical extension '%s' and classifier '%s'.",
                         artifact.getExtension(), artifact.getClassifier()));
             }
             keys.add(key);
@@ -116,7 +117,7 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
         getAdditionalArtifacts();
         for (MavenArtifact artifact : artifacts) {
             if (artifact.getFile() == null || !artifact.getFile().exists()) {
-                throw new MavenPublishException(String.format("Attempted to publish an artifact that does not exist: '%s'", artifact.getFile()));
+                throw new InvalidMavenPublicationException(String.format("Attempted to publish an artifact that does not exist: '%s'", artifact.getFile()));
             }
         }
     }

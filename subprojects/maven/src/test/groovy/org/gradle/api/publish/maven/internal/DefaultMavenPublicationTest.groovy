@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.publish.maven.MavenArtifact
+import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
@@ -167,7 +168,7 @@ public class DefaultMavenPublicationTest extends Specification {
         mavenArtifact.file >> nonExistentFile
 
         and:
-        def t = thrown MavenPublishException
+        def t = thrown InvalidMavenPublicationException
         t.message == "Attempted to publish an artifact that does not exist: '${nonExistentFile}'"
     }
 
@@ -193,7 +194,7 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.asNormalisedPublication()
 
         then:
-        def t = thrown MavenPublishException
+        def t = thrown InvalidMavenPublicationException
         t.message == "Cannot determine main artifact: multiple artifacts found with empty classifier."
     }
 
@@ -221,7 +222,7 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.asNormalisedPublication()
 
         then:
-        def t = thrown MavenPublishException
+        def t = thrown InvalidMavenPublicationException
         t.message == "Cannot publish 2 artifacts with the identical extension 'ext1' and classifier 'classified'."
     }
 
