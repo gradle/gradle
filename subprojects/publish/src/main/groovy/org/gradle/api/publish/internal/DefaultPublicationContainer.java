@@ -19,7 +19,6 @@ package org.gradle.api.publish.internal;
 import groovy.lang.Closure;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.publish.DuplicatePublicationException;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.UnknownPublicationException;
 import org.gradle.internal.reflect.Instantiator;
@@ -40,7 +39,7 @@ public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Pub
 
     @Override
     protected void handleAttemptToAddItemWithNonUniqueName(Publication o) {
-        throw new DuplicatePublicationException(String.format("Publication with name '%s' added multiple times", o.getName()));
+        throw new IllegalArgumentException(String.format("Publication with name '%s' added multiple times", o.getName()));
     }
 
     public Publication add(String name, Class<? extends Publication> type) {

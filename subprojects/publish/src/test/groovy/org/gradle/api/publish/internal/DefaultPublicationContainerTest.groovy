@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.internal
 import org.gradle.api.internal.ThreadGlobalInstantiator
-import org.gradle.api.publish.DuplicatePublicationException
 import org.gradle.api.publish.Publication
 import org.gradle.api.publish.UnknownPublicationException
 import org.gradle.internal.reflect.Instantiator
@@ -114,7 +113,7 @@ class DefaultPublicationContainerTest extends Specification {
         1 * factory.create("publication_name") >> publication("test")
 
         and:
-        def t = thrown DuplicatePublicationException
+        def t = thrown IllegalArgumentException
         t.message == "Publication with name 'test' added multiple times"
     }
 
