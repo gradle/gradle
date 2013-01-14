@@ -210,7 +210,18 @@ idea {
 
         Node vmParameters = runConfig.option.find { it.'@name' == 'VM_PARAMETERS' }
 
-        vmParameters.'@value' = "\"-DintegTest.gradleHomeDir=${intTestImage.destinationDir}\" -ea -Dorg.gradle.integtest.executer=embedded -XX:MaxPermSize=512m -Xmx512m"
+        def docsProject = project(":docs")
+        def defaultTestVmParams = [
+                "-Dorg.gradle.docs.releasenotes.source=${docsProject.releaseNotesMarkdown.source.singleFile}",
+                "-Dorg.gradle.docs.releasenotes.rendered=${new File(docsProject.releaseNotes.destinationDir, docsProject.releaseNotes.fileName)}",
+                "-DintegTest.gradleHomeDir=${intTestImage.destinationDir}",
+                "-Dorg.gradle.integtest.executer=embedded",
+                "-ea",
+                "-XX:MaxPermSize=512m",
+                "-Xmx512m"
+        ]
+
+        vmParameters.'@value' = defaultTestVmParams.collect { it.contains(" ") ? "\"$it\"" : it }.join(" ")
 
         // Add an application configuration
         runManagerConfig.'@selected' = 'Application.Gradle'

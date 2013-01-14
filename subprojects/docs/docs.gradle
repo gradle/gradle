@@ -69,6 +69,10 @@ dependencies {
         "ubuntumono:regular-italic:3:KAKuHXAHZOeECOWAHsRKA-LrC4Du4e_yfTJ8Ol60xk0@ttf",
         "ubuntumono:bold:3:ceqTZGKHipo8pJj4molytp_TkvowlIOtbR7ePgFOpF4@ttf",
         "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9WsGzsqhEorxQDpu60nfWEc@ttf"
+
+    groovy libraries.groovy
+    testCompile "org.pegdown:pegdown:1.1.0"
+    testCompile "org.jsoup:jsoup:1.6.3"
 }
 
 ext {
@@ -91,7 +95,7 @@ outputs.distDocs = files(distDocsDir) {
     builtBy 'distDocs'
 }
 outputs.docs = files(docsDir) {
-    builtBy 'javadoc', 'groovydoc', 'userguide', 'dslHtml', 'releaseNotes'
+    builtBy 'javadocAll', 'groovydocAll', 'userguide', 'dslHtml', 'releaseNotes'
 }
 
 tasks.withType(Docbook2Xhtml) {
@@ -189,7 +193,7 @@ task samplesDocs(type: Docbook2Xhtml) {
 }
 
 task dslMetaData(type: ExtractDslMetaDataTask) {
-    source { groovydoc.source }
+    source { groovydocAll.source }
     destFile = new File(docbookSrc, 'dsl-meta-data.bin')
 }
 
@@ -272,7 +276,7 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
 def javaApiUrl = "http://docs.oracle.com/javase/1.5.0/docs/api/"
 def groovyApiUrl = "http://groovy.codehaus.org/gapi/"
 
-task javadoc(type: Javadoc) {
+task javadocAll(type: Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")
     inputs.file stylesheetFile
 
@@ -299,9 +303,9 @@ task javadoc(type: Javadoc) {
     }
 }
 
-task configureGroovydoc {
+task configureGroovydocAll {
     doFirst {
-        project.configure(groovydoc) {
+        project.configure(groovydocAll) {
             [javaApiUrl, groovyApiUrl].each {
                 link(it, *(new URL("$it/package-list").text.tokenize("\n")))
             }
@@ -312,13 +316,13 @@ task configureGroovydoc {
     }
 }
 
-task groovydoc(type: Groovydoc, dependsOn: configureGroovydoc) {
+task groovydocAll(type: Groovydoc, dependsOn: configureGroovydocAll) {
     group = 'documentation'
     source publicGroovyProjects.collect {project -> project.sourceSets.main.groovy + project.sourceSets.main.java }
     destinationDir = new File(docsDir, 'groovydoc')
-    classpath = javadoc.classpath
-    includes = javadoc.includes
-    excludes = javadoc.excludes
+    classpath = javadocAll.classpath
+    includes = javadocAll.includes
+    excludes = javadocAll.excludes
     doFirst {
         windowTitle = "Gradle API $version"
         docTitle = windowTitle
@@ -331,7 +335,7 @@ task groovydoc(type: Groovydoc, dependsOn: configureGroovydoc) {
 }
 
 task checkstyleApi(type: Checkstyle) {
-    source javadoc.source
+    source javadocAll.source
     configFile = file("$checkstyleConfigDir/checkstyle-api.xml")
     classpath = files()
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
@@ -384,7 +388,7 @@ task releaseNotes(type: Copy) {
     ext.fileName = "release-notes.html"
     into "$docsDir"
     from decorateReleaseNotes, {
-        rename ".+", "release-notes.html"
+        rename ".+", fileName
         doFirst {
             owner.filter(ReplaceTokens, tokens: [version: project.version.toString(), versionBase: rootProject.versionBase])
         }
@@ -398,24 +402,14 @@ task viewReleaseNotes(dependsOn: releaseNotes) {
     }
 }
 
-task checkReleaseNotes(type: CheckReleaseNotes, dependsOn: releaseNotes) {
-    group = "release notes"
-    sourceFile = releaseNotesMarkdown.source.singleFile
-    renderedFile = file("${project.releaseNotes.destinationDir}/${project.releaseNotes.fileName}")
-    checks(
-            new MaxLineLengthReleaseNoteCheck(220),
-            new CssContentReleaseNotesCheck("h2#fixed-issues", 1, "needed as the placeholder for fixed issues automation"),
-            new NoDuplicateIdsReleaseNotesCheck(),
-            new NoBrokenInternalLinksReleaseNotesCheck()
-    )
-}
-
-task check {
-    dependsOn checkReleaseNotes
+test {
+    dependsOn releaseNotes
+    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
+    systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 }
 
 task docs {
-    dependsOn javadoc, groovydoc, userguide, distDocs, samplesDocs, dslHtml, releaseNotes
+    dependsOn javadocAll, groovydocAll, userguide, distDocs, samplesDocs, dslHtml, releaseNotes
     description = 'Generates all documentation'
     group = 'documentation'
 }
