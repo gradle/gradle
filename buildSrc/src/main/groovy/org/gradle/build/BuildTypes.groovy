@@ -41,12 +41,21 @@ class BuildTypes {
         if (args.first() instanceof Map) {
             properties.putAll(args.remove(0))
         }
-        def tasks = args*.toString()
+        def tasks = []
+        def configure = {}
 
-        register(name, tasks, properties)
+        args.each {
+            if (it instanceof Closure) {
+                configure = it
+            } else {
+                tasks << it.toString()
+            }
+        }
+
+        register(name, tasks, properties, configure)
     }
 
-    private register(name, tasks, projectProperties) {
+    private register(name, tasks, projectProperties, configure) {
         project.task(name) {
             group = "Build Type"
             def abbreviation = name[0] + name[1..-1].replaceAll("[a-z]", "")
@@ -66,6 +75,7 @@ class BuildTypes {
                     }
                     project.properties."$k" = v
                 }
+                project.configure(project.gradle.startParameter, configure)
             }
 
             doFirst {
