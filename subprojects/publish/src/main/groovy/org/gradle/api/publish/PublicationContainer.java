@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish;
 
-import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 
@@ -50,14 +50,14 @@ public interface PublicationContainer extends NamedDomainObjectSet<Publication> 
      * @param type The publication type.
      * @return The added publication
      */
-    Publication add(String name, Class<? extends Publication> type);
+    <T extends Publication> T add(String name, Class<T> type);
 
     /**
      * Adds a publication of the specified type. We need to implement the proper DSL.
      * @param name The publication name.
      * @param type The publication type.
-     * @param configureClosure The closure to configure the publication.
+     * @param configuration The action to configure the publication.
      * @return The added publication
      */
-    Publication add(String name, Class<? extends Publication> type, Closure configureClosure);
+    <T extends Publication> T add(String name, Class<T> type, Action<T> configuration);
 }

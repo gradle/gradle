@@ -16,13 +16,12 @@
 
 package org.gradle.api.publish.internal;
 
-import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.UnknownPublicationException;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
 
 public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Publication> implements PublicationContainerInternal {
 
@@ -42,15 +41,15 @@ public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Pub
         throw new IllegalArgumentException(String.format("Publication with name '%s' added multiple times", o.getName()));
     }
 
-    public Publication add(String name, Class<? extends Publication> type) {
-        Publication publication = publicationFactories.create(type, name);
+    public <T extends Publication> T add(String name, Class<T> type) {
+        T publication = publicationFactories.create(type, name);
         add(publication);
         return publication;
     }
 
-    public Publication add(String name, Class<? extends Publication> type, Closure configureClosure) {
-        Publication publication = add(name, type);
-        ConfigureUtil.configure(configureClosure, publication);
+    public <T extends Publication> T add(String name, Class<T> type, Action<T> action) {
+        T publication = add(name, type);
+        action.execute(publication);
         return publication;
     }
 
