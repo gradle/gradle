@@ -95,7 +95,7 @@ project(":project2") {
         return true
     }
 
-    def "maven-publish plugin will use target project archivesBaseName for project dependency when target project does not have maven-publish plugin applied"() {
+    def "maven-publish plugin uses target project name for project dependency when target project does not have maven-publish plugin applied"() {
         given:
         settingsFile << """
 include "project1", "project2"
@@ -138,7 +138,7 @@ project(":project2") {
         then:
 
         project1module.assertPublishedAsJavaModule()
-        project1module.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
+        project1module.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 
     @Ignore("This does not work: fix this as part of making the project coordinates customisable via DSL") // TODO:DAZ

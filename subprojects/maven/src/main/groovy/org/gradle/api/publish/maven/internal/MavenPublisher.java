@@ -38,7 +38,6 @@ import org.gradle.api.publication.maven.internal.MavenPomMetaInfoProvider;
 import org.gradle.api.publication.maven.internal.PomDependenciesConverter;
 import org.gradle.api.publication.maven.internal.ant.*;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
@@ -132,11 +131,7 @@ public class MavenPublisher {
 
         @Override
         protected String determineProjectDependencyArtifactId(ProjectDependency dependency) {
-            // Don't use artifact id hacks when the target project has the maven-publish plugin applied
-            if (dependency.getDependencyProject().getPlugins().hasPlugin(MavenPublishPlugin.class)) {
-                return dependency.getDependencyProject().getName();
-            }
-            return new ProjectDependencyArtifactIdExtractorHack(dependency).extract();
+            return dependency.getDependencyProject().getName();
         }
     }
 
