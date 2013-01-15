@@ -1,4 +1,8 @@
-First of all this release comes with massive performance improvements in various areas (see below). This release also makes working with Scala and Groovy projects more convenient by auto detecting the Scala and Groovy libraries. The dependency reporting has been improved again to deal with unresolvable dependencies. TestNG report generation has been much improved by using the Gradle reporting engine instead of the default TestNG report engine. There are also some exciting new incubating features: We introduced a new, very powerful way of dealing with dependency resolution and version conflicts by providing dependency resolve hooks. There is a configuration-on-demand feature to speed up configuration time of large multi-module builds. There is also a new java library distribution plugin and a new feature to aggregate test reports within multi-module builds.
+First of all this release comes with massive performance improvements in various areas (see below). This release also makes working with Scala and Groovy projects more convenient by auto detecting the
+Scala and Groovy libraries. The dependency reporting has been improved again to deal with unresolvable dependencies. TestNG report generation has been much improved by using the Gradle reporting engine
+instead of the default TestNG report engine. There are also some exciting new incubating features: We introduced a new, very powerful way of dealing with dependency resolution and version conflicts by
+providing dependency resolve hooks. There is a configuration-on-demand feature to speed up configuration time of large multi-module builds. There is also a new java library distribution plugin and a
+new feature to aggregate test reports within multi-module builds.
 
 ## New and noteworthy
 
