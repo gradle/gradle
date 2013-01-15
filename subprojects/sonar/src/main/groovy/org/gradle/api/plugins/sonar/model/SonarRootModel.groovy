@@ -202,21 +202,23 @@ class SonarServer {
  */
 class SonarDatabase {
     /**
-     * The JDBC URL for the Sonar database. Defaults to <tt>jdbc:derby://localhost:1527/sonar</tt>.
+     * The JDBC URL for the Sonar database. Default value is determined by Sonar.
      */
     @SonarProperty("sonar.jdbc.url")
     String url
 
     /**
-     * The name of the JDBC driver class. Defaults to <tt>org.apache.derby.jdbc.ClientDriver</tt>.
+     * The name of the JDBC driver class. Default value is determined by Sonar.
      */
     @SonarProperty("sonar.jdbc.driverClassName")
     String driverClassName
+
     /**
      * The JDBC username for the Sonar database. Defaults to <tt>sonar</tt>.
      */
     @SonarProperty("sonar.jdbc.username")
     String username
+
     /**
      * The JDBC password for the Sonar database. Defaults to <tt>sonar</tt>.
      */

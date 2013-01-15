@@ -85,8 +85,6 @@ class SonarPlugin implements Plugin<ProjectInternal> {
 
     private SonarDatabase configureSonarDatabase() {
         def database = instantiator.newInstance(SonarDatabase)
-        database.url = "jdbc:derby://localhost:1527/sonar"
-        database.driverClassName = "org.apache.derby.jdbc.ClientDriver"
         database.username = "sonar"
         database.password = "sonar"
         database
