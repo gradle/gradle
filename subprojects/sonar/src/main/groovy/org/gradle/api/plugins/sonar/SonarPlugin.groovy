@@ -135,7 +135,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
                 testDirs = { test.allSource.srcDirs as List }
                 binaryDirs = { [main.output.classesDir] }
                 libraries = {
-                    def libraries = main.compileClasspath
+                    def libraries = main.runtimeClasspath
                     def runtimeJar = Jvm.current().runtimeJar
                     if (runtimeJar != null) {
                         libraries += project.files(runtimeJar)
