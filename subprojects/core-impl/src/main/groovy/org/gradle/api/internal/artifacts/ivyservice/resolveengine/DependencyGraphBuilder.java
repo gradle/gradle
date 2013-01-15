@@ -793,7 +793,10 @@ public class DependencyGraphBuilder {
                 if (moduleConfiguration.equals("*") || heirarchy.contains(moduleConfiguration)) {
                     for (String targetConfiguration : dependencyDescriptor.getDependencyConfigurations(moduleConfiguration)) {
                         if (targetConfiguration.equals("*")) {
-                            Collections.addAll(targetConfigurations, descriptor.getPublicConfigurationsNames());
+                            DefaultModuleRevisionResolveState dependencyRevision = resolveState.getSelector(dependencyDescriptor).resolveModuleRevisionId();
+                            if (dependencyRevision != null) {
+                              Collections.addAll(targetConfigurations, dependencyRevision.getDescriptor().getPublicConfigurationsNames());
+                            }
                         } else {
                             targetConfigurations.add(targetConfiguration);
                         }
