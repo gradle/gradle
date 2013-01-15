@@ -543,6 +543,12 @@ The default version of Checkstyle used for the '`checkstyle`' plugin has been up
 
 The default version of CodeNarc used for the '`codenarc`' plugin has been updated from `0.16.1` to `0.18`.
 
+### `eclipseWtpComponent` task overrides dependent modules
+
+Previously, the `eclipse-wtp` plugin's `eclipseWtpComponent` task would add generated `dependent-module` entries to those already contained in the
+`.settings/org.eclipse.wst.common.component` file. This could lead to stale and duplicated entries (see `GRADLE-2526`). Now, existing
+entries are overridden with generated entries, just like it's done for `classpathentry` elements in `.classpath` files.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
