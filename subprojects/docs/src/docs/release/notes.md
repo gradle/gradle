@@ -1,12 +1,26 @@
-First of all this release comes with massive performance improvements in various areas (see below). This release also makes working with Scala and Groovy projects more convenient by auto detecting the
-Scala and Groovy libraries. The dependency reporting has been improved again to deal with unresolvable dependencies. TestNG report generation has been much improved by using the Gradle reporting engine
-instead of the default TestNG report engine. There are also some exciting new incubating features: We introduced a new, very powerful way of dealing with dependency resolution and version conflicts by
-providing dependency resolve hooks. There is a configuration-on-demand feature to speed up configuration time of large multi-module builds. There is also a new java library distribution plugin and a
-new feature to aggregate test reports within multi-module builds.
+Together with the usual set of bug fixes and new features, this release comes with some [major performance improvements](#performance-and-memory-consumption).
+Expect to see faster builds that use less heap space with Gradle 1.4.
+
+If you work with Scala and/or Groovy projects, you'll find Gradle more convenient with the auto-detection of [Scala](#automatic-configuration-of-scala-dependency-used-by-scalacompile-and-scaladoc-tasks)
+and [Groovy](#automatic-configuration-of-groovy-dependency-used-by-groovycompile-and-groovydoc-tasks) libraries from the classpath. A Gradle build no longer needs to specifically
+configure a 'groovy' or 'scalaTools' configuration to use these tools.
+Automatic configuration makes it easier to build multiple variants of your software targeting different Scala/Groovy versions, or to use Scala/Groovy only for selected sourceSets.
+
+Improved dependency management continues to be an important focus and this release brings [some important improvements](#dependency-resolution-improvements),
+[better reporting](#dependencies-that-failed-to-be-resolved-are-now-listed-in-dependency-reports),
+ and a [new, powerful mechanism](#dependency-resolve-rules) providing fine-grained control over dependency resolution.
+
+Keeping Gradle at the forefront of software automation are some exciting new incubating features.
+[Configuration-on-demand](#improved-scalability-via-configuration-on-demand) can reduce startup time for large multi-project builds,
+the [java-library-distribution plugin](#the-new-'java-library-distribution'-plugin) makes it easy to bundle your java project into a distribution,
+and the new [TestReport task](#stand-alone-test-report-task) makes it trivial to aggregate all of your test results into a single report.
+
+TestNG users haven't been forgotten, either. They now enjoy the same [high-quality reports](#brand-new-testng-reports-are-generated-by-default) that JUnit users have long had access to.
+
+And that's just the highlights. Read on for more details on why you should upgrade to Gradle 1.4.
+As always, please share your feedback and experiences with Gradle 1.4 via the [Gradle Forums](http://forums.gradle.org).
 
 ## New and noteworthy
-
-Here are the new features introduced in this Gradle release.
 
 ### Performance and memory consumption
 
