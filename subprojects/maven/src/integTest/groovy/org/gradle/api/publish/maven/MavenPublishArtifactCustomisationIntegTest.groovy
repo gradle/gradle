@@ -41,6 +41,26 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
     }
 
+    def "can set custom artifacts to override component artifacts"() {
+        given:
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    from components.java
+                    artifacts = ["customFile.txt", customFileTask.outputFile, customJar]
+                }
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module("group", "projectText", "1.0")
+        module.assertPublished()
+        module.parsedPom.packaging == "txt"
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
+    }
+
     def "can configure custom artifacts when creating"() {
         given:
         createBuildScripts("""
@@ -122,6 +142,7 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
     private createBuildScripts(def publications, def append = "") {
         settingsFile << "rootProject.name = 'projectText'"
         buildFile << """
+            apply plugin: 'java'
             apply plugin: 'maven-publish'
 
             group = 'group'

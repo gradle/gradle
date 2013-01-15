@@ -153,6 +153,31 @@ public class DefaultMavenPublicationTest extends Specification {
         normalisedPublication.artifacts == [mavenArtifact] as Set
     }
 
+    def "can use setter to replace existing artifacts set"() {
+        given:
+        def publication = createPublication()
+        Object notation = new Object();
+        MavenArtifact mavenArtifact1 = Mock()
+        MavenArtifact mavenArtifact2 = Mock()
+
+        when:
+        publication.artifact "notation"
+
+        then:
+        notationParser.parseNotation(notation) >> Mock(MavenArtifact)
+
+        when:
+        publication.artifacts = ["notation1", "notation2"]
+
+        then:
+        notationParser.parseNotation("notation1") >> mavenArtifact1
+        notationParser.parseNotation("notation2") >> mavenArtifact2
+
+        and:
+        publication.artifacts.size() == 2
+        publication.artifacts == [mavenArtifact1, mavenArtifact2] as Set
+    }
+
     def "cannot publish artifact with file that does not exist"() {
         def publication = createPublication()
         Object notation = new Object();

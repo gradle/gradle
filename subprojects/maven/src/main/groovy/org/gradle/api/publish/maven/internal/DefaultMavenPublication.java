@@ -88,6 +88,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return mavenArtifacts;
     }
 
+    public void setArtifacts(Iterable<Object> sources) {
+        mavenArtifacts.clear();
+        for (Object source : sources) {
+            artifact(source);
+        }
+    }
+
     public FileCollection getPublishableFiles() {
         return mavenArtifacts.getFiles();
     }

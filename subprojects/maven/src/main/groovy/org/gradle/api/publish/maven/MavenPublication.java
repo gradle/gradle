@@ -116,4 +116,12 @@ public interface MavenPublication extends Publication {
      */
     MavenArtifactSet getArtifacts();
 
+    /**
+     * Clears any previously added artifacts from {@link #getArtifacts} and creates artifacts from the specified sources.
+     * Each supplied source is interpreted as per {@link #artifact(Object)}.
+     *
+     * @param sources The set of artifacts for this publication.
+     */
+    void setArtifacts(Iterable<Object> sources);
+
 }
