@@ -51,6 +51,18 @@ class ModelToPropertiesConverterTest extends Specification {
         converter.convert() == ["my.flag": "false"]
     }
 
+    class Model22 {
+        @SonarProperty("my.list")
+        List<Integer> files = [1, 2, 3]
+    }
+
+    def "converts collection values to comma-separated strings"() {
+        def converter = new ModelToPropertiesConverter(new Model22())
+
+        expect:
+        converter.convert() == ["my.list": "1,2,3"]
+    }
+
     def "doesn't convert properties with null value"() {
         def model = new Model()
         model.annotated = null
@@ -92,7 +104,7 @@ class ModelToPropertiesConverterTest extends Specification {
 
 
         @SonarProperty("two")
-        String two = "two"
+        Object two = "two"
     }
 
     def "allows to post-process properties"() {
@@ -109,5 +121,28 @@ class ModelToPropertiesConverterTest extends Specification {
 
         expect:
         converter.convert() == [added: "added", two: "changed"]
+    }
+
+    def "converts post-processed property values to strings"() {
+        def converter = new ModelToPropertiesConverter(new Model5())
+        converter.propertyProcessors << { props ->
+            props.put("two", 2)
+            props.put("three", 3)
+        }
+
+        expect:
+        converter.convert() == [one: "one", two: "2", three: "3"]
+    }
+
+    class Model6 {
+        @SonarProperty("foo.bar")
+        String prop = "prop"
+    }
+
+    def "allows to prefix property keys"() {
+        def converter = new ModelToPropertiesConverter(new Model6(), "some.prefix")
+
+        expect:
+        converter.convert() == ["some.prefix.foo.bar": "prop"]
     }
 }

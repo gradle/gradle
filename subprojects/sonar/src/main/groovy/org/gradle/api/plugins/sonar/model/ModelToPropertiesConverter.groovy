@@ -28,19 +28,21 @@ class ModelToPropertiesConverter {
     List<Closure> propertyProcessors = []
 
     private final Object model
+    private final String propertyPrefix
 
-    ModelToPropertiesConverter(Object model) {
+    ModelToPropertiesConverter(Object model, String propertyPrefix = null) {
         this.model = model
+        this.propertyPrefix = propertyPrefix
     }
 
-    Map<String, String> convert() {
+    Properties convert() {
         def properties = collectProperties(model)
         processProperties(properties)
         properties
     }
 
-    private Map<String, String> collectProperties(Object model) {
-        Map<String, String> properties = [:]
+    private Properties collectProperties(Object model) {
+        def properties = new Properties()
 
         if (model == null) {
             return properties
@@ -48,31 +50,22 @@ class ModelToPropertiesConverter {
 
         for (field in getAllFields(model.getClass())) {
             if (field.isAnnotationPresent(IncludeProperties)) {
-                def propValue = model."$field.name"
-                properties.putAll(collectProperties(propValue))
+                def subModel = model."$field.name"
+                properties.putAll(collectProperties(subModel))
                 continue
             }
 
-            def propertyAnnotation = field.getAnnotation(SonarProperty)
-            if (propertyAnnotation == null) {
-                continue
-            }
+            def propAnnotation = field.getAnnotation(SonarProperty)
+            if (propAnnotation == null) { continue }
 
-            def propStringValue = model."$field.name"?.toString()
-            if (propStringValue == null) {
-                continue
-            }
+            def propKey = propAnnotation.value()
+            def propValue = model."$field.name"
+            if (propValue == null) { continue }
 
-            properties.put(propertyAnnotation.value(), propStringValue)
+            properties.put(convertPropertyKey(propKey), convertPropertyValue(propValue))
         }
 
         properties
-    }
-
-    private void processProperties(Map<String, String> properties) {
-        for (processor in propertyProcessors) {
-            processor(properties)
-        }
     }
 
     private List<Field> getAllFields(Class<?> clazz) {
@@ -82,5 +75,29 @@ class ModelToPropertiesConverter {
             clazz = clazz.superclass
         }
         fields
+    }
+
+    private void processProperties(Properties properties) {
+        for (processor in propertyProcessors) {
+            processor(properties)
+        }
+        convertPropertyValues(properties)
+    }
+
+    private void convertPropertyValues(Properties properties) {
+        properties.each { key, value ->
+            properties[key] = convertPropertyValue(value)
+        }
+    }
+
+    private String convertPropertyValue(Object value) {
+        if (value instanceof Collection) {
+            value = value.join(",")
+        }
+        value.toString()
+    }
+
+    private String convertPropertyKey(String key) {
+        propertyPrefix ? propertyPrefix + "." + key : key
     }
 }
