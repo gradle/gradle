@@ -8,10 +8,13 @@
                 </tr>
             </thead>
             <tr>
-                <td>pom</td>
+                <td>file</td>
             </tr>
             <tr>
-                <td>artifacts</td>
+                <td>extension</td>
+            </tr>
+            <tr>
+                <td>classifier</td>
             </tr>
         </table>
     </section>
@@ -23,18 +26,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>pom</td>
-            </tr>
-            <tr>
-                <td>from</td>
-            </tr>
-            <tr>
-                <td>artifact</td>
-            </tr>
-            <tr>
-                <td>setArtifacts</td>
-            </tr>
         </table>
     </section>
 </section>

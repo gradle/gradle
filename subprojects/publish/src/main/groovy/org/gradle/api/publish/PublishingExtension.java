@@ -88,8 +88,19 @@ public interface PublishingExtension {
      * by building the project. An example of a publication would be an Ivy Module (i.e. {@code ivy.xml} and artifacts), or
      * Maven Project (i.e. {@code pom.xml} and artifacts).
      * <p>
-     * The ability to create different kinds of publications is provided by different plugins. The “publishing” plugin itself does not provide a way
-     * to create publications.
+     * Actual publication implementations and the ability to create them are provided by different plugins. The “publishing” plugin itself does not provide any publication types.
+     * For example, given that the 'maven-publish' plugin provides a {@link org.gradle.api.publish.maven.MavenPublication} type, you can create a publication like:
+     * <pre autoTested="true">
+     * apply plugin: 'maven-publish'
+     *
+     * publishing {
+     *   publications {
+     *     myPublicationName(MavenPublication) {
+     *       // Configure the publication here
+     *     }
+     *   }
+     * }
+     * </pre>
      * <p>
      * Please see {@link org.gradle.api.publish.ivy.IvyPublication} and {@link org.gradle.api.publish.maven.MavenPublication} for more information on publishing in these specific formats.
      *

@@ -45,7 +45,7 @@ public interface PublicationContainer extends NamedDomainObjectSet<Publication> 
     Publication getAt(String name) throws UnknownPublicationException;
 
     /**
-     * Adds a publication of the specified type. We need to implement the proper DSL.
+     * Adds a publication of the specified type.
      * @param name The publication name.
      * @param type The publication type.
      * @return The added publication
@@ -53,7 +53,7 @@ public interface PublicationContainer extends NamedDomainObjectSet<Publication> 
     <T extends Publication> T add(String name, Class<T> type);
 
     /**
-     * Adds a publication of the specified type. We need to implement the proper DSL.
+     * Adds a publication of the specified type.
      * @param name The publication name.
      * @param type The publication type.
      * @param configuration The action to configure the publication.

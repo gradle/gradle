@@ -176,6 +176,9 @@
                 <td>org.gradle.api.publish.maven.MavenPublication</td>
             </tr>
             <tr>
+                <td>org.gradle.api.publish.maven.MavenArtifact</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.publish.maven.MavenPom</td>
             </tr>
         </table>

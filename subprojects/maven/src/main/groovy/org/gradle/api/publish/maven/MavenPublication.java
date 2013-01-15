@@ -25,24 +25,56 @@ import org.gradle.api.publish.Publication;
 /**
  * A {@code MavenPublication} is the representation/configuration of how Gradle should publish something in Maven format.
  *
- * The "{@code maven-publish}" plugin creates one {@code MavenPublication} named "{@code maven}" in the project's
- * {@code publishing.publications} container. This publication is configured to publish all of the project's
- * <i>visible</i> configurations (i.e. {@link org.gradle.api.Project#getConfigurations()}).
- * <p>
- * The Maven POM identifying attributes are mapped as follows:
+ * You directly add a named Maven Publication the project's {@code publishing.publications} container by providing {@link MavenPublication} as the type.
+ * <pre>
+ * publishing {
+ *   publications {
+ *     myPublicationName(MavenPublication)
+ *   }
+ * }
+ * </pre>
+ *
+ * The default Maven POM identifying attributes are mapped as follows:
  * <ul>
  * <li>{@code groupId} - {@code project.group}</li>
  * <li>{@code artifactId} - {@code project.name}</li>
  * <li>{@code version} - {@code project.version}</li>
  * </ul>
+ *
  * <p>
- * The ability to add multiple publications and finely configure publications will be added in future Gradle versions.
- *
- * <h4>Customising the publication prior to publishing</h4>
- *
- * It is possible to modify the generated POM prior to publication. This is done using the {@link MavenPom#withXml(org.gradle.api.Action)} method
+ * For certain common use cases, it's often sufficient to specify the component to publish, and nothing more ({@link #from(org.gradle.api.component.SoftwareComponent)}.
+ * The published component is used to determine which artifacts to publish, and which dependencies should be listed in the generated POM file.
+ * </p><p>
+ * To add additional artifacts to the set published, use the {@link #artifact(Object)} and {@link #artifact(Object, org.gradle.api.Action)} methods.
+ * You can also completely replace the set of published artifacts using {@link #setArtifacts(Iterable)}.
+ * Together, these methods give you full control over what artifacts will be published.
+ * </p><p>
+ * For any other tweaks to the publication, it is possible to modify the generated POM prior to publication. This is done using the {@link MavenPom#withXml(org.gradle.api.Action)} method
  * of the POM returned via the {@link #getPom()} method, or directly by an action (or closure) passed into {@link #pom(org.gradle.api.Action)}.
+ * </p>
+ * <h4>Example of publishing a java module with a source artifact and custom POM description</h4>
+ * <pre autoTested="true">
+ * apply plugin: "java"
+ * apply plugin: "maven-publish"
  *
+ * task sourceJar(type: Jar) {
+ *   from sourceSets.main.allJava
+ * }
+ *
+ * publishing {
+ *   publications {
+ *     myPublication(MavenPublication) {
+ *       from components.java
+ *       artifact sourceJar {
+ *         classifier "source"
+ *       }
+ *       pom.withXml {
+ *         asNode().appendNode('description', 'A demonstration of maven pom customisation')
+ *       }
+ *     }
+ *   }
+ * }
+ * </pre>
  *
  * @since 1.4
  */
@@ -96,7 +128,36 @@ public interface MavenPublication extends Publication {
     void from(SoftwareComponent component);
 
     /**
-     * Creates an {@link MavenArtifact} to be included in the publication.
+     * Creates a custom {@link MavenArtifact} to be included in the publication.
+     *
+     * The <code>artifact</code> method can take a variety of input:
+     * <ul>
+     *     <li>A {@link org.gradle.api.artifacts.PublishArtifact} instance. Extension and classifier values are taken from the wrapped instance.</li>
+     *     <li>An {@link org.gradle.api.tasks.bundling.AbstractArchiveTask} instance. Extension and classifier values are taken from the wrapped instance.</li>
+     *     <li>Anything that can be resolved to a {@link java.io.File} via the {@link org.gradle.api.Project#file(Object)} method.
+     *          Extension and classifier values are interpolated from the file name.</li>
+     *     <li>A {@link java.util.Map} that contains a 'file' entry that can be resolved to a {@link java.io.File}. The artifact is constructed as per the file input.
+     *         This map can contain a 'classifier' and an 'extension' entry to further configure the constructed artifact.</li>
+     * </ul>
+     *
+     * The following example demonstrates the addition of various custom artifacts.
+     * <pre autoTested="true">
+     * apply plugin: "maven-publish"
+     *
+     * task sourceJar(type: Jar) {
+     *   classifier "source"
+     * }
+     *
+     * publishing {
+     *   publications {
+     *     maven(MavenPublication) {
+     *       artifact sourceJar // Publish the output of the sourceJar task
+     *       artifact 'my-file-name.jar' // Publish a file created outside of the build
+     *       artifact file: 'my-docs-file.htm', classifier: 'docs', extension: 'html' // Publish a file with specified classifier & extension
+     *     }
+     *   }
+     * }
+     * </pre>
      *
      * @param source The source of the artifact content.
      */
@@ -105,23 +166,70 @@ public interface MavenPublication extends Publication {
     /**
      * Creates an {@link MavenArtifact} to be included in the publication, which is configured by the associated action.
      *
+     * The first parameter is used to create a custom artifact and add it to the publication, as per {@link #artifact(Object)}.
+     * The created {@link MavenArtifact} is then configured using the supplied action, which can override the extension or classifier of the artifact.
+     * This method also accepts the configure action as a closure argument, by type coercion.
+     *
+     * <pre autoTested="true">
+     * apply plugin: "maven-publish"
+     *
+     * task sourceJar(type: Jar) {
+     *   classifier "source"
+     * }
+     *
+     * publishing {
+     *   publications {
+     *     maven(MavenPublication) {
+     *       artifact sourceJar {
+     *         // These values will be used instead of the values from the task. The task values will not be updated.
+     *         classifier "src"
+     *         extension "zip"
+     *       }
+     *       artifact("my-docs-file.htm") {
+     *         classifier "documentation"
+     *         extension "html"
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
      * @param source The source of the artifact.
      * @param config An action to configure the values of the constructed {@link MavenArtifact}.
      */
     MavenArtifact artifact(Object source, Action<MavenArtifact> config);
 
     /**
-     * Returns the complete set of artifacts for this publication.
-     * @return the artifacts.
-     */
-    MavenArtifactSet getArtifacts();
-
-    /**
      * Clears any previously added artifacts from {@link #getArtifacts} and creates artifacts from the specified sources.
      * Each supplied source is interpreted as per {@link #artifact(Object)}.
+     *
+     * For example, to include the dependencies declared by a component but use a custom set of artifacts:
+     * <pre autoTested="true">
+     * apply plugin: "java"
+     * apply plugin: "maven-publish"
+     *
+     * task sourceJar(type: Jar) {
+     *   classifier "source"
+     * }
+
+     * publishing {
+     *   publications {
+     *     maven(MavenPublication) {
+     *       from components.java
+     *       artifacts = ["my-custom-jar.jar", sourceJar]
+     *     }
+     *   }
+     * }
+     * </pre>
      *
      * @param sources The set of artifacts for this publication.
      */
     void setArtifacts(Iterable<Object> sources);
+
+    /**
+     * Returns the complete set of artifacts for this publication.
+     * @return the artifacts.
+     */
+    MavenArtifactSet getArtifacts();
 
 }
