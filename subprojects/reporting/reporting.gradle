@@ -3,7 +3,7 @@ dependencies {
     compile project(':core')
     compile 'com.googlecode.jatl:jatl:0.2.2'
 
-    testCompile 'org.jodd:jodd-lagarto:3.4.1'
+    testCompile 'org.jsoup:jsoup:1.6.3'
     integTestRuntime project(':codeQuality')
 }
 

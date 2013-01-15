@@ -290,6 +290,19 @@
             </thead>
             <tr>
                 <td>
+                    <link linkend="buildDashboard_plugin">
+                        <literal>build-dashboard</literal>
+                    </link>
+                </td>
+                <td>reporting-base</td>
+                <td>-</td>
+                <td>
+                    <para>Generates build dashboard report.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <link linkend="publishing_ivy">
                         <literal>ivy-publish</literal>
                     </link>

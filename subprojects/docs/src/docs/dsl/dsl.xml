@@ -271,6 +271,9 @@
                 <td>org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor</td>
             </tr>
             <tr>
+                <td>org.gradle.api.reporting.GenerateBuildDashboard</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.GradleBuild</td>
             </tr>
             <tr>

@@ -1,0 +1,71 @@
+<!--
+  ~ Copyright 2013 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id="buildDashboard_plugin">
+    <title>The Build Dashboard Plugin</title>
+    <para>The Build Dashboard plugin adds a task to projects which generates build dashboard report.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the Build Dashboard plugin, include the following in your build script:</para>
+        <sample id="useBuildDashboardPlugin" dir="buildDashboard" title="Using the Build Dashboard plugin">
+            <sourcefile file="build.gradle" snippet="use-build-dashboard-plugin"/>
+        </sample>
+        <para>You can then generate the report by running the <userinput>buildDashboard</userinput> task after running any tasks that
+            generate reports, for example: <userinput>gradle check buildDashboard</userinput>.</para>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The Build Dashboard plugin adds the following task to the project:</para>
+        <table>
+            <title>Build Dashboard plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>buildDashboard</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.reporting.GenerateBuildDashboard"/></td>
+                <td>Generates build dashboard report.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Project layout</title>
+        <para>The Build Dashboard plugin does not require any particular project layout.</para>
+    </section>
+
+    <section>
+        <title>Dependency management</title>
+        <para>The Build Dashboard plugin does not define any dependency configurations.</para>
+    </section>
+
+    <section>
+        <title>Configuration</title>
+        <para>You can influence the location of build dashboard plugin generation via <apilink class="org.gradle.api.reporting.ReportingExtension"/>.</para>
+    </section>
+
+</chapter>

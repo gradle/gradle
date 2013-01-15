@@ -17,14 +17,13 @@
 package org.gradle.api.reporting.internal;
 
 import com.googlecode.jatl.Html;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Set;
 
 public class BuildDashboardGenerator {
@@ -37,14 +36,22 @@ public class BuildDashboardGenerator {
     }
 
     public void generate() {
+        BufferedWriter writer = null;
         try {
             GFileUtils.parentMkdirs(outputFile);
-            FileWriter writer = new FileWriter(outputFile);
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
             generate(writer);
-            writer.close();
             copyCss();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
         }
     }
 
@@ -62,10 +69,11 @@ public class BuildDashboardGenerator {
         });
     }
 
-    private void generate(FileWriter writer) {
+    private void generate(BufferedWriter writer) {
         new Html(writer) {{
             html();
                 head();
+                    meta().httpEquiv("Content-Type").content("text/html; charset=utf-8");
                     link().rel("stylesheet").type("text/css").href("base-style.css");
                 end(2);
                 body();

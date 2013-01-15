@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting;
+// START SNIPPET use-build-dashboard-plugin
+apply plugin: 'build-dashboard'
+// END SNIPPET use-build-dashboard-plugin
+apply plugin: 'codenarc'
+apply plugin: 'groovy'
 
-import org.gradle.api.Incubating;
+repositories {
+    mavenCentral()
+}
 
-/**
- * The reporting configuration for the the {@link GenerateBuildDashboard} task.
- */
-@Incubating
-public interface BuildDashboardReports extends ReportContainer<SingleFileReport> {
-    /**
-     * The build dashboard html report
-     *
-     * @return The build dashboard html report
-     */
-    SingleFileReport getHtml();
+dependencies {
+    groovy localGroovy()
+    testCompile 'junit:junit:4.11'
 }
