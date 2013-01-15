@@ -36,10 +36,14 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
     static private final String KNOWN_ISSUES_URL = "http://services.gradle.org/known-issues/${GradleVersion.current().versionBase}"
 
     static boolean canReachServices() {
-        HttpURLConnection connection = FIXED_ISSUES_URL.toURL().openConnection()
-        connection.requestMethod = "HEAD"
-        connection.connect()
-        connection.responseCode == 200
+        try {
+            HttpURLConnection connection = FIXED_ISSUES_URL.toURL().openConnection()
+            connection.requestMethod = "HEAD"
+            connection.connect()
+            connection.responseCode == 200
+        } catch (ignored) {
+            false
+        }
     }
 
     @Shared url = new ReleaseNotesTestContext().renderedFile.toURL().toString()
