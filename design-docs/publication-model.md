@@ -70,50 +70,6 @@ Note: for the following discussion, all changes are `@Incubating` unless specifi
 
 See [completed stories](done/publication-model.md)
 
-## Publish Java library to Maven repository with correct runtime dependencies
-
-This story introduces the concept of a component and the ability to publish components.
-
-1. Introduce a `Component` interface that extends `Named` and add a `components` container to `Project`. This container will initially be _read-only_ from
-   a user's point of view. Also add an associated `ComponentInternal` interface.
-2. Change the Java plugin to add a `Component` instance called `java` to this container.
-3. Change the Maven publish plugin so that it adds no publications by default.
-4. Change the Maven publish plugin so that when the `java` component instance is defined:
-    1. Adds a Maven publication called `maven`.
-    2. Has (groupId, artifactId, version) identifier that defaults to (project.group, project.name, project.version).
-    3. Includes dependencies declared in `configurations.runtime.allDependencies` in the generated POM. Add the appropriate methods to `ComponentInternal` to allow
-       the component instance to specify which dependencies should be included so that the Maven publish plugin does not have any knowledge of the Java plugin.
-    4. Publishes the JAR artifact only.
-
-To publish a Java library to a Maven repository
-
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
-
-    dependencies {
-        compile 'group:libA:1.2'
-        runtime 'group:libB:1.3'
-    }
-
-    publishing {
-        repositories {
-            maven { url '...' }
-        }
-    }
-
-Running `gradle publish` will publish the JAR and POM to the repository.
-
-### Test cases
-
-- Run `gradle publish` for a project with just the `maven-publish` plugin applied. Verify nothing is published.
-- Run `gradle assemble` for a Java project. Verify that the JAR is built.
-- Publish a Java project with compile, runtime and testCompile dependencies. Verify only the compile and runtime dependencies are declared in the POM with runtime scope,
-  and that only the JAR is uploaded. Verify that the packaging declared in the POM is `jar`.
-- Publish multiple projects with the `java` plugin applied and project dependencies between the projects. Verify the POMs declares the appropriate dependencies.
-- Add a cross version test that verifies that a Java library published to a Maven repository by the current Gradle version can be resolved by a previous Gradle version.
-- Copy existing Maven publication tests for java libraries and rework to use `maven-publish` plugin.
-- Publish a Java project to an HTTP repository. Verify that progress logging was generated.
-
 ## Publish Web application to Maven repository
 
 This story adds a second type of component and a DSL to define which components are published.
@@ -182,8 +138,8 @@ This step allows the outgoing artifacts to be customised for a Maven publication
     * `extension`
     * `classifier`
     * `file`
-2. Add a `MavenArtifactSet` interface. This is a collection of objects that can be converted to a collection of `MavenArtifact` instances.
-3. Add `mainArtifact` property and `artifacts` collections to `MavenPublication`.
+2. Add a `MavenArtifactSet` interface. This is a collection of `MavenArtifact` instances that permits access as a FileCollection.
+3. Add `artifact` / `artifacts` methods to `MavenPublication`.
 4. When publishing, validate that (extension, classifier) is unique for each artifact.
 
 To customise a Maven publication:
@@ -193,33 +149,43 @@ To customise a Maven publication:
     publishing {
         publications {
             myLib(MavenPublication) {
-                mainArtifact jar
                 artifacts = [sourceJar, javadocJar]
                 artifact file: distZip, classifier: 'dist'
+                artifact documentationTask.outputFile {
+                    classifier 'docs'
+                    extension 'txt'
+                }
             }
         }
     }
 
-    publishing.publications.myLib.mainArtifact.classifier = 'custom'
     publishing.publications.myLib.artifacts.each {
         ...
     }
 
-TBD - applicable artifact conversions
+The 'artifact' creation method will accept the following forms of input:
+* A PublishArtifact, that will be adapted to MavenArtifact
+* An AbstractArchiveTask, that will be adapted to MavenArtifact
+* Anything that is valid input to Project.file()
+* One of the previous 3, together with a configuration closure that permits setting of classifier & extension
+* A map with 'file' entry, that is interpreted as per Project.file(). Additional entries for 'classifier' and 'extension'.
 
 ### Test cases
 
-* Existing empty publication test: Verify empty `mainArtifact` and `artifacts`.
-* Existing publish 'java' & 'web' tests: Verify `mainArtifact` attributes and that `mainArtifact` is the only element of `artifacts`.
+* Existing empty publication test: Verify empty `artifacts` collection.
+* Existing publish 'java' & 'web' tests: Verify `artifacts` collection contains a single entry for published 'jar' or 'war'.
 * Publish with java component, add source and javadoc jars as additional artifacts. Verify classifiers of additional artifacts.
-* Run `gradle publish` with no component where mainArtifact and artifacts are taken from custom AbstractArchiveTasks.
-    * Verify that archives are automatically built and published.
-    * Verify that classifier and extension from AbstractArchiveTask is honoured.
-    * Verify that classifier and extension specified in publication DSL overrides that of AbstractArchiveTask.
+* Run `gradle publish` with no component, and verify added artifacts:
+    * Add custom artifact from AbstractArchiveTask
+    * Add custom artifact from file
+    * Add custom artifact from file that is task outputFile
+    * All of the 3 above, with configuration closure to specify classifier/extension
+    * Add custom artifact using file-map notation
+    * Modify elements of artifacts collection after creation
 * Run `gradle publish` where mainArtifact and custom artifacts specified via file[,classifier,extension].
     * Verify that extension is taken from file name by default, and can be overridden in DSL.
-    * Verify that classifier is empty by default, and can be overridden in DSL.
-* Publish with java component. Verify that the publishing DSL can be used to update the classifier & exension of mainArtifact taken from component.
+    * Verify that classifier is taken from file name by default, and can be overridden in DSL.
+* Publish with java component. Verify that the publishing DSL can be used to update the classifier & exension of artifact taken from component.
     * `publishing.publications.myLib.mainArtifact.classifier = 'custom'`
 
 ## Allow Maven POM to be generated without publishing to a repository

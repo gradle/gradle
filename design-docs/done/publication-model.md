@@ -215,3 +215,47 @@ Running `gradle generateIvyMetaData` would generate the `ivy.xml` for the defaul
 ### Test cases
 
 * Unignore IvyLocalPublishIntTest.canGenerateTheIvyXmlWithoutPublishing().
+
+## Publish Java library to Maven repository with correct runtime dependencies (DONE)
+
+This story introduces the concept of a component and the ability to publish components.
+
+1. Introduce a `Component` interface that extends `Named` and add a `components` container to `Project`. This container will initially be _read-only_ from
+   a user's point of view. Also add an associated `ComponentInternal` interface.
+2. Change the Java plugin to add a `Component` instance called `java` to this container.
+3. Change the Maven publish plugin so that it adds no publications by default.
+4. Change the Maven publish plugin so that when the `java` component instance is defined:
+    1. Adds a Maven publication called `maven`.
+    2. Has (groupId, artifactId, version) identifier that defaults to (project.group, project.name, project.version).
+    3. Includes dependencies declared in `configurations.runtime.allDependencies` in the generated POM. Add the appropriate methods to `ComponentInternal` to allow
+       the component instance to specify which dependencies should be included so that the Maven publish plugin does not have any knowledge of the Java plugin.
+    4. Publishes the JAR artifact only.
+
+To publish a Java library to a Maven repository
+
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    dependencies {
+        compile 'group:libA:1.2'
+        runtime 'group:libB:1.3'
+    }
+
+    publishing {
+        repositories {
+            maven { url '...' }
+        }
+    }
+
+Running `gradle publish` will publish the JAR and POM to the repository.
+
+### Test cases
+
+- Run `gradle publish` for a project with just the `maven-publish` plugin applied. Verify nothing is published.
+- Run `gradle assemble` for a Java project. Verify that the JAR is built.
+- Publish a Java project with compile, runtime and testCompile dependencies. Verify only the compile and runtime dependencies are declared in the POM with runtime scope,
+  and that only the JAR is uploaded. Verify that the packaging declared in the POM is `jar`.
+- Publish multiple projects with the `java` plugin applied and project dependencies between the projects. Verify the POMs declares the appropriate dependencies.
+- Add a cross version test that verifies that a Java library published to a Maven repository by the current Gradle version can be resolved by a previous Gradle version.
+- Copy existing Maven publication tests for java libraries and rework to use `maven-publish` plugin.
+- Publish a Java project to an HTTP repository. Verify that progress logging was generated.
