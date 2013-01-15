@@ -65,16 +65,6 @@ Use the same mechanism as TestNG for XML result generation
 
 - No partial XML results available when process crashes (see first story for more)
 
-## Story: Aggregate HTML test report can be generated using internal class
-
-- Rename `DefaultTestReport`.
-- Restore `DefaultTestReport` from the revision released for Gradle 1.3.
-- Refactor to share as much implementation as practical, while keeping the public API of `DefaultTestReport` backwards compatible with 1.3.
-
-### Test coverage
-
-- A basic integration test to smoke test that it generates something without blowing up.
-
 ## Story: HTML test report generation is efficient
 
 HTML report is generated from the binary format, not from XML results
@@ -87,8 +77,6 @@ HTML report is generated from the binary format, not from XML results
 
 - Change test task to persist test results in internal format.
 - Add test report task.
-- Deprecate internal test report class `DefaultTestReport` and log deprecation message when used. Log message should mention that the class will be
-  removed in the next minor release of Gradle.
 
 ## Story: HTML test report shows output per test
 
@@ -126,4 +114,6 @@ We could possibly fix it by starting redirecting the output at suite start in th
 
 # Other issues
 
+- Test report aggregates multiple test results with the same class name from separate test task executions.
+- Allow XML results to be disabled.
 - Provide some way to generate only the old TestNG reports, so that both test report and test XML generation can be disabled.
