@@ -792,14 +792,7 @@ public class DependencyGraphBuilder {
             for (String moduleConfiguration : dependencyDescriptor.getModuleConfigurations()) {
                 if (moduleConfiguration.equals("*") || heirarchy.contains(moduleConfiguration)) {
                     for (String targetConfiguration : dependencyDescriptor.getDependencyConfigurations(moduleConfiguration)) {
-                        if (targetConfiguration.equals("*")) {
-                            DefaultModuleRevisionResolveState dependencyRevision = resolveState.getSelector(dependencyDescriptor).resolveModuleRevisionId();
-                            if (dependencyRevision != null) {
-                              Collections.addAll(targetConfigurations, dependencyRevision.getDescriptor().getPublicConfigurationsNames());
-                            }
-                        } else {
-                            targetConfigurations.add(targetConfiguration);
-                        }
+                        targetConfigurations.add(targetConfiguration);
                     }
                 }
             }
