@@ -90,9 +90,7 @@ public interface PublishingExtension {
      * <p>
      * Actual publication implementations and the ability to create them are provided by different plugins. The “publishing” plugin itself does not provide any publication types.
      * For example, given that the 'maven-publish' plugin provides a {@link org.gradle.api.publish.maven.MavenPublication} type, you can create a publication like:
-     * <pre autoTested="true">
-     * apply plugin: 'maven-publish'
-     *
+     * <pre>
      * publishing {
      *   publications {
      *     myPublicationName(MavenPublication) {
