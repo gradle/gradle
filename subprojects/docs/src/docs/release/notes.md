@@ -2,28 +2,45 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Performance and memory consumption
+
+Gradle 1.4 introduces some important performance improvements, resulting in faster builds that use less heap space. These improvements affect
+dependency resolution, task up-to-date checks and test execution. In other words, everything that a typical Java based project uses in its build.
+
+A typical Java project might see a 10-20% improvement in build time. For builds with many small projects and many unit tests, in combination with the
+Gradle daemon, we are seeing a 50% improvement in build time.
+
+#### Faster dependency resolution
+
+As mentioned below, resolution of Maven SNAPSHOT versions is now faster, due to fewer network requests and various other internal changes.
+
+Artifact meta-data is now cached more efficiently, making it much faster to read and write to disk. This means that resolution of all
+dependencies can be performed more quickly. In particular, reading of cached meta-data is much faster, so that resolution of dependencies that
+have been cached is much faster.
+
+This in turn means that task up-to-date checks are faster, as typically a large portion of the time to perform an up-to-date check is made up of
+the time it takes to resolve the dependencies that form the task inputs.
+
+#### Faster test execution
+
+Test execution typically has a significant effect on build time. While your actual test code won't run any faster in Gradle 1.4, Gradle is now much
+more efficient in managing test execution and generating result and report files.
+
+Gradle runs tests in a separate worker JVM, to keep the build and tests isolated from each other. The mechanism for controlling these workers and
+dispatching tests to them is now much more efficient, meaning that tests will start to execute in the worker processes more quickly, and that the CPU
+cores can spend more of their time executing tests. This mechanism is now much more robust and can handle a very large number of test classes, fixing a
+number of deadlock conditions.
+
+Previously, Gradle collected the test results as XML files and generated the HTML report from these XML files. Test results are now written in an
+efficient binary format, and the XML files and HTML report generated from this. The work of generating the results has moved from the test worker
+processes to the parent build process, meaning that the workers can spend more of their time executing tests, while the results are generated
+asynchronously by the parent. In addition, all result and report file generation streams the content to file, keeping heap usage at a minimum.
+
 ### Dependency resolution improvements
 
 As with every release, the dependency resolution engine has been improved with bug fixes and performance optimizations.
 
-These improvements are in addition to the new support for [Dependency Resolve Rules](#dependency-resolve-rules), which give you more control over dependency resolution.
-
-#### Maven SNAPSHOT artifacts with classifiers are now correctly “changing”
-
-For dependencies originating in Maven repositories, Gradle follows Maven semantics and treats any dependency artifact whose version number ends 
-in '`-SNAPSHOT`' as “changing”, 
-which means that it can change over time and Gradle should periodically check for updates instead of caching indefinitely 
-(see “[controlling caching](/userguide/dependency_management.html#sec:controlling_caching)”). Previously, artifacts with classifiers 
-(e.g `sources` or `javadoc`) were not being checked for changes. This has been fixed in this release (GRADLE-2175).
-
-#### More robust `--offline` mode
-
-Previously, Gradle discarded cached artifacts just prior to attempting to fetch an updated version from the remote source. If the fetch of the remote 
-artifact failed (e.g. network disruption), 
-there was no longer a cached version available to be used in `--offline` mode. This could result in situations where trying to use `--offline` 
-mode in response to unexpected network issues would not work well. 
-
-Gradle now only discards old artifacts after a newer version has been cached, which makes `--offline` mode more reliable and useful (GRADLE-2364).
+These improvements are in addition to the new incubating support for [Dependency Resolve Rules](#dependency-resolve-rules), which give you more control over dependency resolution.
 
 #### Fewer network requests when checking for Maven SNAPSHOT artifact updates (performance)
 
@@ -39,8 +56,22 @@ Before Gradle downloads a dependency artifact from a remote repository, it will 
 copied from this location which is much faster than downloading the file (which would be exactly the same) over the network. This is completely 
 transparent and safe.
 
-The algorithm used to search for “local candidates” has been improved and is now faster. This affects all builds using dependency management, especially when building for the first 
-time (GRADLE-2546).
+The algorithm used to search for “local candidates” has been improved and is now faster. This affects all builds using dependency management, especially when building for the first time (GRADLE-2546).
+
+#### Maven SNAPSHOT artifacts with classifiers are now correctly “changing”
+
+For dependencies originating in Maven repositories, Gradle follows Maven semantics and treats any dependency artifact whose version number ends 
+in '`-SNAPSHOT`' as “changing”, 
+which means that it can change over time and Gradle should periodically check for updates instead of caching indefinitely 
+(see “[controlling caching](/userguide/dependency_management.html#sec:controlling_caching)”). Previously, artifacts with classifiers 
+(e.g `sources` or `javadoc`) were not being checked for changes. This has been fixed in this release (GRADLE-2175).
+
+#### More robust `--offline` mode
+
+Previously, Gradle discarded cached artifacts just prior to attempting to fetch an updated version from the remote source. If the fetch of the remote 
+artifact failed (e.g. network disruption), there was no longer a cached version available to be used in `--offline` mode. This could result in situations where trying to use `--offline` mode in response to unexpected network issues would not work well. 
+
+Gradle now only discards old artifacts after a newer version has been cached, which makes `--offline` mode more reliable and useful (GRADLE-2364).
 
 #### Using a “maven” layout with an Ivy repository
 
@@ -195,40 +226,6 @@ Previously, the report generation was delegated to TestNG's default listeners th
 You can switch off the HTML report generation by configuring the [test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) property.
 If you prefer the old TestNG reports please refer to the [documentation](groovydoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html#useDefaultListeners).
 
-### Performance and memory consumption
-
-Gradle 1.4 introduces some important performance improvements, resulting in faster builds that use less heap space. These improvements affect
-dependency resolution, task up-to-date checks and test execution. In other words, everything that a typical Java based project uses in its build.
-
-A typical Java project might see a 10-20% improvement in build time. For builds with many small projects and many unit tests, in combination with the
-Gradle daemon, we are seeing a 50% improvement in build time.
-
-#### Faster dependency resolution
-
-As mentioned above, resolution of Maven SNAPSHOT versions is now faster, due to fewer network requests and various other internal changes.
-
-Artifact meta-data is now cached more efficiently, making it much faster to read and write to disk. This means that resolution of all
-dependencies can be performed more quickly. In particular, reading of cached meta-data is much faster, so that resolution of dependencies that
-have been cached is much faster.
-
-This in turn means that task up-to-date checks are faster, as typically a large portion of the time to perform an up-to-date check is made up of
-the time it takes to resolve the dependencies that form the task inputs.
-
-#### Faster test execution
-
-Test execution typically has a significant effect on build time. While your actual test code won't run any faster in Gradle 1.4, Gradle is now much
-more efficient in managing test execution and generating result and report files.
-
-Gradle runs tests in a separate worker JVM, to keep the build and tests isolated from each other. The mechanism for controlling these workers and
-dispatching tests to them is now much more efficient, meaning that tests will start to execute in the worker processes more quickly, and that the CPU
-cores can spend more of their time executing tests. This mechanism is now much more robust and can handle a very large number of test classes, fixing a
-number of deadlock conditions.
-
-Previously, Gradle collected the test results as XML files and generated the HTML report from these XML files. Test results are now written in an
-efficient binary format, and the XML files and HTML report generated from this. The work of generating the results has moved from the test worker
-processes to the parent build process, meaning that the workers can spend more of their time executing tests, while the results are generated
-asynchronously by the parent. In addition, all result and report file generation streams the content to file, keeping heap usage at a minimum.
-
 ### Easier embedding of Gradle via [Tooling API](userguide/embedding.html)
 
 The [Tooling API](userguide/embedding.html), the standard way to embed Gradle, is now more convenient to use.
@@ -280,82 +277,13 @@ has been applied). The rule can make a programmatic choice to change how the dep
 This is an “incubating” feature. In Gradle 1.4, it is only possible to affect the version of the dependency that will be resolved. In future versions,
 more control will be allowed via the `DependencyResolveDetails` type.
 
-Many interesting use cases can be implemented with the dependency resolve rules:
+It is a much more powerful feature than just enforcing a certain version of a dependency in advance (which [you can also do](dsl/org.gradle.api.artifacts.ResolutionStrategy.html) with Gradle). Many interesting use cases can be implemented with the dependency resolve rules:
 
 * [Blacklisting a version](userguide/dependency_management.html#sec:blacklisting_version) with a replacement
 * Implementing a [custom versioning scheme](userguide/dependency_management.html#sec:custom_versioning_scheme)
 * [Modelling a releasable unit](userguide/dependency_management.html#sec:releasable_unit) - a set of related libraries that require a consistent version
 
 For more information, including more code samples, please refer to this [user guide section](userguide/dependency_management.html#sec:dependency_resolve_rules).
-
-### Generate `ivy.xml` without publishing
-
-The incubating '`ivy-publish`' plugin introduces a new `GenerateIvyDescriptor` task generates the Ivy metadata file (a.k.a. `ivy.xml`) for publication.
-The task name for the default Ivy publication is '`generateIvyModuleDescriptor`'.
-
-This function used to be performed internally by the `PublishToIvyRepository` task. By having this function be performed by a separate task
-you can generate the `ivy.xml` metadata file without having to publish your module to an Ivy repository, which makes it easier to test/check
-the descriptor. 
-
-The `GenerateIvyDescriptor` task also allows the location of the generated Ivy descriptor file to changed from its default location at ‘`build/publications/ivy/ivy.xml`’.
-This is done by setting the `destination` property of the task:
-
-    apply plugin: 'ivy-publish'
-
-    group = 'group'
-    version = '1.0'
-
-    // … declare dependencies and other config on how to build
-
-    generateIvyModuleDescriptor {
-        destination = 'generated-ivy.xml'
-    }
-
-Executing `gradle generateIvyModuleDescriptor` will result in the Ivy module descriptor being written to the file specified. This task is automatically wired
-into the respective `PublishToIvyRepository` tasks, so you do not need to explicitly call this task to publish your module.
-
-### The new ‘maven-publish’ plugin
-
-The new icubating ‘maven-publish’ plugin is an alternative to the existing ‘maven’ plugin, and will eventually replace it. This plugin builds on the new publishing model
-that was introduced in Gradle 1.3 with the ‘ivy-publish’ plugin. The new publication mechanism (which is currently “incubating”, including this plugin) will
-expand and improve over the subsequent Gradle releases to provide more convenience and flexibility than the existing publication mechanism.
-
-In the simplest case, publishing to a Maven repository looks like…
-
-    apply plugin: 'maven-publish'
-
-    group = 'group'
-    version = '1.0'
-
-    // … declare dependencies and other config on how to build
-
-    publishing {
-        repositories {
-            maven {
-                url 'http://mycompany.org/repo'
-            }
-        }
-    }
-
-To publish, you simply run the `publish` task. The POM file will be generated and the main artifact uploaded to the declared repository.
-To publish to your local Maven repository (ie 'mvn install') simply run the `publishToMavenLocal` task. You do not need to have `mavenLocal` in your
-`publishing.repositories` section.
-
-To modify the generated POM file, you can use a programmatic hook that modifies the descriptor content as XML.
-
-    publications {
-        maven {
-            pom.withXml {
-                asNode().appendNode('description', 'A demonstration of maven POM customisation')
-            }
-        }
-    }
-
-In this example we are adding a ‘`description`’ element for the generated POM. With this hook, you can modify any aspect of the POM.
-For example, you could replace the version range for a dependency with the actual version used to produce the build.
-This allows the POM file to describe how the module should be consumed, rather than be a description of how the module was built.
-
-For more information on the new publishing mechanism, see the [new User Guide chapter](userguide/publishing_maven.html).
 
 ### Improved scalability via configuration on demand
 
@@ -364,7 +292,7 @@ Huge multi-project builds may have a noticeable configuration time for that reas
 To improve the experience of working with large multi-project builds "configuration on demand" mode is introduced, where only those projects required
 by the build are configured. This mode is incubating and currently it is not guaranteed to work with every multi-project build.
 It should work very well with builds that have [decoupled projects](userguide/userguide_single.html#sec:decoupled_projects)
-(e.g. avoiding excessive configuration injection and projects accessing each other's model).
+(e.g. avoiding subprojects accessing each other's model).
 Before you start configuring on demand, please read the section in the [user guide](userguide/userguide_single.html#sec:configuration_on_demand).
 Then update your gradle.properties file:
 
@@ -432,6 +360,75 @@ multiple `Test` tasks, only one execution of the class will be included in the r
 will be discarded. This will be addressed in a later Gradle version.
 
 For more details, see the [user guide](userguide/java_plugin.html#test_reporting)
+
+### Generate `ivy.xml` without publishing
+
+The incubating '`ivy-publish`' plugin introduces a new `GenerateIvyDescriptor` task generates the Ivy metadata file (a.k.a. `ivy.xml`) for publication.
+The task name for the default Ivy publication is '`generateIvyModuleDescriptor`'.
+
+This function used to be performed internally by the `PublishToIvyRepository` task. By having this function be performed by a separate task
+you can generate the `ivy.xml` metadata file without having to publish your module to an Ivy repository, which makes it easier to test/check
+the descriptor. 
+
+The `GenerateIvyDescriptor` task also allows the location of the generated Ivy descriptor file to changed from its default location at ‘`build/publications/ivy/ivy.xml`’.
+This is done by setting the `destination` property of the task:
+
+    apply plugin: 'ivy-publish'
+
+    group = 'group'
+    version = '1.0'
+
+    // … declare dependencies and other config on how to build
+
+    generateIvyModuleDescriptor {
+        destination = 'generated-ivy.xml'
+    }
+
+Executing `gradle generateIvyModuleDescriptor` will result in the Ivy module descriptor being written to the file specified. This task is automatically wired
+into the respective `PublishToIvyRepository` tasks, so you do not need to explicitly call this task to publish your module.
+
+### The new ‘maven-publish’ plugin
+
+The new incubating ‘maven-publish’ plugin is an alternative to the existing ‘maven’ plugin, and will eventually replace it. This plugin builds on the new publishing model
+that was introduced in Gradle 1.3 with the ‘ivy-publish’ plugin. The new publication mechanism (which is currently “incubating”, including this plugin) will
+expand and improve over the subsequent Gradle releases to provide more convenience and flexibility than the existing publication mechanism plus very powerful features to wire your components across builds & teams.
+
+In the simplest case, publishing to a Maven repository looks like…
+
+    apply plugin: 'maven-publish'
+
+    group = 'group'
+    version = '1.0'
+
+    // … declare dependencies and other config on how to build
+
+    publishing {
+        repositories {
+            maven {
+                url 'http://mycompany.org/repo'
+            }
+        }
+    }
+
+To publish, you simply run the `publish` task. The POM file will be generated and the main artifact uploaded to the declared repository.
+To publish to your local Maven repository (ie 'mvn install') simply run the `publishToMavenLocal` task. You do not need to have `mavenLocal` in your
+`publishing.repositories` section.
+
+To modify the generated POM file, you can use a programmatic hook that modifies the descriptor content as XML.
+
+    publications {
+        maven {
+            pom.withXml {
+                asNode().appendNode('description', 'A demonstration of maven POM customisation')
+            }
+        }
+    }
+
+In this example we are adding a ‘`description`’ element for the generated POM. With this hook, you can modify any aspect of the POM.
+For example, you could replace the version range for a dependency with the actual version used to produce the build.
+This allows the POM file to describe how the module should be consumed, rather than be a description of how the module was built.
+
+For more information on the new publishing mechanism, see the [new User Guide chapter](userguide/publishing_maven.html).
 
 ## Deprecations
 
