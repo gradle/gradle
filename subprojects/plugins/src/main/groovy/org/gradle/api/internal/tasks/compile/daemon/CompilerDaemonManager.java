@@ -22,6 +22,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
@@ -63,9 +64,7 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
 
     public synchronized void stop() {
         LOGGER.info("Stopping {} Gradle compiler daemon(s).", clients.size());
-        for (CompilerDaemonClient client : clients) {
-            client.stop();
-        }
+        CompositeStoppable.stoppable(clients).stop();
         LOGGER.info("Stopped {} Gradle compiler daemon(s).", clients.size());
         clients.clear();
     }
