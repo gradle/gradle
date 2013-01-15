@@ -85,9 +85,7 @@ a software component ['java', 'web'], custom artifacts or both. If no MavenPubli
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
-* Some Person - fixed some issue (GRADLE-1234)
--->
+* Joe Sortelli - Fixed incorrect handling of ivy.xml where dependency configuration contained wildcard values (GRADLE-2352)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
