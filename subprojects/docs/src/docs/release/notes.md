@@ -69,9 +69,10 @@ which means that it can change over time and Gradle should periodically check fo
 #### More robust `--offline` mode
 
 Previously, Gradle discarded cached artifacts just prior to attempting to fetch an updated version from the remote source. If the fetch of the remote 
-artifact failed (e.g. network disruption), there was no longer a cached version available to be used in `--offline` mode. This could result in situations where trying to use `--offline` mode in response to unexpected network issues would not work well. 
+artifact failed (e.g. network disruption), there was no longer a cached version available to be used in `--offline` mode.
+This resulted in some situations where trying to use `--offline` mode in response to unexpected network issues would not work well.
 
-Gradle now only discards old artifacts after a newer version has been cached, which makes `--offline` mode more reliable and useful (GRADLE-2364).
+Gradle now only discards old artifacts after a newer version has been cached, making `--offline` mode more reliable and useful (GRADLE-2364).
 
 #### Using a “maven” layout with an Ivy repository
 
@@ -277,7 +278,8 @@ has been applied). The rule can make a programmatic choice to change how the dep
 This is an “incubating” feature. In Gradle 1.4, it is only possible to affect the version of the dependency that will be resolved. In future versions,
 more control will be allowed via the `DependencyResolveDetails` type.
 
-It is a much more powerful feature than just enforcing a certain version of a dependency in advance (which [you can also do](dsl/org.gradle.api.artifacts.ResolutionStrategy.html) with Gradle). Many interesting use cases can be implemented with the dependency resolve rules:
+It is a much more powerful feature than just enforcing a certain version of a dependency in advance (which [you can also do](dsl/org.gradle.api.artifacts.ResolutionStrategy.html) with Gradle).
+Many interesting use cases can be implemented with the dependency resolve rules:
 
 * [Blacklisting a version](userguide/dependency_management.html#sec:blacklisting_version) with a replacement
 * Implementing a [custom versioning scheme](userguide/dependency_management.html#sec:custom_versioning_scheme)
