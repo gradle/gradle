@@ -19,6 +19,8 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 /**
  * @author Szczepan Faber, @date 03.03.11
  */
@@ -621,9 +623,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         run("check", "dependencies")
 
         then:
-        output.contains("""conf
+        output.contains(toPlatformLineSeparators("""conf
 +--- org.utils:a:1.2 -> b:2.1
-\\--- org.utils:b:2.0 -> 2.1""")
+\\--- org.utils:b:2.0 -> 2.1"""))
     }
 
     def "can substitute module group"()
@@ -653,10 +655,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         run("dependencies")
 
         then:
-        output.contains("""+--- org:a:1.0 -> 2.0
+        output.contains(toPlatformLineSeparators("""
++--- org:a:1.0 -> 2.0
 |    \\--- org:c:1.0
 \\--- foo:b:1.0 -> org:b:1.0
-     \\--- org:a:2.0 (*)""")
+     \\--- org:a:2.0 (*)"""))
     }
 
     def "can substitute module group, name and version"()
@@ -688,10 +691,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         run("dependencies")
 
         then:
-        output.contains("""+--- org:a:1.0 -> 2.0
+        output.contains(toPlatformLineSeparators("""
++--- org:a:1.0 -> 2.0
 |    \\--- org:c:1.0
 \\--- foo:bar:baz -> org:b:1.0
-     \\--- org:a:2.0 (*)""")
+     \\--- org:a:2.0 (*)"""))
     }
 
     String getCommon() {
