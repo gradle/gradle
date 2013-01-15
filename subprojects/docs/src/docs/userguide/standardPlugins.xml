@@ -340,6 +340,19 @@
                     </para>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <link linkend="buildDashboard_plugin">
+                        <literal>build-dashboard</literal>
+                    </link>
+                </td>
+                <td>reporting-base</td>
+                <td>-</td>
+                <td>
+                    <para>Generates build dashboard report.
+                    </para>
+                </td>
+            </tr>
         </table>
     </section>
     <section>

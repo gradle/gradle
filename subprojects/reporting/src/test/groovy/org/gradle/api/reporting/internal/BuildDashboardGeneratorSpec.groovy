@@ -16,12 +16,12 @@
 
 package org.gradle.api.reporting.internal
 
-import jodd.jerry.Jerry
 import org.gradle.api.reporting.Report
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.junit.Rule
 import spock.lang.Specification
-import static jodd.jerry.Jerry.jerry
 
 class BuildDashboardGeneratorSpec extends Specification {
 
@@ -38,8 +38,8 @@ class BuildDashboardGeneratorSpec extends Specification {
         generator = new BuildDashboardGenerator(reports as Set, outputFile)
     }
 
-    private Jerry getOutputHtml() {
-        jerry(outputFile.text)
+    private Document getOutputHtml() {
+        Jsoup.parse(outputFile, 'UTF-8')
     }
 
     Report mockReport(String name, File destination) {
@@ -57,7 +57,7 @@ class BuildDashboardGeneratorSpec extends Specification {
         generator.generate()
 
         then:
-        outputHtml.find('h1').text().trim() == 'There are no build reports available.'
+        outputHtml.select('h1').text() == 'There are no build reports available.'
     }
 
     void 'links to reports are added to the generated markup'() {
@@ -73,11 +73,11 @@ class BuildDashboardGeneratorSpec extends Specification {
         generator.generate()
 
         then:
-        outputHtml.find('h1').text().trim() == 'Available build reports:'
-        with outputHtml.find('ul li a'), {
+        outputHtml.select('h1').text() == 'Available build reports:'
+        with outputHtml.select('ul li'), {
             size() == 2
-            filter('[href="report.html"]').text().trim() == 'a'
-            filter('[href="inner/otherReport.html"]').text().trim() == 'b'
+            select('a[href=report.html]').text() == 'a'
+            select('a[href=inner/otherReport.html]').text() == 'b'
         }
     }
 
@@ -89,7 +89,7 @@ class BuildDashboardGeneratorSpec extends Specification {
         generator.generate()
 
         then:
-        outputHtml.find('head link[type="text/css"]').attr('href') == 'base-style.css'
+        outputHtml.select('head link[type=text/css]').attr('href') == 'base-style.css'
         tmpDir.file('base-style.css').text == getClass().getResource('/org/gradle/reporting/base-style.css').text
     }
 }

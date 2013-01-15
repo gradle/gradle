@@ -18,10 +18,9 @@ package org.gradle.api.reporting.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
+import org.jsoup.Jsoup
 
 import static org.gradle.api.reporting.plugins.BuildDashboardPlugin.BUILD_DASHBOARD_TASK_NAME
-
-import static jodd.jerry.Jerry.jerry
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -40,7 +39,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     private int getDashboardLinksCount() {
-        jerry(buildDashboardFile.text).find('ul li a').size()
+        Jsoup.parse(buildDashboardFile, 'UTF-8').select('ul li a').size()
     }
 
     private void writeBuildFile() {
