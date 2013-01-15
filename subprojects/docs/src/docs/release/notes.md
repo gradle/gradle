@@ -73,6 +73,15 @@ foo:baz:1.0 -> 2.0 FAILED
 
 In this example, `foo:baz` was forced to version `2.0`, and that version couldn't be resolved.
 
+### Filter dependency resolution reports by configuration
+
+The `dependencies` task now accepts an optional `--configuration` parameter that restricts its output to a particular configuration:
+
+    $ gradle dependencies --configuration compile
+
+This command will display the dependency tree rooted at the `compile` configuration, and (assuming a standard
+Java project) omit the dependency trees for the `runtime`, `testCompile`, and `testRuntime` configurations.
+
 ### Automatic configuration of Groovy dependency used by `GroovyCompile` and `Groovydoc` tasks
 
 The `groovy-base` plugin now automatically detects the Groovy dependency used on the compile class path of any `GroovyCompile` or `Groovydoc` task,
