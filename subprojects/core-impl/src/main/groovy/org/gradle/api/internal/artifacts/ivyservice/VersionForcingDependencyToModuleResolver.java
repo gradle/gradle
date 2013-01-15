@@ -24,15 +24,24 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionIdResolver resolver;
     private Action<DependencyResolveDetailsInternal> rule;
+    private ReflectiveDependencyDescriptorFactory descriptorFactory;
 
     public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Action<DependencyResolveDetailsInternal> rule) {
+        this(resolver, rule, new ReflectiveDependencyDescriptorFactory());
+    }
+
+    VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver,
+                                                    Action<DependencyResolveDetailsInternal> rule,
+                                                    ReflectiveDependencyDescriptorFactory descriptorFactory) {
         this.resolver = resolver;
         this.rule = rule;
+        this.descriptorFactory = descriptorFactory;
     }
 
     public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
@@ -46,7 +55,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
         if (details.isUpdated()) {
             ModuleId moduleId = new ModuleId(details.getTarget().getGroup(), details.getTarget().getName());
             ModuleRevisionId revisionId = new ModuleRevisionId(moduleId, details.getTarget().getVersion());
-            DependencyDescriptor descriptor = dependencyDescriptor.clone(revisionId);
+            DependencyDescriptor descriptor = descriptorFactory.create(dependencyDescriptor, revisionId);
             ModuleVersionIdResolveResult result = resolver.resolve(descriptor);
             return new SubstitutedModuleVersionIdResolveResult(result, details.getSelectionReason());
         }

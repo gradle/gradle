@@ -288,8 +288,12 @@ public class DependencyGraphBuilder {
 
         public void resolveModuleRevisionId() {
             if (targetModuleRevision == null) {
-                selector = resolveState.getSelector(dependencyDescriptor);
+                selector = resolveState.getSelector(dependencyDescriptor, dependencyDescriptor.getDependencyRevisionId());
                 targetModuleRevision = selector.resolveModuleRevisionId();
+                if (targetModuleRevision != null && !targetModuleRevision.id.getModuleId().equals(dependencyDescriptor.getDependencyId())) {
+                    //the target module details were substituted when resolving ID, recreate the selector:
+                    selector = resolveState.getSelector(dependencyDescriptor, targetModuleRevision.id);
+                }
                 selector.module.addUnattachedDependency(this);
             }
         }
@@ -409,6 +413,8 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleVersionSelection getSelected() {
+            //we cannot use the targetModuleRevision field because it may have been evicted
+            //TODO SF add coverage for this (not trivial)
             return selector.module.selected;
         }
 
@@ -474,8 +480,7 @@ public class DependencyGraphBuilder {
             return configuration;
         }
 
-        public ModuleVersionSelectorResolveState getSelector(DependencyDescriptor dependencyDescriptor) {
-            ModuleRevisionId original = dependencyDescriptor.getDependencyRevisionId();
+        public ModuleVersionSelectorResolveState getSelector(DependencyDescriptor dependencyDescriptor, ModuleRevisionId original) {
             ModuleRevisionId selectorId = ModuleRevisionId.newInstance(original.getOrganisation(), original.getName(), original.getRevision());
             ModuleVersionSelectorResolveState resolveState = selectors.get(selectorId);
             if (resolveState == null) {
@@ -829,7 +834,7 @@ public class DependencyGraphBuilder {
         private ModuleVersionSpec getSelector(List<DependencyEdge> transitiveEdges) {
             ModuleVersionSpec selector;
             if (transitiveEdges.isEmpty()) {
-                selector = ModuleVersionSpec.forExcludes();
+                selector = ModuleVersionSpec.forExcludes(); //includes all
             } else {
                 selector = transitiveEdges.get(0).getSelector();
                 for (int i = 1; i < transitiveEdges.size(); i++) {
@@ -899,10 +904,6 @@ public class DependencyGraphBuilder {
          */
         public DefaultModuleRevisionResolveState resolveModuleRevisionId() {
             if (targetModuleRevision != null) {
-                //(SF) this might not be quite right
-                //this.targetModuleRevision might have been evicted in an earlier pass of conflict resolution
-                //and the module.selected has the actual target module.
-                //I'm not sure how big deal is it.
                 return targetModuleRevision;
             }
             if (failure != null) {
@@ -941,7 +942,7 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleVersionSelectorResolveState restart(DefaultModuleRevisionResolveState moduleRevision) {
-            return resolveState.getSelector(descriptor.clone(moduleRevision.id));
+            return resolveState.getSelector(descriptor.clone(moduleRevision.id), moduleRevision.id);
         }
     }
 

@@ -585,6 +585,115 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 .assertFailedDependencyRequiredBy(":root:1.0")
     }
 
+    void "can substitute module name and resolve conflict"()
+    {
+        mavenRepo.module("org.utils", "a",  '1.2').publish()
+        mavenRepo.module("org.utils", "b",  '2.0').publish()
+        mavenRepo.module("org.utils", "b",  '2.1').publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org.utils:a:1.2', 'org.utils:b:2.0'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.name == 'a') {
+                    it.useName 'b'
+                    it.useVersion '2.1'
+                }
+	        }
+
+	        task check << {
+                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
+                assert !modules.find { it.id.name == 'a' }
+                def b = modules.find { it.id.name == 'b' }
+                assert b.id.version == '2.1'
+                assert b.selectionReason.conflictResolution
+                assert b.selectionReason.selectedByRule
+                assert !b.selectionReason.forced
+                assert b.selectionReason.description == 'conflict resolution by rule'
+	        }
+"""
+
+        when:
+        run("check", "dependencies")
+
+        then:
+        output.contains("""conf
++--- org.utils:a:1.2 -> b:2.1
+\\--- org.utils:b:2.0 -> 2.1""")
+    }
+
+    def "can substitute module group"()
+    {
+        mavenRepo.module("org", "a", "1.0").publish()
+        mavenRepo.module("org", "b").dependsOn("org", "a", "2.0").publish()
+        mavenRepo.module("org", "a", "2.0").dependsOn("org", "c", "1.0").publish()
+        mavenRepo.module("org", "c").publish()
+        //a1
+        //b->a2->c
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org:a:1.0', 'foo:b:1.0'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.group == 'foo') {
+                    it.useGroup 'org'
+                }
+	        }
+"""
+
+        when:
+        run("dependencies")
+
+        then:
+        output.contains("""+--- org:a:1.0 -> 2.0
+|    \\--- org:c:1.0
+\\--- foo:b:1.0 -> org:b:1.0
+     \\--- org:a:2.0 (*)""")
+    }
+
+    def "can substitute module group, name and version"()
+    {
+        mavenRepo.module("org", "a", "1.0").publish()
+        mavenRepo.module("org", "b").dependsOn("org", "a", "2.0").publish()
+        mavenRepo.module("org", "a", "2.0").dependsOn("org", "c", "1.0").publish()
+        mavenRepo.module("org", "c").publish()
+        //a1
+        //b->a2->c
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org:a:1.0', 'foo:bar:baz'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.group == 'foo') {
+                    it.useGroup 'org'
+                    it.useName 'b'
+                    it.useVersion '1.0'
+                }
+	        }
+"""
+
+        when:
+        run("dependencies")
+
+        then:
+        output.contains("""+--- org:a:1.0 -> 2.0
+|    \\--- org:c:1.0
+\\--- foo:bar:baz -> org:b:1.0
+     \\--- org:a:2.0 (*)""")
+    }
+
     String getCommon() {
         """configurations { conf }
         repositories {

@@ -22,6 +22,8 @@ import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import spock.lang.Specification
 
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory
+
 class VersionForcingDependencyToModuleResolverSpec extends Specification {
     final target = Mock(DependencyToModuleVersionIdResolver)
     final resolvedVersion = Mock(ModuleVersionIdResolveResult)
@@ -45,12 +47,13 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
     }
 
     def "replaces dependency by rule"() {
+        def factory = Mock(ReflectiveDependencyDescriptorFactory)
         def dep = dependency('org', 'module', '0.5')
         def modified = dependency('org', 'module', '1.0')
 
         def force = { it.useVersion("1.0") } as Action
 
-        def resolver = new VersionForcingDependencyToModuleResolver(target, force)
+        def resolver = new VersionForcingDependencyToModuleResolver(target, force, factory)
 
         when:
         SubstitutedModuleVersionIdResolveResult result = resolver.resolve(dep)
@@ -60,7 +63,7 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         result.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
 
         and:
-        1 * dep.clone(new ModuleRevisionId(new ModuleId('org', 'module'), '1.0')) >> modified
+        1 * factory.create(dep, ModuleRevisionId.newInstance("org", "module", "1.0")) >> modified
         1 * target.resolve(modified) >> resolvedVersion
         0 * target._
     }

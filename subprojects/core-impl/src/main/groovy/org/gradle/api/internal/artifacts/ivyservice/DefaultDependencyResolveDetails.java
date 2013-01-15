@@ -55,6 +55,17 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         this.selectionReason = selectionReason;
     }
 
+    //TODO SF, refactor according to discussion with Adam
+    public void useName(String name) {
+        target = newSelector(target.getGroup(), name, target.getVersion());
+        this.selectionReason = VersionSelectionReasons.SELECTED_BY_RULE;
+    }
+
+    public void useGroup(String group) {
+        target = newSelector(group, target.getName(), target.getVersion());
+        this.selectionReason = VersionSelectionReasons.SELECTED_BY_RULE;
+    }
+
     public ModuleVersionSelectionReason getSelectionReason() {
         return selectionReason;
     }
