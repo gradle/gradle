@@ -64,8 +64,6 @@ class SonarPluginTest extends Specification {
         sonar.server.url == "http://localhost:9000"
 
         def db = sonar.database
-        db.url == "jdbc:derby://localhost:1527/sonar"
-        db.driverClassName == "org.apache.derby.jdbc.ClientDriver"
         db.username == "sonar"
         db.password == "sonar"
 
@@ -90,7 +88,7 @@ class SonarPluginTest extends Specification {
         project << createMultiProject().allprojects
     }
 
-    def "provides additional defaults for project configuration if java-base plugin is present"(Project project) {
+    def "provides additional defaults for project configuration if java-base plugin is present"() {
         SonarProject sonarProject = project.sonar.project
 
         expect:
@@ -108,7 +106,8 @@ class SonarPluginTest extends Specification {
         sonarProject.sourceDirs == project.sourceSets.main.allSource.srcDirs as List
         sonarProject.testDirs == project.sourceSets.test.allSource.srcDirs as List
         sonarProject.binaryDirs == [project.sourceSets.main.output.classesDir]
-        sonarProject.libraries.files as List == [Jvm.current().runtimeJar]
+        sonarProject.libraries.files as Set == [project.sourceSets.main.output.classesDir,
+                project.sourceSets.main.output.resourcesDir, Jvm.current().runtimeJar] as Set
 
         sonarProject.testReportPath == project.test.testResultsDir
         sonarProject.language == "java"
