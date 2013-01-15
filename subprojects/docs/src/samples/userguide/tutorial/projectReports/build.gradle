@@ -43,6 +43,7 @@ dists {
 subprojects {
     configurations {
         compile
+        testCompile
     }
     repositories {
         mavenCentral()
@@ -64,6 +65,7 @@ description = 'The shared API for the application'
 // END SNIPPET project-description
     dependencies {
         compile "org.codehaus.groovy:groovy-all:2.0.5"
+        testCompile "junit:junit:4.11"
     }
 }
 
