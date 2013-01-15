@@ -134,6 +134,35 @@ class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
         localModule.assertPublishedAsJavaModule()
     }
 
+    def "can publish a snapshot version"() {
+        settingsFile << 'rootProject.name = "snapshotPublish"'
+        buildFile << """
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    group = 'org.gradle'
+    version = '1.0-SNAPSHOT'
+
+    publishing {
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }
+        publications {
+            pub(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+"""
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('org.gradle', 'snapshotPublish', '1.0-SNAPSHOT')
+        module.assertArtifactsPublished('snapshotPublish-1.0-SNAPSHOT.jar', 'snapshotPublish-1.0-SNAPSHOT.pom')
+    }
+
     def "reports failure publishing when model validation fails"() {
         given:
         settingsFile << "rootProject.name = 'bad-project'"
