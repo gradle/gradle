@@ -231,21 +231,25 @@ class SonarProject {
     /**
      * The identifier for the project. Defaults to <tt>$project.group:$project.name</tt>.
      */
+    @SonarProperty("sonar.projectKey")
     String key
 
     /**
      * The name for the project. Defaults to <tt>$project.name</tt>.
      */
+    @SonarProperty("sonar.projectName")
     String name
 
     /**
      * A description for the project. Defaults to <tt>$project.description</tt>.
      */
+    @SonarProperty("sonar.projectDescription")
     String description
 
     /**
      * The version of the project. Defaults to <tt>$project.version</tt>.
      */
+    @SonarProperty("sonar.projectVersion")
     String version
 
     /**
@@ -264,35 +268,42 @@ class SonarProject {
     /**
      * The base directory for the analysis. Defaults to <tt>$project.projectDir</tt>.
      */
+    @SonarProperty("sonar.projectBaseDir")
     File baseDir
 
     /**
      * The working directory for the analysis. Defaults to <tt>$project.buildDir/sonar<tt>.
      */
+    // TODO: sounds like this might now be per analysis, not per project
+    @SonarProperty("sonar.working.directory")
     File workDir
 
     /**
      * The directories containing the project's production source code to be analyzed.
      * Defaults to <tt>project.sourceSets.main.allSource.srcDirs</tt>.
      */
+    @SonarProperty("sonar.sources")
     List<File> sourceDirs = []
 
     /**
      * The directories containing the project's test source code to be analyzed.
      * Defaults to <tt>project.sourceSets.test.allSource.srcDirs</tt>.
      */
+    @SonarProperty("sonar.tests")
     List<File> testDirs = []
 
     /**
      * The directories containing the project's compiled code to be analyzed.
      * Defaults to <tt>main.output.classesDir</tt>.
      */
+    @SonarProperty("sonar.binaries")
     List<File> binaryDirs = []
 
     /**
      * A class path containing the libraries used by this project.
      * Defaults to <tt>project.sourceSets.main.compileClasspath + Jvm.current().runtimeJar</tt>.
      */
+    @SonarProperty("sonar.libraries")
     FileCollection libraries// = new SimpleFileCollection()
 
     /**
