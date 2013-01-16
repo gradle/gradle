@@ -1,12 +1,15 @@
 apply plugin: "java"
-apply plugin:  "sonar"
+apply plugin: "sonar"
+
+group = "com.sonar.test"
+version = "1.0"
+description = "Sonar Test Project"
 
 sonar {
     server {
         url serverUrl
     }
     database {
-        //url = "jdbc:h2:tcp://localhost:9092/sonar"
         url databaseUrl
         driverClassName = "org.h2.Driver"
     }

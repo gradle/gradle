@@ -44,9 +44,9 @@ class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         def classpath = ClasspathUtil.getClasspath(getClass().classLoader).collect() { new File(it.toURI()) }
-        def warFile = classpath.find { it.name == "sonar-test-server-3.2.war" }
+        def warFile = classpath.find { it.name == "sonar-test-server-3.4.war" }
         assert warFile
-        def zipFile = classpath.find { it.name == "sonar-test-server-home-dir-3.2.zip" }
+        def zipFile = classpath.find { it.name == "sonar-test-server-home-dir-3.4.zip" }
         assert zipFile
 
         def sonarHome = tempDir.createDir("sonar-home")
@@ -68,20 +68,21 @@ sonar.embeddedDatabase.port=$databasePort
     }
 
     def "can run Sonar analysis"() {
-        executer.requireIsolatedDaemons()
         // Without forking, we run into problems with Sonar's BootStrapClassLoader, at least when running from IDEA.
         // Problem is that BootStrapClassLoader, although generally isolated from its parent(s), always
         // delegates to the system class loader. That class loader holds the test class path and therefore
         // also the Sonar dependencies with "provided" scope. Hence, the Sonar dependencies get loaded by
         // the wrong class loader.
+
         when:
-        executer.requireGradleHome(true)
+        executer.requireIsolatedDaemons()
+                .requireGradleHome(true)
+                .withArgument("-i")
                 .withArgument("-PserverUrl=http://localhost:${webServer.connectors[0].localPort}")
                 .withArgument("-PdatabaseUrl=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
-                .withTasks("sonarAnalyze").run()
+                .withTasks("build", "sonarAnalyze").run()
 
         then:
         noExceptionThrown()
-
     }
 }
