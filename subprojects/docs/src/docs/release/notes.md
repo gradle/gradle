@@ -31,13 +31,21 @@ The following are the new incubating features or changes to existing incubating 
 
 * respects 'external' task dependencies
 
-### Choose a component to publish with the new ‘maven-publish’ plugin
+### Improvements to the 'maven-publish' plugin
 
-The incubating ‘maven-publish’ plugin is an alternative to the existing ‘maven’ plugin, and will eventually replace it. This release adds the ability to choose which
-software component should be published to a Maven repository. Presently, the set of components available for publishing is limited to 'java' and 'web', added by the 'java'
-and 'war' plugins respectively.
+The incubating '`maven-publish`' plugin is an alternative to the existing '`maven`' plugin, and will eventually replace it. This release adds more power to the plugin, including
+ the ability to choose a software component to publish, customise the set of published artifacts, and generate a POM file without publishing.
 
-Publishing the 'web' component to a Maven repository looks like…
+For complete details on the '`maven-publish`' plugin, check out the [user guide chapter](userguide/publishing-maven.html) as well as the
+[DSL reference](dsl/org.gradle.api.publish.maven.MavenPublication.html).
+
+#### Choose a software component to publish
+
+Gradle 1.5 includes the concept of a Software Component, which defines something that can be produced by a Gradle project, like a Java Library or a Web Application.
+The 'maven-publish' plugin is component-aware, simplifying the process of publishing a component, which defines the set of artifacts and dependencies for publishing.
+Presently, the set of components available for publishing is limited to 'java' and 'web', added by the 'java' and 'war' plugins respectively.
+
+Publishing the 'web' component will result in the war file being published with no runtime dependencies (dependencies are bundled in the war):
 
     apply plugin: 'war'
     apply plugin: 'maven-publish'
@@ -59,6 +67,54 @@ Publishing the 'web' component to a Maven repository looks like…
             }
         }
     }
+
+#### Customise artifacts published
+
+This release introduces an API/DSL for customising the set of artifacts to publish to a Maven repository. This DSL allows gives a Gradle build complete control over which artifacts
+are published, and the classifier/extension used to publish them.
+
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    group = 'group'
+    version = '1.0'
+
+    // … declare dependencies and other config on how to build
+
+    task sourceJar(type: Jar) {
+        from sourceSets.main.allJava
+    }
+
+    publishing {
+        repositories {
+            maven {
+                url 'http://mycompany.org/repo'
+            }
+        }
+        publications {
+            mavenCustom(MavenPublication) {
+                from components.java // Include the standard java artifacts
+                artifact sourceJar {
+                    classifier "source"
+                }
+                artifact("project-docs.htm") {
+                    classifier "docs"
+                    extension "html"
+                }
+            }
+        }
+    }
+
+Be sure to check out the [DSL reference](dsl/org.gradle.api.publish.maven.MavenPublication.html) for complete details on how the set of artifacts can be customised.
+
+#### Generate POM file without publishing
+
+Pom file generation has been moved into a separate task, so that it is now possible to generate the Maven Pom file without actually publishing your project. All details of
+the publishing model are still considered in Pom generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
+
+The task for generating the Pom file is of type [`GenerateMavenPom`](dsl/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html), and it is given a name based on the name
+of the publication: `generatePomFileFor<publication-name>Publication`. So in the above example where the publication is named 'mavenCustom',
+the task will be named `generatePomFileForMavenCustomPublication`.
 
 ## Deprecations
 
