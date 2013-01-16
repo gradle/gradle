@@ -12,4 +12,8 @@ public class Junit4Test {
     public void broken() {
         throw new RuntimeException();
     }
+
+    public void helpermethod(){
+
+    }
 }
