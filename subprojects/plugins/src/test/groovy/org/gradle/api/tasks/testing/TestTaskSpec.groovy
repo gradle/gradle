@@ -39,6 +39,7 @@ class TestTaskSpec extends Specification {
 
     public setup(){
         task.setTestReporter(Mock(TestReporter))
+        task.setBinResultsDir(task.project.file('build/test-results'))
     }
 
     def "adds listeners and removes after execution"() {

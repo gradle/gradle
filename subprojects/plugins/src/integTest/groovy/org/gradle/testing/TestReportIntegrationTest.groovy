@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,53 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Rule
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import static org.hamcrest.Matchers.equalTo
 
 class TestReportIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sample
 
-    // TODO - use default value for bin results dir, and deprecate
-    // TODO - auto-wiring for test results
-    // TODO - warn when duplicate class results are discarded
-    // TODO - sample and int test
-    // TODO - user guide + dsl guide
-    // TODO - extract some kind of resolving collection
+    def "report includes results of each invocation"() {
+        given:
+        buildFile << """
+apply plugin: 'java'
+repositories { mavenCentral() }
+dependencies { testCompile 'junit:junit:4.11' }
+test { systemProperty 'LogLessStuff', System.getProperty('LogLessStuff') }
+"""
+
+        and:
+        file("src/test/java/LoggingTest.java") << """
+public class LoggingTest {
+    @org.junit.Test
+    public void test() {
+        if (System.getProperty("LogLessStuff", "false").equals("true")) {
+            System.out.print("stdout.");
+            System.err.print("stderr.");
+        } else {
+            System.out.print("This is stdout.");
+            System.err.print("This is stderr.");
+        }
+    }
+}
+"""
+
+        when:
+        run "test"
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass("LoggingTest").assertStdout(equalTo("This is stdout."))
+        result.testClass("LoggingTest").assertStderr(equalTo("This is stderr."))
+
+        when:
+        executer.withArguments("-DLogLessStuff=true")
+        run "test"
+
+        then:
+        result.testClass("LoggingTest").assertStdout(equalTo("stdout."))
+        result.testClass("LoggingTest").assertStderr(equalTo("stderr."))
+    }
 
     @UsesSample("testing/testReport")
     def "can generate report for subprojects"() {

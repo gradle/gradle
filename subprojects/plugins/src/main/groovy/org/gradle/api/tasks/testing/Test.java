@@ -431,6 +431,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         addTestOutputListener(eventLogger);
 
         File binaryResultsDir = getBinResultsDir();
+        getProject().delete(binaryResultsDir);
+        getProject().mkdir(binaryResultsDir);
+
         TestReportDataCollector testReportDataCollector = new TestReportDataCollector(binaryResultsDir);
         addTestListener(testReportDataCollector);
         addTestOutputListener(testReportDataCollector);
