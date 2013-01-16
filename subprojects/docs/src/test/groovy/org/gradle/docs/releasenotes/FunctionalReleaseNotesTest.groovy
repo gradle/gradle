@@ -18,7 +18,6 @@ package org.gradle.docs.releasenotes
 
 import geb.Browser
 import geb.Configuration
-import geb.navigator.Navigator
 import geb.spock.GebReportingSpec
 import groovy.json.JsonSlurper
 import org.gradle.util.GradleVersion
@@ -35,9 +34,11 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
     static private final String FIXED_ISSUES_URL = "http://services.gradle.org/fixed-issues/${GradleVersion.current().versionBase}"
     static private final String KNOWN_ISSUES_URL = "http://services.gradle.org/known-issues/${GradleVersion.current().versionBase}"
 
+    private String version = GradleVersion.current().versionBase
+
     static boolean canReachServices() {
         try {
-            HttpURLConnection connection = FIXED_ISSUES_URL.toURL().openConnection()
+            HttpURLConnection connection = FIXED_ISSUES_URL.toURL().openConnection() as HttpURLConnection
             connection.requestMethod = "HEAD"
             connection.connect()
             connection.responseCode == 200
@@ -49,7 +50,12 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
     @Shared url = new ReleaseNotesTestContext().renderedFile.toURL().toString()
 
     def setup() {
-        go url
+        to ReleaseNotesPage
+    }
+
+    @Override
+    ReleaseNotesPage getPage() {
+        browser.page as ReleaseNotesPage
     }
 
     @Override
@@ -58,31 +64,27 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
     }
 
     List<Map> fixedIssues() {
-        new JsonSlurper().parseText(new URL(FIXED_ISSUES_URL).text)
+        new JsonSlurper().parseText(new URL(FIXED_ISSUES_URL).text) as List<Map>
     }
 
     List<Map> knownIssues() {
-        new JsonSlurper().parseText(new URL(KNOWN_ISSUES_URL).text)
+        new JsonSlurper().parseText(new URL(KNOWN_ISSUES_URL).text) as List<Map>
     }
 
     def "has fixed issues"() {
         when:
-        Navigator paragraphAfterHeading = waitFor { $("#fixed-issues").next("p") }
-        def matcher = paragraphAfterHeading.text() =~ /(\d+) issues have been fixed in Gradle [\d\.]+/
         def fixed = fixedIssues()
         def numFixedIssues = fixed.size()
 
         then:
-        matcher.matches()
-        matcher.group(1) == numFixedIssues.toString()
-        paragraphAfterHeading.next().is("ul") == numFixedIssues > 0
+        waitFor { page.fixedIssuesParagraph.text() == "$numFixedIssues issues have been fixed in Gradle $version." }
         if (numFixedIssues == 0) {
             return
         }
-        def issues = $("ul#fixed-issues-list li")
-        issues.size() == numFixedIssues
+
+        page.fixedIssuesListItems.size() == numFixedIssues
         fixed.eachWithIndex { json, i ->
-            def issue = issues[i]
+            def issue = page.fixedIssuesListItems[i]
             assert issue.text() == "[$json.key] - ${json.summary.trim()}"
             assert issue.find("a").attr("href") == json.link
         }
@@ -90,21 +92,19 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
 
     def "has known issues"() {
         when:
-        Navigator paragraphAfterHeading = waitFor { $("#known-issues").next("p").next("p") }
         def knownIssues = knownIssues()
 
         then:
         if (knownIssues.size() == 0) {
-            assert paragraphAfterHeading.text() == "There are no known issues of Gradle ${GradleVersion.current().versionBase} at this time."
+            waitFor { page.knownIssuesParagraph.text() == "There are no known issues of Gradle ${version} at this time." }
             return
+        } else {
+            waitFor { page.knownIssuesParagraph.text() == "There are ${knownIssues.size()} known issues of Gradle $version." }
         }
 
-        paragraphAfterHeading.text() == "There are ${knownIssues.size()} known issues of Gradle ${GradleVersion.current().versionBase}"
-        paragraphAfterHeading.next().is("ul")
-        def issues = $("ul#known-issues-list li")
-        issues.size() == knownIssues.size()
+        page.knownIssuesListItems.size() == knownIssues.size()
         knownIssues.eachWithIndex { json, i ->
-            def issue = issues[i]
+            def issue = page.knownIssuesListItems[i]
             assert issue.text() == "[$json.key] - ${json.summary.trim()}"
             assert issue.find("a").attr("href") == json.link
         }
