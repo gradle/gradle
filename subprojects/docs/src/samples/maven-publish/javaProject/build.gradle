@@ -1,0 +1,40 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+group = 'org.gradle.sample'
+version = '1.0'
+
+dependencies {
+   compile 'commons-collections:commons-collections:3.0'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// START SNIPPET publish-custom-artifact
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact sourceJar {
+                classifier "sources"
+            }
+        }
+    }
+// END SNIPPET publish-custom-artifact
+    repositories {
+        maven {
+            url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
+        }
+    }
+// START SNIPPET publish-custom-artifact
+}
+// END SNIPPET publish-custom-artifact
+
+
