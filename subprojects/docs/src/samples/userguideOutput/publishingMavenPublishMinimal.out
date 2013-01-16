@@ -1,3 +1,4 @@
+:generatePomFileForMavenJavaPublication
 :compileJava
 :processResources UP-TO-DATE
 :classes
