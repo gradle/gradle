@@ -6,7 +6,9 @@ classpath. For both C++ and javascript, we're also interested in building differ
 where each variant can potentially have a different set of resolved dependencies. Supporting
 variants also makes a lot of sense in the JVM world too (groovy-1.7 vs groovy-1.8, for example).
 
-* SourceSetOutput effectively represents a set of JVM byte code. This is the same as the issue above. Modelling the compiled source as byte code doesn't make sense when we're not targeting the JVM. Also, each variant of the same source will generally end up with different compiled output.
+* SourceSetOutput effectively represents a set of JVM byte code. This is the same as the issue above.
+Modelling the compiled source as byte code doesn't make sense when we're not targeting the JVM. Also,
+each variant of the same source will generally end up with different compiled output.
 
 * Has a compileClasspath. As above. Also assumes that we're actually compiling something. And that
 all languages share the same compile classpath.
