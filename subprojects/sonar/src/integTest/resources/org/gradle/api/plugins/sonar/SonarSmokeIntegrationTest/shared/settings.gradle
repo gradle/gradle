@@ -1,0 +1,1 @@
+include "javaProject", "groovyProject", "skippedProject", "customizedProject", "nested:nestedProject"
