@@ -157,12 +157,19 @@
         <section id="sec:listing_dependencies">
             <title>Listing project dependencies</title>
             <para id="para:commandline_dependency_report">Running <userinput>gradle dependencies</userinput>
-                gives you a list of the dependencies of the selected project, broken down by configuration.  For each
+                gives you a list of the dependencies of the selected project, broken down by configuration. For each
                 configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below
                 is an example of this report:
             </para>
             <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
                 <output args="-q dependencies api:dependencies webapp:dependencies"/>
+            </sample>
+            <para>
+                Since a dependency report can get large, it can be useful to restrict the report to a particular configuration.
+                This is achieved with the optional <userinput>--configuration</userinput> parameter:
+            </para>
+            <sample id="dependencyListReportFiltered" dir="userguide/tutorial/projectReports" title="Filtering dependency report by configuration">
+                <output args="-q api:dependencies --configuration testCompile"/>
             </sample>
         </section>
         <section id="sec:dependency_insight">
