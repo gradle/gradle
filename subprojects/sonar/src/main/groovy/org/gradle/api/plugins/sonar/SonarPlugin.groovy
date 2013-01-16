@@ -129,18 +129,18 @@ class SonarPlugin implements Plugin<ProjectInternal> {
             def test = project.sourceSets.test
 
             sonarProject.conventionMapping.with {
-                sourceDirs = { main.allSource.srcDirs as List }
-                testDirs = { test.allSource.srcDirs as List }
-                binaryDirs = { [main.output.classesDir] }
+                sourceDirs = { main.allSource.srcDirs.findAll { it.exists() } }
+                testDirs = { test.allSource.srcDirs.findAll { it.exists() } }
+                binaryDirs = { main.runtimeClasspath.findAll { it.directory } }
                 libraries = {
-                    def libraries = main.runtimeClasspath
+                    def libraries = main.runtimeClasspath.findAll { it.file }
                     def runtimeJar = Jvm.current().runtimeJar
                     if (runtimeJar != null) {
-                        libraries += project.files(runtimeJar)
+                        libraries << runtimeJar
                     }
                     libraries
                 }
-                testReportPath = { project.test.testResultsDir }
+                testReportPath = { project.test.testResultsDir.exists() ? project.test.testResultsDir : null }
                 language = { "java" }
             }
         }
