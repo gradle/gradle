@@ -53,6 +53,6 @@ public class MavenProjectXmlWriter {
         } catch (IOException e) {
             throw new RuntimeException("Unable to serialize maven model to xml. Maven project: " + project, e);
         }
-        return out.toString().replace("<?xml version=\"1.0\"?>", "");
+        return out.toString().replaceFirst("^<\\?xml.+?\\?>", "");
     }
 }
