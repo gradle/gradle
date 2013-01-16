@@ -35,16 +35,6 @@ import org.gradle.api.NamedDomainObjectSet;
 public interface PublicationContainer extends NamedDomainObjectSet<Publication> {
 
     /**
-     * {@inheritDoc}
-     */
-    Publication getByName(String name) throws UnknownPublicationException;
-
-    /**
-     * {@inheritDoc}
-     */
-    Publication getAt(String name) throws UnknownPublicationException;
-
-    /**
      * Adds a publication of the specified type.
      * @param name The publication name.
      * @param type The publication type.

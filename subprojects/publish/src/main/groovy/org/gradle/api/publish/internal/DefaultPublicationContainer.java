@@ -17,10 +17,9 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.publish.Publication;
-import org.gradle.api.publish.UnknownPublicationException;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Publication> implements PublicationContainerInternal {
@@ -32,13 +31,8 @@ public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Pub
     }
 
     @Override
-    protected UnknownDomainObjectException createNotFoundException(String name) {
-        return new UnknownPublicationException(String.format("Publication with name '%s' not found", name));
-    }
-
-    @Override
     protected void handleAttemptToAddItemWithNonUniqueName(Publication o) {
-        throw new IllegalArgumentException(String.format("Publication with name '%s' added multiple times", o.getName()));
+        throw new InvalidUserDataException(String.format("Publication with name '%s' added multiple times", o.getName()));
     }
 
     public <T extends Publication> T add(String name, Class<T> type) {
