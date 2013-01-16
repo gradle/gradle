@@ -17,13 +17,13 @@ package org.gradle.api.plugins.sonar
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.util.GradleVersion
-import org.gradle.internal.jvm.Jvm
 import org.gradle.api.plugins.sonar.model.*
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.jvm.Jvm
+import org.gradle.util.GradleVersion
 
 import javax.inject.Inject
 
