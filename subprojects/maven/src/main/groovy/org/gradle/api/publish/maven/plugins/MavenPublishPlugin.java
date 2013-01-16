@@ -21,9 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.PublicationContainerInternal;
 import org.gradle.api.publish.internal.PublicationFactory;
@@ -35,8 +33,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * Adds the ability to publish in the Maven format to Maven repositories.
@@ -96,11 +92,10 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
             Module module = dependencyMetaDataProvider.getModule();
             MavenArtifactNotationParser artifactNotationParser = new MavenArtifactNotationParser(instantiator, module, project);
-            ModuleBackedMavenProjectIdentity projectIdentity = new ModuleBackedMavenProjectIdentity(module);
 
             return instantiator.newInstance(
                     DefaultMavenPublication.class,
-                    name, projectIdentity, artifactNotationParser, instantiator
+                    name, module, artifactNotationParser, instantiator
             );
         }
     }

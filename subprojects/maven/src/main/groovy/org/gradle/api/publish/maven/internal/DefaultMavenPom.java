@@ -42,7 +42,7 @@ public class DefaultMavenPom implements MavenPomInternal {
     }
 
     public MavenProjectIdentity getProjectIdentity() {
-        return mavenPublication.asNormalisedPublication();
+        return mavenPublication.getMavenProjectIdentity();
     }
 
     public Set<Dependency> getRuntimeDependencies() {

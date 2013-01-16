@@ -24,7 +24,6 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication
-import org.gradle.api.publish.maven.internal.MavenNormalizedPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.util.HelperUtil
@@ -86,7 +85,7 @@ class MavenPublishPluginTest extends Specification {
         publishing.publications.add("test", MavenPublication) {
             from component
         }
-        MavenNormalizedPublication pub = publishing.publications.test.asNormalisedPublication();
+        def pub = publishing.publications.test;
 
         then:
         pub.artifacts.size() == 1
@@ -171,7 +170,7 @@ class MavenPublishPluginTest extends Specification {
         project.version = "version"
 
         then:
-        with(publishing.publications.test.asNormalisedPublication()) {
+        with(publishing.publications.test.mavenProjectIdentity) {
             groupId == "group"
             version == "version"
         }
@@ -181,7 +180,7 @@ class MavenPublishPluginTest extends Specification {
         project.version = "changed-version"
 
         then:
-        with(publishing.publications.test.asNormalisedPublication()) {
+        with(publishing.publications.test.mavenProjectIdentity) {
             groupId == "changed-group"
             version == "changed-version"
         }

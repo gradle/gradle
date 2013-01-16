@@ -30,6 +30,8 @@ public interface MavenPublicationInternal extends MavenPublication {
 
     FileCollection getPublishableFiles();
 
+    MavenProjectIdentity getMavenProjectIdentity();
+
     Set<Dependency> getRuntimeDependencies();
 
     MavenNormalizedPublication asNormalisedPublication();

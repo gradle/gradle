@@ -16,47 +16,22 @@
 
 package org.gradle.api.publish.maven.internal;
 
-import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.specs.Spec;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class MavenNormalizedPublication implements MavenProjectIdentity {
+public class MavenNormalizedPublication {
 
-    private final MavenProjectIdentity projectIdentity;
     private final File pomFile;
-    private final Set<MavenArtifact> artifacts;
+    private final MavenArtifact mainArtifact;
+    private final Set<MavenArtifact> additionalArtifacts;
 
-    public MavenNormalizedPublication(MavenProjectIdentity projectIdentity, File pomFile, Set<MavenArtifact> artifacts) {
-        this.projectIdentity = projectIdentity;
+    public MavenNormalizedPublication(File pomFile, MavenArtifact mainArtifact, Set<MavenArtifact> additionalArtifacts) {
         this.pomFile = pomFile;
-        this.artifacts = artifacts;
-    }
-
-    public String getArtifactId() {
-        return projectIdentity.getArtifactId();
-    }
-
-    public String getGroupId() {
-        return projectIdentity.getGroupId();
-    }
-
-    public String getVersion() {
-        return projectIdentity.getVersion();
-    }
-
-    public String getPackaging() {
-        if (projectIdentity.getPackaging() != null) {
-            return projectIdentity.getPackaging();
-        }
-        return getMainArtifact() == null ? "pom" : getMainArtifact().getExtension();
+        this.mainArtifact = mainArtifact;
+        this.additionalArtifacts = additionalArtifacts;
     }
 
     public File getPomFile() {
@@ -64,77 +39,26 @@ public class MavenNormalizedPublication implements MavenProjectIdentity {
     }
 
     public MavenArtifact getMainArtifact() {
-        Set<MavenArtifact> candidateMainArtifacts = CollectionUtils.filter(artifacts, new Spec<MavenArtifact>() {
-            public boolean isSatisfiedBy(MavenArtifact element) {
-                return element.getClassifier() == null || element.getClassifier().length() == 0;
-            }
-        });
-        if (candidateMainArtifacts.isEmpty()) {
-            return null;
-        }
-        if (candidateMainArtifacts.size() > 1) {
-            throw new InvalidMavenPublicationException("Cannot determine main artifact: multiple artifacts found with empty classifier.");
-        }
-        return candidateMainArtifacts.iterator().next();
+        return mainArtifact;
     }
 
     public Set<MavenArtifact> getAdditionalArtifacts() {
-        if (artifacts.isEmpty()) {
-            return Collections.emptySet();
-        }
-        MavenArtifact mainArtifact = getMainArtifact();
-        Set<ArtifactKey> keys = new HashSet<ArtifactKey>();
-        Set<MavenArtifact> additionalArtifacts = new LinkedHashSet<MavenArtifact>();
-        for (MavenArtifact artifact : artifacts) {
-            if (artifact == mainArtifact) {
-                continue;
-            }
-            ArtifactKey key = new ArtifactKey(artifact);
-            if (keys.contains(key)) {
-                throw new InvalidMavenPublicationException(String.format("Cannot publish 2 artifacts with the identical extension '%s' and classifier '%s'.",
-                        artifact.getExtension(), artifact.getClassifier()));
-            }
-            keys.add(key);
-            additionalArtifacts.add(artifact);
-        }
         return additionalArtifacts;
     }
 
-    public Set<MavenArtifact> getArtifacts() {
-        return artifacts;
-    }
-
-    public void validateModel() {
-        getMainArtifact();
-        getAdditionalArtifacts();
-    }
-
     public void validateArtifacts() {
-        for (MavenArtifact artifact : artifacts) {
-            if (artifact.getFile() == null || !artifact.getFile().exists()) {
-                throw new InvalidMavenPublicationException(String.format("Attempted to publish an artifact that does not exist: '%s'", artifact.getFile()));
-            }
+        if (mainArtifact != null) {
+            checkExists(mainArtifact);
+        }
+        for (MavenArtifact artifact : additionalArtifacts) {
+            checkExists(artifact);
         }
     }
 
-    private static class ArtifactKey {
-        private final String extension;
-        private final String classifier;
-
-        public ArtifactKey(MavenArtifact artifact) {
-            this.extension = artifact.getExtension();
-            this.classifier = artifact.getClassifier();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            ArtifactKey other = (ArtifactKey) o;
-            return ObjectUtils.equals(extension, other.extension) && ObjectUtils.equals(classifier, other.classifier);
-        }
-
-        @Override
-        public int hashCode() {
-            return ObjectUtils.hashCode(extension) ^ ObjectUtils.hashCode(classifier);
+    private void checkExists(MavenArtifact artifact) {
+        if (artifact.getFile() == null || !artifact.getFile().exists()) {
+            throw new InvalidMavenPublicationException(String.format("Attempted to publish an artifact that does not exist: '%s'", artifact.getFile()));
         }
     }
+
 }

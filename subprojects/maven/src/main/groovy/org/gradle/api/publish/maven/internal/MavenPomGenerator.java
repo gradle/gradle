@@ -36,13 +36,14 @@ import java.io.Writer;
 
 public class MavenPomGenerator {
 
-    String POM_FILE_ENCODING = "UTF-8";
+    private static final String POM_FILE_ENCODING = "UTF-8";
+    private static final String POM_VERSION = "4.0.0";
 
     private MavenProject mavenProject = new MavenProject();
     private XmlTransformer withXmlActions = new XmlTransformer();
 
     public MavenPomGenerator() {
-        mavenProject.setModelVersion("4.0.0");
+        mavenProject.setModelVersion(POM_VERSION);
     }
 
     public MavenPomGenerator setGroupId(String groupId) {

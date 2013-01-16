@@ -19,19 +19,27 @@ package org.gradle.api.publish.maven.internal;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
+import org.gradle.api.publish.maven.internal.artifact.MavenArtifactKey;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.CollectionUtils;
 
+import java.io.File;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
@@ -44,10 +52,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private SoftwareComponentInternal component;
 
     public DefaultMavenPublication(
-            String name, MavenProjectIdentity projectIdentity, NotationParser<MavenArtifact> mavenArtifactParser, Instantiator instantiator
+            String name, Module module, NotationParser<MavenArtifact> mavenArtifactParser, Instantiator instantiator
     ) {
         this.name = name;
-        this.projectIdentity = projectIdentity;
+        this.projectIdentity = new PublicationProjectIdentity(module);
         mavenArtifacts = new DefaultMavenArtifactSet(mavenArtifactParser);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
     }
@@ -74,7 +82,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         this.component = (SoftwareComponentInternal) component;
 
-        // TODO:DAZ This isn't lazy enough. Entire PublishArtifactSet should be in MavenArtifactSet, preferably.
         for (PublishArtifact publishArtifact : this.component.getArtifacts()) {
             artifact(publishArtifact);
         }
@@ -103,13 +110,82 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return new UnionFileCollection(mavenArtifacts.getFiles(), pomFile);
     }
 
+    public MavenProjectIdentity getMavenProjectIdentity() {
+        return projectIdentity;
+    }
+
     public Set<Dependency> getRuntimeDependencies() {
         return component == null ? Collections.<Dependency>emptySet() : component.getRuntimeDependencies();
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
-        MavenNormalizedPublication normalizedPublication = new MavenNormalizedPublication(projectIdentity, pomFile.getSingleFile(), mavenArtifacts);
-        normalizedPublication.validateModel();
-        return normalizedPublication;
+        MavenNormalizedPublication mavenNormalizedPublication = new MavenNormalizedPublication(getPomFile(), getMainArtifact(), getAdditionalArtifacts());
+        mavenNormalizedPublication.validateArtifacts();
+        return mavenNormalizedPublication;
+    }
+
+    private MavenArtifact getMainArtifact() {
+        Set<MavenArtifact> candidateMainArtifacts = CollectionUtils.filter(mavenArtifacts, new Spec<MavenArtifact>() {
+            public boolean isSatisfiedBy(MavenArtifact element) {
+                return element.getClassifier() == null || element.getClassifier().length() == 0;
+            }
+        });
+        if (candidateMainArtifacts.isEmpty()) {
+            return null;
+        }
+        if (candidateMainArtifacts.size() > 1) {
+            throw new InvalidMavenPublicationException("Cannot determine main artifact: multiple artifacts found with empty classifier.");
+        }
+        return candidateMainArtifacts.iterator().next();
+    }
+
+    private Set<MavenArtifact> getAdditionalArtifacts() {
+        MavenArtifact mainArtifact = getMainArtifact();
+        Set<MavenArtifactKey> keys = new HashSet<MavenArtifactKey>();
+        Set<MavenArtifact> additionalArtifacts = new LinkedHashSet<MavenArtifact>();
+        for (MavenArtifact artifact : mavenArtifacts) {
+            if (artifact == mainArtifact) {
+                continue;
+            }
+            MavenArtifactKey key = new MavenArtifactKey(artifact);
+            if (keys.contains(key)) {
+                throw new InvalidMavenPublicationException(String.format("Cannot publish 2 artifacts with the identical extension '%s' and classifier '%s'.",
+                        artifact.getExtension(), artifact.getClassifier()));
+            }
+            keys.add(key);
+            additionalArtifacts.add(artifact);
+        }
+        return additionalArtifacts;
+    }
+
+    private File getPomFile() {
+        if (pomFile == null) {
+            throw new IllegalStateException("pomFile not set for publication");
+        }
+        return pomFile.getSingleFile();
+    }
+
+    private class PublicationProjectIdentity implements MavenProjectIdentity {
+        private final Module module;
+
+        private PublicationProjectIdentity(Module module) {
+            this.module = module;
+        }
+
+        public String getArtifactId() {
+            return module.getName();
+        }
+
+        public String getGroupId() {
+            return module.getGroup();
+        }
+
+        public String getVersion() {
+            return module.getVersion();
+        }
+
+        public String getPackaging() {
+            return getMainArtifact() == null ? "pom" : getMainArtifact().getExtension();
+        }
     }
 }

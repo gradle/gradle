@@ -18,9 +18,11 @@ package org.gradle.api.publish.maven.internal
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
@@ -31,25 +33,53 @@ import spock.lang.Specification
 
 public class DefaultMavenPublicationTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    MavenProjectIdentity projectIdentity = Mock()
-    MavenPomInternal mavenPom = Mock()
+    Module module = Mock()
     NotationParser<MavenArtifact> notationParser = Mock()
     File pomDir
+    File pomFile
     File artifactFile
 
     def "setup"() {
         pomDir = testDirectoryProvider.testDirectory
+        pomFile = new File(testDirectoryProvider.testDirectory, "pom-file")
         artifactFile = new File(testDirectoryProvider.testDirectory, "artifact-file")
         artifactFile << "some content"
     }
 
-    def "pom and name properties passed through"() {
+    def "name property is passed through"() {
         when:
         def publication = createPublication()
 
         then:
-        publication.pom == mavenPom
         publication.name == "pub-name"
+    }
+
+    def "project identity is adapted from module and main artifact"() {
+        when:
+        module.name >> "name"
+        module.group >> "group"
+        module.version >> "version"
+
+        and:
+        def publication = createPublication()
+        def identity = publication.mavenProjectIdentity
+
+        then:
+        identity.groupId == "group"
+        identity.artifactId == "name"
+        identity.version == "version"
+        identity.packaging == "pom"
+
+        when:
+        MavenArtifact mavenArtifact = Mock()
+        notationParser.parseNotation("artifact") >> mavenArtifact
+        mavenArtifact.extension >> "ext"
+
+        and:
+        publication.artifact "artifact"
+
+        then:
+        identity.packaging == "ext"
     }
 
     def "empty publishableFiles and artifacts when no component is added"() {
@@ -57,8 +87,8 @@ public class DefaultMavenPublicationTest extends Specification {
         def publication = createPublication()
 
         then:
-        publication.publishableFiles.isEmpty()
-        publication.asNormalisedPublication().artifacts.empty
+        publication.publishableFiles.files == [pomFile] as Set
+        publication.artifacts.empty
         publication.runtimeDependencies.empty
     }
 
@@ -73,10 +103,6 @@ public class DefaultMavenPublicationTest extends Specification {
         MavenArtifact mavenArtifact = Mock()
 
         when:
-        publication.from(component)
-        def normalisedPublication = publication.asNormalisedPublication()
-
-        then:
         component.artifacts >> publishArtifactSet
         publishArtifactSet.iterator() >> [artifact].iterator()
         component.runtimeDependencies >> dependencySet
@@ -85,7 +111,11 @@ public class DefaultMavenPublicationTest extends Specification {
         mavenArtifact.file >> artifactFile
 
         and:
-        normalisedPublication.artifacts == [mavenArtifact] as Set
+        publication.from(component)
+
+        then:
+        publication.publishableFiles.files == [pomFile, artifactFile] as Set
+        publication.artifacts == [mavenArtifact] as Set
         publication.runtimeDependencies == dependencySet
     }
 
@@ -117,15 +147,15 @@ public class DefaultMavenPublicationTest extends Specification {
         MavenArtifact mavenArtifact = Mock()
 
         when:
-        publication.artifact notation
-        def normalisedPublication = publication.asNormalisedPublication()
-
-        then:
         notationParser.parseNotation(notation) >> mavenArtifact
         mavenArtifact.file >> artifactFile
 
         and:
-        normalisedPublication.artifacts == [mavenArtifact] as Set
+        publication.artifact notation
+
+        then:
+        publication.artifacts == [mavenArtifact] as Set
+        publication.publishableFiles.files == [pomFile, artifactFile] as Set
     }
 
     def "attaches and configures artifacts parsed by notation parser"() {
@@ -135,14 +165,6 @@ public class DefaultMavenPublicationTest extends Specification {
         MavenArtifact mavenArtifact = Mock()
 
         when:
-        publication.artifact(notation, new Action<MavenArtifact>() {
-            void execute(MavenArtifact t) {
-                t.extension = 'changed'
-            }
-        })
-        def normalisedPublication = publication.asNormalisedPublication()
-
-        then:
         notationParser.parseNotation(notation) >> mavenArtifact
         mavenArtifact.file >> artifactFile
         mavenArtifact.classifier >> null
@@ -150,7 +172,15 @@ public class DefaultMavenPublicationTest extends Specification {
         0 * mavenArtifact._
 
         and:
-        normalisedPublication.artifacts == [mavenArtifact] as Set
+        publication.artifact(notation, new Action<MavenArtifact>() {
+            void execute(MavenArtifact t) {
+                t.extension = 'changed'
+            }
+        })
+
+        then:
+        publication.artifacts == [mavenArtifact] as Set
+        publication.publishableFiles.files == [pomFile, artifactFile] as Set
     }
 
     def "can use setter to replace existing artifacts set"() {
@@ -178,23 +208,30 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.artifacts == [mavenArtifact1, mavenArtifact2] as Set
     }
 
-    def "cannot publish artifact with file that does not exist"() {
+    def "mainArtifact is one without classifier"() {
+        given:
         def publication = createPublication()
-        Object notation = new Object();
-        MavenArtifact mavenArtifact = Mock()
-        def nonExistentFile = new File(pomDir, 'does-not-exist')
+        MavenArtifact mavenArtifact1 = createArtifact()
+        MavenArtifact mavenArtifact2 = createArtifact()
+        MavenArtifact mavenArtifact3 = createArtifact()
 
         when:
-        publication.artifact notation
-        publication.asNormalisedPublication()
-
-        then:
-        notationParser.parseNotation(notation) >> mavenArtifact
-        mavenArtifact.file >> nonExistentFile
+        notationParser.parseNotation('artifact1') >> mavenArtifact1
+        mavenArtifact1.classifier >> "source"
+        notationParser.parseNotation('artifact2') >> mavenArtifact2
+        mavenArtifact2.extension >> "ext"
+        notationParser.parseNotation('artifact3') >> mavenArtifact3
+        mavenArtifact3.classifier >> "docs"
 
         and:
-        def t = thrown InvalidMavenPublicationException
-        t.message == "Attempted to publish an artifact that does not exist: '${nonExistentFile}'"
+        publication.artifact 'artifact1'
+        publication.artifact 'artifact2'
+        publication.artifact 'artifact3'
+
+        then:
+        publication.mavenProjectIdentity.packaging == "ext"
+        publication.asNormalisedPublication().mainArtifact == mavenArtifact2
+        publication.asNormalisedPublication().additionalArtifacts == [mavenArtifact1, mavenArtifact3] as Set
     }
 
     def "cannot publish with ambiguous mainArtifact"() {
@@ -222,6 +259,7 @@ public class DefaultMavenPublicationTest extends Specification {
         def t = thrown InvalidMavenPublicationException
         t.message == "Cannot determine main artifact: multiple artifacts found with empty classifier."
     }
+
 
     def "cannot publish with duplicate artifacts"() {
         given:
@@ -251,7 +289,35 @@ public class DefaultMavenPublicationTest extends Specification {
         t.message == "Cannot publish 2 artifacts with the identical extension 'ext1' and classifier 'classified'."
     }
 
+    def "getting normalised publication will fail with file that does not exist"() {
+        def publication = createPublication()
+        Object notation = new Object();
+        MavenArtifact mavenArtifact = Mock()
+        def nonExistentFile = new File(pomDir, 'does-not-exist')
+
+        when:
+        publication.artifact notation
+        publication.asNormalisedPublication()
+
+        then:
+        notationParser.parseNotation(notation) >> mavenArtifact
+        mavenArtifact.file >> nonExistentFile
+
+        and:
+        def t = thrown InvalidMavenPublicationException
+        t.message == "Attempted to publish an artifact that does not exist: '${nonExistentFile}'"
+    }
+
     def createPublication() {
-        return new DefaultMavenPublication("pub-name", projectIdentity, notationParser, new DirectInstantiator());
+        def publication = new DefaultMavenPublication("pub-name", module, notationParser, new DirectInstantiator())
+        publication.setPomFile(new SimpleFileCollection(pomFile))
+        return publication;
+    }
+
+    def createArtifact() {
+        MavenArtifact artifact = Mock() {
+            getFile() >> artifactFile
+        }
+        return artifact
     }
 }

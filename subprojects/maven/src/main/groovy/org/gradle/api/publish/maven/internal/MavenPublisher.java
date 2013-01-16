@@ -48,8 +48,6 @@ public class MavenPublisher {
     }
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
-        publication.validateArtifacts();
-
         logger.info("Publishing to repository {}", artifactRepository);
         CustomDeployTask deployTask = createDeployTask();
 
