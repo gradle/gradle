@@ -16,13 +16,13 @@
 package org.gradle.api.plugins.sonar
 
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.sonar.model.ModelToPropertiesConverter
 import org.gradle.api.plugins.sonar.model.SonarModel
 import org.gradle.api.plugins.sonar.model.SonarRootModel
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GFileUtils
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.sonar.runner.Runner
 
 /**
@@ -30,7 +30,7 @@ import org.sonar.runner.Runner
  * Sonar database.
  */
 class SonarAnalyze extends ConventionTask {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SonarAnalyze)
+    private static final Logger LOGGER = Logging.getLogger(SonarAnalyze)
 
     /**
      * Entry point to Sonar configuration.
