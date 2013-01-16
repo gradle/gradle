@@ -6,8 +6,8 @@ and [Groovy](#automatic-configuration-of-groovy-dependency-used-by-groovycompile
 configure a 'groovy' or 'scalaTools' configuration to use these tools.
 Automatic configuration makes it easier to build multiple variants of your software targeting different Scala/Groovy versions, or to use Scala/Groovy only for selected sourceSets.
 
-Improved dependency management continues to be an important focus and this release brings [some important improvements](#dependency-resolution-improvements),
-[better reporting](#dependencies-that-failed-to-be-resolved-are-now-listed-in-dependency-reports),
+Dependency management continues to be an important focus and this release brings [some significant improvements](#dependency-resolution-improvements),
+[better reporting](#dependencies-that-cannot-be-resolved-are-listed-in-dependency-reports),
  and a [new, powerful mechanism](#dependency-resolve-rules) providing fine-grained control over dependency resolution.
 
 Keeping Gradle at the forefront of software automation are some exciting new incubating features.
@@ -83,7 +83,7 @@ The algorithm used to search for “local candidates” has been improved and is
 For dependencies originating in Maven repositories, Gradle follows Maven semantics and treats any dependency artifact whose version number ends 
 in '`-SNAPSHOT`' as “changing”, 
 which means that it can change over time and Gradle should periodically check for updates instead of caching indefinitely 
-(see “[controlling caching](/userguide/dependency_management.html#sec:controlling_caching)”). Previously, artifacts with classifiers 
+(see “[controlling caching](userguide/dependency_management.html#sec:controlling_caching)”). Previously, artifacts with classifiers
 (e.g `sources` or `javadoc`) were not being checked for changes. This has been fixed in this release (GRADLE-2175).
 
 #### More robust `--offline` mode
@@ -96,12 +96,13 @@ Gradle now only discards old artifacts after a newer version has been cached, ma
 
 #### Using a “maven” layout with an Ivy repository
 
-By default, an Ivy repository would store the module "org.group:module:version" under `baseurl/org.my.group/module`, while a maven repository would store the same module under `baseurl/org/my/group/module`.
-It is now possible to configure an `ivy` repository that uses the maven directory layout, [using the new `m2compatible` flag with the `pattern` layout](userguide/userguide_single.html#N14575).
+By default, an Ivy repository will store the module "`org.my.group:module:version`" with a directory pattern like `baseurl/org.my.group/module`, while a maven repository would store the same module under `baseurl/org/my/group/module`.
+It is now possible to configure an `ivy` repository that uses the maven directory layout, [using the new `m2compatible` flag with the `pattern` layout](userguide/dependency_management.html#N145D5).
 
-### Dependencies that failed to be resolved are now listed in dependency reports
+### Dependencies that cannot be resolved are listed in dependency reports
 
-Dependency resolution reports now show dependencies that couldn't be resolved. 
+With earlier versions of Gradle, it was not possible to generate a dependency resolution report if one of the dependencies could not be resolved. This has been rectified.
+Not only will the dependency resolution reports run successfully if a dependency cannot be resolved, the reports will now include details of those dependencies that couldn't be resolved.
 
 Here is an example for the `dependencies` task:
 
@@ -247,7 +248,7 @@ Previously, the report generation was delegated to TestNG's default listeners th
 You can switch off the HTML report generation by configuring the [test.testReport](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testReport) property.
 If you prefer the old TestNG reports please refer to the [documentation](groovydoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html#useDefaultListeners).
 
-### Easier embedding of Gradle via [Tooling API](userguide/embedding.html)
+### Easier embedding of Gradle via Tooling API
 
 The [Tooling API](userguide/embedding.html), the standard way to embed Gradle, is now more convenient to use.
 As of Gradle 1.4 it ships as a single jar with the only external dependency being an SLF4J implementation.
@@ -298,7 +299,8 @@ has been applied). The rule can make a programmatic choice to change how the dep
 This is an “incubating” feature. In Gradle 1.4, it is only possible to affect the version of the dependency that will be resolved. In future versions,
 more control will be allowed via the `DependencyResolveDetails` type.
 
-It is a much more powerful feature than just enforcing a certain version of a dependency in advance (which [you can also do](dsl/org.gradle.api.artifacts.ResolutionStrategy.html) with Gradle).
+Dependency resolve rules are a powerful feature that allow you to do much more than just enforcing a certain version of a dependency in advance
+(which [you can also do](dsl/org.gradle.api.artifacts.ResolutionStrategy.html) with Gradle).
 Many interesting use cases can be implemented with the dependency resolve rules:
 
 * [Blacklisting a version](userguide/dependency_management.html#sec:blacklisting_version) with a replacement
@@ -309,13 +311,13 @@ For more information, including more code samples, please refer to this [user gu
 
 ### Improved scalability via configuration on demand
 
-In Gradle, all projects are configured before any task gets executed (see [the build lifecycle](userguide/userguide_single.html#sec:build_phases)).
+In Gradle, all projects are configured before any task gets executed (see [the build lifecycle](userguide/build_lifecycle.html#sec:build_phases)).
 Huge multi-project builds may have a noticeable configuration time for that reason.
 To improve the experience of working with large multi-project builds "configuration on demand" mode is introduced, where only those projects required
 by the build are configured. This mode is incubating and currently it is not guaranteed to work with every multi-project build.
-It should work very well with builds that have [decoupled projects](userguide/userguide_single.html#sec:decoupled_projects)
-(e.g. avoiding subprojects accessing each other's model).
-Before you start configuring on demand, please read the section in the [user guide](userguide/userguide_single.html#sec:configuration_on_demand).
+It should work very well with builds that have [decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects)
+(e.g. avoiding having a subproject accessing the model of another project).
+Before you start configuring on demand, please read the section in the [user guide](userguide/multi_project_builds.html#sec:configuration_on_demand).
 Then update your gradle.properties file:
 
     #gradle.properties file
@@ -323,10 +325,10 @@ Then update your gradle.properties file:
 
 ### The new 'java-library-distribution' plugin
 
-The new incubating '[`java-library-distribution`](userguide/javaLibraryDistributionPlugin.html)' plugin, contributed by Sébastien Cogneau, makes it is much easier to create a
+The new incubating '[`java-library-distribution`](userguide/javaLibraryDistribution_plugin.html)' plugin, contributed by Sébastien Cogneau, makes it is much easier to create a
 standalone distribution for a JVM library.
 
-Let's walk through a small example. Let's assume we have a project with the following layout:
+Let's walk through a small example. Assume a project with the following layout:
 
 <pre><tt>MyLibrary
 |____build.gradle
@@ -415,8 +417,9 @@ The new incubating ‘maven-publish’ plugin is an alternative to the existing 
 that was introduced in Gradle 1.3 with the ‘ivy-publish’ plugin. The new publication mechanism (which is currently “incubating”, including this plugin) will
 expand and improve over the subsequent Gradle releases to provide more convenience and flexibility than the existing publication mechanism plus very powerful features to wire your components across builds & teams.
 
-In the simplest case, publishing to a Maven repository looks like…
+In the simplest case, publishing to a Maven repository looks like:
 
+    apply plugin: 'java'
     apply plugin: 'maven-publish'
 
     group = 'group'
