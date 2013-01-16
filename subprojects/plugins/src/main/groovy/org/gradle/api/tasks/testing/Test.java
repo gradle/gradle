@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing;
 
 import groovy.lang.Closure;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -680,7 +681,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return the test result directory, containing the test results in binary format.
      */
-    @OutputDirectory
+    @OutputDirectory @Incubating
     public File getBinResultsDir() {
         return binResultsDir;
     }
@@ -690,6 +691,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @param binResultsDir The root folder
      */
+    @Incubating
     public void setBinResultsDir(File binResultsDir) {
         this.binResultsDir = binResultsDir;
     }

@@ -17,6 +17,10 @@
                 <td><literal>project.testResultsDir</literal></td>
             </tr>
             <tr>
+                <td>binResultsDir</td>
+                <td><literal><replaceable>project.testResultsDir</replaceable>/binary/<replaceable>task.name</replaceable></literal></td>
+            </tr>
+            <tr>
                 <td>testReportDir</td>
                 <td><literal>project.testReportDir</literal></td>
             </tr>

@@ -1,6 +1,8 @@
+// START SNIPPET test-report
 subprojects {
     apply plugin: 'java'
 
+// END SNIPPET test-report
     repositories {
         mavenCentral()
     }
@@ -9,6 +11,7 @@ subprojects {
         testCompile 'junit:junit:4.11'
     }
 
+// START SNIPPET test-report
     // Disable the test report for the individual test task
     test {
         testReport = false
@@ -20,3 +23,4 @@ task testReport(type: TestReport) {
     // Include the results from the `test` task in all subprojects
     reportOn subprojects*.test
 }
+// END SNIPPET test-report
