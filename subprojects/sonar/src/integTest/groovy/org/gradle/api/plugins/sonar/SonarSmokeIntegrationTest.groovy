@@ -46,7 +46,7 @@ class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
         def classpath = ClasspathUtil.getClasspath(getClass().classLoader).collect() { new File(it.toURI()) }
         def warFile = classpath.find { it.name == "sonar-test-server-3.4.war" }
         assert warFile
-        def zipFile = classpath.find { it.name == "sonar-test-server-home-dir-3.4.1.zip" }
+        def zipFile = classpath.find { it.name == "sonar-test-server-home-dir-3.4.zip" }
         assert zipFile
 
         def sonarHome = tempDir.createDir("sonar-home")

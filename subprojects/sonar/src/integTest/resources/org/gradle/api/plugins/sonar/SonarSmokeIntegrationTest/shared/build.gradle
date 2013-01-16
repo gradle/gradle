@@ -18,5 +18,14 @@ subprojects {
         testCompile "junit:junit:4.11"
     }
 }
+
+sonar {
+    server {
+        url serverUrl
+    }
+    database {
+        url databaseUrl
+    }
+}
     
     
