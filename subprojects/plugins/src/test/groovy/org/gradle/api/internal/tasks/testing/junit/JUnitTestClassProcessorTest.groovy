@@ -40,7 +40,8 @@ import static org.junit.Assert.assertThat
 @RunWith(JMock.class)
 class JUnitTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final ActorFactory actorFactory = new TestActorFactory()
     private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.testDirectory, new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
@@ -155,11 +156,20 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test, TestStartEvent event ->
                 assertThat(test.id, equalTo(2L))
-                assertThat(test.name, equalTo('ignored'))
+                assertThat(test.name, equalTo('ignored2'))
                 assertThat(test.className, equalTo(AnIgnoredTestClass.class.name))
                 assertThat(event.parentId, equalTo(1L))
             }
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test, TestStartEvent event ->
+                assertThat(test.id, equalTo(3L))
+                assertThat(test.name, equalTo('ignored'))
+                assertThat(test.className, equalTo(AnIgnoredTestClass.class.name))
+                assertThat(event.parentId, equalTo(1L))
+            }
+            one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, equalTo(TestResult.ResultType.SKIPPED))
             }
@@ -724,7 +734,8 @@ public class ATestClass {
 }
 
 public class ATestClassWithIgnoredMethod {
-    @Test @Ignore
+    @Test
+    @Ignore
     public void ignored() {
     }
 }
@@ -734,6 +745,9 @@ public class AnIgnoredTestClass {
     @Test
     public void ignored() {
     }
+    @Test
+       public void ignored2() {
+       }
 }
 
 public class ABrokenTestClass {

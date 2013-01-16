@@ -22,11 +22,8 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.id.IdGenerator;
 import org.junit.runner.Description;
-import org.junit.runner.Request;
-import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -92,21 +89,10 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private void processIgnoredClass(Description description) throws Exception {
+        IgnoredTestDescriptorProvider provider = new IgnoredTestDescriptorProvider();
         String className = className(description);
-        final AllExceptIgnoredTestRunnerBuilder allExceptIgnoredTestRunnerBuilder = new AllExceptIgnoredTestRunnerBuilder();
-        try {
-            final Class<?> testClass = description.getClass().getClassLoader().loadClass(className);
-            Runner runner = allExceptIgnoredTestRunnerBuilder.runnerForClass(testClass);
-            if (runner == null) {
-                //fall back to default runner
-                runner = Request.aClass(testClass).getRunner();
-            }
-            final Description runnerDescription = runner.getDescription();
-            for (Description childrenDescription : runnerDescription.getChildren()) {
-                testIgnored(childrenDescription);
-            }
-        } catch (Throwable throwable) {
-            LoggerFactory.getLogger(getClass()).warn("Unable to process IgnoredClass", throwable);
+        for (Description childDescription : provider.getAllDescriptions(description, className)) {
+            testIgnored(childDescription);
         }
     }
 
