@@ -102,12 +102,16 @@ class SonarPluginTest extends Specification {
     def "provides additional defaults for project configuration if java plugin is present"(Project project) {
         SonarProject sonarProject = project.sonar.project
 
+        project.sourceSets.main.allSource.srcDirs*.mkdirs()
+        project.sourceSets.test.allSource.srcDirs*.mkdirs()
+        project.sourceSets.main.output.classesDir.mkdirs()
+        project.test.testResultsDir.mkdirs()
+
         expect:
-        sonarProject.sourceDirs == project.sourceSets.main.allSource.srcDirs as List
-        sonarProject.testDirs == project.sourceSets.test.allSource.srcDirs as List
-        sonarProject.binaryDirs == [project.sourceSets.main.output.classesDir]
-        sonarProject.libraries.files as Set == [project.sourceSets.main.output.classesDir,
-                project.sourceSets.main.output.resourcesDir, Jvm.current().runtimeJar] as Set
+        sonarProject.sourceDirs as Set == project.sourceSets.main.allSource.srcDirs as Set
+        sonarProject.testDirs as Set == project.sourceSets.test.allSource.srcDirs as Set
+        sonarProject.binaryDirs as Set == [project.sourceSets.main.output.classesDir] as Set
+        sonarProject.libraries as Set == [Jvm.current().runtimeJar] as Set
 
         sonarProject.testReportPath == project.test.testResultsDir
         sonarProject.language == "java"
