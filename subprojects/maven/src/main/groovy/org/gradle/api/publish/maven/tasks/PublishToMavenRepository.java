@@ -23,8 +23,10 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.AntTaskBackedMavenPublisher;
 import org.gradle.api.publish.maven.internal.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.MavenPublisher;
+import org.gradle.api.publish.maven.internal.StaticLockingMavenPublisher;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
@@ -140,8 +142,9 @@ public class PublishToMavenRepository extends DefaultTask {
         new PublishOperation(publication, repository) {
             @Override
             protected void publish() throws Exception {
-                MavenPublisher publisher = new MavenPublisher(loggingManagerFactory, getTemporaryDirFactory());
-                publisher.publish(publication.asNormalisedPublication(), repository);
+                MavenPublisher antBackedPublisher = new AntTaskBackedMavenPublisher(loggingManagerFactory, getTemporaryDirFactory());
+                MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(antBackedPublisher);
+                staticLockingPublisher.publish(publication.asNormalisedPublication(), repository);
             }
         }.run();
     }
