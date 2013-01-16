@@ -1,4 +1,3 @@
-
 Currently, the JVM language plugins assume that a given set of source files is assembled into a single
 output. For example, the `main` Java source is compiled and assembled into a JAR file. However, this is not
 always a reasonable assumption. Here are some examples:
@@ -27,7 +26,7 @@ See above.
 The implementation plan involves introducing some new model elements:
 
 * A "packaging". This is some set of artifacts that can run on the JVM. A packaging carries meta-data with
-  it, such its runtime dependencies.
+  it, such as its runtime dependencies.
 * A "language source set" which represents a language specific group of source files that form inputs
   to a packaging that can run on the JVM. Usually there is some compilation or other transformation step
   that can take the input source files and transform them to the output packaging. A language source set
@@ -131,7 +130,7 @@ files.
     - `classesDir` of type `File`. Default value is `$buildDir/classes/$name`.
     - `runtimeClasspath` of type `ClassPath`.
 2. Change the `jvm-lang` plugin to add a container of JVM packagings.
-3. When a class director packaging is added to the container, a `classes` lifecycle task is added.
+3. When a class directory packaging is added to the container, a `classes` lifecycle task is added.
 4. Allow source set instances to be added to packaging.
     - When one or more `ResourceSet` instances are added, a `ProcessResources` task is added that copies the
       resources into the output directory.
@@ -167,7 +166,7 @@ To assemble a class directory packaging from Java source and resources:
 
 ## Story: JAR packaging
 
-This story adds the ability to define JAR packagings and build them form Java source and resource files.
+This story adds the ability to define JAR packagings and build them from Java source and resource files.
 
 1. Extract `JvmPackaging' interface from `ClassDirectoryPackaging`.
 2. Add a `JarPackaging` interface that extends `JvmPackaging`.
