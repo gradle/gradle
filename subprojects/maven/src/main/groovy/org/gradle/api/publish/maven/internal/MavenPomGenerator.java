@@ -34,42 +34,44 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 
-/**
- * @author Hans Dockter
- */
-public class MavenPomWriter {
+public class MavenPomGenerator {
 
     String POM_FILE_ENCODING = "UTF-8";
 
     private MavenProject mavenProject = new MavenProject();
     private XmlTransformer withXmlActions = new XmlTransformer();
 
-    public MavenPomWriter() {
+    public MavenPomGenerator() {
         mavenProject.setModelVersion("4.0.0");
     }
 
-    public MavenPomWriter setGroupId(String groupId) {
+    public MavenPomGenerator setGroupId(String groupId) {
         getModel().setGroupId(groupId);
         return this;
     }
 
-    public MavenPomWriter setArtifactId(String artifactId) {
+    public MavenPomGenerator setArtifactId(String artifactId) {
         getModel().setArtifactId(artifactId);
         return this;
     }
 
-    public MavenPomWriter setName(String name) {
+    public MavenPomGenerator setName(String name) {
         getModel().setName(name);
         return this;
     }
 
-    public MavenPomWriter setVersion(String version) {
+    public MavenPomGenerator setVersion(String version) {
         getModel().setVersion(version);
         return this;
     }
 
-    public MavenPomWriter setPackaging(String packaging) {
+    public MavenPomGenerator setPackaging(String packaging) {
         getModel().setPackaging(packaging);
+        return this;
+    }
+
+    public MavenPomGenerator withXml(final Action<XmlProvider> action) {
+        withXmlActions.addAction(action);
         return this;
     }
 
@@ -77,21 +79,16 @@ public class MavenPomWriter {
         return mavenProject.getModel();
     }
 
-    public MavenPomWriter writeTo(File file) {
+    public MavenPomGenerator writeTo(File file) {
         IoActions.writeFile(file, POM_FILE_ENCODING, new Action<BufferedWriter>() {
             public void execute(BufferedWriter writer) {
-                writeTo(writer);
+                try {
+                    writeWithXmlActions(writer);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         });
-        return this;
-    }
-
-    public MavenPomWriter writeTo(final Writer pomWriter) {
-        try {
-            writeWithXmlActions(pomWriter);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
         return this;
     }
 
@@ -107,11 +104,6 @@ public class MavenPomWriter {
         }
     }
 
-    public MavenPomWriter withXml(final Action<XmlProvider> action) {
-        withXmlActions.addAction(action);
-        return this;
-    }
-
     public void addRuntimeDependency(org.gradle.api.artifacts.Dependency dependency) {
         if (dependency instanceof ModuleDependency) {
             addDependency((ModuleDependency) dependency, "runtime");
@@ -120,20 +112,12 @@ public class MavenPomWriter {
 
     private void addDependency(ModuleDependency moduleDependency, String scope) {
         if (moduleDependency.getArtifacts().size() == 0) {
-            getModel().addDependency(createMavenDependencyFromDependencyDescriptor(moduleDependency, scope));
+            getModel().addDependency(createMavenDependency(moduleDependency, moduleDependency.getName(), null, scope, null));
         } else {
             for (DependencyArtifact artifact : moduleDependency.getArtifacts()) {
-                getModel().addDependency(createMavenDependencyFromArtifactDescriptor(moduleDependency, artifact, scope));
+                getModel().addDependency(createMavenDependency(moduleDependency, artifact.getName(), artifact.getType(), scope, artifact.getClassifier()));
             }
         }
-    }
-
-    private Dependency createMavenDependencyFromDependencyDescriptor(ModuleDependency dependency, String scope) {
-        return createMavenDependency(dependency, dependency.getName(), null, scope, null);
-    }
-
-    protected Dependency createMavenDependencyFromArtifactDescriptor(ModuleDependency dependency, DependencyArtifact artifact, String scope) {
-        return createMavenDependency(dependency, artifact.getName(), artifact.getType(), scope, artifact.getClassifier());
     }
 
     private Dependency createMavenDependency(ModuleDependency dependency, String name, String type, String scope, String classifier) {

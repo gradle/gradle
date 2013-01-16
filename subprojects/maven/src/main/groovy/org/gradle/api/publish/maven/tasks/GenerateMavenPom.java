@@ -24,8 +24,8 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.maven.MavenPom;
+import org.gradle.api.publish.maven.internal.MavenPomGenerator;
 import org.gradle.api.publish.maven.internal.MavenPomInternal;
-import org.gradle.api.publish.maven.internal.MavenPomWriter;
 import org.gradle.api.publish.maven.internal.MavenProjectIdentity;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
@@ -101,23 +101,23 @@ public class GenerateMavenPom extends DefaultTask {
     @TaskAction
     public void doGenerate() {
         MavenPomInternal pomInternal = (MavenPomInternal) getPom();
-        MavenPomWriter pomWriter = new MavenPomWriter();
 
-        copyIdentity(pomInternal.getProjectIdentity(), pomWriter);
-        copyDependencies(pomInternal.getRuntimeDependencies(), pomWriter);
-        pomWriter.withXml(pomInternal.getXmlAction());
+        MavenPomGenerator pomGenerator = new MavenPomGenerator();
+        copyIdentity(pomInternal.getProjectIdentity(), pomGenerator);
+        copyDependencies(pomInternal.getRuntimeDependencies(), pomGenerator);
+        pomGenerator.withXml(pomInternal.getXmlAction());
 
-        pomWriter.writeTo(getDestination());
+        pomGenerator.writeTo(getDestination());
     }
 
-    private void copyIdentity(MavenProjectIdentity projectIdentity, MavenPomWriter pom) {
+    private void copyIdentity(MavenProjectIdentity projectIdentity, MavenPomGenerator pom) {
         pom.setArtifactId(projectIdentity.getArtifactId());
         pom.setGroupId(projectIdentity.getGroupId());
         pom.setVersion(projectIdentity.getVersion());
         pom.setPackaging(projectIdentity.getPackaging());
     }
 
-    private void copyDependencies(Set<Dependency> runtimeDependencies, MavenPomWriter pom) {
+    private void copyDependencies(Set<Dependency> runtimeDependencies, MavenPomGenerator pom) {
         for (Dependency runtimeDependency : runtimeDependencies) {
             pom.addRuntimeDependency(runtimeDependency);
         }
