@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/providedConfiguration.gradle"
-
 dependencies {
-    groovy libraries.groovy
-
     compile project(":core")
     compile project(":plugins")
-    compile libraries.guava
-    compile libraries.slf4j_api
-    compile libraries.inject
+    compile libraries.groovy
     compile "org.codehaus.sonar-plugins:sonar-runner:2.0"
 
     integTestRuntime "org.gradle.sonar:sonar-test-server:3.4@war"
-    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.4@zip"
+    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.4.1@zip"
 }
 
 useTestFixtures()
