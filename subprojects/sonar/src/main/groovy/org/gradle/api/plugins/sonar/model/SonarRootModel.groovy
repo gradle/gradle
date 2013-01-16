@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.sonar.model
 
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.file.FileCollection
 
 /**
  * Base interface for Sonar models on analysis roots and their subprojects.
@@ -56,6 +55,7 @@ class SonarRootModel implements SonarModel {
     /**
      * Per-project configuration options.
      */
+    @IncludeProperties
     SonarProject project
 
     /**
@@ -166,6 +166,7 @@ class SonarProjectModel implements SonarModel {
     /**
      * Per-project configuration options.
      */
+    @IncludeProperties
     SonarProject project
 
     /**
@@ -285,28 +286,28 @@ class SonarProject {
      * Defaults to <tt>project.sourceSets.main.allSource.srcDirs</tt>.
      */
     @SonarProperty("sonar.sources")
-    List<File> sourceDirs = []
+    Collection<File> sourceDirs = []
 
     /**
      * The directories containing the project's test source code to be analyzed.
      * Defaults to <tt>project.sourceSets.test.allSource.srcDirs</tt>.
      */
     @SonarProperty("sonar.tests")
-    List<File> testDirs = []
+    Collection<File> testDirs = []
 
     /**
      * The directories containing the project's compiled code to be analyzed.
      * Defaults to <tt>main.output.classesDir</tt>.
      */
     @SonarProperty("sonar.binaries")
-    List<File> binaryDirs = []
+    Collection<File> binaryDirs = []
 
     /**
      * A class path containing the libraries used by this project.
      * Defaults to <tt>project.sourceSets.main.compileClasspath + Jvm.current().runtimeJar</tt>.
      */
     @SonarProperty("sonar.libraries")
-    FileCollection libraries// = new SimpleFileCollection()
+    Collection<File> libraries = []
 
     /**
      * Tells whether to the project's source code should be stored and made available
@@ -358,6 +359,18 @@ class SonarProject {
      */
     @SonarProperty("sonar.clover.reportPath")
     File cloverReportPath
+
+    /**
+     * The JaCoCo report file. Defaults to <tt>null</tt>.
+     */
+    @SonarProperty("sonar.jacoco.reportPath")
+    File jacocoReportPath
+
+    /**
+     * The JaCoCo report file for integration tests. Defaults to <tt>null</tt>.
+     */
+    @SonarProperty("sonar.jacoco.itReportPath")
+    File jacocoIntegTestReportPath
 
     /**
      * The programming language to be analyzed. Only one language per project

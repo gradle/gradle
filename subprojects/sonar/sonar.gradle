@@ -24,17 +24,10 @@ dependencies {
     compile libraries.guava
     compile libraries.slf4j_api
     compile libraries.inject
-    compile "org.codehaus.sonar:sonar-batch-bootstrapper:2.9@jar"
+    compile "org.codehaus.sonar-plugins:sonar-runner:2.0"
 
-    // minimal dependencies to make our code compile
-    // we don't ship these dependencies because sonar-batch-bootstrapper will download them (and many more) at runtime
-    provided "org.codehaus.sonar:sonar-batch:2.9@jar"
-    provided "org.codehaus.sonar:sonar-plugin-api:2.9@jar"
-    provided "commons-configuration:commons-configuration:1.6@jar"
-
-    //integTestRuntime "com.h2database:h2:1.3.168"
-    integTestRuntime "org.gradle.sonar:sonar-test-server:3.2@war"
-    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.2@zip"
+    integTestRuntime "org.gradle.sonar:sonar-test-server:3.4@war"
+    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.4@zip"
 }
 
 useTestFixtures()
