@@ -202,7 +202,31 @@ Running `gradle generateMavenPom` would generate the `pom.xml` for the default M
 
 ### Test cases
 
-TBD
+* Integration test that specified generated pom location, executes GenerateMavenPom task, validates pom file content, and checks that module is not published
+
+## Publish Java libraries and web applications to Ivy repository
+
+1. Change the `ivy-publishing` plugin so that it no longer defines any publications.
+2. Allow `IvyPublication` instances to be added to the publications container.
+    - Default (organisation, module, revision) to (project.group, publication.name, project.version)
+3. Allow zero or one components to be added to an Ivy publication.
+4. When publishing a java library, declare the runtime dependencies and the JAR artifact in the descriptor.
+5. When publishing a web application, declare the providedRuntime dependencies and the WAR artifact in the descriptor.
+6. Include a default configuration in the descriptor.
+
+Note: there is a breaking change in this story.
+
+### Test cases
+
+* Run `gradle publish` for a project with just the `ivy-publish` plugin applied. Verify nothing is published.
+* Publish a java project with compile, runtime and testCompile dependencies.
+    * Verify that the jar artifact is included in the descriptor runtime configuration.
+    * Verify only the compile and runtime dependencies are included in the descriptor runtime configuration.
+* Publish multiple projects with the `java` plugin applied and project dependencies between the projects.
+    * Verify descriptor files contain appropriate artifact and dependency declarations.
+    * Verify that libraries and transitive dependencies can be successfully resolved from another build.
+* Cross-version test that verifies a Java project published by the current version of Gradle can be consumed by a previous version of Gradle,
+  and vice versa.
 
 ## Allow outgoing artifacts to be customised for Ivy publications
 
@@ -235,33 +259,16 @@ To customise an Ivy publication:
         }
     }
 
-TBD - applicable conversions
+The 'artifact' creation method will accept the following forms of input:
+* A PublishArtifact, that will be adapted to IvyArtifact
+* An AbstractArchiveTask, that will be adapted to IvyArtifact
+* Anything that is valid input to Project.file()
+* Any of the previous 3, together with a configuration closure that permits setting of classifier & extension
+* A map with 'file' entry, that is interpreted as per Project.file(). Additional entries for 'name', 'type' and 'extension'.
 
 ### Test cases
 
 TBD
-
-## Publish Java libraries and web applications to Ivy repository
-
-1. Allow `IvyPublication` instances to be added to the publications container.
-    - Default (organisation, module, revision) to (project.group, publication.name, project.version)
-2. Allow zero or one publications to be added to an Ivy publication.
-3. Change the `ivy-publishing` plugin so that it no longer defines any publications.
-4. When publishing a web application, declare the providedRuntime dependencies and the WAR artifact in the descriptor.
-5. When publishing a java library, declare the runtime dependencies and the JAR artifact in the descriptor.
-6. Include a default configuration in the descriptor.
-
-Note: there is a breaking change in this story.
-
-### Test cases
-
-* Publish a project without any other plugins applied.
-* Publish a java project with compile, runtime and testCompile dependencies. Verify only the compile and runtime dependencies are included in the
-  descriptors.
-* Publish a multi Java project build with project dependencies, and verify all libraries and transitive dependencies can be successfully resolved from
-  another build.
-* Add a cross-version test that verifies a Java project published by the current version of Gradle can be consumed by a previous version of Gradle,
-  and vice versa.
 
 ## Validate publication coordinates
 
