@@ -16,8 +16,10 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
+@TargetVersions('0.9+')
 class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     final MavenFileRepository repo = new MavenFileRepository(file("maven-repo"))
@@ -87,7 +89,7 @@ repositories {
 dependencies {
     lib 'org.gradle.crossversion:published:1.9$artifact'
 }
-task retrieve(type: Copy) {
+task retrieve(type: Sync) {
     into 'build/resolved'
     from configurations.lib
 }
