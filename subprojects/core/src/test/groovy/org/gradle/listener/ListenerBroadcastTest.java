@@ -17,11 +17,9 @@
 package org.gradle.listener;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TestClosure;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.api.Invocation;
@@ -30,7 +28,6 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.gradle.util.HelperUtil.toClosure;
 import static org.gradle.util.Matchers.strictlyEqual;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -130,33 +127,6 @@ public class ListenerBroadcastTest {
     }
 
     @Test
-    public void canUseClosureToReceiveNotificationsForSingleEventMethod() {
-        final TestClosure testClosure = context.mock(TestClosure.class);
-        context.checking(new Expectations() {{
-            one(testClosure).call("param");
-            will(returnValue("ignore me"));
-        }});
-
-        broadcast.add("event1", new ClosureBackedAction<Object>(toClosure(testClosure)));
-        broadcast.getSource().event1("param");
-    }
-
-    @Test
-    public void doesNotNotifyClosureForOtherEventMethods() {
-        final TestClosure testClosure = context.mock(TestClosure.class);
-
-        broadcast.add("event1", new ClosureBackedAction<Object>(toClosure(testClosure)));
-        broadcast.getSource().event2(9, "param");
-    }
-
-    @Test
-    public void closureCanHaveFewerParametersThanEventMethod() {
-        broadcast.add("event2", new ClosureBackedAction<Object>(toClosure("{ a -> 'result' }")));
-        broadcast.getSource().event2(1, "param");
-        broadcast.getSource().event2(2, null);
-    }
-
-    @Test
     public void canUseActionForSingleEventMethod() {
         final Action<String> action = context.mock(Action.class);
         context.checking(new Expectations() {{
@@ -225,27 +195,6 @@ public class ListenerBroadcastTest {
         }});
 
         broadcast.add(listener);
-
-        try {
-            broadcast.getSource().event1("param");
-            fail();
-        } catch (ListenerNotificationException e) {
-            assertThat(e.getMessage(), equalTo("Failed to notify test listener."));
-            assertThat(e.getCause(), sameInstance((Throwable) failure));
-        }
-    }
-
-    @Test
-    public void wrapsExceptionThrownByClosure() {
-        final TestClosure testClosure = context.mock(TestClosure.class);
-        final RuntimeException failure = new RuntimeException();
-
-        context.checking(new Expectations() {{
-            one(testClosure).call("param");
-            will(throwException(failure));
-        }});
-
-        broadcast.add("event1", new ClosureBackedAction<Object>(toClosure(testClosure)));
 
         try {
             broadcast.getSource().event1("param");
