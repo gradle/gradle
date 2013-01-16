@@ -35,14 +35,14 @@ class ModelToPropertiesConverter {
         this.propertyPrefix = propertyPrefix
     }
 
-    Properties convert() {
+    Map<String, String> convert() {
         def properties = collectProperties(model)
         processProperties(properties)
         properties
     }
 
-    private Properties collectProperties(Object model) {
-        def properties = new Properties()
+    private Map<String, String> collectProperties(Object model) {
+        def properties = [:]
 
         if (model == null) {
             return properties
@@ -77,17 +77,14 @@ class ModelToPropertiesConverter {
         fields
     }
 
-    private void processProperties(Properties properties) {
+    private void processProperties(Map<String, String> properties) {
         for (processor in propertyProcessors) {
             processor(properties)
         }
-        convertPropertyValues(properties)
     }
 
-    private void convertPropertyValues(Properties properties) {
-        properties.each { key, value ->
-            properties[key] = convertPropertyValue(value)
-        }
+    private String convertPropertyKey(String key) {
+        propertyPrefix ? propertyPrefix + "." + key : key
     }
 
     private String convertPropertyValue(Object value) {
@@ -95,9 +92,5 @@ class ModelToPropertiesConverter {
             value = value.join(",")
         }
         value.toString()
-    }
-
-    private String convertPropertyKey(String key) {
-        propertyPrefix ? propertyPrefix + "." + key : key
     }
 }

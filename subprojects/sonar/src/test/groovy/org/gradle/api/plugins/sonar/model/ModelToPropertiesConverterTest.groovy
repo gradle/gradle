@@ -104,7 +104,7 @@ class ModelToPropertiesConverterTest extends Specification {
 
 
         @SonarProperty("two")
-        Object two = "two"
+        String two = "two"
     }
 
     def "allows to post-process properties"() {
@@ -123,17 +123,6 @@ class ModelToPropertiesConverterTest extends Specification {
         converter.convert() == [added: "added", two: "changed"]
     }
 
-    def "converts post-processed property values to strings"() {
-        def converter = new ModelToPropertiesConverter(new Model5())
-        converter.propertyProcessors << { props ->
-            props.put("two", 2)
-            props.put("three", 3)
-        }
-
-        expect:
-        converter.convert() == [one: "one", two: "2", three: "3"]
-    }
-
     class Model6 {
         @SonarProperty("foo.bar")
         String prop = "prop"
@@ -144,5 +133,17 @@ class ModelToPropertiesConverterTest extends Specification {
 
         expect:
         converter.convert() == ["some.prefix.foo.bar": "prop"]
+    }
+
+    class Model7 {
+        @SonarProperty("prop")
+        String prop
+    }
+
+    def "omits null values"() {
+        def converter = new ModelToPropertiesConverter(new Model7())
+
+        expect:
+        converter.convert().isEmpty()
     }
 }
