@@ -96,7 +96,8 @@ Gradle now only discards old artifacts after a newer version has been cached, ma
 
 #### Using a “maven” layout with an Ivy repository
 
-By default, an Ivy repository will store the module "`org.my.group:module:version`" with a directory pattern like `baseurl/org.my.group/module`, while a maven repository would store the same module under `baseurl/org/my/group/module`.
+By default, an Ivy repository will store the module "`org.my.group:module:version`" with a directory pattern like `baseurl/org.my.group/module`,
+while a maven repository would store the same module under `baseurl/org/my/group/module`.
 It is now possible to configure an `ivy` repository that uses the maven directory layout, [using the new `m2compatible` flag with the `pattern` layout](userguide/dependency_management.html#N145D5).
 
 ### Dependencies that cannot be resolved are listed in dependency reports
@@ -415,7 +416,8 @@ into the respective `PublishToIvyRepository` tasks, so you do not need to explic
 
 The new incubating ‘maven-publish’ plugin is an alternative to the existing ‘maven’ plugin, and will eventually replace it. This plugin builds on the new publishing model
 that was introduced in Gradle 1.3 with the ‘ivy-publish’ plugin. The new publication mechanism (which is currently “incubating”, including this plugin) will
-expand and improve over the subsequent Gradle releases to provide more convenience and flexibility than the existing publication mechanism plus very powerful features to wire your components across builds & teams.
+expand and improve over the subsequent Gradle releases to provide more convenience and flexibility than the existing publication mechanism plus very powerful features
+to wire your components across builds & teams.
 
 In the simplest case, publishing to a Maven repository looks like:
 
