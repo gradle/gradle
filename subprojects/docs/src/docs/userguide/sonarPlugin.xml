@@ -18,8 +18,9 @@
 
     <para>The Sonar plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
         a web-based platform for monitoring code quality. The plugin adds a <literal>sonarAnalyze</literal> task
-        that analyzes the project to which the plugin is applied and its subprojects. The results are stored in
-        the Sonar database. The plugin requires Sonar 2.9 or higher.
+        that analyzes the project to which the plugin is applied, as well as its subprojects. The results are stored in
+        the Sonar database. The plugin is based on the <ulink url="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</ulink>
+        and requires Sonar 2.11 or higher.
     </para>
 
     <para>
@@ -35,7 +36,7 @@
         <sample id="quickstart" dir="sonar/quickstart" title="Applying the Sonar plugin">
             <sourcefile file="build.gradle" snippet="apply-plugin"/>
         </sample>
-        <para>Unless Sonar is run locally and with default settings, it is also necessary to configure
+        <para>Unless Sonar is run locally and with default settings, it is necessary to configure
             connection settings for the Sonar server and database.</para>
         <sample id="quickstart" dir="sonar/quickstart" title="Configuring Sonar connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
@@ -56,8 +57,8 @@
     <section>
         <title>Analyzing Multi-Project Builds</title>
         <para>The Sonar plugin is capable of analyzing a whole project hierarchy at once. This yields a hierarchical view in the
-            Sonar web interface with aggregated metrics and the ability to drill down into subprojects. It is also faster and
-            less likely to run into out-of-memory problems than analyzing each project separately.
+            Sonar web interface with aggregated metrics and the ability to drill down into subprojects. It is also faster than
+            analyzing each project separately.
         </para>
         <para>
             To analyze a project hierarchy, the Sonar plugin needs to be applied to the top-most project of the hierarchy.
@@ -126,8 +127,9 @@
         </sample>
 
         <para>
-            The Sonar documentation provides a complete list of Sonar properties. (Note that most of these properties are already covered
-            by the plugin's object model.) For configuring third-party Sonar plugins, consult their documentation.
+            A list of available Sonar properties can be found in the <ulink url="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Sonar documentation</ulink>.
+            Note that for most of these properties, the Sonar plugin's object model has an equivalent property, and it isn't necessary to use a <code>withGlobalProperties</code>
+            or <code>withProjectProperties</code> hook. For configuring a third-party Sonar plugin, consult the plugin's documentation.
         </para>
     </section>
 
