@@ -93,6 +93,18 @@ class ConfigureByMapActionTest extends Specification {
         e.property == 'unknown'
     }
 
+    def "equality"() {
+        expect:
+        action([:]) == action([:])
+        action([:], []) == action([:], [])
+        action(p1: "v1") == action(p1: "v1")
+        action(p1: "v1") != action(p1: "v2")
+        action(p1: "v1") != action(p2: "v1")
+        action(p1: "v1", ["a"]) == action(p1: "v1", ["a"])
+        action(p1: "v1", ["a"]) != action(p1: "v1", ["b"])
+        action(p1: "v1", ["a"]) != action(p1: "v1")
+    }
+
 }
 
 class Bean {
