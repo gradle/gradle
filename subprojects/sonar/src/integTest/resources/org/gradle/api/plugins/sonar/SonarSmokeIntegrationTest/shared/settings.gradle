@@ -1,1 +1,1 @@
-include "javaProject", "groovyProject", "skippedProject", "customizedProject", "nested:nestedProject"
+include "javaProject", "groovyProject", "skippedProject", "customizedProject", "nested:nested2:nestedProject"
