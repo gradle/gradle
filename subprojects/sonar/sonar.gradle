@@ -21,7 +21,7 @@ dependencies {
     compile "org.codehaus.sonar-plugins:sonar-runner:2.0"
 
     integTestRuntime "org.gradle.sonar:sonar-test-server:3.4@war"
-    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.4.1@zip"
+    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.4.0.1@zip"
 }
 
 useTestFixtures()
