@@ -135,6 +135,26 @@ class ModelToPropertiesConverterTest extends Specification {
         converter.convert() == ["some.prefix.foo.bar": "prop"]
     }
 
+    def "keys are only prefixed after property processors have run"() {
+        def converter = new ModelToPropertiesConverter(new Model6(), "some.prefix")
+        converter.propertyProcessors << { props ->
+            assert props == ["foo.bar": "prop"]
+        }
+
+        expect:
+        converter.convert() == ["some.prefix.foo.bar": "prop"]
+    }
+
+    def "non-string values added by property processors are converted"() {
+        def converter = new ModelToPropertiesConverter(new Object())
+        converter.propertyProcessors << { props ->
+            props.other = [1, 2, 3]
+        }
+
+        expect:
+        converter.convert() == [other: "1,2,3"]
+    }
+
     class Model7 {
         @SonarProperty("prop")
         String prop

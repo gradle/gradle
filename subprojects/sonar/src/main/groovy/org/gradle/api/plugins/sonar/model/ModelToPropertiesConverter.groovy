@@ -36,9 +36,7 @@ class ModelToPropertiesConverter {
     }
 
     Map<String, String> convert() {
-        def properties = collectProperties(model)
-        processProperties(properties)
-        properties
+        processProperties(collectProperties(model))
     }
 
     private Map<String, String> collectProperties(Object model) {
@@ -62,7 +60,8 @@ class ModelToPropertiesConverter {
             def propValue = model."$field.name"
             if (propValue == null) { continue }
 
-            properties.put(convertPropertyKey(propKey), convertPropertyValue(propValue))
+            // keys are only converted after property processors have run
+            properties.put(propKey, convertPropertyValue(propValue))
         }
 
         properties
@@ -77,10 +76,16 @@ class ModelToPropertiesConverter {
         fields
     }
 
-    private void processProperties(Map<String, String> properties) {
+    private Map<String, String> processProperties(Map<String, String> properties) {
         for (processor in propertyProcessors) {
             processor(properties)
         }
+        def result = [:]
+        properties.each { key, value ->
+            // for convenience, we also convert values, in case a processor has added non-string values
+            result[convertPropertyKey(key)] = convertPropertyValue(value)
+        }
+        result
     }
 
     private String convertPropertyKey(String key) {
