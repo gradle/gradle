@@ -50,5 +50,3 @@ if (finalRelease) {
     isSnapshot = true
     version += "-$buildTimestamp"
 }
-
-println "Gradle version: $version"
