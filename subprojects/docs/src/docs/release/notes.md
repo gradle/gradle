@@ -6,6 +6,13 @@ Here are the new features introduced in this Gradle release.
 ### Example new and noteworthy
 -->
 
+### Updated Sonar plugin
+
+The Sonar plugin has received a major overhaul. It is now based on the [Sonar Runner]
+(http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner), the new and officially supported
+way to invoke Sonar analysis. This makes the plugin compatible with Sonar 3.4 and future Sonar versions.
+In addition, the Sonar plugin's object model has been updated to cover JaCoCo and debug settings.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -136,6 +143,11 @@ Breaking changes have been made to the new, incubating, Maven publishing support
 Previously the 'maven-publish' plugin added a MavenPublication for any java component on the project, which meant that with the 'java' plugin applied no addition configuration
 was required to publish the jar file. It is now necessary to explicitly add a MavenPublication to the 'publishing.publications' container. The added publication can include
 a software component ['java', 'web'], custom artifacts or both. If no MavenPublication is added when using the 'maven-publish' plugin, then nothing will be published.
+
+## Switch to Sonar Runner
+
+While every effort has been made to keep backwards compatibility with earlier versions of the Sonar plugin, the underlying switch to the
+[Sonar Runner](http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner) may cause some differences in behavior.
 
 ## External contributions
 
