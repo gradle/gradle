@@ -20,6 +20,11 @@ class CheckstyleExtension extends CodeQualityExtension {
      * The Checkstyle configuration file to use.
      */
     File configFile
+
+    /**
+     * The Checkstyle configuration URL to use.
+     */
+    String configURL
     
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration

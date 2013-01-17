@@ -80,6 +80,7 @@ class CheckstylePluginTest extends Specification {
             assert checkstyleClasspath == project.configurations["checkstyle"]
             assert classpath == sourceSet.output
             assert configFile == project.file("config/checkstyle/checkstyle.xml")
+            assert configURL == null
             assert configProperties == [:]
             assert resultFile == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
             assert !ignoreFailures
@@ -95,6 +96,7 @@ class CheckstylePluginTest extends Specification {
         task.source.isEmpty()
         task.checkstyleClasspath == project.configurations.checkstyle
         task.configFile == project.file("config/checkstyle/checkstyle.xml")
+        task.configURL == null
         task.configProperties == [:]
         task.resultFile == project.file("build/reports/checkstyle/custom.xml")
         !task.ignoreFailures
@@ -145,6 +147,7 @@ class CheckstylePluginTest extends Specification {
             assert source as List == sourceSet.allJava as List
             assert checkstyleClasspath == project.configurations["checkstyle"]
             assert configFile == project.file("checkstyle-config")
+            assert configURL == null
             assert configProperties == [foo: "foo"]
             assert resultFile == project.file("checkstyle-reports/${sourceSet.name}.xml")
             assert ignoreFailures
@@ -156,6 +159,7 @@ class CheckstylePluginTest extends Specification {
         def task = project.tasks.add("checkstyleCustom", Checkstyle)
         project.checkstyle {
             configFile = project.file("checkstyle-config")
+            configURL = 'http://www.example.com/'
             configProperties = [foo: "foo"]
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
@@ -166,6 +170,7 @@ class CheckstylePluginTest extends Specification {
         task.source.isEmpty()
         task.checkstyleClasspath == project.configurations.checkstyle
         task.configFile == project.file("checkstyle-config")
+        task.configURL == 'http://www.example.com/'
         task.configProperties == [foo: "foo"]
         task.resultFile == project.file("checkstyle-reports/custom.xml")
         task.ignoreFailures

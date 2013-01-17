@@ -30,6 +30,7 @@ class CheckstyleTest extends Specification {
             checkstyleClasspath == null
             classpath == null
             configFile == null
+            configURL == null
             configProperties == [:]
             !reports.xml.enabled
             reports.xml.destination == null
