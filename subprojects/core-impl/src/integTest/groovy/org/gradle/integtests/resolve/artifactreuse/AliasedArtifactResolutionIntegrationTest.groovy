@@ -24,7 +24,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
     def ivyRepo1 = ivyHttpRepo("ivy1")
     def ivyRepo2 = ivyHttpRepo("ivy2")
 
-    def "setup"() {
+    def setup() {
         server.start()
 
         buildFile << """

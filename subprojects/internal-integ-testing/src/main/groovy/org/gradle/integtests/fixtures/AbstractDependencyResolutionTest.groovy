@@ -29,7 +29,7 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
-    def "setup"() {
+    def setup() {
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         requireOwnGradleUserHomeDir()
     }
