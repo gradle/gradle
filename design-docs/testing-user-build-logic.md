@@ -40,10 +40,11 @@ An integration test for the build script above can be run that attempts to compi
 ### Implementation approach
 
 1. A “test-kit” project will be added as a subproject of the build. 
-2. The jar (and its dependencies) will be made available
+2. Add an empty class (in order to have some content), perhaps `GradleRunnerFactory` from the next story.
+3. The jar (and its dependencies) will be made available
     1. added to the Gradle distribution, but Gradle's bootstrapping will have to be updated to not load this into the Gradle runtime.
-    2. The jars are not part of the distribution, but uploaded to repo.gradle.org and/or maven central.
-3. A `gradleTestKit()` dependency notation will be added to DependencyHandler
+    2. The jars are not part of the distribution, but uploaded to repo.gradle.org
+4. A `gradleTestKit()` dependency notation will be added to DependencyHandler
 
 note: It may be worth at this point adding a `DependencyHandler.getGradle()` method that returns a `GradleDependencyNotations` object with methods like `api()`, `groovy()`, `testKit()` (and deprecate `gradleApi()` etc.)
 
@@ -64,8 +65,8 @@ A set of interfaces/builders will be developed to provide programmatic execution
     package org.gradle.testkit.functional;
 
     public interface GradleRunner {
-        File getDirectory();
-        void setDirectory(File directory);
+        File getWorkingDir();
+        void setWorkingDir(File directory);
 
         List<String> getArguments();
         void setArguments(List<String> string);
@@ -93,8 +94,8 @@ A set of interfaces/builders will be developed to provide programmatic execution
             
             when:
             def result = GradleRunnerFactory.create().with {
-                directory = dir
-                arguments << "helloWorld")
+                workingDir = dir
+                arguments << "helloWorld"
                 run()
             }
             
@@ -110,7 +111,7 @@ Things can go wrong with the tooling api, these would have to be appropriately p
 ### Test coverage
 
 1. A build can be run successfully
-2. A failed build can be run successfully
+2. A failed build can be run successfully, that is a build that ultimate fails (through either an unexpected Gradle error or a legitimate failure such as a test failure) can be run without an exception being thrown by the runner (later stories add more options on how to respond to build failures)
 3. Tooling API mechanical failures produce good diagnostic messages
 
 ### Implementation approach
@@ -148,9 +149,13 @@ The classpath will not be available for user init scripts of settings files (pos
 
 There is no attempt to auto delete the .gradle-test-kit dir after test execution. The management of the directory to run in is not in scope, and will likely be handled by other mechanisms in the future (e.g. JUnit rule @TemporaryFolder).
 
-## Story 4: A user functionally debugs their custom build logic
+#### User environment inheritance
 
-## Story 5: A user gets more precise information about what happened when the test build was executed
+The test runner will explicitly not inherit the user's Gradle “environment” (GRADLE_OPTS etc.). It will also not be desirable to inherit the user's gradleUserHome as it may contain per user init scripts that effect the tests. However, it is desirable to reuse the user's artifact cache in order to avoid redownloading dependencies. Currently, we don't have a way to specify the location of the artifact cache individually. This capability will need to be added to Gradle.
+
+## Story: A user functionally debugs their custom build logic
+
+## Story: A user gets more precise information about what happened when the test build was executed
 
 ### Discussion
 
@@ -161,13 +166,15 @@ This will involve building out `ExecutionResult` to expose:
 3. Whether a task ran before another (for testing task dependencies)
 4. Information about failures
 
-## Story 6: A user functionally tests their custom build logic, with different and/or custom Gradle versions 
+## Story: A user functionally tests their custom build logic, with different and/or custom Gradle versions 
 
-## Story 7: A user functionally tests their custom build logic, specifying JVM system props and env vars
+## Story: Inject the test classpath via Tooling API functionality, instead of using an init script
 
-## Story 8: A user functionally tests their custom build logic, simulating user input
+## Story: A user functionally tests their custom build logic, specifying JVM system props and env vars
 
-## Story 9: A user integration tests their custom build logic
+## Story: A user functionally tests their custom build logic, simulating user input
+
+## Story: A user integration tests their custom build logic
 
 ### Discussion
 
@@ -176,6 +183,8 @@ In the test-kit, integration tests will what we traditionally call a class of un
 The integration test component of the test-kit will be conceptually similar to the functionality of HelperUtil. That is, many factories for creating test friendly versions of core types or mechanisms where objects such as tasks/projects can be instantiated as they would be during build configuration except that dependency injection can be influenced to _override_ what would normally be injected in order to provide test doubles.
 
 It is unclear how much will be executable in this mode. For example it may not be possible to fully execute tasks, but it may be possible to simulate this in order to interrogate the incremental build API or task dependency chain.
+
+## Story: A user uses a utility that is, or is similar to, `ProjectBuilder` that is part of the test kit
 
 # Open issues
 
