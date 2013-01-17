@@ -71,6 +71,19 @@ class ActionsTest extends Specification {
         0 * _._
     }
 
+    def "composite action equality"() {
+        given:
+        def actions = (1..3).collect { Mock(Action) }
+
+        expect:
+        composite(actions[0], actions[1]) == composite(actions[0], actions[1])
+        composite(actions[0], actions[1]) != composite(actions[1], actions[0])
+        composite(actions[0], actions[1]) != composite(actions[0], actions[2])
+        composite() == composite()
+        composite() != composite(actions[0])
+        composite(actions[0]) != composite()
+    }
+
     def "cast before"() {
         given:
         def action = Mock(Action)
