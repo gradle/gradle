@@ -53,6 +53,12 @@ class SonarRootModel implements SonarModel {
     SonarDatabase database
 
     /**
+     * Configuration options for debugging Sonar analysis.
+     */
+    @IncludeProperties
+    SonarDebugSettings debug
+
+    /**
      * Per-project configuration options.
      */
     @IncludeProperties
@@ -115,6 +121,16 @@ class SonarRootModel implements SonarModel {
      */
     void database(Closure config) {
         ConfigureUtil.configure(config, database)
+    }
+
+    /**
+     * Configures debug configuration options. The specified closure
+     * delegates to an instance of {@link SonarDebugSettings}.
+     *
+     * @param debug configuration options
+     */
+    void debug(Closure config) {
+        ConfigureUtil.configure(config, debug)
     }
 
     /**
@@ -277,7 +293,6 @@ class SonarProject {
     /**
      * The working directory for the analysis. Defaults to <tt>$project.buildDir/sonar<tt>.
      */
-    // TODO: sounds like this might now be per analysis, not per project
     @SonarProperty("sonar.working.directory")
     File workDir
 
@@ -475,4 +490,27 @@ class SonarJavaSettings {
      */
     @SonarProperty("sonar.java.target")
     String targetCompatibility
+}
+
+/**
+ * Settings for debugging Sonar analysis.
+ */
+class SonarDebugSettings {
+    /**
+     * Whether to display SQL statements executed during analysis. Defaults to <tt>false</tt>.
+     */
+    @SonarProperty("sonar.showSql")
+    boolean showSql = false
+
+    /**
+     * Whether to display results of SQL statements executed during analysis. Defaults to <tt>false</tt>.
+     */
+    @SonarProperty("sonar.showSqlResults")
+    boolean showSqlResults = false
+
+    /**
+     * Whether to activate debug logging. Defaults to <tt>false</tt>.
+     */
+    @SonarProperty("sonar.verbose")
+    boolean verbose = false
 }
