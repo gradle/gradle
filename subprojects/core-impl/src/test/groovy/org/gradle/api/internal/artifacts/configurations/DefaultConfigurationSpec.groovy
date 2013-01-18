@@ -301,4 +301,16 @@ class DefaultConfigurationSpec extends Specification {
         conf.resolutionStrategy != copy.resolutionStrategy
         copy.resolutionStrategy == strategy
     }
+
+    def "provides resolution result"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+
+        when:
+        def out = config.incoming.resolutionResult
+
+        then:
+        1 * dependencyResolver.resolve(config) >> new ResolverResults(Mock(ResolvedConfiguration), result)
+        out == result
+    }
 }

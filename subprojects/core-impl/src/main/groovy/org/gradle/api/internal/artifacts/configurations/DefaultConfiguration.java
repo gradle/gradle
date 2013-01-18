@@ -561,7 +561,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public ResolutionResult getResolutionResult() {
-            //TODO SF unit test
             DefaultConfiguration.this.resolveNow();
             return DefaultConfiguration.this.cachedResolverResults.getResolutionResult();
         }
