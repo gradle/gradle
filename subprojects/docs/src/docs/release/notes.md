@@ -6,12 +6,14 @@ Here are the new features introduced in this Gradle release.
 ### Example new and noteworthy
 -->
 
-### Updated Sonar plugin
+### Improved Sonar plugin
 
 The Sonar plugin has received a major overhaul. It is now based on the [Sonar Runner]
 (http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner), the new and officially supported
 way to invoke Sonar analysis. This makes the plugin compatible with Sonar 3.4 and future Sonar versions.
-In addition, the Sonar plugin's object model has been updated to cover JaCoCo and debug settings.
+In addition, the Sonar plugin's object model has been updated to cover JaCoCo and debug settings, and
+properties like `sonar.database.password` can now easily be set from the command line. Read on in the
+revised [Sonar chapter](userguide/sonar_plugin.html) of the Gradle user guide.
 
 ## Promoted features
 
