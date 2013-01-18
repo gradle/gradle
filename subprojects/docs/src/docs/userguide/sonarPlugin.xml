@@ -41,6 +41,9 @@
         <sample id="quickstart" dir="sonar/quickstart" title="Configuring Sonar connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
         </sample>
+        <para>
+            Alternatively, some or all connection settings can be set from the command line (see <xref linkend="sec:sonar_command_line_parameters" />).
+        </para>
         <para>Project settings determine how the project is going to be analyzed. The default configuration
             works well for analyzing standard Java projects and can be customized in many ways.</para>
         <sample id="quickstart" dir="sonar/quickstart" title="Configuring Sonar project settings">
@@ -107,6 +110,22 @@
     </section>
 
     <section>
+        <title>Analyzing languages other than Java</title>
+        <para>
+            To analyze code written in a language other than Java, install the corresponding
+            <ulink url="http://www.sonarsource.com/products/plugins/languages/">Sonar plugin</ulink>, and set
+            <literal>sonar.project.language</literal> accordingly:
+        </para>
+        <sample id="advanced" dir="sonar/advanced" title="Analyzing languages other than Java">
+            <sourcefile file="build.gradle" snippet="languages" />
+        </sample>
+        <para>
+            As of Sonar 3.4, only one language per project can be analyzed. You can, however, set a different language for each project in a
+            multi-project build.
+        </para>
+    </section>
+
+    <section>
         <title>Setting Custom Sonar Properties</title>
         <para>
             Eventually, most configuration is passed to the Sonar code analyzer in the form of key-value pairs known as Sonar properties.
@@ -131,6 +150,51 @@
             Note that for most of these properties, the Sonar plugin's object model has an equivalent property, and it isn't necessary to use a <code>withGlobalProperties</code>
             or <code>withProjectProperties</code> hook. For configuring a third-party Sonar plugin, consult the plugin's documentation.
         </para>
+    </section>
+
+    <section id="sec:sonar_command_line_parameters">
+        <title>Configuring Sonar Settings from the Command Line</title>
+        <para>
+            The following properties can alternatively be set from the command line, as task parameters of the <literal>sonarAnalyze</literal> task.
+            A task parameter will override any corresponding value set in the build script.
+        </para>
+        <ul>
+            <li>
+                <literal>sonar.server.url</literal>
+            </li>
+            <li>
+                <literal>sonar.database.url</literal>
+            </li>
+            <li>
+                <literal>sonar.database.driverClassName</literal>
+            </li>
+            <li>
+                <literal>sonar.database.username</literal>
+            </li>
+            <li>
+                <literal>sonar.database.password</literal>
+            </li>
+            <li>
+                <literal>sonar.debug.showSql</literal>
+            </li>
+            <li>
+                <literal>sonar.debug.showSqlResults</literal>
+            </li>
+            <li>
+                <literal>sonar.debug.verbose</literal>
+            </li>
+        </ul>
+        <para>
+            Here is a complete example:
+        </para>
+        <code>
+            gradle sonarAnalyze --sonar.server.url=http://sonar.mycompany.com --sonar.database.username=myUsername --sonar.database.password=myPassword
+        </code>
+        <para>If you need to set other properties from the command line, you can use system properties to do so:</para>
+        <sample id="advanced" dir="sonar/advanced" title="Implementing custom command line properties">
+            <sourcefile file="build.gradle" snippet="custom-command-line-properties"/>
+        </sample>
+        <para>However, keep in mind that it is usually best to keep configuration in the build script and under source control.</para>
     </section>
 
     <section>
