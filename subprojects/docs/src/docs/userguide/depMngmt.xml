@@ -915,6 +915,16 @@ someroot/[artifact]-[revision].[ext]
                     For more information and code samples see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
                 </para>
             </section>
+            <section id='sec:module_substitution'>
+                <title>Changing dependency group and/or name during the resolution</title>
+                <para>In previous scenarios only dependency version was changed during the resolution.
+                    Starting with Gradle 1.5 it is also possible to change group or name of the dependency:
+                    <sample id="module_substitution" dir="userguide/artifacts/resolutionStrategy" title="Changing dependency group and/or name at the resolution">
+                        <sourcefile file="build.gradle" snippet="module_substitution"/>
+                    </sample>
+                    For more information and code samples see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
+                </para>
+            </section>
         </section>
     </section>
     <section id='sec:dependency_cache'>

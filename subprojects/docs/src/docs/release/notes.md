@@ -36,6 +36,23 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the new incubating features or changes to existing incubating features in this Gradle release.
 
+### More robust dependency resolve rules
+
+The dependency resolve rules introduced in Gradle 1.4 are getting more robust.
+It is now possible to change group, name and/or version of the dependency when it is resolved.
+Previously, only version could be updated just before the dependency is resolved.
+
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'groovy-all') {
+                details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
+            }
+        }
+    }
+
+For more information, including more code samples, please refer to
+[this user guide section](userguide/userguide_single.html#module_substitution).
+
 ### Configuration on demand
 
 * respects 'external' task dependencies

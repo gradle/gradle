@@ -56,7 +56,6 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         this.selectionReason = selectionReason;
     }
 
-    //TODO SF elevate & document
     public void useTarget(Object notation) {
         this.target = ModuleVersionSelectorParsers.parser().parseNotation(notation);
         this.selectionReason = VersionSelectionReasons.SELECTED_BY_RULE;

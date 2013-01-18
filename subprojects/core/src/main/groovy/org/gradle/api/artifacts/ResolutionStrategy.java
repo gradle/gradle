@@ -48,6 +48,10 @@ import java.util.concurrent.TimeUnit;
  *       if (details.requested.group == 'org.gradle') {
  *           details.useVersion'1.4'
  *       }
+ *       //changing 'groovy-all' into 'groovy':
+ *       if (details.requested.name == 'groovy-all') {
+ *          details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
+ *       }
  *     }
  *
  *     // cache dynamic versions for 10 minutes
@@ -151,8 +155,12 @@ public interface ResolutionStrategy {
      *         details.useVersion '1.4'
      *       }
      *     }
-     *     eachDependency {
+     *     eachDependency { details ->
      *       //multiple actions can be specified
+     *       if (details.requested.name == 'groovy-all') {
+     *          //changing the name:
+     *          details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
+     *       }
      *     }
      *   }
      * }

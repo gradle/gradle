@@ -40,12 +40,30 @@ public interface DependencyResolveDetails {
      * Forcing modules via {@link ResolutionStrategy#force(Object...)} uses this capability.
      * Configuring a version different than requested will cause {@link #getTarget()} method
      * return a target module with updated target version.
+     * <p>
+     * If you need to change not only the version but also group or name please use the {@link #useTarget(Object)} method.
      *
+     * @param version to use when resolving this dependency, cannot be null.
      * It is valid to configure the same version as requested.
-     *
-     * @param version to use when resolving this dependency, cannot be null
      */
     void useVersion(String version);
+
+    /**
+     * Allows to override the details of the dependency (see {@link #getTarget()})
+     * when it is resolved (see {@link #getRequested()}).
+     * This method can be used to change the dependency before it is resolved,
+     * e.g. change group, name or version (or all three of them).
+     * In many cases users are interested in changing the version.
+     * For such scenario you can use the {@link #useVersion(String)} method.
+     *
+     * @param notation the notation that gets parsed into an instance of {@link ModuleVersionSelector}.
+     * You can pass Strings like 'org.gradle:gradle-core:1.4',
+     * Maps like [group: 'org.gradle', name: 'gradle-core', version: '1.4'],
+     * or instances of ModuleVersionSelector.
+     *
+     * @since 1.5
+     */
+    void useTarget(Object notation);
 
     /**
      * The target module selector used to resolve the dependency.
