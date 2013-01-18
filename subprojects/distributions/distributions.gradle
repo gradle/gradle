@@ -39,7 +39,7 @@ configurations {
 
 integTestTasks.all {
     if (project.hasProperty("noDistTests")) {
-        enabled = false
+        gradle.startParameter.excludedTaskNames << it.path
     } else {
         inputs.files buildDists
     }

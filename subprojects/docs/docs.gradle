@@ -405,11 +405,14 @@ task viewReleaseNotes(dependsOn: releaseNotes) {
 }
 
 test {
-    onlyIf { !project.hasProperty("noDocsTests") }
     dependsOn releaseNotes
     systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
     systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 
+}
+
+if (project.hasProperty('noDocsTests')) {
+    gradle.startParameter.excludedTaskNames << test.path
 }
 
 task docs {
