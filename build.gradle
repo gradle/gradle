@@ -38,7 +38,7 @@ buildTypes {
     quickTest "test", "integTest", noDistTests: true, noDocsTests: true
 
     // Used for builds to test the code on certain platforms
-    platformTest "test", "forkingIntegTest", noDistTests: true, noDocsTests: true//, useIncomingDistributions: true
+    platformTest "test", "forkingIntegTest", noDistTests: true, noDocsTests: true, useIncomingDistributions: true
 
     // Tests using the daemon mode
     daemonTest "daemonIntegTest", noDistTests: true, noDocsTests: true, useIncomingDistributions: true
