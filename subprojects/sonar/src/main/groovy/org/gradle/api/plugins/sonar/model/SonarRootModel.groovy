@@ -202,42 +202,54 @@ class SonarProjectModel implements SonarModel {
 }
 
 /**
- * Configuration options for the Sonar web server. Defaults match the defaults
- * for a locally running server.
+ * Configuration options for the Sonar web server. Defaults match those of a local
+ * Sonar server installation. See the individual properties for how to set them
+ * from the command line.
  */
 class SonarServer {
     /**
      * The URL for the Sonar web server. Defaults to <tt>http://localhost:9000</tt>.
+     * <p>This property can also be set as a task parameter:
+     * <tt>gradle sonarAnalyze --sonar.server.url=something</tt>
      */
     @SonarProperty("sonar.host.url")
     String url
 }
 
 /**
- * Configuration options for the Sonar database. Defaults match the defaults for
- * a locally running server (with embedded database).
+ * Configuration options for the Sonar database. Defaults match those of a local
+ * Sonar server installation (with embedded database). See the individual
+ * properties for how to set them from the command line.
  */
 class SonarDatabase {
     /**
      * The JDBC URL for the Sonar database. Default value is determined by Sonar.
+     * <p>This property can also be set as a task parameter:
+     * <tt>gradle sonarAnalyze --sonar.database.url=something</tt>
      */
     @SonarProperty("sonar.jdbc.url")
     String url
 
     /**
-     * The name of the JDBC driver class. Default value is determined by Sonar.
+     * The JDBC driver class name for the Sonar database. Default value is determined by Sonar.
+     * <p>This property can also be set as a task parameter:
+     * <tt>gradle sonarAnalyze --sonar.database.driverClassName=something</tt>
      */
     @SonarProperty("sonar.jdbc.driverClassName")
     String driverClassName
 
     /**
      * The JDBC username for the Sonar database. Defaults to <tt>sonar</tt>.
+     * <p>This property can also be set as a task parameter:
+     * <tt>gradle sonarAnalyze --sonar.database.username=something</tt>
      */
     @SonarProperty("sonar.jdbc.username")
     String username
 
     /**
      * The JDBC password for the Sonar database. Defaults to <tt>sonar</tt>.
+     * <p>This property can also be set as a task parameter:
+     * <tt>gradle sonarAnalyze --sonar.database.password=something</tt>
      */
     @SonarProperty("sonar.jdbc.password")
     String password
@@ -493,23 +505,27 @@ class SonarJavaSettings {
 }
 
 /**
- * Settings for debugging Sonar analysis.
+ * Settings for debugging Sonar analysis. See the individual properties for how
+ * to set them from the command line.
  */
 class SonarDebugSettings {
     /**
      * Whether to display SQL statements executed during analysis. Defaults to <tt>false</tt>.
+     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.showSql=true</tt>
      */
     @SonarProperty("sonar.showSql")
     boolean showSql = false
 
     /**
      * Whether to display results of SQL statements executed during analysis. Defaults to <tt>false</tt>.
+     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.showSqlResults=true</tt>
      */
     @SonarProperty("sonar.showSqlResults")
     boolean showSqlResults = false
 
     /**
      * Whether to activate debug logging. Defaults to <tt>false</tt>.
+     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.verbose=true</tt>
      */
     @SonarProperty("sonar.verbose")
     boolean verbose = false

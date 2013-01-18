@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.sonar
 
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.sonar.model.ModelToPropertiesConverter
@@ -50,6 +51,46 @@ class SonarAnalyze extends ConventionTask {
         }
         def runner = Runner.create(properties, rootModel.bootstrapDir)
         runner.execute()
+    }
+
+    @CommandLineOption(options = "sonar.server.url", description = "The URL for the Sonar web server.")
+    void setServerUrl(String url) {
+        rootModel.server.url = url
+    }
+
+    @CommandLineOption(options = "sonar.database.url", description = "The JDBC URL for the Sonar database.")
+    void setDbUrl(String url) {
+        rootModel.database.url = url
+    }
+
+    @CommandLineOption(options = "sonar.database.driverClassName", description = "The JDBC driver class name for the Sonar database.")
+    void setDbDriverClassName(String driverClassName) {
+        rootModel.database.driverClassName = driverClassName
+    }
+
+    @CommandLineOption(options = "sonar.database.username", description = "The JDBC username for the Sonar database.")
+    void setDbUsername(String username) {
+        rootModel.database.username = username
+    }
+
+    @CommandLineOption(options = "sonar.database.password", description = "The JDBC password for the Sonar database.")
+    void setDbPassword(String password) {
+        rootModel.database.password = password
+    }
+
+    @CommandLineOption(options = "sonar.debug.showSql", description = "Whether to show SQL statements sent to the Sonar database.")
+    void setShowSql(boolean flag) {
+        rootModel.debug.showSql = flag
+    }
+
+    @CommandLineOption(options = "sonar.debug.showSqlResults", description = "Whether to show results of SQL statements sent to the Sonar database.")
+    void setShowSqlResults(boolean flag) {
+        rootModel.debug.showSqlResults = flag
+    }
+
+    @CommandLineOption(options = "sonar.debug.verbose", description = "Whether to activate debug logging for Sonar analysis.")
+    void setVerbose(boolean flag) {
+        rootModel.debug.verbose = flag
     }
 
     private void extractProperties(SonarModel model, Properties properties, String prefix) {
