@@ -412,14 +412,14 @@ public class DependencyGraphBuilder {
             return selector.failure;
         }
 
-        public ModuleVersionSelection getSelected() {
+        public DefaultModuleRevisionResolveState getSelected() {
             //we cannot use the targetModuleRevision field because it may have been evicted
-            //TODO SF add coverage for this (not trivial)
+            //it is covered in VersionConflictResolutionIntegrationTest
             return selector.module.selected;
         }
 
         public ModuleVersionSelectionReason getReason() {
-            return selector.module.selected == null ? selector.idSelectionReason : selector.module.selected.selectionReason;
+            return getSelected() == null ? selector.idSelectionReason : getSelected().selectionReason;
         }
 
         public void collectFailures(FailureState failureState) {
