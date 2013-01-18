@@ -73,7 +73,6 @@ class SonarPlugin implements Plugin<ProjectInternal> {
         model.server = configureSonarServer()
         model.database = configureSonarDatabase()
         model.project = configureSonarProject(project)
-        model.debug = configureSonarDebugSettings()
 
         model
     }
@@ -89,10 +88,6 @@ class SonarPlugin implements Plugin<ProjectInternal> {
         database.username = "sonar"
         database.password = "sonar"
         database
-    }
-
-    private SonarDebugSettings configureSonarDebugSettings() {
-        instantiator.newInstance(SonarDebugSettings)
     }
 
     private void configureSubprojects(Project parentProject, SonarModel parentModel) {

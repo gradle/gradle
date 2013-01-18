@@ -146,16 +146,6 @@ class SonarRootModel implements SonarModel {
     }
 
     /**
-     * Configures debug configuration options. The specified closure
-     * delegates to an instance of {@link SonarDebugSettings}.
-     *
-     * @param debug configuration options
-     */
-    void debug(Closure config) {
-        ConfigureUtil.configure(config, debug)
-    }
-
-    /**
      * Configures per-project configuration options. The specified closure
      * delegates to an instance of {@link SonarProject}.
      *
