@@ -100,11 +100,11 @@ public interface ResolutionStrategy {
      * }
      * </pre>
      *
-     * @param forcedModuleNotations typically group:name:version notations to append
+     * @param moduleVersionSelectorNotations typically group:name:version notations to append
      * @return this ResolutionStrategy instance
      * @since 1.0-milestone-7
      */
-    ResolutionStrategy force(Object... forcedModuleNotations);
+    ResolutionStrategy force(Object... moduleVersionSelectorNotations);
 
     /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.
@@ -121,11 +121,11 @@ public interface ResolutionStrategy {
      * }
      * </pre>
      *
-     * @param forcedModuleNotations typically group:name:version notations to set
+     * @param moduleVersionSelectorNotations typically group:name:version notations to set
      * @return this ResolutionStrategy instance
      * @since 1.0-milestone-7
      */
-    ResolutionStrategy setForcedModules(Object... forcedModuleNotations);
+    ResolutionStrategy setForcedModules(Object... moduleVersionSelectorNotations);
 
     /**
      * Returns currently configured forced modules. For more information on forcing versions see {@link #force(Object...)}

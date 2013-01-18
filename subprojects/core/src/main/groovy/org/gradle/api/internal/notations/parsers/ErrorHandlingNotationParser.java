@@ -33,11 +33,13 @@ public class ErrorHandlingNotationParser<T> implements NotationParser<T> {
     private final String targetTypeDisplayName;
     private final String invalidNotationMessage;
     private final NotationParser<T> delegate;
+    private final boolean nullUnsupported;
 
-    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, NotationParser<T> delegate) {
+    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, NotationParser<T> delegate, boolean nullUnsupported) {
         this.targetTypeDisplayName = targetTypeDisplayName;
         this.invalidNotationMessage = invalidNotationMessage;
         this.delegate = delegate;
+        this.nullUnsupported = nullUnsupported;
     }
 
     public void describe(Collection<String> candidateFormats) {
@@ -46,10 +48,14 @@ public class ErrorHandlingNotationParser<T> implements NotationParser<T> {
 
     public T parseNotation(Object notation) {
         Object brokenNotation;
-        try {
-            return delegate.parseNotation(notation);
-        } catch (UnsupportedNotationException e) {
-            brokenNotation = e.getNotation();
+        if (nullUnsupported && notation == null) {
+            brokenNotation = null;
+        } else {
+            try {
+                return delegate.parseNotation(notation);
+            } catch (UnsupportedNotationException e) {
+                brokenNotation = e.getNotation();
+            }
         }
 
         Formatter message = new Formatter();

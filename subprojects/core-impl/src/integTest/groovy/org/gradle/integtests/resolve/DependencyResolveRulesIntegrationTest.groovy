@@ -602,8 +602,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
             configurations.conf.resolutionStrategy.eachDependency {
                 if (it.requested.name == 'a') {
-                    it.useName 'b'
-                    it.useVersion '2.1'
+                    it.useTarget(it.requested.group + ':b:2.1')
                 }
 	        }
 
@@ -646,7 +645,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
             configurations.conf.resolutionStrategy.eachDependency {
                 if (it.requested.group == 'foo') {
-                    it.useGroup 'org'
+                    it.useTarget('org:' + it.requested.name + ':' + it.requested.version)
                 }
 	        }
 """
@@ -680,9 +679,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
             configurations.conf.resolutionStrategy.eachDependency {
                 if (it.requested.group == 'foo') {
-                    it.useGroup 'org'
-                    it.useName 'b'
-                    it.useVersion '1.0'
+                    it.useTarget group: 'org', name: 'b', version: '1.0'
                 }
 	        }
 """
@@ -696,6 +693,27 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 |    \\--- org:c:1.0
 \\--- foo:bar:baz -> org:b:1.0
      \\--- org:a:2.0 (*)"""))
+    }
+
+    def "provides decent feedback when target module incorrectly specified"()
+    {
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org:a:1.0', 'foo:bar:baz'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                it.useTarget "foobar"
+	        }
+"""
+
+        when:
+        runAndFail("dependencies")
+
+        then:
+        failure.dependencyResolutionFailure.assertHasCause("Invalid format: 'foobar'")
     }
 
     String getCommon() {

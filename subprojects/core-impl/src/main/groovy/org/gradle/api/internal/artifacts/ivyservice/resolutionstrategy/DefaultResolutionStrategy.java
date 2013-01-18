@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.dsl.ForcedModuleNotationParser;
+import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -71,9 +71,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return cachePolicy;
     }
 
-    public DefaultResolutionStrategy force(Object... forcedModuleNotations) {
-        assert forcedModuleNotations != null : "forcedModuleNotations cannot be null";
-        Set<ModuleVersionSelector> modules = new ForcedModuleNotationParser().parseNotation(forcedModuleNotations);
+    public DefaultResolutionStrategy force(Object... moduleVersionSelectorNotations) {
+        Set<ModuleVersionSelector> modules = ModuleVersionSelectorParsers.multiParser().parseNotation(moduleVersionSelectorNotations);
         this.forcedModules.addAll(modules);
         return this;
     }
@@ -88,8 +87,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return Actions.composite(allRules);
     }
 
-    public DefaultResolutionStrategy setForcedModules(Object ... forcedModuleNotations) {
-        Set<ModuleVersionSelector> forcedModules = new ForcedModuleNotationParser().parseNotation(forcedModuleNotations);
+    public DefaultResolutionStrategy setForcedModules(Object ... moduleVersionSelectorNotations) {
+        Set<ModuleVersionSelector> forcedModules = ModuleVersionSelectorParsers.multiParser().parseNotation(moduleVersionSelectorNotations);
         this.forcedModules = forcedModules;
         return this;
     }

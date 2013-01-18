@@ -118,4 +118,38 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         thrown(IllegalArgumentException)
     }
+
+    def "can specify target module"() {
+        def details = new DefaultDependencyResolveDetails(newSelector("org", "foo", "1.0"))
+
+        when:
+        details.useTarget("org:bar:2.0")
+
+        then:
+        details.target.toString() == 'org:bar:2.0'
+        details.updated
+        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
+    }
+
+    def "can mix configuring version and target module"() {
+        def details = new DefaultDependencyResolveDetails(newSelector("org", "foo", "1.0"))
+
+        when:
+        details.useVersion("1.5")
+
+        then:
+        details.target.toString() == 'org:foo:1.5'
+
+        when:
+        details.useTarget("com:bar:3.0")
+
+        then:
+        details.target.toString() == 'com:bar:3.0'
+
+        when:
+        details.useVersion('5.0')
+
+        then:
+        details.target.toString() == 'com:bar:5.0'
+    }
 }

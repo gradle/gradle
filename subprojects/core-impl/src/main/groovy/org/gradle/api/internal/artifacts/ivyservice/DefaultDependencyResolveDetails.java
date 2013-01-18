@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
+import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
@@ -55,14 +56,9 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         this.selectionReason = selectionReason;
     }
 
-    //TODO SF, refactor according to discussion with Adam
-    public void useName(String name) {
-        target = newSelector(target.getGroup(), name, target.getVersion());
-        this.selectionReason = VersionSelectionReasons.SELECTED_BY_RULE;
-    }
-
-    public void useGroup(String group) {
-        target = newSelector(group, target.getName(), target.getVersion());
+    //TODO SF elevate & document
+    public void useTarget(Object notation) {
+        this.target = ModuleVersionSelectorParsers.parser().parseNotation(notation);
         this.selectionReason = VersionSelectionReasons.SELECTED_BY_RULE;
     }
 

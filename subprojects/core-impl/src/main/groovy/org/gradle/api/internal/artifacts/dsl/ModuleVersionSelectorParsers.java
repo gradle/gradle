@@ -19,10 +19,8 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
@@ -30,40 +28,43 @@ import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import java.util.Collection;
 import java.util.Set;
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
+
 /**
  * by Szczepan Faber, created at: 10/11/11
  */
-public class ForcedModuleNotationParser implements TopLevelNotationParser, NotationParser<Set<ModuleVersionSelector>> {
+public class ModuleVersionSelectorParsers {
 
-    private NotationParser<Set<ModuleVersionSelector>> delegate = new NotationParserBuilder<ModuleVersionSelector>()
-            .resultingType(ModuleVersionSelector.class)
-            .parser(new ForcedModuleStringParser())
-            .parser(new ForcedModuleMapParser())
-            .toFlatteningComposite();
-
-    public Set<ModuleVersionSelector> parseNotation(Object notation) {
-        assert notation != null : "notation cannot be null";
-        return delegate.parseNotation(notation);
+    public static NotationParser<Set<ModuleVersionSelector>> multiParser() {
+        return builder().toFlatteningComposite();
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        delegate.describe(candidateFormats);
+    public static NotationParser<ModuleVersionSelector> parser() {
+        return builder().toComposite();
     }
 
-    static class ForcedModuleMapParser extends MapNotationParser<ModuleVersionSelector> {
+    private static NotationParserBuilder<ModuleVersionSelector> builder() {
+        return new NotationParserBuilder<ModuleVersionSelector>()
+                .resultingType(ModuleVersionSelector.class)
+                .nullUnsupported()
+                .parser(new StringParser())
+                .parser(new MapParser());
+    }
+
+    static class MapParser extends MapNotationParser<ModuleVersionSelector> {
         @Override
         public void describe(Collection<String> candidateFormats) {
             candidateFormats.add("Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0'].");
         }
 
         protected ModuleVersionSelector parseMap(@MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
-            return selector(group, name, version);
+            return newSelector(group, name, version);
         }
     }
 
-    static class ForcedModuleStringParser extends TypedNotationParser<CharSequence, ModuleVersionSelector> {
+    static class StringParser extends TypedNotationParser<CharSequence, ModuleVersionSelector> {
 
-        public ForcedModuleStringParser() {
+        public StringParser() {
             super(CharSequence.class);
         }
 
@@ -78,20 +79,16 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
                 parsed = new ParsedModuleStringNotation(notation.toString(), null);
             } catch (IllegalDependencyNotation e) {
                 throw new InvalidUserDataException(
-                    "Invalid format: '" + notation + "'. The Correct notation is a 3-part group:name:version notation,"
-                    + "e.g: 'org.gradle:gradle-core:1.0'");
+                        "Invalid format: '" + notation + "'. The Correct notation is a 3-part group:name:version notation, "
+                                + "e.g: 'org.gradle:gradle-core:1.0'");
             }
 
             if (parsed.getGroup() == null || parsed.getName() == null || parsed.getVersion() == null) {
                 throw new InvalidUserDataException(
-                    "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
-                    + "'org.gradle:gradle-core:1.0'");
+                        "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
+                                + "'org.gradle:gradle-core:1.0'");
             }
-            return selector(parsed.getGroup(), parsed.getName(), parsed.getVersion());
+            return newSelector(parsed.getGroup(), parsed.getName(), parsed.getVersion());
         }
-    }
-
-    static ModuleVersionSelector selector(final String group, final String name, final String version) {
-        return new DefaultModuleVersionSelector(group, name, version);
     }
 }

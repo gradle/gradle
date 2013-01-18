@@ -20,14 +20,18 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers.multiParser
+import static org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers.parser
+
 /**
  * by Szczepan Faber, created at: 10/14/11
  */
-public class ForcedModuleNotationParserSpec extends Specification {
+public class ModuleVersionSelectorParsersTest extends Specification {
 
     def "understands group:name:version notation"() {
         when:
-        def v = new ForcedModuleNotationParser().parseNotation("org.foo:bar:1.0") as List
+        def v = multiParser().parseNotation("org.foo:bar:1.0") as List
 
         then:
         v.size() == 1
@@ -39,7 +43,7 @@ public class ForcedModuleNotationParserSpec extends Specification {
     def "works with CharSequences"() {
         when:
         def sb = new StringBuilder().append("org.foo:charsequence:1.0")
-        def v = new ForcedModuleNotationParser().parseNotation(sb) as List
+        def v = multiParser().parseNotation(sb) as List
 
         then:
         v.size() == 1
@@ -47,10 +51,10 @@ public class ForcedModuleNotationParserSpec extends Specification {
     }
 
     def "allows exact type on input"() {
-        def id = ForcedModuleNotationParser.selector("org.foo", "bar", "2.0")
+        def id = newSelector("org.foo", "bar", "2.0")
 
         when:
-        def v = new ForcedModuleNotationParser().parseNotation(id) as List
+        def v = multiParser().parseNotation(id) as List
 
         then:
         v.size() == 1
@@ -60,10 +64,10 @@ public class ForcedModuleNotationParserSpec extends Specification {
     }
 
     def "allows list of objects on input"() {
-        def id = ForcedModuleNotationParser.selector("org.foo", "bar", "2.0")
+        def id = newSelector("org.foo", "bar", "2.0")
 
         when:
-        def v = new ForcedModuleNotationParser().parseNotation([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
+        def v = multiParser().parseNotation([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
 
         then:
         v.size() == 3
@@ -74,7 +78,7 @@ public class ForcedModuleNotationParserSpec extends Specification {
 
     def "allows map on input"() {
         when:
-        def v = new ForcedModuleNotationParser().parseNotation([group: 'org.foo', name: 'bar', version:'1.0']) as List
+        def v = multiParser().parseNotation([group: 'org.foo', name: 'bar', version:'1.0']) as List
 
         then:
         v.size() == 1
@@ -85,7 +89,7 @@ public class ForcedModuleNotationParserSpec extends Specification {
 
     def "fails for unknown types"() {
         when:
-        new ForcedModuleNotationParser().parseNotation(new Object())
+        multiParser().parseNotation(new Object())
 
         then:
         thrown(InvalidUserDataException)
@@ -93,7 +97,7 @@ public class ForcedModuleNotationParserSpec extends Specification {
 
     def "reports missing keys for map notation"() {
         when:
-        new ForcedModuleNotationParser().parseNotation([name: "bar", version: "1.0"])
+        multiParser().parseNotation([name: "bar", version: "1.0"])
 
         then:
         thrown(InvalidUserDataException)
@@ -101,7 +105,7 @@ public class ForcedModuleNotationParserSpec extends Specification {
 
     def "reports wrong keys for map notation"() {
         when:
-        new ForcedModuleNotationParser().parseNotation([groop: 'groop', name: "bar", version: "1.0"])
+        multiParser().parseNotation([groop: 'groop', name: "bar", version: "1.0"])
 
         then:
         thrown(InvalidUserDataException)
@@ -109,7 +113,7 @@ public class ForcedModuleNotationParserSpec extends Specification {
 
     def "reports invalid format for string notation"() {
         when:
-        new ForcedModuleNotationParser().parseNotation(["blahblah"])
+        multiParser().parseNotation(["blahblah"])
 
         then:
         thrown(InvalidUserDataException)
@@ -117,10 +121,35 @@ public class ForcedModuleNotationParserSpec extends Specification {
 
     def "reports invalid missing data for string notation"() {
         when:
-        new ForcedModuleNotationParser().parseNotation([":foo:"])
+        multiParser().parseNotation([":foo:"])
 
         then:
         def ex = thrown(InvalidUserDataException)
         ex.message.contains 'cannot be empty'
+    }
+
+    def "null is an invalid input"() {
+        when:
+        multiParser().parseNotation(null)
+
+        then:
+        thrown(InvalidUserDataException)
+
+        when:
+        parser().parseNotation(null)
+
+        then:
+        thrown(InvalidUserDataException)
+    }
+
+    def "single parser understands String notation"() {
+        //just smoke testing the single parser, it is covered in multiParser, too.
+        when:
+        def v = parser().parseNotation("org.foo:bar:1.0")
+
+        then:
+        v.group == 'org.foo'
+        v.name  == 'bar'
+        v.version  == '1.0'
     }
 }

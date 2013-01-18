@@ -23,7 +23,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ErrorHandlingNotationParserTest extends Specification {
     def NotationParser<String> target = Mock()
-    def parser = new ErrorHandlingNotationParser<String>("String", "<broken>", target)
+    def parser = new ErrorHandlingNotationParser<String>("String", "<broken>", target, false)
 
     def "reports unable to parse null"() {
         given:
@@ -58,5 +58,17 @@ The following types/formats are supported:
   - format 2
 <broken>''')
 
+    }
+
+    def "avoid delegation when null unsupported and null provided"() {
+        def parser = new ErrorHandlingNotationParser<String>("String", "<broken>", target, true)
+
+        when:
+        parser.parseNotation(null)
+
+        then:
+        thrown(InvalidUserDataException)
+        1 * target.describe(!null)
+        0 * target._  //no parsing
     }
 }
