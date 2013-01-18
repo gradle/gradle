@@ -163,9 +163,10 @@ task listJars << {
         fails 'listJars'
 
         and:
-        failure.assertHasDescription('Execution failed for task \':listJars\'.')
-        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+        failure
+            .assertHasDescription('Execution failed for task \':listJars\'.')
+            .dependencyResolutionFailure.assertFailedConfiguration(':compile')
+            .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
@@ -207,9 +208,10 @@ task listJars << {
         fails 'listJars'
 
         and:
-        failure.assertHasDescription('Execution failed for task \':listJars\'.')
-        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+        failure
+            .assertHasDescription('Execution failed for task \':listJars\'.')
+            .dependencyResolutionFailure.assertFailedConfiguration(':compile')
+            .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]

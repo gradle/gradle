@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.hamcrest.Matchers
 
 class ResolutionOverrideIntegrationTest extends AbstractDependencyResolutionTest {
     public void "will refresh non-changing module when run with --refresh-dependencies"() {
@@ -216,7 +215,7 @@ task listJars << {
 
         and:
         failure.assertHasDescription('Execution failed for task \':listJars\'.')
-        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString('No cached version of org.name:projectA:1.2 available for offline mode'))
+        failure.dependencyResolutionFailure.assertFailedConfiguration(":compile")
+            .assertHasCause('No cached version of org.name:projectA:1.2 available for offline mode')
     }
 }

@@ -34,5 +34,5 @@ public interface ExecutionFailure extends ExecutionResult {
 
     ExecutionFailure assertTestsFailed();
 
-    DependencyResolutionFailure getDependencyResolutionFailure(); //TODO SF use this fixture where possible
+    DependencyResolutionFailure getDependencyResolutionFailure();
 }
