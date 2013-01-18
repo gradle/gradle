@@ -31,9 +31,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 allprojects {
 	apply plugin: 'java'
-	repositories {
-		maven { url $mavenRepo }
-	}
+	repositories { maven { url "${mavenRepo.uri}" } }
 }
 
 project(':api') {
@@ -82,9 +80,7 @@ allprojects {
         buildFile << """
 allprojects {
 	apply plugin: 'java'
-	repositories {
-		maven { url $mavenRepo }
-	}
+	repositories { maven { url "${mavenRepo.uri}" } }
 	group = 'org.foo.unittests'
 	version = '1.0'
 }
@@ -142,9 +138,7 @@ allprojects {
         buildFile << """
 allprojects {
 	apply plugin: 'java'
-	repositories {
-		maven { url $mavenRepo }
-	}
+	repositories { maven { url "${mavenRepo.uri}" } }
 }
 
 project(':api') {
@@ -186,9 +180,7 @@ project(':tool') {
 
         buildFile << """
 apply plugin: 'java'
-repositories {
-    maven { url $mavenRepo }
-}
+repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
     compile 'org:foo:1.4.4'
@@ -210,9 +202,7 @@ task checkDeps << {
 
         buildFile << """
 apply plugin: 'java'
-repositories {
-    maven { url $mavenRepo }
-}
+repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
     compile 'org:foo:1.3.3'
@@ -231,5 +221,31 @@ task checkDeps << {
         run("checkDeps")
     }
 
-    //TODO SF add coverage with conflicting forced modules
+    void "when forcing the same module last declaration wins"() {
+        mavenRepo.module("org", "foo", '2.0').publish()
+
+        buildFile << """
+apply plugin: 'java'
+repositories { maven { url "${mavenRepo.uri}" } }
+
+dependencies {
+    compile 'org:foo:1.0'
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org:foo:1.5'
+        force 'org:foo:1.9'
+        force 'org:foo:2.0'
+    }
+}
+
+task checkDeps << {
+    assert configurations.compile*.name == ['foo-2.0.jar']
+}
+"""
+
+        expect:
+        run("checkDeps")
+    }
 }
