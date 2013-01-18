@@ -188,7 +188,7 @@
             Here is a complete example:
         </para>
         <code>
-            gradle sonarAnalyze --sonar.server.url=http://sonar.mycompany.com --sonar.database.username=myUsername --sonar.database.password=myPassword
+            gradle sonarAnalyze --sonar.server.url=http://sonar.mycompany.com --sonar.database.password=myPassword --sonar.debug.verbose
         </code>
         <para>If you need to set other properties from the command line, you can use system properties to do so:</para>
         <sample id="advanced" dir="sonar/advanced" title="Implementing custom command line properties">
