@@ -160,35 +160,35 @@
         </para>
         <ul>
             <li>
-                <literal>sonar.server.url</literal>
+                <literal>server.url</literal>
             </li>
             <li>
-                <literal>sonar.database.url</literal>
+                <literal>database.url</literal>
             </li>
             <li>
-                <literal>sonar.database.driverClassName</literal>
+                <literal>database.driverClassName</literal>
             </li>
             <li>
-                <literal>sonar.database.username</literal>
+                <literal>database.username</literal>
             </li>
             <li>
-                <literal>sonar.database.password</literal>
+                <literal>database.password</literal>
             </li>
             <li>
-                <literal>sonar.debug.showSql</literal>
+                <literal>showSql</literal>
             </li>
             <li>
-                <literal>sonar.debug.showSqlResults</literal>
+                <literal>showSqlResults</literal>
             </li>
             <li>
-                <literal>sonar.debug.verbose</literal>
+                <literal>verbose</literal>
             </li>
         </ul>
         <para>
             Here is a complete example:
         </para>
         <code>
-            gradle sonarAnalyze --sonar.server.url=http://sonar.mycompany.com --sonar.database.password=myPassword --sonar.debug.verbose
+            gradle sonarAnalyze --server.url=http://sonar.mycompany.com --database.password=myPassword --verbose
         </code>
         <para>If you need to set other properties from the command line, you can use system properties to do so:</para>
         <sample id="advanced" dir="sonar/advanced" title="Implementing custom command line properties">

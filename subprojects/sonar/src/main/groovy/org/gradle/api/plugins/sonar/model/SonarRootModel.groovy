@@ -53,12 +53,6 @@ class SonarRootModel implements SonarModel {
     SonarDatabase database
 
     /**
-     * Configuration options for debugging Sonar analysis.
-     */
-    @IncludeProperties
-    SonarDebugSettings debug
-
-    /**
      * Per-project configuration options.
      */
     @IncludeProperties
@@ -90,6 +84,34 @@ class SonarRootModel implements SonarModel {
      * identification purposes. Defaults to the current Gradle version.
      */
     String gradleVersion
+
+    /**
+     * Whether to display SQL statements executed during analysis. Defaults to <tt>false</tt>.
+     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --showSql</tt>
+     */
+    @SonarProperty("sonar.showSql")
+    boolean showSql = false
+
+    /**
+     * Whether to display results of SQL statements executed during analysis. Defaults to <tt>false</tt>.
+     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --showSqlResults</tt>
+     */
+    @SonarProperty("sonar.showSqlResults")
+    boolean showSqlResults = false
+
+    /**
+     * Whether to activate debug logging. Defaults to <tt>false</tt>.
+     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --verbose</tt>
+     */
+    @SonarProperty("sonar.verbose")
+    boolean verbose = false
+
+    /**
+     * Whether to force re-running an analysis that appears to be running already. Defaults to <tt>false</tt>.
+     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --forceAnalysis</tt>
+     */
+    @SonarProperty("sonar.forceAnalysis")
+    boolean forceAnalysis = false
 
     /**
      * Post-processors for global Sonar properties.
@@ -502,31 +524,4 @@ class SonarJavaSettings {
      */
     @SonarProperty("sonar.java.target")
     String targetCompatibility
-}
-
-/**
- * Settings for debugging Sonar analysis. See the individual properties for how
- * to set them from the command line.
- */
-class SonarDebugSettings {
-    /**
-     * Whether to display SQL statements executed during analysis. Defaults to <tt>false</tt>.
-     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.showSql</tt>
-     */
-    @SonarProperty("sonar.showSql")
-    boolean showSql = false
-
-    /**
-     * Whether to display results of SQL statements executed during analysis. Defaults to <tt>false</tt>.
-     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.showSqlResults</tt>
-     */
-    @SonarProperty("sonar.showSqlResults")
-    boolean showSqlResults = false
-
-    /**
-     * Whether to activate debug logging. Defaults to <tt>false</tt>.
-     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.verbose</tt>
-     */
-    @SonarProperty("sonar.verbose")
-    boolean verbose = false
 }
