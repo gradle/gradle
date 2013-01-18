@@ -22,8 +22,9 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.internal.Factory;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GradleVersion;
 
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.integtests.fixtures.versions.ReleasedGradleVersion.Type.FINAL;
@@ -42,6 +43,7 @@ public class ReleasedVersionDistributions {
 
     private final Factory<List<ReleasedGradleVersion>> versionsFactory;
     private List<ReleasedGradleVersion> versions;
+    private List<GradleDistribution> distributions;
 
     public ReleasedVersionDistributions() {
         this(new Factory<List<ReleasedGradleVersion>>() {
@@ -51,11 +53,7 @@ public class ReleasedVersionDistributions {
                                 new VersionWebServiceJsonParser(new ClasspathVersionJsonSource()).create(),
                                 new IsTestableGradleVersionSpec()
                         ),
-                        new Comparator<ReleasedGradleVersion>() {
-                            public int compare(ReleasedGradleVersion o1, ReleasedGradleVersion o2) {
-                                return o2.getVersion().compareTo(o1.getVersion());
-                            }
-                        }
+                        Collections.reverseOrder()
                 );
             }
         });
@@ -88,9 +86,20 @@ public class ReleasedVersionDistributions {
     }
 
     public List<GradleDistribution> getAll() {
-        return CollectionUtils.collect(getVersions(), new Transformer<GradleDistribution, ReleasedGradleVersion>() {
-            public GradleDistribution transform(ReleasedGradleVersion releasedGradleVersion) {
-                return buildContext.distribution(releasedGradleVersion.getVersion().getVersion());
+        if (distributions == null) {
+            distributions = CollectionUtils.collect(getVersions(), new Transformer<GradleDistribution, ReleasedGradleVersion>() {
+                public GradleDistribution transform(ReleasedGradleVersion releasedGradleVersion) {
+                    return buildContext.distribution(releasedGradleVersion.getVersion().getVersion());
+                }
+            });
+        }
+        return distributions;
+    }
+
+    public GradleDistribution getDistribution(final GradleVersion gradleVersion) {
+        return findFirst(getAll(), new Spec<GradleDistribution>() {
+            public boolean isSatisfiedBy(GradleDistribution element) {
+                return element.getVersion().equals(gradleVersion);
             }
         });
     }

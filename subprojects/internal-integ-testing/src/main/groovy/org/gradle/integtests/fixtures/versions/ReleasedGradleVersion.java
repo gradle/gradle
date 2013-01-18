@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.versions;
 
 import org.gradle.util.GradleVersion;
 
-public class ReleasedGradleVersion {
+public class ReleasedGradleVersion implements Comparable<ReleasedGradleVersion> {
 
     private final GradleVersion version;
     private final Type type;
@@ -55,5 +55,9 @@ public class ReleasedGradleVersion {
         NIGHTLY,
         RELEASE_CANDIDATE,
         FINAL
+    }
+
+    public int compareTo(ReleasedGradleVersion o) {
+        return this.getVersion().compareTo(o.getVersion());
     }
 }
