@@ -183,6 +183,9 @@
             <li>
                 <literal>verbose</literal>
             </li>
+            <li>
+                <literal>forceAnalysis</literal>
+            </li>
         </ul>
         <para>
             Here is a complete example:
