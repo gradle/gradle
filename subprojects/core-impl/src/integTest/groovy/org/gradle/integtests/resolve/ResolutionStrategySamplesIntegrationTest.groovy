@@ -33,8 +33,11 @@ class ResolutionStrategySamplesIntegrationTest extends AbstractIntegrationSpec {
     //because some of the api of the samples does not work with JDK5, see GRADLE-1949
     void "can resolve dependencies"()
     {
+        mavenRepo.module("org", "foo").publish()
         sample.dir.file("build.gradle") << """
             configurations { conf }
+            repositories { maven { url "${mavenRepo.uri}" } }
+            dependencies { conf "org:foo:1.0" }
             task resolveConf << { configurations.conf.files }
         """
 
