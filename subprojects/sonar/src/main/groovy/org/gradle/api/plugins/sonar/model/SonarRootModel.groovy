@@ -511,21 +511,21 @@ class SonarJavaSettings {
 class SonarDebugSettings {
     /**
      * Whether to display SQL statements executed during analysis. Defaults to <tt>false</tt>.
-     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.showSql=true</tt>
+     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.showSql</tt>
      */
     @SonarProperty("sonar.showSql")
     boolean showSql = false
 
     /**
      * Whether to display results of SQL statements executed during analysis. Defaults to <tt>false</tt>.
-     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.showSqlResults=true</tt>
+     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.showSqlResults</tt>
      */
     @SonarProperty("sonar.showSqlResults")
     boolean showSqlResults = false
 
     /**
      * Whether to activate debug logging. Defaults to <tt>false</tt>.
-     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.verbose=true</tt>
+     * <p>This property can also be set as a task parameter: <tt>gradle sonarAnalyze --sonar.debug.verbose</tt>
      */
     @SonarProperty("sonar.verbose")
     boolean verbose = false
