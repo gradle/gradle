@@ -84,12 +84,12 @@ To implement this:
 
 ## Use cases
 
-A producer project compiles and links a dynamic library for multiple Intel x86 architectures, for a single operating system. The library has zero or more dependencies.
-The library is published to a repository.
+A producer project compiles and links a dynamic library for multiple Intel x86 architectures, for a single operating system. The library has zero or
+more dependencies. The library is published to a repository.
 
 A consumer project links and runs an executable against the appropriate variant of the library, resolved from the repository.
 
-Out of scope for this work is support for other chipsets, or projects the build a library for multiple chipsets.
+Out of scope for this work is support for other chipsets, or projects that build a library for multiple chipsets.
 
 ## Implementation
 
@@ -97,33 +97,37 @@ There are 2 main parts to the architecture that we are interested in: The CPU in
 but not always, a 32-bit processor instruction set is used with 32-bit data model, and a 64-bit processor instruction set is used with 64-bit
 data model.
 
-Usually, it is possible to combine different instruction sets in the same binary. So, when linking a binary targetting the amb64 CPU, it is fine to link
+Usually, it is possible to combine different instruction sets in the same binary. So, when linking a binary targetting the amd64 CPU, it is fine to link
 against a library built for the x86 CPU. It is not possible to combine different data models in the same executable.
 
 On OS X, a binary may target multiple architectures, as a universal binary. It should be noted that a universal binary simply supports more than one
-architecture, but not necessarily every architecture as the name suggests. For example, a universal binary might include x86 & amd64 suport but no
+architectures, but not necessarily every architecture as the name suggests. For example, a universal binary might include x86 & amd64 suport but no
 ppc or ppc64 support.
 
 File names are important here. Generally, architecture is not encoded in the binary file name. The build must be able to distinguish between binaries
 that have the same file name (and install path) but are built for different architectures.
 
+It is not always possible to build the binaries for more than one architecture on a given machine. On Linux machines, the system libraries for the
+target architecture must be installed and available for linking. On Windows machines, a separate compiler must be used for each architecture.
+
 To implement this:
 
-* Add appropriate tasks so that producer project can compile, link and publish the binaries for all architectures in a single build invocation.
+* Add appropriate tasks so that producer project can compile, link and publish the binaries for all available architectures in a single build invocation.
 * Add some mechanism for the developer to select the architectures they are interested in from the command-line and tooling API.
-* Include in the published meta-data information about which (cpu + data model) each binary was built for.
-* Consumer project selects the binaries with the appropriate cpu + data model when resolving the link and runtime dependencies for the executable.
+* Include in the published meta-data information about which (CPU + data model) each binary was built for.
+* Consumer project selects the binaries with the appropriate (CPU + data model) when resolving the link and runtime dependencies for the executable.
 * Allow compiler and linker settings to be specified for each architecture.
-* Allow resolved binaries to have the same file name across architectures. For example, a dynamic library should be called libsomething.so regardless
+* Allow resolved binaries to have the same file name across architectures. For example, a dynamic library should be called `libsomething.so` regardless
   of whether it happens to be built for the x86 or amd64 architectures.
 * Define some standard names for CPU instruction sets and architectures, plus mappings to platform specific names.
-* Define some default architectures for the x86 chipset. So, every c++ binary may be built for the x86 and amd64 architectures by default.
+* Define some default architectures for the x86 chipset. So, every C++ binary may be built for the x86 and amd64 architectures by default.
 
 To generate the binaries:
 
 * For windows, run the 'x86' or 'x86_amd64' compiler.
 * For linux + intel CPU, run with gcc with -m32 or -m64.
-* For mac, run gcc with -arch i386, -arch x86_64, -arch ppc, -arch ppc64. Can include multiple times to generate a universal binary.
+* For OS X, run gcc with -arch i386, -arch x86_64, -arch ppc, -arch ppc64. Can include multiple times to generate a universal binary. Need to fix
+  GRADLE-2431.
 
 Native architecture names:
 
@@ -133,8 +137,8 @@ Native architecture names:
 
 ## Use cases
 
-A producer project compiles, links and publishes a dynamic library for multiple combinations of operating system and architecture. The library depends on zero or
-more dynamic libraries. The library is published to a repository.
+A producer project compiles, links and publishes a dynamic library for multiple combinations of operating system and architecture. The library depends
+on zero or more dynamic libraries. The library is published to a repository.
 
 A consumer project compiles, links and runs an executable against the libary.
 
@@ -197,7 +201,7 @@ Consumer project compiles, links and debugs an executable against this library.
 Implementation-wise, this problem is similar in some respects to handling multiple architectures.
 
 Usually, it is fine to link a release build of a libary into a debug binary, if the debug variant is not available. It is not fine to link a debug
-build of a library into a release binary.
+build of a library into a release binary. On Windows, it is not ok to link a release build of a library into a debug binary.
 
 On some platforms, additional artifacts are required to debug a binary. On gcc based platforms, the debug information is linked into the binary.
 On Windows, the debug information is contained in a separate program database file (`.pdb`).
@@ -266,6 +270,72 @@ TBD
 # Building binaries for all operating systems in a single build
 
 TBD
+
+# Compiling C source using the C compiler
+
+## Implementation
+
+To implement this:
+* Add a `c` source set type and allow these to be attached to a binary.
+* Invoke the C compiler for all source files in a `c` source set type, and the C++ compiler for all source files in a `cpp` source set type.
+
+# Including assembly source in binaries
+
+## Implementation
+
+To implement this:
+* Separate the existing `CppCompile` task into separate tasks for compilation and linking.
+* Add an `asm` source set type and allow these to be attached to a binary.
+* Add the appropriate tasks to assemble source files to object files.
+* On Windows, use `ml /nologo /c` to assemble a source file to an object file.
+* On other platforms, use `as` to assemble a source file to an object file.
+
+# Incremental compilation for C and C++
+
+## Implementation
+
+There are two approaches to extracting the dependency information from source files: parse the source files looking for `#include` directives, or
+use the toolchain's preprocessor.
+
+For Visual studio, can run with `/P` and parse the resulting `.i` file to extract `#line nnn "filename"` directives. In practise, this is pretty slow.
+For example, a simple source file that includes `Windows.h` generates 2.7Mb in text output.
+
+For GCC, can run with `-M` or `-MM` and parse the resulting make file to extract the header dependencies.
+
+# Expose only public header files for a library
+
+TBD
+
+# Including Windows resource files in binaries
+
+Resource files can be linked into a binary.
+
+## Implementation
+
+* Resource files are compiled using `rc` to a `.res` file, which can then be linked into the binary.
+* Add a `resource` source set type and allow these to be attached to a binary.
+* Add the appropriate tasks to compile resource scripts.
+
+# Using Windows linker def files
+
+## Implementation
+
+* A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
+* Functions are imported from a DLL using `__declspec(dllimport)`.
+
+# Using Windows IDL files
+
+## Implementation
+
+* Use `midl` to generate server, client and header source files.
+
+# Visual studio integration
+
+## Implementation
+
+* Allow the visual studio project file to be generated.
+* Merge with existing project file, as for IDEA and Eclipse.
+* Add hooks for customising the generated XML.
 
 # Open issues
 
