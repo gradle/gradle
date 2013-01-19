@@ -22,6 +22,31 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  */
 class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
 
+    void "can force the version of a particular module"() {
+        mavenRepo.module("org", "foo", '1.3.3').publish()
+        mavenRepo.module("org", "foo", '1.4.4').publish()
+
+        buildFile << """
+apply plugin: 'java'
+repositories { maven { url "${mavenRepo.uri}" } }
+
+dependencies {
+    compile 'org:foo:1.3.3'
+}
+
+configurations.all {
+    resolutionStrategy.force 'org:foo:1.4.4'
+}
+
+task checkDeps << {
+    assert configurations.compile*.name == ['foo-1.4.4.jar']
+}
+"""
+
+        expect:
+        run("checkDeps")
+    }
+
     void "can force already resolved version of a module and avoid conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
@@ -172,6 +197,50 @@ project(':tool') {
 
         expect:
         run("tool:checkDeps")
+    }
+
+    void "strict conflict strategy can be used with forced modules"() {
+        mavenRepo.module("org", "foo", '1.3.3').publish()
+        mavenRepo.module("org", "foo", '1.4.4').publish()
+        mavenRepo.module("org", "foo", '1.5.5').publish()
+
+        settingsFile << "include 'api', 'impl', 'tool'"
+
+        buildFile << """
+allprojects {
+	apply plugin: 'java'
+	repositories {
+		maven { url "${mavenRepo.uri}" }
+	}
+}
+
+project(':api') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.4.4')
+	}
+}
+
+project(':impl') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.3.3')
+	}
+}
+
+project(':tool') {
+	dependencies {
+		compile project(':api')
+		compile project(':impl')
+		compile('org:foo:1.5.5'){
+		    force = true
+		}
+	}
+
+	configurations.all { resolutionStrategy.failOnVersionConflict() }
+}
+"""
+
+        expect:
+        run("tool:dependencies")
     }
 
     void "can force the version of a direct dependency"() {

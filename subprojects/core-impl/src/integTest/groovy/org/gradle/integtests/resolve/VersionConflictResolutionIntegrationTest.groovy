@@ -15,8 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.junit.Test
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
@@ -24,22 +23,19 @@ import static org.hamcrest.Matchers.containsString
 /**
  * @author Szczepan Faber, @date 03.03.11
  */
-class VersionConflictResolutionIntegrationTest extends AbstractIntegrationTest {
+class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
 
-    @Test
     void "strict conflict resolution should fail due to conflict"() {
-        repo.module("org", "foo", '1.3.3').publish()
-        repo.module("org", "foo", '1.4.4').publish()
+        mavenRepo.module("org", "foo", '1.3.3').publish()
+        mavenRepo.module("org", "foo", '1.4.4').publish()
 
-        def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.uri}" }
+		maven { url "${mavenRepo.uri}" }
 	}
 }
 
@@ -65,26 +61,21 @@ project(':tool') {
 }
 """
 
-        //when
-        def result = executer.withTasks("tool:dependencies").runWithFailure()
-
-        //then
-        result.assertThatCause(containsString('A conflict was found between the following modules:'))
+        expect:
+        runAndFail("tool:dependencies")
+        failure.assertThatCause(containsString('A conflict was found between the following modules:'))
     }
 
-    @Test
     void "strict conflict resolution should pass when no conflicts"() {
-        repo.module("org", "foo", '1.3.3').publish()
+        mavenRepo.module("org", "foo", '1.3.3').publish()
 
-        def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.uri}" }
+		maven { url "${mavenRepo.uri}" }
 	}
 }
 
@@ -110,75 +101,21 @@ project(':tool') {
 }
 """
 
-        //when
-        executer.withTasks("tool:dependencies").run()
-
-        //then no exceptions are thrown
+        expect:
+        run("tool:dependencies")
     }
 
-    @Test
-    void "strict conflict strategy can be used with forced modules"() {
-        repo.module("org", "foo", '1.3.3').publish()
-        repo.module("org", "foo", '1.4.4').publish()
-        repo.module("org", "foo", '1.5.5').publish()
-
-        def settingsFile = file("settings.gradle")
-        settingsFile << "include 'api', 'impl', 'tool'"
-
-        def buildFile = file("build.gradle")
-        buildFile << """
-allprojects {
-	apply plugin: 'java'
-	repositories {
-		maven { url "${repo.uri}" }
-	}
-}
-
-project(':api') {
-	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.4.4')
-	}
-}
-
-project(':impl') {
-	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3.3')
-	}
-}
-
-project(':tool') {
-	dependencies {
-		compile project(':api')
-		compile project(':impl')
-		compile('org:foo:1.5.5'){
-		    force = true
-		}
-	}
-
-	configurations.all { resolutionStrategy.failOnVersionConflict() }
-}
-"""
-
-        //when
-        executer.withTasks("tool:dependencies").run()
-
-        //then no exceptions are thrown because we forced a certain version of conflicting dependency
-    }
-
-    @Test
     void "resolves to the latest version by default"() {
-        repo.module("org", "foo", '1.3.3').publish()
-        repo.module("org", "foo", '1.4.4').publish()
+        mavenRepo.module("org", "foo", '1.3.3').publish()
+        mavenRepo.module("org", "foo", '1.4.4').publish()
 
-        def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.uri}" }
+		maven { url "${mavenRepo.uri}" }
 	}
 }
 
@@ -205,48 +142,17 @@ project(':tool') {
 }
 """
 
-        //expect
-        executer.withTasks("tool:checkDeps").run()
+        expect:
+        run("tool:checkDeps")
     }
 
-    @Test
-    void "can force the version of a particular module"() {
-        repo.module("org", "foo", '1.3.3').publish()
-        repo.module("org", "foo", '1.4.4').publish()
-
-        def buildFile = file("build.gradle")
-        buildFile << """
-apply plugin: 'java'
-repositories {
-    maven { url "${repo.uri}" }
-}
-
-dependencies {
-    compile 'org:foo:1.3.3'
-}
-
-configurations.all {
-    resolutionStrategy.force 'org:foo:1.4.4'
-}
-
-task checkDeps << {
-    assert configurations.compile*.name == ['foo-1.4.4.jar']
-}
-"""
-
-        //expect
-        executer.withTasks("checkDeps").run()
-    }
-
-    @Test
     void "does not attempt to resolve an evicted dependency"() {
-        repo.module("org", "external", "1.2").publish()
-        repo.module("org", "dep", "2.2").dependsOn("org", "external", "1.0").publish()
+        mavenRepo.module("org", "external", "1.2").publish()
+        mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.0").publish()
 
-        def buildFile = file("build.gradle")
         buildFile << """
 repositories {
-    maven { url "${repo.uri}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 configurations { compile }
@@ -261,20 +167,19 @@ task checkDeps << {
 }
 """
 
-        //expect
-        executer.withTasks("checkDeps").run()
+        expect:
+        run("checkDeps")
     }
 
-    @Test
     void "resolves dynamic dependency before resolving conflict"() {
-        repo.module("org", "external", "1.2").publish()
-        repo.module("org", "external", "1.4").publish()
-        repo.module("org", "dep", "2.2").dependsOn("org", "external", "1.+").publish()
+        mavenRepo.module("org", "external", "1.2").publish()
+        mavenRepo.module("org", "external", "1.4").publish()
+        mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.+").publish()
 
         def buildFile = file("build.gradle")
         buildFile << """
 repositories {
-    maven { url "${repo.uri}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 configurations { compile }
@@ -289,19 +194,17 @@ task checkDeps << {
 }
 """
 
-        //expect
-        executer.withTasks("checkDeps").run()
+        expect:
+        run("checkDeps")
     }
 
-    @Test
     void "fails when version selected by conflict resolution does not exist"() {
-        repo.module("org", "external", "1.2").publish()
-        repo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
+        mavenRepo.module("org", "external", "1.2").publish()
+        mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
 
-        def buildFile = file("build.gradle")
         buildFile << """
 repositories {
-    maven { url "${repo.uri}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 configurations { compile }
@@ -316,20 +219,18 @@ task checkDeps << {
 }
 """
 
-        //expect
-        def failure = executer.withTasks("checkDeps").runWithFailure()
+        expect:
+        runAndFail("checkDeps")
         failure.assertHasCause("Could not find org:external:1.4.")
     }
 
-    @Test
     void "does not fail when evicted version does not exist"() {
-        repo.module("org", "external", "1.4").publish()
-        repo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
+        mavenRepo.module("org", "external", "1.4").publish()
+        mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
 
-        def buildFile = file("build.gradle")
         buildFile << """
 repositories {
-    maven { url "${repo.uri}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 configurations { compile }
@@ -344,30 +245,26 @@ task checkDeps << {
 }
 """
 
-        //expect
-        executer.withTasks("checkDeps").run()
+        expect:
+        run("checkDeps")
     }
 
-    @Test
     void "takes newest dynamic version when dynamic version forced"() {
-        //given
-        repo.module("org", "foo", '1.3.0').publish()
+        mavenRepo.module("org", "foo", '1.3.0').publish()
 
-        repo.module("org", "foo", '1.4.1').publish()
-        repo.module("org", "foo", '1.4.4').publish()
-        repo.module("org", "foo", '1.4.9').publish()
+        mavenRepo.module("org", "foo", '1.4.1').publish()
+        mavenRepo.module("org", "foo", '1.4.4').publish()
+        mavenRepo.module("org", "foo", '1.4.9').publish()
 
-        repo.module("org", "foo", '1.6.0').publish()
+        mavenRepo.module("org", "foo", '1.6.0').publish()
 
-        def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.uri}" }
+		maven { url "${mavenRepo.uri}" }
 	}
 }
 
@@ -403,27 +300,25 @@ project(':tool') {
 
 """
 
-        //expect
-        executer.withTasks("tool:checkDeps").run()
+        expect:
+        run("tool:checkDeps")
     }
 
-    @Test
     void "parent pom does not participate in forcing mechanism"() {
-        //given
-        repo.module("org", "foo", '1.3.0').publish()
-        repo.module("org", "foo", '2.4.0').publish()
+        mavenRepo.module("org", "foo", '1.3.0').publish()
+        mavenRepo.module("org", "foo", '2.4.0').publish()
 
-        def parent = repo.module("org", "someParent", "1.0")
+        def parent = mavenRepo.module("org", "someParent", "1.0")
         parent.type = 'pom'
         parent.dependsOn("org", "foo", "1.3.0")
         parent.publish()
 
-        def otherParent = repo.module("org", "someParent", "2.0")
+        def otherParent = mavenRepo.module("org", "someParent", "2.0")
         otherParent.type = 'pom'
         otherParent.dependsOn("org", "foo", "2.4.0")
         otherParent.publish()
 
-        def module = repo.module("org", "someArtifact", '1.0')
+        def module = mavenRepo.module("org", "someArtifact", '1.0')
         module.parentPomSection = """
 <parent>
   <groupId>org</groupId>
@@ -433,11 +328,10 @@ project(':tool') {
 """
         module.publish()
 
-        def buildFile = file("build.gradle")
         buildFile << """
 apply plugin: 'java'
 repositories {
-    maven { url "${repo.uri}" }
+    maven { url "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -459,11 +353,10 @@ task checkDeps << {
 }
 """
 
-        //expect
-        executer.withTasks("checkDeps").withArguments('-s').run()
+        expect:
+        run("checkDeps")
     }
 
-    @Test
     void "previously evicted nodes should contain correct target version"() {
         /*
         a1->b1
@@ -484,7 +377,7 @@ task checkDeps << {
         ivyRepo.module("org", "b", '2.0').dependsOn("org", "a", "1.0").publish()
         ivyRepo.module("org", "a", '2.0').dependsOn("org", "b", '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 ivy { url "${ivyRepo.uri}" }
             }
@@ -508,10 +401,10 @@ task checkDeps << {
             }
         """
 
-        executer.withTasks("checkDeps").run()
+        expect:
+        run("checkDeps")
     }
 
-    @Test
     @Issue("GRADLE-2555")
     void "can deal with transitive with parent in conflict"() {
         /*
@@ -530,38 +423,19 @@ task checkDeps << {
             - Having "b" depend directly on "in-conflict" does not produce the error, needs to go through "b-child"
          */
 
-        mavenRepo.module("org", "target-child", "1.0").
-                publish()
+        mavenRepo.module("org", "target-child", "1.0").publish()
+        mavenRepo.module("org", "target", "1.0").dependsOn("org", "target-child", "1.0").publish()
+        mavenRepo.module("org", "in-conflict", "1.0").dependsOn("org", "target", "1.0").publish()
+        mavenRepo.module("org", "in-conflict", "2.0").dependsOn("org", "target", "1.0").publish()
 
-        mavenRepo.module("org", "target", "1.0").
-                dependsOn("org", "target-child", "1.0").
-                publish()
+        mavenRepo.module("org", "a", '1.0').dependsOn("org", "in-conflict", "1.0").publish()
 
-        mavenRepo.module("org", "in-conflict", "1.0").
-                dependsOn("org", "target", "1.0").
-                publish()
+        mavenRepo.module("org", "b-child", '1.0').dependsOn("org", "in-conflict", "2.0").publish()
 
-        mavenRepo.module("org", "in-conflict", "2.0").
-                dependsOn("org", "target", "1.0").
-                publish()
+        mavenRepo.module("org", "b", '1.0').dependsOn("org", "b-child", "1.0").publish()
 
-        mavenRepo.module("org", "a", '1.0').
-                dependsOn("org", "in-conflict", "1.0").
-                publish()
-
-        mavenRepo.module("org", "b-child", '1.0').
-                dependsOn("org", "in-conflict", "2.0").
-                publish()
-
-        mavenRepo.module("org", "b", '1.0').
-                dependsOn("org", "b-child", "1.0").
-                publish()
-
-        when:
-        file("build.gradle") << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+        buildFile << """
+            repositories { maven { url "${mavenRepo.uri}" } }
 
             configurations { conf }
 
@@ -582,12 +456,7 @@ task checkDeps << {
         }
         """
 
-        executer.withTasks("checkDeps").run()
-    }
-
-    //TODO SF add coverage with conflicting forced modules
-
-    def getRepo() {
-        return maven(file("repo"))
+        expect:
+        run("checkDeps")
     }
 }
