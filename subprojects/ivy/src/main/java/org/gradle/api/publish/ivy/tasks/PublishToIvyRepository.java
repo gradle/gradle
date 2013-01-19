@@ -19,18 +19,14 @@ package org.gradle.api.publish.ivy.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
-import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.internal.IvyPublisher;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.Factory;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -46,11 +42,8 @@ public class PublishToIvyRepository extends DefaultTask {
     private IvyPublicationInternal publication;
     private IvyArtifactRepository repository;
 
-    private final ArtifactPublicationServices publicationServices;
-
     @Inject
-    public PublishToIvyRepository(ArtifactPublicationServices publicationServices) {
-        this.publicationServices = publicationServices;
+    public PublishToIvyRepository() {
 
         // Allow the publication to participate in incremental build
         getInputs().files(new Callable<FileCollection>() {
@@ -142,14 +135,8 @@ public class PublishToIvyRepository extends DefaultTask {
         new PublishOperation(publication, repository) {
             @Override
             protected void publish() throws Exception {
-                Factory<Configuration> configurationFactory = new Factory<Configuration>() {
-                    public Configuration create() {
-                        return getProject().getConfigurations().detachedConfiguration();
-                    }
-                };
-                ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher();
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
-                IvyPublisher publisher = new IvyPublisher(artifactPublisher, configurationFactory);
+                IvyPublisher publisher = new IvyPublisher();
                 publisher.publish(normalizedPublication, repository);
             }
         }.run();

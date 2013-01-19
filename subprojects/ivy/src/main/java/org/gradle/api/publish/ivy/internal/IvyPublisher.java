@@ -16,40 +16,47 @@
 
 package org.gradle.api.publish.ivy.internal;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.Cast;
-import org.gradle.api.internal.artifacts.ArtifactPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
-import org.gradle.internal.Factory;
 
-import java.util.Collections;
+import java.io.IOException;
+import java.util.HashMap;
 
 public class IvyPublisher {
 
-    private final ArtifactPublisher artifactPublisher;
-    private final Factory<Configuration> configurationFactory;
-
-    public IvyPublisher(ArtifactPublisher artifactPublisher, Factory<Configuration> configurationFactory) {
-        this.artifactPublisher = artifactPublisher;
-        this.configurationFactory = configurationFactory;
-    }
-
     public void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository) {
-        Configuration publishConfiguration = createPopulatedConfiguration(publication.getArtifacts());
         DependencyResolver dependencyResolver = Cast.cast(ArtifactRepositoryInternal.class, repository).createResolver();
-        artifactPublisher.publish(Collections.singleton(dependencyResolver), publication.getModule(), Collections.singleton(publishConfiguration), publication.getDescriptorFile());
-    }
+        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(publication.getModule());
 
-    private Configuration createPopulatedConfiguration(Iterable<PublishArtifact> artifacts) {
-        Configuration configuration = configurationFactory.create();
-        for (PublishArtifact artifact : artifacts) {
-            configuration.getArtifacts().add(artifact);
+        try {
+
+            for (PublishArtifact publishArtifact : publication.getArtifacts()) {
+                Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleRevisionId);
+                dependencyResolver.publish(ivyArtifact, publishArtifact.getFile(), true);
+            }
+
+            Artifact artifact = DefaultArtifact.newIvyArtifact(moduleRevisionId, null);
+            dependencyResolver.publish(artifact, publication.getDescriptorFile(), true);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
-        return configuration;
     }
 
-
+    public Artifact createIvyArtifact(PublishArtifact publishArtifact, ModuleRevisionId moduleRevisionId) {
+        return new DefaultArtifact(
+                moduleRevisionId,
+                publishArtifact.getDate(),
+                publishArtifact.getName(),
+                publishArtifact.getType(),
+                publishArtifact.getExtension(),
+                new HashMap<String, String>());
+    }
 }
