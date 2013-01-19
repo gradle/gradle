@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Ignore
+import spock.lang.Issue
 
 class MavenParentPomResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -68,6 +70,50 @@ task retrieve(type: Sync) {
 
         then:
         file('libs').assertHasDescendants('child-1.0.jar', 'parent_dep-1.2.jar', 'child_dep-1.7.jar')
+    }
+
+    @Ignore
+    @Issue("GRADLE-2641")
+    def "can handle parent pom with SNAPSHOT version"() {
+        given:
+        server.start()
+
+        def parent = mavenHttpRepo.module("org", "parent", "1.0-SNAPSHOT")
+        parent.hasPackaging('pom')
+        parent.publish()
+
+        def child = mavenHttpRepo.module("org", "child", "1.0")
+        child.parent("org", "parent", "1.0-SNAPSHOT")
+        child.publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations { compile }
+dependencies { compile 'org:child:1.0' }
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        child.pom.expectGet()
+        parent.metaData.expectGet()
+        parent.pom.expectGet()
+
+        // Will always check for a default artifact with a module with 'pom' packaging
+        // TODO - should not make this request
+        parent.artifact.expectHeadMissing()
+
+        child.artifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('child-1.0.jar')
     }
 
     def "looks for parent pom in different repository"() {
