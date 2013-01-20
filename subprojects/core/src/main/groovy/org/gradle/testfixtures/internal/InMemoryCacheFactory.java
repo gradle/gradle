@@ -44,7 +44,7 @@ public class InMemoryCacheFactory implements CacheFactory {
     }
 
     public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<V> serializer) {
-        return new InMemoryIndexedCache<K, V>();
+        return new InMemoryIndexedCache<K, V>(serializer);
     }
 
     public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<E> serializer) {
@@ -81,15 +81,15 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-            return new InMemoryIndexedCache<K, V>();
+            return new InMemoryIndexedCache<K, V>(new DefaultSerializer<V>());
         }
 
         public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
-            return new InMemoryIndexedCache<K, V>();
+            return new InMemoryIndexedCache<K, V>(valueSerializer);
         }
 
         public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-            return new InMemoryIndexedCache<K, V>();
+            return new InMemoryIndexedCache<K, V>(valueSerializer);
         }
 
         public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
