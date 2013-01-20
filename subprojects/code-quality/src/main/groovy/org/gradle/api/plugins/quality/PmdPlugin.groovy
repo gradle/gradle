@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
+import org.gradle.util.VersionNumber
 
 /**
  *  A plugin for the <a href="http://pmd.sourceforge.net/">PMD source code analyzer.
@@ -57,12 +58,20 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     @Override
     protected void configureTaskDefaults(Pmd task, String baseName) {
+
         task.conventionMapping.with {
+            toolVersion = { extension.toolVersion }
             pmdClasspath = {
                 def config = project.configurations['pmd']
                 if (config.dependencies.empty) {
+                    VersionNumber latestBranch = VersionNumber.parse("5.0.0")
+                    VersionNumber version = VersionNumber.parse(extension.toolVersion)
                     project.dependencies {
-                        pmd "pmd:pmd:$extension.toolVersion"
+                        if (version.compareTo(latestBranch) < 0) {
+                            pmd "pmd:pmd:$extension.toolVersion"
+                        } else {
+                            pmd "net.sourceforge.pmd:pmd:$extension.toolVersion"
+                        }
                     }
                 }
                 config
