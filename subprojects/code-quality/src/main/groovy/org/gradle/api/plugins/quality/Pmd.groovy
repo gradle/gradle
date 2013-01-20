@@ -23,6 +23,7 @@ import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
 import org.gradle.logging.ConsoleRenderer
 import org.gradle.api.GradleException
+import org.gradle.util.VersionNumber
 
 import javax.inject.Inject
 
@@ -68,34 +69,56 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      */
     boolean ignoreFailures
 
-    @Inject
-    Pmd(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
+    String toolVersion
+
+    @Inject Pmd(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
         reports = instantiator.newInstance(PmdReportsImpl, this)
         this.antBuilder = antBuilder
     }
 
     @TaskAction
     void run() {
+        VersionNumber latestBranch = VersionNumber.parse("5.0.0")
+        VersionNumber convertedToolVersion = VersionNumber.parse(getToolVersion())
         antBuilder.withClasspath(getPmdClasspath()).execute {
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
-            ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount") {
-                getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                getRuleSets().each {
-                    ruleset(it)
-                }
-                getRuleSetFiles().each {
-                    ruleset(it)
-                }
+            if (convertedToolVersion.compareTo(latestBranch) < 0) {
+                ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount") {
+                    getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                    getRuleSets().each {
+                        ruleset(it)
+                    }
+                    getRuleSetFiles().each {
+                        ruleset(it)
+                    }
 
-                if (reports.html.enabled) {
-                    assert reports.html.destination.parentFile.exists()
-                    formatter(type: 'betterhtml', toFile: reports.html.destination)
+                    if (reports.html.enabled) {
+                        assert reports.html.destination.parentFile.exists()
+                        formatter(type: 'betterhtml', toFile: reports.html.destination)
+                    }
+                    if (reports.xml.enabled) {
+                        formatter(type: 'xml', toFile: reports.xml.destination)
+                    }
                 }
-                if (reports.xml.enabled) {
-                    formatter(type: 'xml', toFile: reports.xml.destination)
+            } else {
+                ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount") {
+                    getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                    getRuleSets().each {
+                        ruleset(it)
+                    }
+                    getRuleSetFiles().each {
+                        ruleset(it)
+                    }
+
+                    if (reports.html.enabled) {
+                        assert reports.html.destination.parentFile.exists()
+                        formatter(type: 'html', toFile: reports.html.destination)
+                    }
+                    if (reports.xml.enabled) {
+                        formatter(type: 'xml', toFile: reports.xml.destination)
+                    }
                 }
             }
-
             def failureCount = ant.project.properties["pmdFailureCount"]
             if (failureCount) {
                 def message = "$failureCount PMD rule violations were found."
