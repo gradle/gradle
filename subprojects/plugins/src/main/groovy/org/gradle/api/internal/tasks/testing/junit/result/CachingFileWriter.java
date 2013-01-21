@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.gradle.internal.CompositeStoppable.closeable;
+import static org.gradle.internal.CompositeStoppable.stoppable;
 
 /**
  * by Szczepan Faber, created at: 11/19/12
@@ -82,7 +82,7 @@ public class CachingFileWriter {
 
     private void cleanUpQuietly() {
         try {
-            closeable(openFiles.values()).stop();
+            stoppable(openFiles.values()).stop();
         } catch (Exception e) {
             LOG.debug("Problems closing files", e);
         } finally {
