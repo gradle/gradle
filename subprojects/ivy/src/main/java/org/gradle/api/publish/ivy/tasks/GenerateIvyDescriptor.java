@@ -16,14 +16,22 @@
 
 package org.gradle.api.publish.ivy.tasks;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.*;
-import org.gradle.api.artifacts.Configuration;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileResolver;
@@ -39,8 +47,10 @@ import org.gradle.api.tasks.TaskDependency;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
 import java.util.Set;
+
+import static org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
 
 /**
  * Generates an Ivy XML Module Descriptor file.
@@ -115,31 +125,20 @@ public class GenerateIvyDescriptor extends DefaultTask {
         XmlTransformer xmlTransformer = new XmlTransformer();
         xmlTransformer.addAction(descriptorInternal.getXmlAction());
 
-        Set<Configuration> publishConfigurations = createPopulatedConfiguration(descriptorInternal.getArtifacts(), descriptorInternal.getRuntimeDependencies());
+        IvyDescriptorBuilder ivyDescriptorBuilder = new IvyDescriptorBuilder(publicationServices.getDescriptorFileModuleConverter(), descriptorInternal.getModule());
+        ivyDescriptorBuilder.addConfiguration("runtime");
+        ivyDescriptorBuilder.addConfiguration("default", "runtime");
 
-        ModuleDescriptorConverter moduleDescriptorConverter = publicationServices.getDescriptorFileModuleConverter();
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(publishConfigurations, descriptorInternal.getModule());
+        for (Dependency runtimeDependency : descriptorInternal.getRuntimeDependencies()) {
+            ivyDescriptorBuilder.addDependency("runtime", runtimeDependency);
+        }
+        for (PublishArtifact artifact : descriptorInternal.getArtifacts()) {
+            ivyDescriptorBuilder.addArtifact("runtime", artifact);
+        }
+
         IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
-        ivyModuleDescriptorWriter.write(moduleDescriptor, getDestination(), xmlTransformer);
+        ivyModuleDescriptorWriter.write(ivyDescriptorBuilder.build(), getDestination(), xmlTransformer);
     }
-
-    private Set<Configuration> createPopulatedConfiguration(Iterable<PublishArtifact> artifacts, Iterable<Dependency> runtimeDependencies) {
-        Configuration runtimeConfiguration = getProject().getConfigurations().detachedConfiguration("runtime");
-        for (PublishArtifact artifact : artifacts) {
-            runtimeConfiguration.getArtifacts().add(artifact);
-        }
-        for (Dependency runtimeDependency : runtimeDependencies) {
-            runtimeConfiguration.getDependencies().add(runtimeDependency);
-        }
-        Configuration defaultConfiguration = getProject().getConfigurations().detachedConfiguration("default");
-        defaultConfiguration.extendsFrom(runtimeConfiguration);
-
-        Set<Configuration> configurations = new LinkedHashSet<Configuration>();
-        configurations.add(runtimeConfiguration);
-        configurations.add(defaultConfiguration);
-        return configurations;
-    }
-
 
     private static IvyModuleDescriptorInternal toIvyModuleDescriptorInternal(IvyModuleDescriptor ivyModuleDescriptor) {
         if (ivyModuleDescriptor == null) {
@@ -178,5 +177,47 @@ public class GenerateIvyDescriptor extends DefaultTask {
         public Set<File> getFiles() {
             return Collections.singleton(getDestination());
         }
+    }
+
+    private static class IvyDescriptorBuilder {
+        private final ModuleDescriptorConverter dependencyDescriptorFactory;
+        private final DefaultModuleDescriptor moduleDescriptor;
+
+        public IvyDescriptorBuilder(ModuleDescriptorConverter dependencyDescriptorFactory, Module module) {
+            this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+            moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(module), module.getStatus(), null);
+        }
+
+        public void addConfiguration(String name, String... extendsFrom) {
+
+            org.apache.ivy.core.module.descriptor.Configuration configuration =
+                    new org.apache.ivy.core.module.descriptor.Configuration(name, PUBLIC, null, extendsFrom, true, null);
+            moduleDescriptor.addConfiguration(configuration);
+        }
+
+        public void addArtifact(String configuration, PublishArtifact artifact) {
+            moduleDescriptor.addArtifact(configuration, createIvyArtifact(artifact, moduleDescriptor.getModuleRevisionId()));
+        }
+
+        private Artifact createIvyArtifact(PublishArtifact ivyArtifact, ModuleRevisionId moduleRevisionId) {
+            return new DefaultArtifact(
+                    moduleRevisionId,
+                    null,
+                    ivyArtifact.getName(),
+                    ivyArtifact.getType(),
+                    ivyArtifact.getExtension(),
+                    new HashMap<String, String>());
+        }
+
+        public void addDependency(String configuration, Dependency dependency) {
+            if (dependency instanceof ModuleDependency) {
+                dependencyDescriptorFactory.addDependencyDescriptor(configuration, moduleDescriptor, (ModuleDependency) dependency);
+            }
+        }
+
+        public ModuleDescriptor build() {
+            return moduleDescriptor;
+        }
+
     }
 }

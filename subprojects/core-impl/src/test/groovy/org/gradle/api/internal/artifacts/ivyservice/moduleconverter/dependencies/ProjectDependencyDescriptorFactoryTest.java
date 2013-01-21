@@ -34,8 +34,8 @@ import static org.junit.Assert.*;
 public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private ProjectDependencyDescriptorFactory projectDependencyDescriptorFactory =
-            new ProjectDependencyDescriptorFactory(excludeRuleConverterStub);
+    private ProjectIvyDependencyDescriptorFactory projectDependencyDescriptorFactory =
+            new ProjectIvyDependencyDescriptorFactory(excludeRuleConverterStub);
 
     @Test
     public void canConvert() {
@@ -47,8 +47,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     public void testCreateFromProjectDependency() {
         ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF);
         setUpDependency(projectDependency);
-        projectDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, projectDependency);
-        ProjectDependencyDescriptor dependencyDescriptor = (ProjectDependencyDescriptor) moduleDescriptor.getDependencies()[0];
+        ProjectDependencyDescriptor dependencyDescriptor = (ProjectDependencyDescriptor) projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, projectDependency, moduleDescriptor);
 
         assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);
         assertFalse(dependencyDescriptor.isChanging());

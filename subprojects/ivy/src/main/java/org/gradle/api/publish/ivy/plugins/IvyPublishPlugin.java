@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublishingExtension;
@@ -89,9 +90,10 @@ public class IvyPublishPlugin implements Plugin<Project> {
         }
 
         public Publication create(String name) {
+            Module module = dependencyMetaDataProvider.getModule();
             return instantiator.newInstance(
                     DefaultIvyPublication.class,
-                    name, instantiator, dependencyMetaDataProvider.getModule()
+                    name, instantiator, module
             );
 
         }

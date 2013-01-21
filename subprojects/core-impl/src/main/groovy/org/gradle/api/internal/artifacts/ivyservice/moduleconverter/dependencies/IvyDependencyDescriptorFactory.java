@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleDependency;
 
-/**
- * @author Hans Dockter
- */
-public interface DependencyDescriptorFactoryInternal extends DependencyDescriptorFactory {
+public interface IvyDependencyDescriptorFactory {
+    EnhancedDependencyDescriptor createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor moduleDescriptor);
+
     boolean canConvert(ModuleDependency dependency);
 }

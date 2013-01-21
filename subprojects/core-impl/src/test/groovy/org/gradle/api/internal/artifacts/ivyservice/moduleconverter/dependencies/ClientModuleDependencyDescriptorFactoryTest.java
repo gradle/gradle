@@ -39,7 +39,7 @@ public class ClientModuleDependencyDescriptorFactoryTest extends AbstractDepende
     private JUnit4Mockery context = new JUnit4Mockery();
 
     private ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule = context.mock(ModuleDescriptorFactoryForClientModule.class);
-    private ClientModuleDependencyDescriptorFactory clientModuleDependencyDescriptorFactory = new ClientModuleDependencyDescriptorFactory(
+    private ClientModuleIvyDependencyDescriptorFactory clientModuleDependencyDescriptorFactory = new ClientModuleIvyDependencyDescriptorFactory(
             excludeRuleConverterStub,
             moduleDescriptorFactoryForClientModule
     );
@@ -67,11 +67,9 @@ public class ClientModuleDependencyDescriptorFactoryTest extends AbstractDepende
             will(returnValue(moduleDescriptorForClientModule));
         }});
 
-        clientModuleDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, clientModule);
-        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
+        DefaultDependencyDescriptor dependencyDescriptor = clientModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, clientModule, moduleDescriptor);
         assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);
-        assertEquals(testModuleRevisionId,
-                dependencyDescriptor.getDependencyRevisionId());
+        assertEquals(testModuleRevisionId, dependencyDescriptor.getDependencyRevisionId());
         assertFalse(dependencyDescriptor.isChanging());
     }
 
@@ -88,8 +86,7 @@ public class ClientModuleDependencyDescriptorFactoryTest extends AbstractDepende
             will(returnValue(moduleDescriptorForClientModule));
         }});
 
-        clientModuleDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, clientModule);
-        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
+        DefaultDependencyDescriptor dependencyDescriptor = clientModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, clientModule, moduleDescriptor);
         assertThat(dependencyDescriptor.getDependencyRevisionId(), equalTo(testModuleRevisionId));
     }
 }

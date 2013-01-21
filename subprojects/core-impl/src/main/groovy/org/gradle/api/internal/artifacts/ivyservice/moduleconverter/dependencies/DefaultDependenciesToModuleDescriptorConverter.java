@@ -45,7 +45,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ModuleDependency dependency : configuration.getDependencies().withType(ModuleDependency.class)) {
-                dependencyDescriptorFactory.addDependencyDescriptor(configuration, moduleDescriptor, dependency);
+                dependencyDescriptorFactory.addDependencyDescriptor(configuration.getName(), moduleDescriptor, dependency);
             }
         }
     }

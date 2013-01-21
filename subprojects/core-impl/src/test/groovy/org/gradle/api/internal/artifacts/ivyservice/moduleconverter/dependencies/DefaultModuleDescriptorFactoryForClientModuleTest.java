@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.util.WrapUtil;
@@ -80,24 +79,12 @@ public class DefaultModuleDescriptorFactoryForClientModuleTest {
             this.dependencyDescriptor = dependencyDescriptor;
         }
 
-        public DefaultDependencyDescriptor addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
+        public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
                                             ModuleDependency dependency) {
             this.configuration = configuration;
             this.parent = moduleDescriptor;
             this.dependency = dependency;
-            return null;
         }
 
-        public DefaultDependencyDescriptor addDependencyDescriptor(Configuration configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
-            this.configuration = configuration.getName();
-            this.parent = moduleDescriptor;
-            this.dependency = dependency;
-            return null;
-        }
-
-        public ModuleRevisionId createModuleRevisionId(ModuleDependency dependency) {
-            // do nothing
-            return null;
-        }
     }
 }

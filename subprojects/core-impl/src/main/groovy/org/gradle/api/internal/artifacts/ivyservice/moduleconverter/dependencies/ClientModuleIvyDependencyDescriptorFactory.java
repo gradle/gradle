@@ -25,20 +25,20 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleC
 /**
  * @author Hans Dockter
 */
-public class ClientModuleDependencyDescriptorFactory extends AbstractDependencyDescriptorFactoryInternal {
+public class ClientModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     private ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule;
 
-    public ClientModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule) {
+    public ClientModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule) {
         super(excludeRuleConverter);
         this.moduleDescriptorFactoryForClientModule = moduleDescriptorFactoryForClientModule;
     }
 
-    public ModuleRevisionId createModuleRevisionId(ModuleDependency dependency) {
+    private ModuleRevisionId createModuleRevisionId(ModuleDependency dependency) {
         return IvyUtil.createModuleRevisionId(dependency);
     }
 
-    public EnhancedDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
-                                                           ModuleRevisionId moduleRevisionId) {
+    public EnhancedDependencyDescriptor createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
+        ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
         ClientModule clientModule = getClientModule(dependency);
         ModuleDescriptor moduleDescriptor = moduleDescriptorFactoryForClientModule.createModuleDescriptor(
                 moduleRevisionId, clientModule.getDependencies());

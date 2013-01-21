@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Module
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
 import spock.lang.Specification
 
 /**
@@ -34,11 +35,13 @@ public class ResolveModuleDescriptorConverterTest extends Specification {
         def module = Mock(Module)
         def moduleDescriptor = Mock(DefaultModuleDescriptor)
         def moduleDescriptorFactory = Mock(ModuleDescriptorFactory)
+        def dependencyDescriptorFactory = Mock(DependencyDescriptorFactory)
         def configurationsConverter = Mock(ConfigurationsToModuleDescriptorConverter)
         def dependenciesConverter = Mock(DependenciesToModuleDescriptorConverter)
 
         ResolveModuleDescriptorConverter resolveModuleDescriptorConverter = new ResolveModuleDescriptorConverter(
                 moduleDescriptorFactory,
+                dependencyDescriptorFactory,
                 configurationsConverter,
                 dependenciesConverter);
 

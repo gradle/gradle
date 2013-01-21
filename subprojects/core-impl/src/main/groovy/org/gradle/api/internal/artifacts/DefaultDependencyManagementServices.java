@@ -84,12 +84,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter() {
-        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = get(DependencyDescriptorFactoryDelegate.class);
         return new ResolveModuleDescriptorConverter(
                 get(ModuleDescriptorFactory.class),
+                get(DependencyDescriptorFactory.class),
                 get(ConfigurationsToModuleDescriptorConverter.class),
                 new DefaultDependenciesToModuleDescriptorConverter(
-                        dependencyDescriptorFactoryDelegate,
+                        get(DependencyDescriptorFactory.class),
                         get(ExcludeRuleConverter.class)));
 
     }
@@ -108,26 +108,26 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultExcludeRuleConverter();
     }
 
-    protected ExternalModuleDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory() {
-        return new ExternalModuleDependencyDescriptorFactory(get(ExcludeRuleConverter.class));
+    protected ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory() {
+        return new ExternalModuleIvyDependencyDescriptorFactory(get(ExcludeRuleConverter.class));
     }
 
     protected ConfigurationsToModuleDescriptorConverter createConfigurationsToModuleDescriptorConverter() {
         return new DefaultConfigurationsToModuleDescriptorConverter();
     }
 
-    protected DependencyDescriptorFactoryDelegate createDependencyDescriptorFactory() {
+    protected DependencyDescriptorFactory createDependencyDescriptorFactory() {
         DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
-        DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
-                new ClientModuleDependencyDescriptorFactory(
+        DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
+                new ClientModuleIvyDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class),
                         clientModuleDescriptorFactory
                 ),
-                new ProjectDependencyDescriptorFactory(
+                new ProjectIvyDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class)),
-                get(ExternalModuleDependencyDescriptorFactory.class));
-        clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
-        return dependencyDescriptorFactoryDelegate;
+                get(ExternalModuleIvyDependencyDescriptorFactory.class));
+        clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactory);
+        return dependencyDescriptorFactory;
     }
 
     protected DependencyFactory createDependencyFactory() {
