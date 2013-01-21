@@ -28,9 +28,8 @@ import java.util.Set;
  */
 public class MavenProjectXmlWriter {
 
-    //TODO SF this class attempts to mimic the behavior of the output of mvn help:effective-pom
-    //we can remove it when the conversion feature no longer depends on the effective xml
-    //if we want to keep this class, we need to add more tests.
+    //TODO this class attempts to mimic the behavior of the output of mvn help:effective-pom
+    //instead of this class we should walk the maven project object model (instead of parsing the xml!)
 
     String toXml(Set<MavenProject> projects) {
         assert !projects.isEmpty() : "Cannot prepare the maven projects effective xml because provided projects set is empty.";
@@ -53,6 +52,10 @@ public class MavenProjectXmlWriter {
         } catch (IOException e) {
             throw new RuntimeException("Unable to serialize maven model to xml. Maven project: " + project, e);
         }
-        return out.toString().replace("<?xml version=\"1.0\"?>", "");
+        return prepareXml(out.toString());
+    }
+
+    String prepareXml(String xml) {
+        return xml.replaceFirst("^<\\?xml.+?\\?>", "");
     }
 }
