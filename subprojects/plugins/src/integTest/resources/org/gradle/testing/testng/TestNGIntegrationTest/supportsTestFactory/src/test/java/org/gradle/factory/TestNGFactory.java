@@ -23,7 +23,7 @@ public class TestNGFactory {
     public Object[] factory() {
         return new Object[]{
                 new FactoryTest("First"),
-                new FactoryTest("Second"),
+                new FactoryTest("Second")
         };
     }
 }
