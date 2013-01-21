@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class MavenParentPomResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -72,7 +71,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('child-1.0.jar', 'parent_dep-1.2.jar', 'child_dep-1.7.jar')
     }
 
-    @Ignore
     @Issue("GRADLE-2641")
     def "can handle parent pom with SNAPSHOT version"() {
         given:

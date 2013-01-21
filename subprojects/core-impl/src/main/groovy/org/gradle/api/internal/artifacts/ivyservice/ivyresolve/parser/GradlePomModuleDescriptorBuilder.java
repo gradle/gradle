@@ -188,9 +188,9 @@ public class GradlePomModuleDescriptorBuilder {
         return ivyModuleDescriptor;
     }
 
-    public void setModuleRevId(String groupId, String artifactId, String version) {
-        mrid = ModuleRevisionId.newInstance(groupId, artifactId, version);
-        ivyModuleDescriptor.setModuleRevisionId(mrid);
+    public void setModuleRevId(ModuleRevisionId mrid, String group, String module, String version) {
+        this.mrid = mrid;
+        ivyModuleDescriptor.setModuleRevisionId(ModuleRevisionId.newInstance(group, module, version));
 
         if ((version == null) || version.endsWith("SNAPSHOT")) {
             ivyModuleDescriptor.setStatus("integration");

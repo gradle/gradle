@@ -124,7 +124,8 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
             String groupId = domReader.getGroupId();
             String artifactId = domReader.getArtifactId();
             String version = domReader.getVersion();
-            mdBuilder.setModuleRevId(groupId, artifactId, version);
+            ModuleScopedParserSettings scopedSettings = (ModuleScopedParserSettings) ivySettings;
+            mdBuilder.setModuleRevId(scopedSettings.getCurrentRevisionId(), groupId, artifactId, version);
 
             mdBuilder.setHomePage(domReader.getHomePage());
             mdBuilder.setDescription(domReader.getDescription());
