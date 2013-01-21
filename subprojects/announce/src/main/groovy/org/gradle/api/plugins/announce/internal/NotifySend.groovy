@@ -47,6 +47,7 @@ class NotifySend implements Announcer {
             if (icon) {
                 args '-i', icon.absolutePath
             }
+            args '--hint=int:transient:1'
             args title, message
         }
     }
