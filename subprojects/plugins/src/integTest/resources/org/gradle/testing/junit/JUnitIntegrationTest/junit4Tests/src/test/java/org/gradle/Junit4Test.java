@@ -1,5 +1,6 @@
 package org.gradle;
 
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -14,6 +15,10 @@ public class Junit4Test {
     }
 
     public void helpermethod(){
-
+	}
+	
+    @Test
+    public void assumptionFailed() {
+        Assume.assumeTrue(false);
     }
 }

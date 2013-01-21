@@ -26,7 +26,9 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +38,7 @@ public class JUnitTestEventAdapter extends RunListener {
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
+    private final Set<Description> assumptionFailed = new HashSet<Description>();
 
     public JUnitTestEventAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
                                  IdGenerator<?> idGenerator) {
@@ -75,6 +78,11 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     @Override
+    public void testAssumptionFailure(Failure failure) {
+        assumptionFailed.add(failure.getDescription());
+    }
+
+    @Override
     public void testIgnored(Description description) throws Exception {
         if (methodName(description) == null) {
             // An @Ignored class, ignore the event. We don't get testIgnored events for each method, so we have
@@ -109,7 +117,8 @@ public class JUnitTestEventAdapter extends RunListener {
             }
             assert testInternal != null : String.format("Unexpected end event for %s", description);
         }
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
+        TestResult.ResultType resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
+        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
     }
 
     private TestStartEvent startEvent() {

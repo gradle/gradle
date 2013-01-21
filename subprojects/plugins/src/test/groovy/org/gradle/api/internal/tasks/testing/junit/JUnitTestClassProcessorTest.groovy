@@ -36,6 +36,7 @@ import org.junit.runner.notification.RunNotifier
 
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
+import static org.junit.Assume.assumeTrue
 
 @RunWith(JMock.class)
 class JUnitTestClassProcessorTest {
@@ -140,6 +141,38 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClassWithIgnoredMethod.class));
+        processor.stop();
+    }
+
+    @Test
+    public void executesAJUnit4TestClassWithFailedTestAssumption() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite, TestStartEvent event ->
+                assertThat(suite.id, equalTo(1L))
+                assertThat(suite.name, equalTo(ATestClassWithFailedTestAssumption.class.name))
+                assertThat(suite.className, equalTo(ATestClassWithFailedTestAssumption.class.name))
+                assertThat(event.parentId, nullValue())
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test, TestStartEvent event ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('assumed'))
+                assertThat(test.className, equalTo(ATestClassWithFailedTestAssumption.class.name))
+                assertThat(event.parentId, equalTo(1L))
+            }
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, equalTo(TestResult.ResultType.SKIPPED))
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithFailedTestAssumption.class));
         processor.stop();
     }
 
@@ -740,14 +773,22 @@ public class ATestClassWithIgnoredMethod {
     }
 }
 
+public class ATestClassWithFailedTestAssumption {
+    @Test
+    public void assumed() {
+        assumeTrue(false)
+    }
+}
+
 @Ignore
 public class AnIgnoredTestClass {
     @Test
     public void ignored() {
     }
+
     @Test
-       public void ignored2() {
-       }
+    public void ignored2() {
+    }
 }
 
 public class ABrokenTestClass {
