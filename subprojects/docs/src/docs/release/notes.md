@@ -174,6 +174,12 @@ We would like to thank the following community members for making contributions 
 
 * Joe Sortelli - Fixed incorrect handling of ivy.xml where dependency configuration contained wildcard values (GRADLE-2352)
 
+* David M. Carr - When JUnit tests have assumption failures, treat them as "skipped" (GRADLE-2454)
+
+* Marcin Erdmann - Make notify-send notifications transient in Gnome Shell
+
+
+
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
 ## Known issues
