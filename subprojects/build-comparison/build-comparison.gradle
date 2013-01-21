@@ -24,7 +24,7 @@ dependencies {
     compile libraries.guava
     compile libraries.slf4j_api
 
-    testCompile "org.jsoup:jsoup:1.6.3"
+    testCompile libraries.jsoup
 }
 
 processResources {

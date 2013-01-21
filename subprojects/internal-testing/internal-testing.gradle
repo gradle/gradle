@@ -28,6 +28,7 @@ dependencies {
     compile libraries.junit
     compile libraries.jmock
     compile libraries.spock
+    compile libraries.jsoup
     compile libraries.jsr305 //it is a guava dependency needed for compilation on ibm vm / windows
 }
 
