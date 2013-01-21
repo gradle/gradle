@@ -83,9 +83,9 @@ It should be possible to define a library or application that bundles or links t
 It should also be possible to define a project that does not contain any source, but simply aggregates together several libraries produced by other
 projects to produce a composite library or application.
 
-## Native executable
+## Native executable for JVM based application
 
-Gradle will be able to build a native launcher for an application, as an alternative to using launcher scripts.
+Gradle will be able to build a native launcher for a JVM based application, as an alternative to using launcher scripts.
 
 ## Executable Jar
 
@@ -222,7 +222,7 @@ Allow the distributions defined by the `distribution` to be configured and remov
     - from `src/${dist.name}/dist`
 4. Change the `distribution` plugin to configure the dist zip task to add `from $dist.contents`.
 5. Change the `java-library-distribution` plugin to configure the main distribution's `contents` property instead of the dist zip task.
-6. Change the `java-library-distribution` plugin so that it no longer adds the `distribution` extension, and remove the implementation.
+6. Change the `java-library-distribution` plugin so that it no longer adds the `distribution` extension, and remove the `DistributionExtension` implementation.
 
 ### DSL
 
@@ -271,29 +271,29 @@ To generate multiple distributions:
     - called `install${dist.name}Dist` for other distributions.
     - installs `dist.contents` into `$buildDir/install/${dist.baseName}`.
 
+## Generate a TAR distribution
+
+1. Change the `distribution` plugin to add a TAR task for each distribution, configured in a similar way to the ZIP task.
+
 ## Share distribution definitions with the `application` plugin
 
 1. Change the `application` plugin to apply the `distribution` plugin.
     - When `applicationPluginConvention.applicationName` is set, set the `main` distribution's `baseName` property.
     - Configures the `main` distribution's `contents` to add `from applicationPluginConvention.applicationDistribution`.
-    - No longer adds the `distZip` task.
-
-## Generate a TAR distribution
-
-1. Change the `distribution` plugin to add a TAR task for each distribution, configured in a similar way to the ZIP task.
+    - No longer adds the `distZip` or `distTar` tasks.
 
 ## Deprecate distribution configuration from the `application` plugin
 
-1. Deprecate and later remove `ApplicationPluginConvention.applicationName` and `applicationDistribution`
-2. Deprecate and later remove the `installApp` task.
+1. Deprecate `ApplicationPluginConvention.applicationName` and `applicationDistribution` properties.
+2. Deprecate the `installApp` task.
+
+## Allow distributions to be published
+
+1. Change the `distribution` plugin to add a `SoftwareComponent` instance for each distribution that is added.
+    - Publishes both the ZIP and TAR archives.
+    - Generated meta-data does not include any dependency declarations.
+    - Generated meta-data include details of components that have been bundled in the distribution.
 
 # Later steps
 
-Only after above is completed & integrated with the master we want to design and implement the following:
-
-- Make the library plugin agnostic of implementation language.
-- Build a distribution by bundling other projects.
-- Add a source set for the extra files to include in a distribution.
-- (Very advanced) Allow the distributions to be published, instead of or as well as the jar.
-    This would need to mess with the generated pom.xml/ivy.xml to remove the dependency declarations
-    for those dependencies that have been bundled in the distribution.
+See the use cases above.

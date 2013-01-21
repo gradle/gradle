@@ -141,6 +141,7 @@ This step allows the outgoing artifacts to be customised for a Maven publication
 2. Add a `MavenArtifactSet` interface. This is a collection of `MavenArtifact` instances that permits access as a FileCollection.
 3. Add `artifact` / `artifacts` methods to `MavenPublication`.
 4. When publishing, validate that (extension, classifier) is unique for each artifact.
+5. When publishing, validate that the artifact file exists and is a file.
 
 To customise a Maven publication:
 
@@ -239,6 +240,7 @@ Note: there is a breaking change in this story.
 3. Add an `IvyConfiguration` interface. Add a `configurations` container to `IvyModuleDescriptor`
 4. Add an `artifacts` property to `IvyConfiguration`.
 5. When publishing, validate that (name, extension) is unique for each artifact.
+6. When publishing, validate that the artifact file exists and is a file.
 
 To customise an Ivy publication:
 
