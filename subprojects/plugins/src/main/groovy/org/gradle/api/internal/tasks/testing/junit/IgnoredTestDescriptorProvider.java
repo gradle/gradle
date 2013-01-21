@@ -36,7 +36,7 @@ public class IgnoredTestDescriptorProvider {
             final Description runnerDescription = runner.getDescription();
             return runnerDescription.getChildren();
         } catch (Throwable throwable) {
-            throw new TestSuiteExecutionException("Unable to process IgnoredClass", throwable);
+            throw new TestSuiteExecutionException(String.format("Unable to process Ignored class %s.", className), throwable);
         }
     }
 }
