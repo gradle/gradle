@@ -18,9 +18,6 @@ package org.gradle.factory;
 
 import org.testng.annotations.Test;
 
-/**
- * Created with IntelliJ IDEA. User: Rene Date: 21.01.13 Time: 14:22 To change this template use File | Settings | File Templates.
- */
 public class FactoryTest {
 
     private final String name;
