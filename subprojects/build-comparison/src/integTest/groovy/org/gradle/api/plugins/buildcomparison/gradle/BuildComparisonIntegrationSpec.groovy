@@ -39,7 +39,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     }
 
     def setup() {
-        executer.requireGradleHome(true)
+        executer.requireGradleHome()
         applyPlugin()
     }
 

@@ -76,7 +76,7 @@ sonar.embeddedDatabase.port=$databasePort
 
         when:
         executer.requireIsolatedDaemons()
-                .requireGradleHome(true)
+                .requireGradleHome()
                 .withArgument("-i")
                 .withArgument("-PserverUrl=http://localhost:${webServer.connectors[0].localPort}")
                 .withArgument("-PdatabaseUrl=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")

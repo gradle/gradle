@@ -100,7 +100,7 @@ public class PerformanceTestRunner {
 
     GradleExecuter executer(GradleDistribution dist, File projectDir) {
         dist.executer(testDirectoryProvider).
-                requireGradleHome(true).
+                requireGradleHome().
                 withDeprecationChecksDisabled().
                 withStackTraceChecksDisabled().
                 withArguments('-u').

@@ -213,7 +213,7 @@ public interface GradleExecuter {
 
     boolean isRequireGradleHome();
 
-    GradleExecuter requireGradleHome(boolean requireGradleHome);
+    GradleExecuter requireGradleHome();
 
     GradleExecuter requireIsolatedDaemons();
 

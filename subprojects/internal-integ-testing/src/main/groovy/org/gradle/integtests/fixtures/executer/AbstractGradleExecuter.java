@@ -193,7 +193,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!stackTraceChecksOn) {
             executer.withStackTraceChecksDisabled();
         }
-        executer.requireGradleHome(isRequireGradleHome());
+        executer.requireGradleHome();
 
         return executer;
     }
@@ -614,8 +614,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return requireGradleHome;
     }
 
-    public GradleExecuter requireGradleHome(boolean requireGradleHome) {
-        this.requireGradleHome = requireGradleHome;
+    public GradleExecuter requireGradleHome() {
+        this.requireGradleHome = true;
         return this;
     }
 }

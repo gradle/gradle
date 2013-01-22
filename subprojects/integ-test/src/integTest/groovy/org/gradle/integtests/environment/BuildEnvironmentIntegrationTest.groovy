@@ -159,7 +159,7 @@ assert classesDir.directory
 
         when:
         // Need the forking executer for this to work. Embedded executer will not fork a new process if jvm doesn't match.
-        def out = executer.requireGradleHome(true).run().output
+        def out = executer.requireGradleHome().run().output
 
         then:
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)
@@ -174,7 +174,7 @@ assert System.getProperty('some-prop') == 'some-value'
 """
 
         when:
-        executer.requireGradleHome(true).withNoDefaultJvmArgs().run()
+        executer.requireGradleHome().withNoDefaultJvmArgs().run()
 
         then:
         noExceptionThrown()
