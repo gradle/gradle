@@ -16,7 +16,8 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.cyberneko.html.parsers.SAXParser
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 
 class ProfilingIntegrationTest extends AbstractIntegrationSpec {
     def "can generate profiling report"() {
@@ -32,17 +33,11 @@ allprojects {
 
         then:
         def reportFile = file('build/reports/profile').listFiles().find { it.name ==~ /profile-.+.html/ }
-        Node content = parse(reportFile)
-        content.depthFirst().find { it.name() == 'TD' && it.text() == ':jar' }
-        content.depthFirst().find { it.name() == 'TD' && it.text() == ':a:jar' }
-        content.depthFirst().find { it.name() == 'TD' && it.text() == ':b:jar' }
-        content.depthFirst().find { it.name() == 'TD' && it.text() == ':c:jar' }
-    }
+        Document document = Jsoup.parse(reportFile, "utf-8");
+        assert !document.select("TD:contains(:jar)").isEmpty()
+        assert !document.select("TD:contains(:a:jar)").isEmpty()
+        assert !document.select("TD:contains(:b:jar)").isEmpty()
+        assert !document.select("TD:contains(:c:jar)").isEmpty()
 
-    private Node parse(File reportFile) {
-        def text = reportFile.getText('utf-8').readLines()
-        def withoutDocType = text.subList(1, text.size()).join('\n')
-        def content = new XmlParser(new SAXParser()).parseText(withoutDocType)
-        return content
     }
 }

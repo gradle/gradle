@@ -6,7 +6,7 @@ dependencies {
     integTestCompile project(':coreImpl')
     integTestCompile libraries.ant
     integTestCompile libraries.xmlunit
-    integTestCompile libraries.nekohtml
+    integTestCompile libraries.jsoup
 
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }

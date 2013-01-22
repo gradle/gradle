@@ -44,7 +44,7 @@ dependencies {
 
     runtime libraries.commons_cli
 
-    testCompile libraries.nekohtml
+    testCompile libraries.jsoup
 }
 
 evaluationDependsOn(":wrapper")
