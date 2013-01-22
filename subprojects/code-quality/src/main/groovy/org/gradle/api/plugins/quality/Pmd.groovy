@@ -15,15 +15,14 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.api.GradleException
-import org.gradle.util.VersionNumber
 
 import javax.inject.Inject
 
@@ -69,54 +68,42 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      */
     boolean ignoreFailures
 
-    String toolVersion
-
-    @Inject Pmd(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
+    @Inject
+    Pmd(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
         reports = instantiator.newInstance(PmdReportsImpl, this)
         this.antBuilder = antBuilder
     }
 
     @TaskAction
     void run() {
-        VersionNumber latestBranch = VersionNumber.parse("5.0.0")
-        VersionNumber convertedToolVersion = VersionNumber.parse(getToolVersion())
+        boolean oldBranch = getPmdClasspath().find {
+            it.name ==~ /pmd-([1-4]\.[0-9\.]+)\.jar/
+        }
         antBuilder.withClasspath(getPmdClasspath()).execute {
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
-            if (convertedToolVersion.compareTo(latestBranch) < 0) {
-                ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount") {
-                    getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                    getRuleSets().each {
-                        ruleset(it)
-                    }
-                    getRuleSetFiles().each {
-                        ruleset(it)
-                    }
 
-                    if (reports.html.enabled) {
-                        assert reports.html.destination.parentFile.exists()
-                        formatter(type: 'betterhtml', toFile: reports.html.destination)
-                    }
-                    if (reports.xml.enabled) {
-                        formatter(type: 'xml', toFile: reports.xml.destination)
+            ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount") {
+                getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                if (getRuleSets().isEmpty()) {
+                    if (oldBranch) {
+                        setRuleSets(["basic"])
+                    } else {
+                        setRuleSets(["java-basic"])
                     }
                 }
-            } else {
-                ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount") {
-                    getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                    getRuleSets().each {
-                        ruleset(it)
-                    }
-                    getRuleSetFiles().each {
-                        ruleset(it)
-                    }
+                getRuleSets().each {
+                    ruleset(it)
+                }
+                getRuleSetFiles().each {
+                    ruleset(it)
+                }
 
-                    if (reports.html.enabled) {
-                        assert reports.html.destination.parentFile.exists()
-                        formatter(type: 'html', toFile: reports.html.destination)
-                    }
-                    if (reports.xml.enabled) {
-                        formatter(type: 'xml', toFile: reports.xml.destination)
-                    }
+                if (reports.html.enabled) {
+                    assert reports.html.destination.parentFile.exists()
+                    formatter(type: oldBranch ? 'betterhtml' : 'html', toFile: reports.html.destination)
+                }
+                if (reports.xml.enabled) {
+                    formatter(type: 'xml', toFile: reports.xml.destination)
                 }
             }
             def failureCount = ant.project.properties["pmdFailureCount"]
