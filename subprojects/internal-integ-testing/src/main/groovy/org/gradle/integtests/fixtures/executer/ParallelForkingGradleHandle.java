@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 
@@ -28,8 +29,8 @@ import static org.junit.Assert.assertThat;
 
 public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
-    public ParallelForkingGradleHandle(String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
-        super(outputEncoding, execHandleFactory);
+    public ParallelForkingGradleHandle(Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+        super(resultAssertion, outputEncoding, execHandleFactory);
     }
 
     @Override

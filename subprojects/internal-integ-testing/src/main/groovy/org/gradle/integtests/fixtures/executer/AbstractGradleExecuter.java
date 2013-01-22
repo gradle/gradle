@@ -457,14 +457,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public final GradleHandle start() {
         fireBeforeExecute();
         assertCanExecute();
-        return doStart();
+        try {
+            return doStart();
+        } finally {
+            reset();
+        }
     }
 
     public final ExecutionResult run() {
         fireBeforeExecute();
         assertCanExecute();
         try {
-            return checkResult(doRun());
+            return doRun();
         } finally {
             reset();
         }
@@ -474,7 +478,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         fireBeforeExecute();
         assertCanExecute();
         try {
-            return checkResult(doRunWithFailure());
+            return doRunWithFailure();
         } finally {
             reset();
         }
@@ -500,32 +504,47 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    protected <T extends ExecutionResult> T checkResult(T result) {
+    protected Action<ExecutionResult> getResultAssertion() {
+        ActionBroadcast<ExecutionResult> assertions = new ActionBroadcast<ExecutionResult>();
+
         if (stackTraceChecksOn) {
-            // Assert that nothing unexpected was logged
-            assertOutputHasNoStackTraces(result);
-            assertErrorHasNoStackTraces(result);
+            assertions.add(new Action<ExecutionResult>() {
+                public void execute(ExecutionResult executionResult) {
+                    // Assert that nothing unexpected was logged
+                    assertOutputHasNoStackTraces(executionResult);
+                    assertErrorHasNoStackTraces(executionResult);
+                }
+            });
         }
+
         if (deprecationChecksOn) {
-            assertOutputHasNoDeprecationWarnings(result);
+            assertions.add(new Action<ExecutionResult>() {
+                public void execute(ExecutionResult executionResult) {
+                    assertOutputHasNoDeprecationWarnings(executionResult);
+                }
+            });
         }
 
         if (getExecutable() == null) {
-            // Assert that no temp files are left lying around
-            // Note: don't do this if a custom executable is used, as we don't know (and probably don't care) whether the executable cleans up or not
-            TestFile[] testFiles = getTmpDir().listFiles();
-            if (testFiles != null) {
-                List<String> unexpectedFiles = new ArrayList<String>();
-                for (File file : testFiles) {
-                    if (!file.getName().matches("maven-artifact\\d+.tmp")) {
-                        unexpectedFiles.add(file.getName());
+            assertions.add(new Action<ExecutionResult>() {
+                public void execute(ExecutionResult executionResult) {
+                    // Assert that no temp files are left lying around
+                    // Note: don't do this if a custom executable is used, as we don't know (and probably don't care) whether the executable cleans up or not
+                    TestFile[] testFiles = getTmpDir().listFiles();
+                    if (testFiles != null) {
+                        List<String> unexpectedFiles = new ArrayList<String>();
+                        for (File file : testFiles) {
+                            if (!file.getName().matches("maven-artifact\\d+.tmp")) {
+                                unexpectedFiles.add(file.getName());
+                            }
+                        }
+//            Assert.assertThat(unexpectedFiles, Matchers.isEmpty());
                     }
                 }
-//            Assert.assertThat(unexpectedFiles, Matchers.isEmpty());
-            }
+            });
         }
 
-        return result;
+        return assertions;
     }
 
     private void assertOutputHasNoStackTraces(ExecutionResult result) {

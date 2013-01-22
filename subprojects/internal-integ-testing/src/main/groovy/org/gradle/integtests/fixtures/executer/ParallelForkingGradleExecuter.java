@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -37,7 +38,7 @@ class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
     }
 
     @Override
-    protected ForkingGradleHandle createGradleHandle(String encoding, Factory<ExecHandleBuilder> execHandleFactory) {
-        return new ParallelForkingGradleHandle(encoding, execHandleFactory);
+    protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<ExecHandleBuilder> execHandleFactory) {
+        return new ParallelForkingGradleHandle(resultAssertion, encoding, execHandleFactory);
     }
 }

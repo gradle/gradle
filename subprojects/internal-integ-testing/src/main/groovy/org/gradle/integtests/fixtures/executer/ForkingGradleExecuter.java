@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.jna.WindowsHandlesManipulator;
 import org.gradle.internal.os.OperatingSystem;
@@ -90,15 +91,15 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public GradleHandle doStart() {
-        return createGradleHandle(getDefaultCharacterEncoding(), new Factory<ExecHandleBuilder>() {
+        return createGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), new Factory<ExecHandleBuilder>() {
             public ExecHandleBuilder create() {
                 return createExecHandleBuilder();
             }
         }).start();
     }
 
-    protected ForkingGradleHandle createGradleHandle(String encoding, Factory<ExecHandleBuilder> execHandleFactory) {
-        return new ForkingGradleHandle(encoding, execHandleFactory);
+    protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<ExecHandleBuilder> execHandleFactory) {
+        return new ForkingGradleHandle(resultAssertion, encoding, execHandleFactory);
     }
 
     protected ExecutionResult doRun() {

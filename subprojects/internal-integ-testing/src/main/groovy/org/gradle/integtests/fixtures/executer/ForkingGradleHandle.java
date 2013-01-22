@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
+import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.process.ExecResult;
@@ -32,11 +33,13 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
 
     final private ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
     final private ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+    private final Action<ExecutionResult> resultAssertion;
 
     private ExecHandle execHandle;
     private final String outputEncoding;
 
-    public ForkingGradleHandle(String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+    public ForkingGradleHandle(Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+        this.resultAssertion = resultAssertion;
         this.execHandleFactory = execHandleFactory;
         this.outputEncoding = outputEncoding;
     }
@@ -111,6 +114,9 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
                     expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), output, error);
             throw new UnexpectedBuildFailure(message);
         }
-        return expectFailure ? toExecutionFailure(output, error) : toExecutionResult(output, error);
+
+        ExecutionResult executionResult = expectFailure ? toExecutionFailure(output, error) : toExecutionResult(output, error);
+        resultAssertion.execute(executionResult);
+        return executionResult;
     }
 }

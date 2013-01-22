@@ -87,8 +87,8 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         } catch (Exception e) {
             throw new UnexpectedBuildFailure(e);
         }
-        return new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-                outputListener.toString(), errorListener.toString());
+        return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
+                outputListener.toString(), errorListener.toString()));
     }
 
     @Override
@@ -100,14 +100,19 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             doRun(outputListener, errorListener, buildListener).rethrowFailure();
             throw new AssertionError("expected build to fail but it did not.");
         } catch (GradleException e) {
-            return new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                    outputListener.writer.toString(), errorListener.writer.toString(), e);
+            return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
+                    outputListener.writer.toString(), errorListener.writer.toString(), e));
         }
+    }
+
+    private <T extends ExecutionResult> T assertResult(T result) {
+        getResultAssertion().execute(result);
+        return result;
     }
 
     @Override
     protected GradleHandle doStart() {
-        return new ForkingGradleHandle(getDefaultCharacterEncoding(), new Factory<JavaExecHandleBuilder>() {
+        return new ForkingGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), new Factory<JavaExecHandleBuilder>() {
             public JavaExecHandleBuilder create() {
                 JavaExecHandleBuilder builder = new JavaExecHandleBuilder(new IdentityFileResolver());
                 builder.workingDir(getWorkingDir());
