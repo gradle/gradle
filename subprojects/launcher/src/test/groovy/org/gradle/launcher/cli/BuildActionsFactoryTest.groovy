@@ -23,7 +23,8 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.bootstrap.DaemonMain
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.daemon.configuration.GradleProperties
+import org.gradle.launcher.daemon.configuration.GradlePropertiesConfigurer
 import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.internal.OutputEventListener
@@ -39,7 +40,8 @@ class BuildActionsFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final CommandLineConverter<StartParameter> startParameterConverter = Mock()
     final ServiceRegistry loggingServices = Mock()
-    final BuildActionsFactory factory = new BuildActionsFactory(loggingServices, startParameterConverter)
+    final GradlePropertiesConfigurer configurer = Spy()
+    final BuildActionsFactory factory = new BuildActionsFactory(loggingServices, startParameterConverter, configurer)
 
     def setup() {        
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
@@ -52,6 +54,14 @@ class BuildActionsFactoryTest extends Specification {
 
         then:
         isInProcess(action)
+    }
+
+    def "parses gradle properties and configures start parameter"() {
+        when:
+        convert('args')
+
+        then:
+        1 * configurer.configureStartParameter(!null)
     }
 
     def executesBuildUsingDaemon() {
@@ -86,6 +96,7 @@ class BuildActionsFactoryTest extends Specification {
         isInProcess action
     }
 
+    //TODO SF this test (and some others should be moved to GradlePropertiesConfigurer tests
     def daemonOptionTakesPrecedenceOverSystemProperty() {
         when:
         System.properties['org.gradle.daemon'] = 'false'
@@ -136,12 +147,12 @@ class BuildActionsFactoryTest extends Specification {
         given:
         def userHome = tmpDir.createDir("user_home")
         userHome.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((DaemonParameters.DAEMON_SYS_PROPERTY): 'false').store(outstr, "HEADER")
+            new Properties((GradleProperties.DAEMON_ENABLED_PROPERTY): 'false').store(outstr, "HEADER")
         }
         def projectDir = tmpDir.createDir("project_dir")
         projectDir.createFile("settings.gradle")
         projectDir.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((DaemonParameters.DAEMON_SYS_PROPERTY): 'true').store(outstr, "HEADER")
+            new Properties((GradleProperties.DAEMON_ENABLED_PROPERTY): 'true').store(outstr, "HEADER")
         }
 
         when:
@@ -179,6 +190,22 @@ class BuildActionsFactoryTest extends Specification {
 
         and:
         isDaemon action
+    }
+
+    def "may use the configure-on-demand mode"() {
+        when:
+        System.properties['org.gradle.configureondemand'] = 'true'
+        def action = convert('args')
+
+        then:
+        isDaemon action
+
+        when:
+        System.properties['org.gradle.daemon'] = 'true'
+        action = convert('--no-daemon', 'args')
+
+        then:
+        isInProcess action
     }
 
     def convert(String... args) {

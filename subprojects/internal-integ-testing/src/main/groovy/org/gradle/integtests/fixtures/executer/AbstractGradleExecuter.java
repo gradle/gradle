@@ -21,7 +21,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -448,8 +448,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put("user.home", getUserHomeDir().getAbsolutePath());
         }
 
-        properties.put(DaemonParameters.IDLE_TIMEOUT_SYS_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
-        properties.put(DaemonParameters.BASE_DIR_SYS_PROPERTY, daemonBaseDir.getAbsolutePath());
+        properties.put(GradleProperties.IDLE_TIMEOUT_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
+        properties.put(GradleProperties.BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
         properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
 
         properties.put("java.io.tmpdir", getTmpDir().createDir().getAbsolutePath());

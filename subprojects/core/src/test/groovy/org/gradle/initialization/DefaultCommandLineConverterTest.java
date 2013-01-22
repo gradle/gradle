@@ -72,6 +72,7 @@ public class DefaultCommandLineConverterTest {
     private RefreshOptions expectedRefreshOptions = RefreshOptions.NONE;
     private boolean expectedRecompileScripts;
     private int expectedParallelExecutorCount;
+    private boolean expectedConfigureOnDemand;
 
     @Test
     public void withoutAnyOptions() {
@@ -111,6 +112,7 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedRefreshDependencies, startParameter.isRefreshDependencies());
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
         assertEquals(expectedParallelExecutorCount, startParameter.getParallelThreadCount());
+        assertEquals(expectedConfigureOnDemand, startParameter.isConfigureOnDemand());
     }
 
     @Test
@@ -405,5 +407,11 @@ public class DefaultCommandLineConverterTest {
     @Test(expected = CommandLineArgumentException.class)
     public void withInvalidParallelExecutorThreads() {
         checkConversion("--parallel-threads", "foo");
+    }
+
+    @Test
+    public void withConfigureOnDemand() {
+        expectedConfigureOnDemand = true;
+        checkConversion("--configure-on-demand");
     }
 }

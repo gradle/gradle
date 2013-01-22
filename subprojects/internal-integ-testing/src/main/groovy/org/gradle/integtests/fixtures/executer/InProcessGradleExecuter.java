@@ -42,6 +42,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.launcher.Main;
+import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -146,6 +147,10 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setSearchUpwards(true);
         parameter.setCurrentDir(getWorkingDir());
+
+        GradleProperties gradleProperties = new GradleProperties();
+        gradleProperties.configureFromBuildDir(getWorkingDir(), parameter.isSearchUpwards());
+        gradleProperties.updateStartParameter(parameter);
 
         CommandLineParser parser = new CommandLineParser();
         DefaultCommandLineConverter converter = new DefaultCommandLineConverter();

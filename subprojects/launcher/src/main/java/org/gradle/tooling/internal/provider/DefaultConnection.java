@@ -22,6 +22,8 @@ import org.gradle.internal.Factory;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.GradleProperties;
+import org.gradle.launcher.daemon.configuration.GradlePropertiesConfigurer;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
@@ -161,9 +163,10 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         DaemonParameters daemonParams = new DaemonParameters();
 
         boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
-        daemonParams.configureFromBuildDir(operationParameters.getProjectDir(), searchUpwards);
-        daemonParams.configureFromGradleUserHome(gradleUserHomeDir);
-        daemonParams.configureFromSystemProperties(System.getProperties());
+        GradleProperties properties = new GradlePropertiesConfigurer()
+                .prepareProperties(operationParameters.getProjectDir(), searchUpwards, gradleUserHomeDir, System.getProperties());
+
+        daemonParams.configureFrom(properties);
 
         //override the params with the explicit settings provided by the tooling api
         List<String> defaultJvmArgs = daemonParams.getAllJvmArgs();

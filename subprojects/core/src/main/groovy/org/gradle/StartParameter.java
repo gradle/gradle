@@ -73,7 +73,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean refreshDependencies;
     private boolean recompileScripts;
     private int parallelThreadCount;
-
+    private boolean configureOnDemand;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -640,8 +640,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     @Incubating
     public boolean isConfigureOnDemand() {
-        //TODO SF this needs to be handled same way as other properties, like 'org.gradle.daemon'
-        return "true".equals(System.getProperty("org.gradle.configuration.ondemand"));
+        return configureOnDemand;
     }
 
     @Override
@@ -665,6 +664,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", recompileScripts=" + recompileScripts
                 + ", offline=" + offline
                 + ", refreshDependencies=" + refreshDependencies
+                + ", parallelThreadCount=" + parallelThreadCount
+                + ", configureOnDemand=" + configureOnDemand
                 + '}';
     }
 
@@ -673,5 +674,10 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     void setGradleHomeDir(File gradleHomeDir) {
         this.gradleHomeDir = gradleHomeDir;
+    }
+
+    @Incubating
+    public void setConfigureOnDemand(boolean configureOnDemand) {
+        this.configureOnDemand = configureOnDemand;
     }
 }

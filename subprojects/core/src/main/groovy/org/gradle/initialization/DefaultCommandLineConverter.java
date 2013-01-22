@@ -56,6 +56,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String PARALLEL = "parallel";
     private static final String PARALLEL_THREADS = "parallel-threads";
 
+    private static final String CONFIGURE_ON_DEMAND = "configure-on-demand";
+
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
@@ -87,6 +89,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
         parser.option(PARALLEL).hasDescription("Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating();
         parser.option(PARALLEL_THREADS).hasArgument().hasDescription("Build projects in parallel, using the specified number of executor threads.").incubating();
+        parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. Useful for large multi-project builds.").incubating();
     }
 
     @Override
@@ -196,6 +199,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             } catch (NumberFormatException e) {
                 throw new CommandLineArgumentException(String.format("Not a numeric argument for %s", PARALLEL_THREADS));
             }
+        }
+
+        if (options.hasOption(CONFIGURE_ON_DEMAND)) {
+            startParameter.setConfigureOnDemand(true);
         }
 
         return startParameter;

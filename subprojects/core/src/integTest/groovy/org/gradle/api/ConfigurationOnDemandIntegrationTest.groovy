@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        file("gradle.properties") << "systemProp.org.gradle.configuration.ondemand=true"
+        file("gradle.properties") << "org.gradle.configureondemand=true"
         alwaysUsing { it.withArgument('-i') }
     }
 
@@ -216,5 +216,18 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertProjectsEvaluated(":", ":impl", ":api")
         result.assertTasksExecuted(":api:foo", ":impl:bar")
+    }
+
+    def "can be enabled from command line"() {
+        file("gradle.properties") << "org.gradle.configureondemand=false"
+
+        settingsFile << "include 'api', 'impl'"
+        buildFile << "allprojects { task foo }"
+
+        when:
+        run("--configure-on-demand", ":api:foo")
+
+        then:
+        result.assertProjectsEvaluated(":", ":api")
     }
 }
