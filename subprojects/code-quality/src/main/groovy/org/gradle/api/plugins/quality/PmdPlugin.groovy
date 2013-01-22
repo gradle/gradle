@@ -50,7 +50,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension = project.extensions.create("pmd", PmdExtension, project)
         extension.with {
             toolVersion = "4.3"
-            ruleSets = ["basic"]
+            ruleSets = []
             ruleSetFiles = project.files()
         }
         return extension
@@ -60,7 +60,6 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected void configureTaskDefaults(Pmd task, String baseName) {
 
         task.conventionMapping.with {
-            toolVersion = { extension.toolVersion }
             pmdClasspath = {
                 def config = project.configurations['pmd']
                 if (config.dependencies.empty) {
