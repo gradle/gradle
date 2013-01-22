@@ -62,6 +62,11 @@ If you already enjoy configuration on demand please note the following improveme
 * New gradle property "org.gradle.configureondemand" should be used enable the feature for all builds of the given project.
  This way it is configurable consistently with other [build settings](userguide/build_environment.html#sec:gradle_configuration_properties).
  Note that the property has changed - see the example below how to configure your gradle.properties.
+
+
+    #gradle.properties file
+    org.gradle.configureondemand=true
+
 * New handy command line option "--configure-on-demand" enables the feature per build.
 * The task dependencies that reach out to a different project are now fully supported:
 
@@ -76,12 +81,7 @@ This should speed up the configuration time of huge multi-project builds.
 This mode is still incubating but should work very well with builds that have
 [decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects)
 (e.g. avoiding having a subproject accessing the model of another project).
-Before you start configuring on demand, please read the section in the [user guide](userguide/multi_project_builds.html#sec:configuration_on_demand).
-Then update your gradle.properties file:
-
-    #gradle.properties file
-    org.gradle.configureondemand=true
-
+The best place to start configuring on demand is diving into [this section in the user guide](userguide/multi_project_builds.html#sec:configuration_on_demand).
 
 ### Improvements to the 'maven-publish' plugin
 
