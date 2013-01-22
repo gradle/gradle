@@ -240,6 +240,8 @@ public interface GradleExecuter {
     /**
      * Configures a unique gradle user home dir for the test.
      *
+     * The gradle user home dir used will be underneath the {@link #getTestDirectoryProvider()} directory.
+     *
      * This value is persistent across executions in the same test.
      */
     GradleExecuter requireOwnGradleUserHomeDir();
