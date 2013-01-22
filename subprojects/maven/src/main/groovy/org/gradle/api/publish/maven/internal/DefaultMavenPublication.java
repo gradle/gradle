@@ -91,7 +91,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return mavenArtifacts.addArtifact(source);
     }
 
-    public MavenArtifact artifact(Object source, Action<MavenArtifact> config) {
+    public MavenArtifact artifact(Object source, Action<? super MavenArtifact> config) {
         return mavenArtifacts.addArtifact(source, config);
     }
 

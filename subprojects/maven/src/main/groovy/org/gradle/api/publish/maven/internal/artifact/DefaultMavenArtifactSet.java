@@ -48,7 +48,7 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
         return artifact;
     }
 
-    public MavenArtifact addArtifact(Object source, Action<MavenArtifact> config) {
+    public MavenArtifact addArtifact(Object source, Action<? super MavenArtifact> config) {
         MavenArtifact artifact = addArtifact(source);
         config.execute(artifact);
         return artifact;
