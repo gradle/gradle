@@ -38,7 +38,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     public void before() {
-        executer.allowExtraLogging = false
+        executer.noExtraLogging()
     }
 
     @Test

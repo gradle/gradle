@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.TestNGExecutionResult
 
 public class TestNGProducesOldReportsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        executer.allowExtraLogging = false
+        executer.noExtraLogging()
     }
 
     def "always produces the new xml reports"() {

@@ -18,8 +18,8 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 
 import static org.hamcrest.Matchers.*
@@ -28,7 +28,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         AbstractIntegrationSpec {
 
     def setup() {
-        executer.allowExtraLogging = false
+        executer.noExtraLogging()
         setupTestCases()
     }
 

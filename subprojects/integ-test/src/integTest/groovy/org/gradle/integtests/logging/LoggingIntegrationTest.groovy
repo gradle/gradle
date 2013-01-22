@@ -225,22 +225,22 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
 
         String initScript = new File(loggingDir, 'init.gradle').absolutePath
         String[] allArgs = level.args + ['-I', initScript]
-        return executer.setAllowExtraLogging(false).inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
+        return executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
     }
 
     def runBroken(LogLevel level) {
         TestFile loggingDir = testDirectory
 
-        return executer.setAllowExtraLogging(false).inDirectory(loggingDir).withTasks('broken').runWithFailure()
+        return executer.noExtraLogging().inDirectory(loggingDir).withTasks('broken').runWithFailure()
     }
 
     def runMultiThreaded(LogLevel level) {
         resources.maybeCopy('LoggingIntegrationTest/multiThreaded')
-        return executer.setAllowExtraLogging(false).withArguments(level.args).withTasks('log').run()
+        return executer.noExtraLogging().withArguments(level.args).withTasks('log').run()
     }
 
     def runSample(LogLevel level) {
-        return executer.setAllowExtraLogging(false).inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
+        return executer.noExtraLogging().inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
     }
 
     void checkOutput(Closure run, LogLevel level) {

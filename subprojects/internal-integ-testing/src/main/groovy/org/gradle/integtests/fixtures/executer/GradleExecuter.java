@@ -203,24 +203,55 @@ public interface GradleExecuter {
      */
     void beforeExecute(Closure action);
 
+    /**
+     * The directory that the executer will use for any test specific storage.
+     *
+     * May or may not be the same directory as the build to be run.
+     */
     TestDirectoryProvider getTestDirectoryProvider();
 
+    /**
+     * Disables asserting that the execution did not trigger any deprecation warnings.
+     */
     GradleExecuter withDeprecationChecksDisabled();
 
+    /**
+     * Disables asserting that no unexpected stacktraces are present in the output.
+     */
     GradleExecuter withStackTraceChecksDisabled();
 
-    GradleExecuter setAllowExtraLogging(boolean allowExtraLogging);
+    /**
+     * An executer may decide to implicitly bump the logging level, unless this is called.
+     */
+    GradleExecuter noExtraLogging();
 
-    boolean isRequireGradleHome();
-
+    /**
+     * Requires that there is a gradle home for the execution, which in process execution does not.
+     */
     GradleExecuter requireGradleHome();
 
+    /**
+     * Configures that any daemons launched by or during the execution are unique to the test.
+     *
+     * This value is persistent across executions in the same test.
+     */
     GradleExecuter requireIsolatedDaemons();
 
+    /**
+     * Configures a unique gradle user home dir for the test.
+     *
+     * This value is persistent across executions in the same test.
+     */
     GradleExecuter requireOwnGradleUserHomeDir();
 
+    /**
+     * The Gradle user home dir that will be used for executions.
+     */
     File getGradleUserHomeDir();
 
+    /**
+     * The distribution used to execute.
+     */
     GradleDistribution getDistribution();
 
     /**

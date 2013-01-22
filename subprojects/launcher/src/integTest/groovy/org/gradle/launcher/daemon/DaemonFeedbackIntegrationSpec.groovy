@@ -192,7 +192,7 @@ task sleep << {
         """
 
         when:
-        def daemon = executer.setAllowExtraLogging(false).withArguments("--foreground").start()
+        def daemon = executer.noExtraLogging().withArguments("--foreground").start()
         
         then:
         poll(60) { assert daemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }

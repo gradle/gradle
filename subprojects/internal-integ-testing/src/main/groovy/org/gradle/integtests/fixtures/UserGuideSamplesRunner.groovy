@@ -123,7 +123,7 @@ class UserGuideSamplesRunner extends Runner {
         try {
             println("Test Id: $run.id, dir: $run.subDir, execution dir: $run.executionDir args: $run.args")
 
-            executer.setAllowExtraLogging(false).inDirectory(run.executionDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
+            executer.noExtraLogging().inDirectory(run.executionDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
 
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {

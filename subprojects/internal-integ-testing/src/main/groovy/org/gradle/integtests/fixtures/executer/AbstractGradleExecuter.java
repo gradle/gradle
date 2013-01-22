@@ -185,7 +185,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (noDefaultJvmArgs) {
             executer.withNoDefaultJvmArgs();
         }
-        executer.setAllowExtraLogging(allowExtraLogging);
+        executer.noExtraLogging();
 
         if (!deprecationChecksOn) {
             executer.withDeprecationChecksDisabled();
@@ -598,11 +598,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return new TestFile(getTestDirectoryProvider().getTestDirectory(), "tmp");
     }
 
-    /**
-     * set true to allow the executer to increase the log level if necessary to help out debugging. Set false to make the executer never update the log level.
-     */
-    public GradleExecuter setAllowExtraLogging(boolean allowExtraLogging) {
-        this.allowExtraLogging = allowExtraLogging;
+    public GradleExecuter noExtraLogging() {
+        this.allowExtraLogging = false;
         return this;
     }
 

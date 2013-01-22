@@ -48,7 +48,7 @@ Thread.sleep(60000)
 
     def "reports exact number of daemons stopped and keeps console output clean"() {
         given:
-        executer.allowExtraLogging = false
+        executer.noExtraLogging()
         executer.run()
 
         when:

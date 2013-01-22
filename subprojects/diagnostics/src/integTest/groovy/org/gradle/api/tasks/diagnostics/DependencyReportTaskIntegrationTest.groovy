@@ -75,7 +75,7 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.allowExtraLogging = false
+        executer.noExtraLogging()
         run "dependencies"
 
         then:
@@ -107,7 +107,7 @@ foo
         """
 
         when:
-        executer.allowExtraLogging = false
+        executer.noExtraLogging()
         run "dependencies"
 
         then:
@@ -140,7 +140,7 @@ foo
         """
 
         when:
-        executer.allowExtraLogging = false
+        executer.noExtraLogging()
         run "dependencies"
 
         then:
@@ -177,7 +177,7 @@ config
         """
 
         when:
-        executer.allowExtraLogging = false
+        executer.noExtraLogging()
         run "dependencies"
 
         then:
