@@ -45,6 +45,10 @@ public class ModuleScopedParserSettings implements ParserSettings {
         this.currentRevisionId = currentRevisionId;
     }
 
+    public ModuleRevisionId getCurrentRevisionId() {
+        return currentRevisionId;
+    }
+
     public DependencyResolver getResolver(ModuleRevisionId mRevId) {
         if (mRevId.equals(currentRevisionId)) {
             return currentResolver;

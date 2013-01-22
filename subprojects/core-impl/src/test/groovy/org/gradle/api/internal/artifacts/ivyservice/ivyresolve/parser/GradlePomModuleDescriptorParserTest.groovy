@@ -29,7 +29,7 @@ import spock.lang.Specification
 class GradlePomModuleDescriptorParserTest extends Specification {
     @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser()
-    final ParserSettings ivySettings = Mock()
+    final ModuleScopedParserSettings ivySettings = Mock()
     TestFile pomFile
 
     def "setup"() {
@@ -37,7 +37,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
     }
 
     def "parses simple pom"() {
-        when:
+        given:
         pomFile << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -57,6 +57,9 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 </project>
 """
         and:
+        ivySettings.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
         def descriptor = parsePom()
 
         then:
@@ -68,7 +71,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
     }
 
     def "pom with dependency with classifier"() {
-        when:
+        given:
         pomFile << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -87,6 +90,9 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 </project>
 """
         and:
+        ivySettings.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
         def descriptor = parsePom()
 
         then:
@@ -99,7 +105,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 
     @Issue("GRADLE-2068")
     def "pom with dependency with empty classifier is treated like dependency without classifier"() {
-        when:
+        given:
         pomFile << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -118,6 +124,9 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 </project>
 """
         and:
+        ivySettings.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
         def descriptor = parsePom()
 
         then:
@@ -130,7 +139,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 
     @Issue("GRADLE-2076")
     def "pom with packaging of type eclipse-plugin creates jar artifact"() {
-        when:
+        given:
         pomFile << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -141,6 +150,9 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 </project>
 """
         and:
+        ivySettings.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
         def descriptor = parsePom()
 
         then:
