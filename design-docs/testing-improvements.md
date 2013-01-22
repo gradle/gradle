@@ -73,6 +73,25 @@ HTML report is generated from the binary format, not from XML results
 - Spike using [jatl](http://code.google.com/p/jatl/) to generate the report instead of using the DOM.
 - Change the report rendering so that it copies the test output directly from `TestResultsProvider` to file, rather than loading it into heap.
 
+## Bug GRADLE-2649: Test report shows implementation class for tests run via `@RunWith(Suite.class)`
+
+- Change `DecoratingTestDescriptor.getClassName()` to return the delegate's class name.
+- Change `TestReportDataCollector.onOutput()` to create a class test result object when the test descriptor has a class name associated with it, and
+  there are no results for the test class.
+
+### Coverage
+
+- A JUnit 4 suite `SomeSuite` includes 2 test classes `Class1` and `Class2`, and has @BeforeClass and @AfterClass methods that generate logging.
+    - The XML results should include an XML file for `SomeSuite` containing its logging, an XML file for `Class1` containing its tests and their
+      logging, and an XML file for `Class2` containing its tests and their logging.
+    - The HTML report should include the same information.
+- A JUnit 3 suite `SomeSuite` includes 2 test classes, wrapped in a `TestSetup` decorator that generates logging during setup and teardown. The suite includes
+  2 test classes `Class1` and `Class2`.
+    - The XML results and HTML report should include the same information as the previous test case.
+- Multiple JUnit suites that include the same test class `SomeClass`.
+    - The XML results should include an XML file for `SomeClass` that includes each test method multiple times, one for each time it was executed.
+    - The HTML report should include the same information.
+
 ## Story: Aggregate HTML test report can be generated
 
 - Change test task to persist test results in internal format.
