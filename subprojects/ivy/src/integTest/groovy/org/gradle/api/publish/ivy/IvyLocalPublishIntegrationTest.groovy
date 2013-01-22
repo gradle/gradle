@@ -23,7 +23,7 @@ import spock.lang.Issue
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 
 public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
-    public void canPublishToLocalFileRepository() {
+    def "can publish to local file repository"() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")
 
@@ -61,7 +61,7 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2456")
-    public void generatesSHA1FileWithLeadingZeros() {
+    def "generates SHA1 file with leading zeros"() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")
         byte[] jarBytes = [0, 0, 0, 5]
@@ -70,15 +70,10 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
         def artifactPath = TextUtil.escape(artifactFile.path)
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
-            apply plugin: 'java'
             apply plugin: 'ivy-publish'
 
             group = "org.gradle"
             version = '2'
-
-            artifacts {
-                archives file: file("${artifactPath}"), name: 'testfile', type: 'bin'
-            }
 
             publishing {
                 repositories {
@@ -88,7 +83,7 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     ivy(IvyPublication) {
-                        from components.java
+                        artifact file: file("${artifactPath}"), name: 'testfile', type: 'bin'
                     }
                 }
             }
@@ -103,7 +98,7 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-1811")
-    public void canGenerateTheIvyXmlWithoutPublishing() {
+    def "can generate ivy.xml without publishing"() {
         given:
         def module = ivyRepo.module("org.gradle", "generateIvy", "2")
 
@@ -142,7 +137,7 @@ public class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
         with (ivy.artifacts['generateIvy']) {
             name == 'generateIvy'
             ext == 'jar'
-            conf == ['archives', 'runtime']
+            conf == ['runtime']
         }
 
         and:

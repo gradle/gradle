@@ -53,7 +53,7 @@ class IvyEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     ivyEar(IvyPublication) {
-
+                        artifact ear
                     }
                 }
             }

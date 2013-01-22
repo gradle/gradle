@@ -20,11 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
+import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -36,14 +40,16 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final String name;
     private final IvyModuleDescriptorInternal descriptor;
     private final Module module;
+    private final DefaultIvyArtifactSet ivyArtifacts;
     private FileCollection descriptorFile;
     private SoftwareComponentInternal component;
 
     public DefaultIvyPublication(
-            String name, Instantiator instantiator, Module module
+            String name, Instantiator instantiator, Module module, NotationParser<IvyArtifact> ivyArtifactParser
     ) {
         this.name = name;
         this.module = module;
+        ivyArtifacts = new DefaultIvyArtifactSet(ivyArtifactParser);
         descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, this);
     }
 
@@ -65,16 +71,25 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public void from(SoftwareComponent component) {
         if (this.component != null) {
-            throw new InvalidUserDataException("A MavenPublication cannot include multiple components");
+            throw new InvalidUserDataException("An IvyPublication cannot include multiple components");
         }
         this.component = (SoftwareComponentInternal) component;
+
+        for (PublishArtifact publishArtifact : this.component.getArtifacts()) {
+            artifact(publishArtifact);
+        }
+    }
+
+    public IvyArtifact artifact(Object source) {
+        return ivyArtifacts.addArtifact(source);
+    }
+
+    public IvyArtifact artifact(Object source, Action<IvyArtifact> config) {
+        return ivyArtifacts.addArtifact(source, config);
     }
 
     public FileCollection getPublishableFiles() {
-        if (component == null) {
-            return descriptorFile;
-        }
-        return new UnionFileCollection(component.getArtifacts().getFiles(), descriptorFile);
+        return new UnionFileCollection(ivyArtifacts.getFiles(), descriptorFile);
     }
 
     public Module getModule() {
@@ -87,7 +102,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public IvyNormalizedPublication asNormalisedPublication() {
         // TODO:DAZ Handle missing component
-        return new IvyNormalizedPublication(getModule(), component.getArtifacts(), getDescriptorFile());
+        return new IvyNormalizedPublication(getModule(), ivyArtifacts, getDescriptorFile());
     }
 
     private File getDescriptorFile() {

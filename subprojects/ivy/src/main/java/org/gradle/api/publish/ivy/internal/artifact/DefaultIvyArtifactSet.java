@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publish.maven.internal.artifact;
+
+package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
@@ -24,32 +25,32 @@ import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.publish.maven.MavenArtifactSet;
+import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.IvyArtifactSet;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifact> implements MavenArtifactSet {
+public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> implements IvyArtifactSet {
     private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
     private final ArtifactsFileCollection files = new ArtifactsFileCollection();
-    private final NotationParser<MavenArtifact> mavenArtifactParser;
+    private final NotationParser<IvyArtifact> ivyArtifactParser;
 
-    public DefaultMavenArtifactSet(NotationParser<MavenArtifact> mavenArtifactParser) {
-        super(MavenArtifact.class);
-        this.mavenArtifactParser = mavenArtifactParser;
+    public DefaultIvyArtifactSet(NotationParser<IvyArtifact> ivyArtifactParser) {
+        super(IvyArtifact.class);
+        this.ivyArtifactParser = ivyArtifactParser;
     }
 
-    public MavenArtifact addArtifact(Object source) {
-        MavenArtifact artifact = mavenArtifactParser.parseNotation(source);
+    public IvyArtifact addArtifact(Object source) {
+        IvyArtifact artifact = ivyArtifactParser.parseNotation(source);
         add(artifact);
         return artifact;
     }
 
-    public MavenArtifact addArtifact(Object source, Action<MavenArtifact> config) {
-        MavenArtifact artifact = addArtifact(source);
+    public IvyArtifact addArtifact(Object source, Action<IvyArtifact> config) {
+        IvyArtifact artifact = addArtifact(source);
         config.execute(artifact);
         return artifact;
     }
@@ -61,7 +62,7 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     private class ArtifactsFileCollection extends AbstractFileCollection {
 
         public String getDisplayName() {
-            return "maven artifacts";
+            return "Ivy artifacts";
         }
 
         @Override
@@ -71,7 +72,7 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
 
         public Set<File> getFiles() {
             Set<File> files = new LinkedHashSet<File>();
-            for (MavenArtifact artifact : DefaultMavenArtifactSet.this) {
+            for (IvyArtifact artifact : DefaultIvyArtifactSet.this) {
                 files.add(artifact.getFile());
             }
             return files;
@@ -80,9 +81,9 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
 
     private class ArtifactsTaskDependency extends AbstractTaskDependency {
         public void resolve(TaskDependencyResolveContext context) {
-            for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
-                if (mavenArtifact instanceof Buildable) {
-                    context.add(mavenArtifact);
+            for (IvyArtifact ivyArtifact : DefaultIvyArtifactSet.this) {
+                if (ivyArtifact instanceof Buildable) {
+                    context.add(ivyArtifact);
                 }
             }
         }

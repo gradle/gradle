@@ -38,10 +38,9 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         IvyDescriptor ivy = ivyModule.ivy
-        ivy.artifacts.ivypublishSource.mavenAttributes.classifier == "src"
-        ivy.configurations.keySet() == ['archives', 'compile', 'default', 'runtime'] as Set
-        ivy.dependencies.compile.assertDependsOn('junit', 'junit', '4.10')
-        ivy.dependencies.compile.assertDependsOn('ivypublish', 'subproject', 'unspecified')
+        ivy.configurations.keySet() == ['default', 'runtime'] as Set
+        ivy.dependencies.runtime.assertDependsOn('junit', 'junit', '4.10')
+        ivy.dependencies.runtime.assertDependsOn('ivypublish', 'subproject', 'unspecified')
 
         def actualIvyXmlText = ivyModule.ivyFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
         actualIvyXmlText == expectedIvyOutput

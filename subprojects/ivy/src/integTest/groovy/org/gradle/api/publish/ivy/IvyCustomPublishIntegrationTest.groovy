@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
 class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
 
@@ -30,7 +31,7 @@ class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'rootProject.name = "publish"'
     }
 
-    public void "can publish custom configurations with java plugin"() {
+    public void "can publish custom artifact with java plugin"() {
         given:
         buildFile << """
             apply plugin: 'java'
@@ -39,18 +40,16 @@ class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
             version = '2'
             group = 'org.gradle'
 
-            configurations { custom }
-            artifacts {
-                custom file("${artifact.name}"), {
-                    name "foo"
-                    extension "txt"
-                }
-            }
-
             publishing {
                 repositories {
                     ivy {
                         url "${ivyRepo.uri}"
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        artifact file: "${artifact.name}", name: "foo", extension: "txt"
                     }
                 }
             }
@@ -65,10 +64,11 @@ class IvyCustomPublishIntegrationTest extends AbstractIntegrationSpec {
         with(module.ivy.artifacts.foo) {
             name == "foo"
             ext == "txt"
-            "custom" in conf
+            "runtime" in conf
         }
     }
 
+    @Ignore // Need to add ability to specify configurations
     public void "can publish custom configurations"() {
         given:
         buildFile << """

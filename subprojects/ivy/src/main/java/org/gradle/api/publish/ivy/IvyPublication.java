@@ -84,9 +84,7 @@ import org.gradle.api.publish.Publication;
  * Each {@code GenerateIvyTask} is automatically a dependency of the respective {@code PublishToIvyRepository} task, so this task is only required for
  * generating the ivy.xml file without also publishing your module.
  *
- * <pre autoTested="true">
- * apply plugin: 'ivy-publish'
-
+ * <pre>
  * generateIvyModuleDescriptor {
  *     destination = file('generated-ivy.xml') // Override the default file that will contain the descriptor
  * }
@@ -116,5 +114,9 @@ public interface IvyPublication extends Publication {
     void descriptor(Action<? super IvyModuleDescriptor> configure);
 
     void from(SoftwareComponent component);
+
+    IvyArtifact artifact(Object source);
+
+    IvyArtifact artifact(Object source, Action<IvyArtifact> config);
 
 }

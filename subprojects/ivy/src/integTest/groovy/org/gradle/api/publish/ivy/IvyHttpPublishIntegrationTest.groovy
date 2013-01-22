@@ -51,7 +51,7 @@ credentials {
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
     }
 
-    public void canPublishToUnauthenticatedHttpRepository() {
+    def "can publish to unauthenticated HTTP repository"() {
         given:
         server.start()
         settingsFile << 'rootProject.name = "publish"'
@@ -193,7 +193,7 @@ credentials {
         HttpServer.AuthScheme.DIGEST | 'bad'     | BAD_CREDENTIALS
     }
 
-    public void reportsFailedPublishToHttpRepository() {
+    def "reports failure publishing to HTTP repository"() {
         given:
         server.start()
         def repositoryUrl = "http://localhost:${server.port}"
@@ -239,7 +239,7 @@ credentials {
         failure.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
 
-    public void usesFirstConfiguredPatternForPublication() {
+    def "uses first configured pattern for publication"() {
         given:
         server.start()
 
@@ -286,21 +286,10 @@ credentials {
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
-            apply plugin: 'base'
             apply plugin: 'ivy-publish'
 
             version = '2'
             group = 'org.gradle'
-
-            configurations {
-                archives
-            }
-
-            artifacts {
-                archives(file('$toolsJar')) {
-                    name 'tools'
-                }
-            }
 
             publishing {
                 repositories {
@@ -314,7 +303,9 @@ credentials {
                 }
                 publications {
                     ivy(IvyPublication) {
-                        from components.java
+                        artifact('$toolsJar') {
+                            name 'tools'
+                        }
                     }
                 }
             }

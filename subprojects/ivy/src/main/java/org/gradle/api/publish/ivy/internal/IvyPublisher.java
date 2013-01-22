@@ -21,11 +21,11 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.Cast;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
+import org.gradle.api.publish.ivy.IvyArtifact;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -38,7 +38,7 @@ public class IvyPublisher {
 
         try {
 
-            for (PublishArtifact publishArtifact : publication.getArtifacts()) {
+            for (IvyArtifact publishArtifact : publication.getArtifacts()) {
                 Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleRevisionId);
                 dependencyResolver.publish(ivyArtifact, publishArtifact.getFile(), true);
             }
@@ -50,13 +50,13 @@ public class IvyPublisher {
         }
     }
 
-    public Artifact createIvyArtifact(PublishArtifact publishArtifact, ModuleRevisionId moduleRevisionId) {
+    public Artifact createIvyArtifact(IvyArtifact ivyArtifact, ModuleRevisionId moduleRevisionId) {
         return new DefaultArtifact(
                 moduleRevisionId,
-                publishArtifact.getDate(),
-                publishArtifact.getName(),
-                publishArtifact.getType(),
-                publishArtifact.getExtension(),
+                null,
+                ivyArtifact.getName(),
+                ivyArtifact.getType(),
+                ivyArtifact.getExtension(),
                 new HashMap<String, String>());
     }
 }

@@ -27,7 +27,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
@@ -37,6 +36,7 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.xml.XmlTransformer;
+import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
 import org.gradle.api.specs.Specs;
@@ -132,7 +132,8 @@ public class GenerateIvyDescriptor extends DefaultTask {
         for (Dependency runtimeDependency : descriptorInternal.getRuntimeDependencies()) {
             ivyDescriptorBuilder.addDependency("runtime", runtimeDependency);
         }
-        for (PublishArtifact artifact : descriptorInternal.getArtifacts()) {
+
+        for (IvyArtifact artifact : descriptorInternal.getArtifacts()) {
             ivyDescriptorBuilder.addArtifact("runtime", artifact);
         }
 
@@ -195,11 +196,11 @@ public class GenerateIvyDescriptor extends DefaultTask {
             moduleDescriptor.addConfiguration(configuration);
         }
 
-        public void addArtifact(String configuration, PublishArtifact artifact) {
+        public void addArtifact(String configuration, IvyArtifact artifact) {
             moduleDescriptor.addArtifact(configuration, createIvyArtifact(artifact, moduleDescriptor.getModuleRevisionId()));
         }
 
-        private Artifact createIvyArtifact(PublishArtifact ivyArtifact, ModuleRevisionId moduleRevisionId) {
+        private Artifact createIvyArtifact(IvyArtifact ivyArtifact, ModuleRevisionId moduleRevisionId) {
             return new DefaultArtifact(
                     moduleRevisionId,
                     null,

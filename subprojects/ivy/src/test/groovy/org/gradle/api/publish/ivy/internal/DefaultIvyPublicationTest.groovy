@@ -15,100 +15,217 @@
  */
 
 package org.gradle.api.publish.ivy.internal
-import org.gradle.api.Task
-import org.gradle.api.artifacts.Configuration
+
+import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.HelperUtil
+import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.api.publish.ivy.IvyArtifact
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class DefaultIvyPublicationTest extends Specification {
 
-    ProjectInternal project = HelperUtil.createRootProject()
-    def taskDependencies = Mock(TaskDependency)
+    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    Module module = Mock()
+    NotationParser<IvyArtifact> notationParser = Mock()
+    File descriptorFile
+    File artifactFile
 
-    DefaultIvyPublication publication(String name = "ivy", Configuration... configurations) {
-        Instantiator instantiator = project.getServices().get(Instantiator)
-        instantiator.newInstance(DefaultIvyPublication, name, instantiator, configurations as Set, project, project.fileResolver, project.tasks)
+    def "setup"() {
+        descriptorFile = new File(testDirectoryProvider.testDirectory, "pom-file")
+        artifactFile = new File(testDirectoryProvider.testDirectory, "artifact-file")
+        artifactFile << "some content"
     }
 
-    def "publishable files are the artifact files"() {
+    def "name property is passed through"() {
         when:
-        def file1 = project.file("file1")
-        def descriptorFile1 = project.file("ivy1.xml")
-
-        project.configurations { conf1 }
-        project.artifacts { conf1 file1 }
-        def p = publication(project.configurations.conf1)
-        p.descriptorArtifact = descriptorArtifact(descriptorFile1)
+        def publication = createPublication()
 
         then:
-        p.publishableFiles.files == [file1, descriptorFile1] as Set
-
-        when:
-        def file2 = project.file("file2")
-        def descriptorFile2 = project.file("ivy2.xml")
-        project.configurations { conf2 }
-        project.artifacts { conf2 file2 }
-        p = publication(project.configurations.conf1, project.configurations.conf2)
-        p.descriptorArtifact = descriptorArtifact(descriptorFile2)
-
-        then:
-        p.publishableFiles.files == [file1, file2, descriptorFile2] as Set
+        publication.name == "pub-name"
     }
 
-    def "publication is built by what builds the artifacts and descriptor"() {
+    def "project identity is taken directly adapted from project module"() {
+        when:
+        module.name >> "name"
+        module.group >> "group"
+        module.version >> "version"
+
+        and:
+        def publication = createPublication()
+        def descriptorModule = publication.descriptor.module
+
+        then:
+        descriptorModule.group == "group"
+        descriptorModule.name == "name"
+        descriptorModule.version == "version"
+    }
+
+    def "empty publishableFiles and artifacts when no component is added"() {
+        when:
+        def publication = createPublication()
+
+        then:
+        publication.publishableFiles.files == [descriptorFile] as Set
+        publication.asNormalisedPublication().artifacts.empty
+        publication.runtimeDependencies.empty
+    }
+
+    def "publishableFiles and artifacts when taken from added component"() {
         given:
-        project.plugins.apply(JavaBasePlugin)
-        Task dummyTask = project.task("dummyTask")
+        def publication = createPublication()
+
+        SoftwareComponentInternal component = Mock()
+        PublishArtifactSet publishArtifactSet = Mock()
+        PublishArtifact artifact = Mock()
+        DependencySet dependencySet = Mock()
+
+        IvyArtifact ivyArtifact = Mock()
 
         when:
-        def task1 = project.tasks.add("task1", Jar)
-        task1.baseName = "task1"
-        project.configurations { conf1 }
-        project.artifacts { conf1 task1 }
-        def p = publication(project.configurations.conf1)
+        component.artifacts >> publishArtifactSet
+        publishArtifactSet.iterator() >> [artifact].iterator()
+        component.runtimeDependencies >> dependencySet
+
+        notationParser.parseNotation(artifact) >> ivyArtifact
+        ivyArtifact.file >> artifactFile
+
+        and:
+        publication.from(component)
 
         then:
-        p.publishableFiles.buildDependencies.getDependencies(dummyTask) == [task1] as Set
-
-        when:
-        def task2 = project.tasks.add("task2", Jar)
-        project.configurations { conf2 }
-        project.artifacts { conf2 task2 }
-        p = publication(project.configurations.conf1, project.configurations.conf2)
-
-        then:
-        p.publishableFiles.buildDependencies.getDependencies(dummyTask) == [task1, task2] as Set
-
-        when:
-        def task3 = project.tasks.add("task3")
-        p.descriptorArtifact = descriptorArtifact(project.file("ivy.xml"))
-        1 * taskDependencies.getDependencies(_) >> [task3]
-
-        then:
-        p.publishableFiles.buildDependencies.getDependencies(dummyTask) == [task1, task2, task3] as Set
+        publication.publishableFiles.files == [descriptorFile, artifactFile] as Set
+        publication.asNormalisedPublication().artifacts == [ivyArtifact] as Set
+        publication.runtimeDependencies == dependencySet
     }
 
-    def "can get publishable files when no descriptor file set"() {
+    def "cannot add multiple components"() {
+        given:
+        def publication = createPublication()
+        SoftwareComponentInternal component = Mock()
+        PublishArtifactSet publishArtifactSet = Mock()
+
         when:
-        def file1 = project.file("file1")
-        project.configurations { conf1 }
-        project.artifacts { conf1 file1 }
-        def p = publication(project.configurations.conf1)
+        publication.from(component)
 
         then:
-        p.publishableFiles.files == [file1] as Set
+        component.artifacts >> publishArtifactSet
+        publishArtifactSet.iterator() >> [].iterator()
+
+        when:
+        publication.from(Mock(SoftwareComponentInternal))
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "An IvyPublication cannot include multiple components"
     }
 
-    PublishArtifact descriptorArtifact(File descriptorFile) {
-        Mock(PublishArtifact) {
-            getFile() >> descriptorFile
-            getBuildDependencies() >> taskDependencies
+    def "attaches artifacts parsed by notation parser"() {
+        given:
+        def publication = createPublication()
+        Object notation = new Object();
+        IvyArtifact ivyArtifact = Mock()
+
+        when:
+        notationParser.parseNotation(notation) >> ivyArtifact
+        ivyArtifact.file >> artifactFile
+
+        and:
+        publication.artifact notation
+
+        then:
+        publication.publishableFiles.files == [descriptorFile, artifactFile] as Set
+        publication.asNormalisedPublication().artifacts == [ivyArtifact] as Set
+    }
+
+    def "attaches and configures artifacts parsed by notation parser"() {
+        given:
+        def publication = createPublication()
+        Object notation = new Object();
+        IvyArtifact ivyArtifact = Mock()
+
+        when:
+        notationParser.parseNotation(notation) >> ivyArtifact
+        ivyArtifact.file >> artifactFile
+        1 * ivyArtifact.setExtension('changed')
+        0 * ivyArtifact._
+
+        and:
+        publication.artifact(notation, new Action<IvyArtifact>() {
+            void execute(IvyArtifact t) {
+                t.extension = 'changed'
+            }
+        })
+
+        then:
+        publication.asNormalisedPublication().artifacts == [ivyArtifact] as Set
+        publication.publishableFiles.files == [descriptorFile, artifactFile] as Set
+    }
+
+    @Ignore // Not yet implemented
+    def "can use setter to replace existing artifacts set"() {
+        given:
+        def publication = createPublication()
+        Object notation = new Object();
+        IvyArtifact ivyArtifact1 = Mock()
+        IvyArtifact ivyArtifact2 = Mock()
+
+        when:
+        publication.artifact "notation"
+
+        then:
+        notationParser.parseNotation(notation) >> Mock(IvyArtifact)
+
+        when:
+        publication.artifacts = ["notation1", "notation2"]
+
+        then:
+        notationParser.parseNotation("notation1") >> ivyArtifact1
+        notationParser.parseNotation("notation2") >> ivyArtifact2
+
+        and:
+        publication.asNormalisedPublication().artifacts == [ivyArtifact1, ivyArtifact2] as Set
+    }
+
+    @Ignore // Not yet implemented
+    def "getting normalised publication will fail with file that does not exist"() {
+        def publication = createPublication()
+        Object notation = new Object();
+        IvyArtifact ivyArtifact = Mock()
+        def nonExistentFile = new File(testDirectoryProvider.testDirectory, 'does-not-exist')
+
+        when:
+        publication.artifact notation
+        publication.asNormalisedPublication()
+
+        then:
+        notationParser.parseNotation(notation) >> ivyArtifact
+        ivyArtifact.file >> nonExistentFile
+
+        and:
+        def t = thrown InvalidIvyPublicationException
+        t.message == "Attempted to publish an artifact that does not exist: '${nonExistentFile}'"
+    }
+
+    def createPublication() {
+        def publication = new DefaultIvyPublication("pub-name", new DirectInstantiator(), module, notationParser)
+        publication.setDescriptorFile(new SimpleFileCollection(descriptorFile))
+        return publication;
+    }
+
+    def createArtifact() {
+        IvyArtifact artifact = Mock() {
+            getFile() >> artifactFile
         }
+        return artifact
     }
 }

@@ -31,11 +31,6 @@ class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
             group = "org.gradle.test"
             version = 1.9
 
-            configurations {
-                toPublish.visible = false
-                archives.extendsFrom toPublish
-            }
-
             task jar1(type: Jar) {
                 baseName = "jar1"
                 from "file1"
@@ -46,14 +41,16 @@ class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
                 from "file2"
             }
 
-            artifacts {
-                toPublish jar1, jar2
-            }
-
             publishing {
                 repositories {
                     ivy {
                         url "${ivyRepo.uri}"
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        artifact jar1
+                        artifact jar2
                     }
                 }
             }
@@ -70,7 +67,8 @@ class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         def ivyDescriptor = ivyModule.ivy
-        ivyDescriptor.expectArtifact("jar1").conf == ["archives", "toPublish"]
-        ivyDescriptor.expectArtifact("jar2").conf == ["toPublish"]
+        // TODO:DAZ Should not be 'runtime'
+        ivyDescriptor.expectArtifact("jar1").conf == ["runtime"]
+        ivyDescriptor.expectArtifact("jar2").conf == ["runtime"]
     }
 }

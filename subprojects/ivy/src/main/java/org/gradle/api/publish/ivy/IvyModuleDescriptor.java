@@ -42,7 +42,7 @@ public interface IvyModuleDescriptor {
      *
      * publishing {
      *   publications {
-     *     ivy {
+     *     ivy(IvyPublication) {
      *       descriptor {
      *         withXml {
      *           asNode().dependencies.dependency.find { it.@org == "junit" }.@rev = "4.10"

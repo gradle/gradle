@@ -18,7 +18,6 @@ repositories {
 task sourceJar(type: Jar) {
     baseName = 'ivypublishSource'
     from sourceSets.main.java
-    classifier = 'src'
 }
 
 artifacts {
@@ -43,6 +42,12 @@ publishing {
     }
 // END SNIPPET repositories
 // START SNIPPET input
+    publications {
+        ivy(IvyPublication) {
+            from components.java
+            artifact sourceJar
+        }
+    }
 // START SNIPPET descriptor-mod
     publications {
         ivy {

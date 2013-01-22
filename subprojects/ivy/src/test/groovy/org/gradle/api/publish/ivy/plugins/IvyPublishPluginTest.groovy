@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
+import org.gradle.api.publish.ivy.internal.DefaultIvyPublication
 import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
 import org.gradle.util.HelperUtil
@@ -35,12 +36,37 @@ class IvyPublishPluginTest extends Specification {
         extension = project.extensions.getByType(PublishingExtension)
     }
 
-    def "installs ivy publication"() {
+    def "no publication without component"() {
         expect:
-        extension.publications.size() == 1
-        extension.publications.toList().first() instanceof IvyPublication
+        extension.publications.empty
+    }
 
+    def "publication can be added"() {
+        when:
+        extension.publications.add("test", IvyPublication)
+
+        then:
+        extension.publications.size() == 1
+        extension.publications.test instanceof DefaultIvyPublication
+    }
+
+    def "creates publish task for publication and repository"() {
+        when:
+        extension.publications.add("test", IvyPublication)
+        extension.repositories { ivy { url = "http://foo.com" } }
+        def publishTask = project.tasks["publishTestPublicationToIvyRepository"]
+
+        then:
+        publishTask != null
+        project.tasks["publish"].dependsOn.contains publishTask
+    }
+
+    def "ivy publication takes coordinates from project"() {
+        when:
+        extension.publications.add("ivy", IvyPublication)
         IvyPublicationInternal publication = extension.publications.ivy
+
+        then:
         publication.name == "ivy"
 
         when:
@@ -71,6 +97,7 @@ class IvyPublishPluginTest extends Specification {
 
     def "can configure descriptor"() {
         given:
+        extension.publications.add("ivy", IvyPublication)
         IvyPublicationInternal publication = extension.publications.ivy
 
         when:

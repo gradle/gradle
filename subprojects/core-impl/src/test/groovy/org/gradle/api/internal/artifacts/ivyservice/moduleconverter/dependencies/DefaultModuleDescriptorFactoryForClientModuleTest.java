@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;

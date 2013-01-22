@@ -78,7 +78,7 @@ class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specifica
         Mock(IvyPublicationInternal) {
             getName() >> name
             getDescriptor() >> moduleDescriptor
-            1 * setDescriptorArtifact({it.file.path.contains name})
+            1 * setDescriptorFile({it.singleFile.path.contains name})
         }
     }
 

@@ -38,6 +38,11 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
                 repositories {
                     ivy { url "${ivyRepo.uri}" }
                 }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
             }
         """
     }
@@ -56,7 +61,7 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
         buildFile << """
             publishing {
                 publications {
-                    ivy(IvyPublication) {
+                    ivy {
                         descriptor {
                             withXml {
                                 asNode().info[0].@revision = "3"
@@ -83,11 +88,9 @@ class IvyPublishDescriptorModificationIntegTest extends AbstractIntegrationSpec 
         buildFile << """
             publishing {
                 publications {
-                    ivy(IvyPublication) {
-                        descriptor {
-                            withXml {
-                                asNode().foo = "3"
-                            }
+                    ivy {
+                        descriptor.withXml {
+                            asNode().foo = "3"
                         }
                     }
                 }

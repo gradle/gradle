@@ -4,18 +4,16 @@
 <ivy-module version="2.0">
   <info organisation="org.gradle.test" module="ivypublish" revision="1.0" status="integration" publication="«PUBLICATION-TIME-STAMP»"/>
   <configurations>
-    <conf name="archives" visibility="public" description="Configuration for archive artifacts."/>
-    <conf name="compile" visibility="private" description="Classpath for compiling the main sources."/>
-    <conf name="default" visibility="public" description="Configuration for default artifacts." extends="runtime"/>
-    <conf name="runtime" visibility="private" description="Classpath for running the compiled main classes." extends="compile"/>
+    <conf name="runtime" visibility="public"/>
+    <conf name="default" visibility="public" extends="runtime"/>
   </configurations>
   <publications>
-    <artifact name="ivypublish" type="jar" ext="jar" conf="archives,runtime"/>
-    <artifact name="ivypublishSource" type="jar" ext="jar" conf="archives" m:classifier="src" xmlns:m="http://ant.apache.org/ivy/maven"/>
+    <artifact name="ivypublish" type="jar" ext="jar" conf="runtime"/>
+    <artifact name="ivypublishSource" type="jar" ext="jar" conf="runtime"/>
   </publications>
   <dependencies>
-    <dependency org="junit" name="junit" rev="4.10" conf="compile-&gt;default"/>
-    <dependency org="ivypublish" name="subproject" rev="unspecified" conf="compile-&gt;default"/>
+    <dependency org="junit" name="junit" rev="4.10" conf="runtime-&gt;default"/>
+    <dependency org="ivypublish" name="subproject" rev="unspecified" conf="runtime-&gt;default"/>
   </dependencies>
 </ivy-module>
 <!-- END SNIPPET content -->

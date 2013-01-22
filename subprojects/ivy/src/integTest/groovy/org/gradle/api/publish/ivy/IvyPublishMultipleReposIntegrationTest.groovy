@@ -50,8 +50,11 @@ class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
 
             publishing {
                 publications {
-                    ivy.descriptor.withXml {
-                        asNode().info[0].appendNode('description', 'test module')
+                    ivy(IvyPublication) {
+                        from components.java
+                        descriptor.withXml {
+                            asNode().info[0].appendNode('description', 'test module')
+                        }
                     }
                 }
                 repositories {

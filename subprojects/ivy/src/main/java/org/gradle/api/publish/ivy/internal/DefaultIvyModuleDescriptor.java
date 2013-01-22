@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.UserCodeAction;
+import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.listener.ActionBroadcast;
 
 import java.util.Set;
@@ -47,7 +47,7 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
         return xmlActions;
     }
 
-    public Set<PublishArtifact> getArtifacts() {
+    public Set<IvyArtifact> getArtifacts() {
         return ivyPublication.asNormalisedPublication().getArtifacts();
     }
 
