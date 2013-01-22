@@ -216,13 +216,14 @@ Allow the distributions defined by the `distribution` to be configured and remov
 1. Change the `Distribution` type to add a `baseName` property. This should default to:
     - `project.name` for the `main` distribution.
     - `$project.name-${dist.name}` for other distributions.
-2. Change the `distribution` plugin to configure the dist zip task to add `into {$dist.baseName}`. Remove the corresponding configuration from the `java-library-distribution`
-    plugin and remove the `name` property from the `distribution` extension.
-3. Change the `Distribution` type to add a `contents` property of type `CopySpec`. This should default to:
-    - from `src/${dist.name}/dist`
-4. Change the `distribution` plugin to configure the dist zip task to add `from $dist.contents`.
-5. Change the `java-library-distribution` plugin to configure the main distribution's `contents` property instead of the dist zip task.
-6. Change the `java-library-distribution` plugin so that it no longer adds the `distribution` extension, and remove the `DistributionExtension` implementation.
+2. Make `Distribution.name` immutable.
+3. Change the `distribution` plugin to configure the dist zip task to add `into {$dist.baseName}-${project.version}`. Remove the corresponding
+   configuration from the `java-library-distribution` plugin.
+4. Change the `java-library-distribution` plugin so that it no longer adds the `distribution` extension, and remove the `DistributionExtension`
+   implementation.
+5. Change the `Distribution` type to add a `contents` property of type `CopySpec`. This should default to: `from 'src/${dist.name}/dist'`
+6. Change the `distribution` plugin to configure the dist zip task to add `from $dist.contents`.
+7. Change the `java-library-distribution` plugin to configure the main distribution's `contents` property instead of the dist zip task.
 
 ### DSL
 
@@ -230,14 +231,24 @@ To generate a distribution for a Java library:
 
     apply plugin: 'java-library-distribution` // implies `java` and `distribution` plugins
 
+    version = 1.2
+
     distributions {
         main {
             baseName = 'someName'
             contents {
-                from { ... }
+                from { 'src/dist' }
             }
         }
     }
+
+Given that the project name is `myproject`, then running `gradle distZip` will produce a ZIP file called `myproject-1.2.zip`, with the following
+contents:
+
+    myproject-1.2/
+        lib/
+            myproject-1.2.jar
+        ... some files from `src/dist` ...
 
 To generate an arbitrary distribution:
 
@@ -264,6 +275,14 @@ To generate multiple distributions:
         }
     }
 
+## Test coverage
+
+* ZIP file and prefix are correct when the project does and does not have a version specified.
+* ZIP file and prefix are correct when the distribution `baseName` has been specified.
+* ZIP file includes files from `src/main/${dist.name}`.
+* ZIP file includes additional files specified in `dist.contents`.
+* ZIP file is produced for custom distribution.
+
 ## Allow distributions to be installed
 
 1. Change the `distribution` plugin to add an install task of type `Sync`.
@@ -286,6 +305,11 @@ To generate multiple distributions:
 
 1. Deprecate `ApplicationPluginConvention.applicationName` and `applicationDistribution` properties.
 2. Deprecate the `installApp` task.
+
+## All distribution archives are built when project is assembled
+
+1. Running `gradle assemble` will build the ZIP and TAR archives for all distributions.
+2. Running `gradle assemble${name}Dist` will build the ZIP and TAR archives for the given distribution.
 
 ## Allow distributions to be published
 
