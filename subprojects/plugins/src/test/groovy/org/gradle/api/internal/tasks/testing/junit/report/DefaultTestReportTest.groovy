@@ -366,8 +366,6 @@ class TestResultsFixture {
         file.assertIsFile()
         content = Jsoup.parse(file, "utf-8")
         def text = file.getText('utf-8').readLines()
-        def withoutDocType = text.subList(1, text.size()).join('\n')
-//        content = new XmlParser(new SAXParser()).parseText(withoutDocType)
     }
 
     void assertHasTests(int tests) {
