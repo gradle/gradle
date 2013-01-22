@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.ivy.IvyDescriptor
 
 class IvyPublishDescriptorIntegTest extends AbstractIntegrationSpec {
 
@@ -47,7 +48,7 @@ class IvyPublishDescriptorIntegTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "can modify descriptor during publication"() {
+    def "can customise descriptor xml during publication"() {
         when:
         succeeds 'publish'
 
@@ -81,6 +82,67 @@ class IvyPublishDescriptorIntegTest extends AbstractIntegrationSpec {
         // Note that the modified “coordinates” do not affect how the module is published
         // This is not the desired behaviour and will be fixed in the future so that XML modification changes the publication model consistently.
         module.ivy.revision == "3"
+    }
+
+    def "can publish with non-ascii characters"() {
+        def organisation = 'group-√æず'
+        def moduleName = 'artifact-∫ʙぴ'
+        def version = 'version-₦ガき∆'
+        def description = 'description-ç√∫'
+        def nonAsciiModule = ivyRepo.module(organisation, moduleName, version)
+
+        given:
+        settingsFile.text = "rootProject.name = '${moduleName}'"
+        buildFile.text = """
+            apply plugin: 'ivy-publish'
+
+            group = '${organisation}'
+            version = '${version}'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        descriptor.withXml {
+                            asNode().info[0].appendNode('description', "${description}")
+                        }
+                    }
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        nonAsciiModule.assertPublished()
+        nonAsciiModule.ivy.description == description
+    }
+
+    def "can generate ivy.xml without publishing"() {
+        given:
+        def moduleName = module.module
+        buildFile << """
+            generateIvyModuleDescriptor {
+                destination = 'generated-ivy.xml'
+            }
+        """
+
+        when:
+        succeeds 'generateIvyModuleDescriptor'
+
+        then:
+        file('generated-ivy.xml').assertIsFile()
+        IvyDescriptor ivy = new IvyDescriptor(file('generated-ivy.xml'))
+        with (ivy.artifacts[moduleName]) {
+            name == moduleName
+            ext == 'jar'
+            conf == ['runtime']
+        }
+
+        and:
+        module.ivyFile.assertDoesNotExist()
     }
 
     def "produces sensible error when withXML fails"() {

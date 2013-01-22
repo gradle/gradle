@@ -20,14 +20,68 @@ package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
-    public void "can publish jar and meta-data to ivy repository"() {
-        given:
-        file("settings.gradle") << "rootProject.name = 'publishTest' "
+    def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
 
-        and:
+    public void "can publish jar and descriptor to ivy repository"() {
+        given:
+        createBuildScripts("""
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.jar")
+        // TODO:DAZ check configurations and artifacts in ivy.xml
+        ivyModule.ivy.dependencies.runtime.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
+        ivyModule.ivy.dependencies.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
+    }
+
+    public void "can publish additional artifacts for java project"() {
+        given:
+        createBuildScripts("""
+            task sourceJar(type: Jar) {
+                from sourceSets.main.allJava
+                baseName "publishTest-source"
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        artifact sourceJar
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        ivyModule.assertPublished()
+        ivyModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-source-1.9.jar", "ivy-1.9.xml")
+        with(ivyModule.ivy.artifacts."publishTest-source") {
+            name == "publishTest-source"
+            ext == "jar"
+            "runtime" in conf
+        }
+        // TODO Check artifacts in ivy.xml
+    }
+
+    def createBuildScripts(def append) {
+        settingsFile << "rootProject.name = 'publishTest' "
+
         buildFile << """
-            apply plugin: 'java'
             apply plugin: 'ivy-publish'
+            apply plugin: 'java'
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -39,30 +93,17 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
             dependencies {
                 compile "commons-collections:commons-collections:3.2.1"
                 runtime "commons-io:commons-io:1.4"
+                testCompile "junit:junit:4.11"
             }
 
             publishing {
                 repositories {
-                    ivy {
-                        url '${ivyRepo.uri}'
-                    }
-                }
-                publications {
-                    ivyJava(IvyPublication) {
-                        from components.java
-                    }
+                    ivy { url "${ivyRepo.uri}" }
                 }
             }
-        """
 
-        when:
-        run "publish"
+$append
+"""
 
-        then:
-        def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
-        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.jar")
-        // TODO:DAZ check configurations
-        ivyModule.ivy.dependencies.runtime.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
-        ivyModule.ivy.dependencies.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
     }
 }

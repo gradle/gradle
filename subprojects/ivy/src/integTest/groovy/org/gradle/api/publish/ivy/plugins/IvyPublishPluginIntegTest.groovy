@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy
+package org.gradle.api.publish.ivy.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 

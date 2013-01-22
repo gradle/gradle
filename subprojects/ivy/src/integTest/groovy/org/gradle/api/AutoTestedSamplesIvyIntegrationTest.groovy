@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy
+package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test

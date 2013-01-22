@@ -16,75 +16,22 @@
 
 
 package org.gradle.api.publish.ivy
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.spockframework.util.TextUtil
-import spock.lang.Issue
-import org.gradle.test.fixtures.ivy.IvyDescriptor
 
 public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
-    def "can publish to local file repository"() {
+
+    def "publishes nothing without defined publication"() {
         given:
-        def module = ivyRepo.module("org.gradle", "publish", "2")
-
-        settingsFile << 'rootProject.name = "publish"'
-        buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
-
-            version = '2'
-            group = 'org.gradle'
-
-            publishing {
-                repositories {
-                    ivy {
-                        url "${ivyRepo.uri}"
-                    }
-                }
-                publications {
-                    ivy(IvyPublication) {
-                        from components.java
-                    }
-                }
-            }
-        """
-
-        when:
-        succeeds 'publish'
-
-        then:
-        module.ivyFile.assertIsFile()
-        module.assertChecksumPublishedFor(module.ivyFile)
-
-        module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
-        module.assertChecksumPublishedFor(module.jarFile)
-    }
-
-    @Issue("GRADLE-2456")
-    def "generates SHA1 file with leading zeros"() {
-        given:
-        def module = ivyRepo.module("org.gradle", "publish", "2")
-        byte[] jarBytes = [0, 0, 0, 5]
-        def artifactFile = file("testfile.bin")
-        artifactFile << jarBytes
-        def artifactPath = TextUtil.escape(artifactFile.path)
-        settingsFile << 'rootProject.name = "publish"'
+        settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'ivy-publish'
 
-            group = "org.gradle"
-            version = '2'
+            group = 'group'
+            version = '1.0'
 
             publishing {
                 repositories {
-                    ivy {
-                        url "${ivyRepo.uri}"
-                    }
-                }
-                publications {
-                    ivy(IvyPublication) {
-                        artifact file: file("${artifactPath}"), name: 'testfile', type: 'bin'
-                    }
+                    ivy { url "${ivyRepo.uri}" }
                 }
             }
         """
@@ -92,72 +39,48 @@ public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        def shaOneFile = module.moduleDir.file("testfile-2.bin.sha1")
-        shaOneFile.exists()
-        shaOneFile.text == "00e14c6ef59816760e2c9b5a57157e8ac9de4012"
+        ivyRepo.module('group', 'root', '1.0').assertNotPublished()
     }
 
-    @Issue("GRADLE-1811")
-    def "can generate ivy.xml without publishing"() {
+    def "publishes empty module when publication has no added component"() {
         given:
-        def module = ivyRepo.module("org.gradle", "generateIvy", "2")
-
-        settingsFile << "rootProject.name = 'generateIvy'"
+        settingsFile << "rootProject.name = 'empty-project'"
         buildFile << """
-            apply plugin: 'java'
             apply plugin: 'ivy-publish'
 
-            version = '2'
-            group = 'org.gradle'
+            group = 'org.gradle.test'
+            version = '1.0'
 
             publishing {
                 repositories {
-                    ivy {
-                        url "${ivyRepo.uri}"
-                    }
+                    ivy { url "${ivyRepo.uri}" }
                 }
                 publications {
-                    ivy(IvyPublication) {
-                        from components.java
-                    }
+                    ivy(IvyPublication)
                 }
             }
-
-            generateIvyModuleDescriptor {
-                destination = 'generated-ivy.xml'
-            }
         """
-
         when:
-        succeeds 'generateIvyModuleDescriptor'
+        succeeds 'publish'
 
         then:
-        file('generated-ivy.xml').assertIsFile()
-        IvyDescriptor ivy = new IvyDescriptor(file('generated-ivy.xml'))
-        with (ivy.artifacts['generateIvy']) {
-            name == 'generateIvy'
-            ext == 'jar'
-            conf == ['runtime']
-        }
+        def module = ivyRepo.module('org.gradle.test', 'empty-project', '1.0')
+        module.assertPublished()
+        module.assertArtifactsPublished("ivy-1.0.xml")
+    }
+
+    def "can publish simple jar"() {
+        given:
+        def module = ivyRepo.module('group', 'root', '1.0')
 
         and:
-        module.ivyFile.assertDoesNotExist()
-    }
-
-    def "can publish with non-ascii characters"() {
-        def organisation = 'group-√æず'
-        def moduleName = 'artifact-∫ʙぴ'
-        def version = 'version-₦ガき∆'
-        def description = 'description-ç√∫'
-
-        given:
-        settingsFile << "rootProject.name = '${moduleName}'"
+        settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'java'
             apply plugin: 'ivy-publish'
+            apply plugin: 'java'
 
-            group = '${organisation}'
-            version = '${version}'
+            group = 'group'
+            version = '1.0'
 
             publishing {
                 repositories {
@@ -166,22 +89,24 @@ public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        descriptor.withXml {
-                            asNode().info[0].appendNode('description', "${description}")
-                        }
                     }
                 }
             }
         """
+
+        when:
+        succeeds 'assemble'
+
+        then: "jar is built but not published"
+        module.assertNotPublished()
+        file('build/libs/root-1.0.jar').assertExists()
+
         when:
         succeeds 'publish'
 
-        then:
-        def ivy = ivyRepo.module(organisation, moduleName, version).ivy
-        ivy.organisation == organisation
-        ivy.module == moduleName
-        ivy.revision == version
-        ivy.description == description
+        then: "jar is published to defined ivy repository"
+        module.assertPublishedAsJavaModule()
+        module.moduleDir.file('root-1.0.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
     }
 
 

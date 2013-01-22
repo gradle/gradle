@@ -200,4 +200,25 @@ class IvyFileModule extends AbstractIvyModule {
         return HashUtil.createHash(file, algorithm).asHexString()
     }
 
+    void assertNotPublished() {
+        ivyFile.assertDoesNotExist()
+    }
+
+    void assertPublished() {
+        assert ivyFile.assertExists()
+        assert ivy.organisation == organisation
+        assert ivy.module == module
+        assert ivy.revision == revision
+    }
+
+    void assertPublishedAsJavaModule() {
+        assertPublished()
+        assertArtifactsPublished("${module}-${revision}.jar", "ivy-${revision}.xml")
+    }
+
+    void assertPublishedAsWebModule() {
+        assertPublished()
+        assertArtifactsPublished("${module}-${revision}.war", "ivy-${revision}.xml")
+    }
+
 }

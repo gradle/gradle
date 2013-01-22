@@ -31,7 +31,7 @@ import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
-public class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
+public class IvyPublishHttpIntegTest extends AbstractIntegrationSpec {
     private static final String BAD_CREDENTIALS = '''
 credentials {
     username 'testuser'

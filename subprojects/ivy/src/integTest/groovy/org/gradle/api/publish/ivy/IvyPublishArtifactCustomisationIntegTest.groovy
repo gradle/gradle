@@ -15,30 +15,25 @@
  */
 
 package org.gradle.api.publish.ivy
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Ignore
 
 class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
 
-    org.gradle.test.fixtures.ivy.IvyFileModule module
-    TestFile artifact
+    def module = ivyRepo.module("org.gradle.test", "publish", "2")
 
     def setup() {
-        module = ivyRepo.module("org.gradle", "publish", "2")
-        artifact = file("artifact.txt").createFile()
+        file('artifact.txt') << "some content"
         settingsFile << 'rootProject.name = "publish"'
     }
 
-    public void "can publish custom artifact with java plugin"() {
+    public void "can publish custom artifact"() {
         given:
         buildFile << """
-            apply plugin: 'java'
             apply plugin: 'ivy-publish'
 
             version = '2'
-            group = 'org.gradle'
+            group = 'org.gradle.test'
 
             publishing {
                 repositories {
@@ -48,8 +43,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     ivy(IvyPublication) {
-                        from components.java
-                        artifact file: "${artifact.name}", name: "foo", extension: "txt"
+                        artifact file: "artifact.txt", name: "foo", extension: "txt"
                     }
                 }
             }
@@ -60,7 +54,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
 
         then:
         module.ivyFile.assertIsFile()
-        module.assertArtifactsPublished("ivy-2.xml", "foo-2.txt", "publish-2.jar")
+        module.assertArtifactsPublished("ivy-2.xml", "foo-2.txt")
         with(module.ivy.artifacts.foo) {
             name == "foo"
             ext == "txt"
@@ -68,19 +62,71 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "publish multiple artifacts in single configuration"() {
+        file("file1") << "some content"
+        file("file2") << "other content"
+
+        buildFile << """
+            apply plugin: "base"
+            apply plugin: "ivy-publish"
+
+            group = "org.gradle.test"
+            version = 2
+
+            task jar1(type: Jar) {
+                baseName = "jar1"
+                from "file1"
+            }
+
+            task jar2(type: Jar) {
+                baseName = "jar2"
+                from "file2"
+            }
+
+            publishing {
+                repositories {
+                    ivy {
+                        url "${ivyRepo.uri}"
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        artifact jar1
+                        artifact jar2
+                    }
+                }
+            }
+        """
+
+        when:
+        run "publish"
+
+        then:
+        module.assertPublished()
+        module.assertArtifactsPublished("ivy-2.xml", "jar1-2.jar", "jar2-2.jar")
+        module.moduleDir.file("jar1-2.jar").assertIsCopyOf(file("build/libs/jar1-2.jar"))
+        module.moduleDir.file("jar2-2.jar").assertIsCopyOf(file("build/libs/jar2-2.jar"))
+
+        and:
+        with(module.ivy.artifacts.jar1) {
+            name == "jar1"
+            ext == "jar"
+            conf == ["runtime"]
+        }
+    }
+
     @Ignore // Need to add ability to specify configurations
     public void "can publish custom configurations"() {
         given:
         buildFile << """
-            apply plugin: 'base'
             apply plugin: 'ivy-publish'
 
             version = '2'
-            group = 'org.gradle'
+            group = 'org.gradle.test'
 
             configurations { custom }
             artifacts {
-                custom file("${artifact.name}"), {
+                custom file("artifact.txt"), {
                     name "foo"
                     extension "txt"
                 }

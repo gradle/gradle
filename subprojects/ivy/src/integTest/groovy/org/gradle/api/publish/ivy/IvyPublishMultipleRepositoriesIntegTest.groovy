@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
-class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
+class IvyPublishMultipleRepositoriesIntegTest extends AbstractIntegrationSpec {
 
     @Rule HttpServer server
     @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)

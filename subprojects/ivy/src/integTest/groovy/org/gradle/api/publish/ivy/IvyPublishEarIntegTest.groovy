@@ -22,9 +22,9 @@ package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
-    public void "publishes EAR only for mixed java and WAR and EAR project"() {
+    public void "can publish EAR only for mixed java and WAR and EAR project"() {
         given:
-        file("settings.gradle") << "rootProject.name = 'publishTest' "
+        file("settings.gradle") << "rootProject.name = 'publishEar' "
 
         and:
         buildFile << """
@@ -63,8 +63,10 @@ class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
         run "publish"
 
         then:
-        def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
-        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.ear")
-        // TODO:DAZ check configurations and dependencies
+        def ivyModule = ivyRepo.module("org.gradle.test", "publishEar", "1.9")
+        ivyModule.assertPublished()
+        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishEar-1.9.ear")
+        ivyModule.ivy.dependencies.isEmpty()
+        // TODO:DAZ Validate configurations and artifacts in ivy.xml
     }
 }
