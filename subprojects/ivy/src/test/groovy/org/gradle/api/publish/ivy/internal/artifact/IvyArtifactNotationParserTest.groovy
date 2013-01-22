@@ -87,7 +87,7 @@ public class IvyArtifactNotationParserTest extends Specification {
 
     def "creates IvyArtifact for file notation"() {
         given:
-        File file = new File('some-file-1.2-type.zip')
+        File file = new File('some-file-1.2-classifier.zip')
 
         when:
         IvyArtifact ivyArtifact = parser.parseNotation('some-file')
@@ -98,13 +98,13 @@ public class IvyArtifactNotationParserTest extends Specification {
         and:
         ivyArtifact.name == "some-file"
         ivyArtifact.extension == "zip"
-        ivyArtifact.type == "type"
+        ivyArtifact.type == "zip"
         ivyArtifact.file == file
     }
 
     def "creates IvyArtifact for file map notation"() {
         given:
-        File file = new File('some-file-1.2-type.zip')
+        File file = new File('some-file-1.2-classifier.zip')
 
         when:
         def ivyArtifact = parser.parseNotation(file: 'some-file')
@@ -115,7 +115,7 @@ public class IvyArtifactNotationParserTest extends Specification {
         and:
         ivyArtifact.name == "some-file"
         ivyArtifact.extension == "zip"
-        ivyArtifact.type == "type"
+        ivyArtifact.type == "zip"
         ivyArtifact.file == file
     }
 }

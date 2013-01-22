@@ -116,7 +116,7 @@ public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, T
 
         protected IvyArtifact parseFile(File file) {
             ArtifactFile artifactFile = new ArtifactFile(file, module);
-            return instantiator.newInstance(FileIvyArtifact.class, file, artifactFile.getName(), artifactFile.getClassifier(), artifactFile.getExtension());
+            return instantiator.newInstance(FileIvyArtifact.class, file, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension());
         }
 
         public void describe(Collection<String> candidateFormats) {
