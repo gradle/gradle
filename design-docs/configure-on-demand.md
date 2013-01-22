@@ -69,6 +69,10 @@ TBD
 - add '--no-parallel' command line option
 - consider --parallel=false or --configure-on-demand=false to avoid proliferation of command line options (not sure if I like this idea)
 
+### Consider refactorings:
+
+- Make StartParameter class an interface
+
 ### Coverage:
 
 - parallel build is used when org.gradle.parallel is 'true'
