@@ -18,15 +18,15 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
-import org.junit.Rule
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.junit.Rule
 
 import static org.hamcrest.Matchers.contains
 import static org.hamcrest.Matchers.equalTo
 
 class TestReportIntegrationTest extends AbstractIntegrationSpec {
-    @Rule Sample sample
+    @Rule Sample sample = new Sample(temporaryFolder)
 
     def "report includes results of each invocation"() {
         given:
