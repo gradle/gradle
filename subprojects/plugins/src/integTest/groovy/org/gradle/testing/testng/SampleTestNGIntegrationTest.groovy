@@ -30,7 +30,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
     public void suiteXmlBuilder() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
-        def result = new DefaultTestExecutionResult(sample.dir)
+        def result = new JUnitXmlTestExecutionResult(sample.dir)
         result.assertTestClassesExecuted('org.gradle.testng.UserImplTest')
         result.testClass('org.gradle.testng.UserImplTest').assertTestsExecuted('testOkFirstName')
         result.testClass('org.gradle.testng.UserImplTest').assertTestPassed('testOkFirstName')
@@ -40,7 +40,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
     public void javaJdk14Passing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
-        def result = new DefaultTestExecutionResult(sample.dir)
+        def result = new JUnitXmlTestExecutionResult(sample.dir)
         result.assertTestClassesExecuted('org.gradle.OkTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }

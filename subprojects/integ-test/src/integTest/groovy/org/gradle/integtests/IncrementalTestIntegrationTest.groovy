@@ -16,7 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.*
 
@@ -59,7 +59,7 @@ class IncrementalTestIntegrationTest extends AbstractIntegrationTest {
     public void executesTestsWhenSelectedTestsChange() {
         executer.withTasks('test').run()
 
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('JUnitTest')
 
         // Include more tests
@@ -81,7 +81,7 @@ class IncrementalTestIntegrationTest extends AbstractIntegrationTest {
         //TODO this exposes a possible problem: When changing the test framework stale xml result files from former test framework are still present.
         executer.withTasks('cleanTest', 'test').run().assertTasksNotSkipped(':cleanTest',':test')
 
-        result = new DefaultTestExecutionResult(testDirectory)
+        result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('TestNGTest')
 
         executer.withTasks('test').run().assertTasksNotSkipped()

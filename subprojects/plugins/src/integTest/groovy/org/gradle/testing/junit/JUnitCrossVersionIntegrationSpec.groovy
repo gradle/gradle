@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
@@ -41,7 +41,7 @@ class JUnitCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
         when:
         executer.withTasks('check').run()
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest', 'org.gradle.CustomIgnoredTest')
         result.testClass('org.gradle.Junit3Test').assertTestsExecuted('testRenamesItself')
         result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')

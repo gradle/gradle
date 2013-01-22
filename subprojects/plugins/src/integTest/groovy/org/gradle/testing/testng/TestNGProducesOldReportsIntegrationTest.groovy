@@ -20,7 +20,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 
 public class TestNGProducesOldReportsIntegrationTest extends AbstractIntegrationSpec {
@@ -59,7 +59,7 @@ test {
 
         then:
         !new TestNGExecutionResult(file(".")).hasTestNGXmlResults()
-        new DefaultTestExecutionResult(file(".")).hasJUnitXmlResults()
+        new JUnitXmlTestExecutionResult(file(".")).hasJUnitXmlResults()
     }
 
     def "can generate the old xml reports"() {
@@ -87,7 +87,7 @@ test {
         executer.withTasks('test').run()
 
         then:
-        new DefaultTestExecutionResult(file(".")).hasJUnitXmlResults()
+        new JUnitXmlTestExecutionResult(file(".")).hasJUnitXmlResults()
 
         def testNG = new TestNGExecutionResult(file("."))
         testNG.hasTestNGXmlResults()

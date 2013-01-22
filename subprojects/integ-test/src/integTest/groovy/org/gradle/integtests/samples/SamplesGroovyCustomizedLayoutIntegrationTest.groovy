@@ -17,7 +17,7 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
@@ -33,7 +33,7 @@ class SamplesGroovyCustomizedLayoutIntegrationTest extends AbstractIntegrationTe
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(groovyProjectDir)
+        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(groovyProjectDir)
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check contents of jar

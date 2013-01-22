@@ -16,7 +16,7 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
@@ -36,7 +36,7 @@ class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(producerDir).withTasks('check').run()
 
         then:
-        def result = new DefaultTestExecutionResult(producerDir)
+        def result = new JUnitXmlTestExecutionResult(producerDir)
         result.assertTestClassesExecuted('org.gradle.GreetingTaskTest', 'org.gradle.GreetingPluginTest')
     }
 

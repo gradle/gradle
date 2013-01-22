@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
@@ -49,7 +49,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
         file('webinar-impl/build/reports/tests/index.html').exists()
 
-        new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+        new JUnitXmlTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
         run 'projects'
@@ -84,7 +84,7 @@ Root project 'webinar-parent'
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
         file('webinar-impl/build/reports/tests/index.html').exists()
 
-        new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+        new JUnitXmlTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
         executer.inDirectory(file("webinar-parent"))

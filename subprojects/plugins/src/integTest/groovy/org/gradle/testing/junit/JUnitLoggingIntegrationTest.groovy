@@ -17,7 +17,7 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.TextUtil
@@ -104,7 +104,7 @@ public class EncodingTest {
         executer.withTasks("test").runWithFailure()
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
+        new JUnitXmlTestExecutionResult(testDirectory)
                 .testClass("EncodingTest")
                 .assertTestPassed("encodesCdata")
                 .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))

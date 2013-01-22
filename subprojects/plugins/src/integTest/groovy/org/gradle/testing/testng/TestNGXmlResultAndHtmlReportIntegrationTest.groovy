@@ -18,7 +18,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 
@@ -36,7 +36,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         when:
         runWithTestConfig("useTestNG()")
         then:
-        verifyTestResultWith(new DefaultTestExecutionResult(file(".")))
+        verifyTestResultWith(new JUnitXmlTestExecutionResult(file(".")))
         verifyTestResultWith(new HtmlTestExecutionResult(file(".")))
     }
 
@@ -44,7 +44,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         when:
         runWithTestConfig("useTestNG(); maxParallelForks 2")
         then:
-        verifyTestResultWith(new DefaultTestExecutionResult(file(".")))
+        verifyTestResultWith(new JUnitXmlTestExecutionResult(file(".")))
         verifyTestResultWith(new HtmlTestExecutionResult(file(".")))
     }
 
@@ -52,7 +52,7 @@ public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         when:
         runWithTestConfig("useTestNG(); forkEvery 1")
         then:
-        verifyTestResultWith(new DefaultTestExecutionResult(file(".")))
+        verifyTestResultWith(new JUnitXmlTestExecutionResult(file(".")))
         verifyTestResultWith(new HtmlTestExecutionResult(file(".")))
     }
 

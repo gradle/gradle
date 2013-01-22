@@ -22,10 +22,10 @@ import org.hamcrest.Matcher
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-class DefaultTestExecutionResult implements TestExecutionResult {
+class JUnitXmlTestExecutionResult implements TestExecutionResult {
     private final TestFile buildDir
 
-    def DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build') {
+    def JUnitXmlTestExecutionResult(TestFile projectDir, String buildDirName = 'build') {
         this.buildDir = projectDir.file(buildDirName)
     }
 

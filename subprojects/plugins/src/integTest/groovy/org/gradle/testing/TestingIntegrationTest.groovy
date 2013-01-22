@@ -16,7 +16,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import spock.lang.Issue
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -126,7 +126,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "othertestsTest"
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("TestCaseExtendsAbstractClass")
     }
 }

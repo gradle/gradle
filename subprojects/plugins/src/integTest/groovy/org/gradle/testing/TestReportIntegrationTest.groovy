@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.junit.Rule
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
 import static org.hamcrest.Matchers.contains
 import static org.hamcrest.Matchers.equalTo
