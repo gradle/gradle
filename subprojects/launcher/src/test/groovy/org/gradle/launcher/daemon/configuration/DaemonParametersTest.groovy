@@ -29,21 +29,25 @@ class DaemonParametersTest extends Specification {
 
     def "has reasonable default values"() {
         expect:
-        !parameters.enabled
-        parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
-        def baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon")
-        parameters.baseDir == baseDir
-        parameters.systemProperties.isEmpty()
-        parameters.effectiveJvmArgs.containsAll(parameters.defaultJvmArgs)
-        parameters.effectiveJvmArgs.size() == parameters.defaultJvmArgs.size() + 1 // + 1 because effective JVM args contains -Dfile.encoding
+        assertDefaultValues()
     }
 
-    def "uses default idle timeout if prop not set"() {
-        when:
+    def "uses default values when no specific gradle properties provided"() {
+        expect:
         parameters.configureFrom(new GradleProperties()) //empty gradle properties
+        assertDefaultValues()
+    }
 
-        then:
-        parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
+    void assertDefaultValues() {
+        assert !parameters.enabled
+        assert parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
+        def baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon")
+        assert parameters.baseDir == baseDir
+        assert parameters.systemProperties.isEmpty()
+        assert parameters.effectiveJvmArgs.containsAll(parameters.defaultJvmArgs)
+        assert parameters.effectiveJvmArgs.size() == parameters.defaultJvmArgs.size() + 1 // + 1 because effective JVM args contains -Dfile.encoding
+        assert parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
+        assert parameters.usingDefaultJvmArgs
     }
 
     def "configuring jvmargs replaces the defaults"() {
@@ -68,7 +72,6 @@ class DaemonParametersTest extends Specification {
 
         parameters.systemProperties == [prop: 'value']
     }
-
 
     def "supports 'empty' system properties"() {
         when:
@@ -129,5 +132,23 @@ class DaemonParametersTest extends Specification {
         flag << ["true", "false"]
     }
 
-    //TODO SF add missing coverage for other properties
+    def "configures from gradle properties"() {
+        def props = Stub (GradleProperties) {
+            getJvmArgs() >> '-Xmx256m'
+            getJavaHome() >> new File("javaHome")
+            isDaemonEnabled() >> true
+            getDaemonBaseDir() >> new File("baseDir")
+            getIdleTimeout() >> 115
+        }
+
+        when:
+        parameters.configureFrom(props)
+
+        then:
+        parameters.effectiveJvmArgs.contains("-Xmx256m")
+        parameters.javaHome == new File("javaHome")
+        parameters.enabled
+        parameters.baseDir == new File("baseDir")
+        parameters.idleTimeout == 115
+    }
 }
