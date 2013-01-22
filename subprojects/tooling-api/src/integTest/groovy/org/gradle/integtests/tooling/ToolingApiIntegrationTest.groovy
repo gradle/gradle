@@ -163,8 +163,9 @@ allprojects {
         def stopTimeoutMs = 10000
         def retryIntervalMs = 500
 
-        def path = executer.gradleUserHomeDir.absolutePath
-        def path1 = distribution.gradleHomeDir.absolutePath
+        def gradleUserHomeDirPath = executer.gradleUserHomeDir.absolutePath
+        def gradleHomeDirPath = distribution.gradleHomeDir.absolutePath
+
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'application'
@@ -182,7 +183,7 @@ allprojects {
             mainClassName = 'Main'
 
             run {
-                args = ["${TextUtil.escapeString(path1)}", "${TextUtil.escapeString(path)}"]
+                args = ["${TextUtil.escapeString(gradleHomeDirPath)}", "${TextUtil.escapeString(gradleUserHomeDirPath)}"]
                 systemProperty 'org.gradle.daemon.idletimeout', 10000
                 systemProperty 'org.gradle.daemon.registry.base', "${TextUtil.escapeString(projectDir.file("daemon").absolutePath)}"
             }
