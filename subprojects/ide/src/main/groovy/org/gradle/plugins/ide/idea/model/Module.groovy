@@ -28,7 +28,7 @@ class Module extends XmlPersistableConfigurationObject {
     static final String INHERITED = "inherited"
 
     /**
-     * The directory for the content root of the module.  Defaults to the project dirctory.
+     * The directory for the content root of the module.  Defaults to the project directory.
      * If null, the directory containing the output file will be used.
      */
     Path contentPath

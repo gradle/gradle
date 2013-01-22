@@ -269,9 +269,9 @@ class IdeaModule {
 
     /**
      * Enables advanced configuration like tinkering with the output xml
-     * or affecting the way existing *.iml content is merged with gradle build information
+     * or affecting the way existing *.iml content is merged with gradle build information.
      * <p>
-     * For example see docs for {@link IdeaModule}
+     * For example see docs for {@link IdeaModule}.
      */
     void iml(Closure closure) {
         ConfigureUtil.configure(closure, getIml())
@@ -309,6 +309,7 @@ class IdeaModule {
      * IdeaModule instances should be configured with all necessary information by the plugin or user.
      */
     final org.gradle.api.Project project
+
     PathFactory pathFactory
 
     /**

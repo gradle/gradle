@@ -22,17 +22,17 @@ package org.gradle.plugins.ide.idea.model
  */
 class Path {
     /**
-     * The url of the path. Must not be null
+     * The url of the path. Must not be null.
      */
     final String url
 
     /**
-     * The relative path of the path. Must not be null
+     * The relative path of the path. Must not be null.
      */
     final String relPath
 
     /**
-     * Canonical url
+     * Canonical url.
      */
     final String canonicalUrl
 
