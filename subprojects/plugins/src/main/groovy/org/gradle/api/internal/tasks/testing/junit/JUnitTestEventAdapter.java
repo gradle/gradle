@@ -79,7 +79,9 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testAssumptionFailure(Failure failure) {
-        assumptionFailed.add(failure.getDescription());
+        synchronized (lock) {
+            assumptionFailed.add(failure.getDescription());
+        }
     }
 
     @Override
@@ -108,6 +110,7 @@ public class JUnitTestEventAdapter extends RunListener {
     public void testFinished(Description description) throws Exception {
         long endTime = timeProvider.getCurrentTime();
         TestDescriptorInternal testInternal;
+        TestResult.ResultType resultType;
         synchronized (lock) {
             testInternal = executing.remove(description);
             if (testInternal == null && executing.size() == 1) {
@@ -116,8 +119,8 @@ public class JUnitTestEventAdapter extends RunListener {
                 executing.clear();
             }
             assert testInternal != null : String.format("Unexpected end event for %s", description);
+            resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
         }
-        TestResult.ResultType resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
     }
 
