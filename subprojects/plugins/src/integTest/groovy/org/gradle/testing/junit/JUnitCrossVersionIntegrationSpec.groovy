@@ -26,7 +26,7 @@ import org.junit.Test
 @TargetVersions(['4,0', '4.4', '4.8.2', '4.11'])
 class JUnitCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
-    public final TestResources resources = new TestResources()
+    public final TestResources resources = new TestResources(temporaryFolder)
 
 
     String junitDependency = "junit:junit:$version"

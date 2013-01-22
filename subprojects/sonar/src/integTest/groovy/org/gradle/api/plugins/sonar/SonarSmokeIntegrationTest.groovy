@@ -38,7 +38,7 @@ class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     @Rule
-    TestResources testResources
+    TestResources testResources = new TestResources(temporaryFolder)
 
     int databasePort
 

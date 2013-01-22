@@ -33,7 +33,7 @@ public class DependenciesResolveIntegrationTest {
     @Rule public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
     private final GradleDistribution dist = new UnderDevelopmentGradleDistribution();
     private final GradleExecuter executer = new GradleContextualExecuter(dist, testDirectoryProvider);
-    @Rule public final Sample sample = new Sample("dependencies");
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, "dependencies");
 
     @Test
     public void testResolve() {

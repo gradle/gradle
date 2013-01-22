@@ -52,8 +52,8 @@ class OpenApiUiTest {
 
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
-    @Rule public TestResources resources = new TestResources('testproject')
-    @Rule public OpenApiFixture openApi = new OpenApiFixture()
+    @Rule public TestResources resources = new TestResources(temporaryFolder, 'testproject')
+    @Rule public OpenApiFixture openApi = new OpenApiFixture(temporaryFolder)
     @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()
 
     /**

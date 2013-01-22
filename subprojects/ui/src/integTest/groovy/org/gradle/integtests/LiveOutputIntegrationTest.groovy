@@ -50,7 +50,7 @@ class LiveOutputIntegrationTest extends AbstractIntegrationTest {
 
     private File javaprojectDir
 
-    @Rule public final Sample sample = new Sample('java/quickstart')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')
 
     @Before
     void setUp() {

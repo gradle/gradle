@@ -26,7 +26,7 @@ import spock.lang.Issue
 class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     String content
 

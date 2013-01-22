@@ -31,8 +31,8 @@ import org.junit.Test
  */
 class LoggingIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final TestResources resources = new TestResources()
-    @Rule public final Sample sampleResources = new Sample()
+    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
+    @Rule public final Sample sampleResources = new Sample(testDirectoryProvider)
 
     private final LogOutput logOutput = new LogOutput() {{
         quiet(

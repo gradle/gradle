@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample quickstart = new Sample("maven-publish/quickstart")
-    @Rule public final Sample javaProject = new Sample("maven-publish/javaProject")
-    @Rule public final Sample pomCustomization = new Sample("maven-publish/pomCustomization")
+    @Rule public final Sample quickstart = new Sample(temporaryFolder, "maven-publish/quickstart")
+    @Rule public final Sample javaProject = new Sample(temporaryFolder, "maven-publish/javaProject")
+    @Rule public final Sample pomCustomization = new Sample(temporaryFolder, "maven-publish/pomCustomization")
 
     def quickstart() {
         given:

@@ -24,7 +24,7 @@ import spock.lang.Issue
 
 @Issue("GRADLE-1009")
 public class TestOutputListenerIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     @Before
     public void before() {

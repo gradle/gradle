@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     def canRunTestsWithCustomSystemClassLoader() {
         when:

@@ -22,7 +22,7 @@ import org.junit.*
 
 class IncrementalTestIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Before
     public void before() {

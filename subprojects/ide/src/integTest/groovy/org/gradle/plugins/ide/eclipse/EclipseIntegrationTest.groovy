@@ -25,7 +25,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     private static String nonAscii = "\\u7777\\u8888\\u9999"
 
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
     void canCreateAndDeleteMetaData() {

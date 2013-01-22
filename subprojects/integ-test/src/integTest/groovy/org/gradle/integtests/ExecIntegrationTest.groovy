@@ -17,14 +17,14 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
 
 class ExecIntegrationTest extends AbstractIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
     public void canExecuteJava() {

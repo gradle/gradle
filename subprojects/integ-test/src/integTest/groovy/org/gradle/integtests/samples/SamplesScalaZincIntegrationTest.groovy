@@ -26,7 +26,7 @@ import spock.lang.IgnoreIf
 @IgnoreIf({!JavaVersion.current().java6Compatible})
 class SamplesScalaZincIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample('scala/zinc')
+    @Rule Sample sample = new Sample(temporaryFolder, 'scala/zinc')
 
     def canBuildJar() {
         given:

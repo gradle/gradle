@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.containsString
 
 class SamplesScalaQuickstartIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('scala/quickstart')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/quickstart')
 
     private TestFile projectDir
 

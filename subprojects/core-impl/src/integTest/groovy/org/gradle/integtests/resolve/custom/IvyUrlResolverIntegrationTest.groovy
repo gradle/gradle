@@ -21,7 +21,7 @@ import org.junit.Rule
 
 class IvyUrlResolverIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Rule ProgressLoggingFixture progressLogging
+    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def setup() {
         server.expectUserAgent(null) // custom resolver uses apache/ivy as useragent strings

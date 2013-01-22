@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.maven.MavenHttpModule
 import org.junit.Rule
 
 class ArtifactOnlyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
-    @Rule public final TestResources resources = new TestResources();
+    @Rule public final TestResources resources = new TestResources(temporaryFolder);
 
     MavenHttpModule projectA
 

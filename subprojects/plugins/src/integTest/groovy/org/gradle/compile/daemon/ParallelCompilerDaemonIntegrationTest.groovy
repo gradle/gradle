@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 class ParallelCompilerDaemonIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources
+    @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def "daemon compiler can handle --parallel"() {
         generateProjects(10, 10, 10)

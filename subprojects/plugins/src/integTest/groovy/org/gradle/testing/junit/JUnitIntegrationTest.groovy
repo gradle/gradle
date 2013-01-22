@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThat
 
 public class JUnitIntegrationTest extends AbstractIntegrationTest {
     @Rule
-    public final TestResources resources = new TestResources()
+    public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Before
     public void before() {

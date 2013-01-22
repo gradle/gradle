@@ -28,7 +28,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
  */
 class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     def "multiModule"() {
         given:

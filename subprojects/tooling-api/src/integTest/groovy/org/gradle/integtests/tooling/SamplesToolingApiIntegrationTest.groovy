@@ -27,7 +27,7 @@ import org.junit.Rule
 
 class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample()
+    @Rule public final Sample sample = new Sample(temporaryFolder)
 
     private IntegrationTestBuildContext buildContext
 

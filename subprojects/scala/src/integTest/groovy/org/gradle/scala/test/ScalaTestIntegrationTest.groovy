@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources
+    @Rule TestResources resources = new TestResources(temporaryFolder)
     
     def executesTestsWithMultiLineDescriptions() {
         file("build.gradle") << """

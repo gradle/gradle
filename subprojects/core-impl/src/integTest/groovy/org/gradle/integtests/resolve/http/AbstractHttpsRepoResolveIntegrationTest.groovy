@@ -23,7 +23,7 @@ import org.junit.Rule
 import static org.gradle.util.Matchers.containsText
 
 abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    @Rule TestResources resources
+    @Rule TestResources resources = new TestResources(temporaryFolder)
     File clientStore // contains the client's public and private keys
     File serverStore // contains the server's public and private keys
 

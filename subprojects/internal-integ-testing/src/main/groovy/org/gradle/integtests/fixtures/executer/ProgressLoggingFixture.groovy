@@ -17,9 +17,7 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.test.fixtures.file.TestDirectoryProviderFinder
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.RuleHelper
 import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
@@ -27,6 +25,15 @@ import org.junit.runners.model.Statement
 class ProgressLoggingFixture implements MethodRule {
 
     private TestFile loggingOutputFile = null
+
+    private final GradleExecuter executer
+
+    private TestDirectoryProvider testDirectoryProvider
+
+    ProgressLoggingFixture(GradleExecuter executer, TestDirectoryProvider testDirectoryProvider) {
+        this.executer = executer
+        this.testDirectoryProvider = testDirectoryProvider
+    }
 
     boolean downloadProgressLogged(String url) {
         return progressLogged("Download", url)
@@ -49,8 +56,6 @@ class ProgressLoggingFixture implements MethodRule {
 
     Statement apply(Statement base, FrameworkMethod method, Object target) {
         TestFile initFile
-        GradleExecuter executer = RuleHelper.getField(target, GradleExecuter)
-        TestDirectoryProvider testDirectoryProvider = new TestDirectoryProviderFinder().findFor(target)
         TestFile temporaryFolder = testDirectoryProvider.testDirectory
         loggingOutputFile = temporaryFolder.file("loggingoutput.log")
         initFile = temporaryFolder.file("progress-logging-init.gradle")

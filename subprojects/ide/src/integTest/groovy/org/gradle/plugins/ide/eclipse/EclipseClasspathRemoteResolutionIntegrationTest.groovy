@@ -25,7 +25,7 @@ import org.junit.Test
 class EclipseClasspathRemoteResolutionIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule public final HttpServer server = new HttpServer()
-    @Rule public final TestResources testResources = new TestResources()
+    @Rule public final TestResources testResources = new TestResources(testDirectoryProvider)
     final def repo = new MavenHttpRepository(server, "/repo", mavenRepo)
 
     @Before

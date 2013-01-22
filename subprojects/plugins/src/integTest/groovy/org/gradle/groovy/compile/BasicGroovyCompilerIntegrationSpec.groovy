@@ -15,19 +15,18 @@
  */
 package org.gradle.groovy.compile
 
+import com.google.common.collect.Ordering
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 
-import com.google.common.collect.Ordering
-
 @TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
-    @Rule TestResources resources = new TestResources()
+    @Rule TestResources resources = new TestResources(temporaryFolder)
 
     String groovyDependency = "org.codehaus.groovy:groovy-all:$version"
 

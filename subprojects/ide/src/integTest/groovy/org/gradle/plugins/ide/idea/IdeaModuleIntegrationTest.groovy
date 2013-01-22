@@ -24,7 +24,7 @@ import spock.lang.Issue
 
 class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
     void enablesCustomizationsOnNewModel() {

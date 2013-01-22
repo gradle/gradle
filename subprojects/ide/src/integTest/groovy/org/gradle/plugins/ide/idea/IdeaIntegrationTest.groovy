@@ -30,7 +30,7 @@ import java.util.regex.Pattern
 
 class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
     void mergesImlCorrectly() {

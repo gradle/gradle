@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule TestResources resources = new TestResources()
+    @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def recompilesSourceWhenPropertiesChange() {
         expect:

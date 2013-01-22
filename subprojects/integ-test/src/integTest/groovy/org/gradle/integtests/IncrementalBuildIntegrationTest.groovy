@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
-    @Rule public final TestResources resource = new TestResources()
+    @Rule public final TestResources resource = new TestResources(testDirectoryProvider)
 
     @Test
     public void skipsTaskWhenOutputFileIsUpToDate() {

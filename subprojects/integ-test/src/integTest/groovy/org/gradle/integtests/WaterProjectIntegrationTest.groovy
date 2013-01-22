@@ -47,7 +47,7 @@ class WaterProjectIntegrationTest {
     private final GradleDistribution dist = new UnderDevelopmentGradleDistribution();
     private final GradleExecuter executer = new GradleContextualExecuter(dist, temporaryFolder);
 
-    @Rule public final Sample sample = new Sample(WATER_NAME)
+    @Rule public final Sample sample = new Sample(temporaryFolder, WATER_NAME)
 
     @Test
     public void waterProject() {

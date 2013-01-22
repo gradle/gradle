@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory
 @Requires(TestPrecondition.SWING)
 class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSpec {
     private final Logger logger = LoggerFactory.getLogger(CrossVersionCompatibilityIntegrationTest)
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     public void canUseOpenApiFromCurrentVersionToBuildUsingAnOlderVersion() {
         expect:

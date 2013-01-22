@@ -25,7 +25,7 @@ import org.junit.Test
  */
 class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
     void buildsCorrectModuleDependencies() {

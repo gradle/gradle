@@ -24,7 +24,7 @@ import spock.lang.Issue
 
 class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Issue("GRADLE-1011")
     @Test

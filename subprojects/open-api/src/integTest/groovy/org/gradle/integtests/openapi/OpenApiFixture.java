@@ -21,7 +21,6 @@ import org.gradle.openapi.external.ui.DualPaneUIVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1;
 import org.gradle.openapi.external.ui.UIFactory;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.test.fixtures.file.TestDirectoryProviderFinder;
 import org.junit.Assert;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -34,14 +33,17 @@ import java.util.List;
 
 public class OpenApiFixture implements MethodRule {
     private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
-    private TestDirectoryProvider testDirectoryProvider;
+    private final TestDirectoryProvider testDirectoryProvider;
     private final List<JFrame> frames = new ArrayList<JFrame>();
+
+    public OpenApiFixture(TestDirectoryProvider testDirectoryProvider) {
+        this.testDirectoryProvider = testDirectoryProvider;
+    }
 
     public Statement apply(final Statement base, FrameworkMethod method, final Object target) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                testDirectoryProvider = new TestDirectoryProviderFinder().findFor(target);
                 try {
                     base.evaluate();
                 } finally {

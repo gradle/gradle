@@ -23,7 +23,7 @@ import org.junit.Rule
 
 @TargetVersions(["2.8.2", "2.9.2", "2.10.0-RC1"])
 class ZincScalaCompilerJdk6IntegrationTest extends BasicScalaCompilerIntegrationTest {
-    @Rule TestResources testResources
+    @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     String compilerConfiguration() {
         """

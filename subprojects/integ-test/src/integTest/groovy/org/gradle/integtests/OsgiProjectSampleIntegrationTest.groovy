@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue
  */
 class OsgiProjectSampleIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('osgi')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi')
 
     @Test
     public void osgiProjectSamples() {

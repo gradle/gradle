@@ -25,7 +25,7 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final SFTPServer sftpServer = new SFTPServer(this)
     @Rule
-    ProgressLoggingFixture progressLogging
+    ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     public void "can publish using SftpResolver"() {
         given:

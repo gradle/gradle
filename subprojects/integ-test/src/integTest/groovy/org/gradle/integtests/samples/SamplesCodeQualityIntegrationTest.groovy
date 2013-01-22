@@ -26,7 +26,7 @@ import org.junit.Test
  */
 class SamplesCodeQualityIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('codeQuality')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'codeQuality')
 
     @Test
     public void checkReportsGenerated() {

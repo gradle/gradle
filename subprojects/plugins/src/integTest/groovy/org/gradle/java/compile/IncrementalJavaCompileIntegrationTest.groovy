@@ -23,7 +23,7 @@ import org.junit.Test
 
 class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Test
     public void recompilesSourceWhenPropertiesChange() {

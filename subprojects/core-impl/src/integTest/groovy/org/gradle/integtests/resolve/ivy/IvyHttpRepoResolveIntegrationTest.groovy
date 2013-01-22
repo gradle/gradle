@@ -21,7 +21,7 @@ import org.junit.Rule
 
 class IvyHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Rule ProgressLoggingFixture progressLogger
+    @Rule ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
 
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         server.start()

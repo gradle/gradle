@@ -24,7 +24,7 @@ import org.junit.Test
  */
 public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample()
+    @Rule public final Sample sample = new Sample(testDirectoryProvider)
 
     @Test @UsesSample('testing/testng/suitexmlbuilder')
     public void suiteXmlBuilder() {

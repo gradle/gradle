@@ -43,7 +43,7 @@ class MultiprojectProjectAndTaskListIntegrationTest extends AbstractIntegrationT
     static final String SERVICES_NAME = 'services'
     static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
-    @Rule public final Sample sample = new Sample('java/multiproject')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
     GradlePluginLord gradlePluginLord = new GradlePluginLord()
 
     @Before

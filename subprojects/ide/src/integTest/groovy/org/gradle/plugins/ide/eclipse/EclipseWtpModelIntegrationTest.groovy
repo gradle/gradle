@@ -29,7 +29,7 @@ import spock.lang.Issue
 class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     String component
 

@@ -21,7 +21,7 @@ import org.junit.Rule
 
 class MavenHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Rule ProgressLoggingFixture progressLogging
+    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def "can resolve and cache dependencies from HTTP Maven repository"() {
         given:

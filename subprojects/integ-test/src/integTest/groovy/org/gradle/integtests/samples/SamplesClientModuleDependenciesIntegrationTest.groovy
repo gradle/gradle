@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 class SamplesClientModuleDependenciesIntegrationTest extends AbstractIntegrationSpec {
-    @Rule Sample sample = new Sample("clientModuleDependencies")
+    @Rule Sample sample = new Sample(temporaryFolder, "clientModuleDependencies")
 
     def "resolve shared"() {
         inDirectory(sample.dir.file("shared"))

@@ -26,7 +26,7 @@ import org.junit.Rule
 
 class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     private static final String NOT_IDENTICAL_MESSAGE_PREFIX = "The build outcomes were not found to be identical. See the report at: file:///"
-    @Rule TestResources testResources
+    @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     @Override
     String getPluginId() {

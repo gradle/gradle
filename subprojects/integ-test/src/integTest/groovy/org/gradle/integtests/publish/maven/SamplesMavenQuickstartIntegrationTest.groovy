@@ -33,7 +33,7 @@ import org.junit.Test
  */
 class SamplesMavenQuickstartIntegrationTest extends AbstractIntegrationTest {
     @Rule public Resources resources = new Resources();
-    @Rule public final Sample sample = new Sample('maven/quickstart')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'maven/quickstart')
 
     private TestFile pomProjectDir
 

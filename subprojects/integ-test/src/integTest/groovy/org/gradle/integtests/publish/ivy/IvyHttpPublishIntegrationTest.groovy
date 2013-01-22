@@ -43,7 +43,7 @@ credentials {
     @Rule
     public final HttpServer server = new HttpServer()
 
-    @Rule ProgressLoggingFixture progressLogging
+    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     private IvyModule module
 

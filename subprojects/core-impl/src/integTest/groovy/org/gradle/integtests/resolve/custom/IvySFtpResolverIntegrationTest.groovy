@@ -26,7 +26,7 @@ class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final SFTPServer server = new SFTPServer(this)
 
-    @Rule ProgressLoggingFixture progressLogging
+    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def "setup"() {
         requireOwnGradleUserHomeDir()

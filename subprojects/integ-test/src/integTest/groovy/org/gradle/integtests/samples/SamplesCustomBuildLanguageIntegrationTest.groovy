@@ -23,7 +23,7 @@ import org.junit.Test
 
 class SamplesCustomBuildLanguageIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('customBuildLanguage')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'customBuildLanguage')
 
     @Test
     public void testBuildProductDistributions() {

@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.test.fixtures.file.TestDirectoryProviderFinder;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -36,18 +35,18 @@ public class Sample implements MethodRule {
     private final String defaultSampleName;
 
     private TestFile sampleDir;
+    private TestDirectoryProvider testDirectoryProvider;
 
-    public Sample(String defaultSampleName) {
+    public Sample(TestDirectoryProvider testDirectoryProvider, String defaultSampleName) {
+        this.testDirectoryProvider = testDirectoryProvider;
         this.defaultSampleName = defaultSampleName;
     }
 
-    public Sample() {
-        this.defaultSampleName = null;
+    public Sample(TestDirectoryProvider testDirectoryProvider) {
+        this(testDirectoryProvider, null);
     }
 
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
-        final TestDirectoryProvider testDirectoryProvider = new TestDirectoryProviderFinder().findFor(target);
-
         final String sampleName = getSampleName(method);
         sampleDir = sampleName == null ? null : testDirectoryProvider.getTestDirectory().file(sampleName);
 

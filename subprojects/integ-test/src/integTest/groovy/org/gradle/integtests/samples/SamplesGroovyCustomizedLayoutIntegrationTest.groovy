@@ -25,7 +25,7 @@ import org.junit.Test
 
 class SamplesGroovyCustomizedLayoutIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('groovy/customizedLayout')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'groovy/customizedLayout')
 
     @Test
     public void groovyProjectQuickstartSample() {

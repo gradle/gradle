@@ -25,7 +25,7 @@ import org.junit.Test
 
 class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('scala/customizedLayout')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/customizedLayout')
 
     @Test
     public void canBuildJar() {

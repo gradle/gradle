@@ -26,7 +26,7 @@ import org.junit.Test
 public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
-    public final Sample sample = new Sample("ivypublish")
+    public final Sample sample = new Sample(testDirectoryProvider, "ivypublish")
 
     @Test
     public void testPublish() {

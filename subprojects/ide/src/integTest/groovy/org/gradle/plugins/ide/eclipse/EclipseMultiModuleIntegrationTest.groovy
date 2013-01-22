@@ -16,16 +16,16 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 
 /**
  * @author Szczepan Faber, @date 01.03.11
  */
 class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
     void dealsWithDuplicatedModuleNames() {

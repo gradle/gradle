@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.containsString
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Before
     public void setup() {

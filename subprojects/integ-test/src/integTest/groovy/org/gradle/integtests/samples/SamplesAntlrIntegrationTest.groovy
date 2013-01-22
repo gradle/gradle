@@ -24,7 +24,7 @@ import org.junit.Test
 
 class SamplesAntlrIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('antlr')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'antlr')
 
     @Test
     public void canBuild() {

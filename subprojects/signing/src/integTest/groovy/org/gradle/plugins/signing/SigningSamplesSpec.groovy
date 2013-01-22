@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.maven.MavenRepository
 import org.junit.Rule
 
 class SigningSamplesSpec extends AbstractIntegrationSpec {
-    @Rule public final Sample mavenSample = new Sample()
+    @Rule public final Sample mavenSample = new Sample(temporaryFolder)
 
     @UsesSample('signing/maven')
     def "upload attaches signatures"() {

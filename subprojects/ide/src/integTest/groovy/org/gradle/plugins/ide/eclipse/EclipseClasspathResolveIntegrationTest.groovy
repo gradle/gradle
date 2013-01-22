@@ -23,7 +23,7 @@ import org.junit.Rule
 
 class EclipseClasspathResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Rule ProgressLoggingFixture progressLogging
+    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def "does not download source and javadoc artifacts from HTTP Maven repository until required"() {
         given:

@@ -26,7 +26,7 @@ import org.junit.Rule
 class IvyPublishMultipleReposIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule HttpServer server
-    @Rule ProgressLoggingFixture progressLogging
+    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     String moduleName = "publish"
     String org = "org.gradle"

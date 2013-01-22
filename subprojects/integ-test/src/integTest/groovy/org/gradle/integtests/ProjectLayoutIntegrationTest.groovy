@@ -24,7 +24,7 @@ import org.junit.Test
 
 class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Test
     public void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {

@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.containsString
 class SamplesGroovyMultiProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_PROJECT_NAME = 'testproject'
 
-    @Rule public final Sample sample = new Sample('groovy/multiproject')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'groovy/multiproject')
 
     private List mainFiles = ['JavaPerson', 'GroovyPerson', 'GroovyJavaPerson']
     private List excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']

@@ -23,7 +23,7 @@ import org.junit.Rule
 
 public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample("ivypublish-new")
+    @Rule Sample sample = new Sample(temporaryFolder, "ivypublish-new")
 
     def sample() {
         given:

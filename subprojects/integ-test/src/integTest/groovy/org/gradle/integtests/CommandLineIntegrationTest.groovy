@@ -31,7 +31,7 @@ import org.junit.Test
 
 public class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
     @Rule public final PreconditionVerifier verifier = new PreconditionVerifier()
 
     @Before

@@ -21,7 +21,7 @@ import org.junit.Rule
 import spock.lang.Issue
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources testResources = new TestResources()
+    @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     @Issue("GRADLE-1563")
     def handlesTagsAndTaglets() {

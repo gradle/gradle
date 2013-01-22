@@ -29,7 +29,7 @@ import spock.lang.Unroll
 class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
 
     @Rule HttpServer server
-    @Rule ProgressLoggingFixture progressLogging
+    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     MavenHttpRepository mavenRemoteRepo
     MavenHttpModule module

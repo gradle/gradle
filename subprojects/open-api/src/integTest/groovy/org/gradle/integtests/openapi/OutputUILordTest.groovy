@@ -43,8 +43,8 @@ class OutputUILordTest {
 
     @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    @Rule public OpenApiFixture openApi = new OpenApiFixture()
-    @Rule public TestResources resources = new TestResources('testProject')
+    @Rule public OpenApiFixture openApi = new OpenApiFixture(temporaryFolder)
+    @Rule public TestResources resources = new TestResources(temporaryFolder, 'testProject')
     @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()
 
     /**

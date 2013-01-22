@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.test.fixtures.file.TestDirectoryProviderFinder;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.Resources;
 import org.junit.rules.MethodRule;
@@ -37,16 +36,12 @@ import java.util.Collection;
  */
 public class TestResources implements MethodRule {
     private final Logger logger = LoggerFactory.getLogger(TestResources.class);
-    private TestDirectoryProvider testWorkDirProvider;
+    private final TestDirectoryProvider testWorkDirProvider;
     private final Collection<String> extraResources;
     private final Resources resources = new Resources();
 
-    // allows to leave instantiation to Spock
-    public TestResources() {
-        this(new String[0]);
-    }
-
-    public TestResources(String... extraResources) {
+    public TestResources(TestDirectoryProvider testDirectoryProvider, String... extraResources) {
+        testWorkDirProvider = testDirectoryProvider;
         this.extraResources = Arrays.asList(extraResources);
     }
 
@@ -56,7 +51,6 @@ public class TestResources implements MethodRule {
 
     public Statement apply(Statement base, final FrameworkMethod method, Object target) {
         final Statement statement = resources.apply(base, method, target);
-        testWorkDirProvider = new TestDirectoryProviderFinder().findFor(target);
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {

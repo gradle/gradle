@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample('customPlugin')
+    @Rule public final Sample sample = new Sample(temporaryFolder, 'customPlugin')
 
     def getProducerDir() {
         return sample.dir.file('plugin')

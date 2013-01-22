@@ -27,7 +27,7 @@ import static org.junit.Assert.assertThat
 
 public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     @Rule
-    public final TestResources resources = new TestResources("copyTestResources")
+    public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
 
     @Test
     public void testSingleSourceWithIncludeAndExclude() {
