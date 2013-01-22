@@ -25,7 +25,7 @@ import org.junit.Test
 
 class SamplesGroovyQuickstartIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('groovy/quickstart')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'groovy/quickstart')
 
     @Test
     public void groovyProjectQuickstartSample() {

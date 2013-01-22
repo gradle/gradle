@@ -30,7 +30,7 @@ import static org.junit.Assert.assertThat
  */
 class SamplesExcludesAndClassifiersIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('userguide/artifacts/excludesAndClassifiers')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'userguide/artifacts/excludesAndClassifiers')
 
     @Test
     public void checkExcludeAndClassifier() {

@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.containsString
 
 class SamplesMixedJavaAndGroovyIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('groovy/mixedJavaAndGroovy')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'groovy/mixedJavaAndGroovy')
 
     @Test
     public void canBuildJar() {

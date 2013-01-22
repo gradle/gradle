@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.containsString
 
 class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('scala/mixedJavaAndScala')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/mixedJavaAndScala')
 
     @Test
     public void canBuildJar() {

@@ -27,7 +27,7 @@ import spock.lang.Unroll
  * @author Hans Dockter
  */
 class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample('webApplication/quickstart')
+    @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart')
 
     def "can build a war"() {
         given:

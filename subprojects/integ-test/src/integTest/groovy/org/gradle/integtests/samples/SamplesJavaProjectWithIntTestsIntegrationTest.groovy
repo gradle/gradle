@@ -28,7 +28,7 @@ import org.junit.Test
  */
 class SamplesJavaProjectWithIntTestsIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('java/withIntegrationTests')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/withIntegrationTests')
 
     @Test
     public void canRunIntegrationTests() {

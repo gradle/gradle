@@ -23,9 +23,9 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
-    @Rule public final Sample exewithlib = new Sample('cpp/exewithlib')
-    @Rule public final Sample dependencies = new Sample('cpp/dependencies')
-    @Rule public final Sample exe = new Sample('cpp/exe')
+    @Rule public final Sample exewithlib = new Sample(temporaryFolder, 'cpp/exewithlib')
+    @Rule public final Sample dependencies = new Sample(temporaryFolder, 'cpp/dependencies')
+    @Rule public final Sample exe = new Sample(temporaryFolder, 'cpp/exe')
 
     def "exe with lib"() {
         given:

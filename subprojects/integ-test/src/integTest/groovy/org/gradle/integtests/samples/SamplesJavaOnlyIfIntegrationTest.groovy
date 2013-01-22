@@ -25,7 +25,7 @@ import org.junit.Test
 
 public class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('java/onlyif')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/onlyif')
 
     /**
      * runs a build 3 times.

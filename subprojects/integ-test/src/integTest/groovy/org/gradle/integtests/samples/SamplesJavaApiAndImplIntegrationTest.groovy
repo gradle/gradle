@@ -21,7 +21,7 @@ import org.junit.Rule
 
 class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample apiAndImpl = new Sample('java/apiAndImpl')
+    @Rule public final Sample apiAndImpl = new Sample(temporaryFolder, 'java/apiAndImpl')
 
     static combined = ""
     static api = "-api"

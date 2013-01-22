@@ -29,7 +29,7 @@ import org.junit.Test
 
 class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('java/base')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/base')
 
     @Test
     public void canBuildAndUploadJar() {

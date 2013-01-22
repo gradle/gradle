@@ -33,7 +33,7 @@ import static org.junit.Assert.assertThat
  */
 class SamplesJavaQuickstartIntegrationTest extends  AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('java/quickstart')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')
 
     @Test
     public void canBuildAndUploadJar() {

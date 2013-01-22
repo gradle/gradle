@@ -43,7 +43,7 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
     private TestFile javaprojectDir
     private List projects;
 
-    @Rule public final Sample sample = new Sample('java/multiproject')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
 
     @Before
     void setUp() {

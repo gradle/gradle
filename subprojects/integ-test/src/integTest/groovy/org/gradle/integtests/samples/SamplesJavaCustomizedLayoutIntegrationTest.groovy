@@ -29,7 +29,7 @@ import org.junit.Test
 
 class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('java/customizedLayout')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/customizedLayout')
 
     @Test
     public void canBuildAndUploadJar() {

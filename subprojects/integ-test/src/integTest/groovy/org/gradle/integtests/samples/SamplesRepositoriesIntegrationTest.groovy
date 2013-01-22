@@ -29,7 +29,7 @@ import static org.junit.Assert.assertThat
  */
 class SamplesRepositoriesIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample('userguide/artifacts/defineRepository')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'userguide/artifacts/defineRepository')
 
     @Test
     public void repositoryNotations() {
