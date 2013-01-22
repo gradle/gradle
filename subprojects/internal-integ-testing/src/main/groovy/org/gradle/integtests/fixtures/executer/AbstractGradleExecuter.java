@@ -510,9 +510,23 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (stackTraceChecksOn) {
             assertions.add(new Action<ExecutionResult>() {
                 public void execute(ExecutionResult executionResult) {
-                    // Assert that nothing unexpected was logged
-                    assertOutputHasNoStackTraces(executionResult);
-                    assertErrorHasNoStackTraces(executionResult);
+                    assertNoStackTraces(executionResult.getOutput(), "Standard output");
+
+                    String error = executionResult.getError();
+                    if (executionResult instanceof ExecutionFailure) {
+                        // Axe everything after the expected exception
+                        int pos = error.indexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
+                        if (pos >= 0) {
+                            error = error.substring(0, pos);
+                        }
+                    }
+                    assertNoStackTraces(error, "Standard error");
+                }
+
+                private void assertNoStackTraces(String output, String displayName) {
+                    if (containsLine(matchesRegexp("\\s+(at\\s+)?[\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
+                        throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
+                    }
                 }
             });
         }
@@ -520,47 +534,21 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (deprecationChecksOn) {
             assertions.add(new Action<ExecutionResult>() {
                 public void execute(ExecutionResult executionResult) {
-                    assertOutputHasNoDeprecationWarnings(executionResult);
+                    assertNoDeprecationWarnings(executionResult.getOutput(), "Standard output");
+                    assertNoDeprecationWarnings(executionResult.getError(), "Standard error");
+                }
+
+                private void assertNoDeprecationWarnings(String output, String displayName) {
+                    boolean javacWarning = containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
+                    boolean deprecationWarning = containsLine(matchesRegexp(".* deprecated.*")).matches(output);
+                    if (deprecationWarning && !javacWarning) {
+                        throw new AssertionError(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
+                    }
                 }
             });
         }
 
         return assertions;
-    }
-
-    private void assertOutputHasNoStackTraces(ExecutionResult result) {
-        assertNoStackTraces(result.getOutput(), "Standard output");
-    }
-
-    public void assertErrorHasNoStackTraces(ExecutionResult result) {
-        String error = result.getError();
-        if (result instanceof ExecutionFailure) {
-            // Axe everything after the expected exception
-            int pos = error.indexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
-            if (pos >= 0) {
-                error = error.substring(0, pos);
-            }
-        }
-        assertNoStackTraces(error, "Standard error");
-    }
-
-    public void assertOutputHasNoDeprecationWarnings(ExecutionResult result) {
-        assertNoDeprecationWarnings(result.getOutput(), "Standard output");
-        assertNoDeprecationWarnings(result.getError(), "Standard error");
-    }
-
-    private void assertNoDeprecationWarnings(String output, String displayName) {
-        boolean javacWarning = containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
-        boolean deprecationWarning = containsLine(matchesRegexp(".* deprecated.*")).matches(output);
-        if (deprecationWarning && !javacWarning) {
-            throw new AssertionError(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
-        }
-    }
-
-    private void assertNoStackTraces(String output, String displayName) {
-        if (containsLine(matchesRegexp("\\s+(at\\s+)?[\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
-            throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
-        }
     }
 
     public GradleExecuter withDeprecationChecksDisabled() {

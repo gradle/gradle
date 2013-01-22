@@ -83,6 +83,5 @@ class Foo {
 
         expect:
         succeeds("tasks")
-        executer.assertOutputHasNoDeprecationWarnings(result)
     }
 }
