@@ -59,6 +59,13 @@
                     At the moment the default settings are pretty generous with regards to memory.</para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.configureondemand</literal></term>
+                <listitem><para>Makes Gradle selective when configuring projects.
+                    Only relevant projects are configured which results in faster builds for large multi-projects.
+                    See <xref linkend="sec:configuration_on_demand"/>.</para>
+                </listitem>
+            </varlistentry>
         </para>
         <section>
             <title>Forked java processes</title>

@@ -53,9 +53,35 @@ Previously, only version could be updated just before the dependency is resolved
 For more information, including more code samples, please refer to
 [this user guide section](userguide/userguide_single.html#module_substitution).
 
-### Configuration on demand
+### Improved scalability with configuration on demand
 
-* respects 'external' task dependencies
+If you already enjoy configuration on demand please note the following improvements and changes:
+
+* Tooling API deals nicely with configure-on-demand.
+ Building model configures all projects but running tasks via the Tooling API takes full advantage of the feature.
+* New gradle property "org.gradle.configureondemand" should be used enable the feature for all builds of the given project.
+ This way it is configurable consistently with other [build settings](userguide/build_environment.html#sec:gradle_configuration_properties).
+ Note that the property has changed - see the example below how to configure your gradle.properties.
+* New handy command line option "--configure-on-demand" enables the feature per build.
+* The task dependencies that reach out to a different project are now fully supported:
+
+
+    //depending on task from a different project:
+    someTask.dependsOn(":someProject:someOtherProject:someOtherTask")
+
+If you didn't know that you can configure on demand let's dive into this feature really quickly.
+In Gradle, all projects are configured before any task gets executed (see [the build lifecycle](userguide/build_lifecycle.html#sec:build_phases)).
+In "configuration on demand" mode only those projects required by the build are configured.
+This should speed up the configuration time of huge multi-project builds.
+This mode is still incubating but should work very well with builds that have
+[decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects)
+(e.g. avoiding having a subproject accessing the model of another project).
+Before you start configuring on demand, please read the section in the [user guide](userguide/multi_project_builds.html#sec:configuration_on_demand).
+Then update your gradle.properties file:
+
+    #gradle.properties file
+    org.gradle.configureondemand=true
+
 
 ### Improvements to the 'maven-publish' plugin
 

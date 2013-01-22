@@ -61,9 +61,8 @@
                     </itemizedlist>
                 </para>
                 <para>
-                    Down the road Gradle will offer first class command line support for configuration on demand mode.
-                    At the moment, to enable this feature please use incubating 'org.gradle.configuration.ondemand' system property.
-                    For reference on using system properties see <xref linkend="sec:gradle_properties_and_system_properties"/>.
+                    Eager to try out this new feature? To configure on demand with every build run see <xref linkend="sec:gradle_configuration_properties"/>.
+                    To configure on demand just for given build please see <xref linkend="gradle_command_line"/>.
                 </para>
             </section>
         </section>
