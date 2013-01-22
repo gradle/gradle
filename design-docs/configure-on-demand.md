@@ -50,12 +50,41 @@ TBD
 
 - consider a new listener when task is added to the graph. The configuration on demand feature uses it.
 
-## Project owner enables or disables daemon, parallel execution and configure on demand for a build in a consistent way
+## Project owner toggles daemon, parallel execution and configure-on-demand for a build in a consistent way
 
 - can enable each of these in ~/.gradle/gradle.properties.
 - can enable each of these in $projectDir/gradle.properties.
 - can enable each of these using a system property.
 - can enable each of these using a command-line option.
+
+### User visible changes
+
+- new 'org.gradle.parallel' gradle property
+- new '--configure-on-demand' command line option
+
+### Consider other changes for consistency:
+
+- add 'daemonEnabled' property to StartParameter
+- add '--no-configure-on-demand' command line option
+- add '--no-parallel' command line option
+- consider --parallel=false or --configure-on-demand=false to avoid proliferation of command line options (not sure if I like this idea)
+
+### Coverage:
+
+- parallel build is used when org.gradle.parallel is 'true'
+- configure-on-demand mode is on when org.gradle.configureondemand is 'true'
+
+### Sad day cases:
+
+1. Conflicting command line arg and gradle.properties:
+    --no-daemon && org.gradle.daemon=true
+    --parallel && org.gradle.parallel=false
+    --daemon && org.gradle.daemon=false
+    in general, command line should win
+
+### Open questions:
+
+1. Should StartParameter contain the 'updated' values? E.g. merged content of command line args and content of gradle.properties?
 
 ## Parallel execution mode implies configure on demand
 
