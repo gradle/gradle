@@ -72,4 +72,16 @@ class ConfiguringBuildActionTest extends Specification {
         then:
         !start.isSearchUpwards()
     }
+
+    def "can overwrite configure on demand via build arguments"() {
+        expect:
+        !new ConfiguringBuildAction().configureStartParameter().configureOnDemand
+
+        when:
+        def action = new ConfiguringBuildAction(arguments: ['--configure-on-demand'])
+        def start = action.configureStartParameter()
+
+        then:
+        start.configureOnDemand
+    }
 }

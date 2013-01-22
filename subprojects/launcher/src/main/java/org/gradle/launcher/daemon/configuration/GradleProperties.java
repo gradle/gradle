@@ -176,6 +176,10 @@ public class GradleProperties {
         }
     }
 
+    public boolean isConfigureOnDemand() {
+        return configureOnDemand;
+    }
+
     private static boolean isTrue(Object propertyValue) {
         return propertyValue.toString().equalsIgnoreCase("true");
     }

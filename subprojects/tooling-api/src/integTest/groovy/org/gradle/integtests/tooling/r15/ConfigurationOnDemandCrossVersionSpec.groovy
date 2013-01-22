@@ -32,13 +32,13 @@ import static java.util.Arrays.asList
 class ConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
-        file("gradle.properties") << "systemProp.org.gradle.configuration.ondemand=true"
+        file("gradle.properties") << "org.gradle.configureondemand=true"
     }
 
     def "building model evaluates all projects regardless of configuration on demand mode"() {
         given:
         file("settings.gradle") << "include 'api', 'impl', 'other'"
-        file("build.gradle") << "description = 'Configure on demand: ' + System.properties['org.gradle.configuration.ondemand']"
+        file("build.gradle") << "description = 'Configure on demand: ' + gradle.startParameter.configureOnDemand"
 
         when:
         def out = new ByteArrayOutputStream()

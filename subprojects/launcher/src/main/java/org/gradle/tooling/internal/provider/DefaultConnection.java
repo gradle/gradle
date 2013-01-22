@@ -113,12 +113,13 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         if (type.equals(Void.class) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
+        GradleProperties gradleProperties = initGradleProperties(providerParameters);
         if (type == InternalBuildEnvironment.class) {
             //we don't really need to launch the daemon to acquire information needed for BuildEnvironment
             if (tasks != null) {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
-            DaemonParameters daemonParameters = init(providerParameters);
+            DaemonParameters daemonParameters = init(providerParameters, gradleProperties);
             DefaultBuildEnvironment out = new DefaultBuildEnvironment(
                     GradleVersion.current().getVersion(),
                     daemonParameters.getEffectiveJavaHome(),
@@ -128,22 +129,22 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         }
 
         DelegatingBuildModelAction<T> action = new DelegatingBuildModelAction<T>(type, tasks != null);
-        return run(action, providerParameters);
+        return run(action, providerParameters, gradleProperties);
     }
 
     private void logTargetVersion() {
         LOGGER.info("Tooling API uses target gradle version:" + " {}.", GradleVersion.current().getVersion());
     }
 
-    private <T> T run(GradleLauncherAction<T> action, ProviderOperationParameters operationParameters) {
+    private <T> T run(GradleLauncherAction<T> action, ProviderOperationParameters operationParameters, GradleProperties gradleProperties) {
         GradleLauncherActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
-        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters, action);
+        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters, action, gradleProperties);
         return executer.execute(configuringAction, operationParameters);
     }
 
     private GradleLauncherActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters) {
         LoggingServiceRegistry loggingServices;
-        DaemonParameters daemonParams = init(operationParameters);
+        DaemonParameters daemonParams = init(operationParameters, initGradleProperties(operationParameters));
         GradleLauncherActionExecuter<BuildActionParameters> executer;
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingServices = embeddedExecuterSupport.getLoggingServices();
@@ -158,15 +159,10 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         return new LoggingBridgingGradleLauncherActionExecuter(new DaemonGradleLauncherActionExecuter(executer, daemonParams), loggingManagerFactory);
     }
 
-    private DaemonParameters init(ProviderOperationParameters operationParameters) {
-        File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
+    private DaemonParameters init(ProviderOperationParameters operationParameters, GradleProperties gradleProperties) {
         DaemonParameters daemonParams = new DaemonParameters();
 
-        boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
-        GradleProperties properties = new GradlePropertiesConfigurer()
-                .prepareProperties(operationParameters.getProjectDir(), searchUpwards, gradleUserHomeDir, System.getProperties());
-
-        daemonParams.configureFrom(properties);
+        daemonParams.configureFrom(gradleProperties);
 
         //override the params with the explicit settings provided by the tooling api
         List<String> defaultJvmArgs = daemonParams.getAllJvmArgs();
@@ -179,6 +175,13 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
             daemonParams.setIdleTimeout(idleTimeout);
         }
         return daemonParams;
+    }
+
+    private GradleProperties initGradleProperties(ProviderOperationParameters operationParameters) {
+        File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
+        boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
+        return new GradlePropertiesConfigurer()
+                .prepareProperties(operationParameters.getProjectDir(), searchUpwards, gradleUserHomeDir, System.getProperties());
     }
 
 }
