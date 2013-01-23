@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.reporting;
 
-import java.io.IOException;
+import org.gradle.api.internal.xml.SimpleMarkupWriter;
 
-public class CodePanelRenderer extends AbstractHtmlReportRenderer<String> {
-    @Override
-    public void render(String text, SimpleHtmlWriter htmlWriter) throws IOException {
-        // Wrap in a <span>, to work around CSS problem in IE
-        htmlWriter.startElement("span").attribute("class", "code")
-            .startElement("pre").characters(text).endElement()
-        .endElement();
+import java.io.IOException;
+import java.io.Writer;
+
+public class SimpleHtmlWriter extends SimpleMarkupWriter {
+
+    public SimpleHtmlWriter(Writer writer) throws IOException {
+        this(writer, null);
+    }
+
+    public SimpleHtmlWriter(Writer writer, String indent) throws IOException {
+        super(writer, indent);
+        writeHtmlHeader();
+    }
+
+    private void writeHtmlHeader() throws IOException {
+        writeRaw("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
     }
 }

@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.integtests.fixtures.versions.ReleasedGradleVersion.Type.FINAL;
+import static org.gradle.integtests.fixtures.versions.ReleasedGradleVersion.Type.RELEASE_CANDIDATE;
 import static org.gradle.util.CollectionUtils.*;
 
 /**
@@ -84,6 +85,20 @@ public class ReleasedVersionDistributions {
 
         return buildContext.distribution(mostRecentFinal.getVersion().getVersion());
     }
+
+    public GradleDistribution getMostRecentReleaseCandidate() {
+            ReleasedGradleVersion mostRecentFinal = findFirst(getVersions(), new Spec<ReleasedGradleVersion>() {
+                public boolean isSatisfiedBy(ReleasedGradleVersion element) {
+                    return element.getType() == RELEASE_CANDIDATE;
+                }
+            });
+
+            if (mostRecentFinal == null) {
+                throw new RuntimeException("Unable to get the last version");
+            }
+
+            return buildContext.distribution(mostRecentFinal.getVersion().getVersion());
+        }
 
     public List<GradleDistribution> getAll() {
         if (distributions == null) {

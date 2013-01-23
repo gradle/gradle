@@ -301,6 +301,14 @@ class TestResultsBuilder implements TestResultsProvider {
         }
     }
 
+    boolean hasOutput(String className, TestOutputEvent.Destination destination) {
+        if (destination == TestOutputEvent.Destination.StdOut) {
+            return testClasses[className].stdout != null && testClasses[className].stdout.length() != 0
+        } else if (destination == TestOutputEvent.Destination.StdErr) {
+            return testClasses[className].stderr != null && testClasses[className].stderr.length() != 0
+        }
+    }
+
     private static class BuildableTestClassResult extends TestClassResult {
         String stderr;
         String stdout;
@@ -381,7 +389,6 @@ class TestResultsFixture {
     }
 
     void assertHasDuration(String duration) {
-
         def testDiv = content.select("div#duration")
         assert testDiv != null
         def counter = testDiv.select("div.counter")
@@ -407,7 +414,6 @@ class TestResultsFixture {
     }
 
     void assertHasNoSuccessRate() {
-
         def testDiv = content.select("div#successRate")
         assert testDiv != null
         def counter = testDiv.select("div.percent")

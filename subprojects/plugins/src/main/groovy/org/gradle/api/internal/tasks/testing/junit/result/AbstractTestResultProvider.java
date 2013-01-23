@@ -44,6 +44,10 @@ public abstract class AbstractTestResultProvider implements TestResultsProvider 
         return new File(resultsDir, className + ".stdout");
     }
 
+    public boolean hasOutput(String className, TestOutputEvent.Destination destination){
+        return outputsFile(className, destination).exists();
+    }
+
     public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
         final File file = outputsFile(className, destination);
         if (!file.exists()) {

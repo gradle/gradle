@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.reporting;
 
-import java.io.IOException;
+package org.gradle.profile;
 
-public class CodePanelRenderer extends AbstractHtmlReportRenderer<String> {
-    @Override
-    public void render(String text, SimpleHtmlWriter htmlWriter) throws IOException {
-        // Wrap in a <span>, to work around CSS problem in IE
-        htmlWriter.startElement("span").attribute("class", "code")
-            .startElement("pre").characters(text).endElement()
-        .endElement();
+import org.gradle.api.Project;
+
+public class EvalutationOperation extends ContinuousOperation {
+    private final Project project;
+
+    public EvalutationOperation(Project project) {
+        this.project = project;
+    }
+
+    public String getPath(){
+        return project.getPath();
     }
 }

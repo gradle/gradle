@@ -15,73 +15,88 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report;
 
-import org.gradle.api.Action;
-import org.w3c.dom.Element;
+import org.gradle.api.internal.ErroringAction;
+import org.gradle.reporting.SimpleHtmlWriter;
+
+import java.io.IOException;
 
 class OverviewPageRenderer extends PageRenderer<AllTestResults> {
 
-    @Override protected void registerTabs() {
+    @Override
+    protected void registerTabs() {
         addFailuresTab();
         if (!getResults().getPackages().isEmpty()) {
-            addTab("Packages", new Action<Element>() {
-                public void execute(Element element) {
-                    renderPackages(element);
+            addTab("Packages", new ErroringAction<SimpleHtmlWriter>() {
+                @Override
+                protected void doExecute(SimpleHtmlWriter writer) throws IOException {
+                    renderPackages(writer);
                 }
             });
         }
-        addTab("Classes", new Action<Element>() {
-            public void execute(Element element) {
-                renderClasses(element);
+        addTab("Classes", new ErroringAction<SimpleHtmlWriter>() {
+            public void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
+                renderClasses(htmlWriter);
             }
         });
     }
 
-    @Override protected void renderBreadcrumbs(Element element) {
+    @Override
+    protected void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) {
     }
 
-    private void renderPackages(Element parent) {
-        Element table = append(parent, "table");
-        Element thead = append(table, "thead");
-        Element tr = append(thead, "tr");
-        appendWithText(tr, "th", "Package");
-        appendWithText(tr, "th", "Tests");
-        appendWithText(tr, "th", "Failures");
-        appendWithText(tr, "th", "Duration");
-        appendWithText(tr, "th", "Success rate");
+    private void renderPackages(SimpleHtmlWriter htmlWriter) throws IOException {
+        htmlWriter.startElement("table");
+        htmlWriter.startElement("thead");
+        htmlWriter.startElement("tr");
+        htmlWriter.startElement("th").characters("Package").endElement();
+        htmlWriter.startElement("th").characters("Tests").endElement();
+        htmlWriter.startElement("th").characters("Failures").endElement();
+        htmlWriter.startElement("th").characters("Duration").endElement();
+        htmlWriter.startElement("th").characters("Success rate").endElement();
+        htmlWriter.endElement();
+        htmlWriter.endElement();
+        htmlWriter.startElement("tbody");
         for (PackageTestResults testPackage : getResults().getPackages()) {
-            tr = append(table, "tr");
-            Element td = append(tr, "td");
-            td.setAttribute("class", testPackage.getStatusClass());
-            appendLink(td, String.format("%s.html", testPackage.getName()), testPackage.getName());
-            appendWithText(tr, "td", testPackage.getTestCount());
-            appendWithText(tr, "td", testPackage.getFailureCount());
-            appendWithText(tr, "td", testPackage.getFormattedDuration());
-            td = appendWithText(tr, "td", testPackage.getFormattedSuccessRate());
-            td.setAttribute("class", testPackage.getStatusClass());
+            htmlWriter.startElement("tr");
+            htmlWriter.startElement("td").attribute("class", testPackage.getStatusClass());
+            htmlWriter.startElement("a").attribute("href", String.format("%s.html", testPackage.getName())).characters(testPackage.getName()).endElement();
+            htmlWriter.endElement();
+            htmlWriter.startElement("td").characters(Integer.toString(testPackage.getTestCount())).endElement();
+            htmlWriter.startElement("td").characters(Integer.toString(testPackage.getFailureCount())).endElement();
+            htmlWriter.startElement("td").characters(testPackage.getFormattedDuration()).endElement();
+            htmlWriter.startElement("td").attribute("class", testPackage.getStatusClass()).characters(testPackage.getFormattedDuration()).endElement();
+            htmlWriter.endElement();
         }
+        htmlWriter.endElement();
+        htmlWriter.endElement();
     }
 
-    private void renderClasses(Element parent) {
-        Element table = append(parent, "table");
-        Element thead = append(table, "thead");
-        Element tr = append(thead, "tr");
-        appendWithText(tr, "th", "Class");
-        appendWithText(tr, "th", "Tests");
-        appendWithText(tr, "th", "Failures");
-        appendWithText(tr, "th", "Duration");
-        appendWithText(tr, "th", "Success rate");
+    private void renderClasses(SimpleHtmlWriter htmlWriter) throws IOException {
+        htmlWriter.startElement("table");
+        htmlWriter.startElement("thead");
+        htmlWriter.startElement("tr");
+        htmlWriter.startElement("th").characters("Class").endElement();
+        htmlWriter.startElement("th").characters("Tests").endElement();
+        htmlWriter.startElement("th").characters("Failures").endElement();
+        htmlWriter.startElement("th").characters("Duration").endElement();
+        htmlWriter.startElement("th").characters("Success rate").endElement();
+        htmlWriter.endElement();
+        htmlWriter.endElement();
+        htmlWriter.startElement("tbody");
+
         for (PackageTestResults testPackage : getResults().getPackages()) {
             for (ClassTestResults testClass : testPackage.getClasses()) {
-                tr = append(table, "tr");
-                Element td = append(tr, "td");
-                td.setAttribute("class", testClass.getStatusClass());
-                appendLink(td, String.format("%s.html", testClass.getName()), testClass.getName());
-                appendWithText(tr, "td", testClass.getTestCount());
-                appendWithText(tr, "td", testClass.getFailureCount());
-                appendWithText(tr, "td", testClass.getFormattedDuration());
-                td = appendWithText(tr, "td", testClass.getFormattedSuccessRate());
-                td.setAttribute("class", testClass.getStatusClass());
+                htmlWriter.startElement("tr");
+                htmlWriter.startElement("td").attribute("class", testClass.getStatusClass()).endElement();
+                htmlWriter.startElement("a").attribute("href", String.format("%s.html", testClass.getName())).characters(testClass.getName()).endElement();
+                htmlWriter.startElement("td").characters(Integer.toString(testClass.getTestCount())).endElement();
+                htmlWriter.startElement("td").characters(Integer.toString(testClass.getFailureCount())).endElement();
+                htmlWriter.startElement("td").characters(testClass.getFormattedDuration()).endElement();
+                htmlWriter.startElement("td").attribute("class", testClass.getStatusClass()).characters(testClass.getFormattedSuccessRate()).endElement();
+                htmlWriter.endElement();
             }
         }
+        htmlWriter.endElement();
+        htmlWriter.endElement();
     }
 }

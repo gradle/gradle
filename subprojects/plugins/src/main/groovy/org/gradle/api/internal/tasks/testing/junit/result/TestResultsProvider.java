@@ -34,4 +34,6 @@ public interface TestResultsProvider {
      * Visits the results of each test class, in no specific order. Each class is visited exactly once.
      */
     void visitClasses(Action<? super TestClassResult> visitor);
+
+    boolean hasOutput(String className, TestOutputEvent.Destination destination);
 }

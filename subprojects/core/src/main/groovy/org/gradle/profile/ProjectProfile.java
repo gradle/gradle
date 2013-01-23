@@ -25,14 +25,11 @@ public class ProjectProfile {
     private final Project project;
     private ProjectState state;
     private HashMap<Task, TaskExecution> tasks = new HashMap<Task, TaskExecution>();
-    private final ContinuousOperation evaluation = new ContinuousOperation() {
-        public String getPath() {
-            return project.getPath();
-        }
-    };
+    private final ContinuousOperation evaluation;
 
     public ProjectProfile(Project project) {
         this.project = project;
+        this.evaluation = new EvalutationOperation(project);
     }
 
     /**

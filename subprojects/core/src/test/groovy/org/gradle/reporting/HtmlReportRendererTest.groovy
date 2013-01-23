@@ -18,29 +18,28 @@ package org.gradle.reporting
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import org.w3c.dom.Element
 import spock.lang.Specification
 
 class HtmlReportRendererTest extends Specification {
-    final DomReportRenderer<String> domRenderer = new DomReportRenderer<String>() {
+    AbstractHtmlReportRenderer abstractHtmlReportRenderer = new AbstractHtmlReportRenderer<String>() {
         @Override
-        void render(String model, Element parent) {
-            parent.appendChild(parent.ownerDocument.createElement(model))
+        void render(String model, SimpleHtmlWriter htmlWriter) {
+            htmlWriter.startElement("pre").characters(model).endElement()
         }
     }
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final HtmlReportRenderer renderer = new HtmlReportRenderer()
 
     def "renders report to stream"() {
         StringWriter writer = new StringWriter()
-
         when:
-        renderer.renderer(domRenderer).writeTo("test", writer)
+        renderer.renderer(abstractHtmlReportRenderer).writeTo("test", writer)
 
         then:
         writer.toString() == TextUtil.toPlatformLineSeparators('''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-<test></test>
+<pre>test</pre>
 </html>
 ''')
     }
@@ -52,7 +51,7 @@ class HtmlReportRendererTest extends Specification {
         renderer.requireResource(getClass().getResource("base-style.css"))
 
         when:
-        renderer.renderer(domRenderer).writeTo("test", destFile)
+        renderer.renderer(abstractHtmlReportRenderer).writeTo("test", destFile)
 
         then:
         tmpDir.file("base-style.css").file

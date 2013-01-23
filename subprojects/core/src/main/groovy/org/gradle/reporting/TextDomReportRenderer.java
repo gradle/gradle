@@ -39,6 +39,7 @@ public class TextDomReportRenderer<T> extends DomReportRenderer<T> {
             renderer.writeTo(model, writer);
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(writer.toString().getBytes()));
             NodeList children = document.getDocumentElement().getChildNodes();
+
             for (int i = 0; i < children.getLength(); i++) {
                 Node adopted = parent.getOwnerDocument().importNode(children.item(i), true);
                 parent.appendChild(adopted);

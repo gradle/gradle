@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.reporting;
 
 import java.io.IOException;
 
-public class CodePanelRenderer extends AbstractHtmlReportRenderer<String> {
-    @Override
-    public void render(String text, SimpleHtmlWriter htmlWriter) throws IOException {
-        // Wrap in a <span>, to work around CSS problem in IE
-        htmlWriter.startElement("span").attribute("class", "code")
-            .startElement("pre").characters(text).endElement()
-        .endElement();
-    }
+public abstract class ReportRenderer<T, E> {
+    /**
+     * Renders the report for the given model as children of the given DOM element.
+     */
+    public abstract void render(T model, E parent) throws IOException;
 }

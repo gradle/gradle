@@ -15,15 +15,14 @@
  */
 package org.gradle.reporting;
 
-import org.w3c.dom.Element;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TabsRenderer<T> extends DomReportRenderer<T> {
+public class TabsRenderer<T> extends AbstractHtmlReportRenderer<T> {
     private final List<TabDefinition> tabs = new ArrayList<TabDefinition>();
 
-    public void add(String title, DomReportRenderer<T> contentRenderer) {
+    public void add(String title, AbstractHtmlReportRenderer<T> contentRenderer) {
         tabs.add(new TabDefinition(title, contentRenderer));
     }
 
@@ -32,28 +31,34 @@ public class TabsRenderer<T> extends DomReportRenderer<T> {
     }
 
     @Override
-    public void render(T model, Element parent) {
-        Element tabs = appendWithId(parent, "div", "tabs");
-        Element ul = append(tabs, "ul");
-        ul.setAttribute("class", "tabLinks");
-        for (int i = 0; i < this.tabs.size(); i++) {
-            TabDefinition tab = this.tabs.get(i);
-            Element li = append(ul, "li");
-            Element a = appendWithText(li, "a", tab.title);
-            String tabId = String.format("tab%s", i);
-            a.setAttribute("href", "#" + tabId);
-            Element tabDiv = appendWithId(tabs, "div", tabId);
-            tabDiv.setAttribute("class", "tab");
-            appendWithText(tabDiv, "h2", tab.title);
-            tab.renderer.render(model, tabDiv);
-        }
+    public void render(T model, SimpleHtmlWriter htmlWriterWriter) throws IOException {
+        htmlWriterWriter.startElement("div").attribute("id", "tabs");
+            htmlWriterWriter.startElement("ul").attribute("class", "tabLinks");
+                for (int i = 0; i < this.tabs.size(); i++) {
+                    TabDefinition tab = this.tabs.get(i);
+                    String tabId = String.format("tab%s", i);
+                    htmlWriterWriter.startElement("li");
+                        htmlWriterWriter.startElement("a").attribute("href", "#" + tabId).characters(tab.title).endElement();
+                    htmlWriterWriter.endElement();
+                }
+            htmlWriterWriter.endElement();
+
+            for (int i = 0; i < this.tabs.size(); i++) {
+                TabDefinition tab = this.tabs.get(i);
+                String tabId = String.format("tab%s", i);
+                htmlWriterWriter.startElement("div").attribute("id", tabId).attribute("class", "tab");
+                    htmlWriterWriter.startElement("h2").characters(tab.title).endElement();
+                    tab.renderer.render(model, htmlWriterWriter);
+                htmlWriterWriter.endElement();
+            }
+        htmlWriterWriter.endElement();
     }
 
     private class TabDefinition {
         final String title;
-        final DomReportRenderer<T> renderer;
+        final AbstractHtmlReportRenderer<T> renderer;
 
-        private TabDefinition(String title, DomReportRenderer<T> renderer) {
+        private TabDefinition(String title, AbstractHtmlReportRenderer<T> renderer) {
             this.title = title;
             this.renderer = renderer;
         }

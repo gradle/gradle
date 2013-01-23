@@ -52,6 +52,10 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         }
     }
 
+    public boolean hasOutput(String className, TestOutputEvent.Destination destination) {
+        return classOutputProviders.get(className).hasOutput(className, destination);
+    }
+
     public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
         classOutputProviders.get(className).writeOutputs(className, destination, writer);
     }
