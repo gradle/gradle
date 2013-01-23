@@ -49,7 +49,7 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
         return artifact;
     }
 
-    public IvyArtifact addArtifact(Object source, Action<IvyArtifact> config) {
+    public IvyArtifact addArtifact(Object source, Action<? super IvyArtifact> config) {
         IvyArtifact artifact = addArtifact(source);
         config.execute(artifact);
         return artifact;

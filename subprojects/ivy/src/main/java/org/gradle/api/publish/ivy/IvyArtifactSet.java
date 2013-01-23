@@ -17,10 +17,12 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
 
 /**
  * A Collection of {@link IvyArtifact}s to be included in a {@link IvyPublication}.
  */
+@Incubating
 public interface IvyArtifactSet extends DomainObjectSet<IvyArtifact> {
     /**
      * Creates and adds a {@link IvyArtifact} to the set.
@@ -35,5 +37,5 @@ public interface IvyArtifactSet extends DomainObjectSet<IvyArtifact> {
      * @param source The source of the artifact.
      * @param config An action to configure the values of the constructed {@link IvyArtifact}.
      */
-     IvyArtifact addArtifact(Object source, Action<IvyArtifact> config);
+     IvyArtifact addArtifact(Object source, Action<? super IvyArtifact> config);
 }

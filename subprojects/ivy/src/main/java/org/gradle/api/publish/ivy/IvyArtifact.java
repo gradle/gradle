@@ -15,11 +15,14 @@
  */
 package org.gradle.api.publish.ivy;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 
 /**
  * An artifact published as part of a {@link IvyPublication}.
  */
+@Incubating
 public interface IvyArtifact {
     /**
      * The name used to publish the artifact file.
