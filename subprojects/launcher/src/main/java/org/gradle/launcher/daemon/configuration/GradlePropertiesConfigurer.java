@@ -26,16 +26,18 @@ import java.util.Map;
  */
 public class GradlePropertiesConfigurer {
 
-    public GradleProperties configureStartParameter(StartParameter startParameter) {
-        GradleProperties properties = this.prepareProperties(startParameter.getCurrentDir(), startParameter.isSearchUpwards(), startParameter.getGradleUserHomeDir(), startParameter.getMergedSystemProperties());
-        properties.updateStartParameter(startParameter);
-        return properties;
-    }
-
     public GradleProperties prepareProperties(File projectDir, boolean searchUpwards, File gradleUserHomeDir, Map<?, ?> systemProperties) {
         return new GradleProperties()
             .configureFromBuildDir(projectDir, searchUpwards)
             .configureFromGradleUserHome(gradleUserHomeDir)
             .configureFromSystemProperties(systemProperties);
+    }
+
+    public DaemonParameters configureParameters(StartParameter startParameter) {
+        DaemonParameters out = new DaemonParameters();
+        GradleProperties properties = this.prepareProperties(startParameter.getCurrentDir(), startParameter.isSearchUpwards(), startParameter.getGradleUserHomeDir(), startParameter.getMergedSystemProperties());
+        properties.updateStartParameter(startParameter);
+        out.configureFrom(properties);
+        return out;
     }
 }

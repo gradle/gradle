@@ -56,6 +56,11 @@ public class DaemonParameters {
         return enabled;
     }
 
+    public DaemonParameters setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+    }
+
     public String getUid() {
         return uid;
     }
@@ -98,8 +103,9 @@ public class DaemonParameters {
         return Jvm.forHome(javaHome).getJavaExecutable().getAbsolutePath();
     }
 
-    public void setJavaHome(File javaHome) {
+    public DaemonParameters setJavaHome(File javaHome) {
         this.javaHome = javaHome;
+        return this;
     }
 
     public Map<String, String> getSystemProperties() {

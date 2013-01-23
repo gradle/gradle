@@ -23,7 +23,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.bootstrap.DaemonMain
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.launcher.daemon.configuration.GradleProperties
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.configuration.GradlePropertiesConfigurer
 import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
@@ -40,7 +40,7 @@ class BuildActionsFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final CommandLineConverter<StartParameter> startParameterConverter = Mock()
     final ServiceRegistry loggingServices = Mock()
-    final GradlePropertiesConfigurer configurer = Spy()
+    final GradlePropertiesConfigurer configurer = Stub()
     final BuildActionsFactory factory = new BuildActionsFactory(loggingServices, startParameterConverter, configurer)
 
     def setup() {        
@@ -48,7 +48,9 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
     }
 
-    def executesBuild() {
+    def "executes build"() {
+        configurer.configureParameters(_ as StartParameter) >> new DaemonParameters()
+
         when:
         def action = convert('args')
 
@@ -56,15 +58,19 @@ class BuildActionsFactoryTest extends Specification {
         isInProcess(action)
     }
 
-    def "parses gradle properties and configures start parameter"() {
+    def "by default daemon is not used"() {
+        configurer.configureParameters(_) >> new DaemonParameters().setEnabled(false)
+
         when:
-        convert('args')
+        def action = convert('args')
 
         then:
-        1 * configurer.configureStartParameter(!null)
+        isInProcess action
     }
 
-    def executesBuildUsingDaemon() {
+    def "daemon is used when command line option is used"() {
+        configurer.configureParameters(_) >> new DaemonParameters().setEnabled(false)
+
         when:
         def action = convert('--daemon', 'args')
 
@@ -72,23 +78,19 @@ class BuildActionsFactoryTest extends Specification {
         isDaemon action
     }
 
-    def executesBuildUsingDaemonWhenSystemPropertyIsSetToTrue() {
+    def "daemon is used when daemon parameters say so"() {
+        configurer.configureParameters(_) >> new DaemonParameters().setEnabled(true)
+
         when:
-        System.properties['org.gradle.daemon'] = 'false'
         def action = convert('args')
-
-        then:
-        isInProcess action
-
-        when:
-        System.properties['org.gradle.daemon'] = 'true'
-        action = convert('args')
 
         then:
         isDaemon action
     }
 
-    def doesNotUseDaemonWhenNoDaemonOptionPresent() {
+    def "does not use daemon when no-daemon command line option issued"() {
+        configurer.configureParameters(_) >> new DaemonParameters().setEnabled(true)
+
         when:
         def action = convert('--no-daemon', 'args')
 
@@ -96,24 +98,9 @@ class BuildActionsFactoryTest extends Specification {
         isInProcess action
     }
 
-    //TODO SF this test (and some others should be moved to GradlePropertiesConfigurer tests
-    def daemonOptionTakesPrecedenceOverSystemProperty() {
-        when:
-        System.properties['org.gradle.daemon'] = 'false'
-        def action = convert('--daemon', 'args')
+    def "stops daemon"() {
+        configurer.configureParameters(_) >> new DaemonParameters()
 
-        then:
-        isDaemon action
-
-        when:
-        System.properties['org.gradle.daemon'] = 'true'
-        action = convert('--no-daemon', 'args')
-
-        then:
-        isInProcess action
-    }
-
-    def stopsDaemon() {
         when:
         def action = convert('--stop')
 
@@ -122,7 +109,9 @@ class BuildActionsFactoryTest extends Specification {
         action.runnable instanceof StopDaemonAction
     }
 
-    def runsDaemonInForeground() {
+    def "runs daemon in foreground"() {
+        configurer.configureParameters(_) >> new DaemonParameters()
+
         when:
         def action = convert('--foreground')
 
@@ -131,65 +120,17 @@ class BuildActionsFactoryTest extends Specification {
         action.runnable instanceof DaemonMain
     }
 
-    def executesBuildWithSingleUseDaemonIfJavaHomeIsNotCurrent() {
-        when:
+    def "executes with single use daemon if java home is not current"() {
+        given:
         def javaHome = tmpDir.createDir("javahome")
         javaHome.createFile(OperatingSystem.current().getExecutableName("bin/java"))
+        configurer.configureParameters(_) >> new DaemonParameters().setJavaHome(javaHome.canonicalFile)
 
-        System.properties['org.gradle.java.home'] = javaHome.canonicalPath
+        when:
         def action = convert()
 
         then:
         isSingleUseDaemon action
-    }
-
-    def "daemon setting in precedence is system prop, user home then project directory"() {
-        given:
-        def userHome = tmpDir.createDir("user_home")
-        userHome.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((GradleProperties.DAEMON_ENABLED_PROPERTY): 'false').store(outstr, "HEADER")
-        }
-        def projectDir = tmpDir.createDir("project_dir")
-        projectDir.createFile("settings.gradle")
-        projectDir.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((GradleProperties.DAEMON_ENABLED_PROPERTY): 'true').store(outstr, "HEADER")
-        }
-
-        when:
-        def action = convert()
-
-        then:
-        startParameterConverter.convert(!null, !null) >> { args, startParam ->
-            startParam.currentDir = projectDir
-        }
-
-        and:
-        isDaemon action
-
-        when:
-        action = convert()
-
-        then:
-        startParameterConverter.convert(!null, !null) >> { args, startParam ->
-            startParam.gradleUserHomeDir = userHome
-            startParam.currentDir = projectDir
-        }
-
-        and:
-        isInProcess action
-
-        when:
-        System.properties['org.gradle.daemon'] = 'true'
-        action = convert()
-
-        then:
-        startParameterConverter.convert(!null, !null) >> { args, startParam ->
-            startParam.gradleUserHomeDir = userHome
-            startParam.currentDir = projectDir
-        }
-
-        and:
-        isDaemon action
     }
 
     def convert(String... args) {

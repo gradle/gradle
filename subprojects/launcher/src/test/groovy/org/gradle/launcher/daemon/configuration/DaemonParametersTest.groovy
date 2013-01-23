@@ -17,14 +17,11 @@ package org.gradle.launcher.daemon.configuration
 
 import org.gradle.StartParameter
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
 import spock.lang.Specification
 
 import static java.lang.Boolean.parseBoolean
 
 class DaemonParametersTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final DaemonParameters parameters = new DaemonParameters()
 
     def "has reasonable default values"() {

@@ -32,7 +32,10 @@ import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.client.SingleUseDaemonClientServices;
 import org.gradle.launcher.daemon.client.StopDaemonClientServices;
-import org.gradle.launcher.daemon.configuration.*;
+import org.gradle.launcher.daemon.configuration.CurrentProcess;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
+import org.gradle.launcher.daemon.configuration.GradlePropertiesConfigurer;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter;
@@ -72,8 +75,7 @@ class BuildActionsFactory implements CommandLineAction {
     public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
         StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
-        GradleProperties gradleProperties = propertiesConfigurer.configureStartParameter(startParameter);
-        DaemonParameters daemonParameters = constructDaemonParameters(gradleProperties);
+        DaemonParameters daemonParameters = propertiesConfigurer.configureParameters(startParameter);
         if (commandLine.hasOption(STOP)) {
             return stopAllDaemons(daemonParameters, loggingServices);
         }
@@ -89,12 +91,6 @@ class BuildActionsFactory implements CommandLineAction {
             return runBuildInProcess(startParameter, daemonParameters, loggingServices);
         }
         return runBuildInSingleUseDaemon(startParameter, daemonParameters, loggingServices);
-    }
-
-    private DaemonParameters constructDaemonParameters(GradleProperties gradleProperties) {
-        DaemonParameters daemonParameters = new DaemonParameters();
-        daemonParameters.configureFrom(gradleProperties);
-        return daemonParameters;
     }
 
     private Action<? super ExecutionListener> stopAllDaemons(DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
