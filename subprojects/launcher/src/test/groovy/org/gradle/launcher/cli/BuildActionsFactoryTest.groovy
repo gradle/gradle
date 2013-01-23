@@ -192,22 +192,6 @@ class BuildActionsFactoryTest extends Specification {
         isDaemon action
     }
 
-    def "may use the configure-on-demand mode"() {
-        when:
-        System.properties['org.gradle.configureondemand'] = 'true'
-        def action = convert('args')
-
-        then:
-        isDaemon action
-
-        when:
-        System.properties['org.gradle.daemon'] = 'true'
-        action = convert('--no-daemon', 'args')
-
-        then:
-        isInProcess action
-    }
-
     def convert(String... args) {
         def CommandLineParser parser = new CommandLineParser()
         factory.configureCommandLineParser(parser)
