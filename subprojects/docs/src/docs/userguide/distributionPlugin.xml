@@ -16,6 +16,11 @@
 
 <chapter id='distribution_plugin'>
     <title>The Distribution Plugin</title>
+    <note>
+        <para>
+            The Java library distribution plugin is incubating and should not be considered stable.
+        </para>
+    </note>
     <para>The distribution plugin extends the language plugins with common distribution related tasks.
 	It allows bundling project including binaries,sources and documentation.
 	</para>

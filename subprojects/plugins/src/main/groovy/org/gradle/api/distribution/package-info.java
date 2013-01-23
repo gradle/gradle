@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.distribution;
-
-import org.gradle.api.tasks.distribution.Distribution;
 
 /**
- * Allow user to declare a distribution.
- * @author scogneau
+ * The main interfaces and classes of the distribution plugin.
  */
-public class DefaultDistribution implements Distribution {
-    public DefaultDistribution(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    private String name;
-}
+package org.gradle.api.distribution;

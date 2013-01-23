@@ -27,6 +27,10 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         "distribution"
     }
 
+    String getMainTask() {
+        return "distZip"
+    }
+
     def createTaskForCustomDistribution() {
         when:
         buildFile << """

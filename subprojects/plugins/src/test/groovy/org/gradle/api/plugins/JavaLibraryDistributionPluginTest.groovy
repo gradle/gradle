@@ -16,8 +16,9 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.api.tasks.distribution.Distribution
+import org.gradle.api.distribution.Distribution
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 

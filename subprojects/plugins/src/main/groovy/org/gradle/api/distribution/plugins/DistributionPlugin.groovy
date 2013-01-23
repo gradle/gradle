@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins
+package org.gradle.api.distribution.plugins
 
+import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.tasks.distribution.DefaultDistributionsContainer
+import org.gradle.api.distribution.internal.DefaultDistributionsContainer
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.api.tasks.distribution.Distribution
-import org.gradle.api.tasks.distribution.DistributionsContainer
+import org.gradle.api.distribution.Distribution
+import org.gradle.api.distribution.DistributionsContainer
 
 import javax.inject.Inject;
 import org.gradle.internal.reflect.Instantiator;
@@ -32,6 +33,7 @@ import org.gradle.internal.reflect.Instantiator;
  * @author scogneau
  *
  */
+@Incubating
 class DistributionPlugin implements Plugin<Project> {
 
 	static final String DISTRIBUTION_PLUGIN_NAME = "distribution"
@@ -50,7 +52,6 @@ class DistributionPlugin implements Plugin<Project> {
 
 	public void apply(Project project) {
 		    this.project = project
-            project.plugins.apply(JavaPlugin)
 			addValidation()
             addPluginExtension()
 	}
@@ -68,13 +69,16 @@ class DistributionPlugin implements Plugin<Project> {
 
 	void addPluginExtension() {
         extension = new DefaultDistributionsContainer(Distribution.class,instantiator)
-        extension.all {distribution -> addTask(distribution,distribution.name+"DistZip")}
-        Distribution distribution = extension.create(Distribution.MAIN_DISTRIBUTION_NAME)
+         Distribution distribution = extension.create(Distribution.MAIN_DISTRIBUTION_NAME)
+        extension.all {dist -> addTask(dist)}
         project.extensions.add("distributions", extension)
-       addTask(distribution,TASK_DIST_ZIP_NAME)
 	}
 	
-	void addTask(Distribution distribution,String taskName){
+	void addTask(Distribution distribution){
+        def taskName = TASK_DIST_ZIP_NAME
+        if (!Distribution.MAIN_DISTRIBUTION_NAME.equals(distribution.name)){
+            taskName = distribution.name+"DistZip"
+        }
         def distZipTask = project.tasks.add(taskName, Zip)
         distZipTask.description = "Bundles the project as a distribution."
         distZipTask.group = DISTRIBUTION_GROUP

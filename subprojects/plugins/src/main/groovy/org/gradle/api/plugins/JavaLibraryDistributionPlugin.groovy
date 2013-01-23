@@ -18,7 +18,8 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.distribution.Distribution
+import org.gradle.api.distribution.plugins.DistributionPlugin
+import org.gradle.api.distribution.Distribution
 
 
 /**
