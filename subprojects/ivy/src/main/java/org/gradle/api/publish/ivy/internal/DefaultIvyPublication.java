@@ -101,8 +101,9 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        // TODO:DAZ Handle missing component
-        return new IvyNormalizedPublication(getModule(), ivyArtifacts, getDescriptorFile());
+        IvyNormalizedPublication ivyNormalizedPublication = new IvyNormalizedPublication(getModule(), ivyArtifacts, getDescriptorFile());
+        ivyNormalizedPublication.validateArtifacts();
+        return ivyNormalizedPublication;
     }
 
     private File getDescriptorFile() {

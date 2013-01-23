@@ -196,7 +196,6 @@ class DefaultIvyPublicationTest extends Specification {
         publication.asNormalisedPublication().artifacts == [ivyArtifact1, ivyArtifact2] as Set
     }
 
-    @Ignore // Not yet implemented
     def "getting normalised publication will fail with file that does not exist"() {
         def publication = createPublication()
         Object notation = new Object();
@@ -212,7 +211,7 @@ class DefaultIvyPublicationTest extends Specification {
         ivyArtifact.file >> nonExistentFile
 
         and:
-        def t = thrown InvalidIvyPublicationException
+        def t = thrown InvalidUserDataException
         t.message == "Attempted to publish an artifact that does not exist: '${nonExistentFile}'"
     }
 

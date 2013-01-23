@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.publish.ivy.IvyArtifact;
 
@@ -45,4 +46,17 @@ public class IvyNormalizedPublication {
     public Set<IvyArtifact> getArtifacts() {
         return artifacts;
     }
+
+    public void validateArtifacts() {
+        for (IvyArtifact artifact : artifacts) {
+            checkExists(artifact);
+        }
+    }
+
+    private void checkExists(IvyArtifact artifact) {
+        if (artifact.getFile() == null || !artifact.getFile().exists()) {
+            throw new InvalidUserDataException(String.format("Attempted to publish an artifact that does not exist: '%s'", artifact.getFile()));
+        }
+    }
+
 }

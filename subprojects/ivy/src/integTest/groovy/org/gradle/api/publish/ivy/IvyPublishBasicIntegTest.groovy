@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,6 +107,36 @@ public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
         then: "jar is published to defined ivy repository"
         module.assertPublishedAsJavaModule()
         module.moduleDir.file('root-1.0.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
+    }
+
+    def "reports failure publishing when model validation fails"() {
+        given:
+        settingsFile << "rootProject.name = 'bad-project'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'war'
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        from components.web
+                    }
+                }
+            }
+        """
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
+        failure.assertHasCause("An IvyPublication cannot include multiple components")
     }
 
 
