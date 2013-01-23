@@ -9,6 +9,10 @@
                 </tr>
             </thead>
             <tr>
+                <td>contentsCompression</td>
+                <td><literal>ContentsCompression.STORED</literal></td>
+            </tr>
+            <tr>
                 <td>extension</td>
                 <td><literal>zip</literal></td>
             </tr>

@@ -35,29 +35,33 @@ import java.io.File;
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private final ZipCopyActionImpl action;
-    private boolean compressed = true;
+    private ContentsCompression contentsCompression;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
+        setContentsCompression(ContentsCompression.STORED);
         action = new ZipCopyActionImpl(getServices().get(FileResolver.class));
     }
     
     /**
-     * Returns if the archive will be compressed.
+     * Returns the compression level of the contents of the archive.
      * 
-     * @return whether the archive will be compressed.
+     * @return the compression level of the archive contents.
      */
-    public boolean getCompressed() {
-        return compressed;
+    public ContentsCompression getContentsCompression() {
+        return contentsCompression;
     }
     
     /**
-     * Sets whether to compress the contents of the archive.
+     * Sets the compression level of th the contents of the archive. 
+     * If set to {@code STORED} (the default), all contents of the archive 
+     * is compressed.  If set to {@code DEFLATED}, the contents are left 
+     * uncompressed.
      * 
-     * @param compressed
+     * @param contentsCompression {@code STORED} or {@code DEFLATED}
      */
-    public void setCompressed(boolean compressed) {
-        this.compressed = compressed;
+    public void setContentsCompression(ContentsCompression contentsCompression) {
+        this.contentsCompression = contentsCompression;
     }
 
     protected ZipCopyActionImpl getCopyAction() {
@@ -77,7 +81,10 @@ public class Zip extends AbstractArchiveTask {
         }
 
         public ZipCompressor getCompressor() {
-            return compressed ? ZipCompressedCompressor.INSTANCE : ZipDeflatedCompressor.INSTANCE;
+            switch(contentsCompression) {
+                case DEFLATED: return ZipDeflatedCompressor.INSTANCE;
+                default:       return ZipCompressedCompressor.INSTANCE;
+            }
         }
     }
 }

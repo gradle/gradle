@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.copy;
+package org.gradle.api.tasks.bundling;
 
-import java.io.File;
+/**
+ * Specifies the compression level of an archives contents.
+ */
+public enum ContentsCompression {
+    /** Contents are stored compressed */
+    STORED,
 
-import org.apache.tools.zip.ZipOutputStream;
-import org.gradle.api.internal.file.archive.compression.Compressor;
-
-public interface ZipCompressor extends Compressor {
-
-    ZipOutputStream compress(File destination);
+    /** Contents are stored uncompressed */
+    DEFLATED
 }
