@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.launcher.daemon.configuration
 
 import org.gradle.api.GradleException
@@ -30,80 +32,7 @@ class GradlePropertiesTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private properties = new GradleProperties()
 
-    def "determines base dir from user home dir"() {
-        def userHome = new File("some-dir")
-
-        when:
-        properties.configureFromGradleUserHome(userHome)
-
-        then:
-        properties.daemonBaseDir == new File(userHome, "daemon").canonicalFile
-    }
-
-    def "can configure base directory using system property"() {
-        when:
-        properties.configureFromSystemProperties((GradleProperties.BASE_DIR_PROPERTY): 'some-dir')
-
-        then:
-        properties.daemonBaseDir == new File('some-dir').canonicalFile
-    }
-
-    //TODO SF rework the tests to avoid duplication
-    def "can configure idle timeout using system property"() {
-        when:
-        properties.configureFromSystemProperties((GradleProperties.IDLE_TIMEOUT_PROPERTY): '4000')
-
-        then:
-        properties.idleTimeout == 4000
-    }
-
-    def "nice message for invalid idle timeout"() {
-        when:
-        properties.configureFromSystemProperties((GradleProperties.IDLE_TIMEOUT_PROPERTY): 'asdf')
-
-        then:
-        def ex = thrown(GradleException)
-        ex.message.contains 'org.gradle.daemon.idletimeout'
-        ex.message.contains 'asdf'
-    }
-
-    def "can configure jvm args using system property"() {
-        when:
-        properties.configureFromSystemProperties((GradleProperties.JVM_ARGS_PROPERTY):  '-Xmx1024m -Dprop=value')
-
-        then:
-        properties.jvmArgs == '-Xmx1024m -Dprop=value'
-    }
-
-    def "can configure jvm args using gradle.properties in root directory"() {
-        given:
-        tmpDir.createFile("settings.gradle")
-        tmpDir.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((GradleProperties.JVM_ARGS_PROPERTY): '-Xmx1024m -Dprop=value').store(outstr, "HEADER")
-        }
-
-        when:
-        properties.configureFromBuildDir(tmpDir.testDirectory, true)
-
-        then:
-        properties.jvmArgs == '-Xmx1024m -Dprop=value'
-    }
-
-    def "can configure idle timeout using gradle.properties in root directory"() {
-        given:
-        tmpDir.createFile("settings.gradle")
-        tmpDir.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((GradleProperties.IDLE_TIMEOUT_PROPERTY): '1450').store(outstr, "HEADER")
-        }
-
-        when:
-        properties.configureFromBuildDir(tmpDir.testDirectory, true)
-
-        then:
-        properties.idleTimeout == 1450
-    }
-
-    def "can configure parameters using gradle.properties in user home directory"() {
+    def "configures from gradle home dir (using jvm args as example)"() {
         given:
         tmpDir.file("gradle.properties").withOutputStream { outstr ->
             new Properties((GradleProperties.JVM_ARGS_PROPERTY): '-Xmx1024m -Dprop=value').store(outstr, "HEADER")
@@ -116,37 +45,76 @@ class GradlePropertiesTest extends Specification {
         properties.jvmArgs == '-Xmx1024m -Dprop=value'
     }
 
-    def "can enable daemon using system property"() {
-        when:
-        properties.configureFromSystemProperties((GradleProperties.DAEMON_ENABLED_PROPERTY):  'true')
-
-        then:
-        properties.daemonEnabled
-    }
-
-    def "can disable daemon using system property"() {
-        when:
-        properties.configureFromSystemProperties((GradleProperties.DAEMON_ENABLED_PROPERTY):  'no way')
-
-        then:
-        !properties.daemonEnabled
-    }
-
-    def "can enable daemon using gradle.properties in root directory"() {
+    def "configures from project dir (using jvm args as example)"() {
         given:
         tmpDir.createFile("settings.gradle")
         tmpDir.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((GradleProperties.DAEMON_ENABLED_PROPERTY): 'true').store(outstr, "HEADER")
+            new Properties((GradleProperties.JVM_ARGS_PROPERTY): '-Xmx1024m -Dprop=value').store(outstr, "HEADER")
         }
 
         when:
         properties.configureFromBuildDir(tmpDir.testDirectory, true)
 
         then:
-        properties.daemonEnabled
+        properties.jvmArgs == '-Xmx1024m -Dprop=value'
     }
 
-    def "can configure java home"() {
+    def "configures from system properties (using jvm args as example)"() {
+        when:
+        properties.configureFromSystemProperties((GradleProperties.JVM_ARGS_PROPERTY):  '-Xmx1024m -Dprop=value')
+
+        then:
+        properties.jvmArgs == '-Xmx1024m -Dprop=value'
+    }
+
+    def "sets default daemon base dir when configuring from gradle user home"() {
+        def userHome = new File("some-dir")
+
+        when:
+        properties.configureFromGradleUserHome(userHome)
+
+        then:
+        properties.daemonBaseDir == new File(userHome, "daemon").canonicalFile
+    }
+
+    def "configures daemon base dir when configuring from system properties"() {
+        when:
+        properties.configureFromSystemProperties((GradleProperties.BASE_DIR_PROPERTY): 'some-dir')
+
+        then:
+        properties.daemonBaseDir == new File('some-dir').canonicalFile
+    }
+
+    def "configures idle timeout"() {
+        when:
+        properties.configureFrom((GradleProperties.IDLE_TIMEOUT_PROPERTY): '4000')
+
+        then:
+        properties.idleTimeout == 4000
+    }
+
+    def "shows nice message for invalid idle timeout"() {
+        when:
+        properties.configureFrom((GradleProperties.IDLE_TIMEOUT_PROPERTY): 'asdf')
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains 'org.gradle.daemon.idletimeout'
+        ex.message.contains 'asdf'
+    }
+
+    def "configures daemon mode"() {
+        when:
+        properties.configureFrom((GradleProperties.DAEMON_ENABLED_PROPERTY):  flag)
+
+        then:
+        properties.daemonEnabled.toString() == flag
+
+        where:
+        flag << ["true", "false"]
+    }
+
+    def "configures java home"() {
         File jdk = Jvm.current().getJavaHome()
 
         when:
@@ -156,7 +124,7 @@ class GradlePropertiesTest extends Specification {
         properties.javaHome == jdk.canonicalFile
     }
 
-    def "nice message for dummy java home"() {
+    def "shows nice message for dummy java home"() {
         when:
         properties.configureFrom([(GradleProperties.JAVA_HOME_PROPERTY) : "/invalid/path"])
 
@@ -166,7 +134,7 @@ class GradlePropertiesTest extends Specification {
         ex.message.contains '/invalid/path'
     }
 
-    def "nice message for invalid java home"() {
+    def "shows nice message for invalid java home"() {
         def dummyDir = tmpDir.createDir("foobar")
         when:
         properties.configureFrom([(GradleProperties.JAVA_HOME_PROPERTY) : dummyDir.absolutePath])
@@ -177,7 +145,7 @@ class GradlePropertiesTest extends Specification {
         ex.message.contains 'foobar'
     }
 
-    def "can configure debug mode"() {
+    def "configures debug mode"() {
         when:
         properties.configureFrom((GradleProperties.DEBUG_MODE_PROPERTY): flag)
 
