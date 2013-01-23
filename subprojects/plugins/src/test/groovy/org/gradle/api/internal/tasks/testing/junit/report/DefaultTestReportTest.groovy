@@ -357,15 +357,11 @@ class TestResultsBuilder implements TestResultsProvider {
 }
 
 class TestResultsFixture {
-    final TestFile file
     Document content
 
     TestResultsFixture(TestFile file) {
-
-        this.file = file
         file.assertIsFile()
         content = Jsoup.parse(file, "utf-8")
-        def text = file.getText('utf-8').readLines()
     }
 
     void assertHasTests(int tests) {
