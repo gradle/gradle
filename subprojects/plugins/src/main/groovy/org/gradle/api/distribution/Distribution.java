@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.distribution;
+package org.gradle.api.distribution;
 
 import org.gradle.api.Named;
+import org.gradle.api.Incubating;
 /**
  * A distribution allow to bundle an application or a library including dependencies,sources...
  * @author scogneau
  */
+@Incubating
 public interface Distribution extends Named {
 
     /**

@@ -17,9 +17,10 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.api.tasks.distribution.Distribution
-import org.gradle.api.tasks.distribution.DistributionsContainer
+import org.gradle.api.distribution.Distribution
+import org.gradle.api.distribution.DistributionsContainer
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.HelperUtil
 import spock.lang.Specification;
@@ -28,12 +29,11 @@ class DistributionPluginTest extends Specification{
 	private final Project project = HelperUtil.createRootProject();
 	private final DistributionPlugin plugin = new DistributionPlugin(project.services.get(Instantiator));
 	
-	def "applies JavaPlugin and adds convention object with default values"() {
+	def "adds convention object with default values"() {
 		when:
 		plugin.apply(project)
 
 		then:
-		project.plugins.hasPlugin(JavaPlugin.class)
 		project.extensions.getByType(DistributionsContainer.class) != null
 
 	}

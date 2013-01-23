@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.distribution;
+package org.gradle.api.distribution.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.tasks.distribution.Distribution;
-import org.gradle.api.tasks.distribution.DistributionsContainer;
+import org.gradle.api.distribution.Distribution;
+import org.gradle.api.distribution.DistributionsContainer;
 import org.gradle.internal.reflect.Instantiator;
 
 /**
- * Default implementation for {@link org.gradle.api.tasks.distribution.DistributionsContainer}
+ * Default implementation for {@link org.gradle.api.distribution.DistributionsContainer}
  * @author scogneau
  */
 public class DefaultDistributionsContainer extends AbstractNamedDomainObjectContainer<Distribution> implements DistributionsContainer {

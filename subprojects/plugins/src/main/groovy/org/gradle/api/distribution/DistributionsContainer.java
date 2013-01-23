@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.distribution;
+package org.gradle.api.distribution;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * A {@code DistributionsContainer} manages a set of {@link Distribution} objects.
  */
+@Incubating
 public interface DistributionsContainer extends NamedDomainObjectContainer<Distribution> {
 
     /**
