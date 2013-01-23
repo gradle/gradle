@@ -193,7 +193,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!stackTraceChecksOn) {
             executer.withStackTraceChecksDisabled();
         }
-        executer.requireGradleHome();
+        if (requireGradleHome) {
+            executer.requireGradleHome();
+        }
 
         return executer;
     }
