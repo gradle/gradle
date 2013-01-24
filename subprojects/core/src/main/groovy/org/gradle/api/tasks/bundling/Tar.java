@@ -35,10 +35,9 @@ import java.util.concurrent.Callable;
  */
 public class Tar extends AbstractArchiveTask {
     private final CopyActionImpl action;
-    private Compression compression;
+    private Compression compression = Compression.NONE;
 
     public Tar() {
-        setCompression(Compression.NONE);
         action = new TarCopyActionImpl(getServices().get(FileResolver.class));
         getConventionMapping().map("extension", new Callable<Object>(){
             public Object call() throws Exception {

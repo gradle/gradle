@@ -35,11 +35,10 @@ import java.io.File;
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private final ZipCopyActionImpl action;
-    private ContentsCompression contentsCompression;
+    private ContentsCompression contentsCompression = ContentsCompression.STORED;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
-        setContentsCompression(ContentsCompression.STORED);
         action = new ZipCopyActionImpl(getServices().get(FileResolver.class));
     }
     
