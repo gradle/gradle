@@ -48,6 +48,12 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     List<String> ruleSets
 
     /**
+     * The target jdk to use with pmd
+     */
+    @Input
+    String targetJdk
+
+    /**
      * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for
      * how to author a rule set file.
      *
@@ -78,7 +84,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     void run() {
         antBuilder.withClasspath(getPmdClasspath()).execute {
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
-            ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount") {
+            ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount", targetjdk: targetJdk) {
                 getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 getRuleSets().each {
                     ruleset(it)
