@@ -139,6 +139,27 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.mod", "projectText-1.0-docs.mod", "projectText-1.0-customjar.mod")
     }
 
+    def "can attach artifact with no extension"() {
+        given:
+        file("no-extension-1.0-classifier") << "some content"
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact "customFile.txt"
+                    artifact "no-extension-1.0-classifier"
+                }
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module("group", "projectText", "1.0")
+        module.assertPublished()
+        module.parsedPom.packaging == "txt"
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-classifier")
+    }
+
     private createBuildScripts(def publications, def append = "") {
         settingsFile << "rootProject.name = 'projectText'"
         buildFile << """

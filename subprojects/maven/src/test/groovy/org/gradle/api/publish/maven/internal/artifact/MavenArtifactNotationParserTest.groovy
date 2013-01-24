@@ -68,19 +68,24 @@ public class MavenArtifactNotationParserTest extends Specification {
     def "adapts ArchivePublishArtifact to MavenArtifact"() {
         when:
         def rootProject = HelperUtil.createRootProject()
-        def archive = rootProject.task(type: Jar, {
-            classifier = 'classifier'
-        })
+        def archive = rootProject.task(type: Jar, {})
+        archive.setBaseName("baseName")
+        archive.setExtension(archiveExtension)
+        archive.setClassifier(archiveClassifier)
 
         MavenArtifact mavenArtifact = parser.parseNotation(archive)
 
         then:
-        mavenArtifact.extension == archive.extension
-        mavenArtifact.classifier == archive.classifier
+        mavenArtifact.extension == artifactExtension
+        mavenArtifact.classifier == artifactClassifier
         mavenArtifact.file == archive.archivePath
         mavenArtifact instanceof Buildable
         (mavenArtifact as Buildable).buildDependencies.getDependencies(null) == [archive] as Set
 
+        where:
+        archiveClassifier | artifactClassifier | archiveExtension | artifactExtension
+        "classifier"      | "classifier"       | "extension"      | "extension"
+        null              | ""                 | null             | ""
     }
 
     def "creates MavenArtifact for file notation"() {
@@ -97,6 +102,12 @@ public class MavenArtifactNotationParserTest extends Specification {
         mavenArtifact.extension == "zip"
         mavenArtifact.classifier == "classifier"
         mavenArtifact.file == file
+
+        where:
+        fileName                       | extension | classifier
+        "some-file"                    | ""        | ""
+        "some-file.zip"                | "zip"     | ""
+        "some-file-1.2-classifier.zip" | "zip"     | "classifier"
     }
 
     def "creates MavenArtifact for file map notation"() {

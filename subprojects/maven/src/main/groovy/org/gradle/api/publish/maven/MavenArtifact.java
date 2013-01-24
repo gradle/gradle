@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,24 +22,26 @@ import java.io.File;
  */
 public interface MavenArtifact {
     /**
-     * The extension used to publish the artifact file.
+     * The extension used to publish the artifact file, never <code>null</code>.
      */
     String getExtension();
 
     /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
+     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setExtension(String extension);
 
     /**
-     * The classifier used to publish the artifact file.
+     * The classifier used to publish the artifact file, never <code>null</code>.
      */
     String getClassifier();
 
     /**
      * Sets the classifier used to publish the artifact file.
      * @param classifier The classifier.
+     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setClassifier(String classifier);
 

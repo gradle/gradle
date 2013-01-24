@@ -32,23 +32,33 @@ abstract class ConfigurableIvyArtifact implements IvyArtifact {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = notNull(name);
     }
     
     public String getType() {
-        return type == null ? getBaseType() : type;
+        return type == null ? nullToEmpty(getBaseType()) : type;
     }
 
     public void setType(String type) {
-        this.type = type;
+        this.type = notNull(type);
     }
     
     public String getExtension() {
-        return extension == null ? getBaseExtension() : extension;
+        return extension == null ? nullToEmpty(getBaseExtension()) : extension;
     }
 
     public void setExtension(String extension) {
-        this.extension = extension;
+        this.extension = notNull(extension);
     }
-    
+
+    private String nullToEmpty(String input) {
+        return input == null ? "" : input;
+    }
+
+    private String notNull(String input) {
+        if (input == null) {
+            throw new IllegalArgumentException();
+        }
+        return input;
+    }
 }

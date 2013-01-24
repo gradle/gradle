@@ -25,18 +25,30 @@ abstract class ConfigurableMavenArtifact implements MavenArtifact {
     protected abstract String getBaseExtension();
 
     public String getExtension() {
-        return extension == null ? getBaseExtension() : extension;
+        return extension == null ? nullToEmpty(getBaseExtension()) : extension;
     }
 
     public void setExtension(String extension) {
-        this.extension = extension;
+        this.extension = notNull(extension);
     }
 
     public String getClassifier() {
-        return classifier == null ? getBaseClassifier() : classifier;
+        return classifier == null ? nullToEmpty(getBaseClassifier()) : classifier;
     }
 
     public void setClassifier(String classifier) {
-        this.classifier = classifier;
+        this.classifier = notNull(classifier);
     }
+
+    private String nullToEmpty(String input) {
+        return input == null ? "" : input;
+    }
+
+    private String notNull(String input) {
+        if (input == null) {
+            throw new IllegalArgumentException();
+        }
+        return input;
+    }
+
 }

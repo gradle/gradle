@@ -20,99 +20,107 @@ import spock.lang.Ignore
 
 class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
 
-    def module = ivyRepo.module("org.gradle.test", "publish", "2")
+    def module = ivyRepo.module("org.gradle.test", "ivyPublish", "2.4")
 
-    def setup() {
-        file('artifact.txt') << "some content"
-        settingsFile << 'rootProject.name = "publish"'
-    }
-
-    public void "can publish custom artifact"() {
+    public void "can publish custom artifacts"() {
         given:
-        buildFile << """
-            apply plugin: 'ivy-publish'
-
-            version = '2'
-            group = 'org.gradle.test'
-
-            publishing {
-                repositories {
-                    ivy {
-                        url "${ivyRepo.uri}"
-                    }
-                }
-                publications {
-                    ivy(IvyPublication) {
-                        artifact file: "artifact.txt", name: "foo", extension: "txt"
-                    }
+        createBuildScripts("""
+            publications {
+                ivyCustom(IvyPublication) {
+                    artifact "customFile.txt"
+                    artifact customDocsTask.outputFile
+                    artifact customJar
                 }
             }
-        """
+""")
 
         when:
         succeeds 'publish'
 
         then:
-        module.ivyFile.assertIsFile()
-        module.assertArtifactsPublished("ivy-2.xml", "foo-2.txt")
-        with(module.ivy.artifacts.foo) {
-            name == "foo"
-            ext == "txt"
-            "runtime" in conf
-        }
+        module.assertPublished()
+        module.assertArtifactsPublished("ivy-2.4.xml", "customFile-2.4.txt", "customDocs-2.4.html", "customJar-2.4.jar")
     }
 
-    def "publish multiple artifacts in single configuration"() {
-        file("file1") << "some content"
-        file("file2") << "other content"
-
-        buildFile << """
-            apply plugin: "base"
-            apply plugin: "ivy-publish"
-
-            group = "org.gradle.test"
-            version = 2
-
-            task jar1(type: Jar) {
-                baseName = "jar1"
-                from "file1"
-            }
-
-            task jar2(type: Jar) {
-                baseName = "jar2"
-                from "file2"
-            }
-
-            publishing {
-                repositories {
-                    ivy {
-                        url "${ivyRepo.uri}"
+    def "can configure custom artifacts when creating"() {
+        given:
+        createBuildScripts("""
+            publications {
+                ivyCustom(IvyPublication) {
+                    artifact("customFile.txt") {
+                        name "changedFile"
+                        extension "customExt"
                     }
-                }
-                publications {
-                    ivy(IvyPublication) {
-                        artifact jar1
-                        artifact jar2
+                    artifact(customDocsTask.outputFile) {
+                        name "changedDocs"
+                        type "htm"
+                    }
+                    artifact customJar {
+                        extension "war"
                     }
                 }
             }
-        """
-
+""")
         when:
-        run "publish"
+        succeeds 'publish'
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("ivy-2.xml", "jar1-2.jar", "jar2-2.jar")
-        module.moduleDir.file("jar1-2.jar").assertIsCopyOf(file("build/libs/jar1-2.jar"))
-        module.moduleDir.file("jar2-2.jar").assertIsCopyOf(file("build/libs/jar2-2.jar"))
+        module.assertArtifactsPublished("ivy-2.4.xml", "changedFile-2.4.customExt", "changedDocs-2.4.html", "customJar-2.4.war")
+    }
 
-        and:
-        with(module.ivy.artifacts.jar1) {
-            name == "jar1"
-            ext == "jar"
-            conf == ["runtime"]
-        }
+    def "can publish custom file artifacts with map notation"() {
+        given:
+        createBuildScripts("""
+            publications {
+                ivyCustom(IvyPublication) {
+                    artifact file: "customFile.txt", extension: "customExt"
+                    artifact file: customDocsTask.outputFile, name: "changedDocs", extension: "htm"
+                }
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublished()
+        module.assertArtifactsPublished("ivy-2.4.xml", "customFile-2.4.customExt", "changedDocs-2.4.htm")
+    }
+
+    def "can set custom artifacts to override component artifacts"() {
+        given:
+        createBuildScripts("""
+            publications {
+                ivyCustom(IvyPublication) {
+                    from components.java
+                    artifacts = ["customFile.txt", customDocsTask.outputFile, customJar]
+                }
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublished()
+        module.assertArtifactsPublished("ivy-2.4.xml", "customFile-2.4.txt", "customDocs-2.4.html", "customJar-2.4.jar")
+    }
+
+    def "can publish artifact with no extension"() {
+        given:
+        file("no-extension") << "some content"
+        createBuildScripts("""
+            publications {
+                ivyCustom(IvyPublication) {
+                    artifact file('no-extension')
+                }
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublished()
+        module.assertArtifactsPublished("ivy-2.4.xml", "no-extension-2.4")
     }
 
     @Ignore // Need to add ability to specify configurations
@@ -154,4 +162,38 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         }
     }
 
+    private createBuildScripts(def publications, def append = "") {
+        file("customFile.txt") << "some content"
+        settingsFile << "rootProject.name = 'ivyPublish'"
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
+
+            group = 'org.gradle.test'
+            version = '2.4'
+
+            task customDocsTask {
+                ext.outputFile = file('customDocs.html')
+                doLast {
+                    outputFile << '<html/>'
+                }
+            }
+
+            task customJar(type: Jar) {
+                from file("customFile.txt")
+                baseName "customJar"
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                $publications
+            }
+
+            publishIvyCustomPublicationToIvyRepository.dependsOn(customDocsTask)
+
+            $append
+        """
+    }
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Incubating;
@@ -25,35 +26,38 @@ import java.io.File;
 @Incubating
 public interface IvyArtifact {
     /**
-     * The name used to publish the artifact file.
+     * The name used to publish the artifact file, never <code>null</code>.
      */
     String getName();
 
     /**
      * Sets the name used to publish the artifact file.
      * @param name The name.
+     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setName(String name);
 
     /**
-     * The type used to publish the artifact file.
+     * The type used to publish the artifact file, never <code>null</code>.
      */
     String getType();
 
     /**
      * Sets the type used to publish the artifact file.
      * @param type The type.
+     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setType(String type);
 
     /**
-     * The extension used to publish the artifact file.
+     * The extension used to publish the artifact file, never <code>null</code>.
      */
     String getExtension();
 
     /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
+     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setExtension(String extension);
 
