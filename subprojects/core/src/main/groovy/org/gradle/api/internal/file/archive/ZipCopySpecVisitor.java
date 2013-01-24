@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
 
 import java.io.File;
@@ -31,10 +30,10 @@ public class ZipCopySpecVisitor extends EmptyCopySpecVisitor {
     private File zipFile;
 
     public void startVisit(CopyAction action) {
-        ArchiveCopyAction archiveAction = (ArchiveCopyAction) action;
+        ZipCopyAction archiveAction = (ZipCopyAction) action;
         zipFile = archiveAction.getArchivePath();
         try {
-            zipOutStr = new ZipOutputStream(zipFile);
+            zipOutStr = archiveAction.getCompressor().compress(zipFile);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create ZIP '%s'.", zipFile), e);
         }

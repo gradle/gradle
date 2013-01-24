@@ -19,8 +19,11 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.archive.compression.Compressor;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
+import org.gradle.api.internal.file.copy.ZipCompressedCompressor;
+import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Description;
@@ -48,7 +51,7 @@ public class ZipCopySpecVisitorTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
+    private final ArchiveCopyAction copyAction = context.mock(ZipCopyAction.class);
     private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
     private final ZipCopySpecVisitor visitor = new ZipCopySpecVisitor();
     private TestFile zipFile;
@@ -56,14 +59,40 @@ public class ZipCopySpecVisitorTest {
     @Before
     public void setup() {
         zipFile = tmpDir.getTestDirectory().file("test.zip");
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(copyAction).getArchivePath();
             will(returnValue(zipFile));
         }});
+        context.checking(new Expectations() {{
+            allowing(copyAction).getCompressor();
+            will(returnValue(ZipCompressedCompressor.INSTANCE));
+        }});
+    }
+
+    private TestFile initializeZipFile(final TestFile testFile, final Compressor compressor) {
+        context.checking(new Expectations() {{
+            allowing(copyAction).getArchivePath();
+            will(returnValue(zipFile));
+            allowing(copyAction).getCompressor();
+            will(returnValue(compressor));
+        }});
+        return testFile;
     }
 
     @Test
     public void createsZipFile() {
+        initializeZipFile(zipFile, ZipCompressedCompressor.INSTANCE);
+        zip(dir("dir"), file("dir/file1"), file("file2"));
+
+        TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
+        zipFile.unzipTo(expandDir);
+        expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
+        expandDir.file("file2").assertContents(equalTo("contents of file2"));
+    }
+
+    @Test
+    public void createsDeflatedZipFile() {
+        initializeZipFile(zipFile, ZipDeflatedCompressor.INSTANCE);
         zip(dir("dir"), file("dir/file1"), file("file2"));
 
         TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
@@ -87,7 +116,7 @@ public class ZipCopySpecVisitorTest {
     public void wrapsFailureToOpenOutputFile() {
         final TestFile invalidZipFile = tmpDir.createDir("test.zip");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(copyAction).getArchivePath();
             will(returnValue(invalidZipFile));
         }});

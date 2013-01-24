@@ -296,6 +296,80 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
     }
 
+    def canCreateAZipArchiveWithContentsUncompressed() {
+        given:
+        createDir('test') {
+            dir1 {
+                file('file1.txt').write("abc")
+            }
+            file 'file1.txt'
+            dir2 {
+                file 'file2.txt'
+                file 'script.sh'
+            }
+        }
+        and:
+        buildFile << '''
+            task uncompressedZip(type: Zip) {
+                into('prefix') {
+                    from 'test'
+                    include '**/*.txt'
+                    rename { "renamed_$it" }
+                    filter { "[$it]" }
+                }
+                into('scripts') {
+                    from 'test'
+                    include '**/*.sh'
+                }
+                destinationDir = buildDir
+                archiveName = 'uncompressedTest.zip'
+                contentsCompression = ContentsCompression.DEFLATED
+            }
+
+            task compressedZip(type: Zip) {
+                into('prefix') {
+                    from 'test'
+                    include '**/*.txt'
+                    rename { "renamed_$it" }
+                    filter { "[$it]" }
+                }
+                into('scripts') {
+                    from 'test'
+                    include '**/*.sh'
+                }
+                destinationDir = buildDir
+                archiveName = 'compressedTest.zip'
+            }
+        '''
+        when:
+        run 'uncompressedZip'
+        run 'compressedZip'
+        then:
+	def uncompressedSize = file('build/uncompressedTest.zip').length()
+	def compressedSize = file('build/compressedTest.zip').length()
+	assert compressedSize < uncompressedSize
+
+        def expandDir = file('expandedUncompressed')
+        file('build/uncompressedTest.zip').unzipTo(expandDir)
+        expandDir.assertHasDescendants(
+                'prefix/dir1/renamed_file1.txt',
+                'prefix/renamed_file1.txt',
+                'prefix/dir2/renamed_file2.txt',
+                'scripts/dir2/script.sh')
+
+        expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
+
+        def expandCompressedDir = file('expandedCompressed')
+        file('build/compressedTest.zip').unzipTo(expandCompressedDir)
+        expandCompressedDir.assertHasDescendants(
+                'prefix/dir1/renamed_file1.txt',
+                'prefix/renamed_file1.txt',
+                'prefix/dir2/renamed_file2.txt',
+                'scripts/dir2/script.sh')
+
+        expandCompressedDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
+    }
+
     def canCreateATarArchive() {
         given:
         createDir('test') {

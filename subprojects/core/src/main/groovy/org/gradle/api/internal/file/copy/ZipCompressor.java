@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@ package org.gradle.api.internal.file.copy;
 
 import java.io.File;
 
+import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.internal.file.archive.compression.Compressor;
 
-public interface ArchiveCopyAction extends CopyAction {
-    File getArchivePath();
-    Compressor getCompressor();
+public interface ZipCompressor extends Compressor {
+
+    ZipOutputStream compress(File destination);
 }
