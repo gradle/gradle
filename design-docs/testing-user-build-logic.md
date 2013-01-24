@@ -186,6 +186,8 @@ It is unclear how much will be executable in this mode. For example it may not b
 
 ## Story: A user uses a utility that is, or is similar to, `ProjectBuilder` that is part of the test kit
 
+`ProjectBuilder` would be deprecated and later removed.
+
 # Open issues
 
 None known at this time.

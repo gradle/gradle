@@ -93,6 +93,34 @@ TBD
 ## Parallel execution mode implies configure on demand
 
 - configure on demand with configuration decoupling is to eventually become the default Gradle model.
+- rename 'configure on demand' to something that reflects that this will be the new Gradle configuration model.
+
+## Allow project dependencies in build script classpath
+
+This is a replacement for the `buildSrc` project. When in configure-on-demand mode, allow project dependencies
+to appear in the classpath of a build script. The target project must be configured and the target configuration
+built before the referring project can be configured.
+
+One situation that will not be supported at this story is where the root project build script has a dependency
+on a subproject *and* the root project injects some configuration into that project. This is not
+possible with `buildSrc`, either. A later story will add support for decoupling the configuration injection from
+the root project so that this will be possible.
+
+### Coverage
+
+- Root project has a dependency on a build project.
+- A build project has a dependency on another project.
+
+## Configure target project when project dependency is resolved
+
+This is to fix common ordering issues where a dependency is resolved at configuration time. This should
+happen for both the legacy and new configuration models.
+
+## Coverage
+
+- Project A depends on project B, which depends on some external dependency.
+    - Verify that when the configuration is resolved in project A's build script, project B and the external
+      dependency are present.
 
 ## Build author injects configuration into projects without direct coupling between projects
 
@@ -102,8 +130,8 @@ TBD
 
 ## Warn build author when projects are coupled
 
-- This will be split into a number of stories as there are a few ways that projects can be coupled. We might also interleave warning about a particular type of
-  coupling with one of the following stories, which add alternative ways so solve the use cases without coupling.
+- This will be split into a number of stories as there are a few ways that projects can be coupled. We might also interleave warning about a
+  particular type of coupling with one of the following stories, which add alternative ways so solve the use cases without coupling.
 - Possibly offer 'legacy', 'transitional' and 'strict' modes, where legacy ignores coupling, transitional warns and strict fails.
 - Use transitional as the default when configure on demand is enabled, otherwise use legacy.
 

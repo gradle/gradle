@@ -92,6 +92,10 @@ HTML report is generated from the binary format, not from XML results
     - The XML results should include an XML file for `SomeClass` that includes each test method multiple times, one for each time it was executed.
     - The HTML report should include the same information.
 
+## Story: HTML test report shows runtime grouping of tests into suites
+
+- Add the tree of test execution to the test report
+
 ## Story: Aggregate HTML test report can be generated
 
 - Change test task to persist test results in internal format.
