@@ -5,8 +5,10 @@ apply plugin: 'distribution'
 version = '1.0.0'
 
 // START SNIPPET name-conf
-distribution {
-    name = 'my-name'
+distributions {
+    main {
+        name = 'my-name'
+    }
 }
 // END SNIPPET name-conf
 
@@ -17,19 +19,7 @@ distributions {
     custom
 }
 
-distZip {
-    from { ... }
-}
-
 customDistZip {
-    from { ... }
+    from "custom/custom.txt"
 }
 // END SNIPPET custom-distZip
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    compile 'commons-collections:commons-collections:3.2.1'
-}
