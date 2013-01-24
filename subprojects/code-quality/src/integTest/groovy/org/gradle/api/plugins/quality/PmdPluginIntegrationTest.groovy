@@ -33,9 +33,7 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
 
     def "analyze good code"() {
         goodCode()
-
         expect:
-        executer.withArguments("--info")
         succeeds("check")
         file("build/reports/pmd/main.xml").exists()
         file("build/reports/pmd/test.xml").exists()
@@ -43,7 +41,6 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
 
     def "analyze bad code"() {
         badCode()
-
         expect:
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'")
@@ -65,6 +62,22 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
         output.contains("2 PMD rule violations were found. See the report at:")
+    }
+
+
+    /**
+     * bad test class can't be parsed due to usage of Generics
+     * @TODO: Allow to expose this error from ant pmd.
+     * */
+    def "can configure targetJdk"() {
+        badCode()
+        buildFile << """
+                pmd {
+                    targetJdk = 1.4
+                }
+            """
+        expect:
+        succeeds("check")
     }
 
     def "can configure reporting"() {
@@ -113,6 +126,7 @@ repositories {
         file("src/main/java/org/gradle/Class1.java") <<
                 "package org.gradle; class Class1 { public boolean isFoo(Object arg) { return true; } }"
         file("src/test/java/org/gradle/Class1Test.java") <<
-                "package org.gradle; class Class1Test { {} public boolean equals(Object arg) { return true; } }"
+                "package org.gradle; class Class1Test<T> { {} public boolean equals(Object arg) { return true; } }"
+
     }
 }

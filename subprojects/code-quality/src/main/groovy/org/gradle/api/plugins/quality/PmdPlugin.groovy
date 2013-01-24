@@ -70,7 +70,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSets = { extension.ruleSets }
             ruleSetFiles = { extension.ruleSetFiles }
             ignoreFailures = { extension.ignoreFailures }
-            targetJdk = { extension.targetJdk != null ? extension.targetJdk : project.sourceCompatibility.toString() }
+            targetJdk = { extension.targetJdk != null ? extension.targetJdk.toString() : project.sourceCompatibility.getName() }
             task.reports.all { report ->
                 report.conventionMapping.with {
                     enabled = { true }

@@ -41,7 +41,7 @@ class PmdExtension extends CodeQualityExtension {
     /**
      * The target jdk to use with pmd, 1.3, 1.4, 1.5, 1.6, 1.7 or jsp
      */
-    String targetJdk
+    Object targetJdk
     
     /**
      * Convenience method for adding rule sets.
