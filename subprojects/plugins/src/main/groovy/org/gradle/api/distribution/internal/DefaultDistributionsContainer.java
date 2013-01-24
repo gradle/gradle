@@ -30,17 +30,14 @@ public class DefaultDistributionsContainer extends AbstractNamedDomainObjectCont
         super(type, instantiator);
     }
 
-    @Override
     protected Distribution doCreate(String name) {
         return new DefaultDistribution(name);
     }
 
-    @Override
     public Distribution add(String name) {
         return doCreate(name);
     }
 
-    @Override
     public Distribution add(String name, Closure configurationClosure) {
         return create(name, configurationClosure);
     }
