@@ -19,29 +19,34 @@ package org.gradle.api.distribution.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.distribution.internal.DefaultDistributionsContainer
-import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.distribution.Distribution
 import org.gradle.api.distribution.DistributionsContainer
+import org.gradle.api.distribution.internal.DefaultDistributionsContainer
+import org.gradle.api.tasks.bundling.Zip
+import org.gradle.internal.reflect.Instantiator
 
-import javax.inject.Inject;
-import org.gradle.internal.reflect.Instantiator;
+import javax.inject.Inject
 
 /**
  * <p>A {@link Plugin} to package project as a distribution</p>
- * 
+ *
  * @author scogneau
  *
  */
 @Incubating
 class DistributionPlugin implements Plugin<Project> {
 
-	static final String DISTRIBUTION_PLUGIN_NAME = "distribution"
-	static final String DISTRIBUTION_GROUP = DISTRIBUTION_PLUGIN_NAME
+    /**
+     * Name of the main distribution
+     */
+    public static final String MAIN_DISTRIBUTION_NAME = "main";
+
+    static final String DISTRIBUTION_PLUGIN_NAME = "distribution"
+    static final String DISTRIBUTION_GROUP = DISTRIBUTION_PLUGIN_NAME
     static final String TASK_DIST_ZIP_NAME = "distZip"
 
     private DistributionsContainer extension
-	private Project project
+    private Project project
     private Instantiator instantiator
 
 
@@ -50,34 +55,33 @@ class DistributionPlugin implements Plugin<Project> {
         this.instantiator = instantiator;
     }
 
-	public void apply(Project project) {
-		    this.project = project
-			addValidation()
-            addPluginExtension()
-	}
+    public void apply(Project project) {
+        this.project = project
+        addValidation()
+        addPluginExtension()
+    }
 
     void addValidation() {
         project.afterEvaluate {
-            extension.all {distribution->
-                if (distribution.name == null || distribution.name.empty
-                ) {
+            extension.all { distribution ->
+                if (distribution.name == null || distribution.name.empty) {
                     throw new IllegalArgumentException("Distribution name must not be null or empty ! Check your configuration of the distribution plugin.")
                 }
             }
         }
     }
 
-	void addPluginExtension() {
-        extension = new DefaultDistributionsContainer(Distribution.class,instantiator)
-         Distribution distribution = extension.create(Distribution.MAIN_DISTRIBUTION_NAME)
-        extension.all {dist -> addTask(dist)}
+    void addPluginExtension() {
+        extension = new DefaultDistributionsContainer(Distribution.class, instantiator)
+        extension.all { dist -> addTask(dist) }
+        extension.create(MAIN_DISTRIBUTION_NAME)
         project.extensions.add("distributions", extension)
-	}
-	
-	void addTask(Distribution distribution){
+    }
+
+    void addTask(Distribution distribution) {
         def taskName = TASK_DIST_ZIP_NAME
-        if (!Distribution.MAIN_DISTRIBUTION_NAME.equals(distribution.name)){
-            taskName = distribution.name+"DistZip"
+        if (!MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
+            taskName = distribution.name + "DistZip"
         }
         def distZipTask = project.tasks.add(taskName, Zip)
         distZipTask.description = "Bundles the project as a distribution."
@@ -86,4 +90,4 @@ class DistributionPlugin implements Plugin<Project> {
 
     }
 
- }
+}

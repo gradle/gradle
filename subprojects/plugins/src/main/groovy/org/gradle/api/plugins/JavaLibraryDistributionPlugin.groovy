@@ -16,13 +16,11 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.distribution.Distribution
-
+import org.gradle.api.distribution.plugins.DistributionPlugin
 
 /**
  * A {@link Plugin} which package a project as a distribution including
@@ -32,8 +30,6 @@ import org.gradle.api.distribution.Distribution
  */
 @Incubating
 class JavaLibraryDistributionPlugin implements Plugin<Project> {
-    static final String JAVA_LIBRARY_PLUGIN_NAME = "java-library-distribution"
-    static final String JAVA_LIBRARY_GROUP = JAVA_LIBRARY_PLUGIN_NAME
     static final String TASK_DIST_ZIP_NAME = "distZip"
 
     private Project project
@@ -42,13 +38,14 @@ class JavaLibraryDistributionPlugin implements Plugin<Project> {
     public void apply(Project project) {
         this.project = project
         project.plugins.apply(JavaPlugin)
-		project.plugins.apply(DistributionPlugin)
+        project.plugins.apply(DistributionPlugin)
         addPluginExtension()
-       	configureDistZipTask()
+        configureDistZipTask()
     }
 
     private void addPluginExtension() {
-        extension = project.distributions[Distribution.MAIN_DISTRIBUTION_NAME]
+        extension = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
+        project.extensions.add("distribution", extension);
         extension.name = project.name
     }
 

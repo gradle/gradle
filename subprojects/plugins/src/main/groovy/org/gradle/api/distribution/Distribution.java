@@ -24,12 +24,5 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface Distribution extends Named {
-
-    /**
-     * Name of the main distribution
-     */
-    public static final String MAIN_DISTRIBUTION_NAME = "main";
-
-
     String getName();
 }
