@@ -22,7 +22,7 @@
         </para>
     </note>
     <para>The distribution plugin extends the language plugins with common distribution related tasks.
-	It allows bundling project including binaries,sources and documentation.
+	It allows bundling a project including binaries, sources and documentation.
 	</para>
 
     <section>

@@ -168,6 +168,22 @@ The task for generating the Pom file is of type [`GenerateMavenPom`](dsl/org.gra
 of the publication: `generatePomFileFor<publication-name>Publication`. So in the above example where the publication is named 'mavenCustom',
 the task will be named `generatePomFileForMavenCustomPublication`.
 
+### Distribution Plugin
+
+The distribution plugin extends the language plugins with common distribution related tasks.
+It allows bundling a project including binaries, sources and documentation.
+
+This plugin adds a main default distribution. The plugin adds one `main` distribution. The `distZip` task can be used to create a ZIP containing the main distribution.
+
+You can define multiple distributions:
+
+    distributions {
+        enterprise
+		community
+    }
+
+To build the additional distributions you can run the generated Zip tasks enterpriseDistZip and communityDistZip.
+
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
