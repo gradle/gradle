@@ -18,7 +18,7 @@
     <title>The Distribution Plugin</title>
     <note>
         <para>
-            The Java library distribution plugin is incubating and should not be considered stable.
+            The distribution plugin is incubating and should not be considered stable.
         </para>
     </note>
     <para>The distribution plugin extends the language plugins with common distribution related tasks.
@@ -35,8 +35,7 @@
         <sample id="configureDistributionName" dir="userguide/distribution" title="Configure the distribution name">
             <sourcefile file="build.gradle" snippet="name-conf"/>
         </sample>
-
-         <para>The plugin build a distribution for your project. You can run <userinput>gradle distZip</userinput> to create a
+        <para>The plugin build a distribution for your project. You can run <userinput>gradle distZip</userinput> to create a
             ZIP containing the distribution.
         </para>
     </section>
@@ -55,13 +54,15 @@
                 </tr>
             </thead>
 		<tr>
-                <td>
-                    <literal>distZip</literal>
-                </td>
-                <td>
-                    <literal>-</literal>
-                </td>
-                <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
+            <td>
+                <literal>distZip</literal>
+            </td>
+            <td>
+                <literal>-</literal>
+            </td>
+            <td>
+                <apilink class="org.gradle.api.tasks.bundling.Zip"/>
+            </td>
                 <td>Creates a full distribution ZIP archive.</td>
             </tr>
         </table>
