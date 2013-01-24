@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.publish.ivy.internal
-
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencySet
@@ -29,7 +28,6 @@ import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class DefaultIvyPublicationTest extends Specification {
@@ -75,8 +73,8 @@ class DefaultIvyPublicationTest extends Specification {
         def publication = createPublication()
 
         then:
+        artifactsOf(publication).empty
         publication.publishableFiles.files == [descriptorFile] as Set
-        publication.asNormalisedPublication().artifacts.empty
         publication.runtimeDependencies.empty
     }
 
@@ -88,8 +86,7 @@ class DefaultIvyPublicationTest extends Specification {
         PublishArtifactSet publishArtifactSet = Mock()
         PublishArtifact artifact = Mock()
         DependencySet dependencySet = Mock()
-
-        IvyArtifact ivyArtifact = Mock()
+        IvyArtifact ivyArtifact = createArtifact()
 
         when:
         component.artifacts >> publishArtifactSet
@@ -97,14 +94,13 @@ class DefaultIvyPublicationTest extends Specification {
         component.runtimeDependencies >> dependencySet
 
         notationParser.parseNotation(artifact) >> ivyArtifact
-        ivyArtifact.file >> artifactFile
 
         and:
         publication.from(component)
 
         then:
+        artifactsOf(publication) == [ivyArtifact] as Set
         publication.publishableFiles.files == [descriptorFile, artifactFile] as Set
-        publication.asNormalisedPublication().artifacts == [ivyArtifact] as Set
         publication.runtimeDependencies == dependencySet
     }
 
@@ -133,29 +129,27 @@ class DefaultIvyPublicationTest extends Specification {
         given:
         def publication = createPublication()
         Object notation = new Object();
-        IvyArtifact ivyArtifact = Mock()
+        IvyArtifact ivyArtifact = createArtifact()
 
         when:
         notationParser.parseNotation(notation) >> ivyArtifact
-        ivyArtifact.file >> artifactFile
 
         and:
         publication.artifact notation
 
         then:
+        artifactsOf(publication) == [ivyArtifact] as Set
         publication.publishableFiles.files == [descriptorFile, artifactFile] as Set
-        publication.asNormalisedPublication().artifacts == [ivyArtifact] as Set
     }
 
     def "attaches and configures artifacts parsed by notation parser"() {
         given:
         def publication = createPublication()
         Object notation = new Object();
-        IvyArtifact ivyArtifact = Mock()
+        IvyArtifact ivyArtifact = createArtifact()
 
         when:
         notationParser.parseNotation(notation) >> ivyArtifact
-        ivyArtifact.file >> artifactFile
         1 * ivyArtifact.setExtension('changed')
         0 * ivyArtifact._
 
@@ -167,17 +161,16 @@ class DefaultIvyPublicationTest extends Specification {
         })
 
         then:
-        publication.asNormalisedPublication().artifacts == [ivyArtifact] as Set
+        artifactsOf(publication) == [ivyArtifact] as Set
         publication.publishableFiles.files == [descriptorFile, artifactFile] as Set
     }
 
-    @Ignore // Not yet implemented
     def "can use setter to replace existing artifacts set"() {
         given:
         def publication = createPublication()
         Object notation = new Object();
-        IvyArtifact ivyArtifact1 = Mock()
-        IvyArtifact ivyArtifact2 = Mock()
+        IvyArtifact ivyArtifact1 = createArtifact()
+        IvyArtifact ivyArtifact2 = createArtifact()
 
         when:
         publication.artifact "notation"
@@ -193,7 +186,7 @@ class DefaultIvyPublicationTest extends Specification {
         notationParser.parseNotation("notation2") >> ivyArtifact2
 
         and:
-        publication.asNormalisedPublication().artifacts == [ivyArtifact1, ivyArtifact2] as Set
+        artifactsOf(publication) == [ivyArtifact1, ivyArtifact2] as Set
     }
 
     def "getting normalised publication will fail with file that does not exist"() {
@@ -227,4 +220,9 @@ class DefaultIvyPublicationTest extends Specification {
         }
         return artifact
     }
+
+    private static Set<IvyArtifact> artifactsOf(DefaultIvyPublication publication) {
+        publication.asNormalisedPublication().artifacts
+    }
+
 }

@@ -27,6 +27,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.IvyArtifactSet;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.internal.reflect.Instantiator;
@@ -86,6 +87,17 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public IvyArtifact artifact(Object source, Action<IvyArtifact> config) {
         return ivyArtifacts.addArtifact(source, config);
+    }
+
+    public IvyArtifactSet getArtifacts() {
+        return ivyArtifacts;
+    }
+
+    public void setArtifacts(Iterable<Object> sources) {
+        ivyArtifacts.clear();
+        for (Object source : sources) {
+            artifact(source);
+        }
     }
 
     public FileCollection getPublishableFiles() {
