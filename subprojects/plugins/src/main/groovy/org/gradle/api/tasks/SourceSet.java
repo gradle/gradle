@@ -85,7 +85,7 @@ public interface SourceSet {
 
    /**
      * {@link SourceSetOutput} is a {@link FileCollection} of all output directories (compiled classes, processed resources, etc.)
-     *  and it provides means configure the default output dirs and register additional output dirs. See examples in {@link SourceSetOutput}
+     *  and it provides means to configure the default output dirs and register additional output dirs. See examples in {@link SourceSetOutput}
      *
      * @return The output dirs, as a {@link SourceSetOutput}.
      */
