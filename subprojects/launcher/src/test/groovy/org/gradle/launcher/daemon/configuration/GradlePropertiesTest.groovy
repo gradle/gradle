@@ -23,6 +23,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.StartParameter
 
 /**
  * by Szczepan Faber, created at: 1/22/13
@@ -154,5 +155,64 @@ class GradlePropertiesTest extends Specification {
 
         where:
         flag << ["true", "false"]
+    }
+
+    def "configures parallel mode"() {
+        when:
+        properties.configureFrom((GradleProperties.PARALLEL_PROPERTY): flag)
+
+        then:
+        properties.parallelMode.toString() == flag
+
+        where:
+        flag << ["true", "false"]
+    }
+
+    def "informs start parameter about configure on demand"() {
+        def param = Mock(StartParameter)
+
+        when:
+        properties.updateStartParameter(param)
+
+        then:
+        0 * param._
+
+        when:
+        properties.configureOnDemand = true
+        properties.updateStartParameter(param)
+
+        then:
+        1 * param.setConfigureOnDemand(true)
+        0 * _
+    }
+
+    def "informs start parameter about parallel mode"() {
+        def param = Mock(StartParameter)
+
+        when:
+        properties.updateStartParameter(param)
+
+        then:
+        0 * param._
+
+        when:
+        properties.parallelMode = true
+        properties.updateStartParameter(param)
+
+        then:
+        1 * param.setParallelThreadCount(-1)
+    }
+
+    def "does not set parallel mode when it was already configured even parallel mode is requested"() {
+        def param = Mock(StartParameter) {
+            isParallelThreadCountConfigured() >> true
+        }
+
+        when:
+        properties.parallelMode = true //requested
+        properties.updateStartParameter(param)
+
+        then:
+        0 * param.setParallelThreadCount(_)
     }
 }

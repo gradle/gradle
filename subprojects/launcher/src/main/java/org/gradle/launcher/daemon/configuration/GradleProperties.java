@@ -45,6 +45,7 @@ public class GradleProperties {
     public static final String DAEMON_ENABLED_PROPERTY = "org.gradle.daemon";
     public static final String DEBUG_MODE_PROPERTY = "org.gradle.debug";
     public static final String CONFIGURE_ON_DEMAND_PROPERTY = "org.gradle.configureondemand";
+    public static final String PARALLEL_PROPERTY = "org.gradle.parallel";
 
     private File daemonBaseDir;
     private String jvmArgs;
@@ -54,6 +55,7 @@ public class GradleProperties {
     private File javaHome;
     private boolean debugMode;
     private boolean configureOnDemand;
+    private boolean parallelMode;
 
     public boolean isDaemonEnabled() {
         return daemonEnabled;
@@ -167,6 +169,12 @@ public class GradleProperties {
         if (propertyValue != null) {
             configureOnDemand = isTrue(propertyValue);
         }
+
+        propertyValue = properties.get(PARALLEL_PROPERTY);
+        if (propertyValue != null) {
+            parallelMode = isTrue(propertyValue);
+        }
+
         return this;
     }
 
@@ -174,10 +182,17 @@ public class GradleProperties {
         if (configureOnDemand) {
             startParameter.setConfigureOnDemand(configureOnDemand);
         }
+        if (parallelMode && !startParameter.isParallelThreadCountConfigured()) {
+            startParameter.setParallelThreadCount(-1);
+        }
     }
 
     public boolean isConfigureOnDemand() {
         return configureOnDemand;
+    }
+
+    public boolean isParallelMode() {
+        return parallelMode;
     }
 
     private static boolean isTrue(Object propertyValue) {

@@ -35,9 +35,14 @@ public class GradlePropertiesConfigurer {
 
     public DaemonParameters configureParameters(StartParameter startParameter) {
         DaemonParameters out = new DaemonParameters();
-        GradleProperties properties = this.prepareProperties(startParameter.getCurrentDir(), startParameter.isSearchUpwards(), startParameter.getGradleUserHomeDir(), startParameter.getMergedSystemProperties());
-        properties.updateStartParameter(startParameter);
+        GradleProperties properties = configureStartParameter(startParameter);
         out.configureFrom(properties);
         return out;
+    }
+
+    public GradleProperties configureStartParameter(StartParameter startParameter) {
+        GradleProperties properties = this.prepareProperties(startParameter.getCurrentDir(), startParameter.isSearchUpwards(), startParameter.getGradleUserHomeDir(), startParameter.getMergedSystemProperties());
+        properties.updateStartParameter(startParameter);
+        return properties;
     }
 }

@@ -74,6 +74,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean recompileScripts;
     private int parallelThreadCount;
     private boolean configureOnDemand;
+    private boolean parallelThreadCountConfigured;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -115,35 +116,36 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return the new parameters.
      */
     public StartParameter newInstance() {
-        StartParameter startParameter = new StartParameter();
-        startParameter.buildFile = buildFile;
-        startParameter.projectDir = projectDir;
-        startParameter.settingsFile = settingsFile;
-        startParameter.useEmptySettings = useEmptySettings;
-        startParameter.taskNames = taskNames;
-        startParameter.buildProjectDependencies = buildProjectDependencies;
-        startParameter.currentDir = currentDir;
-        startParameter.searchUpwards = searchUpwards;
-        startParameter.projectProperties = projectProperties;
-        startParameter.systemPropertiesArgs = systemPropertiesArgs;
-        startParameter.gradleUserHomeDir = gradleUserHomeDir;
-        startParameter.gradleHomeDir = gradleHomeDir;
-        startParameter.cacheUsage = cacheUsage;
-        startParameter.initScripts = new ArrayList<File>(initScripts);
-        startParameter.setLogLevel(getLogLevel());
-        startParameter.setColorOutput(isColorOutput());
-        startParameter.setShowStacktrace(getShowStacktrace());
-        startParameter.dryRun = dryRun;
-        startParameter.rerunTasks = rerunTasks;
-        startParameter.recompileScripts = recompileScripts;
-        startParameter.profile = profile;
-        startParameter.projectCacheDir = projectCacheDir;
-        startParameter.continueOnFailure = continueOnFailure;
-        startParameter.offline = offline;
-        startParameter.refreshDependencies = refreshDependencies;
-        startParameter.parallelThreadCount = parallelThreadCount;
+        //TODO some of the collections are shared between the source and target
+        StartParameter parameter = new StartParameter();
+        parameter.buildFile = buildFile;
+        parameter.projectDir = projectDir;
+        parameter.settingsFile = settingsFile;
+        parameter.useEmptySettings = useEmptySettings;
+        parameter.taskNames = taskNames;
+        parameter.buildProjectDependencies = buildProjectDependencies;
+        parameter.currentDir = currentDir;
+        parameter.searchUpwards = searchUpwards;
+        parameter.projectProperties = projectProperties;
+        parameter.systemPropertiesArgs = systemPropertiesArgs;
+        parameter.gradleUserHomeDir = gradleUserHomeDir;
+        parameter.gradleHomeDir = gradleHomeDir;
+        parameter.cacheUsage = cacheUsage;
+        parameter.initScripts = new ArrayList<File>(initScripts);
+        parameter.setLogLevel(getLogLevel());
+        parameter.setColorOutput(isColorOutput());
+        parameter.setShowStacktrace(getShowStacktrace());
+        parameter.dryRun = dryRun;
+        parameter.rerunTasks = rerunTasks;
+        parameter.recompileScripts = recompileScripts;
+        parameter.profile = profile;
+        parameter.projectCacheDir = projectCacheDir;
+        parameter.continueOnFailure = continueOnFailure;
+        parameter.offline = offline;
+        parameter.refreshDependencies = refreshDependencies;
+        parameter.parallelThreadCount = parallelThreadCount;
 
-        return startParameter;
+        return parameter;
     }
 
     /**
@@ -632,6 +634,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @see #getParallelThreadCount()
      */
     public void setParallelThreadCount(int parallelThreadCount) {
+        this.parallelThreadCountConfigured = true;
         this.parallelThreadCount = parallelThreadCount;
     }
 
@@ -641,6 +644,14 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     @Incubating
     public boolean isConfigureOnDemand() {
         return configureOnDemand;
+    }
+
+    @Incubating
+    public boolean isParallelThreadCountConfigured() {
+        //This is not beautiful. As the number of gradle properies grows we may something like:
+        //1. Make StartParameter an interface
+        //2. StartParameter (StartParameterInternal) needs to inform if certain property was configured or not
+        return parallelThreadCountConfigured;
     }
 
     @Override
