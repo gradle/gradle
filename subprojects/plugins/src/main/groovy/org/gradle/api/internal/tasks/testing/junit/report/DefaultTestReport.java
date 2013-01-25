@@ -54,15 +54,19 @@ public class DefaultTestReport implements TestReporter {
         final AllTestResults model = new AllTestResults();
         resultsProvider.visitClasses(new Action<TestClassResult>() {
             public void execute(TestClassResult classResult) {
-                List<TestMethodResult> collectedResults = classResult.getResults();
-                for (TestMethodResult collectedResult : collectedResults) {
-                    final TestResult testResult = model.addTest(classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
-                    if (collectedResult.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
-                        testResult.ignored();
-                    } else {
-                        List<Throwable> failures = collectedResult.getExceptions();
-                        for (Throwable throwable : failures) {
-                            testResult.addFailure(throwable.getMessage(), stackTrace(throwable));
+                if (classResult.getResults().isEmpty()) {
+                    model.addTestClass(classResult.getClassName());
+                } else {
+                    List<TestMethodResult> collectedResults = classResult.getResults();
+                    for (TestMethodResult collectedResult : collectedResults) {
+                        final TestResult testResult = model.addTest(classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
+                        if (collectedResult.getResultType() == org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED) {
+                            testResult.ignored();
+                        } else {
+                            List<Throwable> failures = collectedResult.getExceptions();
+                            for (Throwable throwable : failures) {
+                                testResult.addFailure(throwable.getMessage(), stackTrace(throwable));
+                            }
                         }
                     }
                 }

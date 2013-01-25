@@ -81,6 +81,11 @@ public class TestReportDataCollector extends AbstractTestResultProvider implemen
             //we don't have a place for such output in any of the reports so skipping.
             return;
         }
+        TestClassResult classResult = results.get(className);
+        if (classResult == null) {
+            classResult = new TestClassResult(className, 0);
+            results.put(className, classResult);
+        }
         cachingFileWriter.write(outputsFile(className, outputEvent.getDestination()), outputEvent.getMessage());
     }
 

@@ -16,6 +16,7 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -72,20 +73,30 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void suitesOutputIsVisible() {
-        executer.withTasks('test').withArguments('-i').run();
+        executer.withTasks('test').run();
+        [new JUnitXmlTestExecutionResult(testDirectory), new HtmlTestExecutionResult(testDirectory)].each { result ->
+            result.assertTestClassesExecuted('org.gradle.ASuite', 'org.gradle.OkTest', 'org.gradle.OtherTest')
+            result.testClass('org.gradle.ASuite').assertStdout(containsString('suite class loaded'))
+            result.testClass('org.gradle.ASuite').assertStdout(containsString('before suite class out'))
+            result.testClass('org.gradle.ASuite').assertStdout(containsString('non-asci char: ż'))
+            result.testClass('org.gradle.ASuite').assertStderr(containsString('before suite class err'))
+            result.testClass('org.gradle.ASuite').assertStdout(containsString('after suite class out'))
+            result.testClass('org.gradle.ASuite').assertStderr(containsString('after suite class err'))
+            result.testClass('org.gradle.OkTest').assertStderr(containsString('This is test stderr'))
+            result.testClass('org.gradle.OkTest').assertStdout(containsString('sys out from another test method'))
+            result.testClass('org.gradle.OkTest').assertStderr(containsString('sys err from another test method'))
+            result.testClass('org.gradle.OtherTest').assertStdout(containsString('This is other stdout'))
+        }
+    }
 
-        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.ASuite')
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('suite class loaded'))
-        result.testClass('org.gradle.ASuite').assertStderr(containsString('This is test stderr'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('sys out from another test method'))
-        result.testClass('org.gradle.ASuite').assertStderr(containsString('sys err from another test method'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('This is other stdout'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('before suite class out'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('non-asci char: ż'))
-        result.testClass('org.gradle.ASuite').assertStderr(containsString('before suite class err'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('after suite class out'))
-        result.testClass('org.gradle.ASuite').assertStderr(containsString('after suite class err'))
+    @Test
+    public void testClassesCanBeSharedByMultipleSuites() {
+        executer.withTasks('test').run();
+        [new JUnitXmlTestExecutionResult(testDirectory), new HtmlTestExecutionResult(testDirectory)].each { result ->
+            result.assertTestClassesExecuted('org.gradle.SomeTest')
+            result.testClass("org.gradle.SomeTest").assertTestCount(2, 0, 0)
+            result.testClass("org.gradle.SomeTest").assertTestsExecuted("ok", "ok")
+        }
     }
 
     @Test

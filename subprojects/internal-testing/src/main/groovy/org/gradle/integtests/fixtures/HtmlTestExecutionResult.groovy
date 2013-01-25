@@ -58,8 +58,8 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {
         private File htmlFile
-        private Set testsExecuted = []
-        private Set testsSucceeded = []
+        private List testsExecuted = []
+        private List testsSucceeded = []
         private Map testsFailures = [:]
         private Set testsSkipped = []
         private Document html
@@ -94,7 +94,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
-            assertThat(testsExecuted, equalTo(testNames as Set))
+            assertThat(testsExecuted, equalTo(testNames as List))
             return this
         }
 
