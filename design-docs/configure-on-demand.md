@@ -84,11 +84,17 @@ TBD
     --no-daemon && org.gradle.daemon=true
     --parallel && org.gradle.parallel=false
     --daemon && org.gradle.daemon=false
+    --parallel-threads=0 and org.gradle.parallel=true
     in general, command line should win
 
 ### Open questions:
 
 1. Should StartParameter contain the 'updated' values? E.g. merged content of command line args and content of gradle.properties?
+ I think it should be a part of this story.
+2. Should we add 'isDaemonEnabled' method to the StartParameter (for consistency)?
+ I'd say yes but not just yet. Nobody asked about it.
+3. Should we add both 'org.gradle.parallel' and 'org.gradle.parallel.threads' properties?
+ I think I'll just add 'org.gradle.parallel' and let's see how it goes.
 
 ## Parallel execution mode implies configure on demand
 
