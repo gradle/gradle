@@ -26,6 +26,8 @@ import org.gradle.util.ConfigureUtil
  * Typically you don't have configure IDEA module directly because Gradle configures it for you.
  *
  * <pre autoTested=''>
+ * import org.gradle.plugins.ide.idea.model.*
+ *
  * apply plugin: 'java'
  * apply plugin: 'idea'
  *
@@ -43,6 +45,9 @@ import org.gradle.util.ConfigureUtil
  *
  *     //you can change the output file
  *     outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
+ *
+ *     //you can add project-level libraries
+ *     projectLibraries << new ProjectLibrary(name: "my-library", classes: [new Path("path/to/library")])
  *   }
  * }
  * </pre>
@@ -129,6 +134,11 @@ class IdeaProject {
     File outputFile
 
     /**
+     * The project-level libraries to be added to the IDEA project.
+     */
+    Set<ProjectLibrary> projectLibraries = [] as LinkedHashSet
+
+    /**
      * The name of the IDEA project. It is a convenience property that returns the name of the output file (without the file extension).
      * In IDEA, the project name is driven by the name of the 'ipr' file.
      */
@@ -162,7 +172,7 @@ class IdeaProject {
         def modulePaths = getModules().collect {
             getPathFactory().relativePath('PROJECT_DIR', it.outputFile)
         }
-        xmlProject.configure(modulePaths, getJdkName(), getLanguageLevel(), getWildcards())
+        xmlProject.configure(modulePaths, getJdkName(), getLanguageLevel(), getWildcards(), getProjectLibraries())
         ipr.whenMerged.execute(xmlProject)
     }
 }
