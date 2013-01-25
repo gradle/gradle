@@ -45,10 +45,16 @@ public abstract class CollectionUtils {
         return filter(list, new LinkedList<T>(), filter);
     }
 
-    public static <T> List<T> sort(List<? extends T> list, Comparator<? super T> comparator) {
-        List<T> sortedList = new ArrayList<T>(list);
-        Collections.sort(sortedList, comparator);
-        return sortedList;
+    public static <T> List<T> sort(Iterable<? extends T> things, Comparator<? super T> comparator) {
+        List<T> copy;
+        if (things instanceof Collection) {
+            //noinspection unchecked
+            copy = new ArrayList<T>((Collection<? extends T>) things);
+        } else {
+            copy = toList(things);
+        }
+        Collections.sort(copy, comparator);
+        return copy;
     }
 
     public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, Spec<? super T> filter) {

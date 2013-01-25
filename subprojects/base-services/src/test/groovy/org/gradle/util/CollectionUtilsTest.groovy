@@ -268,6 +268,21 @@ class CollectionUtilsTest extends Specification {
         toSet([]).empty
     }
 
+    def "sorting"() {
+        given:
+        def naturalComparator = { a, b -> a <=> b } as Comparator
+
+        expect:
+        def l = [1, 2, 3]
+        !sort(l, naturalComparator).is(l)
+
+        and:
+        sort([2, 1, 3], naturalComparator) == [1, 2, 3]
+        sort([2, 1, 3] as Set, naturalComparator) == [1, 2, 3]
+        sort([], naturalComparator) == []
+        sort([] as Set, naturalComparator) == []
+    }
+
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }
