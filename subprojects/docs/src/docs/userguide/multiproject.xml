@@ -50,12 +50,15 @@
                     The feature should work very well for multi-project builds that have decoupled projects (<xref linkend="sec:decoupled_projects"/>).
                     In configuration on demand mode projects are configured as follows:
                     <itemizedlist>
-                        <listitem>Root project is always evaluated.
+                        <listitem>Root project is always configured.
                             This way the typical common configuration is supported (allprojects or subprojects script blocks).</listitem>
-                        <listitem>Project that lives in the directory where the build is executed is always evaluated.</listitem>
-                        <listitem>The standard project dependencies are supported.
+                        <listitem>Project that lives in the directory where the build is executed is always configured.</listitem>
+                        <listitem>The standard project dependencies are supported and makes relevant projects configured.
                             If project A has a compile dependency on project B then building A causes configuration of both projects: A and B.</listitem>
-                        <listitem>Task requested via task path causes the relevant project configured.
+                        <listitem>The task dependencies declared via task path are supported and cause relevant projects configured.
+                            Example: someTask.dependsOn(":someOtherProject:someOtherTask")
+                        </listitem>
+                        <listitem>Task requested via task path from the command line (or Tooling API) causes the relevant project configured.
                             Building 'projectA:projectB:someTask' causes configuration of both: projectA and projectB.
                         </listitem>
                     </itemizedlist>

@@ -68,8 +68,7 @@ If you already enjoy configuration on demand please note the following improveme
     org.gradle.configureondemand=true
 
 * New handy command line option "--configure-on-demand" enables the feature per build.
-* The task dependencies that reach out to a different project are now fully supported:
-
+* The task dependencies declared via task path are supported and cause relevant projects configured:
 
     //depending on task from a different project:
     someTask.dependsOn(":someProject:someOtherProject:someOtherTask")
