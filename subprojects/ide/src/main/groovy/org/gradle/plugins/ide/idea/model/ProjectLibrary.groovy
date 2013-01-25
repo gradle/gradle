@@ -33,7 +33,9 @@ class ProjectLibrary extends Library {
         def builder = new NodeBuilder()
 
         def attributes = [name: name]
-        if (gradleGenerated) attributes["gradleGenerated"] = true
+        if (gradleGenerated) {
+            attributes["gradleGenerated"] = true
+        }
 
         def library = builder.library(attributes) {
             CLASSES {
