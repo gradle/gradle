@@ -149,8 +149,7 @@ integTestTasks.all {
     if (buildTypes.isActive('performanceTest') || buildTypes.isActive('localPerformanceTest')) {
         dependsOn prepareSamples
     } else {
-        enabled = false
-        dependsOn = []
+        gradle.startParameter.excludedTaskNames << it.path
     }
     maxParallelForks = 1
 }
