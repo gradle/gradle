@@ -74,10 +74,10 @@ class ScalaBasePlugin implements Plugin<Project> {
     @Incubating
     FileCollection inferScalaCompilerClasspath(Iterable<File> classpath) {
         def scalaTools = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
-        if (!scalaTools.dependencies.empty || project.repositories.empty) return scalaTools
+        if (!scalaTools.dependencies.empty || project.repositories.empty) { return scalaTools }
 
         def scalaLibraryJar = findScalaJar(classpath, "library")
-        if (scalaLibraryJar == null) return scalaTools
+        if (scalaLibraryJar == null) { return scalaTools }
 
         def scalaVersion = getScalaVersion(scalaLibraryJar)
         if (scalaVersion == null) {
