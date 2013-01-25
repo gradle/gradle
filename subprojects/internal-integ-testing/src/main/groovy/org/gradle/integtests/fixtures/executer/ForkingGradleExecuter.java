@@ -69,13 +69,13 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
             }
         };
 
-        // Override some of the user's environment
+        // Clear the user's environment
         builder.environment("GRADLE_HOME", "");
-        builder.environment("JAVA_HOME", getJavaHome());
-        builder.environment("GRADLE_OPTS", getGradleOptsString());
+        builder.environment("JAVA_HOME", "");
+        builder.environment("GRADLE_OPTS", "");
         builder.environment("JAVA_OPTS", "");
 
-        builder.environment(getAllEnvironmentVars());
+        builder.environment(getMergedEnvironmentVars());
         builder.workingDir(getWorkingDir());
         builder.setStandardInput(getStdin());
 
@@ -141,25 +141,6 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         Map<String, String> implicitJvmSystemProperties = new LinkedHashMap<String, String>(super.getImplicitJvmSystemProperties());
         implicitJvmSystemProperties.put("file.encoding", getDefaultCharacterEncoding());
         return implicitJvmSystemProperties;
-    }
-
-    private String getGradleOptsString() {
-        StringBuilder result = new StringBuilder();
-        for (String gradleOpt : getGradleOpts()) {
-            if (result.length() > 0) {
-                result.append(" ");
-            }
-            if (gradleOpt.contains(" ")) {
-                assert !gradleOpt.contains("\"");
-                result.append('"');
-                result.append(gradleOpt);
-                result.append('"');
-            } else {
-                result.append(gradleOpt);
-            }
-        }
-
-        return result.toString();
     }
 
     private interface ExecHandlerConfigurer {

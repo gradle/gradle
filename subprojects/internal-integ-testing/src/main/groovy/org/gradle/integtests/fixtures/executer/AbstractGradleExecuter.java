@@ -18,11 +18,13 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.listener.ActionBroadcast;
+import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.DeprecationLogger;
@@ -160,7 +162,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         executer.withTasks(tasks);
         executer.withArguments(args);
-        executer.withEnvironmentVars(getAllEnvironmentVars());
+        executer.withEnvironmentVars(getMergedEnvironmentVars());
         executer.usingExecutable(executable);
         if (quiet) {
             executer.withQuietLogging();
@@ -237,7 +239,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return userHomeDir;
     }
 
-    public List<String> getGradleOpts() {
+    /**
+     * Returns the gradle opts set with withGradleOpts() (does not consider any set via withEnvironmentVars())
+     */
+    protected List<String> getGradleOpts() {
         return gradleOpts;
     }
 
@@ -329,19 +334,50 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
         environmentVars.clear();
         for (Map.Entry<String, ?> entry : environment.entrySet()) {
-            if (entry.getKey().equals("GRADLE_OPTS")) {
-                throw new IllegalArgumentException("GRADLE_OPTS cannot be set via withEnvironmentVars(), use withGradleOpts()");
-            }
             environmentVars.put(entry.getKey(), entry.getValue().toString());
         }
         return this;
     }
 
-    protected Map<String, String> getAllEnvironmentVars() {
+    /**
+     * Returns the effective env vars, having merged in specific settings.
+     *
+     * For example, GRADLE_OPTS will be anything that was specified via withEnvironmentVars() and withGradleOpts().
+     * JAVA_HOME will also be set according to getJavaHome().
+     */
+    protected Map<String, String> getMergedEnvironmentVars() {
+        Map<String, String> environmentVars = new HashMap<String, String>(getEnvironmentVars());
+        environmentVars.put("GRADLE_OPTS", mergeGradleOpts(environmentVars.get("GRADLE_OPTS")));
+        environmentVars.put("JAVA_HOME", getJavaHome().getAbsolutePath());
         return environmentVars;
     }
 
-    public Map<String, String> getEnvironmentVars() {
+    private String mergeGradleOpts(String gradleOpts) {
+        JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
+        jvmOptions.jvmArgs(getGradleOpts());
+        if (gradleOpts != null) {
+            jvmOptions.jvmArgs(JvmOptions.fromString(gradleOpts));
+        }
+
+        StringBuilder result = new StringBuilder();
+        for (String gradleOpt : jvmOptions.getAllJvmArgs()) {
+            if (result.length() > 0) {
+                result.append(" ");
+            }
+            if (gradleOpt.contains(" ")) {
+                assert !gradleOpt.contains("\"");
+                result.append('"');
+                result.append(gradleOpt);
+                result.append('"');
+            } else {
+                result.append(gradleOpt);
+            }
+        }
+
+        return result.toString();
+    }
+
+    protected Map<String, String> getEnvironmentVars() {
         return environmentVars;
     }
 
