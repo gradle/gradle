@@ -20,32 +20,15 @@ package org.gradle.plugins.ide.idea.model
  *
  * @author Hans Dockter
  */
-class ModuleLibrary implements Dependency {
+class ModuleLibrary extends Library {
     /**
-     * A set of {@link Path} instances for class libraries. Can be paths to jars or class folders.
-     */
-    Set<Path> classes
-
-    /**
-     * A set of {@link JarDirectory} instances for directories containing jars.
-     */
-    Set<JarDirectory> jarDirectories
-
-    /**
-     * A set of {@link Path} instances for javadoc associated with the library elements.
-     */
-    Set<Path> javadoc
-
-    /**
-     * A set of {@link Path} instances for source code associated with the library elements.
-     */
-    Set<Path> sources
-
-    /**
-     * The scope of this dependency. If <tt>null</tt>, the scope attribute is not added.
+     * The scope of this library. If <tt>null</tt>, the scope attribute is not added.
      */
     String scope
 
+    /**
+     * Whether the library is exported to dependent modules.
+     */
     boolean exported
 
     def ModuleLibrary(Collection<Path> classes, Collection<Path> javadoc, Collection<Path> sources, Collection<JarDirectory> jarDirectories, String scope) {
