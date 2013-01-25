@@ -40,9 +40,18 @@ public class HttpClientHelper {
     private final BasicHttpContext httpContext = new BasicHttpContext();
 
     public HttpClientHelper(HttpSettings settings) {
+        alwaysUseKeepAliveConnections();
+
         DefaultHttpClient client = new SystemDefaultHttpClient();
         new HttpClientConfigurer(settings).configure(client);
         this.client = new DecompressingHttpClient(client);
+    }
+
+    private void alwaysUseKeepAliveConnections() {
+        // HttpClient 4.2.2 does not use the correct default value for "http.keepAlive" system property (default is "true").
+        // HttpClient NTLM authentication fails badly when this property value is true.
+        // So we force it to be true here: effectively, we're ignoring any user-supplied value for our HttpClient configuration.
+        System.setProperty("http.keepAlive", "true");
     }
 
     public HttpResponse performRawHead(String source) {
