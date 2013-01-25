@@ -22,14 +22,13 @@ import org.gradle.api.distribution.Distribution;
  * @author scogneau
  */
 public class DefaultDistribution implements Distribution {
+    private String name;
+
     public DefaultDistribution(String name) {
         this.name = name;
     }
 
-    @Override
     public String getName() {
         return name;
     }
-
-    private String name;
 }
