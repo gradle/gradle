@@ -117,7 +117,7 @@ Things can go wrong with the tooling api, these would have to be appropriately p
 ### Implementation approach
 
 1. The `GradleRunnerBuilder` and `GradleRunner` impls will be backed by the tooling API. 
-2. The Gradle version to use will be hardcoded to `GradleVersion.current()`
+2. The Gradle version/distribution selected will be what is selected by the Tooling APIs default behaviour (i.e. at this point, this is not specifyable)
 3. No environmental control will be allowed (e.g. setting env vars or sys props)
 
 ## Story 3: A user functionally tests their custom build logic (from their IDE)
