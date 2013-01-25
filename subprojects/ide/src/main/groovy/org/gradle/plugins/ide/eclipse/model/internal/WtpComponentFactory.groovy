@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -24,6 +23,8 @@ import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
+import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
+import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeRepoFileDependency
 
 /**
  * @author Hans Dockter
@@ -89,7 +90,11 @@ class WtpComponentFactory {
         Set declaredDependencies = getDependencies(plusConfigurations, minusConfigurations,
                 { it instanceof ExternalDependency})
 
-        Set libFiles = wtp.project.configurations.detachedConfiguration((declaredDependencies as Dependency[])).files +
+        //Just like in ClasspathFactory this considers excludes by configuration:
+        List<IdeRepoFileDependency> deps = new IdeDependenciesExtractor().extractRepoFileDependencies(wtp.project.configurations, plusConfigurations, minusConfigurations, false, false)
+        Set libFiles = deps.collect { IdeRepoFileDependency dep -> dep.file }
+
+        libFiles = libFiles +
                 getSelfResolvingFiles(getDependencies(plusConfigurations, minusConfigurations,
                         { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}))
 
