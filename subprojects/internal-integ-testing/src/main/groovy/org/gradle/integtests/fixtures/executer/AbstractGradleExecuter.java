@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.jvm.Jvm;
@@ -373,14 +372,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private List<String> getMergedGradleOpts() {
-        JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-        jvmOptions.jvmArgs(getGradleOpts());
+        List<String> gradleOpts = new ArrayList<String>(getGradleOpts());
         String gradleOptsEnv = getEnvironmentVars().get("GRADLE_OPTS");
         if (gradleOptsEnv != null) {
-            jvmOptions.jvmArgs(JvmOptions.fromString(gradleOptsEnv));
+            gradleOpts.addAll(JvmOptions.fromString(gradleOptsEnv));
         }
 
-        return jvmOptions.getAllJvmArgs();
+        return gradleOpts;
     }
 
     protected Map<String, String> getEnvironmentVars() {

@@ -17,13 +17,10 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
-@IgnoreIf({ GradleContextualExecuter.embedded })
 class CharacterEncodingIntegTest extends AbstractIntegrationSpec {
 
     def executerEncoding(String inputEncoding) {
