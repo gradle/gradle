@@ -42,7 +42,7 @@ class FunctionalReleaseNotesTest extends GebReportingSpec {
             connection.requestMethod = "HEAD"
             connection.connect()
             connection.responseCode == 200
-        } catch (ignored) {
+        } catch (IOException ignore) {
             false
         }
     }
