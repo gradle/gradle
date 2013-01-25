@@ -55,7 +55,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         String version = GradleVersion.current().version
         projectDir = file("project")
         projectDir.mkdirs()
-        userHomeDir = new TestFile(executer.gradleUserHomeDir)
+        userHomeDir = executer.gradleUserHomeDir
         buildFile = projectDir.file('build.gradle')
         ScriptSource source = new UriScriptSource("build file", buildFile)
         propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/cache.properties")

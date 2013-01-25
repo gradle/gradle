@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 import java.io.InputStream;
@@ -249,7 +250,7 @@ public interface GradleExecuter {
     /**
      * The Gradle user home dir that will be used for executions.
      */
-    File getGradleUserHomeDir();
+    TestFile getGradleUserHomeDir();
 
     /**
      * The distribution used to execute.

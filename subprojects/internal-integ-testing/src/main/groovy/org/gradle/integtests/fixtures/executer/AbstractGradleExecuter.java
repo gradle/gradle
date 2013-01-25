@@ -56,7 +56,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private List<File> initScripts = new ArrayList<File>();
     private String executable;
-    private File gradleUserHomeDir = buildContext.getGradleUserHomeDir();
+    private TestFile gradleUserHomeDir = buildContext.getGradleUserHomeDir();
     private File userHomeDir;
     private File javaHome;
     private File buildScript;
@@ -222,12 +222,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    public File getGradleUserHomeDir() {
+    public TestFile getGradleUserHomeDir() {
         return gradleUserHomeDir;
     }
 
     public GradleExecuter withGradleUserHomeDir(File userHomeDir) {
-        this.gradleUserHomeDir = userHomeDir;
+        this.gradleUserHomeDir = new TestFile(userHomeDir);
         return this;
     }
 
