@@ -71,10 +71,11 @@ A set of interfaces/builders will be developed to provide programmatic execution
         List<String> getArguments();
         void setArguments(List<String> string);
 
-        ExecutionResult run();
+        BuildResult succeed() throws UnexpectedBuildFailure;
+        BuildResult fail() throws UnexpectedBuildSuccess;
     }
     
-    public interface ExecutionResult {
+    public interface BuildResult {
         String getStandardOutput();
         String getStandardError();
     }
