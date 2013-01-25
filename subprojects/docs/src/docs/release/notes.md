@@ -90,6 +90,14 @@ The incubating '`maven-publish`' plugin is an alternative to the existing '`mave
 For complete details on the '`maven-publish`' plugin, check out the [user guide chapter](userguide/publishing-maven.html) as well as the
 [DSL reference](dsl/org.gradle.api.publish.maven.MavenPublication.html).
 
+### New gradle property 'org.gradle.parallel'
+
+New Gradle property can be used to configure your [build environment](userguide/build_environment.html#sec:gradle_configuration_properties).
+The incubating parallel build execution can now be configured in a persistent fashion:
+
+    //gradle.properties file
+    org.gradle.parallel=true
+
 #### Choose a software component to publish
 
 Gradle 1.5 includes the concept of a Software Component, which defines something that can be produced by a Gradle project, like a Java Library or a Web Application.

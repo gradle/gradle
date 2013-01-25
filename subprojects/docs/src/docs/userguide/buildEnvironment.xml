@@ -66,6 +66,11 @@
                     See <xref linkend="sec:configuration_on_demand"/>.</para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.parallel</literal></term>
+                <listitem><para>When configured, Gradle will run in incubating parallel mode.</para>
+                </listitem>
+            </varlistentry>
         </para>
         <section>
             <title>Forked java processes</title>
