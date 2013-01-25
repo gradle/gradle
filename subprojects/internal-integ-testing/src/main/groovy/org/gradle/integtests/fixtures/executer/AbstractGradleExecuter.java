@@ -494,6 +494,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
 
         properties.put("java.io.tmpdir", getTmpDir().createDir().getAbsolutePath());
+        properties.put("file.encoding", getDefaultCharacterEncoding());
+
         return properties;
     }
 

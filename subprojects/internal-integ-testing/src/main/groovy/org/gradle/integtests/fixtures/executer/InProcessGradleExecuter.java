@@ -188,7 +188,10 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
     public void assertCanExecute() {
         assertNull(getExecutable());
         assertEquals(getJavaHome(), Jvm.current().getJavaHome());
-        assertEquals(getDefaultCharacterEncoding(), Charset.defaultCharset().name());
+        String defaultEncoding = getImplicitJvmSystemProperties().get("file.encoding");
+        if (defaultEncoding != null) {
+            assertEquals(Charset.forName(defaultEncoding), Charset.defaultCharset());
+        }
         assertFalse(isRequireGradleHome());
     }
 

@@ -28,7 +28,10 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.fail;
 
@@ -139,13 +142,6 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
 //        gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
 
         return gradleOpts;
-    }
-
-    @Override
-    protected Map<String, String> getImplicitJvmSystemProperties() {
-        Map<String, String> implicitJvmSystemProperties = new LinkedHashMap<String, String>(super.getImplicitJvmSystemProperties());
-        implicitJvmSystemProperties.put("file.encoding", getDefaultCharacterEncoding());
-        return implicitJvmSystemProperties;
     }
 
     private interface ExecHandlerConfigurer {
