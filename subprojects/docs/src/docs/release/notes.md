@@ -240,6 +240,9 @@ We would like to thank the following community members for making contributions 
 * Michael R. Maletich
 	* Add `maxHeapSize` property to `FindBugs` task to allow setting the max heap size for spawned FindBugs java process
 	* Add `contentsCompression` property to Zip and Tar task to specify the compression level of the archive
+	
+
+* Barry Pitman - maven conversion problem (GRADLE-2645)	
 
 * Kallin Nagelberg - Fixed grammar in the SourceSetOutput documentation
 
