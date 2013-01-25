@@ -227,7 +227,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withGradleUserHomeDir(File userHomeDir) {
-        this.gradleUserHomeDir = new TestFile(userHomeDir);
+        this.gradleUserHomeDir = userHomeDir == null ? null : new TestFile(userHomeDir);
         return this;
     }
 
@@ -342,13 +342,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     /**
      * Returns the effective env vars, having merged in specific settings.
      *
-     * For example, GRADLE_OPTS will be anything that was specified via withEnvironmentVars() and withGradleOpts().
-     * JAVA_HOME will also be set according to getJavaHome().
+     * For example, GRADLE_OPTS will be anything that was specified via withEnvironmentVars() and withGradleOpts(). JAVA_HOME will also be set according to getJavaHome().
      */
     protected Map<String, String> getMergedEnvironmentVars() {
         Map<String, String> environmentVars = new HashMap<String, String>(getEnvironmentVars());
         environmentVars.put("GRADLE_OPTS", toJvmArgsString(getMergedGradleOpts()));
-        environmentVars.put("JAVA_HOME", getJavaHome().getAbsolutePath());
+        if (!environmentVars.containsKey("JAVA_HOME")) {
+            environmentVars.put("JAVA_HOME", getJavaHome().getAbsolutePath());
+        }
         return environmentVars;
     }
 
