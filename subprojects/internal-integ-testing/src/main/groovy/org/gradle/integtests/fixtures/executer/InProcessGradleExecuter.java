@@ -148,14 +148,14 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         parameter.setSearchUpwards(true);
         parameter.setCurrentDir(getWorkingDir());
 
-        GradleProperties gradleProperties = new GradleProperties();
-        gradleProperties.configureFromBuildDir(getWorkingDir(), parameter.isSearchUpwards());
-        gradleProperties.updateStartParameter(parameter);
-
         CommandLineParser parser = new CommandLineParser();
         DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
         converter.configure(parser);
         converter.convert(parser.parse(getAllArgs()), parameter);
+
+        GradleProperties gradleProperties = new GradleProperties();
+        gradleProperties.configureFromBuildDir(getWorkingDir(), parameter.isSearchUpwards());
+        gradleProperties.updateStartParameter(parameter);
 
         DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
         factory.addListener(listener);
