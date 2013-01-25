@@ -23,6 +23,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
@@ -42,7 +43,20 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     public void assertCanExecute() throws AssertionError {
-        // Can run any build
+        if (!getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
+            Map<String, String> mergedEnvironmentVars = getMergedEnvironmentVars();
+            for (String envVarName : Arrays.asList("JAVA_OPTS", "GRADLE_OPTS")) {
+                String envVarValue = mergedEnvironmentVars.get(envVarName);
+                if (envVarValue == null) {
+                    continue;
+                }
+                for (String arg : JvmOptions.fromString(envVarValue)) {
+                    if (arg.contains(" ")) {
+                        throw new AssertionError(String.format("Env var %s contains arg with space (%s) which is not supported", envVarName, arg));
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -111,22 +125,13 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    public List<String> getGradleOpts() {
+    protected List<String> getGradleOpts() {
         List<String> gradleOpts = new ArrayList<java.lang.String>(super.getGradleOpts());
         for (Map.Entry<String, String> entry : getImplicitJvmSystemProperties().entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-
-            if (value.contains(" ") && !getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
-                getLogger().warn("Removing '{}' from GRADLE_OPTS (value: {}) as it contains spaces, and this Gradle version ({}) cannot handle spaces in GRADLE_OPTS",
-                        key, value, getDistribution().getVersion().getVersion()
-                );
-                continue;
-            }
-
             gradleOpts.add(String.format("-D%s=%s", key, value));
         }
-
         gradleOpts.add("-ea");
 
         //uncomment for debugging

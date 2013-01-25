@@ -51,7 +51,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     }
 
     @Override
-    public List<String> getGradleOpts() {
+    protected List<String> getGradleOpts() {
         if (isNoDefaultJvmArgs()) {
             return super.getGradleOpts();
         } else {

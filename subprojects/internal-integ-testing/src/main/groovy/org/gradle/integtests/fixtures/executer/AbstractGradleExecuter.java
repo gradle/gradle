@@ -347,34 +347,39 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      */
     protected Map<String, String> getMergedEnvironmentVars() {
         Map<String, String> environmentVars = new HashMap<String, String>(getEnvironmentVars());
-        environmentVars.put("GRADLE_OPTS", mergeGradleOpts(environmentVars.get("GRADLE_OPTS")));
+        environmentVars.put("GRADLE_OPTS", toJvmArgsString(getMergedGradleOpts()));
         environmentVars.put("JAVA_HOME", getJavaHome().getAbsolutePath());
         return environmentVars;
     }
 
-    private String mergeGradleOpts(String gradleOpts) {
-        JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-        jvmOptions.jvmArgs(getGradleOpts());
-        if (gradleOpts != null) {
-            jvmOptions.jvmArgs(JvmOptions.fromString(gradleOpts));
-        }
-
+    protected String toJvmArgsString(Iterable<String> jvmArgs) {
         StringBuilder result = new StringBuilder();
-        for (String gradleOpt : jvmOptions.getAllJvmArgs()) {
+        for (String jvmArg : jvmArgs) {
             if (result.length() > 0) {
                 result.append(" ");
             }
-            if (gradleOpt.contains(" ")) {
-                assert !gradleOpt.contains("\"");
+            if (jvmArg.contains(" ")) {
+                assert !jvmArg.contains("\"");
                 result.append('"');
-                result.append(gradleOpt);
+                result.append(jvmArg);
                 result.append('"');
             } else {
-                result.append(gradleOpt);
+                result.append(jvmArg);
             }
         }
 
         return result.toString();
+    }
+
+    private List<String> getMergedGradleOpts() {
+        JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
+        jvmOptions.jvmArgs(getGradleOpts());
+        String gradleOptsEnv = getEnvironmentVars().get("GRADLE_OPTS");
+        if (gradleOptsEnv != null) {
+            jvmOptions.jvmArgs(JvmOptions.fromString(gradleOptsEnv));
+        }
+
+        return jvmOptions.getAllJvmArgs();
     }
 
     protected Map<String, String> getEnvironmentVars() {

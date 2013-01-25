@@ -131,7 +131,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariable() {
         // the actual testing is done in the build script.
-        executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": '-DcustomProp1=custom-value -DcustomProp2=custom value').run();
+        executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": '-DcustomProp1=custom-value "-DcustomProp2=custom value"').run();
     }
 
     @Test
