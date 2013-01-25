@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.scala;
+package org.gradle.api.plugins.scala
 
+import org.gradle.api.Incubating
+import org.gradle.api.Nullable;
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -39,7 +41,7 @@ class ScalaBasePlugin implements Plugin<Project> {
     static final String ZINC_CONFIGURATION_NAME = "zinc"
 
     private static final String DEFAULT_ZINC_VERSION = "0.2.0"
-    private static final Pattern SCALA_LIBRARY_JAR_PATTERN = Pattern.compile("scala-library-(\\d.*).jar")
+    private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar")
 
     private Project project
     private final FileResolver fileResolver
@@ -47,6 +49,80 @@ class ScalaBasePlugin implements Plugin<Project> {
     @Inject
     ScalaBasePlugin(FileResolver fileResolver) {
         this.fileResolver = fileResolver
+    }
+
+    /**
+     * Infers a Scala compiler class path (containing a 'scala-compiler' Jar and its dependencies)
+     * based on the 'scala-library' Jar found on the specified class path.
+     *
+     * <p>Falls back to returning the 'scalaTools' configuration if one of the following holds:
+     *
+     * <ol>
+     *     <li>The 'scalaTools' configuration is explicitly configured (ie. has dependencies declared).
+     *         This is important for backwards compatibility.</li>
+     *     <li>No repository is declared for the project.</li>
+     *     <li>A 'scala-library' Jar cannot be found on the specified class path, or its
+     *         version cannot be determined.</li>
+     * </ol>
+     *
+     * Note that the returned class path may be empty, or may fail to resolve when asked for its contents.
+     * If this happens at task execution time, it should usually be treated as a configuration error on part of the user.
+     *
+     * @param classpath a class path (supposedly) containing a 'scala-library' Jar
+     * @return a Scala compiler class path
+     */
+    @Incubating
+    FileCollection inferScalaCompilerClasspath(Iterable<File> classpath) {
+        def scalaTools = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
+        if (!scalaTools.dependencies.empty || project.repositories.empty) return scalaTools
+
+        def scalaLibraryJar = findScalaJar(classpath, "library")
+        if (scalaLibraryJar == null) return scalaTools
+
+        def scalaVersion = getScalaVersion(scalaLibraryJar)
+        if (scalaVersion == null) {
+            throw new AssertionError("Unexpectedly failed to determine version of Scala Jar file: $scalaLibraryJar")
+        }
+
+        return project.configurations.detachedConfiguration(
+                new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion))
+    }
+
+    /**
+     * Searches the specified class path for a Scala Jar file matching the specified
+     * module (compiler, library, jdbc, etc.).
+     *
+     * @param classpath the class path to search
+     * @param module the module to search for
+     * @return a matching Scala Jar file, or {@code null} if no match was found
+     */
+    @Nullable
+    @Incubating
+    File findScalaJar(Iterable<File> classpath, String module) {
+        for (file in classpath) {
+            def matcher = SCALA_JAR_PATTERN.matcher(file.name)
+            if (matcher.matches() && matcher.group(1) == module) {
+                return file
+            }
+        }
+        return null
+    }
+
+    /**
+     * Determines the version of a Scala Jar file (scala-compiler, scala-library, scala-jdbc, etc.).
+     * If the version cannot be determined, {@code null} is returned.
+     *
+     * <p>Implementation note: The version is determined by parsing the file name, which
+     * is expected to match the pattern 'scala-[component]-[version].jar'.
+     *
+     * @param scalaJar a Scala Jar file
+     * @return the version of the Jar file
+     */
+    @Nullable
+    @Incubating
+    String getScalaVersion(File scalaJar) {
+        def matcher = SCALA_JAR_PATTERN.matcher(scalaJar.name)
+        matcher.matches() ? matcher.group(2) : null
     }
 
     void apply(Project project) {
@@ -108,7 +184,7 @@ class ScalaBasePlugin implements Plugin<Project> {
         scalaConsole.dependsOn(sourceSet.runtimeClasspath)
         scalaConsole.description = "Starts a Scala REPL with the $sourceSet.name runtime class path."
         scalaConsole.main = "scala.tools.nsc.MainGenericRunner"
-        scalaConsole.conventionMapping.classpath = { getScalaClasspath(sourceSet.runtimeClasspath) }
+        scalaConsole.conventionMapping.classpath = { inferScalaCompilerClasspath(sourceSet.runtimeClasspath) }
         scalaConsole.systemProperty("scala.usejavacp", true)
         scalaConsole.standardInput = System.in
         scalaConsole.conventionMapping.jvmArgs = { ["-classpath", sourceSet.runtimeClasspath.asPath] }
@@ -116,7 +192,7 @@ class ScalaBasePlugin implements Plugin<Project> {
 
     private void configureCompileDefaults() {
         project.tasks.withType(ScalaCompile.class) { ScalaCompile compile ->
-            compile.conventionMapping.scalaClasspath = { getScalaClasspath(compile.classpath) }
+            compile.conventionMapping.scalaClasspath = { inferScalaCompilerClasspath(compile.classpath) }
             compile.conventionMapping.zincClasspath = {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
                 if (!compile.scalaCompileOptions.useAnt && config.dependencies.empty) {
@@ -133,30 +209,7 @@ class ScalaBasePlugin implements Plugin<Project> {
         project.tasks.withType(ScalaDoc) { ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
             scalaDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
-            scalaDoc.conventionMapping.scalaClasspath = { getScalaClasspath(scalaDoc.classpath) }
+            scalaDoc.conventionMapping.scalaClasspath = { inferScalaCompilerClasspath(scalaDoc.classpath) }
         }
-    }
-
-    private FileCollection getScalaClasspath(Iterable<File> classpath) {
-        def scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
-        if (scalaClasspath.dependencies.empty && !project.repositories.empty) {
-            def scalaVersion = sniffScalaVersion(classpath)
-            if (scalaVersion != null) {
-                scalaClasspath = project.configurations.detachedConfiguration(
-                        new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion))
-            }
-        }
-        scalaClasspath
-    }
-
-    private String sniffScalaVersion(Iterable<File> classpath) {
-        if (classpath == null) { return null }
-        for (file in classpath) {
-            def matcher = SCALA_LIBRARY_JAR_PATTERN.matcher(file.name)
-            if (matcher.matches()) {
-                return matcher.group(1)
-            }
-        }
-        null
     }
 }
