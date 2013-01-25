@@ -16,12 +16,12 @@
 package org.gradle.profile;
 
 import org.gradle.reporting.*;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -119,11 +119,11 @@ public class ProfileReportRenderer {
                                 htmlWriter.endElement();
                                 final List<Operation> operations = model.getProjectConfiguration().getOperations();
                                 //sort in reverse order
-                                Collections.sort(operations, new Comparator<Operation>() {
-                                        public int compare(Operation o1, Operation o2) {
+                                CollectionUtils.sort(operations, new Comparator<Operation>() {
+                                    public int compare(Operation o1, Operation o2) {
                                         return Long.valueOf(o2.getElapsedTime()).compareTo(Long.valueOf(o1.getElapsedTime()));
                                     }
-                                    });
+                                });
                                 for (Operation operation : operations) {
                                     EvalutationOperation evalOperation = (EvalutationOperation)operation;
                                     htmlWriter.startElement("tr");
@@ -148,7 +148,7 @@ public class ProfileReportRenderer {
                                 htmlWriter.endElement();
 
                                 final List<DependencyResolveProfile> dependencyResolveProfiles = model.getDependencySets().getOperations();
-                                Collections.sort(dependencyResolveProfiles, new Comparator<DependencyResolveProfile>() {
+                                CollectionUtils.sort(dependencyResolveProfiles, new Comparator<DependencyResolveProfile>() {
                                         public int compare(DependencyResolveProfile p1, DependencyResolveProfile p2) {
                                         return Long.valueOf(p2.getElapsedTime()).compareTo(Long.valueOf(p1.getElapsedTime()));
                                     }
@@ -176,7 +176,7 @@ public class ProfileReportRenderer {
                                     .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getDependencySets().getElapsedTime())).endElement()
                                 .endElement();
                                 final List<ProjectProfile> projects = model.getProjects();
-                                Collections.sort(projects, new Comparator<ProjectProfile>() {
+                                CollectionUtils.sort(projects, new Comparator<ProjectProfile>() {
                                         public int compare(ProjectProfile p1, ProjectProfile p2) {
                                         return Long.valueOf(p2.getTasks().getElapsedTime()).compareTo(p1.getTasks().getElapsedTime());
                                     }
@@ -188,7 +188,7 @@ public class ProfileReportRenderer {
                                         .startElement("td").characters("(total)").endElement()
                                     .endElement();
                                     final List<TaskExecution> taskExecutions  = project.getTasks().getOperations();
-                                    Collections.sort(taskExecutions, new Comparator<TaskExecution>() {
+                                    CollectionUtils.sort(taskExecutions, new Comparator<TaskExecution>() {
                                                public int compare(TaskExecution p1, TaskExecution p2) {
                                             return Long.valueOf(p2.getElapsedTime()).compareTo(Long.valueOf(p1.getElapsedTime()));
                                         }
