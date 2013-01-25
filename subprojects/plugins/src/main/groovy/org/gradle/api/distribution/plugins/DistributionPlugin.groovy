@@ -64,7 +64,7 @@ class DistributionPlugin implements Plugin<Project> {
     void addValidation() {
         project.afterEvaluate {
             extension.all { distribution ->
-                if (distribution.name == null || distribution.name.empty) {
+                if (distribution.name == null || distribution.name.equals("")) {
                     throw new IllegalArgumentException("Distribution name must not be null or empty ! Check your configuration of the distribution plugin.")
                 }
             }
