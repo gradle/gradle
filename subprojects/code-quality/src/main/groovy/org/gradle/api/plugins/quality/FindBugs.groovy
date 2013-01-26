@@ -88,6 +88,21 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     @Input
     @Optional
     String reportLevel
+    
+    /**
+     * 
+     */
+     
+    /**
+     * Sets the maximum heap size for the forked findbugs process.
+     *
+     * @param args maximum heap size for the forked process.  (ex: '1g')
+     *
+     * @return this
+     */
+    @Input
+    @Optional
+    String maxHeapSize
 
     /**
      * The maximum heap size for the forked findbugs process (ex: '1g').
