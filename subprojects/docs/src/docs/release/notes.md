@@ -228,7 +228,9 @@ We would like to thank the following community members for making contributions 
 	
 * Sébastien Cogneau - Introduce a basic distribution plugin
 
-* Kenny Stridh - Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
+* Kenny Stridh 
+	* Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
+	* Add support for PMD version 5.0.+
 
 * Marcin Erdmann
 	* Add `build-dashboard` plugin
