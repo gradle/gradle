@@ -22,20 +22,20 @@ abstract class Library implements Dependency {
     /**
      * A set of Jar files or directories containing compiled code.
      */
-    Set<Path> classes
+    Set<Path> classes = [] as LinkedHashSet
 
     /**
      * A set of directories containing Jar files.
      */
-    Set<JarDirectory> jarDirectories
+    Set<JarDirectory> jarDirectories = [] as LinkedHashSet
 
     /**
      * A set of Jar files or directories containing Javadoc.
      */
-    Set<Path> javadoc
+    Set<Path> javadoc = [] as LinkedHashSet
 
     /**
      * A set of Jar files or directories containing source code.
      */
-    Set<Path> sources
+    Set<Path> sources = [] as LinkedHashSet
 }

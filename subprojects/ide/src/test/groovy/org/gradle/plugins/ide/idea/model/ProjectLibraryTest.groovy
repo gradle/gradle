@@ -19,10 +19,12 @@ package org.gradle.plugins.ide.idea.model
 import spock.lang.Specification
 
 class ProjectLibraryTest extends Specification {
-    def "has user-friendly defaults"() {
+    def "has friendly defaults"() {
         def library = new ProjectLibrary()
+
+        expect:
         with(library) {
-            name == ""
+            name == null
             gradleGenerated
             classes == [] as Set
             sources == [] as Set
