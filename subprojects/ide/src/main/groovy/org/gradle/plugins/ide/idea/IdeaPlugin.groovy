@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.idea;
-
+package org.gradle.plugins.ide.idea
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
@@ -22,6 +21,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
+import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.idea.model.*
 
@@ -34,7 +34,6 @@ import javax.inject.Inject
  *  @author Hans Dockter
  */
 class IdeaPlugin extends IdePlugin {
-
     private final Instantiator instantiator
     IdeaModel model
 
@@ -57,6 +56,7 @@ class IdeaPlugin extends IdePlugin {
         configureIdeaProject(project)
         configureIdeaModule(project)
         configureForJavaPlugin(project)
+        configureForScalaPlugin()
 
         hookDeduplicationToTheRoot(project)
     }
@@ -169,6 +169,12 @@ class IdeaPlugin extends IdePlugin {
             dependsOn {
                 project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
             }
+        }
+    }
+
+    private void configureForScalaPlugin() {
+        if (isRoot(project)) {
+            new IdeaScalaConfigurer(project).configure()
         }
     }
 
