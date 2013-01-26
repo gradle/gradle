@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.*;
 
 import java.io.File;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,20 +29,20 @@ import java.util.Map;
  *
  * by Szczepan Faber, created at: 11/13/12
  */
-public class TestReportDataCollector extends AbstractTestResultProvider implements TestListener, TestOutputListener {
+public class TestReportDataCollector implements TestListener, TestOutputListener, TestResultsProvider {
     private final Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
-    private final TestResultSerializer serializer;
-    private final CachingFileWriter cachingFileWriter;
+    private final TestResultSerializer resultSerializer;
+    private final File resultsDir;
+    private final TestOutputSerializer outputSerializer;
 
     public TestReportDataCollector(File resultsDir) {
-        //TODO SF calculate number of open files based on parallel forks
-        this(resultsDir, new CachingFileWriter(10), new TestResultSerializer());
+        this(resultsDir, new TestOutputSerializer(resultsDir), new TestResultSerializer());
     }
 
-    TestReportDataCollector(File resultsDir, CachingFileWriter cachingFileWriter, TestResultSerializer serializer) {
-        super(resultsDir);
-        this.cachingFileWriter = cachingFileWriter;
-        this.serializer = serializer;
+    TestReportDataCollector(File resultsDir, TestOutputSerializer outputSerializer, TestResultSerializer resultSerializer) {
+        this.resultsDir = resultsDir;
+        this.outputSerializer = outputSerializer;
+        this.resultSerializer = resultSerializer;
     }
 
     public void beforeSuite(TestDescriptor suite) {
@@ -49,13 +50,13 @@ public class TestReportDataCollector extends AbstractTestResultProvider implemen
 
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null) {
-            cachingFileWriter.closeAll();
+            outputSerializer.finishOutputs();
             writeResults();
         }
     }
 
     private void writeResults() {
-        serializer.write(results.values(), getResultsDir());
+        resultSerializer.write(results.values(), resultsDir);
     }
 
     public void beforeTest(TestDescriptor testDescriptor) {
@@ -86,12 +87,20 @@ public class TestReportDataCollector extends AbstractTestResultProvider implemen
             classResult = new TestClassResult(className, 0);
             results.put(className, classResult);
         }
-        cachingFileWriter.write(outputsFile(className, outputEvent.getDestination()), outputEvent.getMessage());
+        outputSerializer.onOutput(className, outputEvent.getDestination(), outputEvent.getMessage());
     }
 
     public void visitClasses(Action<? super TestClassResult> visitor) {
         for (TestClassResult classResult : results.values()) {
             visitor.execute(classResult);
         }
+    }
+
+    public boolean hasOutput(String className, TestOutputEvent.Destination destination) {
+        return outputSerializer.hasOutput(className, destination);
+    }
+
+    public void writeOutputs(String className, TestOutputEvent.Destination destination, Writer writer) {
+        outputSerializer.writeOutputs(className, destination, writer);
     }
 }

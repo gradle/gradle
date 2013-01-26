@@ -16,32 +16,30 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.api.internal.tasks.testing.*
+import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
-import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.internal.tasks.testing.*
 
 import static java.util.Arrays.asList
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
-import org.gradle.api.Action
 
 /**
  * by Szczepan Faber, created at: 11/19/12
  */
 class TestReportDataCollectorSpec extends Specification {
-
     @Rule
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    private CachingFileWriter fileWriter = Mock()
-    private TestResultSerializer serializer = Mock()
-    private collector = new TestReportDataCollector(temp.testDirectory, fileWriter, serializer)
+    private TestOutputSerializer outputSerializer = Mock()
+    private TestResultSerializer resultSerializer = Mock()
+    private collector = new TestReportDataCollector(temp.testDirectory, outputSerializer, resultSerializer)
 
-    def "closes all files when root finishes"() {
+    def "closes output when root finishes"() {
         def root = new DefaultTestSuiteDescriptor("1", "Suite")
         def clazz = new DecoratingTestDescriptor(new DefaultTestClassDescriptor("1.1", "Class"), root)
 
@@ -51,13 +49,13 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(clazz, dummyResult)
 
         then:
-        0 * fileWriter.closeAll()
+        0 * outputSerializer.finishOutputs()
 
         when:
         collector.afterSuite(root, dummyResult)
 
         then:
-        1 * fileWriter.closeAll()
+        1 * outputSerializer.finishOutputs()
     }
 
     def "writes results when root finishes"() {
@@ -70,14 +68,14 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterSuite(clazz, dummyResult)
 
         then:
-        0 * serializer._
+        0 * resultSerializer._
 
         when:
         collector.afterSuite(root, dummyResult)
 
         then:
-        1 * serializer.write(_, temp.testDirectory)
-        0 * serializer._
+        1 * resultSerializer.write(_, temp.testDirectory)
+        0 * resultSerializer._
     }
 
     def "keeps track of test results"() {
@@ -117,7 +115,7 @@ class TestReportDataCollectorSpec extends Specification {
         fooTest.results.find { it.name == 'testMethod2' && it.endTime == 300 && it.duration == 50 }
     }
 
-    def "keeps track of outputs"() {
+    def "writes test outputs"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
         def test2 = new DefaultTestDescriptor("1.1.2", "FooTest", "testMethod2")
         def suite = new DefaultTestSuiteDescriptor("1", "Suite")
@@ -128,36 +126,18 @@ class TestReportDataCollectorSpec extends Specification {
         collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
 
         then:
-        1 * fileWriter.write(new File(temp.testDirectory, "FooTest.stderr"), "err")
-        1 * fileWriter.write(new File(temp.testDirectory, "FooTest.stdout"), "out")
-        0 * fileWriter._
+        1 * outputSerializer.onOutput("FooTest", StdErr, "err")
+        1 * outputSerializer.onOutput("FooTest", StdOut, "out")
+        0 * outputSerializer._
     }
 
     def "provides outputs"() {
-        def collector = new TestReportDataCollector(temp.testDirectory)
-        def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-        def test2 = new DefaultTestDescriptor("1.1.2", "FooTest", "testMethod2")
-        def test3 = new DefaultTestDescriptor("1.1.3", "BarTest", "testMethod")
+        def writer = new StringWriter()
 
         when:
-        collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "err"))
-        collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "err2"))
-        collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
-        collector.onOutput(test3, new DefaultTestOutputEvent(StdOut, "out, don't show"))
-
-        collector.afterSuite(new DefaultTestSuiteDescriptor("1", "suite"), null) //force closing of files
+        collector.writeOutputs("TestClass", StdErr, writer)
 
         then:
-        collectOutput("FooTest", StdErr) == 'errerr2'
-        collectOutput("FooTest", StdOut) == 'out'
-
-        collectOutput("TestWithoutOutputs", StdErr) == ''
-        collectOutput("TestWithoutOutputs", StdOut) == ''
-    }
-
-    String collectOutput(String className, TestOutputEvent.Destination destination) {
-        def writer = new StringWriter()
-        collector.writeOutputs(className, destination, writer)
-        return writer.toString()
+        1 * outputSerializer.writeOutputs("TestClass", StdErr, writer)
     }
 }

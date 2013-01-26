@@ -21,18 +21,26 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.*;
 
-public abstract class AbstractTestResultProvider implements TestResultsProvider {
+/**
+ * Assembles test results. Keeps a copy of the results in memory to provide them later and spools test output to file.
+ *
+ * by Szczepan Faber, created at: 11/13/12
+ */
+public class TestOutputSerializer {
     private final File resultsDir;
+    private final CachingFileWriter cachingFileWriter;
 
-    protected AbstractTestResultProvider(File resultsDir) {
+    public TestOutputSerializer(File resultsDir) {
+        //TODO SF calculate number of open files based on parallel forks
+        this(resultsDir, new CachingFileWriter(10));
+    }
+
+    private TestOutputSerializer(File resultsDir, CachingFileWriter cachingFileWriter) {
         this.resultsDir = resultsDir;
+        this.cachingFileWriter = cachingFileWriter;
     }
 
-    public File getResultsDir() {
-        return resultsDir;
-    }
-
-    protected File outputsFile(String className, TestOutputEvent.Destination destination) {
+    private File outputsFile(String className, TestOutputEvent.Destination destination) {
         return destination == TestOutputEvent.Destination.StdOut ? standardOutputFile(className) : standardErrorFile(className);
     }
 
@@ -70,5 +78,13 @@ public abstract class AbstractTestResultProvider implements TestResultsProvider 
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public void finishOutputs() {
+        cachingFileWriter.closeAll();
+    }
+
+    public void onOutput(String className, TestOutputEvent.Destination destination, String message) {
+        cachingFileWriter.write(outputsFile(className, destination), message);
     }
 }
