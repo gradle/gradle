@@ -84,13 +84,16 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
         boolean oldBranch = getPmdClasspath().find {
             it.name ==~ /pmd-([1-4]\.[0-9\.]+)\.jar/
         }
+        def antPmdArgs = [failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount"]
+        if (oldBranch){
+            antPmdArgs["targetjdk"] = getTargetJdk()
+        }
         antBuilder.withClasspath(getPmdClasspath()).execute {
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
-            if (oldBranch) {
-                ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount", targetjdk: targetJdk) {
+                ant.pmd(antPmdArgs) {
                     getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                     if (getRuleSets().isEmpty()) {
-                        setRuleSets(["basic"])
+                        setRuleSets([oldBranch ? "basic" : "java-basic"])
                     }
                     getRuleSets().each {
                         ruleset(it)
@@ -101,34 +104,12 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
 
                     if (reports.html.enabled) {
                         assert reports.html.destination.parentFile.exists()
-                        formatter(type: 'betterhtml', toFile: reports.html.destination)
+                        formatter(type: oldBranch ? "betterhtml" : "html", toFile: reports.html.destination)
                     }
                     if (reports.xml.enabled) {
                         formatter(type: 'xml', toFile: reports.xml.destination)
                     }
                 }
-            } else {
-                ant.pmd(failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount") {
-                    getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                    if (getRuleSets().isEmpty()) {
-                        setRuleSets(["java-basic"])
-                    }
-                    getRuleSets().each {
-                        ruleset(it)
-                    }
-                    getRuleSetFiles().each {
-                        ruleset(it)
-                    }
-
-                    if (reports.html.enabled) {
-                        assert reports.html.destination.parentFile.exists()
-                        formatter(type: 'html', toFile: reports.html.destination)
-                    }
-                    if (reports.xml.enabled) {
-                        formatter(type: 'xml', toFile: reports.xml.destination)
-                    }
-                }
-            }
             def failureCount = ant.project.properties["pmdFailureCount"]
             if (failureCount) {
                 def message = "$failureCount PMD rule violations were found."
