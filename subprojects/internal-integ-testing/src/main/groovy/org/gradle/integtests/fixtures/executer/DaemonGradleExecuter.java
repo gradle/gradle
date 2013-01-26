@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Transformer;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.containsAny;
+import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
@@ -66,8 +68,14 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
                 jvmArgs.add("-Dcom.sun.management.jmxremote");
             }
 
+            String quotedArgs = join(" ", collect(jvmArgs, new Transformer<String, String>() {
+                public String transform(String input) {
+                    return String.format("'%s'", input);
+                }
+            }));
+
             List<String> gradleOpts = new ArrayList<String>(super.getGradleOpts());
-            gradleOpts.add("-Dorg.gradle.jvmArgs=" +  join(" ", jvmArgs));
+            gradleOpts.add("-Dorg.gradle.jvmArgs=" +  quotedArgs);
             return gradleOpts;
         }
     }
