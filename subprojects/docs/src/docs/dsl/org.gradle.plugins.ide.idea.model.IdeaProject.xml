@@ -39,6 +39,11 @@
                 <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.ipr</literal></td>
                 <td/>
             </tr>
+            <tr>
+                <td>projectLibraries</td>
+                <td/>
+                <td/>
+            </tr>
         </table>
     </section>
     <section>
