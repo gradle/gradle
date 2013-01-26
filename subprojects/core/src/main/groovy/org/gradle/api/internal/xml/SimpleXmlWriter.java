@@ -34,14 +34,10 @@ public class SimpleXmlWriter extends SimpleMarkupWriter {
 
     public SimpleXmlWriter(OutputStream output, String indent) throws IOException {
         super(output, indent);
-        writeXmlDeclaration("UTF-8", "1.1");
+        writeXmlDeclaration();
     }
 
-    private void writeXmlDeclaration(String encoding, String ver) throws IOException {
-        writeRaw("<?xml version=\"");
-        writeRaw(ver);
-        writeRaw("\" encoding=\"");
-        writeRaw(encoding);
-        writeRaw("\"?>");
+    private void writeXmlDeclaration() throws IOException {
+        writeRaw("<?xml version=\"1.1\" encoding=\"UTF-8\"?>");
     }
 }

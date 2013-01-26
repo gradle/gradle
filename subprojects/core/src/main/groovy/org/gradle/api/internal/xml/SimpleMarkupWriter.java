@@ -35,10 +35,6 @@ public class SimpleMarkupWriter extends Writer {
     private int squareBrackets;
     private final String indent;
 
-    public SimpleMarkupWriter(OutputStream output) throws IOException {
-        this(output, null);
-    }
-
     public SimpleMarkupWriter(OutputStream output, String indent) throws IOException {
         this(new OutputStreamWriter(output, "UTF-8"), indent);
     }
@@ -47,7 +43,6 @@ public class SimpleMarkupWriter extends Writer {
         this.indent = indent;
         this.output = writer;
     }
-
 
     @Override
     public void write(char[] chars, int offset, int length) throws IOException {
