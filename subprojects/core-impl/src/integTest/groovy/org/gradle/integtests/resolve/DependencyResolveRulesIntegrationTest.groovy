@@ -487,7 +487,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        task check << {
                 def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
                 assert deps.size() == 1
-                assert deps[0].failure
+                assert deps[0].attempted.group == 'org.utils'
+                assert deps[0].attempted.name == 'api'
+                assert deps[0].attempted.version == '1.123.15'
+                assert deps[0].attemptedReason.selectedByRule
                 assert deps[0].failure.message.contains('1.123.15')
                 assert deps[0].requested.version == '1.3'
 	        }

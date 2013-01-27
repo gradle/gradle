@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.SetSystemProperties
@@ -23,7 +23,7 @@ import org.junit.Rule
 
 import static org.hamcrest.Matchers.containsString
 
-class MavenLocalRepoResolveIntegrationTest extends AbstractIntegrationSpec {
+class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
     M2Installation m2Installation;
