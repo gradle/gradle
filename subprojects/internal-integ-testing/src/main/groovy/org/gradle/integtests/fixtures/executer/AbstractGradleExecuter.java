@@ -492,7 +492,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         properties.put(GradleProperties.BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
         properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
 
-        properties.put("java.io.tmpdir", getTmpDir().createDir().getAbsolutePath());
+        String tmpDirPath = getTmpDir().createDir().getAbsolutePath();
+        if (!tmpDirPath.contains(" ") || getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
+            properties.put("java.io.tmpdir", tmpDirPath);
+        }
+
         properties.put("file.encoding", getDefaultCharacterEncoding());
 
         return properties;
