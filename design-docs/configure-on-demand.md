@@ -16,21 +16,21 @@ The user can run Gradle build in an experimental "configure-on-demand" mode.
 
 ### User visible changes
 
--subject to change as work on the spike continues
--when build is issued *not* all projects are evaluated. Evaluated are:
-    -the root project because typically it contains some global configuration
-    -all projects from the current directory *if* name-matching execution takes place. Example:
-        -when running task ':aaa:foo', then only project ':aaa' is evaluated
-        -when running task 'foo', then current project+children recursively are evaluated
-        -consequently, when running task 'foo' from the root project, all projects are evaluated
-    -as Gradle prepares the list of tasks to get executed, more projects are evaluated on demand. Example:
-        -java projectA compile-depends on java projectB. Running projectA:build will cause projectB to evaluate and run projectB:build
-        -task dependencies to other project tasks causes other project to evaluate
--the "configure-on-demand" mode is enabled by system property (e.g. gradle properties)
--not supported in this story:
-    -evaluationDependsOn
-    -decent error reporting when build contains unconventional project couplings
-    -probably other things, as the work on spike continues
+- subject to change as work on the spike continues
+- when build is issued *not* all projects are evaluated. Evaluated are:
+    - the root project because typically it contains some global configuration
+    - all projects from the current directory *if* name-matching execution takes place. Example:
+        - when running task ':aaa:foo', then only project ':aaa' is evaluated
+        - when running task 'foo', then current project+children recursively are evaluated
+        - consequently, when running task 'foo' from the root project, all projects are evaluated
+    - as Gradle prepares the list of tasks to get executed, more projects are evaluated on demand. Example:
+        - java projectA compile-depends on java projectB. Running projectA:build will cause projectB to evaluate and run projectB:build
+        - task dependencies to other project tasks causes other project to evaluate
+- the "configure-on-demand" mode is enabled by system property (e.g. gradle properties)
+- not supported in this story:
+    - evaluationDependsOn
+    - decent error reporting when build contains unconventional project couplings
+    - probably other things, as the work on spike continues
 
 ### Sad day cases
 
@@ -38,13 +38,13 @@ TBD
 
 ### Test coverage
 
--root is evaluated when building from subproject
--compile dependency between java projects A->B.
-    -:a:build causes evaluation of a and b, build passes
-    -:b:build does not evaluate a, build passes
--task dependency to other project
--name matching execution recurses from current dir
--TBD
+- root is evaluated when building from subproject
+- compile dependency between java projects A->B.
+    - `:a:build` causes evaluation of a and b, build passes
+    - `:b:build` does not evaluate a, build passes
+- task dependency to other project
+- name matching execution recurses from current dir
+- TBD
 
 ### Implementation approach
 
@@ -64,10 +64,10 @@ TBD
 
 ### Consider other changes for consistency:
 
-- add 'daemonEnabled' property to StartParameter
-- add '--no-configure-on-demand' command line option
-- add '--no-parallel' command line option
-- consider --parallel=false or --configure-on-demand=false to avoid proliferation of command line options (not sure if I like this idea)
+- add `daemonEnabled` property to StartParameter
+- add `--no-configure-on-demand` command line option
+- add `--no-parallel` command line option
+- consider `--parallel=false` or `--configure-on-demand=false` to avoid proliferation of command line options (not sure if I like this idea)
 
 ### Consider refactorings:
 
@@ -81,11 +81,11 @@ TBD
 ### Sad day cases:
 
 1. Conflicting command line arg and gradle.properties:
-    --no-daemon && org.gradle.daemon=true
-    --parallel && org.gradle.parallel=false
-    --daemon && org.gradle.daemon=false
-    --parallel-threads=0 and org.gradle.parallel=true
-    in general, command line should win
+    - `--no-daemon` && `org.gradle.daemon=true`
+    - `--parallel` && `org.gradle.parallel=false`
+    - `--daemon` && `org.gradle.daemon=false`
+    - `--parallel-threads=0` and `org.gradle.parallel=true`
+    - in general, command line should win
 
 ### Open questions:
 
