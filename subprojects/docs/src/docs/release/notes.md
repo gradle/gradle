@@ -39,8 +39,8 @@ The following are the new incubating features or changes to existing incubating 
 ### More robust dependency resolve rules
 
 The dependency resolve rules introduced in Gradle 1.4 are getting more robust.
-It is now possible to change group, name and/or version of the dependency when it is resolved.
-Previously, only version could be updated just before the dependency is resolved.
+It is now possible to change group, name and/or version of a requested dependency when it is resolved.
+Previously, only the version could be updated via a dependency resolve rule.
 
     configurations.all {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
@@ -49,6 +49,14 @@ Previously, only version could be updated just before the dependency is resolved
             }
         }
     }
+
+With this change, dependency resolve rules can now be used to solve some interesting dependency resolution problems:
+
+- Substituting an alternative implementation for some module. For example, replace all usages of `log4j` with a compatible version of `log4j-over-slf4j`.
+- Dealing with conflicting implementations of some module. For example, replace all usages of the various `slf4j` bindings with `slf4j-simple`.
+- Dealing with conflicting packaging of some module. For example, replace all usages of `groovy` and `groovy-all` with `groovy`.
+- Dealing with modules that have changed their (group, module) identifier. For example, replace `ant:ant:*` with `org.apache.ant:ant:1.7.0` and let conflict resolution take care of the rest.
+- Substituting different implementations at different stages. For example, substitute all servlet API dependencies with `'javax.servlet:servlet-api:2.4'` at compile time and the jetty implementation at test runtime.
 
 For more information, including more code samples, please refer to
 [this user guide section](userguide/userguide_single.html#module_substitution).
