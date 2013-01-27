@@ -101,6 +101,17 @@ TBD
 - configure on demand with configuration decoupling is to eventually become the default Gradle model.
 - rename 'configure on demand' to something that reflects that this will be the new Gradle configuration model.
 
+## Configure target project when project dependency is resolved
+
+This is to fix common ordering issues where a dependency is resolved at configuration time. This should
+happen for both the legacy and new configuration models.
+
+### Coverage
+
+- Project A depends on project B, which depends on some external dependency.
+    - Verify that when the configuration is resolved in project A's build script, project B and the external
+      dependency are present.
+
 ## Allow project dependencies in build script classpath
 
 This is a replacement for the `buildSrc` project. When in configure-on-demand mode, allow project dependencies
@@ -117,20 +128,14 @@ the root project so that this will be possible.
 - Root project has a dependency on a build project.
 - A build project has a dependency on another project.
 
-## Configure target project when project dependency is resolved
-
-This is to fix common ordering issues where a dependency is resolved at configuration time. This should
-happen for both the legacy and new configuration models.
-
-## Coverage
-
-- Project A depends on project B, which depends on some external dependency.
-    - Verify that when the configuration is resolved in project A's build script, project B and the external
-      dependency are present.
-
 ## Build author injects configuration into projects without direct coupling between projects
 
 - Root project is no longer configured by default.
+
+## Build author does conditional configuration without relying on the contents of the task graph
+
+- Introduce the concept of build types as a replacement for using the task graph.
+- Deprecate mutating `StartParameters.taskNames`.
 
 ## Rename usages of `evaluate` to `configure`
 
