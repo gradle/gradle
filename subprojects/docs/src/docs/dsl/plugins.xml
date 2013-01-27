@@ -45,9 +45,6 @@
     <plugin id="application" description="Application Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ApplicationPluginConvention"/>
     </plugin>
-    <plugin id="java-library-distribution" description="Java Library Distribution Plugin">
-        <extends targetClass="org.gradle.api.Project" id="distribution" extensionClass="org.gradle.api.distribution.Distribution"/>
-    </plugin>
     <plugin id="signing" description="Signing Plugin">
         <extends targetClass="org.gradle.api.Project" id="signing" extensionClass="org.gradle.plugins.signing.SigningExtension"/>
     </plugin>

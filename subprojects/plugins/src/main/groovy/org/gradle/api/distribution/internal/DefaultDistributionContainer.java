@@ -18,6 +18,7 @@ package org.gradle.api.distribution.internal;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 
 /**
@@ -26,14 +27,18 @@ import org.gradle.internal.reflect.Instantiator;
  * @author scogneau
  */
 public class DefaultDistributionContainer extends AbstractNamedDomainObjectContainer<Distribution> implements DistributionContainer {
-    final String projectName;
 
-    public DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator, String projectName) {
+    private final String projectName;
+    private final FileResolver fileResolver;
+
+    public DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator, String projectName, FileResolver fileResolver) {
         super(type, instantiator);
         this.projectName = projectName;
+        this.fileResolver = fileResolver;
     }
 
     protected Distribution doCreate(String name) {
-        return new DefaultDistribution(name, projectName);
+        return new DefaultDistribution(name, projectName, fileResolver);
     }
+
 }

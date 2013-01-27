@@ -36,18 +36,14 @@ class JavaLibraryDistributionPlugin implements Plugin<Project> {
         this.project = project
         project.plugins.apply(JavaPlugin)
         project.plugins.apply(DistributionPlugin)
-        addPluginExtension()
         configureDistZipTask()
     }
 
-    private void addPluginExtension() {
-        project.distributions[Distribution.MAIN_DISTRIBUTION_NAME]
-    }
 
     private void configureDistZipTask() {
-        def distZipTask = project.tasks.getByName(DistributionPlugin.TASK_DIST_ZIP_NAME)
+        def contents  = project.distributions[Distribution.MAIN_DISTRIBUTION_NAME].contents
         def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]
-        distZipTask.with {
+        contents.with {
             from(jar)
             from(project.file("src/dist"))
             into("lib") {

@@ -23,3 +23,29 @@ customDistZip {
     from "custom/custom.txt"
 }
 // END SNIPPET custom-distZip
+
+// START SNIPPET custom-distribution
+apply plugin: 'distribution'
+
+distributions {
+    main {
+        baseName = 'someName'
+        contents {
+            from { ... }
+        }
+    }
+}
+// END SNIPPET custom-distribution
+
+// START SNIPPET declare-distribution
+apply plugin: 'distribution'
+
+version = '1.2'
+distributions {
+    custom {
+        contents {
+            from { ... }
+        }
+    }
+}
+// END SNIPPET declare-distribution
