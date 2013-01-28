@@ -15,19 +15,8 @@
  */
 package org.gradle.integtests.fixtures.executer
 
-import org.gradle.CacheUsage
-import org.gradle.api.Action
-import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CacheFactory
-import org.gradle.cache.internal.DefaultCacheFactory
-import org.gradle.cache.internal.DefaultFileLockManager
-import org.gradle.cache.internal.DefaultProcessMetaDataProvider
-import org.gradle.cache.internal.FileLockManager.LockMode
-import org.gradle.internal.nativeplatform.ProcessEnvironment
-import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.DistributionLocator
-import org.gradle.util.GradleVersion
 
 class ReleasedGradleDistribution extends DownloadableGradleDistribution {
 
@@ -36,7 +25,7 @@ class ReleasedGradleDistribution extends DownloadableGradleDistribution {
     }
 
     @Override
-    protected URL getDownloadURL(){
+    protected URL getDownloadURL() {
         return new DistributionLocator().getDistributionFor(getVersion()).toURL();
     }
 }
