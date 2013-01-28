@@ -27,7 +27,7 @@ import java.util.Set;
  *
  * TODO - configure includes/excludes for individual source dirs, and sync up with CopySpec
  * TODO - allow add FileTree
-' */
+ */
 public interface SourceDirectorySet extends FileTree, PatternFilterable, Named {
 
     /**
