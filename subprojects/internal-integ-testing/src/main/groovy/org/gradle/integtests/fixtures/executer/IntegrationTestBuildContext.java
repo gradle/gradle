@@ -67,6 +67,9 @@ public class IntegrationTestBuildContext {
             return new UnderDevelopmentGradleDistribution();
         }
         TestFile previousVersionDir = getGradleUserHomeDir().getParentFile().file("previousVersion");
+        if(version.startsWith("#")){
+            return new BuildServerGradleDistribution(version, previousVersionDir.file(version));
+        }
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }
 
