@@ -32,6 +32,7 @@ public class DefaultSourceSet implements SourceSet {
     private final String name;
     private FileCollection compileClasspath;
     private FileCollection runtimeClasspath;
+    private FileCollection providedClasspath;
     private final SourceDirectorySet javaSource;
     private final SourceDirectorySet allJavaSource;
     private final SourceDirectorySet resources;
@@ -114,6 +115,10 @@ public class DefaultSourceSet implements SourceSet {
         return name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(name);
     }
 
+    public String getProvidedConfigurationName() {
+        return StringUtils.uncapitalize(String.format("%sProvided", getTaskBaseName()));
+    }
+
     public String getCompileConfigurationName() {
         return StringUtils.uncapitalize(String.format("%sCompile", getTaskBaseName()));
     }
@@ -135,12 +140,20 @@ public class DefaultSourceSet implements SourceSet {
         return this;
     }
 
+    public FileCollection getProvidedClasspath() {
+        return providedClasspath;
+    }
+
     public FileCollection getCompileClasspath() {
         return compileClasspath;
     }
 
     public FileCollection getRuntimeClasspath() {
         return runtimeClasspath;
+    }
+
+    public void setProvidedClasspath(FileCollection classpath) {
+        providedClasspath = classpath;
     }
 
     public void setCompileClasspath(FileCollection classpath) {

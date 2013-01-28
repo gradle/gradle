@@ -56,6 +56,20 @@ public interface SourceSet {
     String getName();
 
     /**
+     * Returns the classpath used to compile this source, but that will not be included in the final product.
+     *
+     * @return The classpath. Never returns null.
+     */
+    FileCollection getProvidedClasspath();
+
+    /**
+     * Sets the classpath used to compile this source, but that will not be included in the final product.
+     *
+     * @param classpath The classpath. Should not be null.
+     */
+    void setProvidedClasspath(FileCollection classpath);
+
+    /**
      * Returns the classpath used to compile this source.
      *
      * @return The classpath. Never returns null.
@@ -193,6 +207,12 @@ public interface SourceSet {
      * @return The task name, generally of the form ${verb}${name}${noun}
      */
     String getTaskName(String verb, String target);
+
+    /**
+     * Returns the name of the provided configuration for this source set.
+     * @return The runtime provided name
+     */
+    String getProvidedConfigurationName();
 
     /**
      * Returns the name of the compile configuration for this source set.

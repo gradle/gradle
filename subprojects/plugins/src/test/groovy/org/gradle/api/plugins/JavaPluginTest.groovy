@@ -60,6 +60,12 @@ class JavaPluginTest {
     @Test public void addsConfigurationsToTheProject() {
         javaPlugin.apply(project)
 
+        //provided & compile are distinct configurations
+        def provided = project.configurations.getByName(JavaPlugin.PROVIDED_CONFIGURATION_NAME)
+        assertThat(provided.extendsFrom, equalTo(toSet()))
+        assertFalse(provided.visible)
+        assertTrue(provided.transitive)
+
         def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertThat(compile.extendsFrom, equalTo(toSet()))
         assertFalse(compile.visible)
@@ -69,6 +75,11 @@ class JavaPluginTest {
         assertThat(runtime.extendsFrom, equalTo(toSet(compile)))
         assertFalse(runtime.visible)
         assertTrue(runtime.transitive)
+
+        def testProvided = project.configurations.getByName(JavaPlugin.TEST_PROVIDED_CONFIGURATION_NAME)
+        assertThat(testProvided.extendsFrom, equalTo(toSet(provided)))
+        assertFalse(testProvided.visible)
+        assertTrue(testProvided.transitive)
 
         def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
         assertThat(testCompile.extendsFrom, equalTo(toSet(compile)))

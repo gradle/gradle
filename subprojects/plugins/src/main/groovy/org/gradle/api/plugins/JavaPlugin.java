@@ -58,8 +58,11 @@ public class JavaPlugin implements Plugin<Project> {
 
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
+    public static final String PROVIDED_CONFIGURATION_NAME = "provided";
+
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
+    public static final String TEST_PROVIDED_CONFIGURATION_NAME = "testProvided";
 
     public void apply(Project project) {
         project.getPlugins().apply(JavaBasePlugin.class);
@@ -151,15 +154,21 @@ public class JavaPlugin implements Plugin<Project> {
 
     void configureConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
+        Configuration providedConfiguration = configurations.getByName(PROVIDED_CONFIGURATION_NAME);
         Configuration compileConfiguration = configurations.getByName(COMPILE_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
+
+        Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
+        defaultConfiguration.extendsFrom(runtimeConfiguration);
+
+        Configuration providedTestsConfiguration = configurations.getByName(TEST_PROVIDED_CONFIGURATION_NAME);
+        providedTestsConfiguration.extendsFrom(providedConfiguration);
 
         Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
         compileTestsConfiguration.extendsFrom(compileConfiguration);
 
-        configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration);
-
-        configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
+        Configuration runtimeTestsConfiguration = configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME);
+        runtimeTestsConfiguration.extendsFrom(runtimeConfiguration, compileTestsConfiguration);
     }
 
 

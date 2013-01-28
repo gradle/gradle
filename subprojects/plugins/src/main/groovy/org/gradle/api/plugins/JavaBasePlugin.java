@@ -80,30 +80,37 @@ public class JavaBasePlugin implements Plugin<Project> {
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
+            private Configuration imposeConfiguration(String name, String description, boolean isVisible, Configuration extendsFrom) {
+                ConfigurationContainer container = pluginConvention.getProject().getConfigurations();
+                Configuration cfg = container.findByName(name);
+                if (cfg == null) {
+                    cfg = container.add(name);
+                }
+
+                cfg.setVisible(isVisible);
+                cfg.setDescription(description);
+
+                if (extendsFrom != null) {
+                    cfg.extendsFrom(extendsFrom);
+                }
+                return cfg;
+            }
             public void execute(final SourceSet sourceSet) {
                 final Project project = pluginConvention.getProject();
 
                 ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
 
-                ConfigurationContainer configurations = project.getConfigurations();
+                String providedDescription = String.format("Classpath for compiling the %s sources, but will be provided during container execution.", sourceSet.getName());
+                Configuration provided = imposeConfiguration(sourceSet.getProvidedConfigurationName(), providedDescription, false, null);
 
-                Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
-                if (compileConfiguration == null) {
-                    compileConfiguration = configurations.add(sourceSet.getCompileConfigurationName());
-                }
-                compileConfiguration.setVisible(false);
-                compileConfiguration.setDescription(String.format("Classpath for compiling the %s sources.", sourceSet.getName()));
+                String compileDescription = String.format("Classpath for compiling the %s sources.", sourceSet.getName());
+                Configuration compile = imposeConfiguration(sourceSet.getCompileConfigurationName(), compileDescription, false, null);
 
-                Configuration runtimeConfiguration = configurations.findByName(sourceSet.getRuntimeConfigurationName());
-                if (runtimeConfiguration == null) {
-                    runtimeConfiguration = configurations.add(sourceSet.getRuntimeConfigurationName());
-                }
-                runtimeConfiguration.setVisible(false);
-                runtimeConfiguration.extendsFrom(compileConfiguration);
-                runtimeConfiguration.setDescription(String.format("Classpath for running the compiled %s classes.", sourceSet.getName()));
+                String runtimeDescription = String.format("Classpath for running the compiled %s classes.", sourceSet.getName());
+                Configuration runtime = imposeConfiguration(sourceSet.getRuntimeConfigurationName(), runtimeDescription, false, compile);
 
-                sourceSet.setCompileClasspath(compileConfiguration);
-                sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
+                sourceSet.setCompileClasspath(compile.plus(provided));
+                sourceSet.setRuntimeClasspath(compile.plus(runtime));
 
                 outputConventionMapping.map("classesDir", new Callable<Object>() {
                     public Object call() throws Exception {
