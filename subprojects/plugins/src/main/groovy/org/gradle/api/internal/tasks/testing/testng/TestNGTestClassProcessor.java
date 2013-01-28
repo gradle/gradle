@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
-import groovy.lang.MissingMethodException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
-import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.CollectionUtils;
@@ -32,28 +30,28 @@ import org.testng.ITestListener;
 import org.testng.TestNG;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
     private final File testReportDir;
-    private final TestNGOptions options;
+    private final TestNGOptionsPojo options;
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
     private final StandardOutputRedirector outputRedirector;
-    private final boolean testReportOn;
     private TestNGTestResultProcessorAdapter testResultProcessor;
     private ClassLoader applicationClassLoader;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles, IdGenerator<?> idGenerator,
-                                    StandardOutputRedirector outputRedirector, boolean testReportOn) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGOptionsPojo options, List<File> suiteFiles, IdGenerator<?> idGenerator,
+                                    StandardOutputRedirector outputRedirector) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
         this.idGenerator = idGenerator;
         this.outputRedirector = outputRedirector;
-        this.testReportOn = testReportOn;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
@@ -75,13 +73,19 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     public void stop() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
-        testNg.setDefaultSuiteName(options.getSuiteName());
-        testNg.setDefaultTestName(options.getTestName());
+        testNg.setDefaultSuiteName(options.getDefaultSuiteName());
+        testNg.setDefaultTestName(options.getDefaultTestName());
         testNg.setParallel(options.getParallel());
         testNg.setThreadCount(options.getThreadCount());
         try {
+            final Method setAnnotations = TestNG.class.getMethod("setAnnotations");
+            setAnnotations.invoke(testNg, options.getAnnotations());
             ReflectionUtil.invoke(testNg, "setAnnotations", options.getAnnotations());
-        } catch (MissingMethodException e) {
+        } catch (NoSuchMethodException e) {
+            /* do nothing; method has been removed in TestNG 6.3 */
+        } catch (InvocationTargetException e) {
+            /* do nothing; method has been removed in TestNG 6.3 */
+        } catch (IllegalAccessException e) {
             /* do nothing; method has been removed in TestNG 6.3 */
         }
         if (options.getJavadocAnnotations()) {
@@ -93,7 +97,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setVerbose(0);
         testNg.setGroups(CollectionUtils.join(",", options.getIncludeGroups()));
         testNg.setExcludedGroups(CollectionUtils.join(",", options.getExcludeGroups()));
-        for (String listenerClass : options.getListeners()) {
+        for (String listenerClass : options.getListener()) {
             try {
                 testNg.addListener(applicationClassLoader.loadClass(listenerClass).newInstance());
             } catch (Throwable e) {

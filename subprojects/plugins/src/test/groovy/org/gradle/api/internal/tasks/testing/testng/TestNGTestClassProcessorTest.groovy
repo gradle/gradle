@@ -36,8 +36,13 @@ class TestNGTestClassProcessorTest extends Specification {
 
     private resultProcessor = Mock(TestResultProcessor)
 
-    private TestNGOptions options = new TestNGOptions(reportDir.testDirectory)
-    private TestNGTestClassProcessor processor  = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector, true);
+    private TestNGOptionsPojo options
+    private TestNGTestClassProcessor processor
+
+    void setup(){
+        options = Spy(TestNGOptionsPojo, constructorArgs:[new TestNGOptions(reportDir.testDirectory)]);
+        processor = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector);
+    }
 
     void "executes the test class"() {
         when:
@@ -144,8 +149,8 @@ class TestNGTestClassProcessorTest extends Specification {
 
     void "includes and excludes groups"() {
         given:
-        options.includeGroups('group1', 'group2')
-        options.excludeGroups('group3')
+        _ * options.getIncludeGroups() >> ['group1', 'group2']
+        _ * options.getExcludeGroups() >> ['group3']
 
         when:
         processor.startProcessing(resultProcessor);
