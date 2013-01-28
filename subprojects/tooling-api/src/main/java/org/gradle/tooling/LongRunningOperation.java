@@ -123,8 +123,8 @@ public interface LongRunningOperation {
      * will be thrown at the time the operation is executed via {@link BuildLauncher#run()} or {@link ModelBuilder#get()}.
      * <p>
      * For the list of all Gradle command line options please refer to the user guide
-     * or take a look at the output of the 'gradle -?' command. Supported arguments are those modeled by
-     * {@link org.gradle.StartParameter}.
+     * or take a look at the output of the 'gradle -?' command. Majority of arguments modeled by
+     * {@link org.gradle.StartParameter} are supported.
      * <p>
      * The arguments can potentially override some other settings you have configured.
      * For example, the project directory or Gradle user home directory that are configured
