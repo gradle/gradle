@@ -37,7 +37,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 )).create()
     }
 
-    private final TestFile versionDir
+    protected TestFile versionDir
     private PersistentCache cache
 
     DownloadableGradleDistribution(String version, TestFile versionDir) {
@@ -58,7 +58,6 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
     private void download() {
         if (cache == null) {
             def downloadAction = { cache ->
-                getUrl()
                 URL url = getDownloadURL();
                 System.out.println("downloading $url")
                 super.binDistribution.copyFrom(url)
