@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -53,7 +50,14 @@ class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     ivyEar(IvyPublication) {
-                        artifact ear
+                        configurations {
+                            runtime {
+                                artifact ear
+                            }
+                            "default" {
+                                extend configurations.runtime
+                            }
+                        }
                     }
                 }
             }
@@ -62,11 +66,24 @@ class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
         when:
         run "publish"
 
-        then:
+        then: "module is published with artifacts"
         def ivyModule = ivyRepo.module("org.gradle.test", "publishEar", "1.9")
         ivyModule.assertPublished()
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishEar-1.9.ear")
+
+        and: "correct configurations declared"
+        ivyModule.ivy.configurations.keySet() == ["default", "runtime"] as Set
+        ivyModule.ivy.configurations.runtime.extend == [] as Set
+        ivyModule.ivy.configurations.default.extend == ["runtime"] as Set
+
+        and: "artifact correctly declared"
+        with (ivyModule.ivy.artifacts.publishEar) {
+            type == "ear"
+            ext == "ear"
+            conf == ["runtime"]
+        }
+
+        and: "no dependencies declared"
         ivyModule.ivy.dependencies.isEmpty()
-        // TODO:DAZ Validate configurations and artifacts in ivy.xml
     }
 }

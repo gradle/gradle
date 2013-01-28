@@ -115,12 +115,7 @@ public interface IvyPublication extends Publication {
 
     void from(SoftwareComponent component);
 
-    IvyArtifact artifact(Object source);
+    void configurations(Action<? super IvyConfigurationContainer> action);
 
-    IvyArtifact artifact(Object source, Action<IvyArtifact> config);
-
-    void setArtifacts(Iterable<Object> sources);
-
-    IvyArtifactSet getArtifacts();
-
+    IvyConfigurationContainer getConfigurations();
 }

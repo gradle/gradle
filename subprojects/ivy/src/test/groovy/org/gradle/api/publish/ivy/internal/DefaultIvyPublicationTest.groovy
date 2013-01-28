@@ -15,23 +15,26 @@
  */
 
 package org.gradle.api.publish.ivy.internal
-import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
 
 class DefaultIvyPublicationTest extends Specification {
 
+    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Module module = Mock()
     NotationParser<IvyArtifact> notationParser = Mock()
@@ -78,7 +81,7 @@ class DefaultIvyPublicationTest extends Specification {
         publication.runtimeDependencies.empty
     }
 
-    def "publishableFiles and artifacts when taken from added component"() {
+    def "adopts dependencies, configurations, artifacts and publishableFiles from added component"() {
         given:
         def publication = createPublication()
 
@@ -102,6 +105,13 @@ class DefaultIvyPublicationTest extends Specification {
         artifactsOf(publication) == [ivyArtifact] as Set
         publication.publishableFiles.files == [descriptorFile, artifactFile] as Set
         publication.runtimeDependencies == dependencySet
+
+        and:
+        publication.configurations.size() == 2
+        publication.configurations.runtime.artifacts == [ivyArtifact] as Set
+        publication.configurations.runtime.extends == [] as Set
+        publication.configurations."default".extends == [publication.configurations.runtime] as Set
+
     }
 
     def "cannot add multiple components"() {
@@ -125,7 +135,20 @@ class DefaultIvyPublicationTest extends Specification {
         e.message == "An IvyPublication cannot include multiple components"
     }
 
-    def "attaches artifacts parsed by notation parser"() {
+    def "creates configuration on first access"() {
+        def publication = createPublication()
+
+        when:
+        publication.configurations {
+            newConfiguration {}
+        };
+
+        then:
+        publication.configurations.size() == 1
+        publication.configurations.getByName("newConfiguration").name == "newConfiguration"
+    }
+
+    def "attaches artifacts parsed by notation parser to configuration"() {
         given:
         def publication = createPublication()
         Object notation = new Object();
@@ -135,10 +158,15 @@ class DefaultIvyPublicationTest extends Specification {
         notationParser.parseNotation(notation) >> ivyArtifact
 
         and:
-        publication.artifact notation
+        publication.configurations {
+            config {
+                artifact notation
+            }
+        }
 
         then:
         artifactsOf(publication) == [ivyArtifact] as Set
+        publication.configurations.config.artifacts == [ivyArtifact] as Set
         publication.publishableFiles.files == [descriptorFile, artifactFile] as Set
     }
 
@@ -154,32 +182,37 @@ class DefaultIvyPublicationTest extends Specification {
         0 * ivyArtifact._
 
         and:
-        publication.artifact(notation, new Action<IvyArtifact>() {
-            void execute(IvyArtifact t) {
-                t.extension = 'changed'
+        publication.configurations {
+            config {
+                artifact(notation) {
+                    extension = 'changed'
+                }
             }
-        })
+        }
 
         then:
         artifactsOf(publication) == [ivyArtifact] as Set
         publication.publishableFiles.files == [descriptorFile, artifactFile] as Set
     }
 
-    def "can use setter to replace existing artifacts set"() {
+    def "can use setter to replace existing artifacts set on configuration"() {
         given:
         def publication = createPublication()
-        Object notation = new Object();
         IvyArtifact ivyArtifact1 = createArtifact()
         IvyArtifact ivyArtifact2 = createArtifact()
 
         when:
-        publication.artifact "notation"
+        publication.configurations {
+            config {
+                artifact "notation"
+            }
+        }
 
         then:
-        notationParser.parseNotation(notation) >> Mock(IvyArtifact)
+        notationParser.parseNotation("notation") >> Mock(IvyArtifact)
 
         when:
-        publication.artifacts = ["notation1", "notation2"]
+        publication.configurations.config.artifacts = ["notation1", "notation2"]
 
         then:
         notationParser.parseNotation("notation1") >> ivyArtifact1
@@ -187,6 +220,8 @@ class DefaultIvyPublicationTest extends Specification {
 
         and:
         artifactsOf(publication) == [ivyArtifact1, ivyArtifact2] as Set
+        publication.configurations.config.artifacts == [ivyArtifact1, ivyArtifact2] as Set
+        publication.asNormalisedPublication().artifacts == [ivyArtifact1, ivyArtifact2] as Set
     }
 
     def "getting normalised publication will fail with file that does not exist"() {
@@ -196,7 +231,11 @@ class DefaultIvyPublicationTest extends Specification {
         def nonExistentFile = new File(testDirectoryProvider.testDirectory, 'does-not-exist')
 
         when:
-        publication.artifact notation
+        publication.configurations {
+            config {
+                artifact notation
+            }
+        }
         publication.asNormalisedPublication()
 
         then:
@@ -209,7 +248,7 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = new DefaultIvyPublication("pub-name", new DirectInstantiator(), module, notationParser)
+        def publication = instantiator.newInstance(DefaultIvyPublication, "pub-name", instantiator, module, notationParser)
         publication.setDescriptorFile(new SimpleFileCollection(descriptorFile))
         return publication;
     }

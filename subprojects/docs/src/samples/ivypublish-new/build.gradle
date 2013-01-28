@@ -45,7 +45,11 @@ publishing {
     publications {
         ivy(IvyPublication) {
             from components.java
-            artifact sourceJar
+            configurations {
+                runtime {
+                    artifact sourceJar
+                }
+            }
         }
     }
 // START SNIPPET descriptor-mod

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal;
+package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
-import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.Module;
-import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.IvyModuleDescriptor;
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 
 import java.util.Set;
 
-public interface IvyModuleDescriptorInternal extends IvyModuleDescriptor {
+/**
+ * A configuration included in an {@link IvyPublication}.
+ */
+@Incubating
+public interface IvyConfiguration extends Named {
 
-    public Module getModule();
+    IvyArtifact artifact(Object source);
 
-    Set<IvyConfiguration> getConfigurations();
+    IvyArtifact artifact(Object source, Action<? super IvyArtifact> config);
 
-    Set<Dependency> getRuntimeDependencies();
+    void setArtifacts(Iterable<Object> sources);
 
-    Action<XmlProvider> getXmlAction();
+    IvyArtifactSet getArtifacts();
+
+    void extend(IvyConfiguration parent);
+
+    Set<IvyConfiguration> getExtends();
 
 }

@@ -24,6 +24,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -37,6 +38,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
 import org.gradle.api.specs.Specs;
@@ -51,6 +53,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 import static org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
+import static org.gradle.util.CollectionUtils.collectArray;
 
 /**
  * Generates an Ivy XML Module Descriptor file.
@@ -125,16 +128,19 @@ public class GenerateIvyDescriptor extends DefaultTask {
         XmlTransformer xmlTransformer = new XmlTransformer();
         xmlTransformer.addAction(descriptorInternal.getXmlAction());
 
+        // TODO This should use the actual configurations from the publication, not assume runtime.
         IvyDescriptorBuilder ivyDescriptorBuilder = new IvyDescriptorBuilder(publicationServices.getDescriptorFileModuleConverter(), descriptorInternal.getModule());
-        ivyDescriptorBuilder.addConfiguration("runtime");
-        ivyDescriptorBuilder.addConfiguration("default", "runtime");
-
-        for (Dependency runtimeDependency : descriptorInternal.getRuntimeDependencies()) {
-            ivyDescriptorBuilder.addDependency("runtime", runtimeDependency);
+        for (IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations()) {
+            ivyDescriptorBuilder.addConfiguration(ivyConfiguration);
+            for (IvyArtifact ivyArtifact : ivyConfiguration.getArtifacts()) {
+                ivyDescriptorBuilder.addArtifact(ivyConfiguration.getName(), ivyArtifact);
+            }
         }
 
-        for (IvyArtifact artifact : descriptorInternal.getArtifacts()) {
-            ivyDescriptorBuilder.addArtifact("runtime", artifact);
+        // This assumes the runtime configuration is added, which is always true when there are dependencies (added by component)
+        // TODO: Attach dependencies to configuration
+        for (Dependency runtimeDependency : descriptorInternal.getRuntimeDependencies()) {
+            ivyDescriptorBuilder.addDependency("runtime", runtimeDependency);
         }
 
         IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
@@ -167,7 +173,7 @@ public class GenerateIvyDescriptor extends DefaultTask {
 
         @Override
         public String getDisplayName() {
-            return "pom-file";
+            return "ivy-xml";
         }
 
         @Override
@@ -189,10 +195,16 @@ public class GenerateIvyDescriptor extends DefaultTask {
             moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(module), module.getStatus(), null);
         }
 
-        public void addConfiguration(String name, String... extendsFrom) {
-
+        public void addConfiguration(IvyConfiguration ivyConfiguration) {
+            Set<IvyConfiguration> extendsConfigurations = ivyConfiguration.getExtends();
+            int size = extendsConfigurations.size();
+            String[] extendsNames = collectArray(extendsConfigurations.toArray(new IvyConfiguration[size]), new String[size], new Transformer<String, IvyConfiguration>() {
+                public String transform(IvyConfiguration original) {
+                    return original.getName();
+                }
+            });
             org.apache.ivy.core.module.descriptor.Configuration configuration =
-                    new org.apache.ivy.core.module.descriptor.Configuration(name, PUBLIC, null, extendsFrom, true, null);
+                    new org.apache.ivy.core.module.descriptor.Configuration(ivyConfiguration.getName(), PUBLIC, null, extendsNames, true, null);
             moduleDescriptor.addConfiguration(configuration);
         }
 

@@ -36,10 +36,10 @@ class IvyDescriptor {
         revision = ivy.info[0].@revision
         description = ivy.info[0].description[0]?.text()
 
-        ivy.configurations[0].conf.each {
+        ivy.configurations.conf.each {
             configurations[it.@name] = new IvyDescriptorConfiguration(
                     name: it.@name, visibility: it.@visibility, description: it.@description,
-                    extend: (it.@extends ?: "").split(",")*.trim()
+                    extend: it.@extends == null ? [] : it.@extends.split(",")*.trim()
             )
         }
 

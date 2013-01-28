@@ -45,7 +45,11 @@ public class IvyPublishIssuesIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     ivy(IvyPublication) {
-                        artifact file: file("${artifactPath}"), name: 'testfile', type: 'bin'
+                        configurations {
+                            custom {
+                                artifact file: file("${artifactPath}"), name: 'testfile', type: 'bin'
+                            }
+                        }
                     }
                 }
             }
