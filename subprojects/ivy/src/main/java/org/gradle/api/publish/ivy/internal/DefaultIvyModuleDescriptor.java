@@ -48,7 +48,7 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
     }
 
     public Set<IvyArtifact> getArtifacts() {
-        return ivyPublication.asNormalisedPublication().getArtifacts();
+        return ivyPublication.getArtifacts();
     }
 
     public Set<Dependency> getRuntimeDependencies() {
