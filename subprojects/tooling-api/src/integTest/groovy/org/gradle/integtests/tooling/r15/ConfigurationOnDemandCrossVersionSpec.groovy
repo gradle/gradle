@@ -26,7 +26,7 @@ import org.gradle.tooling.model.GradleProject
 
 import static java.util.Arrays.asList
 
-@MinToolingApiVersion("1.5")
+@MinToolingApiVersion("1.0") //in theory, all clients are supported but we're passing args in the test, hence 1.0
 @MinTargetGradleVersion("1.5")
 class ConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
 
