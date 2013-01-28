@@ -155,4 +155,9 @@ the root project so that this will be possible.
 - Use strict mode as the default when configure-on-demand is used.
 - Use transitional mode as the default when configure-on-demand is not used.
 
+## Improve how tooling api deals with multi-project builds
+
+Currently, building tasks takes advantage of COD. Building model always causes everything to get evaluated.
+There's a forum request from Attila (NetBeans) to improve that.
+
 More to come ...
