@@ -34,5 +34,5 @@ public interface ExecutionFailure extends ExecutionResult {
 
     ExecutionFailure assertTestsFailed();
 
-    DependencyResolutionFailure getDependencyResolutionFailure();
+    DependencyResolutionFailure assertResolutionFailure(String configuration);
 }

@@ -643,8 +643,7 @@ task test << {
                 .assertHasFileName("Build file '" + buildFile.getPath() + "'")
                 .assertHasDescription("Execution failed for task ':listJars'");
 
-        failure.dependencyResolutionFailure
-                .assertFailedConfiguration(':compile')
+        failure.assertResolutionFailure(':compile')
                 .assertHasCause("Could not find test:unknownProjectA:1.2.")
                 .assertHasCause("Could not find test:unknownProjectB:2.1.5.")
     }

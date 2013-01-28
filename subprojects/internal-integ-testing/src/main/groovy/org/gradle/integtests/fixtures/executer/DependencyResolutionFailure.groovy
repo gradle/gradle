@@ -25,8 +25,9 @@ import org.hamcrest.Matcher
 public class DependencyResolutionFailure {
     private final ExecutionFailure failure
 
-    DependencyResolutionFailure(ExecutionFailure failure) {
+    DependencyResolutionFailure(ExecutionFailure failure, String configuration) {
         this.failure = failure
+        assertFailedConfiguration(configuration);
     }
 
     DependencyResolutionFailure assertFailedConfiguration(String configuration) {

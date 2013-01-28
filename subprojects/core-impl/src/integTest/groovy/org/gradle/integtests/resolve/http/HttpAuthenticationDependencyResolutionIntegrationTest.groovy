@@ -165,7 +165,7 @@ task listJars << {
         and:
         failure
             .assertHasDescription('Execution failed for task \':listJars\'.')
-            .dependencyResolutionFailure.assertFailedConfiguration(':compile')
+            .assertResolutionFailure(':compile')
             .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
@@ -210,7 +210,7 @@ task listJars << {
         and:
         failure
             .assertHasDescription('Execution failed for task \':listJars\'.')
-            .dependencyResolutionFailure.assertFailedConfiguration(':compile')
+            .assertResolutionFailure(':compile')
             .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:

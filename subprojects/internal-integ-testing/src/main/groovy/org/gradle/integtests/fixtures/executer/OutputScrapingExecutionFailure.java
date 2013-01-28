@@ -94,7 +94,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         return this;
     }
 
-    public DependencyResolutionFailure getDependencyResolutionFailure() {
-        return new DependencyResolutionFailure(this);
+    public DependencyResolutionFailure assertResolutionFailure(String configuration) {
+        return new DependencyResolutionFailure(this, configuration);
     }
 }

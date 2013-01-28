@@ -500,8 +500,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail("check", "resolveConf")
 
         then:
-        failure.dependencyResolutionFailure
-            .assertFailedConfiguration(":conf")
+        failure.assertResolutionFailure(":conf")
             .assertHasCause("Could not find org.utils:api:1.123.15")
     }
 
@@ -583,8 +582,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail("resolveConf")
 
         then:
-        failure.dependencyResolutionFailure
-                .assertFailedConfiguration(":conf")
+        failure.assertResolutionFailure(":conf")
                 .assertHasCause("Could not resolve org.utils:impl:1.3.")
                 .assertHasCause("Unhappy :(")
                 .assertFailedDependencyRequiredBy(":root:1.0")
@@ -716,7 +714,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("dependencies")
 
         then:
-        failure.dependencyResolutionFailure.assertHasCause("Invalid format: 'foobar'")
+        failure.assertResolutionFailure(":conf").assertHasCause("Invalid format: 'foobar'")
     }
 
     String getCommon() {
