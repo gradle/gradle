@@ -19,7 +19,6 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -82,19 +81,13 @@ apply plugin: 'java'
 System.out.println 'this is stdout'
 System.err.println 'this is stderr'
 '''
-        def progressMessages = []
-
         when:
-        withConnection { connection ->
-            def build = connection.newBuild()
-            build.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
-            build.run()
-        }
+        def progress = withBuild().progressMessages
 
         then:
-        progressMessages.size() >= 2
-        progressMessages.pop() == ''
-        progressMessages.every { it }
+        progress.size() >= 2
+        progress.pop() == ''
+        progress.every { it }
     }
 
     def "tooling api reports build failure"() {

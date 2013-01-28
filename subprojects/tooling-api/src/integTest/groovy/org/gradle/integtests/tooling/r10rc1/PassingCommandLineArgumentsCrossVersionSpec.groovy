@@ -18,7 +18,6 @@
 
 package org.gradle.integtests.tooling.r10rc1
 
-import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -92,20 +91,10 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 """
 
         when:
-        def debug = withConnection {
-            def build = it.newBuild().withArguments('-d')
-            def op = new ConfigurableOperation(build)
-            build.run()
-            op.standardOutput
-        }
+        String debug = withBuild { it.withArguments('-d') }.standardOutput
 
         and:
-        def info = withConnection {
-            def build = it.newBuild().withArguments('-i')
-            def op = new ConfigurableOperation(build)
-            build.run()
-            op.standardOutput
-        }
+        String info = withBuild { it.withArguments('-i') }.standardOutput
 
         then:
         debug.count("debugging stuff") == 1

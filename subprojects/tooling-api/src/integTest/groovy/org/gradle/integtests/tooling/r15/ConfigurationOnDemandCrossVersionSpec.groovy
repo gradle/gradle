@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.OutputScraper
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
 import static java.util.Arrays.asList
@@ -41,14 +40,11 @@ class ConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
         file("build.gradle") << "description = 'Configure on demand: ' + gradle.startParameter.configureOnDemand"
 
         when:
-        def out = new ByteArrayOutputStream()
-        GradleProject project = withConnection { ProjectConnection it ->
-            it.model(GradleProject).setStandardOutput(out).withArguments("-i").get()
-        }
+        def op = withModel(GradleProject.class) { it.withArguments("-i") }
 
         then:
-        project.description == 'Configure on demand: true'
-        new OutputScraper(out.toString()).assertProjectsEvaluated(asList(":", ":api", ":impl", ":other"));
+        op.model.description == 'Configure on demand: true'
+        new OutputScraper(op.standardOutput).assertProjectsEvaluated(asList(":", ":api", ":impl", ":other"));
     }
 
     def "running tasks takes advantage of configuration on demand"() {
@@ -60,12 +56,9 @@ class ConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
         file("other/build.gradle") << "assert false: 'should not be evaluated'"
 
         when:
-        def out = new ByteArrayOutputStream()
-        withConnection { ProjectConnection it ->
-            it.newBuild().setStandardOutput(out).withArguments("-i").forTasks(":impl:bar").run()
-        }
+        def op = withBuild { it.withArguments("-i").forTasks(":impl:bar") }
 
         then:
-        new OutputScraper(out.toString()).assertProjectsEvaluated(asList(":", ":impl", ":api"));
+        new OutputScraper(op.standardOutput).assertProjectsEvaluated(asList(":", ":impl", ":api"));
     }
 }

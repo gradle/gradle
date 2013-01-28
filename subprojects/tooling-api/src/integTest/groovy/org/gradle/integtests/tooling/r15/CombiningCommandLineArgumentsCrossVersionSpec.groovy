@@ -20,28 +20,21 @@
 
 package org.gradle.integtests.tooling.r15
 
-import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import spock.lang.Issue
 
-@MinToolingApiVersion("1.5")
+@MinToolingApiVersion("1.0")
 @MinTargetGradleVersion("1.5")
 class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("GRADLE-2635")
     def "can configure build file name and logging"() {
-        given:
         file('buildX.gradle') << "logger.info('info message')"
 
         when:
-        def out = withConnection {
-            def build = it.newBuild().withArguments('-b', 'buildX.gradle', '-i')
-            def op = new ConfigurableOperation(build)
-            build.run()
-            op.standardOutput
-        }
+        def out = withBuild { it.withArguments('-b', 'buildX.gradle', '-i') }.standardOutput
 
         then:
         out.contains('info message')
@@ -50,17 +43,11 @@ class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificat
     //below was working as expected
     //the test was added to validate the behavior that was questioned on forums
     def "supports gradle.properties and changed build file"() {
-        given:
         file('gradle.properties') << "systemProp.foo=bar"
         file('buildX.gradle') << "logger.lifecycle('sys property: ' + System.properties['foo'])"
 
         when:
-        def out = withConnection {
-            def build = it.newBuild().withArguments('-b', 'buildX.gradle')
-            def op = new ConfigurableOperation(build)
-            build.run()
-            op.standardOutput
-        }
+        def out = withBuild { it.withArguments('-b', 'buildX.gradle') }.standardOutput
 
         then:
         out.contains('sys property: bar')

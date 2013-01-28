@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.tooling.LongRunningOperation
+import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProgressListener
 
 /**
@@ -30,12 +31,11 @@ class ConfigurableOperation {
     def listener = { event -> progressMessages << event.description } as ProgressListener
     def stdout = new ByteArrayOutputStream()
     def stderr = new ByteArrayOutputStream()
+    Object modelInstance
 
     public ConfigurableOperation(LongRunningOperation operation) {
         init(operation)
     }
-
-    public ConfigurableOperation() {}
 
     void init(LongRunningOperation operation) {
         this.operation = operation
@@ -59,5 +59,17 @@ class ConfigurableOperation {
 
     List getProgressMessages() {
         return progressMessages
+    }
+
+    ConfigurableOperation buildModel() {
+        assert operation instanceof ModelBuilder
+        def model = (ModelBuilder) operation;
+        this.modelInstance = model.get()
+        this
+    }
+
+    Object getModel() {
+        assert modelInstance != null : "Model was not built."
+        this.modelInstance
     }
 }

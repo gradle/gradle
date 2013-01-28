@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
 
 /**
@@ -49,11 +48,7 @@ class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecific
             it.useGradleUserHomeDir(temporaryFolder.file("user home"))
             it.embedded(false)
         }
-        withConnection { ProjectConnection connection ->
-            def baos = new ByteArrayOutputStream()
-            connection.newBuild().forTasks("echo").setStandardOutput(baos).run()
-            baos.toString()
-        }
+        withBuild { it.forTasks("echo") }.standardOutput
     }
 
     def "init scripts from client distribution are used, not from the test"() {

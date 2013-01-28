@@ -19,7 +19,6 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.model.GradleProject
 
 @MinToolingApiVersion('1.0-milestone-5')
@@ -31,19 +30,13 @@ System.out.println 'this is stdout'
 System.err.println 'this is stderr'
 '''
 
-        def progressMessages = []
-
         when:
-        withConnection { connection ->
-            def model = connection.model(GradleProject.class)
-            model.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
-            return model.get()
-        }
+        def progress = withModel(GradleProject.class).progressMessages
 
         then:
-        progressMessages.size() >= 2
-        progressMessages.pop() == ''
-        progressMessages.every { it }
+        progress.size() >= 2
+        progress.pop() == ''
+        progress.every { it }
     }
 
     def "tooling api reports failure to build model"() {

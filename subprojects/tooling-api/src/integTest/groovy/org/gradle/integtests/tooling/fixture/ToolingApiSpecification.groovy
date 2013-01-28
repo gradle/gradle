@@ -80,6 +80,24 @@ abstract class ToolingApiSpecification extends Specification {
         toolingApi.withConnection(connector, cl)
     }
 
+    public ConfigurableOperation withModel(Class modelType, Closure cl = {}) {
+        withConnection {
+            def model = it.model(modelType)
+            cl(model)
+            new ConfigurableOperation(model).buildModel()
+        }
+    }
+
+    public ConfigurableOperation withBuild(Closure cl = {}) {
+        withConnection {
+            def build = it.newBuild()
+            cl(build)
+            def out = new ConfigurableOperation(build)
+            build.run()
+            out
+        }
+    }
+
     def connector() {
         toolingApi.connector()
     }
