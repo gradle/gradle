@@ -212,7 +212,7 @@ Running `gradle generateMavenPom` would generate the `pom.xml` for the default M
     - Default (organisation, module, revision) to (project.group, publication.name, project.version)
 3. Allow zero or one components to be added to an Ivy publication.
 4. When publishing a java library, declare the runtime dependencies and the JAR artifact in the descriptor.
-5. When publishing a web application, declare the providedRuntime dependencies and the WAR artifact in the descriptor.
+5. When publishing a web application, declare the WAR artifact in the descriptor.
 6. Include a default configuration in the descriptor.
 
 Note: there is a breaking change in this story.
@@ -223,7 +223,10 @@ Note: there is a breaking change in this story.
 * Publish a java project with compile, runtime and testCompile dependencies.
     * Verify that the jar artifact is included in the descriptor runtime configuration.
     * Verify only the compile and runtime dependencies are included in the descriptor runtime configuration.
-* Publish multiple projects with the `java` plugin applied and project dependencies between the projects.
+* Publish a war project with compile, runtime, providedCompile, providedRuntime and testCompile dependencies.
+    * Verify that the war artifact is published and included in the descriptor runtime configuration.
+    * Verify that no dependencies are included in the descriptor.
+* Publish multiple projects with the `java` or `war` plugin applied and project dependencies between the projects.
     * Verify descriptor files contain appropriate artifact and dependency declarations.
     * Verify that libraries and transitive dependencies can be successfully resolved from another build.
 * Cross-version test that verifies a Java project published by the current version of Gradle can be consumed by a previous version of Gradle,
@@ -236,6 +239,7 @@ Note: there is a breaking change in this story.
     * `type`
     * `extension`
     * `file`
+    * `conf`
 2. Add an `IvyArtifactSet` interface. This is a collection of objects that can be converted to a collection of `IvyArtifact` instances.
 3. Add an `IvyConfiguration` interface. Add a `configurations` container to `IvyModuleDescriptor`
 4. Add an `artifacts` property to `IvyConfiguration`.
@@ -249,14 +253,18 @@ To customise an Ivy publication:
     publishing {
         publications {
             ivy {
-                descriptor.configurations {
-                    runtime {
-                        artifacts = [jar]
-                    }
-                    distributions {
-                        artifact file: distZip, type: 'java-library-distribution'
-                    }
+                configurations {
+                     runtime
+                     distributions
+                     other {
+                        extend "runtime"
+                     }
                 }
+                artifacts = [jar]
+                artifact sourceJar  {
+                    conf 'other'
+                }
+                artifact file: distZip, type: 'java-library-distribution', conf: 'other,distributions'
             }
         }
     }
@@ -267,6 +275,12 @@ The 'artifact' creation method will accept the following forms of input:
 * Anything that is valid input to Project.file()
 * Any of the previous 3, together with a configuration closure that permits setting of classifier & extension
 * A map with 'file' entry, that is interpreted as per Project.file(). Additional entries for 'name', 'type' and 'extension'.
+
+Configurations will be constructed with no value for 'visibility', 'description', 'transitive', or 'deprecated' attributes, and will inherit ivy defaults.
+The configuration 'extends' attribute is a string value, not validated.
+
+Artifacts will be constructed with no attribute for 'conf' unless explicitly specified.
+This allows them to inherit the default ('*') in ivy.xml or take the default value from the parent <publications/> element.
 
 ### Test cases
 
@@ -408,57 +422,101 @@ This step decouples the incoming and outgoing dependencies, to allow each public
     * `version`
     * `type`
     * `optional`
-2. Add a `MavenDependencySet` concept. This is a collection of things that can be converted into a collection of `MavenDependency` instances.
-3. Add a named container of `MavenDependencySet` scopes to `Pom`. The following scopes would be made available:
-    * `compile`
-    * `provided`
-    * `runtime`
-    * `test`
+    * `scope`
+2. Add a `MavenDependencySet` concept. This is a collection of things that can be converted into `MavenDependency` instances.
+3. Add a `MavenDependencySet` to `MavenPublication`.
 4. Add an `IvyDependency` interface, with the following properties:
     * `organisation`
     * `module`
     * `revision`
-    * `configuration`
-5. Add an `IvyConfiguration` concept. This is a collection of things that can be converted into a collection of `IvyDependency` instances.
-6. Add a named container of `IvyConfiguration` instances to `IvyModuleDescriptor`.
+    * `confMapping`
+5. Add an `IvyDependencySet` concept. This is a collection of things that can be converted into `IvyDependency` instances.
+6. Add an `IvyDependencySet` to `IvyPublication`.
 
-For the singleton `ivy` and `maven` instances, these properties would have defaults as specified earlier.
-
-Note that there are some pieces left out intentionally here: Maven `scope` and `systemPath` dependency properties and `system` scope and `exclusions`,
-and Ivy configuration extension, configuration mappings, and artifact includes and excludes.
-
-To customise a Maven publication:
+To add dependencies to a Maven publication:
 
     apply plugin: 'maven-publish'
 
     publishing {
         publications {
             maven(MavenPublication) {
-                pom.scopes {
-                    compile "some-group:some-artifactId:1.2"
-                    runtime = [compile, "some-group:some-artifactId:1.2:runtime"]
-                    test = []
+                dependency "foo:bar:1.0:provided"
+                dependency "other-group:other-artifact:1.0" {
+                    scope "compile"
                 }
+                dependency groupId: "some-group", artifactId: "some-artifact", version: "1.4", scope: "any-scope"
             }
         }
     }
 
-To customise an Ivy publication:
+To replace dependencies in a Maven publication:
+
+    apply plugin: 'maven-publish'
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                dependencies = [
+                    dependency("other-group:other-artifact:1.0", {
+                        scope "something"
+                    }),
+                    dependency(groupId: "some-group", artifactId: "some-artifact", version: "1.4", scope: "any-scope")
+                ]
+            }
+        }
+    }
+
+
+To add dependencies to an Ivy publication:
 
     apply plugin: 'ivy-publish'
 
     publishing {
         publications {
             ivy(IvyPublication) {
-                descriptor.configurations {
-                    compile "some-group:some-module:1.2"
-                    testRuntime = []
+                configurations {
+                    ...
+                }
+                dependency "some-org:some-group:1.0" // empty confMapping value
+                dependency "some-org:some-group:1.0:confMapping"
+                dependency organisation: "some-org", module: "some-module", revision: "some-revision", confMapping: "*->default"
+                dependency {
+                    organisation "some-org"
+                    module "some-module"
+                    revision "1.1"
+                    // use empty confMapping value
                 }
             }
         }
     }
 
-TBD - specify applicable dependency conversions
+To replace dependencies in an Ivy publication:
+
+    publishing {
+        publications {
+            ivy(IvyPublication) {
+                configurations {
+                    ...
+                }
+                dependencies = [
+                    dependency({
+                        organisation "some-org"
+                        module "some-module"
+                        revision "1.1"
+                        // use empty confMapping value
+                    }),
+                    dependency("some-org:some-group:1.0:confMapping")
+                ]
+            }
+        }
+    }
+
+The 'dependency' creation method will accept the following forms of input:
+* An ExternalModuleDependency, that will be adapted to IvyDependency/MavenDependency
+* An string formatted as "groupId:artifactId:revision[:scope]" for Maven, or "organisation:module:version[:confMapping]" for Ivy
+* A configuration closure to specify values for created dependency
+* Either of the first 2, together with a configuration closure that permits further configuration (like adding scope/conf)
+* A map that is treated as per the configuration closure.
 
 ## Can attach multiple components to a publication
 
