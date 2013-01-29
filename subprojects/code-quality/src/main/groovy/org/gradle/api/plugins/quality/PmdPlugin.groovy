@@ -63,10 +63,9 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             pmdClasspath = {
                 def config = project.configurations['pmd']
                 if (config.dependencies.empty) {
-                    VersionNumber latestBranch = VersionNumber.parse("5.0.0")
                     VersionNumber version = VersionNumber.parse(extension.toolVersion)
                     project.dependencies {
-                        if (version.compareTo(latestBranch) < 0) {
+                        if (version < VersionNumber.parse("5.0.0")) {
                             pmd "pmd:pmd:$extension.toolVersion"
                         } else {
                             pmd "net.sourceforge.pmd:pmd:$extension.toolVersion"
