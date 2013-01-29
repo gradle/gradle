@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProgressListener
 
@@ -25,7 +24,7 @@ import org.gradle.tooling.ProgressListener
  */
 class ConfigurableOperation {
 
-    LongRunningOperation operation
+    def operation
 
     def progressMessages = []
     def listener = { event -> progressMessages << event.description } as ProgressListener
@@ -33,11 +32,12 @@ class ConfigurableOperation {
     def stderr = new ByteArrayOutputStream()
     Object modelInstance
 
-    public ConfigurableOperation(LongRunningOperation operation) {
+    //LongRunningOperation is only available since milestone-7, hence omitting the type
+    public ConfigurableOperation(operation) {
         init(operation)
     }
 
-    void init(LongRunningOperation operation) {
+    void init(operation) {
         this.operation = operation
         this.operation.addProgressListener(listener)
         this.operation.standardOutput = stdout
