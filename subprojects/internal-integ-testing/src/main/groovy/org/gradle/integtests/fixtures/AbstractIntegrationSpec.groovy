@@ -193,11 +193,6 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
         executer
     }
 
-    public GradleExecuter alwaysUsing(Closure executerAction) {
-        executerActions.add(executerAction)
-        executer
-    }
-
     def createZip(String name, Closure cl) {
         TestFile zipRoot = file("${name}.root")
         TestFile zip = file(name)

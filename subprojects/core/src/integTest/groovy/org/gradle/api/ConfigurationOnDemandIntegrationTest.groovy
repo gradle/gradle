@@ -26,7 +26,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         file("gradle.properties") << "org.gradle.configureondemand=true"
-        alwaysUsing { it.withArgument('-i') }
+        executer.beforeExecute { it.withArgument('-i') }
     }
 
     def "works with single-module project"() {
