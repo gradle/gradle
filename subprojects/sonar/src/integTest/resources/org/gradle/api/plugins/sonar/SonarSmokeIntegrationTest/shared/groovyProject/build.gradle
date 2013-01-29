@@ -8,8 +8,12 @@ dependencies {
 
 sonar {
     project {
-        // TODO PN: uncomment once sonar-test-server-home-dir-3.4.1.zip
-        // (same as 3.4, but including Groovy plugin) has been published to repo.gradle.org
-        // language = "grvy"
+        language = "grvy"
+    }
+}
+
+sonarRunner {
+    sonarProperties {
+        property "sonar.language", "grvy"
     }
 }

@@ -67,7 +67,7 @@ sonar.embeddedDatabase.port=$databasePort
         webServer.start()
     }
 
-    def "can run Sonar analysis"() {
+    def "execute 'sonarAnalyze' task ('sonar' plugin)"() {
         // Without forking, we run into problems with Sonar's BootStrapClassLoader, at least when running from IDEA.
         // Problem is that BootStrapClassLoader, although generally isolated from its parent(s), always
         // delegates to the system class loader. That class loader holds the test class path and therefore
@@ -81,6 +81,21 @@ sonar.embeddedDatabase.port=$databasePort
                 .withArgument("-PserverUrl=http://localhost:${webServer.connectors[0].localPort}")
                 .withArgument("-PdatabaseUrl=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
                 .withTasks("build", "sonarAnalyze").run()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "execute 'sonarRunner' task ('sonar-runner' plugin)"() {
+        when:
+        executer.requireIsolatedDaemons()
+                .requireGradleHome()
+                .withArgument("-i")
+                .withArgument("-PserverUrl=foo") // dummy value for configuring sonarAnalyze task
+                .withArgument("-PdatabaseUrl=bar") // dummy value for configuring sonarAnalyze task
+                .withArgument("-Dsonar.host.url=http://localhost:${webServer.connectors[0].localPort}")
+                .withArgument("-Dsonar.jdbc.url=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
+                .withTasks("build", "sonarRunner").run()
 
         then:
         noExceptionThrown()

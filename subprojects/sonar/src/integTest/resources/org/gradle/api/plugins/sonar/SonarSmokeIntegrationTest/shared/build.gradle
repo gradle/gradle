@@ -1,4 +1,5 @@
 apply plugin: "sonar"
+apply plugin: "sonar-runner"
 
 description = "Sonar Test Build"
   
@@ -27,5 +28,5 @@ sonar {
         url databaseUrl
     }
 }
-    
+
     

@@ -1,3 +1,5 @@
 description = "Sonar Test Skipped Project"
 
 sonar.project.skip = true
+
+sonarRunner.skipProject = true
