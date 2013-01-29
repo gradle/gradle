@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.ivy.IvyHttpRepository
+import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -28,10 +29,16 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
+    private M2Installation m2Installation = new M2Installation(testDirectory)
 
     def setup() {
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         requireOwnGradleUserHomeDir()
+        executer.beforeExecute m2Installation
+    }
+
+    M2Installation getM2Installation() {
+        m2Installation
     }
 
     IvyFileRepository ivyRepo(def dir = 'ivy-repo') {

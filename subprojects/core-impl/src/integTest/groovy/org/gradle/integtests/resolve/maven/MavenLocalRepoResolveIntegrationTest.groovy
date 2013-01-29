@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -26,7 +25,6 @@ import static org.hamcrest.Matchers.containsString
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
-    M2Installation m2Installation;
 
     public void setup() {
         requireOwnGradleUserHomeDir()
@@ -44,7 +42,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
                     into 'build'
                 }"""
 
-        m2Installation = new M2Installation(testDirectory)
         using m2Installation
     }
 

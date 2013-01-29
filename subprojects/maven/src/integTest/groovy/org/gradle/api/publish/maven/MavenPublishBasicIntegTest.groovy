@@ -15,8 +15,8 @@
  */
 
 package org.gradle.api.publish.maven
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.maven.M2Installation
+
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -25,15 +25,12 @@ import spock.lang.Ignore
 /**
  * Tests “simple” maven publishing scenarios
  */
-class MavenPublishBasicIntegTest extends AbstractIntegrationSpec {
+class MavenPublishBasicIntegTest extends AbstractDependencyResolutionTest {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
-    M2Installation m2Installation
     MavenFileRepository m2Repo
 
     def "setup"() {
-        m2Installation = new M2Installation(testDirectory)
-        using m2Installation
         m2Repo = m2Installation.mavenRepo()
     }
 
