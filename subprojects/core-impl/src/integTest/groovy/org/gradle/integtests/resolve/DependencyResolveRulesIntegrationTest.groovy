@@ -353,7 +353,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 assert a.selectionReason.conflictResolution
                 assert a.selectionReason.selectedByRule
                 assert !a.selectionReason.forced
-                assert a.selectionReason.description == 'conflict resolution by rule'
+                assert a.selectionReason.description == 'selected by rule and conflict resolution'
 	        }
 """
 
@@ -615,7 +615,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 assert b.selectionReason.conflictResolution
                 assert b.selectionReason.selectedByRule
                 assert !b.selectionReason.forced
-                assert b.selectionReason.description == 'conflict resolution by rule'
+                assert b.selectionReason.description == 'selected by rule and conflict resolution'
 	        }
 """
 

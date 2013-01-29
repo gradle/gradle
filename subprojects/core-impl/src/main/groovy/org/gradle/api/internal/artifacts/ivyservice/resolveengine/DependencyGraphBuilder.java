@@ -672,6 +672,10 @@ public class DependencyGraphBuilder {
         public ModuleVersionSelectionReason getSelectionReason() {
             return selectionReason;
         }
+
+        public void setSelectionReason(ModuleVersionSelectionReason reason) {
+            this.selectionReason = reason;
+        }
     }
 
     private static class ConfigurationNode {
@@ -962,14 +966,7 @@ public class DependencyGraphBuilder {
                     }
                 }
             }
-            //TODO SF unit test
-            DefaultModuleRevisionResolveState out = (DefaultModuleRevisionResolveState) resolver.select(candidates, root);
-            if (out.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE) {
-                out.selectionReason = VersionSelectionReasons.CONFLICT_RESOLUTION_BY_RULE;
-            } else {
-                out.selectionReason = VersionSelectionReasons.CONFLICT_RESOLUTION;
-            }
-            return out;
+            return (DefaultModuleRevisionResolveState) resolver.select(candidates, root);
         }
     }
 }

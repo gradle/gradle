@@ -27,7 +27,16 @@ public class VersionSelectionReasons {
     public static final ModuleVersionSelectionReason FORCED = new DefaultModuleVersionSelectionReason(true, false, false, "forced");
     public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION = new DefaultModuleVersionSelectionReason(false, true, false, "conflict resolution");
     public static final ModuleVersionSelectionReason SELECTED_BY_RULE = new DefaultModuleVersionSelectionReason(false, false, true, "selected by rule");
-    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION_BY_RULE = new DefaultModuleVersionSelectionReason(false, true, true, "conflict resolution by rule");
+    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION_BY_RULE = new DefaultModuleVersionSelectionReason(false, true, true, "selected by rule and conflict resolution");
+
+    public static ModuleVersionSelectionReason withConflictResolution(ModuleVersionSelectionReason reason) {
+        if (reason == SELECTED_BY_RULE) {
+            return CONFLICT_RESOLUTION_BY_RULE;
+        } else if (reason == REQUESTED) {
+            return CONFLICT_RESOLUTION;
+        }
+        throw new IllegalArgumentException("Cannot create conflict resolution selection reason for input: " + reason);
+    }
 
     private static class DefaultModuleVersionSelectionReason implements ModuleVersionSelectionReason {
 
@@ -59,8 +68,5 @@ public class VersionSelectionReasons {
         public String getDescription() {
             return description;
         }
-
-        //TODO At some point we want to provide information if version was requested in the graph.
-        //Perhaps a method like isRequested(). Not requested means that some particular version was forced but no dependency have requested this version.
     }
 }

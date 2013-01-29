@@ -63,8 +63,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         } else {
             conflictResolver = new LatestModuleConflictResolver();
         }
+        ModuleConflictResolver actualResolver = new VersionSelectionReasonResolver(conflictResolver);
 
-        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, idResolver, conflictResolver);
+        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, idResolver, actualResolver);
         ResolutionResultBuilder resultBuilder = new ResolutionResultBuilder();
         DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData(), resultBuilder);
         return new ResolverResults(new DefaultResolvedConfiguration(result), resultBuilder.getResult());
