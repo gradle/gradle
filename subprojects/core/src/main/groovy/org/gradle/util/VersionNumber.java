@@ -26,6 +26,8 @@ import java.util.regex.Pattern;
 
 /**
  * Represents, parses, and compares version numbers following a major.minor.micro-qualifier format.
+ * Note that this class considers "2.10.0" less than "2.10.0-something", presumably to make it easier to
+ * test for "less than any 2.10 version" and "greater than any 2.10 version".
  */
 public class VersionNumber implements Comparable<VersionNumber> {
     public static final VersionNumber UNKNOWN = new VersionNumber(0, 0, 0, null);

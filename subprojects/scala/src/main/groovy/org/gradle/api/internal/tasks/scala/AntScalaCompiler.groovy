@@ -92,7 +92,7 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     }
 
     private String chooseBackend(ScalaCompileSpec spec) {
-        // deprecated, but must still honor
+        // deprecated, but must still be honored
         if (spec.scalaCompileOptions.targetCompatibility) {
             return VersionNumber.parse(spec.scalaCompileOptions.targetCompatibility)
         }
@@ -101,9 +101,11 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
         if (target <= VersionNumber.parse("1.5")) { return "jvm-${target.major}.${target.minor}" }
 
         def scalaVersion = sniffScalaVersion(spec.scalaClasspath)
-        if (scalaVersion >= VersionNumber.parse("2.10.0-AAA")) { return "jvm-${target.major}.${target.minor}" }
+        if (scalaVersion >= VersionNumber.parse("2.10.0-M5") || scalaVersion == VersionNumber.parse("2.10.0")) {
+            return "jvm-${target.major}.${target.minor}"
+        }
 
-        // prior to Scala 2.10, scalac Ant task only supports "jvm-1.5" and "msil" backends
+        // prior to Scala 2.10.0-M5, scalac Ant task only supported "jvm-1.5" and "msil" backends
         return "jvm-1.5"
     }
 }
