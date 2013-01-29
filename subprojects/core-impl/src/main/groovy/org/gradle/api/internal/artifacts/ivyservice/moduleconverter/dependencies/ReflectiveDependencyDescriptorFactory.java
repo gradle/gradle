@@ -38,8 +38,6 @@ public class ReflectiveDependencyDescriptorFactory {
         }
         DefaultDependencyDescriptor out = new DefaultDependencyDescriptor(moduleDescriptor(source), targetId, source.getDynamicConstraintDependencyRevisionId(), source.isForce(), source.isChanging(), source.isTransitive());
 
-        //TODO SF can we find a better strategy for creating 'updated' dependency descriptors?
-        //if we keep this, add unit tests
         setProperty(out, "parentId", getProperty(source, "parentId"));
         setProperty(out, "namespace", source.getNamespace());
         ((Map) getProperty(out, "confs")).putAll((Map) getProperty(source, "confs"));
