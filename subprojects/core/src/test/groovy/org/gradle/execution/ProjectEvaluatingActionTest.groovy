@@ -50,10 +50,11 @@ class ProjectEvaluatingActionTest extends Specification {
         1 * context.proceed()
         1 * evaluator.evaluateByPath(project, 'foo')
         1 * evaluator.evaluateByPath(project, 'bar:baz')
+        0 * project.evaluate()
         0 * evaluator._
     }
 
-    def "evaluates the default project even if the task names are empty"() {
+    def "evaluates the default project when the task names are empty"() {
         when:
         action.configure(context)
 

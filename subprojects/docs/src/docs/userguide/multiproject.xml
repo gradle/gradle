@@ -52,7 +52,8 @@
                     <itemizedlist>
                         <listitem>Root project is always configured.
                             This way the typical common configuration is supported (allprojects or subprojects script blocks).</listitem>
-                        <listitem>Project that lives in the directory where the build is executed is always configured.</listitem>
+                        <listitem>Project in the directory where the build is executed is also configured, but only when Gradle is executed without any tasks.
+                            This way the default tasks behave correctly when projects are configured on demand.</listitem>
                         <listitem>The standard project dependencies are supported and makes relevant projects configured.
                             If project A has a compile dependency on project B then building A causes configuration of both projects: A and B.</listitem>
                         <listitem>The task dependencies declared via task path are supported and cause relevant projects configured.

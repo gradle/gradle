@@ -16,6 +16,7 @@
 
 package org.gradle.execution;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.util.List;
@@ -34,10 +35,14 @@ public class ProjectEvaluatingAction implements BuildConfigurationAction {
     }
 
     public void configure(BuildExecutionContext context) {
-        List<String> taskNames = context.getGradle().getStartParameter().getTaskNames();
+        StartParameter param = context.getGradle().getStartParameter();
+        List<String> taskNames = param.getTaskNames();
         ProjectInternal project = context.getGradle().getDefaultProject();
 
-        project.evaluate();
+        if (param.getTaskNames().isEmpty()) {
+            //so that we don't miss out default tasks
+            project.evaluate();
+        }
 
         for (String path : taskNames) {
             evaluator.evaluateByPath(project, path);
