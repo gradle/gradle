@@ -624,7 +624,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains(toPlatformLineSeparators("""conf
-+--- org.utils:a:1.2 -> b:2.1
++--- org.utils:a:1.2 -> org.utils:b:2.1
 \\--- org.utils:b:2.0 -> 2.1"""))
     }
 

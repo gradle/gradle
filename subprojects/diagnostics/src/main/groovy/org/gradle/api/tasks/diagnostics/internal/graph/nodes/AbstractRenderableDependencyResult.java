@@ -50,11 +50,8 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
     private String getVerboseName() {
         ModuleVersionSelector requested = getRequested();
         ModuleVersionIdentifier selected = getActual();
-        if(!selected.getGroup().equals(requested.getGroup())) {
+        if(!selected.getGroup().equals(requested.getGroup()) || !selected.getName().equals(requested.getName())) {
             return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getName() + ":" + selected.getVersion();
-        }
-        if (!selected.getName().equals(requested.getName())) {
-            return getSimpleName() + " -> " + selected.getName() + ":" + selected.getVersion();
         }
         if (!selected.getVersion().equals(requested.getVersion())) {
             return getSimpleName() + " -> " + selected.getVersion();

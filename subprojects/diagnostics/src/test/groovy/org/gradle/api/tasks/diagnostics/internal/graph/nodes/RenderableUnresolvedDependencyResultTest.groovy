@@ -34,7 +34,7 @@ class RenderableUnresolvedDependencyResultTest extends Specification {
         expect:
         dep(requested, same).name == 'org.mockito:mockito-core:1.0'
         dep(requested, differentVersion).name == 'org.mockito:mockito-core:1.0 -> 2.0'
-        dep(requested, differentName).name == 'org.mockito:mockito-core:1.0 -> mockito:1.0'
+        dep(requested, differentName).name == 'org.mockito:mockito-core:1.0 -> org.mockito:mockito:1.0'
         dep(requested, differentGroup).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
     }
 

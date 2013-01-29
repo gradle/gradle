@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 /**
  * by Szczepan Faber, created at: 10/9/12
@@ -35,23 +35,20 @@ class AbstractRenderableDependencyResultSpec extends Specification {
         expect:
         dep(requested, newId('org.mockito', 'mockito-core', '1.0')).name == 'org.mockito:mockito-core:1.0'
         dep(requested, newId('org.mockito', 'mockito-core', '2.0')).name == 'org.mockito:mockito-core:1.0 -> 2.0'
-        dep(requested, newId('org.mockito', 'mockito', '1.0')).name == 'org.mockito:mockito-core:1.0 -> mockito:1.0'
+        dep(requested, newId('org.mockito', 'mockito', '1.0')).name == 'org.mockito:mockito-core:1.0 -> org.mockito:mockito:1.0'
         dep(requested, newId('com.mockito', 'mockito', '2.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
     }
 
     private AbstractRenderableDependencyResult dep(ModuleVersionSelector requested, ModuleVersionIdentifier selected) {
         return new AbstractRenderableDependencyResult() {
-            @Override
-            protected ModuleVersionSelector getRequested() {
+            ModuleVersionSelector getRequested() {
                 return requested
             }
 
-            @Override
-            protected ModuleVersionIdentifier getActual() {
+            ModuleVersionIdentifier getActual() {
                 return selected
             }
 
-            @Override
             boolean isResolvable() {
                 throw new UnsupportedOperationException()
             }
