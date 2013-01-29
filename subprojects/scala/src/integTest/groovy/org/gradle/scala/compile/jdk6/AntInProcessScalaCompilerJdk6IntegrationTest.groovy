@@ -19,7 +19,7 @@ package org.gradle.scala.compile.jdk6
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.scala.compile.BasicScalaCompilerIntegrationTest
 
-@TargetVersions(["2.10.0-RC1"])
+@TargetVersions(["2.10.0"])
 class AntInProcessScalaCompilerJdk6IntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
         executer.requireIsolatedDaemons()
