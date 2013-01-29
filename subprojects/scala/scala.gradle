@@ -23,7 +23,7 @@ dependencies {
     compile project(":plugins")
 
     // keep in sync with ScalaBasePlugin code
-    provided("com.typesafe.zinc:zinc:0.2.0")
+    provided("com.typesafe.zinc:zinc:0.2.1")
 
     testCompile libraries.slf4j_api
 }

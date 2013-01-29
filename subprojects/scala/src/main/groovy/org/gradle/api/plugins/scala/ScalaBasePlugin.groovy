@@ -40,7 +40,7 @@ class ScalaBasePlugin implements Plugin<Project> {
     static final String SCALA_TOOLS_CONFIGURATION_NAME = "scalaTools"
     static final String ZINC_CONFIGURATION_NAME = "zinc"
 
-    private static final String DEFAULT_ZINC_VERSION = "0.2.0"
+    private static final String DEFAULT_ZINC_VERSION = "0.2.1"
     private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar")
 
     private Project project
