@@ -452,4 +452,21 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         testClass.assertStderr(containsText("thread 1 err"))
         testClass.assertStderr(containsText("thread 2 err"))
     }
+
+    @Test
+    public void supportsJunit3Suites() {
+        executer.withTasks('test').run();
+        [new JUnitXmlTestExecutionResult(testDirectory), new HtmlTestExecutionResult(testDirectory)].each { result ->
+            result.assertTestClassesExecuted('org.gradle.SomeTest1', 'org.gradle.SomeTest2', 'org.gradle.SomeSuite')
+            result.testClass("org.gradle.SomeTest1").assertTestCount(1, 0, 0)
+            result.testClass("org.gradle.SomeTest1").assertTestsExecuted("testOk1")
+            result.testClass("org.gradle.SomeTest2").assertTestCount(1, 0, 0)
+            result.testClass("org.gradle.SomeTest2").assertTestsExecuted("testOk2")
+            result.testClass("org.gradle.SomeSuite").assertTestCount(0, 0, 0)
+            result.testClass("org.gradle.SomeSuite").assertStdout(containsString("stdout in TestSetup#setup"))
+            result.testClass("org.gradle.SomeSuite").assertStdout(containsString("stdout in TestSetup#teardown"))
+            result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
+            result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
+        }
+    }
 }
