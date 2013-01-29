@@ -257,9 +257,11 @@ We would like to thank the following community members for making contributions 
 	* Add `contentsCompression` property to Zip and Tar task to specify the compression level of the archive
 	
 
-* Barry Pitman - maven conversion problem (GRADLE-2645)	
+* Barry Pitman - Fixed maven conversion problem (GRADLE-2645)
 
 * Kallin Nagelberg - Fixed grammar in the SourceSetOutput documentation
+
+* Klaus Illusioni - Fixed Eclipse wtp component generation issue (GRADLE-2653)
 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
