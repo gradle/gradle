@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution;
+package org.gradle.execution.taskpath;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;

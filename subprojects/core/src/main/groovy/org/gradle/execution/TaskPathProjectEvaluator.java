@@ -18,26 +18,28 @@ package org.gradle.execution;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.execution.taskpath.ResolvedTaskPath;
+import org.gradle.execution.taskpath.TaskPathResolver;
 
 /**
  * by Szczepan Faber, created at: 1/8/13
  */
 public class TaskPathProjectEvaluator {
 
-    private final ProjectFinderByTaskPath finder;
+    private final TaskPathResolver taskPathResolver;
 
     public TaskPathProjectEvaluator() {
-        this(new ProjectFinderByTaskPath());
+        this(new TaskPathResolver());
     }
 
-    TaskPathProjectEvaluator(ProjectFinderByTaskPath finder) {
-        this.finder = finder;
+    TaskPathProjectEvaluator(TaskPathResolver taskPathResolver) {
+        this.taskPathResolver = taskPathResolver;
     }
 
     public void evaluateByPath(ProjectInternal project, String path) {
-        if (path.contains(Project.PATH_SEPARATOR)) {
-            ProjectInternal foundProject = finder.findProject(path, project);
-            foundProject.evaluate();
+        ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
+        if (taskPath.isQualified()) {
+            taskPath.getProject().evaluate();
         } else {
             project.evaluate();
             for (Project sub : project.getSubprojects()) {

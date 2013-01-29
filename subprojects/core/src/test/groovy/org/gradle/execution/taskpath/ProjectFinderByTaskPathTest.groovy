@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.execution
+package org.gradle.execution.taskpath
 
-import spock.lang.Specification
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Specification
 
 /**
  * by Szczepan Faber, created at: 1/8/13

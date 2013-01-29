@@ -16,11 +16,11 @@
 package org.gradle.execution;
 
 import com.google.common.collect.SetMultimap;
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.execution.taskpath.ResolvedTaskPath;
+import org.gradle.execution.taskpath.TaskPathResolver;
 import org.gradle.util.NameMatcher;
 
 import java.util.Set;
@@ -28,7 +28,7 @@ import java.util.Set;
 public class TaskSelector {
     private final TaskNameResolver taskNameResolver;
     private final GradleInternal gradle;
-    private final ProjectFinderByTaskPath projectFinder = new ProjectFinderByTaskPath();
+    private final TaskPathResolver taskPathResolver = new TaskPathResolver();
 
     public TaskSelector(GradleInternal gradle) {
         this(gradle, new TaskNameResolver());
@@ -41,36 +41,27 @@ public class TaskSelector {
 
     public TaskSelection getSelection(String path) {
         SetMultimap<String, Task> tasksByName;
-        String baseName;
-        String prefix;
-
         ProjectInternal project = gradle.getDefaultProject();
+        ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
 
-        if (path.contains(Project.PATH_SEPARATOR)) {
-            project = projectFinder.findProject(path, project);
-            baseName = StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR);
-            prefix = project.getPath() + Project.PATH_SEPARATOR;
-
-            tasksByName = taskNameResolver.select(baseName, project);
+        if (taskPath.isQualified()) {
+            tasksByName = taskNameResolver.select(taskPath.getTaskName(), taskPath.getProject());
         } else {
-            baseName = path;
-            prefix = "";
-
             tasksByName = taskNameResolver.selectAll(path, project);
         }
 
-        Set<Task> tasks = tasksByName.get(baseName);
+        Set<Task> tasks = tasksByName.get(taskPath.getTaskName());
         if (!tasks.isEmpty()) {
             // An exact match
             return new TaskSelection(path, tasks);
         }
 
         NameMatcher matcher = new NameMatcher();
-        String actualName = matcher.find(baseName, tasksByName.keySet());
+        String actualName = matcher.find(taskPath.getTaskName(), tasksByName.keySet());
 
         if (actualName != null) {
             // A partial match
-            return new TaskSelection(prefix + actualName, tasksByName.get(actualName));
+            return new TaskSelection(taskPath.getPrefix() + actualName, tasksByName.get(actualName));
         }
 
         throw new TaskSelectionException(matcher.formatErrorMessage("task", project));
