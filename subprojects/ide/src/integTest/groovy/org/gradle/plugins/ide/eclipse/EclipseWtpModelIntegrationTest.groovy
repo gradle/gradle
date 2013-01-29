@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -110,6 +109,45 @@ eclipse {
 
         assert facet.contains('gradleFacet')
         assert facet.contains('1.333')
+    }
+
+    @Issue("GRADLE-2653")
+    @Test
+    void "wtp component respects configuration modifications"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("gradle", "foo").publish()
+        maven(repoDir).module("gradle", "bar").publish()
+        maven(repoDir).module("gradle", "baz").publish()
+        maven(repoDir).module("gradle", "baz", "2.0").publish()
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'eclipse-wtp'
+
+repositories {
+  maven { url "${repoDir.toURI()}" }
+}
+
+dependencies {
+  compile 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
+}
+
+configurations.compile {
+  exclude module: 'bar' //an exclusion
+  resolutionStrategy.force 'gradle:baz:2.0' //forced module
+}
+        """
+
+        //when
+        component = getFile([:], '.settings/org.eclipse.wst.common.component').text
+
+        //then
+        component.contains('foo-1.0.jar')
+        component.contains('baz-2.0.jar') //forced version
+        !component.contains('bar') //excluded
     }
 
     @Test
@@ -217,9 +255,8 @@ eclipse {
         assert facet.contains('<be>cool</be>')
     }
 
-    @Ignore("GRADLE-1487")
     @Test
-    void allowsFileDependencies() {
+    void "file dependencies respect plus minus configurations"() {
         //when
         runEclipseTask """
 apply plugin: 'java'
