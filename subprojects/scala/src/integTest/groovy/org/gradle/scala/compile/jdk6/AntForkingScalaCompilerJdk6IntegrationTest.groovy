@@ -30,6 +30,7 @@ class AntForkingScalaCompilerJdk6IntegrationTest extends BasicScalaCompilerInteg
 compileScala.scalaCompileOptions.with {
     useAnt = true
     fork = true
+    forkOptions.memoryMaximumSize = "512m"
 }
 '''
     }
