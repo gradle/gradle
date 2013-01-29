@@ -255,6 +255,7 @@ eclipse {
         assert facet.contains('<be>cool</be>')
     }
 
+    @Issue("GRADLE-2661")
     @Test
     void "file dependencies respect plus minus configurations"() {
         //when
