@@ -15,8 +15,6 @@
  */
 package org.gradle.api.plugins.sonar.runner
 
-//import groovy.transform.PackageScope
-
 /**
  * An extension for configuring the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">
  * Sonar Runner</a>. The extension is added to all projects that have the {@code sonar-runner}
@@ -77,6 +75,5 @@ class SonarRunnerExtension {
      * The configuration blocks for Sonar properties. This property should not be used directly.
      * Instead, use the {@link #sonarProperties(groovy.lang.Closure)} method.
      */
-    //@PackageScope
     List<Closure<?>> sonarPropertiesBlocks = []
 }
