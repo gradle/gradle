@@ -20,10 +20,9 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.util.VersionNumber
 
 /**
- *  A plugin for the <a href="http://pmd.sourceforge.net/">PMD source code analyzer.
+ *  A plugin for the <a href="http://pmd.sourceforge.net/">PMD</a> source code analyzer.
  * <p>
- * Declares a <tt>findbugs</tt> configuration which needs to be configured with the FindBugs library to be used.
- * Additional plugins can be added to the <tt>findbugsPlugins</tt> configuration.
+ * Declares a <tt>pmd</tt> configuration which needs to be configured with the PMD library to be used.
  * <p>
  * For each source set that is to be analyzed, a {@link Pmd} task is created and configured to analyze all Java code.
  * <p
