@@ -26,7 +26,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
-    public void setup() {
+    def setup() {
         requireOwnGradleUserHomeDir()
         buildFile << """
                 repositories {
@@ -45,7 +45,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         using m2Installation
     }
 
-    public void "can resolve artifacts from local m2 when user settings.xml does not exist"() {
+    def "can resolve artifacts from local m2 when user settings.xml does not exist"() {
         given:
         def moduleA = m2Installation.mavenRepo().module('group', 'projectA', '1.2').publish()
 
@@ -57,7 +57,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
     }
 
-    public void "can resolve artifacts from local m2 with custom local repository defined in user settings.xml"() {
+    def "can resolve artifacts from local m2 with custom local repository defined in user settings.xml"() {
         given:
         def artifactRepo = maven("artifactrepo")
         m2Installation.generateUserSettingsFile(artifactRepo)
@@ -70,7 +70,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         hasArtifact(moduleA)
     }
 
-    public void "can resolve artifacts from local m2 with custom local repository defined in global settings.xml"() {
+    def "can resolve artifacts from local m2 with custom local repository defined in global settings.xml"() {
         given:
         def artifactRepo = maven("artifactrepo")
         m2Installation.generateGlobalSettingsFile(artifactRepo)
@@ -83,7 +83,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         hasArtifact(moduleA)
     }
 
-    public void "local repository in user settings take precedence over the local repository global settings"() {
+    def "local repository in user settings take precedence over the local repository global settings"() {
         given:
         def globalRepo = maven("globalArtifactRepo")
         def userRepo = maven("userArtifactRepo")
@@ -98,7 +98,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         hasArtifact(moduleA)
     }
 
-    public void "fail with meaningful error message if settings.xml is invalid"() {
+    def "fail with meaningful error message if settings.xml is invalid"() {
         given:
         m2Installation.userSettingsFile << "invalid content"
 
@@ -109,7 +109,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertThatCause(containsString(String.format("Non-parseable settings %s:", m2Installation.userSettingsFile.absolutePath)));
     }
 
-    public void "mavenLocal is ignored if no local maven repository exists"() {
+    def "mavenLocal is ignored if no local maven repository exists"() {
         given:
         def anotherRepo = maven("another-local-repo")
         def moduleA = anotherRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
