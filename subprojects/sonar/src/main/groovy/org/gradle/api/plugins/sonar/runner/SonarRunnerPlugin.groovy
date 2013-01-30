@@ -27,29 +27,33 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 
 /**
- * A plugin for analyzing projects with the <a href="">Sonar Runner</a>.
+ * A plugin for analyzing projects with the
+ * <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</a>.
  * When applied to a project, both the project itself and its subprojects
  * will be analyzed (in a single run). Therefore, it's common to apply the
  * plugin only to the root project. To exclude selected subprojects from
  * being analyzed, set {@code sonarRunner.skipProject = true}.
  *
  * <p>The plugin is configured via {@link SonarRunnerExtension}. Here is a
- * simple example:
+ * small example:
  *
- * <pre>
+ * <pre autoTested=''>
  * sonarRunner {
+ *     skipProject = false // this is the default
+ *
  *     sonarProperties {
- *         property "sonar.host.url", "http://my.sonar.server"
- *         property "sonar.jdbc.username", "fred"
+ *         property "sonar.host.url", "http://my.sonar.server" // adding a single property
+ *         properties mapOfProperties // adding multiple properties at once
+ *         properties["sonar.sources"] += sourceSets.other.java.srcDirs // manipulating an existing property
  *     }
  * }
  * </pre>
  *
- * The Sonar Runner provides defaults for some of the most important
+ * The Sonar Runner already comes with defaults for some of the most important
  * Sonar properties (server URL, database settings, etc.). For details see
  * <a href="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Analysis Parameters</a>
  * in the Sonar documentation. The {@code sonar-runner} plugin provides the following additional
- * defaults.
+ * defaults:
  *
  * <dl>
  *     <dt>sonar.projectKey
@@ -102,9 +106,13 @@ class SonarRunnerPlugin implements Plugin<Project> {
         project.allprojects {
             extensions.create("sonarRunner", SonarRunnerExtension)
         }
+        def extension = project.extensions.getByType(SonarRunnerExtension)
+        extension.conventionMapping.with {
+            bootstrapDir = { new File(project.buildDir, "sonar/bootstrap") }
+        }
         def task = project.tasks.add("sonarRunner", SonarRunner)
         task.conventionMapping.with {
-            bootstrapDir = { new File(project.buildDir, "sonar/bootstrap") }
+            bootstrapDir = { extension.bootstrapDir }
             sonarProperties = {
                 def properties = new Properties()
                 computeSonarProperties(project, null, properties)
@@ -166,7 +174,9 @@ class SonarRunnerPlugin implements Plugin<Project> {
 
     private void evaluateUserConfiguration(SonarRunnerExtension extension, Map<String, Object> properties) {
         def sonarProperties = new SonarProperties(properties: properties)
-        ConfigureUtil.configure(extension.sonarPropertiesBlock, sonarProperties)
+        for (block in extension.sonarPropertiesBlocks) {
+            ConfigureUtil.configure(block, sonarProperties)
+        }
     }
 
     private void addSystemProperties(Map<String, Object> properties) {

@@ -23,19 +23,20 @@ import org.gradle.util.GFileUtils
 import org.sonar.runner.Runner
 
 /**
- * Analyses one or more projects with the <a href="">Sonar Runner</a>. Can
- * be used together with the {@code sonar-runner} plugin or standalone.
- * If used standalone, no defaults will be provided from Gradle's side.
- * The Sonar Runner can be configured via {@code sonarProperties} and/or
- * with {@code sonar-project.properties} and {@code sonar.properties}
- * files. For more information on how to configure the Sonar Runner,
- * and which properties are available, see the <a href="">Sonar documentation</a>.
+ * Analyses one or more projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">
+ * Sonar Runner</a>. Can be used with or without the {@code sonar-runner} plugin. If used together with the plugin,
+ * {@code sonarProperties} will be populated with defaults based on Gradle's object model and user-defined
+ * values configured via {@link SonarRunnerExtension}. If used without the plugin, all properties have to be configured
+ * manually.
+ *
+ * <p>For more information on how to configure the Sonar Runner, and on which properties are available, see the
+ * <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner documentation</a>.
  */
 class SonarRunner extends DefaultTask {
     private static final Logger LOGGER = Logging.getLogger(SonarRunner)
 
     /**
-     * The directory where Sonar Runner places files necessary for its execution.
+     * The directory where Sonar Runner keeps downloaded files necessary for its execution.
      */
     File bootstrapDir
 

@@ -16,29 +16,37 @@
 package org.gradle.api.plugins.sonar.runner
 
 /**
- * The Sonar properties to be passed to the Sonar runner.
- * The {@code properties} map is already populated with
- * the defaults provided by Gradle, and can be manipulated
- * as necessary. Non-string values will be converted to
- * Strings as follows:
+ * The Sonar properties for the current Gradle project that are to be passed to the Sonar Runner.
+ * The {@code properties} map is already populated with the defaults provided by Gradle, and can be
+ * further manipulated as necessary. Before passing them on to the Sonar Runner, property values
+ * are converted to Strings as follows:
  *
  * <ul>
- *     <li>If the value is an {@Iterable}, its elements
- *     are recursively converted and joined into a comma-separated string.</li>
- *     <li>Otherwise, the value's {@code toString} method is called.</li>
+ *     <li>{@Iterable}s are recursively converted and joined into a comma-separated String.</li>
+ *     <li>All other values are converted to Strings by calling their {@code toString} method.</li>
  * </ul>
  */
 class SonarProperties {
+    /**
+     * The Sonar properties for the current Gradle project that are to be passed to the Sonar runner.
+     */
     Map<String, Object> properties
 
+    /**
+     * Convenience method for setting a single property.
+     *
+     * @param key the key of the property to be added
+     * @param value the value of the property to be added
+     */
     void property(String key, Object value) {
         properties[key] = value
     }
 
-    Object getProperty(String key) {
-        properties[key]
-    }
-
+    /**
+     * Convenience method for setting multiple properties.
+     *
+     * @param properties the properties to be added
+     */
     void properties(Map<String, Object> properties) {
         this.properties.putAll(properties)
     }

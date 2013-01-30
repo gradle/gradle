@@ -18,45 +18,65 @@ package org.gradle.api.plugins.sonar.runner
 //import groovy.transform.PackageScope
 
 /**
- * An extension that is added to projects that have the
- * {@code sonar-runner} plugin applied, and all of their subprojects.
+ * An extension for configuring the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">
+ * Sonar Runner</a>. The extension is added to all projects that have the {@code sonar-runner}
+ * plugin applied, and all of their subprojects.
  *
  * <p>Example usage:
  *
- * <pre>
+ * <pre autoTested=''>
  * sonarRunner {
+ *     skipProject = false // this is the default
+ *
  *     sonarProperties {
- *         property "sonar.language", "grvy"
+ *         property "sonar.host.url", "http://my.sonar.server" // adding a single property
+ *         properties mapOfProperties // adding multiple properties at once
+ *         properties["sonar.sources"] += sourceSets.other.java.srcDirs // manipulating an existing property
  *     }
  * }
  * </pre>
  */
 class SonarRunnerExtension {
     /**
-     * The directory where the Sonar Runner will keep files necessary for its
-     * execution. This property only takes effect for projects to which the
-     * {@code sonar-runner} plugin is applied (not for their subprojects).
+     * The directory where Sonar Runner keeps downloaded files necessary
+     * for its execution. Defaults to {@code $buildDir/sonar/bootstrap}.
+     *
+     * <p>This property is only relevant for the "root" project of a Sonar run
+     * (i.e. the project that has the {@code sonar-runner} plugin applied),
+     * but not for its subprojects.
      */
     File bootstrapDir
 
     /**
-     * Tells if the project will be excluded from analysis.
+     * Tells if the project will be excluded from analysis. Defaults to {@code false}.
      */
     boolean skipProject
 
     /**
-     * Allows to configure Sonar properties. The specified code block
-     * delegates to an instance of {@code SonarProperties}. Evaluation of
-     * the block is deferred until the {@code sonarRunner} task executes.
-     * Hence it is safe to reference any Gradle model properties
-     * from the block.
+     * Adds a configuration block that configures Sonar properties for the associated Gradle project.
+     * <em>Global</em> Sonar properties (e.g. database connection settings) have to be set on the
+     * "root" project of the Sonar run. This is the project that has the {@code sonar-runner} plugin applied.
      *
-     * @param block configuration block for {@code SonarProperties}
+     * <p>The specified code block delegates to an instance of {@code SonarProperties}.
+     * Evaluation of the block is deferred until {@code sonarRunner.sonarProperties} is requested.
+     * Hence it is safe to reference other Gradle model properties from inside the block.
+     *
+     * <p>Sonar properties can also be set via system properties (and therefore from the command line).
+     * This is mainly useful for global Sonar properties like database credentials.
+     * Every system property starting with {@code "sonar."} is automatically set on the "root" project of the
+     * Sonar run (i.e. the project that has the {@code sonar-runner} plugin applied). System properties take
+     * precedence over properties declared in build scripts.
+     *
+     * @param block a configuration block that configures Sonar properties for the associated Gradle project
      */
     void sonarProperties(Closure<?> block) {
-        sonarPropertiesBlock = block
+        sonarPropertiesBlocks << block
     }
 
+    /**
+     * The configuration blocks for Sonar properties. This property should not be used directly.
+     * Instead, use the {@link #sonarProperties(groovy.lang.Closure)} method.
+     */
     //@PackageScope
-    Closure<?> sonarPropertiesBlock
+    List<Closure<?>> sonarPropertiesBlocks = []
 }
