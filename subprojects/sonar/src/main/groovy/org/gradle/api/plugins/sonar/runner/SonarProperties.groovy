@@ -30,7 +30,7 @@ class SonarProperties {
     /**
      * The Sonar properties for the current Gradle project that are to be passed to the Sonar runner.
      */
-    Map<String, Object> properties
+    Map<String, Object> properties = [:]
 
     /**
      * Convenience method for setting a single property.
