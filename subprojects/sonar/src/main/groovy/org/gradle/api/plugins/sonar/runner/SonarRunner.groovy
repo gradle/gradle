@@ -36,24 +36,18 @@ class SonarRunner extends DefaultTask {
     private static final Logger LOGGER = Logging.getLogger(SonarRunner)
 
     /**
-     * The directory where Sonar Runner keeps downloaded files necessary for its execution.
-     */
-    File bootstrapDir
-
-    /**
      * The String key/value pairs to be passed to the Sonar Runner. {@code null} values are not permitted.
      */
     Properties sonarProperties
 
     @TaskAction
     void run() {
-        GFileUtils.mkdirs(getBootstrapDir())
         def properties = getSonarProperties()
         if (LOGGER.infoEnabled) {
             LOGGER.info("Executing Sonar Runner with properties:\n{}",
-                    properties.collect { key, value -> "$key: $value" }.join("\n"))
+                    properties.keySet().sort().collect { key -> "$key: ${properties[key]}" }.join("\n"))
         }
-        def runner = Runner.create(properties, getBootstrapDir())
+        def runner = Runner.create(properties)
         runner.execute()
     }
 }
