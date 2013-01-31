@@ -21,7 +21,6 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.ConfigureUtil
 
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -115,14 +114,14 @@ class SonarRunnerPlugin implements Plugin<Project> {
             bootstrapDir = { extension.bootstrapDir }
             sonarProperties = {
                 def properties = new Properties()
-                computeSonarProperties(project, null, properties)
+                computeSonarProperties(project, properties)
                 properties
             }
         }
     }
 
-    // TODO: could use project path (with : replaced by .) instead of computing keyPrefix
-    void computeSonarProperties(Project project, String keyPrefix, Properties properties) {
+    void computeSonarProperties(Project project, Properties properties) {
+        def projectPrefix = project.path.substring(1).split(":").reverse().join(".")
         def extension = project.extensions.getByType(SonarRunnerExtension)
         if (extension.skipProject) { return }
 
@@ -132,12 +131,14 @@ class SonarRunnerPlugin implements Plugin<Project> {
             addSystemProperties(rawProperties)
         }
         extension.evaluateSonarPropertiesBlocks(rawProperties)
-        convertProperties(rawProperties, keyPrefix, properties)
+        convertProperties(rawProperties, projectPrefix, properties)
         
         def enabledChildProjects = project.childProjects.values().findAll { !it.sonarRunner.skipProject }
-        properties[prefixKey("sonar.modules", keyPrefix)] = convertValue(enabledChildProjects.name)
+        if (enabledChildProjects.empty) { return }
+
+        properties[convertKey("sonar.modules", projectPrefix)] = convertValue(enabledChildProjects.name)
         for (childProject in enabledChildProjects) {
-            computeSonarProperties(childProject, prefixKey(childProject.name, keyPrefix), properties)
+            computeSonarProperties(childProject, properties)
         }
     }
 
@@ -185,18 +186,16 @@ class SonarRunnerPlugin implements Plugin<Project> {
         libraries
     }
 
-    // project suffix, string values, remove null values
-    private void convertProperties(Map<String, Object> rawProperties, keyPrefix, Properties properties) {
+    private void convertProperties(Map<String, Object> rawProperties, String projectPrefix, Properties properties) {
         rawProperties.each { key, value ->
-            def convertedValue = convertValue(value)
-            if (convertedValue != null) {
-                properties[prefixKey(key, keyPrefix)] = convertedValue 
+            if (value != null) {
+                properties[convertKey(key, projectPrefix)] = convertValue(value)
             }
         }
     }
     
-    private String prefixKey(String key, String keyPrefix) {
-        keyPrefix ? "${keyPrefix}.$key" : key
+    private String convertKey(String key, String projectPrefix) {
+        projectPrefix ? "${projectPrefix}.$key" : key
     }
     
     private String convertValue(Object value) {
