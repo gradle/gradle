@@ -131,7 +131,7 @@ class SonarRunnerPlugin implements Plugin<Project> {
         if (project.parent == null) {
             addSystemProperties(rawProperties)
         }
-        evaluateUserConfiguration(extension, rawProperties)
+        extension.evaluateSonarPropertiesBlocks(rawProperties)
         convertProperties(rawProperties, keyPrefix, properties)
         
         def enabledChildProjects = project.childProjects.values().findAll { !it.sonarRunner.skipProject }
@@ -169,13 +169,6 @@ class SonarRunnerPlugin implements Plugin<Project> {
             properties["sonar.binaryDirs"] = main.runtimeClasspath.findAll { it.directory }
             properties["sonar.libraries"] = getSonarLibraries(main)
             properties["sonar.surefire.reportsPath"] = project.test.testResultsDir.exists() ? project.test.testResultsDir : null
-        }
-    }
-
-    private void evaluateUserConfiguration(SonarRunnerExtension extension, Map<String, Object> properties) {
-        def sonarProperties = new SonarProperties(properties: properties)
-        for (block in extension.sonarPropertiesBlocks) {
-            ConfigureUtil.configure(block, sonarProperties)
         }
     }
 
