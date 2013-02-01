@@ -75,7 +75,7 @@ class SonarPluginTest extends Specification {
         SonarProject sonarProject = project.sonar.project
 
         expect:
-        sonarProject.key == "$project.group:$project.name"
+        sonarProject.key == "$project.group%3A$project.name"
         sonarProject.name == project.name
         sonarProject.description == project.description
         sonarProject.version == project.version
