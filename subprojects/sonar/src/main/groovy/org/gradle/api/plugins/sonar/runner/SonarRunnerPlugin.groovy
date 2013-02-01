@@ -22,9 +22,6 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.internal.jvm.Jvm
 
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-
 /**
  * A plugin for analyzing projects with the
  * <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</a>.
@@ -63,8 +60,6 @@ import java.text.SimpleDateFormat
  *     <dd>project.description
  *     <dt>sonar.projectVersion
  *     <dd>sonar.version
- *     <dt>sonar.projectDate
- *     <dd>new Date()
  *     <dt>sonar.projectBaseDir
  *     <dd>project.projectDir
  *     <dt>sonar.working.directory
@@ -89,7 +84,7 @@ import java.text.SimpleDateFormat
  *     <dd>sourceSets.main.allSource.srcDirs (filtered to only include existing directories)
  *     <dt>sonar.tests
  *     <dd>sourceSets.test.allSource.srcDirs (filtered to only include existing directories)
- *     <dt>sonar.binaryDirs
+ *     <dt>sonar.binaries
  *     <dd>sourceSets.main.runtimeClasspath (filtered to only include directories)
  *     <dt>sonar.libraries
  *     <dd>sourceSets.main.runtimeClasspath (filtering to only include files; {@code rt.jar} added if necessary)
@@ -98,20 +93,12 @@ import java.text.SimpleDateFormat
  * </dl>
  */
 class SonarRunnerPlugin implements Plugin<Project> {
-    //TODO: enforce UTC?
-    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd") // format required by Sonar
-
     void apply(Project project) {
         project.allprojects {
             extensions.create("sonarRunner", SonarRunnerExtension)
         }
-        def extension = project.extensions.getByType(SonarRunnerExtension)
-        extension.conventionMapping.with {
-            bootstrapDir = { new File(project.buildDir, "sonar/bootstrap") }
-        }
         def task = project.tasks.add("sonarRunner", SonarRunner)
         task.conventionMapping.with {
-            bootstrapDir = { extension.bootstrapDir }
             sonarProperties = {
                 def properties = new Properties()
                 computeSonarProperties(project, properties)
@@ -121,10 +108,10 @@ class SonarRunnerPlugin implements Plugin<Project> {
     }
 
     void computeSonarProperties(Project project, Properties properties) {
-        def projectPrefix = project.path.substring(1).split(":").reverse().join(".")
         def extension = project.extensions.getByType(SonarRunnerExtension)
         if (extension.skipProject) { return }
 
+        def projectPrefix = project.path.substring(1).replace(":", ".")
         Map<String, Object> rawProperties = [:]
         addGradleDefaults(project, rawProperties)
         if (project.parent == null) {
@@ -146,15 +133,18 @@ class SonarRunnerPlugin implements Plugin<Project> {
         // for some reason, sonar.sources must always be set (as of Sonar 3.4)
         properties["sonar.sources"] = ""
 
-        //TODO: $project.group:$project.path would be safer
-        properties["sonar.projectKey"] = "$project.group:$project.name"
+        properties["sonar.projectKey"] = getProjectKey(project)
         properties["sonar.projectName"] = project.name
         properties["sonar.projectDescription"] = project.description
         properties["sonar.projectVersion"] = project.version
-        properties["sonar.projectDate"] = dateFormat.format(new Date())
         properties["sonar.projectBaseDir"] = project.projectDir
-        properties["sonar.working.directory"] = new File(project.buildDir, "sonar/workdir")
+        properties["sonar.working.directory"] = new File(project.buildDir, "sonar")
         properties["sonar.dynamicAnalysis"] = "reuseReports"
+
+        if (project.parent == null) {
+            properties["sonar.environment.information.key"] = "Gradle"
+            properties["sonar.environment.information.version"] = project.gradle.gradleVersion
+        }
 
         project.plugins.withType(JavaBasePlugin) {
             properties["sonar.java.source"] = project.sourceCompatibility
@@ -162,22 +152,35 @@ class SonarRunnerPlugin implements Plugin<Project> {
         }
 
         project.plugins.withType(JavaPlugin) {
-            def main = project.sourceSets.main
-            def test = project.sourceSets.test
+            SourceSet main = project.sourceSets.main
+            SourceSet test = project.sourceSets.test
 
             properties["sonar.sources"] = main.allSource.srcDirs.findAll { it.exists() }
             properties["sonar.tests"] = test.allSource.srcDirs.findAll { it.exists() }
-            properties["sonar.binaryDirs"] = main.runtimeClasspath.findAll { it.directory }
-            properties["sonar.libraries"] = getSonarLibraries(main)
+            properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory }
+            properties["sonar.libraries"] = getLibraries(main)
             properties["sonar.surefire.reportsPath"] = project.test.testResultsDir.exists() ? project.test.testResultsDir : null
         }
+    }
+
+    private String getProjectKey(Project project) {
+        String result
+        if (project.parent) {
+            result = "$project.group:$project.rootProject.name$project.path"
+        } else {
+            result = "$project.group:$project.name"
+        }
+
+        // project key gets used in URL parameter
+        // example: http://localhost:63450/batch_bootstrap/properties?project=org.gradle.test.sonar:Sonar+Test+Build
+        URLEncoder.encode(result, "utf-8")
     }
 
     private void addSystemProperties(Map<String, Object> properties) {
         properties.putAll(System.properties.findAll { key, value -> key.startsWith("sonar.") })
     }
 
-    private Collection<File> getSonarLibraries(SourceSet main) {
+    private Collection<File> getLibraries(SourceSet main) {
         def libraries = main.runtimeClasspath.findAll { it.file }
         def runtimeJar = Jvm.current().runtimeJar
         if (runtimeJar != null) {

@@ -37,12 +37,6 @@ class SonarRunnerPluginTest extends Specification {
         childProject.extensions.findByName("sonarRunner") instanceof SonarRunnerExtension
     }
 
-    def "sets default for root project's sonarRunner.bootstrapDir property"() {
-        expect:
-        project.sonarRunner.bootstrapDir == new File(project.buildDir, "sonar/bootstrap")
-        childProject.sonarRunner.bootstrapDir == null
-    }
-
     def "adds a sonarRunner task to the root project"() {
         expect:
         project.tasks.findByName("sonarRunner") instanceof SonarRunner
@@ -80,7 +74,7 @@ class SonarRunnerPluginTest extends Specification {
 
         then:
         properties["child.sonar.some.key"] == "other value"
-        properties["leaf.child.sonar.some.key"] == "other value"
+        properties["child.leaf.sonar.some.key"] == "other value"
     }
 
     def "adds 'modules' properties to declare subprojects (and their prefixes)"() {
@@ -91,7 +85,7 @@ class SonarRunnerPluginTest extends Specification {
         properties["sonar.modules"] == "child,child2"
         properties["child.sonar.modules"] == "leaf"
         !properties.containsKey("child2.sonar.modules")
-        !properties.containsKey("leaf.child.sonar.modules")
+        !properties.containsKey("child.leaf.sonar.modules")
     }
 
     def "evaluates 'sonarRunner' block lazily"() {

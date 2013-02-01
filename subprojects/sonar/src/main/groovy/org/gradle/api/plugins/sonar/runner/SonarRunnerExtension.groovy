@@ -40,16 +40,6 @@ import org.gradle.util.ConfigureUtil
  */
 class SonarRunnerExtension {
     /**
-     * The directory where Sonar Runner keeps downloaded files necessary
-     * for its execution. Defaults to {@code $buildDir/sonar/bootstrap}.
-     *
-     * <p>This property is only relevant for the "root" project of a Sonar run
-     * (i.e. the project that has the {@code sonar-runner} plugin applied),
-     * but not for its subprojects.
-     */
-    File bootstrapDir
-
-    /**
      * Tells if the project will be excluded from analysis. Defaults to {@code false}.
      */
     boolean skipProject
