@@ -60,7 +60,7 @@
                             Example: someTask.dependsOn(":someOtherProject:someOtherTask")
                         </listitem>
                         <listitem>Task requested via task path from the command line (or Tooling API) causes the relevant project configured.
-                            Building 'projectA:projectB:someTask' causes configuration of both: projectA and projectB.
+                            Building 'projectA:projectB:someTask' causes configuration of projectB.
                         </listitem>
                     </itemizedlist>
                 </para>
