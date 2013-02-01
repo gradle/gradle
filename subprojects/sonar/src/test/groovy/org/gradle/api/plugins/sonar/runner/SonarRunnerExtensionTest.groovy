@@ -20,24 +20,23 @@ import spock.lang.Specification
 class SonarRunnerExtensionTest extends Specification {
     def extension = new SonarRunnerExtension()
 
-    def "declare multiple configuration blocks"() {
-        def x = 2
+    def "evaluate properties blocks"() {
+        def props = ["key.1": "value 1"]
 
         when:
         extension.sonarProperties {
-            x *= 3
+            property "key.2", ["value 2"]
+            properties(["key.3": "value 3", "key.4": "value 4"])
         }
         extension.sonarProperties {
-            x *= 5
+            property "key.5", "value 5"
+            properties["key.2"] << "value 6"
+            properties.remove("key.3")
         }
 
-        then:
-        extension.sonarPropertiesBlocks.size() == 2
-
-        when:
-        extension.sonarPropertiesBlocks*.call()
+        extension.evaluateSonarPropertiesBlocks(props)
 
         then:
-        x == 30
+        props == ["key.1": "value 1", "key.2": ["value 2", "value 6"], "key.4": "value 4", "key.5": "value 5"]
     }
 }
