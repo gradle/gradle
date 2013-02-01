@@ -117,7 +117,8 @@ task createBuildReceipt(dependsOn: determineCommitId) {
                 hostname: hostName,
                 javaVersion: System.properties["java.version"],
                 osName: System.properties["os.name"],
-                osVersion: System.properties["os.version"]
+                osVersion: System.properties["os.version"],
+                project:'gradle'
         ]
 
         receiptFile.parentFile.mkdirs()
