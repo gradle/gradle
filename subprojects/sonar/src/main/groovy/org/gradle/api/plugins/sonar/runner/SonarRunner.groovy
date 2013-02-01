@@ -19,7 +19,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.TaskAction
-import org.gradle.util.GFileUtils
 import org.sonar.runner.Runner
 
 /**
@@ -45,7 +44,7 @@ class SonarRunner extends DefaultTask {
         def properties = getSonarProperties()
         if (LOGGER.infoEnabled) {
             LOGGER.info("Executing Sonar Runner with properties:\n{}",
-                    properties.keySet().sort().collect { key -> "$key: ${properties[key]}" }.join("\n"))
+                    properties.sort().collect { key, value -> "$key: $value" }.join("\n"))
         }
         def runner = Runner.create(properties)
         runner.execute()
