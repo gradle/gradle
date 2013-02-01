@@ -23,7 +23,7 @@ AKA 'Ivy deliver'. In this instance, dependency declarations in the generated de
 * I want to publish test fixtures as a separate module.
 * I produce Groovy 1.8 and Groovy 2.0 variants that I want to publish as separate modules.
 
-## I want to customise a publication based in its destination
+## I want to customise a publication based on its destination
 
 * I want to map the 32-bit and 64-bit variants of a native library to `mylib-x86-1.2.dll` and `mylib-amd64-1.2.dll` when publishing to an Ivy repository,
   and to `mylib-1.2-x86.dll` and `mylib-1.2-amd64.dll` when publishing to a Maven repository.
