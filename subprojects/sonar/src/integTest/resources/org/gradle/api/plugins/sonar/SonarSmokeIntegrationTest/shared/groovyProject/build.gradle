@@ -8,7 +8,7 @@ dependencies {
 
 sonar {
     project {
-        language = "grvy"
+        // language = "grvy"
     }
 }
 

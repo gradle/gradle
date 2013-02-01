@@ -105,7 +105,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
         def sonarProject = instantiator.newInstance(SonarProject)
 
         sonarProject.conventionMapping.with {
-            key = { "$project.group:$project.name" as String }
+            key = { URLEncoder.encode("$project.group:$project.name", "utf-8") }
             name = { project.name }
             description = { project.description }
             version = { project.version.toString() }
