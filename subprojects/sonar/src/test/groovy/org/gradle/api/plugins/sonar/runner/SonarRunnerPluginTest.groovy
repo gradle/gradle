@@ -15,13 +15,19 @@
  */
 package org.gradle.api.plugins.sonar.runner
 
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+
 import spock.lang.Specification
 
 class SonarRunnerPluginTest extends Specification {
     @Rule SetSystemProperties systemProperties
+
     def project = ProjectBuilder.builder().withName("parent").build()
     def childProject = ProjectBuilder.builder().withName("child").withParent(project).build()
     def childProject2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
@@ -29,6 +35,12 @@ class SonarRunnerPluginTest extends Specification {
 
     def setup() {
         project.plugins.apply(SonarRunnerPlugin)
+        project.allprojects {
+            group = "group"
+            version = 1.3
+            description = "description"
+            buildDir = "buildDir"
+        }
     }
 
     def "adds a sonarRunner extension for the project and its subprojects"() {
@@ -43,10 +55,106 @@ class SonarRunnerPluginTest extends Specification {
         childProject.tasks.findByName("sonarRunner") == null
     }
 
-    def "provides extensive defaults for 'sonarRunner' task properties"() {
-        //TODO
-        with(project.tasks.sonarRunner) {
+    def "adds default properties for all projects"() {
+        when:
+        def properties = project.tasks.sonarRunner.sonarProperties
+
+        then:
+        properties["sonar.sources"] == ""
+        properties["sonar.projectKey"] == "group%3Aparent"
+        properties["sonar.projectName"] == "parent"
+        properties["sonar.projectDescription"] == "description"
+        properties["sonar.projectVersion"] == "1.3"
+        properties["sonar.projectBaseDir"] == project.projectDir as String
+        properties["sonar.working.directory"] == new File(project.buildDir, "sonar") as String
+        properties["sonar.dynamicAnalysis"] == "reuseReports"
+
+        and:
+        properties["child.sonar.sources"] == ""
+        properties["child.sonar.projectKey"] == "group%3Aparent%3Achild"
+        properties["child.sonar.projectName"] == "child"
+        properties["child.sonar.projectDescription"] == "description"
+        properties["child.sonar.projectVersion"] == "1.3"
+        properties["child.sonar.projectBaseDir"] == childProject.projectDir as String
+        properties["child.sonar.working.directory"] == new File(childProject.buildDir, "sonar") as String
+        properties["child.sonar.dynamicAnalysis"] == "reuseReports"
+    }
+
+    def "adds additional default properties for the root project"() {
+        when:
+        def properties = project.tasks.sonarRunner.sonarProperties
+
+        then:
+        properties["sonar.environment.information.key"] == "Gradle"
+        properties["sonar.environment.information.version"] == project.gradle.gradleVersion
+
+        and:
+        !properties.containsKey("child.sonar.environment.information.key")
+        !properties.containsKey("child.sonar.environment.information.version")
+    }
+
+    def "adds additional default properties for all 'java-base' projects"() {
+        project.plugins.apply(JavaBasePlugin)
+        childProject.plugins.apply(JavaBasePlugin)
+        project.sourceCompatibility = 1.5
+        project.targetCompatibility = 1.6
+        childProject.sourceCompatibility = 1.6
+        childProject.targetCompatibility = 1.7
+
+        when:
+        def properties = project.tasks.sonarRunner.sonarProperties
+
+        then:
+        properties["sonar.java.source"] == "1.5"
+        properties["sonar.java.target"] == "1.6"
+        properties["child.sonar.java.source"] == "1.6"
+        properties["child.sonar.java.target"] == "1.7"
+    }
+
+    def "adds additional default properties for all 'java' projects"() {
+        project.plugins.apply(JavaPlugin)
+
+        project.sourceSets.main.java.srcDirs = ["src"]
+        project.sourceSets.test.java.srcDirs = ["test"]
+        project.sourceSets.main.output.classesDir = "$project.buildDir/out"
+        project.sourceSets.main.output.resourcesDir = "$project.buildDir/out"
+        project.sourceSets.main.runtimeClasspath += project.files("lib/SomeLib.jar")
+
+        new TestFile(project.projectDir).create {
+            src {}
+            test {}
+            buildDir {
+                out {}
+                "test-results" {}
+            }
+            lib {
+                file("SomeLib.jar")
+            }
         }
+
+        when:
+        def properties = project.tasks.sonarRunner.sonarProperties
+
+        then:
+        properties["sonar.sources"] == new File(project.projectDir, "src") as String
+        properties["sonar.tests"] == new File(project.projectDir, "test") as String
+        properties["sonar.binaries"].contains(new File(project.buildDir, "out") as String)
+        properties["sonar.libraries"].contains(new File(project.projectDir, "lib/SomeLib.jar") as String)
+        properties["sonar.surefire.reportsPath"] == new File(project.buildDir, "test-results") as String
+    }
+
+    def "only adds existing directories"() {
+        project.plugins.apply(JavaPlugin)
+
+        when:
+        def properties = project.tasks.sonarRunner.sonarProperties
+
+        then:
+        !properties.containsKey("sonar.sources")
+        !properties.containsKey("sonar.tests")
+        !properties.containsKey("sonar.binaries")
+        properties.containsKey("sonar.libraries") == (Jvm.current().getRuntimeJar() != null)
+        !properties.containsKey("sonar.surefire.reportsPath")
     }
 
     def "allows to configure Sonar properties via 'sonarRunner' extension"() {
@@ -147,7 +255,7 @@ class SonarRunnerPluginTest extends Specification {
 
         and:
         !properties.containsKey("child.sonar.some.key")
-        properties["child.sonar.projectVersion"] == "unspecified"
+        properties["child.sonar.projectVersion"] == "1.3"
     }
 
     def "doesn't add Sonar properties for skipped projects"() {

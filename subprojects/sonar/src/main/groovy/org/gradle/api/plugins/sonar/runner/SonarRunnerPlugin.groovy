@@ -155,9 +155,9 @@ class SonarRunnerPlugin implements Plugin<Project> {
             SourceSet main = project.sourceSets.main
             SourceSet test = project.sourceSets.test
 
-            properties["sonar.sources"] = main.allSource.srcDirs.findAll { it.exists() }
-            properties["sonar.tests"] = test.allSource.srcDirs.findAll { it.exists() }
-            properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory }
+            properties["sonar.sources"] = main.allSource.srcDirs.findAll { it.exists() } ?: null
+            properties["sonar.tests"] = test.allSource.srcDirs.findAll { it.exists() } ?: null
+            properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory } ?: null
             properties["sonar.libraries"] = getLibraries(main)
             properties["sonar.surefire.reportsPath"] = project.test.testResultsDir.exists() ? project.test.testResultsDir : null
         }
@@ -186,7 +186,7 @@ class SonarRunnerPlugin implements Plugin<Project> {
         if (runtimeJar != null) {
             libraries << runtimeJar
         }
-        libraries
+        libraries ?: null
     }
 
     private void convertProperties(Map<String, Object> rawProperties, String projectPrefix, Properties properties) {
