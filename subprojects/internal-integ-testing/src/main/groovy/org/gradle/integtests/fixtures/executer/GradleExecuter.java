@@ -205,6 +205,16 @@ public interface GradleExecuter {
     void beforeExecute(Closure action);
 
     /**
+     * Adds an action to be called immediately after execution
+     */
+    void afterExecute(Action<? super GradleExecuter> action);
+
+    /**
+     * Adds an action to be called immediately after execution
+     */
+    void afterExecute(Closure action);
+
+    /**
      * The directory that the executer will use for any test specific storage.
      *
      * May or may not be the same directory as the build to be run.

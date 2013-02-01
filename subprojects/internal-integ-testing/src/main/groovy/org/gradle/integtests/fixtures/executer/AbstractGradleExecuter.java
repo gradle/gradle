@@ -73,6 +73,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean stackTraceChecksOn = true;
 
     private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
+    private final ActionBroadcast<GradleExecuter> afterExecute = new ActionBroadcast<GradleExecuter>();
 
     private final TestDirectoryProvider testDirectoryProvider;
     private final GradleDistribution distribution;
@@ -125,6 +126,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public void beforeExecute(Closure action) {
         beforeExecute.add(new ClosureBackedAction<GradleExecuter>(action));
+    }
+
+    public void afterExecute(Action<? super GradleExecuter> action) {
+        afterExecute.add(action);
+    }
+
+    public void afterExecute(Closure action) {
+        afterExecute.add(new ClosureBackedAction<GradleExecuter>(action));
     }
 
     public GradleExecuter inDirectory(File directory) {
@@ -518,6 +527,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         try {
             return doRun();
         } finally {
+            finished();
+        }
+    }
+
+    private void finished() {
+        try {
+            afterExecute.execute(this);
+        } finally {
             reset();
         }
     }
@@ -528,7 +545,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         try {
             return doRunWithFailure();
         } finally {
-            reset();
+            finished();
         }
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -26,7 +25,6 @@ import org.junit.Rule
 class IvyPublishMultipleRepositoriesIntegTest extends AbstractIntegrationSpec {
 
     @Rule HttpServer server
-    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     String moduleName = "publish"
     String org = "org.gradle"

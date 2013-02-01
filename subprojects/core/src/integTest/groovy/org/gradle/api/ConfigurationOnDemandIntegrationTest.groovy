@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import org.junit.Rule
+import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 
 /**
  * by Szczepan Faber, created at: 11/21/12
  */
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
+    @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
+
     def setup() {
-        file("gradle.properties") << "org.gradle.configureondemand=true"
-        executer.beforeExecute { it.withArgument('-i') }
+        fixture.configureOnDemandOn()
     }
 
     def "works with single-module project"() {
@@ -34,7 +37,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         when:
         run("-u", "foo")
         then:
-        result.assertProjectsEvaluated(":")
+        fixture.assertProjectsEvaluated(":")
     }
 
     def "evaluates only project referenced in the task list"() {
@@ -45,7 +48,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run(":foo", ":util:impl:foo")
 
         then:
-        result.assertProjectsEvaluated(":", ":util:impl")
+        fixture.assertProjectsEvaluated(":", ":util:impl")
     }
 
     def "follows java project dependencies"() {
@@ -72,19 +75,19 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run(":api:build")
 
         then:
-        result.assertProjectsEvaluated(":", ":api")
+        fixture.assertProjectsEvaluated(":", ":api")
 
         when:
         run(":impl:build")
 
         then:
-        result.assertProjectsEvaluated(":", ":impl", ":api")
+        fixture.assertProjectsEvaluated(":", ":impl", ":api")
 
         when:
         run(":util:build")
 
         then:
-        result.assertProjectsEvaluated(":", ":util", ":impl", ":api")
+        fixture.assertProjectsEvaluated(":", ":util", ":impl", ":api")
     }
 
     def "follows project dependencies when ran in subproject"() {
@@ -102,7 +105,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run("build")
 
         then:
-        result.assertProjectsEvaluated(':', ':impl', ':api')
+        fixture.assertProjectsEvaluated(':', ':impl', ':api')
     }
 
     def "name matching execution from root evaluates all projects"() {
@@ -113,13 +116,13 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run("foo")
 
         then:
-        result.assertProjectsEvaluated(":", ":api", ":impl")
+        fixture.assertProjectsEvaluated(":", ":api", ":impl")
 
         when:
         run(":foo")
 
         then:
-        result.assertProjectsEvaluated(":")
+        fixture.assertProjectsEvaluated(":")
     }
 
     def "name matching execution from subproject evaluates only the subproject recursively"() {
@@ -131,7 +134,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run("foo")
 
         then:
-        result.assertProjectsEvaluated(":", ":impl", ":impl:one", ":impl:two", ":impl:two:abc")
+        fixture.assertProjectsEvaluated(":", ":impl", ":impl:one", ":impl:two", ":impl:two:abc")
     }
 
     def "may run implicit tasks from root"() {
@@ -141,7 +144,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run(":tasks")
 
         then:
-        result.assertProjectsEvaluated(":")
+        fixture.assertProjectsEvaluated(":")
     }
 
     def "may run implicit tasks for subproject"() {
@@ -151,7 +154,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run(":api:tasks")
 
         then:
-        result.assertProjectsEvaluated(":", ":api")
+        fixture.assertProjectsEvaluated(":", ":api")
     }
 
     def "respects default tasks"() {
@@ -166,7 +169,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        result.assertProjectsEvaluated(":", ":api")
+        fixture.assertProjectsEvaluated(":", ":api")
         result.assertTasksExecuted(':api:foo')
     }
 
@@ -180,7 +183,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run("api:tasks")
 
         then:
-        result.assertProjectsEvaluated(":", ":api", ":impl")
+        fixture.assertProjectsEvaluated(":", ":impl", ":api")
     }
 
     def "respects buildProjectDependencies setting"() {
@@ -194,13 +197,13 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run("impl:build")
 
         then:
-        result.assertProjectsEvaluated(":", ":impl", ":api")
+        fixture.assertProjectsEvaluated(":", ":impl", ":api")
 
         when:
         run("impl:build", "--no-rebuild")
 
         then:
-        result.assertProjectsEvaluated(":", ":impl")
+        fixture.assertProjectsEvaluated(":", ":impl")
     }
 
     def "respects external task dependencies"() {
@@ -214,7 +217,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run("impl:bar")
 
         then:
-        result.assertProjectsEvaluated(":", ":impl", ":api")
+        fixture.assertProjectsEvaluated(":", ":impl", ":api")
         result.assertTasksExecuted(":api:foo", ":impl:bar")
     }
 
@@ -237,6 +240,6 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run("--configure-on-demand", ":api:foo")
 
         then:
-        result.assertProjectsEvaluated(":", ":api")
+        fixture.assertProjectsEvaluated(":", ":api")
     }
 }
