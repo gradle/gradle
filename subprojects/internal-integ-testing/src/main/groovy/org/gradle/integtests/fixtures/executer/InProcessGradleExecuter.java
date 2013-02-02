@@ -59,7 +59,6 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static java.util.Arrays.asList;
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -311,11 +310,6 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         public ExecutionResult assertTasksExecuted(String... taskPaths) {
             List<String> expected = Arrays.asList(taskPaths);
             assertThat(plannedTasks, equalTo(expected));
-            return this;
-        }
-
-        public ExecutionResult assertProjectsEvaluated(String... projectPaths) {
-            new OutputScraper(getOutput()).assertProjectsEvaluated(asList(projectPaths));
             return this;
         }
 

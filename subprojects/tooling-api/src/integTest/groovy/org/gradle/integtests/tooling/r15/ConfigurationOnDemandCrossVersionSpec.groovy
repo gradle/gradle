@@ -18,15 +18,10 @@
 
 package org.gradle.integtests.tooling.r15
 
-import org.gradle.integtests.fixtures.executer.OutputScraper
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 
-import static java.util.Arrays.asList
-
-@MinToolingApiVersion("1.0") //in theory, all clients are supported but we're passing args in the test, hence 1.0
 @MinTargetGradleVersion("1.5")
 class ConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
 
@@ -37,14 +32,19 @@ class ConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
     def "building model evaluates all projects regardless of configuration on demand mode"() {
         given:
         file("settings.gradle") << "include 'api', 'impl', 'other'"
-        file("build.gradle") << "description = 'Configure on demand: ' + gradle.startParameter.configureOnDemand"
+        file("build.gradle") << """
+            rootProject.description = 'Configure on demand: ' + gradle.startParameter.configureOnDemand + '. Projects configured: '
+            allprojects { afterEvaluate {
+                rootProject.description += project.path + ", "
+            }}
+        """
 
         when:
-        def op = withModel(GradleProject.class) { it.withArguments("-i") }
+        def op = withModel(GradleProject.class)
 
         then:
-        op.model.description == 'Configure on demand: true'
-        new OutputScraper(op.standardOutput).assertProjectsEvaluated(asList(":", ":api", ":impl", ":other"));
+        op.model.description.contains 'Configure on demand: true'
+        op.model.description.contains 'Projects configured: :, :api, :impl, :other'
     }
 
     def "running tasks takes advantage of configuration on demand"() {
@@ -56,9 +56,9 @@ class ConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
         file("other/build.gradle") << "assert false: 'should not be evaluated'"
 
         when:
-        def op = withBuild { it.withArguments("-i").forTasks(":impl:bar") }
+        withBuild { it.forTasks(":impl:bar") }
 
         then:
-        new OutputScraper(op.standardOutput).assertProjectsEvaluated(asList(":", ":impl", ":api"));
+        noExceptionThrown()
     }
 }

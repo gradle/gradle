@@ -36,11 +36,6 @@ public interface ExecutionResult {
     ExecutionResult assertTasksExecuted(String... taskPaths);
 
     /**
-     * Asserts that exactly the given set of projects have been evaluated in the given order.
-     */
-    ExecutionResult assertProjectsEvaluated(String... projectPaths);
-
-    /**
      * Returns the tasks that were skipped, in an undefined order. Note: ignores buildSrc tasks.
      */
     Set<String> getSkippedTasks();

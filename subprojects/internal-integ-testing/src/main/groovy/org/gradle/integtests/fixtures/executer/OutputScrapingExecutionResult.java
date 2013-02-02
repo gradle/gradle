@@ -24,7 +24,6 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
@@ -64,11 +63,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertTasksExecuted(String... taskPaths) {
         List<String> expectedTasks = Arrays.asList(taskPaths);
         assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), equalTo(expectedTasks));
-        return this;
-    }
-
-    public ExecutionResult assertProjectsEvaluated(String... projectPaths) {
-        new OutputScraper(getOutput()).assertProjectsEvaluated(asList(projectPaths));
         return this;
     }
 
