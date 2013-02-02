@@ -29,7 +29,7 @@ class ProjectLifecycleFixture extends InitScriptExecuterFixture {
         super(executer, testDir)
     }
 
-    List<String> evaluatedProjects
+    List<String> configuredProjects
 
     String initScriptContent() {
         fixtureData = testDir.testDirectory.file("lifecycle-fixture-data.txt")
@@ -47,15 +47,11 @@ class ProjectLifecycleFixture extends InitScriptExecuterFixture {
     }
 
     void afterBuild() {
-        evaluatedProjects = asList(fixtureData.text.split())
+        configuredProjects = asList(fixtureData.text.split())
         assert fixtureData.delete()
     }
 
-    void configureOnDemandOn() {
-        testDir.testDirectory.file("gradle.properties") << "org.gradle.configureondemand=true"
-    }
-
-    void assertProjectsEvaluated(String ... projectPaths) {
-        assert evaluatedProjects == projectPaths
+    void assertProjectsConfigured(String ... projectPaths) {
+        assert configuredProjects == projectPaths
     }
 }
