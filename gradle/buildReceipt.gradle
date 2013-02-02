@@ -50,6 +50,11 @@ task determineCommitId {
             env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_Master") }?.value
         }
 
+        // For the discovery release builds, this points to the Gradle revision
+        strategies << {
+            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_release_branch") }?.value
+        }
+
         // If it's a checkout, ask Git for it
         strategies << {
             if (file(".git/HEAD").exists()) {
@@ -107,7 +112,7 @@ task createBuildReceipt(dependsOn: determineCommitId) {
             hostName = "unknown"
         }
         def data = [
-                commitId:  determineCommitId.commitId,
+                commitId: determineCommitId.commitId,
                 versionNumber: version,
                 versionBase: versionBase,
                 isSnapshot: isSnapshot,
@@ -118,7 +123,7 @@ task createBuildReceipt(dependsOn: determineCommitId) {
                 javaVersion: System.properties["java.version"],
                 osName: System.properties["os.name"],
                 osVersion: System.properties["os.version"],
-                project:'gradle'
+                project: 'gradle'
         ]
 
         receiptFile.parentFile.mkdirs()
