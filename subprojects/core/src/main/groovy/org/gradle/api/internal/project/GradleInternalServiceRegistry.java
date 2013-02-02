@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -28,6 +29,9 @@ import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import static java.util.Arrays.asList;
 
@@ -44,11 +48,16 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     }
 
     protected BuildExecuter createBuildExecuter() {
+        List<BuildConfigurationAction> configs = new LinkedList<BuildConfigurationAction>();
+        if (get(StartParameter.class).isConfigureOnDemand()) {
+            configs.add(new ProjectEvaluatingAction());
+        }
+        configs.add(new DefaultTasksBuildExecutionAction());
+        configs.add(new ExcludedTaskFilteringBuildConfigurationAction());
+        configs.add(new TaskNameResolvingBuildConfigurationAction());
+
         return new DefaultBuildExecuter(
-                asList(new OnlyWhenConfigureOnDemand(new ProjectEvaluatingAction(new TaskPathProjectEvaluator())),
-                        new DefaultTasksBuildExecutionAction(),
-                        new ExcludedTaskFilteringBuildConfigurationAction(),
-                        new TaskNameResolvingBuildConfigurationAction()),
+                configs,
                 asList(new DryRunBuildExecutionAction(),
                         new TaskCacheLockHandlingBuildExecuter(get(TaskArtifactStateCacheAccess.class)),
                         new SelectedTaskExecutionAction()));

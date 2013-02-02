@@ -30,6 +30,10 @@ public class ProjectEvaluatingAction implements BuildConfigurationAction {
 
     private final TaskPathProjectEvaluator evaluator;
 
+    public ProjectEvaluatingAction() {
+        this(new TaskPathProjectEvaluator());
+    }
+
     public ProjectEvaluatingAction(TaskPathProjectEvaluator evaluator) {
         this.evaluator = evaluator;
     }
