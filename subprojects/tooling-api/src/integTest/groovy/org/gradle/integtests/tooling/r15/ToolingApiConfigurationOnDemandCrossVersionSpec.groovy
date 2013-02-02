@@ -23,7 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 
 @MinTargetGradleVersion("1.5")
-class ConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         file("gradle.properties") << "org.gradle.configureondemand=true"
