@@ -177,7 +177,7 @@
                 we think the differences of both approaches are significant
                 in terms of flexibility and maintainability. Originally Gradle did use Ivy under the
                 hood for its dependency management. This has been replaced with a native Gradle dependency resolution engine. This resolution engine
-                supports both pom and ivy descriptor files.
+                supports both POM and Ivy descriptor files.
             </para>
         </section>
     </section>
@@ -272,10 +272,10 @@
                 either with the map or with the string notation, you can assign a single dependency to a configuration
                 together with a closure.
             </para>
-            <para>If you declare a module dependency, Gradle looks for a corresponding module descriptor file (<literal>pom.xml</literal> or
-                <literal>ivy.xml</literal>) in the repositories. If such a module descriptor file exists, it is parsed and the artifacts of
-                this module (e.g. <literal>hibernate-3.0.5.jar</literal>) as well as its dependencies (e.g. cglib) are downloaded. If no such
-                module descriptor file exists, Gradle looks for a file called <literal>hibernate-3.0.5.jar</literal> to retrieve. In Maven
+            <para>If you declare a module dependency, Gradle looks for a corresponding module descriptor file (<filename>pom.xml</filename> or
+                <filename>ivy.xml</filename>) in the repositories. If such a module descriptor file exists, it is parsed and the artifacts of
+                this module (e.g. <filename>hibernate-3.0.5.jar</filename>) as well as its dependencies (e.g. cglib) are downloaded. If no such
+                module descriptor file exists, Gradle looks for a file called <filename>hibernate-3.0.5.jar</filename> to retrieve. In Maven
                 a module can only have one and only one artifact. In Gradle and Ivy a module can have multiple artifacts.
                 Each artifact can have a different set of dependencies.
             </para>
@@ -283,8 +283,8 @@
                 <title>Depending on modules with multiple artifacts</title>
                 As mentioned earlier, a maven module has only one artifact. So, when your project depends on a maven module
                 it's obvious what artifact is the actual dependency.
-                With Gradle or Ivy the case is different. Ivy model of dependencies (<literal>ivy.xml</literal>) can declare multiple artifacts.
-                For more information, see Ivy reference for <literal>ivy.xml</literal>.
+                With Gradle or Ivy the case is different. Ivy model of dependencies (<filename>ivy.xml</filename>) can declare multiple artifacts.
+                For more information, see Ivy reference for <filename>ivy.xml</filename>.
                 In Gradle, when you declare a dependency on an ivy module you actually declare dependency on the <literal>'default'</literal> configuration of that module.
                 So the actual list of artifacts (typically jars) your project depends on, are all artifacts that are attached to the <literal>default</literal> configuration of that module.
                 This is very important in following exemplary use cases:
@@ -721,9 +721,9 @@
                 </sample>
             </section>
             <section>
-                <title>Defining different artifact and ivy file locations for an Ivy repository</title>
-                <para>To define an Ivy repository which fetches ivy files and artifacts from different locations, you can explicitly define complete URL patterns
-                      for artifacts and ivy files:
+                <title>Defining different artifact and Ivy file locations for an Ivy repository</title>
+                <para>To define an Ivy repository which fetches Ivy files and artifacts from different locations, you can explicitly define complete URL patterns
+                      for artifacts and Ivy files:
                 </para>
                 <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with custom patterns">
                     <sourcefile file="build.gradle" snippet="ivy-repo-with-custom-pattern"/>
@@ -787,7 +787,7 @@
 // Maven2 layout (if a repository is marked as Maven2 compatible, the organization (group) is split into subfolders according to the dots.)
 someroot/[organisation]/[module]/[revision]/[module]-[revision].[ext]
 
-// Typical layout for an ivy repository (the organization is not split into subfolder)
+// Typical layout for an Ivy repository (the organization is not split into subfolder)
 someroot/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]
 
 // Simple layout (the organization is not used, no nested folders.)
@@ -812,16 +812,16 @@ someroot/[artifact]-[revision].[ext]
                 <listitem>
                     <para>
                         Given a required dependency, Gradle first attempts to resolve the <emphasis>module</emphasis> for that dependency. Each repository is inspected in order, searching
-                        first for a <emphasis>module descriptor</emphasis> file (pom or ivy file) that indicates the presence of that module. If no module descriptor is found,
+                        first for a <emphasis>module descriptor</emphasis> file (POM or Ivy file) that indicates the presence of that module. If no module descriptor is found,
                         Gradle will search for the presence of the primary <emphasis>module artifact</emphasis> file indicating that the module exists in the repository.
                     </para>
                     <itemizedlist>
                         <listitem>
                             <para>If the dependency is declared as a dynamic version (like <literal>1.+</literal>), Gradle will resolve this to the newest available static version (like <literal>1.2</literal>)
-                                in the repository. For maven repositories, this is done using the <literal>maven-metadata.xml</literal> file, while for ivy repositories this is done by directory listing.</para>
+                                in the repository. For maven repositories, this is done using the <literal>maven-metadata.xml</literal> file, while for Ivy repositories this is done by directory listing.</para>
                         </listitem>
                         <listitem>
-                            <para>If the module descriptor is a <literal>pom</literal> file that has a parent pom declared, Gradle will recursively attempt to resolve each of the parent modules for the pom.</para>
+                            <para>If the module descriptor is a <literal>pom</literal> file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.</para>
                         </listitem>
                     </itemizedlist>
                 </listitem>
@@ -829,7 +829,7 @@ someroot/[artifact]-[revision].[ext]
                     <para>Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
                         <itemizedlist>
                             <listitem>For a dynamic version, a 'higher' static version is preferred over a 'lower' version.</listitem>
-                            <listitem>Modules declared by a module descriptor file (ivy or pom file) are preferred over modules that have an artifact file only.</listitem>
+                            <listitem>Modules declared by a module descriptor file (Ivy or POM file) are preferred over modules that have an artifact file only.</listitem>
                             <listitem>Modules from earlier repositories are preferred over modules in later repositories.</listitem>
                         </itemizedlist>
                     </para>
@@ -936,7 +936,7 @@ someroot/[artifact]-[revision].[ext]
             The Gradle dependency cache consists of 2 key types of storage:</para>
         <itemizedlist>
             <listitem>
-                <para>A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like pom files and ivy files.
+                <para>A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files.
                       The storage path for a downloaded artifact includes the SHA1 checksum, meaning that 2 artifacts with the same name but different content can easily be cached.
                 </para>
             </listitem>

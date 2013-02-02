@@ -18,30 +18,33 @@
     <title>Maven Publishing (new)</title>
     <note>
         <para>
-            This chapter describes the new <emphasis>incubating</emphasis> Maven publishing support provided by the 'maven-publish' plugin. Eventually this new publishing support
-            will replace publishing via the <literal>Upload</literal> task.
-            If you are looking for documentation on 'traditional' Maven publishing using the <literal>Upload</literal> task please see <xref linkend="artifact_management"/>.
+            This chapter describes the new <emphasis>incubating</emphasis> Maven publishing support provided by the “<literal>maven-publish</literal>”
+            plugin. Eventually this new publishing support will replace publishing via the <literal>Upload</literal> task.
+        </para>
+        <para>
+            If you are looking for documentation on 'traditional' Maven publishing using the <literal>Upload</literal> task please see
+            <xref linkend="artifact_management"/>.
         </para>
     </note>
     <para>
-        This chapter describes how to publish build artifacts to a <ulink url="http://maven.apache.org/">Apache Maven</ulink> Repository.
+        This chapter describes how to publish build artifacts to an <ulink url="http://maven.apache.org/">Apache Maven</ulink> Repository.
         A module published to a Maven repository can be consumed by Maven, Gradle (see <xref linkend="dependency_management" />) and other tools that understand the Maven repository format.
     </para>
     <section>
-        <title>The <literal>maven-publish</literal> Plugin</title>
+        <title>The “<literal>maven-publish</literal>” Plugin</title>
         <para>
-            The ability to publish in the Maven format is provided by the '<literal>maven-publish</literal>' plugin.
+            The ability to publish in the Maven format is provided by the “<literal>maven-publish</literal>” plugin.
         </para>
         <para>
             The “<literal>publishing</literal>” plugin creates an extension on the project named “<literal>publishing</literal>” of type <apilink class="org.gradle.api.publish.PublishingExtension"/>.
-            This extension provides a container of named publications and a container of named repositories. The “<literal>maven-publish</literal>” works with
+            This extension provides a container of named publications and a container of named repositories. The “<literal>maven-publish</literal>” plugin works with
             <apilink class="org.gradle.api.publish.maven.MavenPublication"/> publications and <apilink class="org.gradle.api.artifacts.repositories.MavenArtifactRepository" /> repositories.
         </para>
         <sample id="publishing_maven:apply_plugin" dir="maven-publish/quickstart" title="Applying the 'maven-publish' plugin">
             <sourcefile file="build.gradle" snippet="use-plugin" />
         </sample>
         <para>
-            Applying the 'maven-publish' plugin does the following:
+            Applying the “<literal>maven-publish</literal>” plugin does the following:
         </para>
         <itemizedlist>
             <listitem>Applies the “<literal>publishing</literal>” plugin
@@ -142,14 +145,14 @@
         <section>
             <title>Modifying the generated POM</title>
             <para>
-                At times, the POM file generated from the project information will need to be tweaked before publishing. The <literal>maven-publish</literal>
+                At times, the POM file generated from the project information will need to be tweaked before publishing. The “<literal>maven-publish</literal>”
                 plugin provides a hook to allow such modification.
             </para>
             <sample dir="maven-publish/pomCustomization" id="publishing_maven:pom_modification" title="Modifying the POM file">
                 <sourcefile file="build.gradle" snippet="pom-modification" />
             </sample>
             <para>
-                In this example we are adding a 'description' element for the generated POM. With this hook, you can modify any aspect of the pom.
+                In this example we are adding a 'description' element for the generated POM. With this hook, you can modify any aspect of the POM.
                 For example, you could replace the version range for a dependency with the actual version used to produce the build.
             </para>
             <para>
@@ -196,7 +199,7 @@
         <title>Publishing to Maven Local</title>
         <para>
             For integration with a local Maven installation, it is sometimes useful to publish the module into the local .m2 repository. In Maven parlance, this is
-            referred to as 'installing' the module. The <literal>maven-publish</literal> plugin makes this easy to do by automatically creating a
+            referred to as 'installing' the module. The “<literal>maven-publish</literal>” plugin makes this easy to do by automatically creating a
             <apilink class="org.gradle.api.publish.maven.tasks.PublishToMavenLocal" /> task for each <apilink class="org.gradle.api.publish.maven.MavenPublication" />
             in the <literal>publishing.publications</literal> container. Each of these tasks is wired into the <literal>publishToMavenLocal</literal> lifecycle task.
             You do not need to have `mavenLocal` in your `publishing.repositories` section.
@@ -220,7 +223,7 @@
             to do so.
         </para>
         <para>
-            The task for generating the Pom file is of type <apilink class="org.gradle.api.publish.maven.tasks.GenerateMavenPom"/>, and it is given a name based on the name
+            The task for generating the POM file is of type <apilink class="org.gradle.api.publish.maven.tasks.GenerateMavenPom"/>, and it is given a name based on the name
             of the publication: "<literal>generatePomFileFor«<emphasis>NAME OF PUBLICATION</emphasis>»Publication</literal>". So in the above example where the publication is named
             "<literal>mavenJava</literal>",
             the task will be named "<literal>generatePomFileForMavenJavaPublication</literal>".
@@ -229,7 +232,7 @@
             <output args="generatePomFileForMavenJavaPublication"/>
         </sample>
         <para>
-            All details of the publishing model are still considered in Pom generation, including <literal>components</literal>`, custom <literal>artifacts</literal>,
+            All details of the publishing model are still considered in POM generation, including <literal>components</literal>`, custom <literal>artifacts</literal>,
             and any modifications made via <literal>pom.withXml</literal>.
         </para>
     </section>

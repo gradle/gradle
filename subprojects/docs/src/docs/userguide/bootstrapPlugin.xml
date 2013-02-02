@@ -24,7 +24,7 @@
         The api, plugin and task names may change before the final release.
         Please let us know your feedback or report any issues.</para>
     <para>
-        The plugin works by obtaining the effective pom of the current project
+        The plugin works by obtaining the effective POM of the current project
         by executing external 'mvn' command. Then it reads the dependencies
         and other information to generate build.gradle scripts.</para>
     <para>
@@ -36,8 +36,8 @@
     <section>
         <title>Maven conversion - features</title>
         <itemizedlist>
-            <listitem>Uses effective pom and effective settings
-            (support for pom inheritance, dependency management, properties)</listitem>
+            <listitem>Uses effective POM and effective settings
+            (support for POM inheritance, dependency management, properties)</listitem>
             <listitem>Supports both single module and multimodule projects.
                 Generates settings.gradle for multimodule projects (*).</listitem>
             <listitem>Supports custom module names (that differ from directory names)</listitem>
@@ -81,8 +81,8 @@
             <listitem>Run <code>gradle tasks</code>. You should see <code>maven2Gradle</code> task available.</listitem>
             <listitem>Run <code>gradle maven2Gradle</code>.</listitem>
             <listitem>Advanced users: you can configure following boolean properties on the <code>maven2Gradle</code> task:
-                <code>verbose</code> (shows more output, including the effective pom)
-                and <code>keepFile</code> (keeps the obtained effective pom file).</listitem>
+                <code>verbose</code> (shows more output, including the effective POM)
+                and <code>keepFile</code> (keeps the obtained effective POM file).</listitem>
         </itemizedlist>
     </section>
 </chapter>

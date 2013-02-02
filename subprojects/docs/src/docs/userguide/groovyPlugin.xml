@@ -222,7 +222,7 @@
         <para>
             Note: When using the <literal>groovy</literal> rather than the <literal>groovy-all</literal> artifact, automatic configuration of
             <literal>groovyClasspath</literal> will only work correctly if the project declares a repository that contains the <literal>groovy</literal>
-            artifact along with a descriptor (<literal>pom.xml</literal> or <literal>ivy.xml</literal>) listing its dependencies. Otherwise, only the
+            artifact along with a descriptor (<filename>pom.xml</filename> or <filename>ivy.xml</filename>) listing its dependencies. Otherwise, only the
             artifact itself will be added to <literal>groovyClasspath</literal>, which will likely result in a <literal>NoClassDefFoundError</literal>
             during compilation.
         </para>

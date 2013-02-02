@@ -89,7 +89,7 @@
                 <listitem>
                     <para>Different teams prefer different ways to manage their external dependencies.
                         Gradle provides convenient support for any strategy. From transitive dependency 
-                        management with remote maven and ivy repositories to jars or dirs on the local file system.</para>
+                        management with remote Maven and Ivy repositories to jars or dirs on the local file system.</para>
                 </listitem>
             </varlistentry>
             <varlistentry>
@@ -100,7 +100,7 @@
                         You can depend on them from Gradle, you can enhance them from Gradle, you can even declare dependencies on
                         Gradle tasks in your build.xml. The same integration is provided for properties, paths, etc ...</para>
                     <para>Gradle fully supports your existing Maven or Ivy repository infrastructure for publishing and retrieving
-                        dependencies. Gradle also provides a converter for turning a Maven pom.xml into a Gradle script.
+                        dependencies. Gradle also provides a converter for turning a Maven <filename>pom.xml</filename> into a Gradle script.
                         Runtime imports of Maven projects will come soon.</para>
                 </listitem>
             </varlistentry>

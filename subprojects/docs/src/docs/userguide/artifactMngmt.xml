@@ -21,7 +21,7 @@
             While this new mechanism is <emphasis>incubating</emphasis> and not yet complete, it introduces some new concepts and features that do (and will) make Gradle publishing even more powerful.
         </para>
         <para>
-            You can read about the new publishing plugins in <xref linkend="publishing_ivy"/> and <xref linkend="publishing_maven"/>.
+            You can read about the new publishing plugins in <xref linkend="publishing_ivy"/> and <xref linkend="publishing_maven"/>. Please try them out and give us feedback.
         </para>
     </note>
     <section>
@@ -116,7 +116,7 @@
             is not specified, the <code>default</code> configuration is used (see <xref linkend="sec:dependency_configurations"/>).
             Using your project as a library
             can either happen from within a multi-project build or by retrieving your project from a repository. In
-            the latter case, an ivy.xml descriptor in the repository is supposed to contain all the necessary information. If you
+            the latter case, an <filename>ivy.xml</filename> descriptor in the repository is supposed to contain all the necessary information. If you
             work with Maven repositories you don't have the flexibility as described above. For how to publish to a Maven
             repository, see the section <xref linkend="uploading_to_maven_repositories"/>.
         </para>

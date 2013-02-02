@@ -18,8 +18,12 @@
     <title>Ivy Publishing (new)</title>
     <note>
         <para>
-            This chapter describes the new <emphasis>incubating</emphasis> Ivy publishing support introduced in Gradle 1.3.
-            If you are looking for documentation on the “traditional” Ivy publishing support please see <xref linkend="artifact_management"/>.
+            This chapter describes the new <emphasis>incubating</emphasis> Ivy publishing support provided by the “<literal>ivy-publish</literal>”
+            plugin. Eventually this new publishing support will replace publishing via the <literal>Upload</literal> task.
+        </para>
+        <para>
+            If you are looking for documentation on 'traditional' Ivy publishing using the <literal>Upload</literal> task please see
+            <xref linkend="artifact_management"/>.
         </para>
     </note>
     <para>
@@ -57,7 +61,7 @@
         </itemizedlist>
         <para>
             The “<literal>publishing</literal>” plugin creates an extension on the project named “<literal>publishing</literal>” of type <apilink class="org.gradle.api.publish.PublishingExtension"/>.
-            This extension provides a container of named publications and a container of named repositories. The “<literal>ivy-publish</literal>” works with
+            This extension provides a container of named publications and a container of named repositories. The “<literal>ivy-publish</literal>” plugin works with
             <apilink class="org.gradle.api.publish.ivy.IvyPublication"/> publications and <apilink class="org.gradle.api.artifacts.repositories.IvyArtifactRepository" /> repositories.
         </para>
     </section>
@@ -92,7 +96,7 @@
             <listitem>The source “jar” artifact that has been explicitly configured in this build</listitem>
         </itemizedlist>
         <para>
-            When this publication is published, the <firstterm>module descriptor</firstterm> (i.e. the <literal>ivy.xml</literal> file) that is produced will look like…
+            When this publication is published, the <firstterm>module descriptor</firstterm> (i.e. the <filename>ivy.xml</filename> file) that is produced will look like…
         </para>
         <tip>
             <para>Note that the <literal>«PUBLICATION-TIME-STAMP»</literal> in this example Ivy module descriptor will be the timestamp of when the descriptor was generated.</para>
@@ -185,12 +189,12 @@
     <section id="publishing_ivy:descriptor">
         <title>Generating the Ivy module descriptor file</title>
         <para>
-            Sometimes you want to generate the Ivy module descriptor file (normally <literal>ivy.xml</literal>) without publishing your module to an Ivy
-            repository. For this purpose, the <literal>ivy-publish</literal> plugin automatically wires in one <apilink class="org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor" /> task
+            Sometimes you want to generate the Ivy module descriptor file (normally <filename>ivy.xml</filename>) without publishing your module to an Ivy
+            repository. For this purpose, the “<literal>ivy-publish</literal>” plugin automatically wires in one <apilink class="org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor" /> task
             for each registered <apilink class="org.gradle.api.publish.ivy.IvyPublication" />.
         </para>
         <para>
-            In the default case of a single <literal>IvyPublication</literal> named 'ivy', the <literal>ivy-publish</literal> plugin
+            In the default case of a single <literal>IvyPublication</literal> named 'ivy', the “<literal>ivy-publish</literal>” plugin
             will create a single task named <literal>generateIvyModuleDescriptor</literal>.
             Where more than one publication is present, additional tasks will be created using the naming pattern
             <literal>generate«<emphasis>NAME OF PUBLICATION</emphasis>»IvyModuleDescriptor</literal>. Thus if there is one publication named 'other' in addition
@@ -207,7 +211,7 @@
     <section>
         <title>Future features</title>
         <para>
-            The “<literal>ivy-publish</literal>” functionality as described above is incomplete, as the feature is still <firstterm>incubating</firstterm>.
+            The “<literal>ivy-publish</literal>” plugin functionality as described above is incomplete, as the feature is still <firstterm>incubating</firstterm>.
             Over the coming Gradle releases, the functionality will be expanded to include (but not limited to):
         </para>
         <itemizedlist>
