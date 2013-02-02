@@ -26,6 +26,7 @@ import org.gradle.api.logging.Logging;
 public class DefaultBuildConfigurer implements BuildConfigurer {
     private Action<Project> actions;
     private final static Logger LOG = Logging.getLogger(DefaultBuildConfigurer.class);
+    public final static String CONFIGURATION_ON_DEMAND_MESSAGE = "Thanks for using the incubating configuration-on-demand mode. Enjoy it and let us know how it works for you.";
 
     public DefaultBuildConfigurer(Action<? super ProjectInternal>... actions) {
         this.actions = Actions.castBefore(ProjectInternal.class, Actions.composite(actions));
@@ -33,7 +34,7 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
 
     public void configure(GradleInternal gradle) {
         if (gradle.getStartParameter().isConfigureOnDemand()) {
-            LOG.lifecycle("Thanks for using the incubating configuration-on-demand mode. Enjoy it and let us know how it works for you.");
+            LOG.lifecycle(CONFIGURATION_ON_DEMAND_MESSAGE);
             gradle.addProjectEvaluationListener(new ImplicitTasksConfigurer());
             gradle.getRootProject().evaluate();
         } else {

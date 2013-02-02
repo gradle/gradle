@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import org.junit.Rule
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
+import org.gradle.configuration.DefaultBuildConfigurer
 
 /**
  * by Szczepan Faber, created at: 11/21/12
@@ -38,6 +39,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run("-u", "foo")
         then:
         fixture.assertProjectsConfigured(":")
+        assert output.contains(DefaultBuildConfigurer.CONFIGURATION_ON_DEMAND_MESSAGE)
     }
 
     def "evaluates only project referenced in the task list"() {
@@ -49,6 +51,15 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.assertProjectsConfigured(":", ":util:impl")
+        assert output.contains(DefaultBuildConfigurer.CONFIGURATION_ON_DEMAND_MESSAGE)
+    }
+
+    def "does not show configuration on demand message in a regular mode"() {
+        file("gradle.properties").text = "org.gradle.configureondemand=false"
+        when:
+        run()
+        then:
+        assert !output.contains(DefaultBuildConfigurer.CONFIGURATION_ON_DEMAND_MESSAGE)
     }
 
     def "follows java project dependencies"() {
