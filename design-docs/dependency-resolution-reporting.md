@@ -217,6 +217,8 @@ Should only require changes to the report rendering.
 
 # Open issues / further work
 
+- Provide a hint when dependency cannot be resolved and no repositories have been defined.
+- Resolution failure message should include selection reason.
 - The dependency insight report should render dynamic requested versions in a fixed order.
 - The reports should distinguish between dependencies that cannot be found and dependencies for which there was a failure.
 - Dependency report should include file dependencies.
@@ -225,6 +227,6 @@ Should only require changes to the report rendering.
 - HTML dependency report.
 - Render locally built things differently to external things (ie show the project dependencies differently to external dependencies).
 - Change the `dependencies` task instance to default to show the compile configuration only.
-- Finalise the API of the `DependencyInsightReportTask type`.
+- Finalise the API of the `DependencyInsightReportTask` type.
 - If there is a single configuration in the project, should it be used by default by the dependency insight report?
 - The dependency insight report needs to work with the C++ plugins in the same way it works with the java plugin.

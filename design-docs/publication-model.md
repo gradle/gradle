@@ -243,7 +243,7 @@ Note: there is a breaking change in this story.
 2. Add an `IvyArtifactSet` interface. This is a collection of objects that can be converted to a collection of `IvyArtifact` instances.
 3. Add an `IvyConfiguration` interface. Add a `configurations` container to `IvyModuleDescriptor`
 4. Add an `artifacts` property to `IvyConfiguration`.
-5. When publishing, validate that (name, extension) is unique for each artifact.
+5. When publishing, validate that the attributes are unique for each artifact.
 6. When publishing, validate that the artifact file exists and is a file.
 
 To customise an Ivy publication:
@@ -261,7 +261,7 @@ To customise an Ivy publication:
                      }
                 }
                 artifacts = [jar]
-                artifact sourceJar  {
+                artifact sourceJar {
                     conf 'other'
                 }
                 artifact file: distZip, type: 'java-library-distribution', conf: 'other,distributions'
@@ -295,6 +295,26 @@ Validate the following prior to publication:
 * The organisation, module and revision specified for an Ivy publication are non-empty strings.
 * Each publication identifier in the build (ie every publication in every project) is unique.
 * The XML actions do not change the publication identifier.
+
+### Test cases
+
+* Publication coordinates can contain non-ascii characters, whitespace, xml markup and reserved filesystem characters, where permitted by the format.
+  Verify that these publications can be resolved by Gradle.
+* Reasonable error messages are given when the above validation fails.
+
+## Validate artifact attributes
+
+Validate the following prior to publication:
+
+* The extension, classifier specified for a Maven artifact are non-empty strings.
+* The name, extension, type, and classifier if specified, for an Ivy artifact are non-empty strings.
+* When publishing to a repository, validate that each artifact (including the meta-data file) will be published as a separate resource.
+
+### Test cases
+
+* Artifact attributes can contain non-ascii characters, whitespace, xml markup and reserved filesystem characters, where permitted by the format.
+  Verify that these artifacts can be resolved by Gradle.
+* Reasonable error messages are given when the above validation fails.
 
 ## Customising the Maven and Ivy publication identifier
 
