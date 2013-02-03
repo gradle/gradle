@@ -76,7 +76,6 @@ class SonarRunnerPluginTest extends Specification {
         properties["child.sonar.projectDescription"] == "description"
         properties["child.sonar.projectVersion"] == "1.3"
         properties["child.sonar.projectBaseDir"] == childProject.projectDir as String
-        properties["child.sonar.working.directory"] == new File(childProject.buildDir, "sonar") as String
         properties["child.sonar.dynamicAnalysis"] == "reuseReports"
     }
 
@@ -87,10 +86,12 @@ class SonarRunnerPluginTest extends Specification {
         then:
         properties["sonar.environment.information.key"] == "Gradle"
         properties["sonar.environment.information.version"] == project.gradle.gradleVersion
+        properties["sonar.working.directory"] == new File(project.buildDir, "sonar") as String
 
         and:
         !properties.containsKey("child.sonar.environment.information.key")
         !properties.containsKey("child.sonar.environment.information.version")
+        !properties.containsKey('child.sonar.working.directory')
     }
 
     def "adds additional default properties for all 'java-base' projects"() {

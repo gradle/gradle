@@ -138,12 +138,12 @@ class SonarRunnerPlugin implements Plugin<Project> {
         properties["sonar.projectDescription"] = project.description
         properties["sonar.projectVersion"] = project.version
         properties["sonar.projectBaseDir"] = project.projectDir
-        properties["sonar.working.directory"] = new File(project.buildDir, "sonar")
         properties["sonar.dynamicAnalysis"] = "reuseReports"
 
         if (project.parent == null) {
             properties["sonar.environment.information.key"] = "Gradle"
             properties["sonar.environment.information.version"] = project.gradle.gradleVersion
+            properties["sonar.working.directory"] = new File(project.buildDir, "sonar")
         }
 
         project.plugins.withType(JavaBasePlugin) {
