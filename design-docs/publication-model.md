@@ -167,9 +167,10 @@ To customise a Maven publication:
 The 'artifact' creation method will accept the following forms of input:
 * A PublishArtifact, that will be adapted to MavenArtifact
 * An AbstractArchiveTask, that will be adapted to MavenArtifact
+* A Task or TaskOutputs, that will be adapted to MavenArtifact
 * Anything that is valid input to Project.file()
-* One of the previous 3, together with a configuration closure that permits setting of classifier & extension
-* A map with 'file' entry, that is interpreted as per Project.file(). Additional entries for 'classifier' and 'extension'.
+* One of the previous 4, together with a configuration closure that permits setting of classifier, extension and builtBy properties.
+* A map with 'file' entry, that is interpreted as per Project.file(). Additional entries for 'classifier' and 'extension' and 'builtBy'.
 
 ### Test cases
 
@@ -183,9 +184,10 @@ The 'artifact' creation method will accept the following forms of input:
     * All of the 3 above, with configuration closure to specify classifier/extension
     * Add custom artifact using file-map notation
     * Modify elements of artifacts collection after creation
-* Run `gradle publish` where mainArtifact and custom artifacts specified via file[,classifier,extension].
+* Run `gradle publish` where mainArtifact and custom artifacts specified via (file,classifier,extension)
     * Verify that extension is taken from file name by default, and can be overridden in DSL.
     * Verify that classifier is taken from file name by default, and can be overridden in DSL.
+* Verify that `archivesBaseName` does not affect the published artifact names.
 * Publish with java component. Verify that the publishing DSL can be used to update the classifier & exension of artifact taken from component.
     * `publishing.publications.myLib.mainArtifact.classifier = 'custom'`
 
@@ -203,7 +205,7 @@ Running `gradle generateMavenPom` would generate the `pom.xml` for the default M
 
 ### Test cases
 
-* Integration test that specified generated pom location, executes GenerateMavenPom task, validates pom file content, and checks that module is not published
+* Integration test that specifies generated pom location, executes GenerateMavenPom task, validates pom file content, and checks that module is not published
 
 ## Publish Java libraries and web applications to Ivy repository
 
@@ -240,10 +242,11 @@ Note: there is a breaking change in this story.
     * `extension`
     * `file`
     * `conf`
+    * `classifier`
 2. Add an `IvyArtifactSet` interface. This is a collection of objects that can be converted to a collection of `IvyArtifact` instances.
 3. Add an `IvyConfiguration` interface. Add a `configurations` container to `IvyModuleDescriptor`
 4. Add an `artifacts` property to `IvyConfiguration`.
-5. When publishing, validate that the attributes are unique for each artifact.
+5. When publishing or generating the descriptor, validate that the (name, type, extension, classifier) attributes are unique for each artifact.
 6. When publishing, validate that the artifact file exists and is a file.
 
 To customise an Ivy publication:
@@ -272,9 +275,10 @@ To customise an Ivy publication:
 The 'artifact' creation method will accept the following forms of input:
 * A PublishArtifact, that will be adapted to IvyArtifact
 * An AbstractArchiveTask, that will be adapted to IvyArtifact
+* A Task or TaskOutputs, that will be adapted to IvyArtifact
 * Anything that is valid input to Project.file()
-* Any of the previous 3, together with a configuration closure that permits setting of classifier & extension
-* A map with 'file' entry, that is interpreted as per Project.file(). Additional entries for 'name', 'type' and 'extension'.
+* Any of the previous 4, together with a configuration closure that permits setting of name, type, classifier, extension and builtBy properties
+* A map with 'file' entry, that is interpreted as per Project.file(). Additional entries for 'name', 'type', 'extension', 'classifier' and 'builtBy'.
 
 Configurations will be constructed with no value for 'visibility', 'description', 'transitive', or 'deprecated' attributes, and will inherit ivy defaults.
 The configuration 'extends' attribute is a string value, not validated.
@@ -284,7 +288,7 @@ This allows them to inherit the default ('*') in ivy.xml or take the default val
 
 ### Test cases
 
-TBD
+* Verify that `archivesBaseName` does not affect the published artifact names.
 
 ## Validate publication coordinates
 
@@ -320,7 +324,7 @@ Validate the following prior to publication:
 
 This step will allow some basic customisation of the meta data model for each publication:
 
-1. Add `groupId`, `artifactId`, `version` properties to `MavenPublication` and `Pom`. Add `packaging` property to `Pom`.
+1. Add `groupId`, `artifactId`, `version` properties to `MavenPublication` and `MavenPom`. Add `packaging` property to `MavenPom`.
 2. Change `pom.xml` generation to use these properties.
 3. Add `organisation`, `module`, `revision` properties to `IvyPublication` and `IvyModuleDescriptor`. Add `status` property to `IvyModuleDescriptor`.
 4. Change `ivy.xml` generation to use these properties.
@@ -328,7 +332,6 @@ This step will allow some basic customisation of the meta data model for each pu
    for a project dependencies, over the existing candidate identifiers.
 6. Change the `pom.xml` generation to prefer the (groupId, artifactId, version) identifier of the `MavenPublication` instance from the target project
    for project dependencies, over the existing candidate identifiers.
-7. Warn when multiple publications across all projects have the same identifier.
 
 To customise the `pom.xml`:
 
@@ -337,10 +340,13 @@ To customise the `pom.xml`:
     publishing {
         repositories.maven { ... }
 
-        publications.withType(MavenPublication) {
-            groupId 'my-maven-group'
-            artifactId 'my-artifact-id'
-            version '1.2'
+        publications {
+            maven(MavenPublication) {
+                groupId 'my-maven-group'
+                artifactId 'my-artifact-id'
+                version '1.2'
+                pom.packaging 'war'
+            }
         }
     }
 
@@ -354,10 +360,12 @@ To customise the `ivy.xml`:
     publishing {
         repositories.ivy { ... }
 
-        publications.ivy(IvyPublication) {
-            organisation 'my-organisation'
-            module 'my-module'
-            revision '1.2'
+        publications {
+            ivy(IvyPublication) {
+                organisation 'my-organisation'
+                module 'my-module'
+                revision '1.2'
+            }
         }
     }
 
@@ -390,48 +398,6 @@ And:
     4. Publish both projects to a Maven repository.
     5. Assert that another build can resolve project-A from this Maven repository.
 
-## Add general purpose polymorphic domain object container
-
-1. Move `PublicationContainer.add()` up to `DomainObjectContainer`
-    - Need to sync up API with `NamedDomainObjectContainer`.
-    - Need to sync up API with `TaskContainer`.
-    - Need to sync up API with `SourceSetContainer`, `ConfigurationContainer`.
-2. Default factory decorates instances when added and applies dependency injection via @Inject.
-3. Allow a type -> implementation type mapping to be declared.
-4. Remove `GroovyPublicationContainer`.
-6. Possibly allow configure-by-map dynamic add methods.
-
-## Fix POM generation issues
-
-* excludes on configuration.
-* dynamic versions.
-* wildcard excludes.
-
-## Warn when no repository of the appropriate type has been specified
-
-TBD
-
-## Web application is published with runtime dependencies
-
-Provided dependencies should be included in the generated POM.
-
-## Allow further types of components to be published
-
-* Publishing Ear project -> only runtime dependencies should be included.
-* Publishing C++ Exe project -> only runtime dependencies should be included.
-* Publishing C++ Lib project -> only runtime and headers dependencies should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
-* Fix No pom published when using 'cpp-lib' plugin, due to no main artifact.
-
-### Test cases
-
-* Copy existing Maven publication tests for non-java projects and rework to use `maven-publish` plugin.
-
-## Some fixes
-
-* Publishing to Ivy currently uses archivesBaseName for archive names.
-* Honour changes to the {organisation, module, revision} made by an ivy.xml XML hook
-* Honour changes to the {group, artifact, version} made by a pom.xml XML hook
-
 ## Allow outgoing dependencies to be customised
 
 This step decouples the incoming and outgoing dependencies, to allow each publication to include a different set of dependencies:
@@ -443,14 +409,14 @@ This step decouples the incoming and outgoing dependencies, to allow each public
     * `type`
     * `optional`
     * `scope`
-2. Add a `MavenDependencySet` concept. This is a collection of things that can be converted into `MavenDependency` instances.
+2. Add a `MavenDependencySet` concept. This is a collection of `MavenDependency` instances.
 3. Add a `MavenDependencySet` to `MavenPublication`.
 4. Add an `IvyDependency` interface, with the following properties:
     * `organisation`
     * `module`
     * `revision`
     * `confMapping`
-5. Add an `IvyDependencySet` concept. This is a collection of things that can be converted into `IvyDependency` instances.
+5. Add an `IvyDependencySet` concept. This is a collection of `IvyDependency` instances.
 6. Add an `IvyDependencySet` to `IvyPublication`.
 
 To add dependencies to a Maven publication:
@@ -477,10 +443,8 @@ To replace dependencies in a Maven publication:
         publications {
             maven(MavenPublication) {
                 dependencies = [
-                    dependency("other-group:other-artifact:1.0", {
-                        scope "something"
-                    }),
-                    dependency(groupId: "some-group", artifactId: "some-artifact", version: "1.4", scope: "any-scope")
+                    "other-group:other-artifact:1.0",
+                    {groupId: "some-group", artifactId: "some-artifact", version: "1.4", scope: "any-scope"}
                 ]
             }
         }
@@ -519,13 +483,7 @@ To replace dependencies in an Ivy publication:
                     ...
                 }
                 dependencies = [
-                    dependency({
-                        organisation "some-org"
-                        module "some-module"
-                        revision "1.1"
-                        // use empty confMapping value
-                    }),
-                    dependency("some-org:some-group:1.0:confMapping")
+                    "some-org:some-group:1.0:confMapping"
                 ]
             }
         }
@@ -537,6 +495,42 @@ The 'dependency' creation method will accept the following forms of input:
 * A configuration closure to specify values for created dependency
 * Either of the first 2, together with a configuration closure that permits further configuration (like adding scope/conf)
 * A map that is treated as per the configuration closure.
+
+## Add general purpose polymorphic domain object container
+
+1. Move `PublicationContainer.add()` up to `DomainObjectContainer`
+    - Need to sync up API with `NamedDomainObjectContainer`.
+    - Need to sync up API with `TaskContainer`.
+    - Need to sync up API with `SourceSetContainer`, `ConfigurationContainer`.
+2. Default factory decorates instances when added and applies dependency injection via @Inject.
+3. Allow a type -> implementation type mapping to be declared.
+4. Remove `GroovyPublicationContainer`.
+6. Possibly allow configure-by-map dynamic add methods.
+
+## Fix POM generation issues
+
+* excludes on configuration.
+* dynamic versions.
+* wildcard excludes.
+
+## Warn when no repository of the appropriate type has been specified
+
+TBD
+
+## Web application is published with runtime dependencies
+
+Provided dependencies should be included in the generated POM and ivy.xml
+
+## Allow further types of components to be published
+
+* Publishing Ear project -> runtime dependencies should be included.
+* Publishing C++ Exe project -> runtime dependencies should be included.
+* Publishing C++ Lib project -> runtime and headers dependencies should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
+* Fix No pom published when using 'cpp-lib' plugin, due to no main artifact.
+
+### Test cases
+
+* Copy existing Maven publication tests for non-java projects and rework to use `maven-publish` plugin.
 
 ## Can attach multiple components to a publication
 
