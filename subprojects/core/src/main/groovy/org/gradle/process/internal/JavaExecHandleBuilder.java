@@ -63,11 +63,15 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     public void setJvmArgs(Iterable<?> arguments) {
-        javaOptions.setJvmArgs(arguments);
+        if (arguments != null) {
+            javaOptions.setJvmArgs(arguments);
+        }
     }
 
     public JavaExecHandleBuilder jvmArgs(Iterable<?> arguments) {
-        javaOptions.jvmArgs(arguments);
+        if (arguments != null) {
+            javaOptions.jvmArgs(arguments);
+        }
         return this;
     }
 

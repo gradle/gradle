@@ -37,7 +37,7 @@ class ApplicationPluginConvention {
     /**
      * Array of string arguments to pass to the JVM when running the application
      */
-    Iterable<String> defaultJvmOpts
+    Iterable<String> defaultJvmOpts = []
 
     /**
      * <p>The specification of the contents of the distribution.</p>
