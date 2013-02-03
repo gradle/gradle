@@ -143,46 +143,44 @@ public class JvmOptions {
     }
 
     public void jvmArgs(Iterable<?> arguments) {
-        if (arguments != null) {
-            for (Object argument : arguments) {
-                String argStr = argument.toString();
+        for (Object argument : arguments) {
+            String argStr = argument.toString();
 
-                Matcher matcher = SYS_PROP_PATTERN.matcher(argStr);
-                if (matcher.matches()) {
-                    systemProperty(matcher.group(1), matcher.group(2));
-                    continue;
-                }
-                matcher = NO_ARG_SYS_PROP_PATTERN.matcher(argStr);
-                if (matcher.matches()) {
-                    systemProperty(matcher.group(1), "");
-                    continue;
-                }
-                matcher = MIN_HEAP_PATTERN.matcher(argStr);
-                if (matcher.matches()) {
-                    minHeapSize = matcher.group(1);
-                    continue;
-                }
-                matcher = MAX_HEAP_PATTERN.matcher(argStr);
-                if (matcher.matches()) {
-                    maxHeapSize = matcher.group(1);
-                    continue;
-                }
-                matcher = BOOTSTRAP_PATTERN.matcher(argStr);
-                if (matcher.matches()) {
-                    setBootstrapClasspath((Object[])matcher.group(1).split(Pattern.quote(File.pathSeparator)));
-                    continue;
-                }
-                if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
-                    assertionsEnabled = true;
-                    continue;
-                }
-                if (argStr.equals("-da") || argStr.equals("-disableassertions")) {
-                    assertionsEnabled = false;
-                    continue;
-                }
-
-                extraJvmArgs.add(argument);
+            Matcher matcher = SYS_PROP_PATTERN.matcher(argStr);
+            if (matcher.matches()) {
+                systemProperty(matcher.group(1), matcher.group(2));
+                continue;
             }
+            matcher = NO_ARG_SYS_PROP_PATTERN.matcher(argStr);
+            if (matcher.matches()) {
+                systemProperty(matcher.group(1), "");
+                continue;
+            }
+            matcher = MIN_HEAP_PATTERN.matcher(argStr);
+            if (matcher.matches()) {
+                minHeapSize = matcher.group(1);
+                continue;
+            }
+            matcher = MAX_HEAP_PATTERN.matcher(argStr);
+            if (matcher.matches()) {
+                maxHeapSize = matcher.group(1);
+                continue;
+            }
+            matcher = BOOTSTRAP_PATTERN.matcher(argStr);
+            if (matcher.matches()) {
+                setBootstrapClasspath((Object[])matcher.group(1).split(Pattern.quote(File.pathSeparator)));
+                continue;
+            }
+            if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
+                assertionsEnabled = true;
+                continue;
+            }
+            if (argStr.equals("-da") || argStr.equals("-disableassertions")) {
+                assertionsEnabled = false;
+                continue;
+            }
+
+            extraJvmArgs.add(argument);
         }
 
         boolean xdebugFound = false;

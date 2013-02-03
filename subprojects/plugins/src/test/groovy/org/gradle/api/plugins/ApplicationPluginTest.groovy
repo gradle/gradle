@@ -41,7 +41,7 @@ class ApplicationPluginTest extends Specification {
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null
-        project.defaultJvmOpts == null
+        project.defaultJvmOpts == []
         project.applicationDistribution instanceof CopySpec
     }
 
@@ -65,7 +65,7 @@ class ApplicationPluginTest extends Specification {
         task instanceof CreateStartScripts
         task.applicationName == project.applicationName
         task.outputDir == project.file('build/scripts')
-        task.defaultJvmOpts == null
+        task.defaultJvmOpts == []
     }
 
     public void "adds installApp task to project with default target"() {
