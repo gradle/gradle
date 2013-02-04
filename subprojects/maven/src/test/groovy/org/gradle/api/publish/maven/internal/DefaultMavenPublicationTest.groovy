@@ -275,7 +275,7 @@ public class DefaultMavenPublicationTest extends Specification {
 
         then:
         def t = thrown InvalidMavenPublicationException
-        t.message == "Cannot determine main artifact: multiple artifacts found with empty classifier."
+        t.message == "Cannot determine main artifact for maven publication 'pub-name': multiple artifacts found with empty classifier."
     }
 
 
@@ -304,7 +304,7 @@ public class DefaultMavenPublicationTest extends Specification {
 
         then:
         def t = thrown InvalidMavenPublicationException
-        t.message == "Cannot publish 2 artifacts with the identical extension 'ext1' and classifier 'classified'."
+        t.message == "Cannot publish maven publication 'pub-name': multiple artifacts with the identical extension 'ext1' and classifier 'classified'."
     }
 
     @Unroll
@@ -323,7 +323,7 @@ public class DefaultMavenPublicationTest extends Specification {
 
         then:
         def t = thrown InvalidMavenPublicationException
-        t.message == "Attempted to publish an artifact file that ${message}: '${theFile}'"
+        t.message == "Cannot publish maven publication 'pub-name': artifact file ${message}: '${theFile}'"
 
         where:
         theFile                                                         | message

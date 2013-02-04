@@ -121,7 +121,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
-        MavenNormalizedPublication mavenNormalizedPublication = new MavenNormalizedPublication(getPomFile(), getMainArtifact(), getAdditionalArtifacts());
+        MavenNormalizedPublication mavenNormalizedPublication = new MavenNormalizedPublication(name, getPomFile(), getMainArtifact(), getAdditionalArtifacts());
         mavenNormalizedPublication.validateArtifacts();
         return mavenNormalizedPublication;
     }
@@ -136,7 +136,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             return null;
         }
         if (candidateMainArtifacts.size() > 1) {
-            throw new InvalidMavenPublicationException("Cannot determine main artifact: multiple artifacts found with empty classifier.");
+            throw new InvalidMavenPublicationException(String.format("Cannot determine main artifact for maven publication '%s': multiple artifacts found with empty classifier.", name));
         }
         return candidateMainArtifacts.iterator().next();
     }
@@ -151,8 +151,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
             MavenArtifactKey key = new MavenArtifactKey(artifact);
             if (keys.contains(key)) {
-                throw new InvalidMavenPublicationException(String.format("Cannot publish 2 artifacts with the identical extension '%s' and classifier '%s'.",
-                        artifact.getExtension(), artifact.getClassifier()));
+                throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': multiple artifacts with the identical extension '%s' and classifier '%s'.",
+                        name, artifact.getExtension(), artifact.getClassifier()));
             }
             keys.add(key);
             additionalArtifacts.add(artifact);

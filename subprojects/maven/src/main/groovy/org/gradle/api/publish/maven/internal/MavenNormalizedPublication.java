@@ -24,11 +24,13 @@ import java.util.Set;
 
 public class MavenNormalizedPublication {
 
+    private final String name;
     private final File pomFile;
     private final MavenArtifact mainArtifact;
     private final Set<MavenArtifact> additionalArtifacts;
 
-    public MavenNormalizedPublication(File pomFile, MavenArtifact mainArtifact, Set<MavenArtifact> additionalArtifacts) {
+    public MavenNormalizedPublication(String name, File pomFile, MavenArtifact mainArtifact, Set<MavenArtifact> additionalArtifacts) {
+        this.name = name;
         this.pomFile = pomFile;
         this.mainArtifact = mainArtifact;
         this.additionalArtifacts = additionalArtifacts;
@@ -58,10 +60,10 @@ public class MavenNormalizedPublication {
     private void checkCanPublish(MavenArtifact artifact) {
         File artifactFile = artifact.getFile();
         if (artifactFile == null || !artifactFile.exists()) {
-            throw new InvalidMavenPublicationException(String.format("Attempted to publish an artifact file that does not exist: '%s'", artifactFile));
+            throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': artifact file does not exist: '%s'", name, artifactFile));
         }
         if (artifactFile.isDirectory()) {
-            throw new InvalidMavenPublicationException(String.format("Attempted to publish an artifact file that is a directory: '%s'", artifactFile));
+            throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': artifact file is a directory: '%s'", name, artifactFile));
         }
     }
 
