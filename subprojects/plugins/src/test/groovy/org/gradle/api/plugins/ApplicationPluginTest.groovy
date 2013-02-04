@@ -41,7 +41,7 @@ class ApplicationPluginTest extends Specification {
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null
-        project.defaultJvmOpts == []
+        project.applicationDefaultJvmArgs == []
         project.applicationDistribution instanceof CopySpec
     }
 
@@ -134,20 +134,20 @@ class ApplicationPluginTest extends Specification {
         startScripts.mainClassName == "Acme"
     }
 
-    public void "defaultJvmOpts in project delegates to jvmArgs in run task"() {
+    public void "applicationDefaultJvmArgs in project delegates to jvmArgs in run task"() {
         when:
         plugin.apply(project)
-        project.defaultJvmOpts = ['-Dfoo=bar', '-Xmx500m']
+        project.applicationDefaultJvmArgs = ['-Dfoo=bar', '-Xmx500m']
 
         then:
         def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
         run.jvmArgs == ['-Dfoo=bar', '-Xmx500m']
     }
 
-    public void "defaultJvmOpts in project delegates to defaultJvmOpts in startScripts task"() {
+    public void "applicationDefaultJvmArgs in project delegates to defaultJvmOpts in startScripts task"() {
         when:
         plugin.apply(project);
-        project.defaultJvmOpts = ['-Dfoo=bar', '-Xmx500m']
+        project.applicationDefaultJvmArgs = ['-Dfoo=bar', '-Xmx500m']
 
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
