@@ -62,7 +62,7 @@
         </varlistentry>
         <varlistentry>
             <term>
-                <option>--configure-on-demand</option>
+                <option>--configure-on-demand (incubating)</option>
             </term>
             <listitem>
                 <para>Only relevant projects are configured in this build run. This means faster builds for large multi-projects.
@@ -166,7 +166,7 @@
         </varlistentry>
         <varlistentry>
             <term>
-                <option>--parallel</option>
+                <option>--parallel (incubating)</option>
             </term>
             <listitem>
                 <para>
@@ -177,7 +177,7 @@
         </varlistentry>
         <varlistentry>
             <term>
-                <option>--parallel-threads</option>
+                <option>--parallel-threads (incubating)</option>
             </term>
             <listitem>
                 <para>

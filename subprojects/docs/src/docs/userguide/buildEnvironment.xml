@@ -61,7 +61,7 @@
             </varlistentry>
             <varlistentry>
                 <term><literal>org.gradle.configureondemand</literal></term>
-                <listitem><para>Makes Gradle selective when configuring projects.
+                <listitem><para>Enables new incubating mode that makes Gradle selective when configuring projects.
                     Only relevant projects are configured which results in faster builds for large multi-projects.
                     See <xref linkend="sec:configuration_on_demand"/>.</para>
                 </listitem>
