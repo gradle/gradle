@@ -290,10 +290,6 @@ public class DependencyGraphBuilder {
             if (targetModuleRevision == null) {
                 selector = resolveState.getSelector(dependencyDescriptor, dependencyDescriptor.getDependencyRevisionId());
                 targetModuleRevision = selector.resolveModuleRevisionId();
-                if (targetModuleRevision != null && !targetModuleRevision.id.getModuleId().equals(dependencyDescriptor.getDependencyId())) {
-                    //the target module details were substituted when resolving ID, recreate the selector:
-                    selector = resolveState.getSelector(dependencyDescriptor, targetModuleRevision.id);
-                }
                 selector.module.addUnattachedDependency(this);
             }
         }
@@ -884,7 +880,7 @@ public class DependencyGraphBuilder {
         final DependencyDescriptor descriptor;
         final DependencyToModuleVersionIdResolver resolver;
         final ResolveState resolveState;
-        final ModuleResolveState module;
+        ModuleResolveState module;
         ModuleVersionResolveException failure;
         ModuleVersionSelectionReason idSelectionReason;
         DefaultModuleRevisionResolveState targetModuleRevision;
@@ -924,6 +920,10 @@ public class DependencyGraphBuilder {
             targetModuleRevision = resolveState.getRevision(idResolveResult.getId());
             targetModuleRevision.addResolver(this);
             targetModuleRevision.selectionReason = idResolveResult.getSelectionReason();
+
+            //the target module details might have been substituted / forced when resolving ID
+            //so update the module:
+            this.module = targetModuleRevision.module;
 
             return targetModuleRevision;
         }
