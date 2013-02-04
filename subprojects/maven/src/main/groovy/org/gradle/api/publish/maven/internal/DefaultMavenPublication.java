@@ -56,7 +56,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     ) {
         this.name = name;
         this.projectIdentity = new PublicationProjectIdentity(module);
-        mavenArtifacts = new DefaultMavenArtifactSet(name, mavenArtifactParser);
+        mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
     }
 
