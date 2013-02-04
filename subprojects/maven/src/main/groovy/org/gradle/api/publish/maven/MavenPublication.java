@@ -138,6 +138,8 @@ public interface MavenPublication extends Publication {
      *          Extension and classifier values are interpolated from the file name.</li>
      *     <li>A {@link java.util.Map} that contains a 'file' entry that can be resolved to a {@link java.io.File}. The artifact is constructed as per the file input.
      *         This map can contain a 'classifier' and an 'extension' entry to further configure the constructed artifact.</li>
+     *     <li>A {@link java.util.Map} that contains a 'source' entry that can be resolved as any of the previous input.
+     *         This map can contain a 'classifier' and an 'extension' entry to further configure the constructed artifact.</li>
      * </ul>
      *
      * The following example demonstrates the addition of various custom artifacts.
@@ -154,6 +156,7 @@ public interface MavenPublication extends Publication {
      *       artifact sourceJar // Publish the output of the sourceJar task
      *       artifact 'my-file-name.jar' // Publish a file created outside of the build
      *       artifact file: 'my-docs-file.htm', classifier: 'docs', extension: 'html' // Publish a file with specified classifier & extension
+     *       artifact source: sourceJar, classifier: 'src', extension: 'zip'
      *     }
      *   }
      * }

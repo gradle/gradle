@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Module;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -44,12 +46,25 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
         this.instantiator = instantiator;
         this.module = module;
         FileNotationParser fileNotationParser = new FileNotationParser(project);
+        ArchiveTaskNotationParser archiveTaskNotationParser = new ArchiveTaskNotationParser();
+        PublishArtifactNotationParser publishArtifactNotationParser = new PublishArtifactNotationParser();
+
+        NotationParser<MavenArtifact> sourceNotationParser = new NotationParserBuilder<MavenArtifact>()
+                .resultingType(MavenArtifact.class)
+                .parser(archiveTaskNotationParser)
+                .parser(publishArtifactNotationParser)
+                .parser(fileNotationParser)
+                .toComposite();
+
+        MavenArtifactMapNotationParser mavenArtifactMapNotationParser = new MavenArtifactMapNotationParser(sourceNotationParser, fileNotationParser);
+
         NotationParserBuilder<MavenArtifact> parserBuilder = new NotationParserBuilder<MavenArtifact>()
                 .resultingType(MavenArtifact.class)
-                .parser(new ArchiveTaskNotationParser())
-                .parser(new PublishArtifactNotationParser())
-                .parser(new FileMapNotationParser(fileNotationParser))
+                .parser(archiveTaskNotationParser)
+                .parser(publishArtifactNotationParser)
+                .parser(mavenArtifactMapNotationParser)
                 .parser(fileNotationParser);
+
         delegate = parserBuilder.toComposite();
     }
 
@@ -72,6 +87,26 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
         }
     }
 
+    private class MavenArtifactMapNotationParser extends MapNotationParser<MavenArtifact> {
+        private final NotationParser<MavenArtifact> sourceNotationParser;
+        private final NotationParser<MavenArtifact> fileNotationParser;
+
+        private MavenArtifactMapNotationParser(NotationParser<MavenArtifact> sourceNotationParser, NotationParser<MavenArtifact> fileNotationParser) {
+            this.sourceNotationParser = sourceNotationParser;
+            this.fileNotationParser = fileNotationParser;
+        }
+
+        protected MavenArtifact parseMap(@MapKey("source") @Optional Object source, @MapKey("file") @Optional Object file) {
+            if (source != null && file == null) {
+                return sourceNotationParser.parseNotation(source);
+            }
+            if (file != null && source == null) {
+                return fileNotationParser.parseNotation(file);
+            }
+            throw new InvalidUserDataException("Must supply exactly one of the following keys: [source, file]");
+        }
+    }
+
     private class PublishArtifactNotationParser extends TypedNotationParser<PublishArtifact, MavenArtifact> {
         private PublishArtifactNotationParser() {
             super(PublishArtifact.class);
@@ -80,18 +115,6 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
         @Override
         protected MavenArtifact parseType(PublishArtifact notation) {
             return instantiator.newInstance(PublishArtifactMavenArtifact.class, notation);
-        }
-    }
-
-    private class FileMapNotationParser extends MapNotationParser<MavenArtifact> {
-        private final FileNotationParser fileParser;
-
-        private FileMapNotationParser(FileNotationParser fileParser) {
-            this.fileParser = fileParser;
-        }
-
-        protected MavenArtifact parseMap(@MapKey("file") Object file) {
-            return fileParser.parseNotation(file);
         }
     }
 
