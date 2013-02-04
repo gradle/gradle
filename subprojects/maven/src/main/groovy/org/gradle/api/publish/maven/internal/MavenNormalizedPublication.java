@@ -48,16 +48,20 @@ public class MavenNormalizedPublication {
 
     public void validateArtifacts() {
         if (mainArtifact != null) {
-            checkExists(mainArtifact);
+            checkCanPublish(mainArtifact);
         }
         for (MavenArtifact artifact : additionalArtifacts) {
-            checkExists(artifact);
+            checkCanPublish(artifact);
         }
     }
 
-    private void checkExists(MavenArtifact artifact) {
-        if (artifact.getFile() == null || !artifact.getFile().exists()) {
-            throw new InvalidMavenPublicationException(String.format("Attempted to publish an artifact that does not exist: '%s'", artifact.getFile()));
+    private void checkCanPublish(MavenArtifact artifact) {
+        File artifactFile = artifact.getFile();
+        if (artifactFile == null || !artifactFile.exists()) {
+            throw new InvalidMavenPublicationException(String.format("Attempted to publish an artifact file that does not exist: '%s'", artifactFile));
+        }
+        if (artifactFile.isDirectory()) {
+            throw new InvalidMavenPublicationException(String.format("Attempted to publish an artifact file that is a directory: '%s'", artifactFile));
         }
     }
 

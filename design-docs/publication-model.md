@@ -190,7 +190,13 @@ The 'artifact' creation method will accept the following forms of input:
 * Verify that `archivesBaseName` does not affect the published artifact names.
 * Publish with java component. Verify that the publishing DSL can be used to update the classifier & exension of artifact taken from component.
     * `publishing.publications.myLib.mainArtifact.classifier = 'custom'`
-
+* Verify that cannot publish in the following cases:
+    * artifact whose file does not exist
+    * artifact whose file is a directory
+    * multiple artifacts have the same (extension, classifier)
+* Verify can publish with empty classifier and/or extension
+* Verify can publish artifacts with non-ascii extension and classifier
+    
 ## Allow Maven POM to be generated without publishing to a repository
 
 In this step, the POM generation for a publication is moved out of the `publish` tasks and into a separate task.

@@ -67,7 +67,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         module.parsedPom.scopes.runtime.assertDependsOn("junit", "junit", "4.11")
     }
 
-    def "pom can contain non-ascii characters"() {
+    def "pom and artifacts can contain non-ascii characters"() {
         // Group and Artifact are restricted to [A-Za-z0-9_\\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
         def groupId = 'group'
         def artifactId = 'artifact'
@@ -75,8 +75,11 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         // Try version & description with non-ascii characters
         def version = 'version-₦ガき∆'
         def description = 'description-ç√∫'
+        def extension = 'ext-₦ガき∆'
+        def classifier = 'class-₦ガき∆'
 
         given:
+        file("content-file") << "some content"
         settingsFile << "rootProject.name = '${artifactId}'"
         buildFile << """
             apply plugin: 'maven-publish'
@@ -95,6 +98,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                         pom.withXml {
                             asNode().appendNode('description', "${description}")
                         }
+                        artifact file: "content-file", extension: "${extension}", classifier: "${classifier}"
                     }
                 }
             }
@@ -104,8 +108,10 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
 
         then:
         def module = mavenRepo.module(groupId, artifactId, version)
-        module.assertPublishedAsJavaModule()
+        module.assertPublished()
         module.parsedPom.description == description
+
+        module.assertArtifactsPublished("${artifactId}-${version}.pom", "${artifactId}-${version}.jar", "${artifactId}-${version}-${classifier}.${extension}")
     }
 
     def "can generate pom file without publishing"() {

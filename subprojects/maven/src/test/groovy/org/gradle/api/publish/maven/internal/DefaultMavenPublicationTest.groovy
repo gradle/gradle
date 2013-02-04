@@ -28,21 +28,24 @@ import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 public class DefaultMavenPublicationTest extends Specification {
-    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Module module = Mock()
     NotationParser<MavenArtifact> notationParser = Mock()
-    File pomDir
-    File pomFile
+    TestFile pomDir
+    TestFile pomFile
     File artifactFile
 
     def "setup"() {
         pomDir = testDirectoryProvider.testDirectory
-        pomFile = new File(testDirectoryProvider.testDirectory, "pom-file")
-        artifactFile = new File(testDirectoryProvider.testDirectory, "artifact-file")
+        pomFile = pomDir.createFile("pom-file")
+        artifactFile = pomDir.createFile("artifact-file")
         artifactFile << "some content"
     }
 
@@ -289,23 +292,28 @@ public class DefaultMavenPublicationTest extends Specification {
         t.message == "Cannot publish 2 artifacts with the identical extension 'ext1' and classifier 'classified'."
     }
 
-    def "getting normalised publication will fail with file that does not exist"() {
+    @Unroll
+    def "cannot publish with file that #message"() {
         def publication = createPublication()
         Object notation = new Object();
         MavenArtifact mavenArtifact = Mock()
-        def nonExistentFile = new File(pomDir, 'does-not-exist')
 
         when:
+        notationParser.parseNotation(notation) >> mavenArtifact
+        mavenArtifact.file >> theFile
+
+        and:
         publication.artifact notation
         publication.asNormalisedPublication()
 
         then:
-        notationParser.parseNotation(notation) >> mavenArtifact
-        mavenArtifact.file >> nonExistentFile
-
-        and:
         def t = thrown InvalidMavenPublicationException
-        t.message == "Attempted to publish an artifact that does not exist: '${nonExistentFile}'"
+        t.message == "Attempted to publish an artifact file that ${message}: '${theFile}'"
+
+        where:
+        theFile                                                         | message
+        new File(testDirectoryProvider.testDirectory, 'does-not-exist') | 'does not exist'
+        testDirectoryProvider.testDirectory.createDir('sub_directory')  | 'is a directory'
     }
 
     def createPublication() {

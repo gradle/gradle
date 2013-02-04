@@ -160,6 +160,26 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-classifier")
     }
 
+    def "reports failure publishing when validation fails"() {
+        given:
+        file("a-directory").createDir()
+
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    artifact "a-directory"
+                }
+            }
+""")
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':publishMavenCustomPublicationToMavenRepository'.")
+        failure.assertHasCause("Failed to publish publication 'mavenCustom' to repository 'maven'")
+        failure.assertHasCause("Attempted to publish an artifact file that is a directory")
+    }
+
     private createBuildScripts(def publications, def append = "") {
         settingsFile << "rootProject.name = 'projectText'"
         buildFile << """
