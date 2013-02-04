@@ -89,6 +89,13 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         fixture.assertProjectsConfigured(":", ":api")
 
         when:
+        inDirectory("impl")
+        run(":api:build")
+
+        then:
+        fixture.assertProjectsConfigured(":", ":api")
+
+        when:
         run(":impl:build")
 
         then:
