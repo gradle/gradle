@@ -52,10 +52,11 @@ TBD
 
 ## Project owner toggles daemon, parallel execution and configure-on-demand for a build in a consistent way
 
-- can enable each of these in ~/.gradle/gradle.properties.
-- can enable each of these in $projectDir/gradle.properties.
-- can enable each of these using a system property.
 - can enable each of these using a command-line option.
+- can enable each of these using a system property (e.g. -Dxxx=foo)
+- can enable via GRADLE_OPTS=-Dxxx=foo
+- can enable each of these in $rootDir/gradle.properties
+- can enable each of these in ~/.gradle/gradle.properties
 
 ### User visible changes
 
@@ -64,7 +65,6 @@ TBD
 
 ### Consider other changes for consistency:
 
-- add `daemonEnabled` property to StartParameter
 - add `--no-configure-on-demand` command line option
 - add `--no-parallel` command line option
 - consider `--parallel=false` or `--configure-on-demand=false` to avoid proliferation of command line options (not sure if I like this idea)
