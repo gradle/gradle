@@ -125,7 +125,7 @@ How do we want to tackle this problem?
  Document that this approach is one of the couplings not supported by the COD mode.
 2. make it possible to declare that task needs project(s), for example via some input annotation.
  This way, the new Gradle model (or COD mode) may know when to make the required projects evaluated.
-3. ?
+3.  ?
 
 ## Allow project dependencies in build script classpath
 
