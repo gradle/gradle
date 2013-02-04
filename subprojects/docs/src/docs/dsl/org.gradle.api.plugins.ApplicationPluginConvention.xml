@@ -16,7 +16,7 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
-                <td>defaultJvmOpts</td>
+                <td>applicationDefaultJvmArgs</td>
                 <td><literal>[]</literal></td>
             </tr>
             <tr>

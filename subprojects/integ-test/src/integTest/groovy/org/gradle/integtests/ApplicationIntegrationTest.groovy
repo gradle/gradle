@@ -67,12 +67,12 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canUseDefaultJvmOptsToPassMultipleOptionsToJvmWhenRunningScript() {
+    def canUseDefaultJvmArgsToPassMultipleOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
 applicationName = 'application'
-defaultJvmOpts = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
+applicationDefaultJvmArgs = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
 '''
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -105,12 +105,12 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canUseBothDefaulJvmOptsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
+    def canUseBothDefaulJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
 applicationName = 'application'
-defaultJvmOpts = ['-Dvar1=value1', '-Dvar2=some value2']
+applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=some value2']
 '''
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -144,16 +144,16 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canUseDefaultJvmOptsToPassMultipleOptionsWithShellMetacharactersToJvmWhenRunningScript() {
+    def canUseDefaultJvmArgsToPassMultipleOptionsWithShellMetacharactersToJvmWhenRunningScript() {
         //even in single-quoted multi-line strings, backslashes must still be quoted
         file("build.gradle") << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
 applicationName = 'application'
-defaultJvmOpts = ['-DtestValue=value',
-                  /-DtestValue2=s\\o"me val'ue/ + '$PATH',
-                  /-DtestValue3=so\\"me value%PATH%/,
-                 ]
+applicationDefaultJvmArgs = ['-DtestValue=value',
+                             /-DtestValue2=s\\o"me val'ue/ + '$PATH',
+                             /-DtestValue3=so\\"me value%PATH%/,
+                            ]
 '''
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
