@@ -372,4 +372,20 @@
             invocations, reusing the same Scala compiler. This is expected to yield another significant speedup for Scala compilation.
         </para>
     </section>
+
+    <section>
+        <title>Eclipse Integration</title>
+        <para>
+            When the Eclipse plugin encounters a Scala project, it adds additional configuration to make the project work with Scala IDE out of the box.
+            Specifically, the plugin adds a Scala nature and dependency container.
+        </para>
+    </section>
+
+    <section>
+        <title>IntelliJ IDEA Integration</title>
+        <para>
+            When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically,
+            the plugin adds a Scala facet and a Scala compiler library that matches the Scala version on the project's class path.
+        </para>
+    </section>
 </chapter>
