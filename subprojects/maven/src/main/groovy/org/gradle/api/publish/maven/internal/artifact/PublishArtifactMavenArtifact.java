@@ -15,14 +15,13 @@
  */
 package org.gradle.api.publish.maven.internal.artifact;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 
-public class PublishArtifactMavenArtifact extends ConfigurableMavenArtifact implements MavenArtifact, Buildable {
+public class PublishArtifactMavenArtifact extends ConfigurableMavenArtifact implements MavenArtifact {
     private final PublishArtifact delegate;
 
     public PublishArtifactMavenArtifact(PublishArtifact delegate) {
@@ -39,6 +38,11 @@ public class PublishArtifactMavenArtifact extends ConfigurableMavenArtifact impl
 
     public File getFile() {
         return delegate.getFile();
+    }
+
+    @Override
+    public void builtBy(Object... tasks) {
+        throw new UnsupportedOperationException("Cannot set builtBy for MavenArtifact based on PublishArtifact. Set builtBy directly on PublishArtifact instead.");
     }
 
     public TaskDependency getBuildDependencies() {

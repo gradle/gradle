@@ -15,12 +15,16 @@
  */
 package org.gradle.api.publish.maven;
 
+import org.gradle.api.Buildable;
+import org.gradle.api.Incubating;
+
 import java.io.File;
 
 /**
  * An artifact published as part of a {@link MavenPublication}.
  */
-public interface MavenArtifact {
+@Incubating
+public interface MavenArtifact extends Buildable {
     /**
      * The extension used to publish the artifact file, never <code>null</code>.
      */
@@ -49,4 +53,11 @@ public interface MavenArtifact {
      * The actual file contents to publish.
      */
     File getFile();
+
+    /**
+     * Registers some tasks which build this artifact.
+     *
+     * @param tasks The tasks. These are evaluated as for {@link org.gradle.api.Task#dependsOn(Object...)}.
+     */
+    void builtBy(Object... tasks);
 }

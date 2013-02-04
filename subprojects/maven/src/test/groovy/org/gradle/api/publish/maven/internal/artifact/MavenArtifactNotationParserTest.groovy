@@ -17,6 +17,7 @@ package org.gradle.api.publish.maven.internal.artifact
 
 import org.gradle.api.Buildable
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.publish.maven.MavenArtifact
@@ -124,5 +125,23 @@ public class MavenArtifactNotationParserTest extends Specification {
         mavenArtifact.extension == "zip"
         mavenArtifact.classifier == "classifier"
         mavenArtifact.file == file
+    }
+
+    def "creates and configures MavenArtifact for file map notation"() {
+        given:
+        File file = new File('some-file-1.2-classifier.zip')
+        Task task = Mock()
+
+        when:
+        MavenArtifact mavenArtifact = parser.parseNotation(file: 'some-file', extension: "ext", classifier: "classy", builtBy: task)
+
+        then:
+        project.file('some-file') >> file
+
+        and:
+        mavenArtifact.file == file
+        mavenArtifact.extension == "ext"
+        mavenArtifact.classifier == "classy"
+        mavenArtifact.buildDependencies.getDependencies(Mock(Task)) == [task] as Set
     }
 }

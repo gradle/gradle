@@ -56,7 +56,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     ) {
         this.name = name;
         this.projectIdentity = new PublicationProjectIdentity(module);
-        mavenArtifacts = new DefaultMavenArtifactSet(mavenArtifactParser);
+        mavenArtifacts = new DefaultMavenArtifactSet(name, mavenArtifactParser);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
     }
 
@@ -85,6 +85,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         for (PublishArtifact publishArtifact : this.component.getArtifacts()) {
             artifact(publishArtifact);
         }
+
+        // TODO:DAZ Copy the entire DependencySet from the component at this point
     }
 
     public MavenArtifact artifact(Object source) {

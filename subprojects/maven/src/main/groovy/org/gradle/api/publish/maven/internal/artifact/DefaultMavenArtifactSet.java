@@ -16,7 +16,6 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.Action;
-import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -33,12 +32,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifact> implements MavenArtifactSet {
+    private final String publicationName;
     private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
     private final ArtifactsFileCollection files = new ArtifactsFileCollection();
     private final NotationParser<MavenArtifact> mavenArtifactParser;
 
-    public DefaultMavenArtifactSet(NotationParser<MavenArtifact> mavenArtifactParser) {
+    public DefaultMavenArtifactSet(String publicationName, NotationParser<MavenArtifact> mavenArtifactParser) {
         super(MavenArtifact.class);
+        this.publicationName = publicationName;
         this.mavenArtifactParser = mavenArtifactParser;
     }
 
@@ -61,7 +62,7 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     private class ArtifactsFileCollection extends AbstractFileCollection {
 
         public String getDisplayName() {
-            return "maven artifacts";
+            return String.format("artifacts for " + publicationName + " publication");
         }
 
         @Override
@@ -81,9 +82,7 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     private class ArtifactsTaskDependency extends AbstractTaskDependency {
         public void resolve(TaskDependencyResolveContext context) {
             for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
-                if (mavenArtifact instanceof Buildable) {
-                    context.add(mavenArtifact);
-                }
+                context.add(mavenArtifact);
             }
         }
     }

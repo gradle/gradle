@@ -15,9 +15,12 @@
  */
 package org.gradle.api.publish.maven.internal.artifact;
 
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.api.tasks.TaskDependency;
 
 abstract class ConfigurableMavenArtifact implements MavenArtifact {
+    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
     private String extension;
     private String classifier;
 
@@ -51,4 +54,11 @@ abstract class ConfigurableMavenArtifact implements MavenArtifact {
         return input;
     }
 
+    public void builtBy(Object... tasks) {
+        buildDependencies.add(tasks);
+    }
+
+    public TaskDependency getBuildDependencies() {
+        return buildDependencies;
+    }
 }

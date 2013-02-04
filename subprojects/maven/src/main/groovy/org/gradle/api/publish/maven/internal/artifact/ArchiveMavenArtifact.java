@@ -15,20 +15,17 @@
  */
 package org.gradle.api.publish.maven.internal.artifact;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import java.io.File;
 
-public class ArchiveMavenArtifact extends ConfigurableMavenArtifact implements MavenArtifact, Buildable {
+public class ArchiveMavenArtifact extends ConfigurableMavenArtifact implements MavenArtifact {
     private final AbstractArchiveTask delegate;
 
     public ArchiveMavenArtifact(AbstractArchiveTask delegate) {
         this.delegate = delegate;
+        builtBy(delegate);
     }
 
     public String getBaseExtension() {
@@ -42,13 +39,4 @@ public class ArchiveMavenArtifact extends ConfigurableMavenArtifact implements M
     public File getFile() {
         return delegate.getArchivePath();
     }
-
-    public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            public void resolve(TaskDependencyResolveContext context) {
-                context.add(delegate);
-            }
-        };
-    }
-
 }

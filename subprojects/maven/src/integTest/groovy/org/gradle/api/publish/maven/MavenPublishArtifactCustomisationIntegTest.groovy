@@ -30,6 +30,8 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
                     artifact customJar
                 }
             }
+""", """
+            publishMavenCustomPublicationToMavenRepository.dependsOn(customFileTask)
 """)
         when:
         succeeds 'publish'
@@ -50,6 +52,9 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
                     artifacts = ["customFile.txt", customFileTask.outputFile, customJar]
                 }
             }
+
+""", """
+            publishMavenCustomPublicationToMavenRepository.dependsOn(customFileTask)
 """)
         when:
         succeeds 'publish'
@@ -72,6 +77,7 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
                     artifact(customFileTask.outputFile) {
                         extension "htm"
                         classifier "documentation"
+                        builtBy customFileTask
                     }
                     artifact customJar {
                         classifier ""
@@ -96,8 +102,8 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
             publications {
                 mavenCustom(MavenPublication) {
                     artifact file: "customFile.txt", classifier: "output"
-                    artifact file: customFileTask.outputFile, extension: "htm", classifier: "documentation"
-                    artifact customJar { // TODO:DAZ Maybe we need a notation like "source: XXX, classifier: ''" :: The source value would allow anything that can be converted
+                    artifact file: customFileTask.outputFile, extension: "htm", classifier: "documentation", builtBy: customFileTask
+                    artifact customJar {
                         classifier ""
                         extension "war"
                     }
@@ -128,6 +134,7 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
             publishing.publications.mavenCustom.artifacts.each {
                 it.extension = "mod"
             }
+            publishMavenCustomPublicationToMavenRepository.dependsOn(customFileTask)
 """)
         when:
         succeeds 'publish'
@@ -209,8 +216,6 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
                 }
                 $publications
             }
-
-            publishMavenCustomPublicationToMavenRepository.dependsOn(customFileTask)
 
             $append
         """

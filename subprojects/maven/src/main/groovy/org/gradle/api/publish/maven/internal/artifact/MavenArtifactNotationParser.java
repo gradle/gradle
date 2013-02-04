@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
@@ -116,7 +117,7 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
 
         protected MavenArtifact parseFile(File file) {
             ArtifactFile artifactFile = new ArtifactFile(file, module);
-            return instantiator.newInstance(FileMavenArtifact.class, file, artifactFile.getExtension(), artifactFile.getClassifier());
+            return instantiator.newInstance(FileMavenArtifact.class, file, artifactFile.getExtension(), artifactFile.getClassifier(), new Task[0]);
         }
 
         public void describe(Collection<String> candidateFormats) {

@@ -17,6 +17,7 @@ package org.gradle.api.publish.maven.internal
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
@@ -26,6 +27,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -101,6 +103,7 @@ public class DefaultMavenPublicationTest extends Specification {
         SoftwareComponentInternal component = Mock()
         PublishArtifactSet publishArtifactSet = Mock()
         PublishArtifact artifact = Mock()
+        TaskDependency publishArtifactDependencies = Mock()
         DependencySet dependencySet = Mock()
 
         MavenArtifact mavenArtifact = Mock()
@@ -109,6 +112,7 @@ public class DefaultMavenPublicationTest extends Specification {
         component.artifacts >> publishArtifactSet
         publishArtifactSet.iterator() >> [artifact].iterator()
         component.runtimeDependencies >> dependencySet
+        dependencySet.iterator() >> [].iterator()
 
         notationParser.parseNotation(artifact) >> mavenArtifact
         mavenArtifact.file >> artifactFile
@@ -120,6 +124,14 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.publishableFiles.files == [pomFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
         publication.runtimeDependencies == dependencySet
+
+        when:
+        Task task = Mock()
+        mavenArtifact.buildDependencies >> publishArtifactDependencies
+        publishArtifactDependencies.getDependencies(task) >> [task]
+
+        then:
+        publication.publishableFiles.buildDependencies.getDependencies(task) == [task] as Set
     }
 
     def "cannot add multiple components"() {
@@ -127,6 +139,7 @@ public class DefaultMavenPublicationTest extends Specification {
         def publication = createPublication()
         SoftwareComponentInternal component = Mock()
         PublishArtifactSet publishArtifactSet = Mock()
+        DependencySet dependencySet = Mock()
 
         when:
         publication.from(component)
@@ -134,6 +147,8 @@ public class DefaultMavenPublicationTest extends Specification {
         then:
         component.artifacts >> publishArtifactSet
         publishArtifactSet.iterator() >> [].iterator()
+        component.runtimeDependencies >> dependencySet
+        dependencySet.iterator() >> [].iterator()
 
         when:
         publication.from(Mock(SoftwareComponentInternal))

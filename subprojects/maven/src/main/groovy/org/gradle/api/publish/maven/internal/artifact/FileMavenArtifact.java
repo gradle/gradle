@@ -24,10 +24,11 @@ public class FileMavenArtifact extends ConfigurableMavenArtifact implements Mave
     private String classifier;
     private File file;
 
-    public FileMavenArtifact(File file, String extension, String classifier) {
+    public FileMavenArtifact(File file, String extension, String classifier, Object... tasks) {
         this.extension = extension;
         this.classifier = classifier;
         this.file = file;
+        builtBy(tasks);
     }
 
     public String getBaseExtension() {
