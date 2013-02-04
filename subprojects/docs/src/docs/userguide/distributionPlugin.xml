@@ -18,7 +18,7 @@
     <title>The Distribution Plugin</title>
     <note>
         <para>
-            The distribution plugin is incubating and should not be considered stable.
+            The distribution plugin is incubating (see <xref linkend="sec:incubating_state"/>).
         </para>
     </note>
     <para>The distribution plugin extends the language plugins with common distribution related tasks.

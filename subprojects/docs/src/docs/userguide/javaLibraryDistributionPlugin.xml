@@ -2,7 +2,7 @@
     <title>The Java Library Distribution Plugin</title>
     <note>
         <para>
-            The Java library distribution plugin is incubating and should not be considered stable.
+            The Java library distribution plugin is incubating (see <xref linkend="sec:incubating_state"/>).
         </para>
     </note>
     <para>The Java library distribution plugin adds support for building a distribution ZIP for a Java library. The distribution contains the
