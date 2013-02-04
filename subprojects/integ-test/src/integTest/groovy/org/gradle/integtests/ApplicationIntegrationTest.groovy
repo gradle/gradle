@@ -96,7 +96,7 @@ class Main {
         run 'install'
 
         def builder = new ScriptExecuter()
-        builder.workingDir distribution.testDir.file('build/install/application/bin')
+        builder.workingDir file('build/install/application/bin')
         builder.executable "application"
 
         def result = builder.run()
@@ -134,7 +134,7 @@ class Main {
         run 'install'
 
         def builder = new ScriptExecuter()
-        builder.workingDir distribution.testDir.file('build/install/application/bin')
+        builder.workingDir file('build/install/application/bin')
         builder.executable "application"
         builder.environment('APPLICATION_OPTS', '-Dvar3=value3')
 
@@ -177,7 +177,7 @@ class Main {
         run 'install'
 
         def builder = new ScriptExecuter()
-        builder.workingDir distribution.testDir.file('build/install/application/bin')
+        builder.workingDir file('build/install/application/bin')
         builder.executable "application"
 
         def result = builder.run()
