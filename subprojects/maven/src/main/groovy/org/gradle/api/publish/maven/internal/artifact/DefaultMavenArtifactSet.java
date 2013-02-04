@@ -43,14 +43,14 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
         this.mavenArtifactParser = mavenArtifactParser;
     }
 
-    public MavenArtifact addArtifact(Object source) {
+    public MavenArtifact artifact(Object source) {
         MavenArtifact artifact = mavenArtifactParser.parseNotation(source);
         add(artifact);
         return artifact;
     }
 
-    public MavenArtifact addArtifact(Object source, Action<? super MavenArtifact> config) {
-        MavenArtifact artifact = addArtifact(source);
+    public MavenArtifact artifact(Object source, Action<? super MavenArtifact> config) {
+        MavenArtifact artifact = artifact(source);
         config.execute(artifact);
         return artifact;
     }
