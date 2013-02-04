@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.notations.NotationParserBuilder;
@@ -36,12 +35,12 @@ import java.util.Collection;
 
 public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, TopLevelNotationParser {
     private final Instantiator instantiator;
-    private final Module module;
+    private final String version;
     private final NotationParser<IvyArtifact> delegate;
 
-    public IvyArtifactNotationParser(Instantiator instantiator, Module module, Project project) {
+    public IvyArtifactNotationParser(Instantiator instantiator, String version, Project project) {
         this.instantiator = instantiator;
-        this.module = module;
+        this.version = version;
         FileNotationParser fileNotationParser = new FileNotationParser(project);
         NotationParserBuilder<IvyArtifact> parserBuilder = new NotationParserBuilder<IvyArtifact>()
                 .resultingType(IvyArtifact.class)
@@ -115,7 +114,7 @@ public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, T
         }
 
         protected IvyArtifact parseFile(File file) {
-            ArtifactFile artifactFile = new ArtifactFile(file, module);
+            ArtifactFile artifactFile = new ArtifactFile(file, version);
             return instantiator.newInstance(FileIvyArtifact.class, file, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension());
         }
 

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.artifacts.Module;
 
 import java.io.File;
 
@@ -29,11 +28,10 @@ public class ArtifactFile {
     private String classifier;
     private String extension;
 
-    public ArtifactFile(File file, Module module) {
+    public ArtifactFile(File file, String version) {
         name = file.getName();
         extension = "";
         classifier = "";
-        String version = module.getVersion();
         boolean done = false;
 
         int startVersion = StringUtils.lastIndexOf(name, "-" + version);

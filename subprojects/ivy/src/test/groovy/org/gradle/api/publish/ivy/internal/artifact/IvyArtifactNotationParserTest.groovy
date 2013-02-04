@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.api.publish.ivy.internal.artifact
-
 import org.gradle.api.Buildable
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.tasks.TaskDependency
@@ -29,11 +27,8 @@ import spock.lang.Specification
 
 public class IvyArtifactNotationParserTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
-    Module module = Stub() {
-        getVersion() >> "1.2"
-    }
     Project project = Mock()
-    IvyArtifactNotationParser parser = new IvyArtifactNotationParser(instantiator, module, project)
+    IvyArtifactNotationParser parser = new IvyArtifactNotationParser(instantiator, "1.2", project)
 
     def "directly returns IvyArtifact input"() {
         when:

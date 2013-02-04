@@ -15,15 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.dsl
 
-import org.gradle.api.artifacts.Module
 import spock.lang.Specification
 /**
  * @author Hans Dockter
  */
 public class ArtifactFileTest extends Specification {
-    final Module module = Stub() {
-        getVersion() >> '1.2'
-    }
+    final String module = '1.2'
 
     def "determines name and extension from file name"() {
         when:

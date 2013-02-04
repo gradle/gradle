@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven.internal.artifact;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.notations.NotationParserBuilder;
@@ -39,12 +38,12 @@ import java.util.Collection;
 
 public class MavenArtifactNotationParser implements NotationParser<MavenArtifact>, TopLevelNotationParser {
     private final Instantiator instantiator;
-    private final Module module;
+    private final String version;
     private final NotationParser<MavenArtifact> delegate;
 
-    public MavenArtifactNotationParser(Instantiator instantiator, Module module, Project project) {
+    public MavenArtifactNotationParser(Instantiator instantiator, String version, Project project) {
         this.instantiator = instantiator;
-        this.module = module;
+        this.version = version;
         FileNotationParser fileNotationParser = new FileNotationParser(project);
         ArchiveTaskNotationParser archiveTaskNotationParser = new ArchiveTaskNotationParser();
         PublishArtifactNotationParser publishArtifactNotationParser = new PublishArtifactNotationParser();
@@ -139,7 +138,7 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
         }
 
         protected MavenArtifact parseFile(File file) {
-            ArtifactFile artifactFile = new ArtifactFile(file, module);
+            ArtifactFile artifactFile = new ArtifactFile(file, version);
             return instantiator.newInstance(FileMavenArtifact.class, file, artifactFile.getExtension(), artifactFile.getClassifier(), new Task[0]);
         }
 
