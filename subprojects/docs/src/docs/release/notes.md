@@ -15,6 +15,12 @@ In addition, the Sonar plugin's object model has been updated to cover JaCoCo an
 properties like `sonar.database.password` can now easily be set from the command line. Read on in the
 revised [Sonar chapter](userguide/sonar_plugin.html) of the Gradle user guide.
 
+### IDEA plugin is now Scala aware
+
+When the IDEA plugin encounters a Scala project, it will now add additional configuration to make the
+project compile in IntelliJ IDEA out of the box. In particular, the plugin adds a Scala facet and
+a Scala compiler library that matches the Scala version used on the project's class path.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
