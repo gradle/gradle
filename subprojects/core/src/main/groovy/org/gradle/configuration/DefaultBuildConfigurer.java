@@ -16,29 +16,30 @@
 package org.gradle.configuration;
 
 import org.gradle.api.Action;
-import org.gradle.api.Project;
-import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
-    private Action<Project> actions;
     private final static Logger LOG = Logging.getLogger(DefaultBuildConfigurer.class);
+
     public final static String CONFIGURATION_ON_DEMAND_MESSAGE = "Thanks for using the incubating configuration-on-demand mode. Enjoy it and let us know how it works for you.";
 
-    public DefaultBuildConfigurer(Action<? super ProjectInternal>... actions) {
-        this.actions = Actions.castBefore(ProjectInternal.class, Actions.composite(actions));
-    }
-
     public void configure(GradleInternal gradle) {
+        gradle.addProjectEvaluationListener(new ImplicitTasksConfigurer());
+        gradle.addProjectEvaluationListener(new ProjectDependencies2TaskResolver());
         if (gradle.getStartParameter().isConfigureOnDemand()) {
             LOG.lifecycle(CONFIGURATION_ON_DEMAND_MESSAGE);
-            gradle.addProjectEvaluationListener(new ImplicitTasksConfigurer());
             gradle.getRootProject().evaluate();
         } else {
-            gradle.getRootProject().allprojects(actions);
+            gradle.getRootProject().allprojects((Action) new ConfigureProject());
+        }
+    }
+
+    static class ConfigureProject implements Action<ProjectInternal> {
+        public void execute(ProjectInternal projectInternal) {
+            projectInternal.evaluate();
         }
     }
 }

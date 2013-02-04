@@ -23,14 +23,6 @@ class ImplicitTasksConfigurerTest extends Specification {
     private final ImplicitTasksConfigurer configurer = new ImplicitTasksConfigurer()
     private final ProjectInternal project = HelperUtil.createRootProject()
 
-    def "applies help tasks"() {
-        when:
-        configurer.execute(project)
-
-        then:
-        project.plugins.hasPlugin('help-tasks')
-    }
-
     def "applies help tasks after evaluate"() {
         when:
         configurer.afterEvaluate(project, null)

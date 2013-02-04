@@ -15,13 +15,12 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.ProjectState;
 
 //This one should go away once we complete the auto-apply plugins
-public class ImplicitTasksConfigurer implements Action<Project>, ProjectEvaluationListener {
+public class ImplicitTasksConfigurer implements ProjectEvaluationListener {
     public static final String HELP_GROUP = "help";
     public static final String HELP_TASK = "help";
     public static final String PROJECTS_TASK = "projects";
@@ -33,10 +32,6 @@ public class ImplicitTasksConfigurer implements Action<Project>, ProjectEvaluati
     public void beforeEvaluate(Project project) {}
 
     public void afterEvaluate(Project project, ProjectState state) {
-        execute(project);
-    }
-
-    public void execute(Project project) {
         project.getPlugins().apply("help-tasks");
     }
 }

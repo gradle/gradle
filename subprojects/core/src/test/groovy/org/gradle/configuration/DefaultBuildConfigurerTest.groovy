@@ -16,7 +16,6 @@
 package org.gradle.configuration
 
 import org.gradle.StartParameter
-import org.gradle.api.Action
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
@@ -25,32 +24,37 @@ class DefaultBuildConfigurerTest extends Specification {
     private startParameter = Mock(StartParameter)
     private gradle = Mock(GradleInternal)
     private rootProject = Mock(ProjectInternal)
-    private action = Mock(Action)
-    private configurer = new DefaultBuildConfigurer(action)
+    private configurer = new DefaultBuildConfigurer()
 
-    def executesActionsForEachProject() {
+    def setup() {
+        gradle.startParameter >> startParameter
+        gradle.rootProject >> rootProject
+    }
+
+    def "configures build for standard mode"() {
         when:
         configurer.configure(gradle)
 
         then:
-        1 * gradle.startParameter >> startParameter
-        _ * gradle.rootProject >> rootProject
+        1 * gradle.addProjectEvaluationListener(_ as ImplicitTasksConfigurer);
+        1 * gradle.addProjectEvaluationListener(_ as ProjectDependencies2TaskResolver);
         1 * rootProject.allprojects(!null) >> { args ->
-            args[0].execute(rootProject)
+            assert args[0] instanceof DefaultBuildConfigurer.ConfigureProject
         }
-        1 * action.execute(rootProject)
+        0 * rootProject._
     }
 
-    def "works in configure on demand mode"() {
+    def "configures build for on demand mode"() {
         when:
         configurer.configure(gradle)
 
         then:
         1 * startParameter.isConfigureOnDemand() >> true
-        1 * gradle.startParameter >> startParameter
-        1 * gradle.addProjectEvaluationListener(_ as ImplicitTasksConfigurer)
-        1 * gradle.rootProject >> rootProject
         1 * rootProject.evaluate()
-        0 * _._
+        0 * rootProject._
+
+        and:
+        1 * gradle.addProjectEvaluationListener(_ as ImplicitTasksConfigurer);
+        1 * gradle.addProjectEvaluationListener(_ as ProjectDependencies2TaskResolver);
     }
 }

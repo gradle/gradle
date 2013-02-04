@@ -17,34 +17,24 @@
 package org.gradle.configuration
 
 import org.gradle.util.HelperUtil
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import org.junit.Before
-import org.junit.Test
-import org.gradle.api.Task
-import org.gradle.api.Project
+import spock.lang.Specification
 
 /**
  * @author Hans Dockter
  */
-class ProjectDependencies2TaskResolverTest {
-    Project root
-    Project child
-    Task rootTask
-    Task childTask
-    ProjectDependencies2TaskResolver resolver
+class ProjectDependencies2TaskResolverTest extends Specification {
+    private root = HelperUtil.createRootProject()
+    private child = HelperUtil.createChildProject(root, "child")
+    private rootTask = root.tasks.add('compile')
+    private childTask = child.tasks.add('compile')
 
-    @Before public void setUp()  {
-        resolver = new ProjectDependencies2TaskResolver()
-        root = HelperUtil.createRootProject()
-        child = HelperUtil.createChildProject(root, "child")
-        rootTask = root.tasks.add('compile')
-        childTask = child.tasks.add('compile')
-    }
+    private resolver = new ProjectDependencies2TaskResolver()
 
-    @Test public void testResolve() {
+    void "resolves task dependencies"() {
         child.dependsOn(root.path, false)
-        resolver.execute(child)
-        assertThat(childTask.taskDependencies.getDependencies(childTask), equalTo([rootTask] as Set))
+        when:
+        resolver.afterEvaluate(child, null)
+        then:
+        childTask.taskDependencies.getDependencies(childTask) == [rootTask] as Set
     }
 }
