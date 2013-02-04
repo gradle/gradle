@@ -19,9 +19,11 @@
 package org.gradle.integtests.tooling.r15
 
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 
+@MinToolingApiVersion("1.0-milestone-5") //because we acquire GradleProject model
 @MinTargetGradleVersion("1.5")
 class ToolingApiConfigurationOnDemandCrossVersionSpec extends ToolingApiSpecification {
 
