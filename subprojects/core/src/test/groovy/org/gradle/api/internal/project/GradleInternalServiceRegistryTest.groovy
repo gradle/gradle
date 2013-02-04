@@ -42,8 +42,9 @@ public class GradleInternalServiceRegistryTest extends Specification {
     private StartParameter startParameter = new StartParameter()
 
     public void setup() {
-        parent.get(ListenerManager.class) >> listenerManager
-        parent.get(CacheRepository.class) >> cacheRepository
+        parent.get(StartParameter) >> Mock(StartParameter)
+        parent.get(ListenerManager) >> listenerManager
+        parent.get(CacheRepository) >> cacheRepository
         parent.get(DocumentationRegistry) >> Mock(DocumentationRegistry)
         gradle.getStartParameter() >> startParameter
         gradle.getScriptClassLoader() >> new MultiParentClassLoader()
