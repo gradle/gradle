@@ -43,7 +43,12 @@ public class CreateStartScripts extends ConventionTask {
     @Input
     String mainClassName
 
-    Iterable<String> defaultJvmOpts
+    /**
+     * The application's default JVM options.
+     */
+    @Input
+    @Optional
+    Iterable<String> defaultJvmOpts = []
 
     /**
      * The application's name.
@@ -60,19 +65,6 @@ public class CreateStartScripts extends ConventionTask {
      */
     @InputFiles
     FileCollection classpath
-
-    /**
-     * Returns the application's default JVM options.
-     */
-    @Input
-    @Optional
-    Iterable<String> getDefaultJvmOpts() {
-        if (defaultJvmOpts) {
-            return defaultJvmOpts
-        } else {
-            return []
-        }
-    }
 
     /**
      * Returns the name of the application's OPTS environment variable.
