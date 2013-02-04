@@ -112,6 +112,21 @@ happen for both the legacy and new configuration models.
     - Verify that when the configuration is resolved in project A's build script, project B and the external
       dependency are present.
 
+## Support tasks that are declared on a given project but work on multiple projects
+
+For example, 'tasks' task provides task info for given project but also for all child projects, recursively.
+In COD mode, running ':tasks' causes only root to be evaluated so the output of the task will not contain tasks of child projects.
+
+This problem applies to any task that interrogates multiple projects (see task types that extend public AbstractReportTask type).
+
+How do we want to tackle this problem?
+
+1. fix the AbstractReportTasks (or any other built-in tasks that are coupled with external projects).
+ Document that this approach is one of the couplings not supported by the COD mode.
+2. make it possible to declare that task needs project(s), for example via some input annotation.
+ This way, the new Gradle model (or COD mode) may know when to make the required projects evaluated.
+3. ?
+
 ## Allow project dependencies in build script classpath
 
 This is a replacement for the `buildSrc` project. When in configure-on-demand mode, allow project dependencies
