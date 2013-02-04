@@ -41,7 +41,7 @@ public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Pub
         return publication;
     }
 
-    public <T extends Publication> T add(String name, Class<T> type, Action<T> action) {
+    public <T extends Publication> T add(String name, Class<T> type, Action<? super T> action) {
         T publication = add(name, type);
         action.execute(publication);
         return publication;

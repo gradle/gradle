@@ -16,8 +16,8 @@
 
 package org.gradle.api.publish.maven;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 
 /**
  * A {@code MavenPublishValidationException} is thrown when attempting to publish with an invalid {@link MavenPublication}.
@@ -25,7 +25,7 @@ import org.gradle.api.Incubating;
  * @since 1.4
  */
 @Incubating
-public class InvalidMavenPublicationException extends GradleException {
+public class InvalidMavenPublicationException extends InvalidUserDataException {
     public InvalidMavenPublicationException(String message) {
         super(message);
     }

@@ -227,7 +227,7 @@ public interface MavenPublication extends Publication {
      *
      * @param sources The set of artifacts for this publication.
      */
-    void setArtifacts(Iterable<Object> sources);
+    void setArtifacts(Iterable<?> sources);
 
     /**
      * Returns the complete set of artifacts for this publication.

@@ -49,5 +49,5 @@ public interface PublicationContainer extends NamedDomainObjectSet<Publication> 
      * @param configuration The action to configure the publication.
      * @return The added publication
      */
-    <T extends Publication> T add(String name, Class<T> type, Action<T> configuration);
+    <T extends Publication> T add(String name, Class<T> type, Action<? super T> configuration);
 }

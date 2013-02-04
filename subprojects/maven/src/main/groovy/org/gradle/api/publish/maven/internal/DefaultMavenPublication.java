@@ -101,7 +101,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return mavenArtifacts;
     }
 
-    public void setArtifacts(Iterable<Object> sources) {
+    public void setArtifacts(Iterable<?> sources) {
         mavenArtifacts.clear();
         for (Object source : sources) {
             artifact(source);
