@@ -64,6 +64,8 @@ class SonarPluginTest extends Specification {
         sonar.server.url == "http://localhost:9000"
 
         def db = sonar.database
+        db.url == "jdbc:derby://localhost:1527/sonar"
+        db.driverClassName == "org.apache.derby.jdbc.ClientDriver"
         db.username == "sonar"
         db.password == "sonar"
 
@@ -75,7 +77,7 @@ class SonarPluginTest extends Specification {
         SonarProject sonarProject = project.sonar.project
 
         expect:
-        sonarProject.key == "$project.group%3A$project.name"
+        sonarProject.key == "$project.group:$project.name"
         sonarProject.name == project.name
         sonarProject.description == project.description
         sonarProject.version == project.version
@@ -88,7 +90,7 @@ class SonarPluginTest extends Specification {
         project << createMultiProject().allprojects
     }
 
-    def "provides additional defaults for project configuration if java-base plugin is present"() {
+    def "provides additional defaults for project configuration if java-base plugin is present"(Project project) {
         SonarProject sonarProject = project.sonar.project
 
         expect:
@@ -102,16 +104,11 @@ class SonarPluginTest extends Specification {
     def "provides additional defaults for project configuration if java plugin is present"(Project project) {
         SonarProject sonarProject = project.sonar.project
 
-        project.sourceSets.main.allSource.srcDirs*.mkdirs()
-        project.sourceSets.test.allSource.srcDirs*.mkdirs()
-        project.sourceSets.main.output.classesDir.mkdirs()
-        project.test.testResultsDir.mkdirs()
-
         expect:
-        sonarProject.sourceDirs as Set == project.sourceSets.main.allSource.srcDirs as Set
-        sonarProject.testDirs as Set == project.sourceSets.test.allSource.srcDirs as Set
-        sonarProject.binaryDirs as Set == [project.sourceSets.main.output.classesDir] as Set
-        sonarProject.libraries as Set == [Jvm.current().runtimeJar] as Set
+        sonarProject.sourceDirs == project.sourceSets.main.allSource.srcDirs as List
+        sonarProject.testDirs == project.sourceSets.test.allSource.srcDirs as List
+        sonarProject.binaryDirs == [project.sourceSets.main.output.classesDir]
+        sonarProject.libraries.files as List == [Jvm.current().runtimeJar]
 
         sonarProject.testReportPath == project.test.testResultsDir
         sonarProject.language == "java"

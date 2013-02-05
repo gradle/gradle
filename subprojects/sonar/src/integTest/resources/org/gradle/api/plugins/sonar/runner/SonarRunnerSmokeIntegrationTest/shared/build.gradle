@@ -1,0 +1,20 @@
+apply plugin: "sonar-runner"
+
+description = "Sonar Test Build"
+
+allprojects {
+    version = "1.42"
+    group = "org.gradle.test.sonar"
+}
+
+subprojects {
+    apply plugin: "java"
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testCompile "junit:junit:4.11"
+    }
+}

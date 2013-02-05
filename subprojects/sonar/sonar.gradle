@@ -14,14 +14,46 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
+configurations {
+    oldIntegTestRuntime.extendsFrom testRuntime
+}
 dependencies {
     compile project(":core")
     compile project(":plugins")
     compile libraries.groovy
-    compile "org.codehaus.sonar-plugins:sonar-runner:2.0"
 
+    // Sonar Runner plugin
+    compile "org.codehaus.sonar-plugins:sonar-runner:2.0"
     integTestRuntime "org.gradle.sonar:sonar-test-server:3.4@war"
     integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.4.0.1@zip"
+
+    // Sonar plugin
+    compile libraries.guava
+    compile libraries.slf4j_api
+    compile libraries.inject
+    compile "org.codehaus.sonar:sonar-batch-bootstrapper:2.9@jar"
+    // minimal dependencies to make our code compile
+    // we don't ship these dependencies because sonar-batch-bootstrapper will download them (and many more) at runtime
+    provided "org.codehaus.sonar:sonar-batch:2.9@jar"
+    provided "org.codehaus.sonar:sonar-plugin-api:2.9@jar"
+    provided "commons-configuration:commons-configuration:1.6@jar"
+    oldIntegTestRuntime "org.gradle.sonar:sonar-test-server:3.2@war"
+    oldIntegTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.2@zip"
 }
 
 useTestFixtures()
+
+integTest {
+    exclude "org/gradle/api/plugins/sonar/SonarSmokeIntegrationTest.class"
+}
+
+task oldIntegTest(type: Test) {
+    dependsOn = integTest.dependsOn
+    include "org/gradle/api/plugins/sonar/SonarSmokeIntegrationTest.class"
+    classpath = sourceSets.integTest.output + configurations.oldIntegTestRuntime
+    testClassesDir = integTest.testClassesDir
+    maxHeapSize = integTest.maxHeapSize
+    jvmArgs = integTest.jvmArgs
+}

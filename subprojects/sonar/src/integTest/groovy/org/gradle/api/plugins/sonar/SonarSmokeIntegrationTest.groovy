@@ -38,15 +38,15 @@ class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     @Rule
-    TestResources testResources = new TestResources(temporaryFolder)
+    TestResources testResources
 
     int databasePort
 
     def setup() {
         def classpath = ClasspathUtil.getClasspath(getClass().classLoader).collect() { new File(it.toURI()) }
-        def warFile = classpath.find { it.name == "sonar-test-server-3.4.war" }
+        def warFile = classpath.find { it.name == "sonar-test-server-3.2.war" }
         assert warFile
-        def zipFile = classpath.find { it.name == "sonar-test-server-home-dir-3.4.0.1.zip" }
+        def zipFile = classpath.find { it.name == "sonar-test-server-home-dir-3.2.zip" }
         assert zipFile
 
         def sonarHome = tempDir.createDir("sonar-home")
@@ -67,37 +67,21 @@ sonar.embeddedDatabase.port=$databasePort
         webServer.start()
     }
 
-    def "execute 'sonarAnalyze' task ('sonar' plugin)"() {
+    def "can run Sonar analysis"() {
+        executer.requireIsolatedDaemons()
         // Without forking, we run into problems with Sonar's BootStrapClassLoader, at least when running from IDEA.
         // Problem is that BootStrapClassLoader, although generally isolated from its parent(s), always
         // delegates to the system class loader. That class loader holds the test class path and therefore
         // also the Sonar dependencies with "provided" scope. Hence, the Sonar dependencies get loaded by
         // the wrong class loader.
-
         when:
-        executer.requireIsolatedDaemons()
-                .requireGradleHome()
-                .withArgument("-i")
+        executer.requireGradleHome()
                 .withArgument("-PserverUrl=http://localhost:${webServer.connectors[0].localPort}")
                 .withArgument("-PdatabaseUrl=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
-                .withTasks("build", "sonarAnalyze").run()
+                .withTasks("sonarAnalyze").run()
 
         then:
         noExceptionThrown()
-    }
 
-    def "execute 'sonarRunner' task ('sonar-runner' plugin)"() {
-        when:
-        executer.requireIsolatedDaemons()
-                .requireGradleHome()
-                .withArgument("-i")
-                .withArgument("-PserverUrl=foo") // dummy value for configuring sonarAnalyze task
-                .withArgument("-PdatabaseUrl=bar") // dummy value for configuring sonarAnalyze task
-                .withArgument("-Dsonar.host.url=http://localhost:${webServer.connectors[0].localPort}")
-                .withArgument("-Dsonar.jdbc.url=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
-                .withTasks("build", "sonarRunner").run()
-
-        then:
-        noExceptionThrown()
     }
 }

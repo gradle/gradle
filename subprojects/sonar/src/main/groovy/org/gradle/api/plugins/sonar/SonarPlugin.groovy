@@ -17,13 +17,13 @@ package org.gradle.api.plugins.sonar
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.sonar.model.*
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.jvm.Jvm
 import org.gradle.util.GradleVersion
+import org.gradle.internal.jvm.Jvm
+import org.gradle.api.plugins.sonar.model.*
 
 import javax.inject.Inject
 
@@ -85,6 +85,8 @@ class SonarPlugin implements Plugin<ProjectInternal> {
 
     private SonarDatabase configureSonarDatabase() {
         def database = instantiator.newInstance(SonarDatabase)
+        database.url = "jdbc:derby://localhost:1527/sonar"
+        database.driverClassName = "org.apache.derby.jdbc.ClientDriver"
         database.username = "sonar"
         database.password = "sonar"
         database
@@ -105,7 +107,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
         def sonarProject = instantiator.newInstance(SonarProject)
 
         sonarProject.conventionMapping.with {
-            key = { URLEncoder.encode("$project.group:$project.name", "utf-8") }
+            key = { "$project.group:$project.name" as String }
             name = { project.name }
             description = { project.description }
             version = { project.version.toString() }
@@ -129,18 +131,18 @@ class SonarPlugin implements Plugin<ProjectInternal> {
             def test = project.sourceSets.test
 
             sonarProject.conventionMapping.with {
-                sourceDirs = { main.allSource.srcDirs.findAll { it.exists() } }
-                testDirs = { test.allSource.srcDirs.findAll { it.exists() } }
-                binaryDirs = { main.runtimeClasspath.findAll { it.directory } }
+                sourceDirs = { main.allSource.srcDirs as List }
+                testDirs = { test.allSource.srcDirs as List }
+                binaryDirs = { [main.output.classesDir] }
                 libraries = {
-                    def libraries = main.runtimeClasspath.findAll { it.file }
+                    def libraries = main.compileClasspath
                     def runtimeJar = Jvm.current().runtimeJar
                     if (runtimeJar != null) {
-                        libraries << runtimeJar
+                        libraries += project.files(runtimeJar)
                     }
                     libraries
                 }
-                testReportPath = { project.test.testResultsDir.exists() ? project.test.testResultsDir : null }
+                testReportPath = { project.test.testResultsDir }
                 language = { "java" }
             }
         }
