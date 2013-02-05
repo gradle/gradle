@@ -17,10 +17,10 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;
@@ -41,10 +41,10 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
     private final String version;
     private final NotationParser<MavenArtifact> delegate;
 
-    public MavenArtifactNotationParser(Instantiator instantiator, String version, Project project) {
+    public MavenArtifactNotationParser(Instantiator instantiator, String version, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.version = version;
-        FileNotationParser fileNotationParser = new FileNotationParser(project);
+        FileNotationParser fileNotationParser = new FileNotationParser(fileResolver);
         ArchiveTaskNotationParser archiveTaskNotationParser = new ArchiveTaskNotationParser();
         PublishArtifactNotationParser publishArtifactNotationParser = new PublishArtifactNotationParser();
 
@@ -104,6 +104,11 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
             }
             throw new InvalidUserDataException("Must supply exactly one of the following keys: [source, file]");
         }
+
+        @Override
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Maps containing either a 'file' or a 'source' entry, e.g. [file: '/path/to/file', extension: 'zip'].");
+        }
     }
 
     private class PublishArtifactNotationParser extends TypedNotationParser<PublishArtifact, MavenArtifact> {
@@ -118,23 +123,15 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
     }
 
     private class FileNotationParser implements NotationParser<MavenArtifact> {
-        private final Project project;
+        private final FileResolver fileResolver;
 
-        private FileNotationParser(Project project) {
-            this.project = project;
+        private FileNotationParser(FileResolver fileResolver) {
+            this.fileResolver = fileResolver;
         }
 
         public MavenArtifact parseNotation(Object notation) throws UnsupportedNotationException {
-            File file = toProjectFile(notation);
+            File file = fileResolver.resolve(notation);
             return parseFile(file);
-        }
-
-        private File toProjectFile(Object notation) {
-            try {
-                return project.file(notation);
-            } catch (Exception e) {
-                throw new UnsupportedNotationException(notation);
-            }
         }
 
         protected MavenArtifact parseFile(File file) {

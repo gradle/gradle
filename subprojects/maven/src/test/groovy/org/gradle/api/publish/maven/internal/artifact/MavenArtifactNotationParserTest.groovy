@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.api.publish.maven.internal.artifact
+
 import org.gradle.api.Buildable
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.bundling.Jar
@@ -29,7 +30,7 @@ import spock.lang.Specification
 public class MavenArtifactNotationParserTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
     TaskDependency taskDependency = Mock()
-    Project project = Mock()
+    FileResolver fileResolver = Mock()
     PublishArtifact publishArtifact = Stub() {
         getExtension() >> 'extension'
         getClassifier() >> 'classifier'
@@ -37,7 +38,7 @@ public class MavenArtifactNotationParserTest extends Specification {
         getBuildDependencies() >> taskDependency
     }
 
-    MavenArtifactNotationParser parser = new MavenArtifactNotationParser(instantiator, "1.2", project)
+    MavenArtifactNotationParser parser = new MavenArtifactNotationParser(instantiator, "1.2", fileResolver)
 
     def "directly returns MavenArtifact input"() {
         when:
@@ -121,7 +122,7 @@ public class MavenArtifactNotationParserTest extends Specification {
         MavenArtifact mavenArtifact = parser.parseNotation('some-file')
 
         then:
-        project.file('some-file') >> file
+        fileResolver.resolve('some-file') >> file
 
         and:
         mavenArtifact.extension == "zip"
@@ -143,7 +144,7 @@ public class MavenArtifactNotationParserTest extends Specification {
         MavenArtifact mavenArtifact = parser.parseNotation(file: 'some-file')
 
         then:
-        project.file('some-file') >> file
+        fileResolver.resolve('some-file') >> file
 
         and:
         mavenArtifact.extension == "zip"
@@ -159,7 +160,7 @@ public class MavenArtifactNotationParserTest extends Specification {
         MavenArtifact mavenArtifact = parser.parseNotation(source: 'some-file')
 
         then:
-        project.file('some-file') >> file
+        fileResolver.resolve('some-file') >> file
 
         and:
         mavenArtifact.extension == "zip"
@@ -176,7 +177,7 @@ public class MavenArtifactNotationParserTest extends Specification {
         MavenArtifact mavenArtifact = parser.parseNotation(file: 'some-file', extension: "ext", classifier: "classy", builtBy: task)
 
         then:
-        project.file('some-file') >> file
+        fileResolver.resolve('some-file') >> file
 
         and:
         mavenArtifact.file == file

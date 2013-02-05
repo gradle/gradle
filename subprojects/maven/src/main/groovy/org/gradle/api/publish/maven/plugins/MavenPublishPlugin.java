@@ -22,11 +22,16 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.PublicationContainerInternal;
 import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.maven.MavenPublication;
-import org.gradle.api.publish.maven.internal.*;
+import org.gradle.api.publish.maven.internal.DefaultMavenPublication;
+import org.gradle.api.publish.maven.internal.GeneratePomTaskCreator;
+import org.gradle.api.publish.maven.internal.MavenPublishDynamicTaskCreator;
+import org.gradle.api.publish.maven.internal.MavenPublishLocalDynamicTaskCreator;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParser;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.TaskContainer;
@@ -58,7 +63,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
         final PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
         
         final PublicationContainerInternal publicationContainer = (PublicationContainerInternal) extension.getPublications();
-        publicationContainer.registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, project));
+        FileResolver fileResolver = ((ProjectInternal) project).getFileResolver();
+        publicationContainer.registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
 
         TaskContainer tasks = project.getTasks();
 
@@ -80,18 +86,18 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private class MavenPublicationFactory implements PublicationFactory {
         private final Instantiator instantiator;
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
-        private final Project project;
+        private final FileResolver fileResolver;
 
-        private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, Project project) {
+        private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, FileResolver fileResolver) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
-            this.project = project;
+            this.fileResolver = fileResolver;
         }
 
         public MavenPublication create(final String name) {
 
             Module module = dependencyMetaDataProvider.getModule();
-            MavenArtifactNotationParser artifactNotationParser = new MavenArtifactNotationParser(instantiator, module.getVersion(), project);
+            MavenArtifactNotationParser artifactNotationParser = new MavenArtifactNotationParser(instantiator, module.getVersion(), fileResolver);
 
             return instantiator.newInstance(
                     DefaultMavenPublication.class,
