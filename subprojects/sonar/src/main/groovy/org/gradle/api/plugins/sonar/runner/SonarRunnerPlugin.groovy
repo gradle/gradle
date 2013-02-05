@@ -111,13 +111,12 @@ class SonarRunnerPlugin implements Plugin<Project> {
         def extension = project.extensions.getByType(SonarRunnerExtension)
         if (extension.skipProject) { return }
 
-        def projectPrefix = project.path.substring(1).replace(":", ".")
         Map<String, Object> rawProperties = [:]
         addGradleDefaults(project, rawProperties)
-        if (project.parent == null) {
-            addSystemProperties(rawProperties)
-        }
         extension.evaluateSonarPropertiesBlocks(rawProperties)
+        if (project.parent == null) { addSystemProperties(rawProperties) }
+
+        def projectPrefix = project.path.substring(1).replace(":", ".")
         convertProperties(rawProperties, projectPrefix, properties)
         
         def enabledChildProjects = project.childProjects.values().findAll { !it.sonarRunner.skipProject }

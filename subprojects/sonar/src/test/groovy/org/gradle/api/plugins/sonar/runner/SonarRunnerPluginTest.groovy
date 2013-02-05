@@ -259,6 +259,19 @@ class SonarRunnerPluginTest extends Specification {
         properties["child.sonar.projectVersion"] == "1.3"
     }
 
+    def "system properties win over values set in build script"() {
+        System.setProperty("sonar.some.key", "win")
+        project.sonarRunner.sonarProperties {
+            property "sonar.some.key", "lose"
+        }
+
+        when:
+        def properties = project.tasks.sonarRunner.sonarProperties
+
+        then:
+        properties["sonar.some.key"] == "win"
+    }
+
     def "doesn't add Sonar properties for skipped projects"() {
         childProject.sonarRunner.skipProject = true
 
