@@ -17,211 +17,168 @@
     <title>Dependency Management</title>
     <section id='sec:Introduction'>
         <title>Introduction</title>
-        <para>Gradle offers a very good support for dependency management. If you are familiar with Maven or Ivy approach you will be delighted to learn that:
+        <para>Dependency management is a critical feature of every build, and Gradle has placed an emphasis on offering first-class dependency management that is both easy-to-understand and compatibile with a wide variety of approaches.  If you are familiar with the approach used by either Maven or Ivy you will be delighted to learn that Gradle is fully compatible with both approaches in addition to being flexible enough to support fully-customised approaches.</para>
+        
+        <para>Here are the major highlights of Gradle's support for dependency management:</para>
         <itemizedlist>
             <listitem>
-                <para>Gradle fully supports transitive dependency management. Gradle also works <emphasis>perfectly</emphasis> with your existent dependency management
-                    infrastructure, be it Maven or Ivy. All the repositories you have set up with your custom POM or
-                    ivy files can be used as they are. No changes necessary.
+                <para><emphasis>Transitive dependency management</emphasis>: Gradle gives you full control of your project's dependency tree.</para>
+            </listitem>
+            <listitem>
+                <para><emphasis>Support for non-managed dependencies</emphasis>: If your dependendencies are simply files in version control or a shared drive, Gradle provides powerful functionality to support this.
                 </para>
             </listitem>
             <listitem>
-                <para>If you don't use transitive dependency management and your external libraries live just as files in version control or on some shared drive, Gradle provides powerful functionality
-                    to support this.
+                <para><emphasis>Support for custom dependency definitions.</emphasis>: Gradle's Module Dependencies give you the ability to describe the dependency hierarchy in the build script.
                 </para>
             </listitem>
             <listitem>
-                <para>Gradle provides an additional, optional support for transitive dependency management that is not based on XML descriptor files called Module Dependencies, where you describe
-                    the dependency hierarchy in the build script.
-                </para>
+                <para><emphasis>A fully customisable approach to Dependency Resolution</emphasis>: Gradle provides you with the ability to customize resolution rules making dependency substitution easy.</para>
             </listitem>
             <listitem>
-                <para>The job of a build system is to support all major patterns for how people deal with dependencies, not to force people in a certain way of doing things. In particular for migration scenarios
-                    it is extremely important that any current approach is supported so that you can use the same input structure in the new evolving Gradle build than in the existing build as long as it
-                    is in production. That enables you to compare the results. Gradle is extremely flexible. So even if your project is using a custom dependency management or say an Eclipse .classpath file as master data for dependency management,
-                    it would be very easy to write a little adaptor plugin to use this data in Gradle. For migration purposes this is a common technique with Gradle. Once you have migrated, it might be a good idea though not to
-                    use a .classpath file for dependency metadata any longer :).
-                </para>
+                <para><emphasis>Full Compatibility with Maven and Ivy</emphasis>: If you have defined dependencies in a Maven POM or an Ivy file, Gradle provide seamless integration with a range of popular build tools.</para>
+            </listitem>
+            <listitem>
+                <para><emphasis>Integration with existing dependency management infrastructure</emphasis>: Gradle is compatible with both Maven and Ivy repositiores.  If you use Archiva, Nexus, or Artifactory, Gradle is 100% compatible with all repository formats.</para>
             </listitem>
         </itemizedlist>
+        
+        <para>
+            With hundreds of thousands of interdependent open source components each with a range of versions and incompatibilities, dependency management has a habit of causing problems as builds grow in complexity.   When a build's dependency tree becomes unwieldy, your build tool shouldn't force you to adopt a single, inflexible approach to dependency management.  A proper build system has to be designed to be flexible, and Gradle can handle any situation.
         </para>
+        
+        <section id='sub:dependency_management_and_migrations'>
+            <title>Flexible dependency management for migrations</title>
+            <para>
+                Dependency management can be particularly challenging during a migration from one build system to another.   If you are migrating from a tool like Ant or Maven to Gradle, you may be faced with some difficult situations.   For example, one common pattern is an Ant project with versionless jar files stored in the filesystem.   Other build systems require a wholesale replacement of this approach before migrating.  With Gradle, you can adapt your new build to any existing source of dependencies or dependency metadata.   This makes incremental migration to Gradle much easier than the alternative.  On most large projects, build migrations and any change to development process is incremental because most organizations can't afford to stop everything and migrate to a build tool's idea of dependency management.
+            </para>
+            
+            <para>Even if your project is using a custom dependency management system or something like an Eclipse .classpath file as master data for dependency management, it is very easy to write a Gradle plugin to use this data in Gradle. For migration purposes this is a common technique with Gradle. (But, once you've migrated, it might be a good idea to move away from a .classpath file and use Gradle's dependency management features directly.)
+            </para>
+        </section>
+        
+        <section id='sub:dependency_management_and_java'>
+            <title>Dependency management and Java</title> 
+            <para>It is ironic that in a language known for its rich library of open source components that Java has no concept of libraries or versions. In Java, there is no standard way to tell the JVM that you are using version 3.0.5 of Hibernate, and there is no standard way to say that <literal>foo-1.0.jar</literal> depends on <literal>bar-2.0.jar</literal>. This has led to external solutions often based on build tools. The most popular ones at the moment are Maven and Ivy. While Maven provides a complete build system, Ivy focuses solely on dependency management.
+            </para>
+            <para>Both tools rely on descriptor XML files, which contain information about the dependencies of a particular jar. Both also use repositories where the actual jars are placed together with their descriptor files, and both offer resolution for conflicting jar versions in one form or the other.  Both have emerged as standards for solving dependency conflicts, and while Gradle originaly used Ivy under the hood for its dependency management. Gradle has replaced this direct dependency on Ivy with a native Gradle dependency resolution engine which supports a range of approached to dependency resolution including both POM and Ivy descriptor files.
+            </para>
+        </section>
     </section>
+    
     <section id='sec:dependency_management_overview'>
-        <title>Dependency Management Best Practices.</title>
-        <para>We have an opinion on what are dependency management best practices. As usual, Gradle does not force our opinion onto you, but supports any kind of pattern you want to use. Nonetheless
-            we would like to share our opinion.
+        <title>Dependency Management Best Practices</title>
+        <para>While Gradle has strong opinions on dependency management, the tool gives you a choice between two 
+            options: follow recommended best practices or support any kind of pattern you can think of.  This section 
+            outlines the Gradle project's recommended best practices for managing dependencies.
         </para>
-        <para>We think good dependency management is very important for almost any project. Yet the kind of dependency
-            management you need depends on the complexity and the environment of your project. Is your project a
-            distribution or a library? Is it part of an enterprise environment, where it is integrated into other
-            projects builds or not? But all types of projects should follow the rules below:
+        <para>No matter what the language, proper dependency management is important for every project.
+            From a complex enteprise application written in Java depending on hundreds of open source
+            libraries to the simplest Clojure application depending on a handful of libraries, approaches to dependency
+            management vary widely and can depend on the target technology, the method of application deployment, and the 
+            nature of the project.   Projects bundled as reusable libaries may have different requirements than 
+            enterprise applications integrated into much larger systems of software and infrastructure.   Despite this wide variation of requirements, 
+            the Gradle project recommends that all projects follow this set of core rules:
         </para>
         <section id='sub:versioning_the_jar_name'>
-            <title>Versioning the jar name</title>
-            <para>The version of the jar must be easy to recognize. Sometimes the version is in the Manifest file of
-                the jar, often not. And even if, it is rather painful to always look into the Manifest file to learn
-                about the version. Therefore we think that you should only use jars which have their version as part
-                of their file name. If you are using transitive dependency management you are forced to do this in any case.
+            <title>Put the Version in the Filename (Version the jar)</title>
+            <para>The version of a library must be easy to recognize in the filename. While the version of a jar is usually in the Manifest file, it isn't readily apparent when you are inspecting a project.   If someone asks you to look at a collection of 20 jar files, which would you prefer?  A collection of files with names like "commons-beanutils-1.3.jar" or a collection of files with names like "spring.jar"?  If depednencies have filenames with version numbers it is much easier to quickly identify the versions of your dependencies.
             </para>
-            <para>Why do we think this is important? Without a dependency management as described above, your are likely
-                to burn your fingers sooner or later. If it is unclear which version of a jar your are using, this can
-                introduce subtle bugs which are very hard to find. For example there might be a project which uses
-                Hibernate 3.0.4. There are some problems with Hibernate so a developer installs version 3.0.5 of
-                Hibernate on her machine. This did not solve the problem but she forgot to roll back Hibernate to 3.0.4.
-                Weeks later there is an exception on the integration machine which can't be reproduced on the developer
-                machine. Without a version in the jar name this problem might take a long time to debug. Version in the
-                jar names increases the expressiveness of your project and makes it easier to maintain.
+            <para>If versions are unclear you can introduce subtle bugs which are very hard to find. For example there might be a project which uses Hibernate 2.5.   Think about a developer who decides to install version 3.0.5 of Hibernate on her machine to fix a critical security bug but forgets to notify others in the team of this change.  She may address the security bug successfully, but she also may have introduced subtle bugs into a codebase that was using a now-deprecated feature from Hibernate.  Weeks later there is an exception on the integration machine which can't be reproduced on anyone's machine.  Multiple developers then spend days on this issue only finally realising that the error would have easy to uncover if they knew that Hibernate had been upgraded from 2.5 to 3.0.5.</para>
+            <para>Versions in jar names increase the expressiveness of your project and make them easier to maintain.  This practice also reduces the potential for error.
             </para>
         </section>
         <section id='sub:transitive_dependency_management'>
-            <title>Use some form of transitive dependency management</title>
-            <para>When we talk about transitive dependency management, we mean any technique that enables to distinguish
-                between what are the first level dependencies and what are the transitive ones. We will about different techniques for this later on.
-            </para>
-            <para>Why is transitive dependency management so important? If you don't know which dependencies are first
-                level dependencies and which ones are transitive you will soon lose control over your build. Even a non enterprise project
-                Gradle has already 100+ jars. An enterprise project using Spring, Hibernate, etc. easily ends up with
-                many more jars. There is no way to memorize where all these jars come from. If you want to get rid of a first
-                level dependency you can't be sure which other jars you should remove. Because a dependency of a
-                first level dependency might also be a first level dependency itself. Or it might be a transitive
-                dependency of another of your first level dependencies. Many first level dependencies are runtime
-                dependencies and the transitive dependencies are of course all runtime dependencies. So the compiler
-                won't help you much here. The end of the story is, as we have seen very often, no one dares to remove
-                any jar any longer. The project classpath is a complete mess and if a classpath problem arises, hell on
-                earth invites you for a ride. In one of our former projects, we found some ldap related jar in the
-                classpath, whose sheer presence, as we found out after much research, accelerated LDAP access. So
-                removing this jar would not have led to any errors at compile or runtime.
-            </para>
-            <para>Gradle offers you different ways to express what are first level and what are transitive dependencies.
-                Gradle allows you for example to store your jars in CVS or SVN without XML descriptor files and still
-                use transitive dependency management. Also, not all techniques for transitive dependency management deal with
-                the problem described above equally well.
-            </para>
+            <title>Manage transitive dependencies</title>
+            <para>Transitive dependency management is a technique that enables your project to depend on libraries which, in turn, depend on other libraries.  This recursive pattern of transitive dependencies results in a tree of dependencies including your project's first-level dependencies, second-level dependencies, and so on.  If you don't model your dependencies as a hierarchical tree of first-level and second-level dependencies it is very easy to quickly lose control over an assembled mess of unstructure dependencies.   Consider the Gradle project itself, while Gradle only has a few direct, first-level dependencies, when Gradle is compiled it needs more that one hundred dependencies on the classpath. On a far larger scale, Enterprise projects using Spring, Hibernate, and other libraries, alonside hundreds or thousands of internal projects can have very large dependency trees.</para>
+            <para>When these large dependency trees need to change, you'll often have to solve some dependency version conflicts.  Say one open source library needs one version of a logging libary and a another uses an alternative version.   Gradle and other build tools all have the ability to solve this dependency tree and resolve conflicts, but what differentiates Gradle is the control it gives you over transitive dependencies and conflict resolution.</para>
+            <para>While you could try to manage this problem manually, you will quickly find that this approach doesn't scale.  If you want to get rid of a first level dependency you really can't be sure which other jars you should remove. A dependency of a first level dependency might also be a first level dependency itself, or it might be a transitive dependency of yet another first level dependency. If you try to manage transitive dependencies yourself, the end of the story is that your build becomes brittle: no one dares to change your dependencies because the risk of breaking the build is too high.  The project classpath becomes a complete mess, and, if a classpath problem arises, hell on earth invites you for a ride.</para>
+            <note><emphasis>NOTE:</emphasis>In one project, we found a mystery, ldap-related jar in the classpath.  No code referenced this jar and there was no connection to the project.  No one could figure out what the jar was for, until it was removed from the build and the application suffered massive performance problem whenever it attempted to authenticate to ldap.   This mystery jar was a necessary transitive, fourth-level dependency that was easy to miss because no one had bothered to use managed transitive dependencies.</note>
+            <para>Gradle offers you different ways to express first-level and transitive dependencies.  With Gradle you can mix and match approaches; for example, you could store your jars in an SCM without XML descriptor files and still use transitive dependency management.</para>
         </section>
         <section id='sub:version_conflicts'>
-            <title>Version conflicts</title>
-            <para>Conflicting versions of the same jar should be detected and either resolved or cause an exception. If you don't use
-                transitive dependency management, version conflicts are undetected and the mostly accidental fragile order of the classpath
-                will determine, what version of a dependency will win. For example adding a dependency with a particular version to a subproject
-                might change that order and then will led to all kind of surprising side effects. You might also want to learn where conflicting
-                versions are used as you might want to consolidate on a particular version of an dependency across your organization. With a good conflict
-                reporting that information can be used to communicate with the teams to solve this.
-            </para>
-            <para>It is common that different dependencies rely on different versions of
-                another dependency which leads to a version conflictm as The JVM unfortunately does not offer yet any easy way, to have different versions of
-                the same jar in the classpath (see <xref linkend='sub:dependency_management_and_java'/>).</para>
-            <para>Gradle offers following conflict resolution strategies:
-                <itemizedlist>
-                    <listitem><emphasis>Newest</emphasis> - used by default by Gradle - the newest version of the dependency is used.
-                    This strategy has been in Gradle since early days.
-                    </listitem>
-                    <listitem><emphasis>Fail</emphasis> - fail eagerly on version conflict.
-                        Useful if you need extra control and manage the conflicts manually.
-                        Introduced in <code>1.0-milestone-6</code>. See <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/> for reference on managing the conflict resolution strategies.
-                    </listitem>
-                    <listitem>We are working on making conflict resolution fully customizable.
-                    </listitem>
-                </itemizedlist>
-                Gradle provides means to resolve version conflicts:
-                <itemizedlist>
-                    <listitem>
-                        Configuring a first level dependency as <emphasis>forced</emphasis>.
-                        The feature has been in Gradle since early days.
-                        This approach is useful if the dependency incurring conflict is already a first level dependency.
-                        See examples in <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/>
-                    </listitem>
-                    <listitem>
-                        Configuring any dependency (transitive or not) as <emphasis>forced</emphasis>.
-                        The feature was introduced in <code>1.0-milestone-7</code>.
-                        This approach is useful if the dependency incurring conflict is a transitive dependency.
-                        It also can be used to force versions of first level dependencies.
-                        See examples in <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
-                    </listitem>
-                </itemizedlist>
-                To deal with problems due to version conflicts, reports with dependency graphs are also very helpful.
-                Such reports are another feature of dependency management.
-            </para>
+            <title>Resolve version conflicts</title>
+            <para>Conflicting versions of the same jar should be detected and either resolved or cause an exception. If you don't use transitive dependency management, version conflicts are undetected and the often accidental order of the classpath will determine what version of a dependency will win.   On a large project with many developers changing dependencies, successful builds will be few and far between as the order of dependencies may directly affect whether a build succeeds or fails (or whether a bug appears or disappears in production).</para>
+            <para>If you haven't had to deal with the curse of conflicting versions of jars on a classpath, here's a small example of the fun that awaits you.  Consider a large proejct with 30 submodules, adding a dependency with a particular version to a subproject changes the order of a classpath, swapping an old version of Spring 2.4 for a newer version Spring 2.5.   While the build may continue to work, developers are starting to notice all sorts of surprising (and surprisingly awful) bugs in production.   Worse yet, this unintentional downgrade of Spring introduced several security vulnerabilities into the system which now require a full security audit throughout the organization.</para>
+            <para>In short, version conflicts are bad, manage your transitive dependencies to avoid them.  You might also want to learn where conflicting versions are used and  consolidate on a particular version of a dependency across your organization. With a good conflict reporting tool like Gradle that information can be used to communicate with the entire organization and standardise on a single version.  <emphasis>If you think version conflicts don't happen to you, think again.</emphasis>   It is very common for different first-level dependencies to rely on a range of different overlapping versions for other dependencies, and the JVM doesn't yet offer an easy way to have different versions of the same jar in the classpath (see <xref linkend='sub:dependency_management_and_java'/>).</para>
+            <para>Gradle offers following conflict resolution strategies:</para>
+            <itemizedlist>
+                <listitem><emphasis>Newest</emphasis> - used by default by Gradle - the newest version of the dependency is used.  This has been Gradle's approach since the beginning of the project, and while it isn't appropriate in every situation, this is why Gradle provides you with various options for resolving conflicts.
+                </listitem>
+                <listitem><emphasis>Fail</emphasis> - fail eagerly on version conflict.
+                    Useful if you need extra control over dependencies and if you need to manage version conflicts manually. See <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/> for reference on managing the conflict resolution strategies.
+                </listitem>
+            </itemizedlist>
+            <para>While the strategies introduced above are usually enough to solve most conflicts, Gradle provides more fine-grained mechanisms to resolve version conflicts:</para>
+            <itemizedlist>
+                <listitem>
+                    Configuring a first level dependency as <emphasis>forced</emphasis>.
+                    This approach is useful if the dependency in conflict is already a first level dependency.
+                    See examples in <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/>
+                </listitem>
+                <listitem>
+                    Configuring any dependency (transitive or not) as <emphasis>forced</emphasis>.
+                    This approach is useful if the dependency in conflict is a transitive dependency.
+                    It also can be used to force versions of first level dependencies.
+                    See examples in <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
+                </listitem>
+                <listitem>
+                    Dependency resolve rules are an incubating feature introduced in Gradle 1.4 which give you fine-grained control over the version selected for a particular dependency.
+                </listitem>
+            </itemizedlist>
+            <para>To deal with problems due to version conflicts, reports with dependency graphs are also very helpful.
+                Such reports are another feature of dependency management.</para>
         </section>
         <section id='sub:dynamic_versions_and_changing_modules'>
-            <title>Dynamic Versions and Changing Modules</title>
-            <para>Sometimes, you always want to use the latest version of a particular dependency, or the latest in a range of versions.
-                You can easily do this using a <emphasis>dynamic version</emphasis>. A dynamic version can be either a version range (eg. <literal>2.+</literal>)
-                or it can be a placeholder for the latest version available (eg. <literal>latest.integration</literal>).
-            </para>
-            <para>Alternatively, sometimes the module you request can change over time, even for the same version.
-                An example of this type of <emphasis>changing module</emphasis> is a maven <literal>SNAPSHOT</literal> module,
-                which always points at the latest artifacts published.
+            <title>Use Dynamic Versions and Changing Modules</title>
+            <para>There are many situation when you want to use the latest version of a particular dependency, or the latest in a range of versions.   This can be a requirement during development, or you may be developing a library that is designed to work with a range of dependency versions.  You can easily depend on these constantly changing dependencies by using a <emphasis>dynamic version</emphasis>. A dynamic version can be either a version range (eg. <literal>2.+</literal>) or it can be a placeholder for the latest version available (eg. <literal>latest.integration</literal>).</para>
+            <para>Alternatively, sometimes the module you request can change over time, even for the same version. An example of this type of <emphasis>changing module</emphasis> is a maven <literal>SNAPSHOT</literal> module, which always points at the latest artifact published.  In other words, a standard Maven snapshot is a module that never stands still so to speak, it is a "changing module". /para>
+                <para>The main difference between a <emphasis>dynamic version</emphasis> and a <emphasis>changing module</emphasis> is that when you resolve a <emphasis>dynamic version</emphasis>, you'll get the real, static version as the module name. When you resolve a <emphasis>changing module</emphasis>, the artifacts are named using the version you requested, but the underlying artifacts may change over time.</para>
+                <para>By default, Gradle caches dynamic versions and changing modules for 24 hours. You can override the default cache modes using <link linkend="sec:cache_command_line_options">command line options</link>. You can change the cache expiry times in your build using the <literal>resolution strategy</literal> (see <xref linkend='sec:controlling_caching'/>).
+                </para>
+            </section>
+        </section>
+        <section id='sub:configurations'>
+            <title>Dependency configurations</title>
+            <para>In Gradle dependencies are grouped into configurations. Configurations have a name, a number of other properties,
+                and they can extend each other.
+                Many Gradle plugin add pre-defined configurations to your project. The Java plugin, for example,
+                adds some configurations to represent the various classpaths it needs. see <xref linkend='sec:java_plugin_and_dependency_management'/>
+                for details. Of course you can add your add custom configurations on top of that. There are many use cases
+                for custom configurations. This is very handy for example for adding dependencies not needed for
+                building or testing your software (e.g. additional JDBC drivers to be shipped with your distribution).
             </para>
             <para>
-                The main difference between a <emphasis>dynamic version</emphasis> and a <emphasis>changing module</emphasis> is
-                that when you resolve a <emphasis>dynamic version</emphasis>, you'll get the real, static version as the module name.
-                When you resolve a <emphasis>changing module</emphasis>, the artifacts are named using the version you requested,
-                but the underlying artifacts may change over time.
+                A project's configurations are managed by a <literal>configurations</literal> object. The closure you pass to
+                the configurations object is applied against its API. To learn more about this API have a look at
+                <apilink class='org.gradle.api.artifacts.ConfigurationContainer'/>.
             </para>
-            <para>By default, Gradle caches dynamic versions and changing modules for 24 hours.
-                You can override the default cache modes using <link linkend="sec:cache_command_line_options">command line options</link>.
-                You can change the cache expiry times in your build using the <literal>resolution strategy</literal> (see <xref linkend='sec:controlling_caching'/>).
-            </para>
+            <para>To define a configuration:</para>
+            <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Definition of a configuration">
+                <sourcefile file="build.gradle" snippet="define-configuration"/>
+            </sample>
+            <para>To access a configuration:</para>
+            <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Accessing a configuration">
+                <sourcefile file="build.gradle" snippet="lookup-configuration"/>
+            </sample>
+            <para>To configure a configuration:</para>
+            <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Configuration of a configuration">
+                <sourcefile file="build.gradle" snippet="configure-configuration"/>
+            </sample>
         </section>
-        <section id='sub:dependency_management_and_java'>
-            <title>Dependency management and Java</title>
-            <para>Traditionally, Java has offered no support at all for dealing with libraries and versions. There are
-                no standard ways to say that
-                <literal>foo-1.0.jar</literal>
-                depends on a <literal>bar-2.0.jar</literal>. This has led to proprietary solutions. The most popular ones
-                are Maven and Ivy. Maven is a complete build system whereas Ivy focuses solely on dependency management.
+        
+        <section id='sec:how_to_declare_your_dependencies'>
+            <title>How to declare your dependencies</title>
+            <para>There are several different types of dependencies that you can declare:
             </para>
-            <para>Both approaches rely on descriptor XML files, which contains information about the dependencies of a
-                particular jar. Both also use repositories where the actual jars are placed together with their
-                descriptor files. And both offer resolution for conflicting jar versions in one form or the other. Yet
-                we think the differences of both approaches are significant
-                in terms of flexibility and maintainability. Originally Gradle did use Ivy under the
-                hood for its dependency management. This has been replaced with a native Gradle dependency resolution engine. This resolution engine
-                supports both POM and Ivy descriptor files.
-            </para>
-        </section>
-    </section>
-    <section id='sub:configurations'>
-        <title>Dependency configurations</title>
-        <para>In Gradle dependencies are grouped into configurations. Configurations have a name, a number of other properties,
-            and they can extend each other.
-            Many Gradle plugin add pre-defined configurations to your project. The Java plugin, for example,
-            adds some configurations to represent the various classpaths it needs. see <xref linkend='sec:java_plugin_and_dependency_management'/>
-            for details. Of course you can add your add custom configurations on top of that. There are many use cases
-            for custom configurations. This is very handy for example for adding dependencies not needed for
-            building or testing your software (e.g. additional JDBC drivers to be shipped with your distribution).
-        </para>
-        <para>
-            A project's configurations are managed by a <literal>configurations</literal> object. The closure you pass to
-            the configurations object is applied against its API. To learn more about this API have a look at
-            <apilink class='org.gradle.api.artifacts.ConfigurationContainer'/>.
-        </para>
-        <para>To define a configuration:</para>
-        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Definition of a configuration">
-            <sourcefile file="build.gradle" snippet="define-configuration"/>
-        </sample>
-        <para>To access a configuration:</para>
-        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Accessing a configuration">
-            <sourcefile file="build.gradle" snippet="lookup-configuration"/>
-        </sample>
-        <para>To configure a configuration:</para>
-        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Configuration of a configuration">
-            <sourcefile file="build.gradle" snippet="configure-configuration"/>
-        </sample>
-    </section>
-
-    <section id='sec:how_to_declare_your_dependencies'>
-        <title>How to declare your dependencies</title>
-        <para>There are several different types of dependencies that you can declare:
-        </para>
-        <table>
-            <title>Dependency types</title>
-            <thead>
-                <tr>
-                    <td>Type</td>
-                    <td>Description</td>
-                </tr>
-            </thead>
+            <table>
+                <title>Dependency types</title>
+                <thead>
+                    <tr>
+                        <td>Type</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
             <tr>
                 <td><link linkend="sub:module_dependencies">External module dependency</link></td>
                 <td>A dependency on an external module in some repository.</td>
