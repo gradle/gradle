@@ -18,8 +18,8 @@
 
     <note>
         <para>
-            You may wish to use the new <xref linkend="sonar_runner_plugin"/> instead of this plugin. In particular,
-            only the Sonar Runner plugin works with Sonar 3.4 and higher.
+            You may wish to use the new Sonar Runner Plugin (see <xref linkend="sonar_runner_plugin"/>) instead of this plugin.
+            In particular, only the Sonar Runner plugin supports Sonar 3.4 and higher.
         </para>
     </note>
 
