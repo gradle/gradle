@@ -21,6 +21,10 @@ When the IDEA plugin encounters a Scala project, it will now add additional conf
 project compile in IntelliJ IDEA out of the box. In particular, the plugin adds a Scala facet and
 a Scala compiler library that matches the Scala version used on the project's class path.
 
+### Improved test report generation
+
+The test report generation was refactored and is now slightly faster than in previous Gradle releases.
+ 
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
