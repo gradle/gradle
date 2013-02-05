@@ -72,9 +72,7 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
         succeeds "publish"
 
         then:
-        def pom = module.parsedPom
-        module.assertPublished()
-        pom.packaging == "pom"
-        pom.description == "A demonstration of maven pom customisation"
+        module.assertPublishedAsPomModule()
+        module.parsedPom.description == "A demonstration of maven pom customisation"
     }
 }

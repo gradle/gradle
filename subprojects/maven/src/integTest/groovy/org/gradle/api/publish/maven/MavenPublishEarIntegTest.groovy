@@ -65,9 +65,7 @@ publishing {
         run "publish"
 
         then:
-        earModule.assertPublished()
-        earModule.assertArtifactsPublished("publishEar-1.9.ear", "publishEar-1.9.pom")
-        earModule.parsedPom.packaging == 'ear'
+        earModule.assertPublishedAsEarModule()
         earModule.parsedPom.scopes.isEmpty()
     }
 }

@@ -122,6 +122,12 @@ class MavenFileModule implements MavenModule {
         assert parsedPom.packaging == 'war'
     }
 
+    void assertPublishedAsEarModule() {
+        assertPublished()
+        assertArtifactsPublished("${artifactId}-${version}.ear", "${artifactId}-${version}.pom")
+        assert parsedPom.packaging == 'ear'
+    }
+
     /**
      * Asserts that exactly the given artifacts have been deployed, along with their checksum files
      */
