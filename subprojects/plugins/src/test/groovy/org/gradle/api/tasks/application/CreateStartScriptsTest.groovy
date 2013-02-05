@@ -71,12 +71,4 @@ class CreateStartScriptsTest extends Specification {
         then:
         task.exitEnvironmentVar == 'APP_EXIT'
     }
-
-    def defaultJvmOptsDefaultsToEmptyList() {
-        when:
-        task.defaultJvmOpts = null
-
-        then:
-        task.defaultJvmOpts == []
-    }
 }
