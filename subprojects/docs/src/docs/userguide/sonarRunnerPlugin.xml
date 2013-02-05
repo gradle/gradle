@@ -13,28 +13,42 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id="sonar_plugin">
+<chapter id="sonar_runner_plugin">
     <title>The Sonar Runner Plugin</title>
 
     <para>The Sonar Runner plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
         a web-based platform for monitoring code quality. It is based on the <ulink url="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</ulink>,
-        Sonar's client component that analyzes source code and build outputs and stores all collected information in the Sonar database. Compared to using
+        a Sonar client component that analyzes source code and build outputs, and stores all collected information in the Sonar database. Compared to using
         the standalone Sonar Runner, the Sonar Runner plugin offers the following benefits:
     </para>
-    <ul>
-        <li>Automatic provisioning of the Sonar Runner. The ability to execute the Sonar Runner via a regular Gradle task makes it available anywhere Gradle is available
-            (develeper build, CI server, etc.), without the need to download, setup, and maintain a Sonar Runner installation.</li>
-        <li>Dynamic configuration of Sonar Runner from Gradle build scripts. All of Gradle's scripting features can be leveraged to configure Sonar Runner as needed.</li>
-        <li>Extensive defaults for Sonar Runner configuration. Gradle already has much of the information needed for Sonar Runner to successfully analyze
-        a project. By preconfiguring the Sonar Runner based on that information, the need for manual configuration is reduced significantly.</li>
-    </ul>
+    <variablelist>
+        <varlistentry>
+            <term>Automatic provisioning of the Sonar Runner</term>
+            <listitem>
+                <para>The ability to execute the Sonar Runner via a regular Gradle task makes it available anywhere Gradle is available
+                    (develeper build, CI server, etc.), without the need to download, setup, and maintain a Sonar Runner installation.</para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>Dynamic configuration of Sonar Runner from Gradle build scripts</term>
+            <listitem>
+                <para>All of Gradle's scripting features can be leveraged to configure Sonar Runner as needed.</para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>Extensive defaults for Sonar Runner configuration</term>
+            <listitem>
+                <para>Gradle already has much of the information needed for Sonar Runner to successfully analyze a project. By preconfiguring
+                    the Sonar Runner based on that information, the need for manual configuration is reduced significantly.</para>
+            </listitem>
+        </varlistentry>
+    </variablelist>
 
     <section>
         <title>Plugin Status and Compatibility</title>
         <para>
-            The Sonar Runner plugin is the successor to the Sonar plugin. It is currently in incubation. The plugin is based on Sonar Runner 2.0,
-            which makes it compatible with Sonar 2.11 and higher. Unlike the Sonar plugin, the Sonar Runner plugin works fine with Sonar
-            3.4 and higher.
+            The Sonar Runner plugin is the successor to the <xref linkend="sonar_plugin"/>. It currently has incubating status. The plugin is based on Sonar Runner 2.0,
+            which makes it compatible with Sonar 2.11 and higher. Unlike the Sonar plugin, the Sonar Runner plugin works fine with Sonar 3.4 and higher.
         </para>
     </section>
 
@@ -46,20 +60,21 @@
         </sample>
         <para>
             Assuming a local Sonar server with out-of-the-box settings is up and running, no further mandatory configuration is required.
-            Execute <code>gradle sonarRunner</code> and wait until the build has completed, then open the web page indicated
-            at the bottom of the Sonar Runner output. You should now be able to browse the results of the analysis.
+            Execute <userinput>gradle sonarRunner</userinput> and wait until the build has completed, then open the web page indicated
+            at the bottom of the Sonar Runner output. You should now be able to browse the analysis results.
         </para>
         <para>
-            Before executing the <code>sonarRunner</code> task, all tasks producing output to be analysed by Sonar need to be executed.
-            Typically, these are compile tasks, test tasks, and code coverage tasks. In alignment with the Sonar Runner plugin's defaults (see below),
-            the plugins adds a task dependency from <code>sonarRunner</code> on <code>test</code>. Further task dependencies can be added as needed.
+            Before executing the <literal>sonarRunner</literal> task, all tasks producing output to be analysed by Sonar need to be executed.
+            Typically, these are compile tasks, test tasks, and code coverage tasks. To meet these needs, the plugins adds a task dependency
+            from <literal>sonarRunner</literal> on <literal>test</literal> if the <literal>java</literal> plugin is applied. Further task dependencies can be
+            added as needed.
         </para>
     </section>
 
     <section>
-        <title>Configuration</title>
-        <para>The plugin adds a <apilink class="org.gradle.api.plugins.sonar.runner.SonarRunner"/>sonarRunner</para> extension to the project,
-        which allows to configure the Sonar Runner via key-value pairs known as Sonar properties. A typical base line configuration includes
+        <title>Configuring the Sonar Runner</title>
+        <para>The Sonar Runner plugin adds a <apilink class="org.gradle.api.plugins.sonar.runner.SonarRunner"/>sonarRunner</para> extension to the project,
+        which allows to configure the Sonar Runner via key/value pairs known as <firstterm>Sonar properties</firstterm>. A typical base line configuration includes
         connection settings for the Sonar server and database.
         <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
@@ -68,9 +83,10 @@
             Alternatively, Sonar properties can be set from the command line. See <xref linkend="sec:sonar_command_line_parameters" /> for more information.
         </para>
         <para>
-            The Sonar Runner plugin provides good defaults for many standard Sonar properties. The properties and their defaults are summarized in the tables below.
-            As can be seen, additional defaults are added for projects that have the <literal>java-base</literal> or <literal>java</literal> plugin applied. Note
-            that Gradle doesn't add defaults for properties for which the Sonar Runner already provides suitable defaults (e.g. server and database connection settings).
+            The Sonar Runner plugin leverages information contained in Gradle's object model to provide smart defaults for many standard Sonar properties. The defaults
+            are summarized in the tables below. Notice that additional defaults are provided for projects that have the <literal>java-base</literal> or
+            <literal>java</literal> plugin applied. For some properties (notably server and database connection settings), determining a suitable default
+            is left to the Sonar Runner.
         </para>
         <table>
             <title>Gradle defaults for standard Sonar properties</title>
@@ -148,7 +164,7 @@
             </tr>
             <tr>
                 <td>sonar.libraries</td>
-                <td>sourceSets.main.runtimeClasspath (filtering to only include files; {@code rt.jar} added if necessary)</td>
+                <td>sourceSets.main.runtimeClasspath (filtering to only include files; <literal>rt.jar</literal> added if necessary)</td>
             </tr>
             <tr>
                 <td>sonar.surefire.reportsPath</td>
@@ -170,20 +186,38 @@
         <para>
             To analyze a project hierarchy, apply the Sonar Runner plugin to the root project of the hierarchy.
             Typically (but not necessarily) this will be the root project of the Gradle build. Information pertaining to the
-            whole analysis, like server and database connections settings, have to be configured in the <literal>sonarRunner</literal>
-            block of the root project. Project-specific information is configured in the <literal>sonarRunner</literal> block
-            of the corresponding project. Note that Sonar properties set on the command line always apply to the root project.
+            analysis as a whole, like server and database connections settings, have to be configured in the <literal>sonarRunner</literal>
+            block of this project. Any Sonar properties set on the command line also apply to this project.
         </para>
+        <sample id="multiProject" dir="sonarRunner/multiProject" title="Global configuration settings">
+            <sourcefile file="build.gradle" snippet="global-configuration-settings"/>
+        </sample>
         <para>
-            The exclude selected subprojects from being analyzed, set <code>sonarRunner.skipProject</code> to <code>true</code>.
+            Configuration shared between subprojects can be configured in a <literal>subprojects</literal> block.
         </para>
+        <sample id="multiProject" dir="sonarRunner/multiProject" title="Shared configuration settings">
+            <sourcefile file="build.gradle" snippet="shared-configuration-settings"/>
+        </sample>
+        <para>
+            Project-specific information is configured in the <literal>sonarRunner</literal> block
+            of the corresponding project.
+        </para>
+        <sample id="multiProject" dir="sonarRunner/multiProject" title="Individual configuration settings">
+            <sourcefile file="build.gradle" snippet="individual-configuration-settings"/>
+        </sample>
+        <para>
+            The skip Sonar analysis for a particular subproject, set <literal>sonarRunner.skipProject</literal>.
+        </para>
+        <sample id="multiProject" dir="sonarRunner/multiProject" title="Skipping analysis of a project">
+            <sourcefile file="build.gradle" snippet="skip-project"/>
+        </sample>
     </section>
 
     <section>
         <title>Analyzing Custom Source Sets</title>
-        <para>By default, the Sonar Runner plugin will analyze the production sources in the project's <literal>main</literal> source set, and
-            the test sources in the project's <literal>test</literal> source set. This works independently of the project's source directory layout.
-            Additional source sets can be added as needed.
+        <para>By default, the Sonar Runner plugin passes on the project's <literal>main</literal> source set as production sources, and the
+             project's <literal>test</literal> source set as test sources. This works regardless of the project's source directory layout.
+             Additional source sets can be added as needed.
         </para>
         <sample id="advanced" dir="sonar/advanced" title="Analyzing custom source sets">
             <sourcefile file="build.gradle" snippet="source-sets"/>
@@ -201,28 +235,45 @@
             <sourcefile file="build.gradle" snippet="languages" />
         </sample>
         <para>
-            As of Sonar 3.4, only one language per project can be analyzed. You can, however, set a different language for each project in a
-            multi-project build.
+            As of Sonar 3.4, only one language per project can be analyzed. It is, however, possible to analyze a different language
+            for each project in a multi-project build.
         </para>
     </section>
 
     <section>
-        <title>Advanced Configuration</title>
+        <title>More on configuring Sonar properties</title>
         <para>
-            Let's have a closer look at the <code>sonarRunner.sonarProperties {}</code> block. TODO
+            Let's take a closer look at the <literal>sonarRunner.sonarProperties {}</literal> block. As we have already seen in the examples,
+            the <literal>property()</literal> method allows to set new properties or override existing ones. Furthermore, all properties that have
+            been configured up to this point, including all properties preconfigured by Gradle, are available via the <literal>properties</literal>
+            accessor.
+        <para>
+        </para>
+            Entries in the <literal>properties</literal> map can be read and written with the usual Groovy syntax. To facilitate their manipulation,
+            values still have their "idiomatic" type (<classname>File</classname>, <classname>List</classname>, etc.). After the sonarProperties block
+            has been evaluated, values are converted to Strings as follows: Collection values are (recursively) converted to comma-separated Strings,
+            and all other values are converted by calling their <literal>toString()</literal> method.
+        </para>
+        <para>
+            Because the <literal>sonarProperties</literal> block is evaluated lazily, properties of Gradle's object model can be safely referenced
+            from within the block, without having to fear that they have not yet been set.
         </para>
     </section>
 
     <section id="sec:sonar_command_line_parameters">
-        <title>Configuring Sonar Properties from the Command Line</title>
+        <title>Setting Sonar Properties from the Command Line</title>
         <para>
             Sonar Properties can also be set from the command line, by setting a system property named exactly like the Sonar property in question.
             This can be useful when dealing with sensitive information (e.g. credentials), environment information, or for ad-hoc configuration.
-            <code>
-                gradle sonarRunner -Dsonar.host.url=http://sonar.mycompany.com -Dsonar.jdbc.password=myPassword -Dsonar.verbose=true
-            </code>
-            While certainly useful at times, we do recommend to keep the bulk of the configuration in a (versioned) build script, readily accessible to everyone.
         </para>
+        <programlisting>
+            gradle sonarRunner -Dsonar.host.url=http://sonar.mycompany.com -Dsonar.jdbc.password=myPassword -Dsonar.verbose=true
+        </programlisting>
+        <note>
+            <para>
+                While certainly useful at times, we do recommend to keep the bulk of the configuration in a (versioned) build script, readily accessible for everyone.
+            </para>
+        </note>
         <para>A Sonar property value set via a system property overrides any value set in a build script (for the same property). When
             analyzing a project hierarchy, values set via system properties apply to the root project of the analyzed hierarchy.
         </para>
@@ -231,7 +282,7 @@
     <section>
         <title>Executing Sonar Runner in a separate process</title>
         <para>
-            Depending on project size, the Sonar Runner may require a lot of memory. For this and other (e.g. isolation) reasons,
+            Depending on project size, the Sonar Runner may require a lot of memory. For this and other (mainly isolation) reasons,
             it is desirable to execute the Sonar Runner in a separate process. This feature will be provided once Sonar Runner 2.1
             has been released and adopted by the Sonar Runner plugin. Until then, the Sonar Runner is executed in the
             main Gradle process. See <xref linkend="sec:gradle_configuration_properties"/> for how to manage memory settings for that process.

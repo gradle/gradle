@@ -16,6 +16,13 @@
 <chapter id="sonar_plugin">
     <title>The Sonar Plugin</title>
 
+    <note>
+        <para>
+            You may wish to use the new <xref linkend="sonar_runner_plugin"/> instead of this plugin. In particular,
+            only the Sonar Runner plugin works with Sonar 3.4 and higher.
+        </para>
+    </note>
+
     <para>The Sonar plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
         a web-based platform for monitoring code quality. The plugin adds a <literal>sonarAnalyze</literal> task
         that analyzes the project to which the plugin is applied, as well as its subprojects. The results are stored in
