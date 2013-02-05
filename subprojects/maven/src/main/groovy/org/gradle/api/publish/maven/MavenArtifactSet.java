@@ -21,11 +21,31 @@ import org.gradle.api.Incubating;
 
 /**
  * A Collection of {@link MavenArtifact}s to be included in a {@link MavenPublication}.
+ *
+ * Being a {@link DomainObjectSet}, a {@code MavenArtifactSet} provides convenient methods for querying, filtering, and applying actions to the set of {@link MavenArtifact}s.
+ *
+ * <pre autoTested="true">
+ * apply plugin: 'maven-publish'
+ *
+ * def publication = publishing.publications.add("name", MavenPublication)
+ * def artifacts = publication.artifacts
+ *
+ * artifacts.matching({
+ *     it.classifier == "classy"
+ * }).all({
+ *     it.extension = "ext"
+ * })
+ * </pre>
+ *
+ * @see DomainObjectSet
+ *
  */
 @Incubating
 public interface MavenArtifactSet extends DomainObjectSet<MavenArtifact> {
     /**
      * Creates and adds a {@link MavenArtifact} to the set.
+     *
+     * The semantics of this method are the same as {@link MavenPublication#artifact(Object)}.
      *
      * @param source The source of the artifact content.
      */
@@ -34,8 +54,10 @@ public interface MavenArtifactSet extends DomainObjectSet<MavenArtifact> {
     /**
      * Creates and adds a {@link MavenArtifact} to the set, which is configured by the associated action.
      *
+     * The semantics of this method are the same as {@link MavenPublication#artifact(Object, org.gradle.api.Action)}.
+     *
      * @param source The source of the artifact.
-     * @param config An action to configure the values of the constructed {@link MavenArtifact}.
+     * @param config An action or closure to configure the values of the constructed {@link MavenArtifact}.
      */
      MavenArtifact artifact(Object source, Action<? super MavenArtifact> config);
 }

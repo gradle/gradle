@@ -179,6 +179,9 @@
                 <td>org.gradle.api.publish.maven.MavenArtifact</td>
             </tr>
             <tr>
+                <td>org.gradle.api.publish.maven.MavenArtifactSet</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.publish.maven.MavenPom</td>
             </tr>
         </table>
@@ -269,6 +272,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.tasks.GenerateMavenPom</td>
             </tr>
             <tr>
                 <td>org.gradle.api.reporting.GenerateBuildDashboard</td>
