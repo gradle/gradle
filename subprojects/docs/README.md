@@ -102,6 +102,10 @@ This attribute can be attached to any docbook element to conditionally includes 
 
 Adds a link to the given page on the Gradle web site. This will be replaced by a relative link when the content is included in the web site, and an absolute link when the content is included in a stand alone user guide.
 
+#### `<programlisting>`
+
+For code snippets
+
 #### Snippets
 
 The sample source files can contain snippets which can be included in the documentation, in place of the entire source file.
