@@ -27,17 +27,15 @@ allprojects {
     apply plugin: 'java'
 }
 '''
-
         when:
         executer.withArguments("--profile").withTasks("build").run()
 
         then:
         def reportFile = file('build/reports/profile').listFiles().find { it.name ==~ /profile-.+.html/ }
         Document document = Jsoup.parse(reportFile, "utf-8");
-        assert !document.select("TD:contains(:jar)").isEmpty()
-        assert !document.select("TD:contains(:a:jar)").isEmpty()
-        assert !document.select("TD:contains(:b:jar)").isEmpty()
-        assert !document.select("TD:contains(:c:jar)").isEmpty()
-
+        !document.select("TD:contains(:jar)").isEmpty()
+        !document.select("TD:contains(:a:jar)").isEmpty()
+        !document.select("TD:contains(:b:jar)").isEmpty()
+        !document.select("TD:contains(:c:jar)").isEmpty()
     }
 }
