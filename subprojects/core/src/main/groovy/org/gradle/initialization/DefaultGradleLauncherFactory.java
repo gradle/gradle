@@ -17,16 +17,9 @@
 package org.gradle.initialization;
 
 import org.gradle.*;
-import org.gradle.api.Action;
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyResolutionListener;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
@@ -129,21 +122,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         if (startParameter.isProfile()) {
             listenerManager.addListener(new ReportGeneratingProfileListener());
         }
-
-        //TODO SF refactor
-        listenerManager.addListener(new DependencyResolutionListener() {
-            public void beforeResolve(ResolvableDependencies dependencies) {
-                dependencies.getDependencies().all(new Action<Dependency>() {
-                    public void execute(Dependency dependency) {
-                        if (dependency instanceof ProjectDependency) {
-                            Project dependencyProject = ((ProjectDependency) dependency).getDependencyProject();
-                            serviceRegistry.get(ProjectAccessListener.class).beforeResolvingProjectDependency((ProjectInternal) dependencyProject);
-                        }
-                    }
-                });
-            }
-            public void afterResolve(ResolvableDependencies dependencies) {}
-        });
+        listenerManager.addListener(new DefaultDependencyResolutionListener(serviceRegistry.get(ProjectAccessListener.class)));
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry);
         return new DefaultGradleLauncher(
@@ -184,4 +163,5 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             services.close();
         }
     }
+
 }
