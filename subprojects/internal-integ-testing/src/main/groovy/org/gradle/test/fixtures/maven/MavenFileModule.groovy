@@ -104,6 +104,12 @@ class MavenFileModule implements MavenModule {
         assert parsedPom.version == version
     }
 
+    void assertPublishedAsPomModule() {
+        assertPublished()
+        assertArtifactsPublished("${artifactId}-${version}.pom")
+        assert parsedPom.packaging == "pom"
+    }
+
     void assertPublishedAsJavaModule() {
         assertPublished()
         assertArtifactsPublished("${artifactId}-${version}.jar", "${artifactId}-${version}.pom")

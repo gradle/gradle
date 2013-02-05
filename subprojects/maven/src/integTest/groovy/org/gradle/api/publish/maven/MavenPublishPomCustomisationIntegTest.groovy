@@ -67,53 +67,6 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         module.parsedPom.scopes.runtime.assertDependsOn("junit", "junit", "4.11")
     }
 
-    def "pom and artifacts can contain non-ascii characters"() {
-        // Group and Artifact are restricted to [A-Za-z0-9_\\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
-        def groupId = 'group'
-        def artifactId = 'artifact'
-
-        // Try version & description with non-ascii characters
-        def version = 'version-₦ガき∆'
-        def description = 'description-ç√∫'
-        def extension = 'ext-₦ガき∆'
-        def classifier = 'class-₦ガき∆'
-
-        given:
-        file("content-file") << "some content"
-        settingsFile << "rootProject.name = '${artifactId}'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
-
-            group = '${groupId}'
-            version = '${version}'
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                        pom.withXml {
-                            asNode().appendNode('description', "${description}")
-                        }
-                        artifact file: "content-file", extension: "${extension}", classifier: "${classifier}"
-                    }
-                }
-            }
-        """
-        when:
-        succeeds 'publish'
-
-        then:
-        def module = mavenRepo.module(groupId, artifactId, version)
-        module.assertPublished()
-        module.parsedPom.description == description
-
-        module.assertArtifactsPublished("${artifactId}-${version}.pom", "${artifactId}-${version}.jar", "${artifactId}-${version}-${classifier}.${extension}")
-    }
-
     def "can generate pom file without publishing"() {
         given:
         settingsFile << "rootProject.name = 'generatePom'"
