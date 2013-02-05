@@ -55,6 +55,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             String name, Module module, NotationParser<MavenArtifact> mavenArtifactParser, Instantiator instantiator
     ) {
         this.name = name;
+        // TODO:DAZ Don't use Module in MavenPublication stuff : fix this as part of making Publish Coordinates configurable
         this.projectIdentity = new PublicationProjectIdentity(module);
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
@@ -121,12 +122,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
+        // TODO:DAZ Change this so that the MavenNormalizedPublication just has a set of artifacts. Move determination of 'main' artifact into MavenPublisher
         MavenNormalizedPublication mavenNormalizedPublication = new MavenNormalizedPublication(name, getPomFile(), getMainArtifact(), getAdditionalArtifacts());
+        // TODO:DAZ Move this into MavenPublisher
         mavenNormalizedPublication.validateArtifacts();
         return mavenNormalizedPublication;
     }
 
     private MavenArtifact getMainArtifact() {
+        // TODO:DAZ Move this logic into MavenPublisher - moving logic out of domain layer into service layer.
         Set<MavenArtifact> candidateMainArtifacts = CollectionUtils.filter(mavenArtifacts, new Spec<MavenArtifact>() {
             public boolean isSatisfiedBy(MavenArtifact element) {
                 return element.getClassifier() == null || element.getClassifier().length() == 0;
@@ -149,6 +153,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             if (artifact == mainArtifact) {
                 continue;
             }
+            // TODO:DAZ Move this validation into the MavenPublisher service
             MavenArtifactKey key = new MavenArtifactKey(artifact);
             if (keys.contains(key)) {
                 throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': multiple artifacts with the identical extension '%s' and classifier '%s'.",
