@@ -369,7 +369,7 @@ class TestResultsFixture {
 
     TestResultsFixture(TestFile file) {
         file.assertIsFile()
-        content = Jsoup.parse(file, "utf-8")
+        content = Jsoup.parse(file, null)
     }
 
     void assertHasTests(int tests) {

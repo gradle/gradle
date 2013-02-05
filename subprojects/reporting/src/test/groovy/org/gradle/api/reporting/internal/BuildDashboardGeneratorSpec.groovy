@@ -39,7 +39,7 @@ class BuildDashboardGeneratorSpec extends Specification {
     }
 
     private Document getOutputHtml() {
-        Jsoup.parse(outputFile, 'UTF-8')
+        Jsoup.parse(outputFile, null)
     }
 
     Report mockReport(String name, File destination) {

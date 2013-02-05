@@ -290,7 +290,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     }
 
     Document html(path = "build/reports/compareGradleBuilds/index.html") {
-        Jsoup.parse(file(path), "utf8")
+        Jsoup.parse(file(path), null)
     }
 
     TestFile storedFile(String path, String base = "build/reports/compareGradleBuilds/files") {

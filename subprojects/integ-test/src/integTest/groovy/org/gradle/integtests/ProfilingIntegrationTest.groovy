@@ -32,7 +32,7 @@ allprojects {
 
         then:
         def reportFile = file('build/reports/profile').listFiles().find { it.name ==~ /profile-.+.html/ }
-        Document document = Jsoup.parse(reportFile, "utf-8");
+        Document document = Jsoup.parse(reportFile, null);
         !document.select("TD:contains(:jar)").isEmpty()
         !document.select("TD:contains(:a:jar)").isEmpty()
         !document.select("TD:contains(:b:jar)").isEmpty()

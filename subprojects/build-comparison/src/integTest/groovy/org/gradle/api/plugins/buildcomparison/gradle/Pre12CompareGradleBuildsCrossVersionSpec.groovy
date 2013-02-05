@@ -141,7 +141,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
     }
 
     Document html(path = "build/reports/compareGradleBuilds/index.html") {
-        Jsoup.parse(file(path), "utf8")
+        Jsoup.parse(file(path), null)
     }
 
     String getSourceBuildVersion(Document html = this.html()) {

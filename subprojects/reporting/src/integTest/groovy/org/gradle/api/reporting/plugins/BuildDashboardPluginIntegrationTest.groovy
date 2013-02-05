@@ -39,7 +39,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     private int getDashboardLinksCount() {
-        Jsoup.parse(buildDashboardFile, 'UTF-8').select('ul li a').size()
+        Jsoup.parse(buildDashboardFile, null).select('ul li a').size()
     }
 
     private void writeBuildFile() {

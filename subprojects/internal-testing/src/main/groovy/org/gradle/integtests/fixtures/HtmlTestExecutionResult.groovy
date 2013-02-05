@@ -40,7 +40,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     def indexContainsTestClass(String... testClasses) {
         def indexFile = new File(htmlReportDirectory, "index.html")
         assert indexFile.exists()
-        Document html = Jsoup.parse(indexFile, "utf-8")
+        Document html = Jsoup.parse(indexFile, null)
         testClasses.each { testClass ->
             assert html.select("a").find { it.text() == testClass } != null
         }
@@ -66,7 +66,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         public HtmlTestClassExecutionResult(File htmlFile) {
             this.htmlFile = htmlFile;
-            this.html = Jsoup.parse(htmlFile, "utf-8")
+            this.html = Jsoup.parse(htmlFile, null)
             parseTestClassFile()
         }
 
