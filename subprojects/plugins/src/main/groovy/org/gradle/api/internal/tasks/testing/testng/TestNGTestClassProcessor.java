@@ -97,7 +97,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setVerbose(0);
         testNg.setGroups(CollectionUtils.join(",", options.getIncludeGroups()));
         testNg.setExcludedGroups(CollectionUtils.join(",", options.getExcludeGroups()));
-        for (String listenerClass : options.getListener()) {
+        for (String listenerClass : options.getListeners()) {
             try {
                 testNg.addListener(applicationClassLoader.loadClass(listenerClass).newInstance());
             } catch (Throwable e) {

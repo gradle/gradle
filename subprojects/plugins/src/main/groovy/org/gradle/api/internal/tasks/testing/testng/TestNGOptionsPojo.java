@@ -35,7 +35,7 @@ public class TestNGOptionsPojo implements Serializable {
     private final boolean useDefaultListener;
     private final Set<String> includeGroups;
     private final Set<String> excludeGroups;
-    private final Set<String> listener;
+    private final Set<String> listeners;
 
     public TestNGOptionsPojo(TestNGOptions options) {
         this.defaultSuiteName = options.getSuiteName();
@@ -48,11 +48,11 @@ public class TestNGOptionsPojo implements Serializable {
         this.useDefaultListener = options.getUseDefaultListeners();
         this.includeGroups = options.getIncludeGroups();
         this.excludeGroups = options.getExcludeGroups();
-        this.listener = options.getListeners();
+        this.listeners = options.getListeners();
     }
 
-    public Set<String> getListener() {
-        return listener;
+    public Set<String> getListeners() {
+        return listeners;
     }
 
     public Set<String> getExcludeGroups() {
