@@ -18,9 +18,7 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
 import java.util.Collection;
@@ -30,13 +28,11 @@ import java.util.Collection;
  */
 public class DependencyProjectNotationParser extends TypedNotationParser<Project, ProjectDependency> {
 
-    private final ProjectDependenciesBuildInstruction instruction;
-    private final Instantiator instantiator;
+    private final DefaultProjectDependencyFactory factory;
 
-    public DependencyProjectNotationParser(ProjectDependenciesBuildInstruction instruction, Instantiator instantiator) {
+    public DependencyProjectNotationParser(DefaultProjectDependencyFactory factory) {
         super(Project.class);
-        this.instruction = instruction;
-        this.instantiator = instantiator;
+        this.factory = factory;
     }
 
     @Override
@@ -45,6 +41,6 @@ public class DependencyProjectNotationParser extends TypedNotationParser<Project
     }
 
     public ProjectDependency parseType(Project notation) {
-        return instantiator.newInstance(DefaultProjectDependency.class, notation, instruction);
+        return factory.create(notation);
     }
 }

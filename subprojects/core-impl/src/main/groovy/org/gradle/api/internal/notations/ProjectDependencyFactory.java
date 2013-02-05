@@ -16,9 +16,7 @@
 package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.util.ConfigureUtil;
 
@@ -29,20 +27,19 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class ProjectDependencyFactory {
-    private final ProjectDependenciesBuildInstruction instruction;
-    private final Instantiator instantiator;
+    private final DefaultProjectDependencyFactory factory;
 
-    public ProjectDependencyFactory(ProjectDependenciesBuildInstruction instruction, Instantiator instantiator) {
-        this.instruction = instruction;
-        this.instantiator = instantiator;
+    public ProjectDependencyFactory(DefaultProjectDependencyFactory factory) {
+        this.factory = factory;
     }
 
+    //TODO SF turn into notation parser
     public ProjectDependency createFromMap(ProjectFinder projectFinder,
                                            Map<? extends String, ? extends Object> map) {
         Map<String, Object> args = new HashMap<String, Object>(map);
         String path = getAndRemove(args, "path");
         String configuration = getAndRemove(args, "configuration");
-        ProjectDependency dependency = instantiator.newInstance(DefaultProjectDependency.class, projectFinder.getProject(path), configuration, instruction);
+        ProjectDependency dependency = factory.create(projectFinder.getProject(path), configuration);
         ConfigureUtil.configureByMap(args, dependency);
         return dependency;
     }

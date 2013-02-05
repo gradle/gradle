@@ -61,6 +61,7 @@ import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.cache.CacheRepository;
+import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -133,15 +134,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected DependencyFactory createDependencyFactory() {
         Instantiator instantiator = get(Instantiator.class);
 
-        ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(get(StartParameter.class).isBuildProjectDependencies());
+        ProjectAccessListener projectAccessListener = get(ProjectAccessListener.class);
+        DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
+                projectAccessListener, instantiator, get(StartParameter.class).isBuildProjectDependencies());
 
-        ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(
-                projectDependenciesBuildInstruction,
-                instantiator);
-
-        DependencyProjectNotationParser projParser = new DependencyProjectNotationParser(
-                projectDependenciesBuildInstruction,
-                instantiator);
+        ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
+        DependencyProjectNotationParser projParser = new DependencyProjectNotationParser(factory);
 
         NotationParser<? extends Dependency> moduleMapParser = new DependencyMapNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
         NotationParser<? extends Dependency> moduleStringParser = new DependencyStringNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);

@@ -16,10 +16,11 @@
 package org.gradle.api.internal.notations;
 
 
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction
+import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.GUtil
 import spock.lang.Specification
 
@@ -28,10 +29,11 @@ import spock.lang.Specification
  */
 public class ProjectDependencyFactoryTest extends Specification {
 
-    def ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(false);
-    def ProjectDependencyFactory factory = new ProjectDependencyFactory(projectDependenciesBuildInstruction, new DirectInstantiator());
-    def ProjectFinder projectFinder = Mock(ProjectFinder.class);
-    def ProjectInternal projectDummy = Mock(ProjectInternal.class);
+    def projectDummy = Mock(ProjectInternal)
+    def projectFinder = Mock(ProjectFinder)
+
+    def depFactory = new DefaultProjectDependencyFactory(Mock(ProjectAccessListener), new DirectInstantiator(), true)
+    def factory = new ProjectDependencyFactory(depFactory)
 
     def testCreateProjectDependencyWithMapNotation() {
         given:

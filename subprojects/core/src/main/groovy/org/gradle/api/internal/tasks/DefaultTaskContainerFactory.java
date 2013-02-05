@@ -16,22 +16,25 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 
 public class DefaultTaskContainerFactory implements Factory<TaskContainerInternal> {
     private final Instantiator instantiator;
     private final ITaskFactory taskFactory;
     private Project project;
+    public ProjectAccessListener projectAccessListener;
 
-    public DefaultTaskContainerFactory(Instantiator instantiator, ITaskFactory taskFactory, Project project) {
+    public DefaultTaskContainerFactory(Instantiator instantiator, ITaskFactory taskFactory, Project project, ProjectAccessListener projectAccessListener) {
         this.instantiator = instantiator;
         this.taskFactory = taskFactory;
         this.project = project;
+        this.projectAccessListener = projectAccessListener;
     }
 
     public TaskContainerInternal create() {
-        return instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory);
+        return instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener);
     }
 }

@@ -175,4 +175,6 @@ the root project so that this will be possible.
 Currently, building tasks takes advantage of COD. Building model always causes everything to get evaluated.
 There's a forum request from Attila (NetBeans) to improve that.
 
-More to come ...
+## Configure on demand fully respects --no-rebuild (e.g. does not even configure the target project)
+
+I'd say this should have very low priority

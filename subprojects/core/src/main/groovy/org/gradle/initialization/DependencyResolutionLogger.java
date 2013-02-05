@@ -30,7 +30,8 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
     }
 
     public void beforeResolve(ResolvableDependencies dependencies) {
-        checkLogger(false);
+        //TODO SF this needs to be properly fixed to allow recursive resolution (GRADLE-2477)
+//        checkLogger(false);
         ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
         logger.setDescription(String.format("Resolve %s", dependencies));
         logger.setShortDescription(String.format("Resolving %s", dependencies));
@@ -39,9 +40,12 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
     }
 
     public void afterResolve(ResolvableDependencies dependencies) {
-        checkLogger(true);
-        progressLogger.get().completed();
-        progressLogger.remove();
+//        checkLogger(true);
+        ProgressLogger log = progressLogger.get();
+        if (log != null) {
+            log.completed();
+            progressLogger.remove();
+        }
     }
 
     private void checkLogger(boolean shouldExist) {

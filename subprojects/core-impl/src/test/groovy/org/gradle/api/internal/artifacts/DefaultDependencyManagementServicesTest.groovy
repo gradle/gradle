@@ -30,6 +30,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.FileLockManager
+import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.TimeProvider
 import org.gradle.internal.reflect.Instantiator
@@ -65,6 +66,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(FileLockManager) >> Mock(FileLockManager)
         _ * parent.get(TimeProvider) >> Mock(TimeProvider)
         _ * parent.get(TemporaryFileProvider) >> Mock(TemporaryFileProvider)
+        _ * parent.get(ProjectAccessListener) >> Mock(ProjectAccessListener)
     }
 
     private CacheRepository initCacheRepository() {

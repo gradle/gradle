@@ -222,6 +222,18 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         return new DefaultBuildConfigurer();
     }
 
+    protected ProjectAccessListener createProjectAccessListener() {
+        return new ProjectAccessListener() {
+            public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
+                targetProject.evaluate();
+            }
+
+            public void beforeResolvingProjectDependency(ProjectInternal dependencyProject) {
+                dependencyProject.evaluate();
+            }
+        };
+    }
+
     protected ProfileEventAdapter createProfileEventAdapter() {
         return new ProfileEventAdapter(get(BuildRequestMetaData.class), get(TimeProvider.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
     }

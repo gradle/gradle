@@ -25,6 +25,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.GUtil
 import org.gradle.util.HelperUtil
@@ -37,7 +38,7 @@ public class DefaultTaskContainerTest extends Specification {
     private taskFactory = Mock(ITaskFactory)
     private project = Mock(ProjectInternal, name: "<project>")
     private taskCount = 1;
-    private container = new DefaultTaskContainer(project, Mock(Instantiator), taskFactory)
+    private container = new DefaultTaskContainer(project, Mock(Instantiator), taskFactory, Mock(ProjectAccessListener))
 
     void "adds by Map"() {
         def options = singletonMap("option", "value")

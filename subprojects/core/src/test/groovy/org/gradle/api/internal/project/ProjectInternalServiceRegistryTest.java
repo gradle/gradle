@@ -39,6 +39,7 @@ import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -101,6 +102,8 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(context.mock(FileSystem.class)));
             allowing(parent).get(ClassGenerator.class);
             will(returnValue(context.mock(ClassGenerator.class)));
+            allowing(parent).get(ProjectAccessListener.class);
+            will(returnValue(context.mock(ProjectAccessListener.class)));
         }});
     }
 
