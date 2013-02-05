@@ -20,41 +20,51 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
+import java.util.LinkedList;
+
 // TODO:DAZ Think about a better way to do thread-safety here, maybe
 public class DependencyResolutionLogger implements DependencyResolutionListener {
-    private final ProgressLoggerFactory loggerFactory;
-    private final ThreadLocal<ProgressLogger> progressLogger = new ThreadLocal<ProgressLogger>();
+    private final ThreadLocal<LinkedList<ProgressLogger>> progressLoggers = new ThreadLocal<LinkedList<ProgressLogger>>();
+    private final LoggerBuilder loggerBuilder;
 
     public DependencyResolutionLogger(ProgressLoggerFactory loggerFactory) {
-        this.loggerFactory = loggerFactory;
+        this(new LoggerBuilder(loggerFactory));
+    }
+
+    public DependencyResolutionLogger(LoggerBuilder loggerBuilder) {
+        this.loggerBuilder = loggerBuilder;
+        progressLoggers.set(new LinkedList<ProgressLogger>());
     }
 
     public void beforeResolve(ResolvableDependencies dependencies) {
-        //TODO SF this needs to be properly fixed to allow recursive resolution (GRADLE-2477)
-//        checkLogger(false);
-        ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
-        logger.setDescription(String.format("Resolve %s", dependencies));
-        logger.setShortDescription(String.format("Resolving %s", dependencies));
-        logger.started();
-        progressLogger.set(logger);
+        LinkedList<ProgressLogger> loggers = progressLoggers.get();
+        ProgressLogger logger = loggerBuilder.newLogger(dependencies);
+        loggers.add(logger);
     }
 
     public void afterResolve(ResolvableDependencies dependencies) {
-//        checkLogger(true);
-        ProgressLogger log = progressLogger.get();
-        if (log != null) {
-            log.completed();
-            progressLogger.remove();
+        LinkedList<ProgressLogger> loggers = progressLoggers.get();
+        if (loggers.isEmpty()) {
+            throw new IllegalStateException("Logging operation was not started or it has already completed.");
         }
+        ProgressLogger logger = loggers.removeLast();
+        logger.completed();
     }
 
-    private void checkLogger(boolean shouldExist) {
-        ProgressLogger logger = progressLogger.get();
-        if (shouldExist && logger == null) {
-            throw new IllegalStateException("Logging operation not started");
+    static class LoggerBuilder {
+
+        private final ProgressLoggerFactory loggerFactory;
+
+        public LoggerBuilder(ProgressLoggerFactory loggerFactory) {
+            this.loggerFactory = loggerFactory;
         }
-        if (!shouldExist && logger != null) {
-            throw new IllegalStateException("Logging operation already in progress");
+
+        public ProgressLogger newLogger(ResolvableDependencies dependencies) {
+            ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
+            logger.setDescription(String.format("Resolve %s", dependencies));
+            logger.setShortDescription(String.format("Resolving %s", dependencies));
+            logger.started();
+            return logger;
         }
     }
 }
