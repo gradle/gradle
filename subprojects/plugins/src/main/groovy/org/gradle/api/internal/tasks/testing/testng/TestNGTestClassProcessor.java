@@ -84,9 +84,9 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         } catch (NoSuchMethodException e) {
             /* do nothing; method has been removed in TestNG 6.3 */
         } catch (InvocationTargetException e) {
-            /* do nothing; method has been removed in TestNG 6.3 */
+            throw new GradleException(String.format("Could not configure TestNG annotations with value '%s'.", options.getAnnotations()), e);
         } catch (IllegalAccessException e) {
-            /* do nothing; method has been removed in TestNG 6.3 */
+            throw new GradleException(String.format("Could not configure TestNG annotations with value '%s'.", options.getAnnotations()), e);
         }
         if (options.getJavadocAnnotations()) {
             testNg.setSourcePath(CollectionUtils.join(File.pathSeparator, options.getTestResources()));
