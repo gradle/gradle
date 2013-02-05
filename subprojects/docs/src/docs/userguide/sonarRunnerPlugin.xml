@@ -18,8 +18,8 @@
 
     <para>The Sonar Runner plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
         a web-based platform for monitoring code quality. It is based on the <ulink url="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</ulink>,
-        a Sonar client component that analyzes source code and build outputs, and stores all collected information in the Sonar database. Compared to using
-        the standalone Sonar Runner, the Sonar Runner plugin offers the following benefits:
+        a Sonar client component that analyzes source code and build outputs, and stores all collected information in the Sonar database.
+        Compared to using the standalone Sonar Runner, the Sonar Runner plugin offers the following benefits:
     </para>
     <variablelist>
         <varlistentry>
@@ -47,8 +47,9 @@
     <section>
         <title>Plugin Status and Compatibility</title>
         <para>
-            The Sonar Runner plugin is the successor to the <xref linkend="sonar_plugin"/>. It currently has incubating status. The plugin is based on Sonar Runner 2.0,
-            which makes it compatible with Sonar 2.11 and higher. Unlike the Sonar plugin, the Sonar Runner plugin works fine with Sonar 3.4 and higher.
+            The Sonar Runner plugin is the successor to the <xref linkend="sonar_plugin">Sonar Plugin</xref>. It currently has incubating status.
+            The plugin is based on Sonar Runner 2.0, which makes it compatible with Sonar 2.11 and higher. Unlike the Sonar plugin,
+            the Sonar Runner plugin works fine with Sonar 3.4 and higher.
         </para>
     </section>
 
@@ -73,19 +74,24 @@
 
     <section>
         <title>Configuring the Sonar Runner</title>
-        <para>The Sonar Runner plugin adds a <apilink class="org.gradle.api.plugins.sonar.runner.SonarRunner"/>sonarRunner</para> extension to the project,
-        which allows to configure the Sonar Runner via key/value pairs known as <firstterm>Sonar properties</firstterm>. A typical base line configuration includes
-        connection settings for the Sonar server and database.
+        <para>The Sonar Runner plugin adds a <apilink class="org.gradle.api.plugins.sonar.runner.SonarRunner" /> extension to the project,
+            which allows to configure the Sonar Runner via key/value pairs known as <firstterm>Sonar properties</firstterm>. A typical base line configuration
+            includes connection settings for the Sonar server and database.
+        </para>
         <sample id="quickstart" dir="sonarRunner/quickstart" title="Configuring Sonar connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
         </sample>
         <para>
+            For a complete list of standard Sonar properties, consult the<ulink url="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Sonar documentation</ulink>.
+            If you happen to use additional Sonar plugins, consult their documentation.
+        </para>
+        <para>
             Alternatively, Sonar properties can be set from the command line. See <xref linkend="sec:sonar_command_line_parameters" /> for more information.
         </para>
         <para>
-            The Sonar Runner plugin leverages information contained in Gradle's object model to provide smart defaults for many standard Sonar properties. The defaults
-            are summarized in the tables below. Notice that additional defaults are provided for projects that have the <literal>java-base</literal> or
-            <literal>java</literal> plugin applied. For some properties (notably server and database connection settings), determining a suitable default
+            The Sonar Runner plugin leverages information contained in Gradle's object model to provide smart defaults for many of the standard Sonar properties.
+            The defaults are summarized in the tables below. Notice that additional defaults are provided for projects that have the <literal>java-base</literal>
+            or <literal>java</literal> plugin applied. For some properties (notably server and database connection settings), determining a suitable default
             is left to the Sonar Runner.
         </para>
         <table>
@@ -171,17 +177,13 @@
                 <td>test.testResultsDir (if the directory exists)</td>
             </tr>
         </table>
-        <para>
-            For a definitive list of standard Sonar properties, consult the <ulink url="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Sonar documentation</ulink>.
-            If you happen to use additional Sonar plugins, consult their documentation.
-        </para>
     </section>
 
     <section>
         <title>Analyzing Multi-Project Builds</title>
         <para>The Sonar Runner is capable of analyzing whole project hierarchies at once. This yields a hierarchical view in the
             Sonar web interface, with aggregated metrics and the ability to drill down into subprojects. Analyzing a project hierarchy
-            is also faster than analyzing each project separately.
+            also takes less time than analyzing each project separately.
         </para>
         <para>
             To analyze a project hierarchy, apply the Sonar Runner plugin to the root project of the hierarchy.
@@ -271,7 +273,8 @@
         </programlisting>
         <note>
             <para>
-                While certainly useful at times, we do recommend to keep the bulk of the configuration in a (versioned) build script, readily accessible for everyone.
+                While certainly useful at times, we do recommend to keep the bulk of the configuration in a (versioned) build script, readily
+                available to everyone.
             </para>
         </note>
         <para>A Sonar property value set via a system property overrides any value set in a build script (for the same property). When
