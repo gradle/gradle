@@ -26,7 +26,7 @@
             </tr>
             <tr>
                 <td>targetJdk</td>
-                <td><literal>java source compatibility</literal></td>
+                <td><literal>project.sourceCompatibility</literal></td>
             </tr>
         </table>
     </section>

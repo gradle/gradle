@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.internal.ConventionMapping
+import org.gradle.api.internal.IConventionAware
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.VersionNumber
@@ -52,6 +54,9 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSets = []
             ruleSetFiles = project.files()
         }
+        extension.getConventionMapping().with{
+            targetJdk = { project.sourceCompatibility.toString() }
+        }
         return extension
     }
 
@@ -76,7 +81,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSets = { extension.ruleSets }
             ruleSetFiles = { extension.ruleSetFiles }
             ignoreFailures = { extension.ignoreFailures }
-            targetJdk = { extension.targetJdk != null ? extension.targetJdk.toString() : project.sourceCompatibility.getName() }
+            targetJdk = { extension.targetJdk.toString() }
             task.reports.all { report ->
                 report.conventionMapping.with {
                     enabled = { true }
