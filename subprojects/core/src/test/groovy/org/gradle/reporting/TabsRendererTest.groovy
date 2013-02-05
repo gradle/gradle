@@ -15,14 +15,15 @@
  */
 package org.gradle.reporting
 
+import org.gradle.api.internal.html.SimpleHtmlWriter
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import spock.lang.Specification
 
 class TabsRendererTest extends Specification {
-    final AbstractHtmlReportRenderer<String> contentRenderer = new AbstractHtmlReportRenderer<String>() {
+    final ReportRenderer<String, SimpleHtmlWriter> contentRenderer = new ReportRenderer<String, SimpleHtmlWriter>() {
         @Override
-        void render(String model, SimpleHtmlWriter htmlWriter) {
+        void render(String model, SimpleHtmlWriter parent) throws IOException {
         }
     }
     final TabsRenderer renderer = new TabsRenderer()

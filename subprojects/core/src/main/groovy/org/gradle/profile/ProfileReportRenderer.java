@@ -15,6 +15,7 @@
  */
 package org.gradle.profile;
 
+import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.*;
 import org.gradle.util.CollectionUtils;
 
@@ -45,8 +46,8 @@ public class ProfileReportRenderer {
         }
 
         @Override
-        protected AbstractHtmlReportRenderer<BuildProfile> getHeaderRenderer() {
-            return new AbstractHtmlReportRenderer<BuildProfile>() {
+        protected ReportRenderer<BuildProfile, SimpleHtmlWriter> getHeaderRenderer() {
+            return new ReportRenderer<BuildProfile, SimpleHtmlWriter>() {
                 @Override
                 public void render(BuildProfile model, SimpleHtmlWriter htmlWriter) throws IOException {
                     htmlWriter.startElement("div").attribute("id", "header")
@@ -58,8 +59,8 @@ public class ProfileReportRenderer {
         }
 
         @Override
-        protected AbstractHtmlReportRenderer<BuildProfile> getContentRenderer() {
-            return new AbstractHtmlReportRenderer<BuildProfile>() {
+        protected  ReportRenderer<BuildProfile, SimpleHtmlWriter> getContentRenderer() {
+            return new ReportRenderer<BuildProfile, SimpleHtmlWriter>() {
                 @Override
                 public void render(BuildProfile model, SimpleHtmlWriter htmlWriter) throws IOException {
                     htmlWriter.startElement("div").attribute("id", "tabs")

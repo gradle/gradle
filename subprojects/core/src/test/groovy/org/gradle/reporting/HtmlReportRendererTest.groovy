@@ -15,13 +15,14 @@
  */
 package org.gradle.reporting
 
+import org.gradle.api.internal.html.SimpleHtmlWriter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 class HtmlReportRendererTest extends Specification {
-    AbstractHtmlReportRenderer abstractHtmlReportRenderer = new AbstractHtmlReportRenderer<String>() {
+    ReportRenderer<String, SimpleHtmlWriter> abstractHtmlReportRenderer = new ReportRenderer<String, SimpleHtmlWriter>() {
         @Override
         void render(String model, SimpleHtmlWriter htmlWriter) {
             htmlWriter.startElement("pre").characters(model).endElement()

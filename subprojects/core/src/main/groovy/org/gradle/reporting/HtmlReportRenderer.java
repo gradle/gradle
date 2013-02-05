@@ -16,6 +16,7 @@
 package org.gradle.reporting;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -31,7 +32,7 @@ public class HtmlReportRenderer {
         resources.add(resource);
     }
 
-    public <T> TextReportRenderer<T> renderer(final AbstractHtmlReportRenderer<T> renderer) {
+    public <T> TextReportRenderer<T> renderer(final ReportRenderer<T, SimpleHtmlWriter> renderer) {
         return renderer(new TextReportRenderer<T>() {
             @Override
             protected void writeTo(T model, Writer writer) throws Exception {

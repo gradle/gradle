@@ -15,13 +15,14 @@
  */
 package org.gradle.reporting;
 
+import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.util.GradleVersion;
 
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
 
-public abstract class TabbedPageRenderer<T> extends AbstractHtmlReportRenderer<T> {
+public abstract class TabbedPageRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
     private T model;
 
     protected T getModel() {
@@ -30,9 +31,9 @@ public abstract class TabbedPageRenderer<T> extends AbstractHtmlReportRenderer<T
 
     protected abstract String getTitle();
 
-    protected abstract AbstractHtmlReportRenderer<T> getHeaderRenderer();
+    protected abstract  ReportRenderer<T, SimpleHtmlWriter> getHeaderRenderer();
 
-    protected abstract AbstractHtmlReportRenderer<T> getContentRenderer();
+    protected abstract  ReportRenderer<T, SimpleHtmlWriter> getContentRenderer();
 
     protected String getPageTitle() {
         return getTitle();
@@ -44,8 +45,8 @@ public abstract class TabbedPageRenderer<T> extends AbstractHtmlReportRenderer<T
         htmlWriter.startElement("head")
             .startElement("meta").attribute("httpEquiv", "Content-Type").attribute("content", "text/html; charset=utf-8").endElement()
             .startElement("title").characters(getPageTitle()).endElement()
-            .startElement("link").attribute("href", "base-style.css").attribute("rel", "stylesheet").attribute("type", "text.css").endElement()
-            .startElement("link").attribute("href", "style.css").attribute("rel", "stylesheet").attribute("type", "text.css").endElement()
+            .startElement("link").attribute("href", "base-style.css").attribute("rel", "stylesheet").attribute("type", "text/css").endElement()
+            .startElement("link").attribute("href", "style.css").attribute("rel", "stylesheet").attribute("type", "text/css").endElement()
             .startElement("script").attribute("src", "report.js").attribute("type", "text/javascript").characters("").endElement() //html does not like <a name="..."/>
         .endElement();
 

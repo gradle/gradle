@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.reporting;
+package org.gradle.api.internal.html;
 
 import org.gradle.api.internal.xml.SimpleMarkupWriter;
 

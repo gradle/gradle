@@ -19,7 +19,7 @@ import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.reporting.CodePanelRenderer;
-import org.gradle.reporting.SimpleHtmlWriter;
+import org.gradle.api.internal.html.SimpleHtmlWriter;
 
 import java.io.IOException;
 

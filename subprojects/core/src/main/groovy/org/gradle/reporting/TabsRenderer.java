@@ -15,14 +15,16 @@
  */
 package org.gradle.reporting;
 
+import org.gradle.api.internal.html.SimpleHtmlWriter;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TabsRenderer<T> extends AbstractHtmlReportRenderer<T> {
+public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
     private final List<TabDefinition> tabs = new ArrayList<TabDefinition>();
 
-    public void add(String title, AbstractHtmlReportRenderer<T> contentRenderer) {
+    public void add(String title, ReportRenderer<T, SimpleHtmlWriter> contentRenderer) {
         tabs.add(new TabDefinition(title, contentRenderer));
     }
 
@@ -56,9 +58,9 @@ public class TabsRenderer<T> extends AbstractHtmlReportRenderer<T> {
 
     private class TabDefinition {
         final String title;
-        final AbstractHtmlReportRenderer<T> renderer;
+        final ReportRenderer<T, SimpleHtmlWriter> renderer;
 
-        private TabDefinition(String title, AbstractHtmlReportRenderer<T> renderer) {
+        private TabDefinition(String title, ReportRenderer<T, SimpleHtmlWriter> renderer) {
             this.title = title;
             this.renderer = renderer;
         }

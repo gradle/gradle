@@ -15,8 +15,6 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.internal.ConventionMapping
-import org.gradle.api.internal.IConventionAware
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.VersionNumber

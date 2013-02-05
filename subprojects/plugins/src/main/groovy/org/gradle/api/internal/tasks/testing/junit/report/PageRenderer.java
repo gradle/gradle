@@ -17,8 +17,8 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.ErroringAction;
-import org.gradle.reporting.AbstractHtmlReportRenderer;
-import org.gradle.reporting.SimpleHtmlWriter;
+import org.gradle.api.internal.html.SimpleHtmlWriter;
+import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
 import org.gradle.reporting.TabsRenderer;
 
@@ -37,7 +37,7 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
     protected abstract void registerTabs();
 
     protected void addTab(String title, final Action<SimpleHtmlWriter> contentRenderer) {
-        tabsRenderer.add(title, new AbstractHtmlReportRenderer<T>() {
+        tabsRenderer.add(title, new ReportRenderer<T, SimpleHtmlWriter>() {
             @Override
             public void render(T model, SimpleHtmlWriter writer) {
                 contentRenderer.execute(writer);
@@ -82,8 +82,8 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
     }
 
     @Override
-    protected AbstractHtmlReportRenderer<T> getHeaderRenderer() {
-        return new AbstractHtmlReportRenderer<T>() {
+    protected ReportRenderer<T, SimpleHtmlWriter> getHeaderRenderer() {
+        return new ReportRenderer<T, SimpleHtmlWriter>() {
             @Override
             public void render(T model, SimpleHtmlWriter htmlWriter) throws IOException {
                 PageRenderer.this.results = model;
@@ -133,8 +133,8 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
     }
 
     @Override
-    protected AbstractHtmlReportRenderer<T> getContentRenderer() {
-        return new AbstractHtmlReportRenderer<T>() {
+    protected ReportRenderer<T, SimpleHtmlWriter> getContentRenderer() {
+        return new ReportRenderer<T, SimpleHtmlWriter>() {
             @Override
             public void render(T model, SimpleHtmlWriter htmlWriter) throws IOException {
                 PageRenderer.this.results = model;
