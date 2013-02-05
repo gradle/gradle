@@ -1,0 +1,24 @@
+apply plugin: "java"
+apply plugin: "sonar"
+
+sourceSets {
+    custom
+    integTest
+}
+
+// START SNIPPET source-sets
+sonarRunner {
+    sonarProperties {
+        property "sonar.sources", properties["sonar.sources"] + sourceSets.custom.allSource.srcDirs
+        property "sonar.tests", properties["sonar.tests"] + sourceSets.integTest.allSource.srcDirs
+    }
+}
+// END SNIPPET source-sets
+
+// START SNIPPET languages
+sonarRunner {
+    sonarProperties {
+        property "sonar.language", "grvy" // set language to Groovy
+    }
+}
+// END SNIPPET languages
