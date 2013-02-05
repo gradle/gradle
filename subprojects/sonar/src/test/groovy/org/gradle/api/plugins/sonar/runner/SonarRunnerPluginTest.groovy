@@ -55,6 +55,14 @@ class SonarRunnerPluginTest extends Specification {
         childProject.tasks.findByName("sonarRunner") == null
     }
 
+    def "makes sonarRunner task depend on test task for Java projects"() {
+        when:
+        project.plugins.apply(JavaPlugin)
+
+        then:
+        project.tasks.sonarRunner.dependsOn.contains(project.tasks.test)
+    }
+
     def "adds default properties for all projects"() {
         when:
         def properties = project.tasks.sonarRunner.sonarProperties

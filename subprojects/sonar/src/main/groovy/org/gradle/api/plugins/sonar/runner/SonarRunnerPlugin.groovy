@@ -98,6 +98,9 @@ class SonarRunnerPlugin implements Plugin<Project> {
             extensions.create("sonarRunner", SonarRunnerExtension)
         }
         def task = project.tasks.add("sonarRunner", SonarRunner)
+        project.plugins.withType(JavaPlugin) {
+            task.dependsOn(project.tasks.test)
+        }
         task.conventionMapping.with {
             sonarProperties = {
                 def properties = new Properties()
