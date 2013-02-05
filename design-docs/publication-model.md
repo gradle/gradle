@@ -75,7 +75,7 @@ See [completed stories](done/publication-model.md)
 This story adds a second type of component and a DSL to define which components are published.
 
 1. Allow `MavenPublication` instances to be added to the publications container.
-    - Default the publication's (groupId, artifactId, version) to (project.group, publication.name, project.version).
+    - Default the publication's (groupId, artifactId, version) to (project.group, project.name, project.version).
 2. Allow zero or one components to be added to a Maven publication.
 3. Change the `maven-publish` plugin so that it does not create any publications by default.
 4. Change the `war` plugin to add a component called `web`. When this component is added to a publication, the WAR artifact is added to the publication.
@@ -217,7 +217,7 @@ Running `gradle generateMavenPom` would generate the `pom.xml` for the default M
 
 1. Change the `ivy-publishing` plugin so that it no longer defines any publications.
 2. Allow `IvyPublication` instances to be added to the publications container.
-    - Default (organisation, module, revision) to (project.group, publication.name, project.version)
+    - Default (organisation, module, revision) to (project.group, project.name, project.version)
 3. Allow zero or one components to be added to an Ivy publication.
 4. When publishing a java library, declare the runtime dependencies and the JAR artifact in the descriptor.
 5. When publishing a web application, declare the WAR artifact in the descriptor.
