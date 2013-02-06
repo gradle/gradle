@@ -31,8 +31,6 @@ class DependencyReportPerformanceTest extends AbstractPerformanceTest {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['dependencyReport']
-        runner.runs = 5
-        runner.targetVersions = ['1.0', '1.1', '1.2', 'last']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
 
@@ -44,6 +42,6 @@ class DependencyReportPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject       | maxExecutionTimeRegression | maxMemoryRegression
-        "lotDependencies" | [millis(7000), millis(1000), millis(1000), millis(1000)] | [kbytes(6000), kbytes(3000), kbytes(3000), kbytes(3000)]
+        "lotDependencies" | millis(7000)               | kbytes(3000)
     }
 }

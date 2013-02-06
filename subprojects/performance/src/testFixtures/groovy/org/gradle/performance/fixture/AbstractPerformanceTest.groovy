@@ -19,5 +19,9 @@ package org.gradle.performance.fixture
 import spock.lang.Specification
 
 class AbstractPerformanceTest extends Specification {
-    final def runner = new PerformanceTestRunner(warmUpRuns: 1)
+    final def runner = new PerformanceTestRunner(
+            runs: 5,
+            warmUpRuns: 1,
+            targetVersions: ['1.0', '1.4', 'last']
+    )
 }

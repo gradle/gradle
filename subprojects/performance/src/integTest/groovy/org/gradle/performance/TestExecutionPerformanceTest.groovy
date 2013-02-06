@@ -31,11 +31,9 @@ class TestExecutionPerformanceTest extends AbstractPerformanceTest {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['cleanTest', 'test']
-        runner.runs = 5
         runner.args = ['-q']
-        runner.targetVersions = ['1.0', '1.2', 'last']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.maxMemoryRegression = [kbytes(500), kbytes(3000), kbytes(3000)]
+        runner.maxMemoryRegression = kbytes(3000)
 
         when:
         def result = runner.run()
@@ -45,9 +43,9 @@ class TestExecutionPerformanceTest extends AbstractPerformanceTest {
 
         where:
         testProject         | maxExecutionTimeRegression
-        "withTestNG"        | [millis(1000), millis(1000), millis(500)]
-        "withJUnit"         | [millis(500), millis(500), millis(500)]
-        "withVerboseTestNG" | [millis(500), millis(500), millis(500)]
-        "withVerboseJUnit"  | [millis(500), millis(500), millis(500)]
+        "withTestNG"        | millis(1000)
+        "withJUnit"         | millis(500)
+        "withVerboseTestNG" | millis(500)
+        "withVerboseJUnit"  | millis(500)
     }
 }

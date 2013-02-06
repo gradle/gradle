@@ -36,24 +36,23 @@ public class PerformanceTestRunner {
     DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
     List<String> args = []
 
-    List<String> targetVersions = ['last']
-    List<Amount<Duration>> maxExecutionTimeRegression = [Duration.millis(0)]
-    List<Amount<DataAmount>> maxMemoryRegression = [DataAmount.bytes(0)]
+    List<String> targetVersions = []
+    Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
+    Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     PerformanceResults results
 
     PerformanceResults run() {
-        assert targetVersions.size() == maxExecutionTimeRegression.size()
-        assert targetVersions.size() == maxMemoryRegression.size()
+        assert !targetVersions.empty
 
+        def mostRecentFinalRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
+        def allVersions = targetVersions.collect { (it == 'last') ? mostRecentFinalRelease : it }.unique()
         def baselineVersions = []
-        targetVersions.eachWithIndex { it, idx ->
-            def mostRecentFinalRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
-            def ver = (it == 'last') ? mostRecentFinalRelease : it
-            baselineVersions << new BaselineVersion(version: ver,
-                    maxExecutionTimeRegression: maxExecutionTimeRegression[idx],
-                    maxMemoryRegression: maxMemoryRegression[idx],
-                    results: new MeasuredOperationList(name: "Gradle $ver")
+        allVersions.each { it ->
+            baselineVersions << new BaselineVersion(version: it,
+                    maxExecutionTimeRegression: maxExecutionTimeRegression,
+                    maxMemoryRegression: maxMemoryRegression,
+                    results: new MeasuredOperationList(name: "Gradle $it")
             )
         }
 

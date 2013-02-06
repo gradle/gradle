@@ -31,10 +31,8 @@ class UpToDateBuildPerformanceTest extends AbstractPerformanceTest {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ['build']
-        runner.runs = 5
-        runner.targetVersions = ['1.0', 'last']
-        runner.maxExecutionTimeRegression = [maxExecutionTimeRegression, maxExecutionTimeRegression]
-        runner.maxMemoryRegression = [kbytes(3000), kbytes(3000)]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.maxMemoryRegression = kbytes(3000)
 
         when:
         def result = runner.run()
