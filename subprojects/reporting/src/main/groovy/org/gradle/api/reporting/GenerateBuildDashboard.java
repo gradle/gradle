@@ -125,6 +125,8 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
         if (getReports().getHtml().isEnabled()) {
             BuildDashboardGenerator generator = new BuildDashboardGenerator(getEnabledInputReports(), reports.getHtml().getDestination());
             generator.generate();
+        }else {
+            setDidWork(false);
         }
     }
 }
