@@ -34,6 +34,7 @@ public class PerformanceTestRunner {
 
     List<String> tasksToRun = []
     DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
+    DataReporter  reporter = new TextFileDataReporter()
     List<String> args = []
 
     List<String> targetVersions = []
@@ -70,6 +71,7 @@ public class PerformanceTestRunner {
             println "Executing test run #${it + 1}"
             runOnce()
         }
+        reporter.report(results)
         results
     }
 
