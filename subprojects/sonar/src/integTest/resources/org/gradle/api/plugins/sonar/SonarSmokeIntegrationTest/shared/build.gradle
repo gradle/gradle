@@ -1,5 +1,16 @@
-apply plugin: "java"
 apply plugin:  "sonar"
+
+subprojects {
+    apply plugin: "java"
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testCompile "junit:junit:4.11"
+    }
+}
 
 sonar {
     server {

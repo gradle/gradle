@@ -17,8 +17,9 @@
 apply from: "$rootDir/gradle/providedConfiguration.gradle"
 
 configurations {
-    oldIntegTestRuntime.extendsFrom testRuntime
+    oldIntegTestRuntime
 }
+
 dependencies {
     compile project(":core")
     compile project(":plugins")
@@ -50,10 +51,11 @@ integTest {
 }
 
 task oldIntegTest(type: Test) {
-    dependsOn = integTest.dependsOn
     include "org/gradle/api/plugins/sonar/SonarSmokeIntegrationTest.class"
-    classpath = sourceSets.integTest.output + configurations.oldIntegTestRuntime
+    classpath = integTest.classpath + configurations.oldIntegTestRuntime -
+            configurations.provided.fileCollection { it.group == "org.codehaus.sonar" || it.group == "commons-confguration" } -
+            configurations.integTestRuntime.fileCollection { it.group == "org.gradle.sonar" }
     testClassesDir = integTest.testClassesDir
-    maxHeapSize = integTest.maxHeapSize
-    jvmArgs = integTest.jvmArgs
 }
+
+check.dependsOn(oldIntegTest)

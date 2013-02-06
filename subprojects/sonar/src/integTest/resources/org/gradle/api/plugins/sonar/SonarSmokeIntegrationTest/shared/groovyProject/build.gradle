@@ -11,10 +11,3 @@ sonar {
         // language = "grvy"
     }
 }
-
-sonarRunner {
-    sonarProperties {
-        // Sonar Groovy plugin can't currently be used because it fails as soon as sonar.project.key contains a colon
-        // property "sonar.language", "grvy"
-    }
-}
