@@ -1,4 +1,4 @@
-package org.gradle.test.nestedProject;
+package org.gradle.api.plugins.sonar.runner.SonarRunnerSmokeIntegrationTest.shared.nested.nested2.nestedProject.src.test.java.org.gradle.test.nestedProject;
 
 import static org.junit.Assert.*;
 

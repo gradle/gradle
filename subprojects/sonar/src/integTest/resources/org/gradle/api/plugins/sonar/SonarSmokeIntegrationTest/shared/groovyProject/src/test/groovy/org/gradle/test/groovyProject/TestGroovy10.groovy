@@ -1,4 +1,4 @@
-package org.gradle.api.plugins.sonar.runner.SonarRunnerSmokeIntegrationTest.shared.groovyProject.src.test.groovy.org.gradle.test.groovyProject
+package org.gradle.test.groovyProject
 
 import static org.junit.Assert.assertEquals
 

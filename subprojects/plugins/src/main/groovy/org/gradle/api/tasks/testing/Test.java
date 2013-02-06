@@ -33,7 +33,6 @@ import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
@@ -452,10 +451,22 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             testOutputListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector));
         }
 
-        generateTestReports(testReportDataCollector, testCountLogger);
+        Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(getTestResultsDir(), testReportDataCollector);
+        binary2JUnitXmlReportGenerator.generate();
+
+        if (!isTestReport()) {
+            getLogger().info("Test report disabled, omitting generation of the HTML test report.");
+        } else {
+            testReporter.generateReport(testReportDataCollector, getTestReportDir());
+        }
 
         testFramework = null;
+
+        if (testCountLogger.hadFailures()) {
+            handleTestFailures();
+        }
     }
+
 
     /**
      * Returns the {@link org.gradle.api.tasks.testing.TestListener} broadcaster.  This broadcaster will send messages to all listeners that have been registered with the ListenerManager.
@@ -1002,21 +1013,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         }
     }
 
-    private void generateTestReports(TestResultsProvider testResultsProvider, TestCountLogger testCountLogger) {
-        Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(getTestResultsDir(), testResultsProvider);
-        binary2JUnitXmlReportGenerator.generate();
-
-        if (isTestReport()) {
-            testReporter.generateReport(testResultsProvider, getTestReportDir());
-            if (testCountLogger.hadFailures()) {
-                logReportLink();
-            }
-        } else {
-            getLogger().info("Test report disabled, omitting generation of the HTML test report.");
-        }
-    }
-
-    private void logReportLink() {
+    private void handleTestFailures() {
         String reportUrl = new ConsoleRenderer().asClickableFileUrl(new File(getTestReportDir(), "index.html"));
         String message = "There were failing tests. See the report at: " + reportUrl;
         if (getIgnoreFailures()) {
