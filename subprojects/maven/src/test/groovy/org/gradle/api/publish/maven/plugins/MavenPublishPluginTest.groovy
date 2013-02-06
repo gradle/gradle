@@ -71,6 +71,7 @@ class MavenPublishPluginTest extends Specification {
         then:
         project.tasks["publishTestPublicationToMavenRepository"] != null
         project.tasks["publishTestPublicationToMavenLocal"] != null
+        project.tasks["generatePomFileForTestPublication"] != null
     }
 
     def "publication has artifacts from component"() {
@@ -184,5 +185,20 @@ class MavenPublishPluginTest extends Specification {
             groupId == "changed-group"
             version == "changed-version"
         }
+    }
+
+    def "pom dir moves with build dir"() {
+        when:
+        publishing.publications.add("test", MavenPublication)
+
+        then:
+        project.tasks["generatePomFileForTestPublication"].destination == new File(project.buildDir, "publications/test/pom-default.xml")
+
+        when:
+        def newBuildDir = project.file("changed")
+        project.buildDir = newBuildDir
+
+        then:
+        project.tasks["generatePomFileForTestPublication"].destination == new File(newBuildDir, "publications/test/pom-default.xml")
     }
 }
