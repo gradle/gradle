@@ -19,22 +19,17 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.maven.MavenPom;
-import org.gradle.api.publish.maven.internal.MavenPomGenerator;
+import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
 import org.gradle.api.publish.maven.internal.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.MavenProjectIdentity;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.TaskDependency;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -45,7 +40,6 @@ import java.util.Set;
 @Incubating
 public class GenerateMavenPom extends DefaultTask {
 
-    private final FileCollection pomFile;
     private final FileResolver fileResolver;
     private MavenPom pom;
     private Object destination;
@@ -56,8 +50,6 @@ public class GenerateMavenPom extends DefaultTask {
 
         // Never up to date; we don't understand the data structures.
         getOutputs().upToDateWhen(Specs.satisfyNone());
-
-        this.pomFile = new PomFileCollection();
     }
 
     /**
@@ -94,15 +86,11 @@ public class GenerateMavenPom extends DefaultTask {
         this.destination = destination;
     }
 
-    public FileCollection getPomFile() {
-        return pomFile;
-    }
-
     @TaskAction
     public void doGenerate() {
         MavenPomInternal pomInternal = (MavenPomInternal) getPom();
 
-        MavenPomGenerator pomGenerator = new MavenPomGenerator();
+        MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator();
         copyIdentity(pomInternal.getProjectIdentity(), pomGenerator);
         copyDependencies(pomInternal.getRuntimeDependencies(), pomGenerator);
         pomGenerator.withXml(pomInternal.getXmlAction());
@@ -110,39 +98,16 @@ public class GenerateMavenPom extends DefaultTask {
         pomGenerator.writeTo(getDestination());
     }
 
-    private void copyIdentity(MavenProjectIdentity projectIdentity, MavenPomGenerator pom) {
+    private void copyIdentity(MavenProjectIdentity projectIdentity, MavenPomFileGenerator pom) {
         pom.setArtifactId(projectIdentity.getArtifactId());
         pom.setGroupId(projectIdentity.getGroupId());
         pom.setVersion(projectIdentity.getVersion());
         pom.setPackaging(projectIdentity.getPackaging());
     }
 
-    private void copyDependencies(Set<Dependency> runtimeDependencies, MavenPomGenerator pom) {
+    private void copyDependencies(Set<Dependency> runtimeDependencies, MavenPomFileGenerator pom) {
         for (Dependency runtimeDependency : runtimeDependencies) {
             pom.addRuntimeDependency(runtimeDependency);
-        }
-    }
-
-    private class PomFileCollection extends AbstractFileCollection {
-        private final DefaultTaskDependency dependency;
-
-        public PomFileCollection() {
-            this.dependency = new DefaultTaskDependency();
-            this.dependency.add(GenerateMavenPom.this);
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "pom-file";
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return dependency;
-        }
-
-        public Set<File> getFiles() {
-            return Collections.singleton(getDestination());
         }
     }
 }
