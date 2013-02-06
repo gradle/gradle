@@ -4,12 +4,10 @@
         <table>
             <thead>
                 <tr><td>Name</td>
-                    <td>Default value</td>
                 </tr>
             </thead>
             <tr>
                 <td>name</td>
-                <td><literal>project.name</literal></td>
             </tr>
         </table>
     </section>

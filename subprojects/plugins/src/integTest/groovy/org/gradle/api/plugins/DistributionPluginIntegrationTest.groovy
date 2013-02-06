@@ -85,17 +85,17 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
 
             distributions {
-    custom{
-        name=''
-    }
-}
-            distZip{
-
+                custom{
+                    name = ''
+                }
+            }
+            customDistZip{
+                from "someFile"
             }
             """
         then:
-        runAndFail('DistZip')
-        failure.assertThatDescription(containsString("Distribution name must not be null or empty ! Check your configuration of the distribution plugin."))
+        runAndFail('customDistZip')
+        failure.assertThatDescription(containsString("Distribution name must not be null or empty! Check your configuration of the distribution plugin."))
     }
 
 }

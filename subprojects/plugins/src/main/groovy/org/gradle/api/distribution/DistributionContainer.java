@@ -15,9 +15,7 @@
  */
 package org.gradle.api.distribution;
 
-import groovy.lang.Closure;
 import org.gradle.api.Incubating;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
@@ -25,24 +23,4 @@ import org.gradle.api.NamedDomainObjectContainer;
  */
 @Incubating
 public interface DistributionContainer extends NamedDomainObjectContainer<Distribution> {
-
-    /**
-     * Adds a distribution with the given name.
-     *
-     * @param name The name of the new distribution.
-     * @return The newly added distribution.
-     * @throws org.gradle.api.InvalidUserDataException when a distribution with the given name already exists in this container.
-     */
-    public Distribution add(String name) throws InvalidUserDataException;
-
-    /**
-     * Adds a distribution with the given name. The given configuration closure is executed against the distribution
-     * before it is returned from this method.
-     *
-     * @param name The name of the new distribution.
-     * @param configureClosure The closure to use to configure the distribution.
-     * @return The newly added distribution.
-     * @throws InvalidUserDataException when a distribution with the given name already exists in this container.
-     */
-    public Distribution add(String name, Closure configureClosure) throws InvalidUserDataException;
 }

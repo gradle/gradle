@@ -16,6 +16,7 @@
 
 package org.gradle.api.distribution.plugins
 
+import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -57,25 +58,13 @@ class DistributionPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         this.project = project
-        addValidation()
         addPluginExtension()
     }
 
-    void addValidation() {
-        project.afterEvaluate {
-            extension.all { distribution ->
-                if (distribution.name == null || distribution.name.equals("")) {
-                    throw new IllegalArgumentException("Distribution name must not be null or empty ! Check your configuration of the distribution plugin.")
-                }
-            }
-        }
-    }
-
     void addPluginExtension() {
-        extension = new DefaultDistributionContainer(Distribution.class, instantiator)
+        extension = project.extensions.create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator)
         extension.all { dist -> addTask(dist) }
         extension.create(MAIN_DISTRIBUTION_NAME)
-        project.extensions.add("distributions", extension)
     }
 
     void addTask(Distribution distribution) {
@@ -86,8 +75,11 @@ class DistributionPlugin implements Plugin<Project> {
         def distZipTask = project.tasks.add(taskName, Zip)
         distZipTask.description = "Bundles the project as a distribution."
         distZipTask.group = DISTRIBUTION_GROUP
-        distZipTask.conventionMapping.baseName = { distribution.name }
-
+        distZipTask.conventionMapping.baseName = {
+            if (distribution.name == null || distribution.name.equals("")) {
+                throw new GradleException("Distribution name must not be null or empty! Check your configuration of the distribution plugin.")
+            }
+            distribution.name
+        }
     }
-
 }
