@@ -33,22 +33,29 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
 
     public DependencyResolutionLogger(LoggerBuilder loggerBuilder) {
         this.loggerBuilder = loggerBuilder;
-        progressLoggers.set(new LinkedList<ProgressLogger>());
     }
 
+    //TODO SF add concurrent unit test coverage
     public void beforeResolve(ResolvableDependencies dependencies) {
         LinkedList<ProgressLogger> loggers = progressLoggers.get();
+        if (loggers == null) {
+            loggers = new LinkedList<ProgressLogger>();
+            progressLoggers.set(loggers);
+        }
         ProgressLogger logger = loggerBuilder.newLogger(dependencies);
         loggers.add(logger);
     }
 
     public void afterResolve(ResolvableDependencies dependencies) {
         LinkedList<ProgressLogger> loggers = progressLoggers.get();
-        if (loggers.isEmpty()) {
+        if (loggers == null || loggers.isEmpty()) {
             throw new IllegalStateException("Logging operation was not started or it has already completed.");
         }
         ProgressLogger logger = loggers.removeLast();
         logger.completed();
+        if (loggers.isEmpty()) {
+            progressLoggers.remove();
+        }
     }
 
     static class LoggerBuilder {
