@@ -225,7 +225,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected ProjectAccessListener createProjectAccessListener() {
         return new ProjectAccessListener() {
             public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
-                targetProject.evaluate();
+                targetProject.ensureEvaluated();
             }
 
             public void beforeResolvingProjectDependency(ProjectInternal dependencyProject) {
