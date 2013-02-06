@@ -16,17 +16,17 @@
 package org.gradle.api.distribution.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.distribution.Distribution;
-import org.gradle.api.distribution.DistributionsContainer;
 import org.gradle.internal.reflect.Instantiator;
 
 /**
- * Default implementation for {@link org.gradle.api.distribution.DistributionsContainer}
+ * Default implementation for {@link org.gradle.api.distribution.DistributionContainer}
  * @author scogneau
  */
-public class DefaultDistributionsContainer extends AbstractNamedDomainObjectContainer<Distribution> implements DistributionsContainer {
-    protected DefaultDistributionsContainer(Class<Distribution> type, Instantiator instantiator) {
+public class DefaultDistributionContainer extends AbstractNamedDomainObjectContainer<Distribution> implements DistributionContainer {
+    protected DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator) {
         super(type, instantiator);
     }
 

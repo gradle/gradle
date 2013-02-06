@@ -31,21 +31,28 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         return "distZip"
     }
 
+    def setup() {
+        file("someFile").createFile()
+    }
+
     def createTaskForCustomDistribution() {
         when:
         buildFile << """
             apply plugin:'distribution'
 
-
             distributions {
-    custom
-}
-            distZip{
+                custom
+            }
 
+            customDistZip{
+                from "someFile"
             }
             """
         then:
         succeeds('customDistZip')
+        and:
+        file('custom.zip').usingNativeTools().unzipTo(file("unzip"))
+        file("unzip/someFile").assertIsFile()
     }
 
     def createTaskForCustomDistributionWithCustomName() {
@@ -59,12 +66,15 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         name=customName
     }
 }
-            distZip{
-
+            customNameDistZip{
+                from "someFile"
             }
             """
         then:
         succeeds('customNameDistZip')
+        and:
+        file('customName.zip').usingNativeTools().unzipTo(file("unzip"))
+        file("unzip/someFile").assertIsFile()
     }
 
 
@@ -88,4 +98,4 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         failure.assertThatDescription(containsString("Distribution name must not be null or empty ! Check your configuration of the distribution plugin."))
     }
 
- }
+}

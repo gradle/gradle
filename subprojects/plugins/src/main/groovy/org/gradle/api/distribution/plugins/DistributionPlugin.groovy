@@ -20,8 +20,8 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.distribution.Distribution
-import org.gradle.api.distribution.DistributionsContainer
-import org.gradle.api.distribution.internal.DefaultDistributionsContainer
+import org.gradle.api.distribution.DistributionContainer
+import org.gradle.api.distribution.internal.DefaultDistributionContainer
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.reflect.Instantiator
 
@@ -45,7 +45,7 @@ class DistributionPlugin implements Plugin<Project> {
     static final String DISTRIBUTION_GROUP = DISTRIBUTION_PLUGIN_NAME
     static final String TASK_DIST_ZIP_NAME = "distZip"
 
-    private DistributionsContainer extension
+    private DistributionContainer extension
     private Project project
     private Instantiator instantiator
 
@@ -72,7 +72,7 @@ class DistributionPlugin implements Plugin<Project> {
     }
 
     void addPluginExtension() {
-        extension = new DefaultDistributionsContainer(Distribution.class, instantiator)
+        extension = new DefaultDistributionContainer(Distribution.class, instantiator)
         extension.all { dist -> addTask(dist) }
         extension.create(MAIN_DISTRIBUTION_NAME)
         project.extensions.add("distributions", extension)

@@ -21,10 +21,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
- * A {@code DistributionsContainer} manages a set of {@link Distribution} objects.
+ * A {@code DistributionContainer} manages a set of {@link Distribution} objects.
  */
 @Incubating
-public interface DistributionsContainer extends NamedDomainObjectContainer<Distribution> {
+public interface DistributionContainer extends NamedDomainObjectContainer<Distribution> {
 
     /**
      * Adds a distribution with the given name.
