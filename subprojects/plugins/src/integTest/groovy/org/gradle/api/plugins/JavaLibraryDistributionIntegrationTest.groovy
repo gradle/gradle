@@ -43,10 +43,11 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         and:
         buildFile << """
 		apply plugin:'java-library-distribution'
-            distribution{
-				name ='SuperApp'
-			}
-
+            distributions{
+                main{
+				    baseName ='SuperApp'
+			    }
+            }
 			dependencies {
 				runtime files('libs/a.jar')
 			}
@@ -85,13 +86,15 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         when:
         buildFile << """
             apply plugin:'java-library-distribution'
-            distribution{
-                name = null
+            distributions {
+                main {
+                    baseName = null
+                }
             }
             """
         then:
         runAndFail 'distZip'
-        failure.assertThatDescription(containsString("Distribution name must not be null or empty! Check your configuration of the distribution plugin."))
+        failure.assertThatDescription(containsString("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."))
     }
 
     def canCreateADistributionIncludingOtherFile() {
@@ -116,10 +119,11 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         and:
         buildFile << """
 		apply plugin:'java-library-distribution'
-            distribution{
-				name ='SuperApp'
-			}
-
+            distributions{
+                main{
+    				baseName ='SuperApp'
+	    		}
+            }
 			dependencies {
 				runtime files('libs/a.jar')
 			}

@@ -37,11 +37,6 @@ import javax.inject.Inject
 @Incubating
 class DistributionPlugin implements Plugin<Project> {
 
-    /**
-     * Name of the main distribution
-     */
-    public static final String MAIN_DISTRIBUTION_NAME = "main";
-
     static final String DISTRIBUTION_PLUGIN_NAME = "distribution"
     static final String DISTRIBUTION_GROUP = DISTRIBUTION_PLUGIN_NAME
     static final String TASK_DIST_ZIP_NAME = "distZip"
@@ -49,7 +44,6 @@ class DistributionPlugin implements Plugin<Project> {
     private DistributionContainer extension
     private Project project
     private Instantiator instantiator
-
 
     @Inject
     public DistributionPlugin(Instantiator instantiator) {
@@ -62,24 +56,28 @@ class DistributionPlugin implements Plugin<Project> {
     }
 
     void addPluginExtension() {
-        extension = project.extensions.create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator)
-        extension.all { dist -> addTask(dist) }
-        extension.create(MAIN_DISTRIBUTION_NAME)
+        extension = project.extensions.create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, project.name)
+        extension.all{
+            dist -> addTask(dist)
+
+        }
+        Distribution mainDistribution = extension.create(Distribution.MAIN_DISTRIBUTION_NAME)
+        mainDistribution.baseName = project.name
     }
 
     void addTask(Distribution distribution) {
         def taskName = TASK_DIST_ZIP_NAME
-        if (!MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
+        if (!Distribution.MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
             taskName = distribution.name + "DistZip"
         }
         def distZipTask = project.tasks.add(taskName, Zip)
         distZipTask.description = "Bundles the project as a distribution."
         distZipTask.group = DISTRIBUTION_GROUP
         distZipTask.conventionMapping.baseName = {
-            if (distribution.name == null || distribution.name.equals("")) {
-                throw new GradleException("Distribution name must not be null or empty! Check your configuration of the distribution plugin.")
+            if (distribution.baseName == null || distribution.baseName.equals("")) {
+                throw new GradleException("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin.")
             }
-            distribution.name
+            distribution.baseName
         }
     }
 }

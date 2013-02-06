@@ -32,6 +32,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def setup() {
+        file("settings.gradle").text = "rootProject.name='TestProject'"
         file("someFile").createFile()
     }
 
@@ -51,7 +52,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         succeeds('customDistZip')
         and:
-        file('custom.zip').usingNativeTools().unzipTo(file("unzip"))
+        file('TestProject-custom.zip').usingNativeTools().unzipTo(file("unzip"))
         file("unzip/someFile").assertIsFile()
     }
 
@@ -60,12 +61,11 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             apply plugin:'distribution'
 
-
             distributions {
-    custom{
-        name=customName
-    }
-}
+                custom{
+                    baseName = customName
+                }
+            }
             customNameDistZip{
                 from "someFile"
             }
@@ -73,7 +73,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         succeeds('customNameDistZip')
         and:
-        file('customName.zip').usingNativeTools().unzipTo(file("unzip"))
+        file('TestProject-customName.zip').usingNativeTools().unzipTo(file("unzip"))
         file("unzip/someFile").assertIsFile()
     }
 
@@ -82,11 +82,9 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         buildFile << """
             apply plugin:'distribution'
-
-
             distributions {
                 custom{
-                    name = ''
+                    baseName = ''
                 }
             }
             customDistZip{
@@ -95,7 +93,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             """
         then:
         runAndFail('customDistZip')
-        failure.assertThatDescription(containsString("Distribution name must not be null or empty! Check your configuration of the distribution plugin."))
+        failure.assertThatDescription(containsString("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."))
     }
 
 }

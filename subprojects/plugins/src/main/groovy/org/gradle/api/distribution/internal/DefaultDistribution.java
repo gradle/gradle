@@ -19,16 +19,24 @@ import org.gradle.api.distribution.Distribution;
 
 /**
  * Allow user to declare a distribution.
+ *
  * @author scogneau
  */
 public class DefaultDistribution implements Distribution {
-    private String name;
 
-    public DefaultDistribution(String name) {
+    private String baseName;
+    private final String name;
+
+    public DefaultDistribution(String name, String projectName) {
         this.name = name;
+        this.baseName = name == MAIN_DISTRIBUTION_NAME ? projectName : String.format("%s-%s", projectName, name);
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getBaseName() {
+        return baseName;
     }
 }

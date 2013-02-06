@@ -16,6 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.distribution.Distribution
@@ -32,10 +33,9 @@ class JavaLibraryDistributionPluginTest extends Specification {
 
         then:
         project.plugins.hasPlugin(JavaPlugin.class)
-        project.extensions.getByType(Distribution.class) != null
+        project.extensions.getByType(DistributionContainer.class) != null
         project.plugins.hasPlugin(DistributionPlugin.class)
-        project.distribution.name == project.name
-
+        project.distributions.main.baseName == project.name
     }
 
     def "adds distZip task to project"() {
@@ -43,18 +43,18 @@ class JavaLibraryDistributionPluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def task = project.tasks[JavaLibraryDistributionPlugin.TASK_DIST_ZIP_NAME]
+        def task = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
-        task.archiveName == "${project.distribution.name}.zip"
+        task.archiveName == "${project.distributions.main.baseName}.zip"
     }
 
     public void "distribution name is configurable"() {
         when:
         plugin.apply(project)
-        project.distribution.name = "SuperApp";
+        project.distributions.main.baseName = "SuperApp";
 
         then:
-        def distZipTask = project.tasks[JavaLibraryDistributionPlugin.TASK_DIST_ZIP_NAME]
+        def distZipTask = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
         distZipTask.archiveName == "SuperApp.zip"
     }
 }

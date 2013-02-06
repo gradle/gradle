@@ -200,6 +200,16 @@ You can define multiple distributions:
 
 To build the additional distributions you can run the generated Zip tasks enterpriseDistZip and communityDistZip.
 
+### Java Library Distribution Plugin
+
+The java library distribution plugin now extends the new introduced distribution plugin. The `distribution` extension was removed. The `main` distribution is now accessible using the distributions extension:
+
+    distributions {
+        main {
+			...
+		}
+    }
+ 
 ### New Sonar Runner plugin
 
 Gradle 1.5 ships with a new *Sonar Runner* plugin that is set to replace the existing Sonar plugin. As its name indicates,

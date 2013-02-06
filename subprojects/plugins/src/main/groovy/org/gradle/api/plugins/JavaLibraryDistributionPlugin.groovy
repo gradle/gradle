@@ -30,10 +30,7 @@ import org.gradle.api.distribution.plugins.DistributionPlugin
  */
 @Incubating
 class JavaLibraryDistributionPlugin implements Plugin<Project> {
-    static final String TASK_DIST_ZIP_NAME = "distZip"
-
     private Project project
-    Distribution extension
 
     public void apply(Project project) {
         this.project = project
@@ -44,13 +41,11 @@ class JavaLibraryDistributionPlugin implements Plugin<Project> {
     }
 
     private void addPluginExtension() {
-        extension = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
-        project.extensions.add("distribution", extension);
-        extension.name = project.name
+        project.distributions[Distribution.MAIN_DISTRIBUTION_NAME]
     }
 
     private void configureDistZipTask() {
-        def distZipTask = project.tasks.getByName(TASK_DIST_ZIP_NAME)
+        def distZipTask = project.tasks.getByName(DistributionPlugin.TASK_DIST_ZIP_NAME)
         def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]
         distZipTask.with {
             from(jar)
