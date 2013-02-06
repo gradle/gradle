@@ -47,7 +47,7 @@ types of build items.
 * Build items can take other build items as input when they are built, and often require other things to be
   present when they are used. For example, a binary is typically compiled from source and other binaries.
   At runtime, the binary requires some other binaries to be present.
-* Build items that are buildable carry meta-data about what their inputs are. Things have already been built
+* Build items that are buildable carry meta-data about what their inputs are. Things that have already been built
   carry meta-data about what their inputs were when they were built.
 
 ## Story: Introduce language source sets
