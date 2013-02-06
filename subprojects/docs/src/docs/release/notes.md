@@ -247,32 +247,21 @@ While every effort has been made to keep backwards compatibility with earlier ve
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* Joe Sortelli - Fixed incorrect handling of ivy.xml where dependency configuration contained wildcard values (GRADLE-2352)
-
+* Joe Sortelli - Fixed incorrect handling of `ivy.xml` where dependency configuration contained wildcard values (GRADLE-2352)
 * David M. Carr - When JUnit tests have assumption failures, treat them as "skipped" (GRADLE-2454)
-	
 * Sébastien Cogneau - Introduce a basic distribution plugin
-
-* Kenny Stridh 
+* Kenny Stridh
 	* Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
 	* Add support for PMD version 5.0.+
-
 * Marcin Erdmann
 	* Add `build-dashboard` plugin
 	* Make notify-send notifications transient in Gnome Shell
-
-
 * Michael R. Maletich
 	* Add `maxHeapSize` property to `FindBugs` task to allow setting the max heap size for spawned FindBugs java process
-	* Add `contentsCompression` property to Zip and Tar task to specify the compression level of the archive
-	
-
-* Barry Pitman - Fixed maven conversion problem (GRADLE-2645)
-
-* Kallin Nagelberg - Fixed grammar in the SourceSetOutput documentation
-
+	* Add `contentsCompression` property to the `Zip` task type to specify the compression level of the archive
+* Barry Pitman - Fixed Maven conversion problem (GRADLE-2645)
+* Kallin Nagelberg - Fixed grammar in the `SourceSetOutput` documentation
 * Klaus Illusioni - Fixed Eclipse wtp component generation issue (GRADLE-2653)
-
 * Alex Birmingham - Fixed PMD Javadoc
 
 
