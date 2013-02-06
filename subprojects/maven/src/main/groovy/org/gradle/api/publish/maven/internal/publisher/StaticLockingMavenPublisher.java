@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 

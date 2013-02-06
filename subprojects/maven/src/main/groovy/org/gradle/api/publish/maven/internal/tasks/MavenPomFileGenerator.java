@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api.publish.maven.internal.tasks;
 
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
@@ -34,7 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 
-public class MavenPomGenerator {
+public class MavenPomFileGenerator {
 
     private static final String POM_FILE_ENCODING = "UTF-8";
     private static final String POM_VERSION = "4.0.0";
@@ -42,36 +42,31 @@ public class MavenPomGenerator {
     private MavenProject mavenProject = new MavenProject();
     private XmlTransformer withXmlActions = new XmlTransformer();
 
-    public MavenPomGenerator() {
+    public MavenPomFileGenerator() {
         mavenProject.setModelVersion(POM_VERSION);
     }
 
-    public MavenPomGenerator setGroupId(String groupId) {
+    public MavenPomFileGenerator setGroupId(String groupId) {
         getModel().setGroupId(groupId);
         return this;
     }
 
-    public MavenPomGenerator setArtifactId(String artifactId) {
+    public MavenPomFileGenerator setArtifactId(String artifactId) {
         getModel().setArtifactId(artifactId);
         return this;
     }
 
-    public MavenPomGenerator setName(String name) {
-        getModel().setName(name);
-        return this;
-    }
-
-    public MavenPomGenerator setVersion(String version) {
+    public MavenPomFileGenerator setVersion(String version) {
         getModel().setVersion(version);
         return this;
     }
 
-    public MavenPomGenerator setPackaging(String packaging) {
+    public MavenPomFileGenerator setPackaging(String packaging) {
         getModel().setPackaging(packaging);
         return this;
     }
 
-    public MavenPomGenerator withXml(final Action<XmlProvider> action) {
+    public MavenPomFileGenerator withXml(final Action<XmlProvider> action) {
         withXmlActions.addAction(action);
         return this;
     }
@@ -80,11 +75,11 @@ public class MavenPomGenerator {
         return mavenProject.getModel();
     }
 
-    public MavenPomGenerator writeTo(File file) {
+    public MavenPomFileGenerator writeTo(File file) {
         IoActions.writeFile(file, POM_FILE_ENCODING, new Action<BufferedWriter>() {
             public void execute(BufferedWriter writer) {
                 try {
-                    writeWithXmlActions(writer);
+                    write(writer);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
@@ -93,7 +88,7 @@ public class MavenPomGenerator {
         return this;
     }
 
-    private void writeWithXmlActions(final Writer pomWriter) throws IOException {
+    protected void write(final Writer pomWriter) throws IOException {
         try {
             withXmlActions.transform(pomWriter, POM_FILE_ENCODING, new ErroringAction<Writer>() {
                 protected void doExecute(Writer writer) throws IOException {

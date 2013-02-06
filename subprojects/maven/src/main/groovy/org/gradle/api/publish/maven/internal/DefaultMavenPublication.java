@@ -32,6 +32,7 @@ import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactKey;
+import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.CollectionUtils;

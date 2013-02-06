@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api.publish.maven.internal.plugins;
 
-import org.gradle.api.Action;
+import  org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublicationContainer;
+import org.gradle.api.publish.maven.internal.MavenPublicationInternal;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 
 import java.io.File;
@@ -51,6 +52,7 @@ public class GeneratePomTaskCreator {
         GenerateMavenPom generatePomTask = project.getTasks().add(descriptorTaskName, GenerateMavenPom.class);
         generatePomTask.setGroup("publishing");
         generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'", publication.getName()));
+        generatePomTask.setPom(publication.getPom());
 
         ConventionMapping descriptorTaskConventionMapping = new DslObject(generatePomTask).getConventionMapping();
         descriptorTaskConventionMapping.map("destination", new Callable<Object>() {
@@ -58,14 +60,9 @@ public class GeneratePomTaskCreator {
                 return new File(project.getBuildDir(), "publications/" + publication.getName() + "/pom-default.xml");
             }
         });
-        descriptorTaskConventionMapping.map("pom", new Callable<Object>() {
-            public Object call() throws Exception {
-                return publication.getPom();
-            }
-        });
 
         // Wire the generated pom into the publication.
-        publication.setPomFile(generatePomTask.getPomFile());
+        publication.setPomFile(generatePomTask.getOutputs().getFiles());
     }
 
     private String calculateDescriptorTaskName(String publicationName) {

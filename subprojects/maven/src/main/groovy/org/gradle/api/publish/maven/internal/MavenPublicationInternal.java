@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven.internal;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 
 import java.util.Set;
 

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api.publish.maven.internal.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.publish.PublicationContainer;
+import org.gradle.api.publish.maven.internal.MavenPublicationInternal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
 import org.gradle.api.tasks.TaskContainer;
 

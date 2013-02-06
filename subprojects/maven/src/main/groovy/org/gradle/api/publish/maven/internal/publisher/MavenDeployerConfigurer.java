@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.maven.artifact.ant.Authentication;
 import org.apache.maven.artifact.ant.RemoteRepository;
@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 
-public class MavenDeployerConfigurer implements Action<MavenDeployer> {
+class MavenDeployerConfigurer implements Action<MavenDeployer> {
 
     private final MavenArtifactRepository artifactRepository;
 

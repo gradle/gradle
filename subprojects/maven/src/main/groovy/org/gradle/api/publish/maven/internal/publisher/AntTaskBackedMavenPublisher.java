@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
