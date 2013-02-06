@@ -15,23 +15,23 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.tools.zip.ZipOutputStream;
+import org.gradle.api.UncheckedIOException;
 
-public class ZipCompressedCompressor implements ZipCompressor {
+import java.io.File;
 
-    public static final ZipCompressor INSTANCE = new ZipCompressedCompressor();
+abstract class AbstractZipCompressor implements ZipCompressor {
+
+    abstract public int getCompressedMethod();
 
     public ZipOutputStream compress(File destination) {
         try {
-            return new ZipOutputStream(destination);
-        } catch (IOException e) {
-            String message = String.format("Unable to create zip output stream for file %s.", destination);
-            throw new RuntimeException(message, e);
+            ZipOutputStream outStream = new ZipOutputStream(destination);
+            outStream.setMethod(getCompressedMethod());
+            return outStream;
+        } catch (Exception e) {
+            String message = String.format("Unable to create ZIP output stream for file %s.", destination);
+            throw new UncheckedIOException(message, e);
         }
     }
-
-    private ZipCompressedCompressor() {}
 }

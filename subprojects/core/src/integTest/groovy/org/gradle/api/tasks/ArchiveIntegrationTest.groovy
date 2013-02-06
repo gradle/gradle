@@ -19,6 +19,8 @@
 
 package org.gradle.api.tasks
 
+import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
@@ -297,10 +299,11 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def canCreateAZipArchiveWithContentsUncompressed() {
+        def randomAscii = RandomStringUtils.randomAscii(300)
         given:
         createDir('test') {
             dir1 {
-                file('file1.txt').write("abc")
+                file('file1.txt').write(randomAscii)
             }
             file 'file1.txt'
             dir2 {
@@ -314,8 +317,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 into('prefix') {
                     from 'test'
                     include '**/*.txt'
-                    rename { "renamed_$it" }
-                    filter { "[$it]" }
                 }
                 into('scripts') {
                     from 'test'
@@ -323,15 +324,13 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 }
                 destinationDir = buildDir
                 archiveName = 'uncompressedTest.zip'
-                contentsCompression = ContentsCompression.DEFLATED
+                entryCompression = ZipEntryCompression.STORED
             }
 
             task compressedZip(type: Zip) {
                 into('prefix') {
                     from 'test'
                     include '**/*.txt'
-                    rename { "renamed_$it" }
-                    filter { "[$it]" }
                 }
                 into('scripts') {
                     from 'test'
@@ -347,27 +346,29 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         then:
 	def uncompressedSize = file('build/uncompressedTest.zip').length()
 	def compressedSize = file('build/compressedTest.zip').length()
-	assert compressedSize < uncompressedSize
+	println "uncompressed" + uncompressedSize
+	println "compressed" + compressedSize
+    assert compressedSize < uncompressedSize
 
         def expandDir = file('expandedUncompressed')
         file('build/uncompressedTest.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
-                'prefix/dir1/renamed_file1.txt',
-                'prefix/renamed_file1.txt',
-                'prefix/dir2/renamed_file2.txt',
+                'prefix/dir1/file1.txt',
+                'prefix/file1.txt',
+                'prefix/dir2/file2.txt',
                 'scripts/dir2/script.sh')
 
-        expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
+        expandDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
 
         def expandCompressedDir = file('expandedCompressed')
         file('build/compressedTest.zip').unzipTo(expandCompressedDir)
         expandCompressedDir.assertHasDescendants(
-                'prefix/dir1/renamed_file1.txt',
-                'prefix/renamed_file1.txt',
-                'prefix/dir2/renamed_file2.txt',
+                'prefix/dir1/file1.txt',
+                'prefix/file1.txt',
+                'prefix/dir2/file2.txt',
                 'scripts/dir2/script.sh')
 
-        expandCompressedDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
+        expandCompressedDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
     }
 
     def canCreateATarArchive() {

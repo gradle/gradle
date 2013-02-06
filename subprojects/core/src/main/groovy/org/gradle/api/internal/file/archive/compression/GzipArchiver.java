@@ -42,10 +42,10 @@ public class GzipArchiver implements ReadableResource {
         this.uri = new URIBuilder(resource.getURI()).schemePrefix("gzip:").build();
     }
 
-    public static Compressor getCompressor() {
+    public static ArchiveOutputStreamFactory getCompressor() {
         // this is not very beautiful but at some point we will
-        // get rid of Compressor in favor of the writable Resource
-        return new Compressor() {
+        // get rid of ArchiveOutputStreamFactory in favor of the writable Resource
+        return new ArchiveOutputStreamFactory() {
             public OutputStream compress(File destination) {
                 try {
                     OutputStream outStr = new FileOutputStream(destination);

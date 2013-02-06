@@ -22,7 +22,7 @@ import java.io.OutputStream;
 /**
  * Compresses the input
  */
-public interface Compressor {
+public interface ArchiveOutputStreamFactory {
 
     /**
      * Returns the output stream that is able to compress into the destination file

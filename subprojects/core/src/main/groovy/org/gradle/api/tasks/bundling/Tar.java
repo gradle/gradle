@@ -19,7 +19,7 @@ package org.gradle.api.tasks.bundling;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.TarCopySpecVisitor;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
-import org.gradle.api.internal.file.archive.compression.Compressor;
+import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
@@ -77,7 +77,7 @@ public class Tar extends AbstractArchiveTask {
             return Tar.this.getArchivePath();
         }
 
-        public Compressor getCompressor() {
+        public ArchiveOutputStreamFactory getCompressor() {
             switch(compression) {
                 case BZIP2: return Bzip2Archiver.getCompressor();
                 case GZIP:  return GzipArchiver.getCompressor();

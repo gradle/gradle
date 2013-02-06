@@ -18,10 +18,10 @@ package org.gradle.api.tasks.bundling;
 /**
  * Specifies the compression level of an archives contents.
  */
-public enum ContentsCompression {
-    /** Contents are stored compressed */
+public enum ZipEntryCompression {
+    /** Contents are not compressed */
     STORED,
 
-    /** Contents are stored uncompressed */
+    /** Contents are compressed using the 'deflate' algorithm */
     DEFLATED
 }

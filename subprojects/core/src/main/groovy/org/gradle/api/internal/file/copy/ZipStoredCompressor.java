@@ -15,12 +15,14 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import java.io.File;
-
 import org.apache.tools.zip.ZipOutputStream;
-import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 
-public interface ZipCompressor extends ArchiveOutputStreamFactory {
+public class ZipStoredCompressor extends AbstractZipCompressor{
 
-    ZipOutputStream compress(File destination);
+    public static final ZipCompressor INSTANCE = new ZipStoredCompressor();
+
+    @Override
+    public int getCompressedMethod() {
+        return ZipOutputStream.STORED;
+    }
 }

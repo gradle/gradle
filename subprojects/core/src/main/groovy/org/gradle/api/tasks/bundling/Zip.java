@@ -19,9 +19,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.archive.ZipCopySpecVisitor;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
-import org.gradle.api.internal.file.copy.ZipCompressedCompressor;
-import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
+import org.gradle.api.internal.file.copy.ZipCompressor;
+import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 
 import java.io.File;
 
@@ -35,7 +35,7 @@ import java.io.File;
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private final ZipCopyActionImpl action;
-    private ContentsCompression contentsCompression = ContentsCompression.STORED;
+    private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
@@ -47,20 +47,20 @@ public class Zip extends AbstractArchiveTask {
      * 
      * @return the compression level of the archive contents.
      */
-    public ContentsCompression getContentsCompression() {
-        return contentsCompression;
+    public ZipEntryCompression getEntryCompression() {
+        return entryCompression;
     }
     
     /**
      * Sets the compression level of th the contents of the archive. 
      * If set to {@code STORED} (the default), all contents of the archive 
-     * is compressed.  If set to {@code DEFLATED}, the contents are left 
-     * uncompressed.
+     * is left uncompressed. If set to {@code DEFLATED}, the contents are
+     * compressed using the DEFLATE algorithm.
      * 
-     * @param contentsCompression {@code STORED} or {@code DEFLATED}
+     * @param entryCompression {@code STORED} or {@code DEFLATED}
      */
-    public void setContentsCompression(ContentsCompression contentsCompression) {
-        this.contentsCompression = contentsCompression;
+    public void setEntryCompression(ZipEntryCompression entryCompression) {
+        this.entryCompression = entryCompression;
     }
 
     protected ZipCopyActionImpl getCopyAction() {
@@ -80,9 +80,13 @@ public class Zip extends AbstractArchiveTask {
         }
 
         public ZipCompressor getCompressor() {
-            switch(contentsCompression) {
-                case DEFLATED: return ZipDeflatedCompressor.INSTANCE;
-                default:       return ZipCompressedCompressor.INSTANCE;
+            switch(entryCompression) {
+                case DEFLATED:
+                    return ZipDeflatedCompressor.INSTANCE;
+                case STORED:
+                    return ZipStoredCompressor.INSTANCE;
+                default:
+                    throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
             }
         }
     }

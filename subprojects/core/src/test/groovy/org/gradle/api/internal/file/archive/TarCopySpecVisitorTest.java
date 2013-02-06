@@ -20,8 +20,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.FileResource;
+import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
-import org.gradle.api.internal.file.archive.compression.Compressor;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
@@ -132,7 +132,7 @@ public class TarCopySpecVisitorTest {
         }
     }
 
-    private TestFile initializeTarFile(final TestFile tarFile, final Compressor compressor) {
+    private TestFile initializeTarFile(final TestFile tarFile, final ArchiveOutputStreamFactory compressor) {
         context.checking(new Expectations() {{
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));

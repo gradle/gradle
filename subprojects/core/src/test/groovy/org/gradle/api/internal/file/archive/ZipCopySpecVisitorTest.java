@@ -19,11 +19,11 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.archive.compression.Compressor;
+import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
-import org.gradle.api.internal.file.copy.ReadableCopySpec;
-import org.gradle.api.internal.file.copy.ZipCompressedCompressor;
 import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
+import org.gradle.api.internal.file.copy.ReadableCopySpec;
+import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Description;
@@ -65,11 +65,11 @@ public class ZipCopySpecVisitorTest {
         }});
         context.checking(new Expectations() {{
             allowing(copyAction).getCompressor();
-            will(returnValue(ZipCompressedCompressor.INSTANCE));
+            will(returnValue(ZipStoredCompressor.INSTANCE));
         }});
     }
 
-    private TestFile initializeZipFile(final TestFile testFile, final Compressor compressor) {
+    private TestFile initializeZipFile(final TestFile testFile, final ArchiveOutputStreamFactory compressor) {
         context.checking(new Expectations() {{
             allowing(copyAction).getArchivePath();
             will(returnValue(zipFile));
@@ -81,7 +81,7 @@ public class ZipCopySpecVisitorTest {
 
     @Test
     public void createsZipFile() {
-        initializeZipFile(zipFile, ZipCompressedCompressor.INSTANCE);
+        initializeZipFile(zipFile, ZipStoredCompressor.INSTANCE);
         zip(dir("dir"), file("dir/file1"), file("file2"));
 
         TestFile expandDir = tmpDir.getTestDirectory().file("expanded");

@@ -52,7 +52,6 @@ public class ZipCopySpecVisitor extends EmptyCopySpecVisitor {
     public void visitFile(FileVisitDetails fileDetails) {
         try {
             ZipEntry archiveEntry = new ZipEntry(fileDetails.getRelativePath().getPathString());
-            archiveEntry.setMethod(ZipEntry.DEFLATED);
             archiveEntry.setTime(fileDetails.getLastModified());
             archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getMode());
             zipOutStr.putNextEntry(archiveEntry);
