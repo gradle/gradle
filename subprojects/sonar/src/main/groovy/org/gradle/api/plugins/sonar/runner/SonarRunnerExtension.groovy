@@ -16,7 +16,7 @@
 package org.gradle.api.plugins.sonar.runner
 
 import groovy.transform.PackageScope
-
+import org.gradle.api.Incubating
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -38,6 +38,7 @@ import org.gradle.util.ConfigureUtil
  * }
  * </pre>
  */
+@Incubating
 class SonarRunnerExtension {
     /**
      * Tells if the project will be excluded from analysis. Defaults to {@code false}.

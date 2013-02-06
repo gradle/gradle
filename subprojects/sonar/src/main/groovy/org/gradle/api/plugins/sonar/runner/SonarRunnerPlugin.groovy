@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.sonar.runner
 
+import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
@@ -92,6 +93,7 @@ import org.gradle.internal.jvm.Jvm
  *     <dd>test.testResultsDir (if the directory exists)
  * </dl>
  */
+@Incubating
 class SonarRunnerPlugin implements Plugin<Project> {
     void apply(Project project) {
         def sonarRunnerTask = project.tasks.add("sonarRunner", SonarRunner)

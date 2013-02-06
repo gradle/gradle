@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.sonar.runner
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Incubating
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.TaskAction
@@ -31,6 +32,7 @@ import org.sonar.runner.Runner
  * <p>For more information on how to configure the Sonar Runner, and on which properties are available, see the
  * <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner documentation</a>.
  */
+@Incubating
 class SonarRunner extends DefaultTask {
     private static final Logger LOGGER = Logging.getLogger(SonarRunner)
 

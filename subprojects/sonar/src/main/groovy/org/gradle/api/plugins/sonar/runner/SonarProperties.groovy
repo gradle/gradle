@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.sonar.runner
 
+import org.gradle.api.Incubating
+
 /**
  * The Sonar properties for the current Gradle project that are to be passed to the Sonar Runner.
  * The {@code properties} map is already populated with the defaults provided by Gradle, and can be
@@ -26,6 +28,7 @@ package org.gradle.api.plugins.sonar.runner
  *     <li>All other values are converted to Strings by calling their {@code toString} method.</li>
  * </ul>
  */
+@Incubating
 class SonarProperties {
     /**
      * The Sonar properties for the current Gradle project that are to be passed to the Sonar runner.
