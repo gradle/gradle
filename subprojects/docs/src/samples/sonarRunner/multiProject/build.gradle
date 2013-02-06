@@ -1,4 +1,4 @@
-apply plugin: "sonarRunner"
+apply plugin: "sonar-runner"
 
 // START SNIPPET global-configuration-settings
 sonarRunner {

@@ -1,5 +1,5 @@
 apply plugin: "java"
-apply plugin: "sonar"
+apply plugin: "sonar-runner"
 
 sourceSets {
     custom

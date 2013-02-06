@@ -1,7 +1,7 @@
 apply plugin: "java"
 
 // START SNIPPET apply-plugin
-apply plugin: "sonarRunner"
+apply plugin: "sonar-runner"
 // END SNIPPET apply-plugin
 
 // START SNIPPET connection-settings
