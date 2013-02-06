@@ -76,7 +76,7 @@ sonar.embeddedDatabase.port=$databasePort
                 .withArgument("-PdatabaseUrl=bar") // dummy value for configuring sonarAnalyze task
                 .withArgument("-Dsonar.host.url=http://localhost:${webServer.connectors[0].localPort}")
                 .withArgument("-Dsonar.jdbc.url=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
-                .withTasks("build", "sonarRunner").run()
+                .withTasks("sonarRunner").run()
 
         then:
         noExceptionThrown()

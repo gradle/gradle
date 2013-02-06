@@ -78,7 +78,7 @@ sonar.embeddedDatabase.port=$databasePort
         executer.requireGradleHome()
                 .withArgument("-PserverUrl=http://localhost:${webServer.connectors[0].localPort}")
                 .withArgument("-PdatabaseUrl=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
-                .withTasks("sonarAnalyze").run()
+                .withTasks("build", "sonarAnalyze").run()
 
         then:
         noExceptionThrown()
