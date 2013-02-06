@@ -16,6 +16,11 @@
 
 <chapter id="buildDashboard_plugin">
     <title>The Build Dashboard Plugin</title>
+    <note>
+        <para>
+            The Build Dashboard plugin is incubating (see <xref linkend="sec:incubating_state"/>).
+        </para>
+    </note>
     <para>The Build Dashboard plugin adds a task to projects which generates build dashboard report.
     </para>
 
