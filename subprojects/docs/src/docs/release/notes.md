@@ -6,15 +6,6 @@ Here are the new features introduced in this Gradle release.
 ### Example new and noteworthy
 -->
 
-### Improved Sonar plugin
-
-The Sonar plugin has received a major overhaul. It is now based on the [Sonar Runner]
-(http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner), the new and officially supported
-way to invoke Sonar analysis. This makes the plugin compatible with Sonar 3.4 and future Sonar versions.
-In addition, the Sonar plugin's object model has been updated to cover JaCoCo and debug settings, and
-properties like `sonar.database.password` can now easily be set from the command line. Read on in the
-revised [Sonar chapter](userguide/sonar_plugin.html) of the Gradle user guide.
-
 ### IDEA plugin is now Scala aware
 
 When the IDEA plugin encounters a Scala project, it will now add additional configuration to make the
@@ -116,7 +107,7 @@ The incubating parallel build execution can now be configured in a persistent fa
     //gradle.properties file
     org.gradle.parallel=true
 
-#### Choose a software component to publish
+### Choose a software component to publish
 
 Gradle 1.5 includes the concept of a Software Component, which defines something that can be produced by a Gradle project, like a Java Library or a Web Application.
 The 'maven-publish' plugin is component-aware, simplifying the process of publishing a component, which defines the set of artifacts and dependencies for publishing.
@@ -145,7 +136,7 @@ Publishing the 'web' component will result in the war file being published with 
         }
     }
 
-#### Customise artifacts published
+### Customise artifacts published
 
 This release introduces an API/DSL for customising the set of artifacts to publish to a Maven repository. This DSL allows gives a Gradle build complete control over which artifacts
 are published, and the classifier/extension used to publish them.
@@ -184,7 +175,7 @@ are published, and the classifier/extension used to publish them.
 
 Be sure to check out the [DSL reference](dsl/org.gradle.api.publish.maven.MavenPublication.html) for complete details on how the set of artifacts can be customised.
 
-#### Generate POM file without publishing
+### Generate POM file without publishing
 
 Pom file generation has been moved into a separate task, so that it is now possible to generate the Maven Pom file without actually publishing your project. All details of
 the publishing model are still considered in Pom generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
@@ -208,6 +199,14 @@ You can define multiple distributions:
     }
 
 To build the additional distributions you can run the generated Zip tasks enterpriseDistZip and communityDistZip.
+
+### New Sonar Runner plugin
+
+Gradle 1.5 ships with a new *Sonar Runner* plugin that is set to replace the existing Sonar plugin. As its name indicates,
+the new plugin is based on the [Sonar Runner](http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner),
+the new and official way to integrate with Sonar. Unlike the old Sonar plugin, the new Sonar Runner plugin
+is compatible with the latest Sonar versions (3.4 and above). To learn more, check out the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html)
+chapter in the Gradle user guide, and the `sonarRunner` samples in the full Gradle distribution.
 
 ## Deprecations
 

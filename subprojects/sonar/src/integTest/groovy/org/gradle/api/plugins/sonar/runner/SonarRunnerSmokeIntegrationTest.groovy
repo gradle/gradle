@@ -35,7 +35,7 @@ class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
     Server webServer = new Server(0)
 
     @Rule
-    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tempDir
 
     @Rule
     TestResources testResources = new TestResources(temporaryFolder)
