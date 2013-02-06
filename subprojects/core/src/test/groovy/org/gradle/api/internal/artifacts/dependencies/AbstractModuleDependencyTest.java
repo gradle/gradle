@@ -40,6 +40,7 @@ import static org.junit.Assert.assertTrue;
  */
 @RunWith(JMock.class)
 abstract public class AbstractModuleDependencyTest {
+    //TODO SF rework the remaining coverage of this hierarchy in the spirit of AbstractModuleDependencySpec and DefaultProjectDependencyTest
 
     protected abstract AbstractModuleDependency getDependency();
 

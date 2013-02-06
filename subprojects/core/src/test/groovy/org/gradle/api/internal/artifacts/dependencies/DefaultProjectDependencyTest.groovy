@@ -1,7 +1,7 @@
 /*
  * Copyright 2010 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License") 
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,241 +14,177 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dependencies;
+package org.gradle.api.internal.artifacts.dependencies
 
-
-import org.gradle.api.Task
+import org.gradle.api.artifacts.ExternalDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.DependencyResolveContext
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.TaskDependency
-import org.jmock.Expectations
-import org.junit.Before
-import org.gradle.api.artifacts.*
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.initialization.ProjectAccessListener
+import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Specification
 
-import static org.gradle.util.Matchers.isEmpty
+import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy
 import static org.gradle.util.Matchers.strictlyEqual
-import static org.gradle.util.WrapUtil.toList
-import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.junit.Assert.assertThat
 
-/**
- * @author Hans Dockter
- */
-//@RunWith(JMock.class)
-//TODO SF spockify
-public class DefaultProjectDependencyTest { //extends AbstractModuleDependencyTest {
-    private final ProjectInternal dependencyProjectStub = context.mock(ProjectInternal.class);
-//    private final ConfigurationContainerInternal projectConfigurationsStub = context.mock(ConfigurationContainerInternal.class);
-    private final ConfigurationInternal projectConfigurationStub = context.mock(ConfigurationInternal.class);
-    private final TaskContainer dependencyProjectTaskContainerStub = context.mock(TaskContainer.class);
-    private final DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, null, false);
+class DefaultProjectDependencyTest extends Specification {
 
-    protected AbstractModuleDependency getDependency() {
-        return projectDependency;
+    ProjectInternal project = new ProjectBuilder().withName("root").build()
+    ProjectAccessListener listener = Mock()
+
+    private projectDependency = new DefaultProjectDependency(project, null, false)
+
+    void setup() {
+        project.version = "1.2"
+        project.group = "org.gradle"
     }
 
-    protected AbstractModuleDependency createDependency(String group, String name, String version) {
-        return createDependency(group, name, version, null);    
+    void "provides dependency information"() {
+        expect:
+        projectDependency.transitive
+        projectDependency.name == "root"
+        projectDependency.group == "org.gradle"
+        projectDependency.version == "1.2"
     }
 
-    protected AbstractModuleDependency createDependency(String group, String name, String version, String configuration) {
-        ProjectInternal dependencyProject = context.mock(ProjectInternal.class);
-        DefaultProjectDependency projectDependency;
-        if (configuration != null) {
-            projectDependency = new DefaultProjectDependency(dependencyProject, configuration, instruction);
-        } else {
-            projectDependency = new DefaultProjectDependency(dependencyProject, instruction);
-        }
-        return projectDependency;
+    void "knows the configuration"() {
+        def conf = project.configurations.create("conf1")
+
+        when:
+        projectDependency = new DefaultProjectDependency(project, "conf1", null, true)
+
+        then:
+        projectDependency.projectConfiguration == conf
     }
 
-    @Before
-    public void setUp() {
-        context.checking(new Expectations() {{
-            allowing(dependencyProjectStub).getConfigurations();
-            will(returnValue(projectConfigurationsStub));
-            allowing(projectConfigurationsStub).getByName("default");
-            will(returnValue(projectConfigurationStub));
-            allowing(dependencyProjectStub).getTasks();
-            will(returnValue(dependencyProjectTaskContainerStub));
-            allowing(dependencyProjectStub).getName();
-            will(returnValue("target-name"));
-            allowing(dependencyProjectStub).getGroup();
-            will(returnValue("target-group"));
-            allowing(dependencyProjectStub).getVersion();
-            will(returnValue("target-version"));
-        }});
+    void "transitive resolution resolves all dependencies"() {
+        def context = Mock(DependencyResolveContext)
+
+        def superConf = project.configurations.add("superConf")
+        def conf = project.configurations.add("conf")
+        conf.extendsFrom(superConf)
+
+        def dep1 = Mock(ProjectDependency)
+        def dep2 = Mock(ExternalDependency)
+        conf.dependencies.add(dep1)
+        superConf.dependencies.add(dep2)
+
+        projectDependency = new DefaultProjectDependency(project, "conf", null, true)
+
+        when:
+        projectDependency.resolve(context)
+
+        then:
+        1 * context.transitive >> true
+        1 * context.add(dep1)
+        1 * context.add(dep2)
+        0 * _
     }
 
-    //@Test
-    public void init() {
-        assertTrue(projectDependency.isTransitive());
-        assertEquals("target-name", projectDependency.getName());
-        assertEquals("target-group", projectDependency.getGroup());
-        assertEquals("target-version", projectDependency.getVersion());
+    void "if resolution context is not transitive it will not contain all dependencies"() {
+        def context = Mock(DependencyResolveContext)
+        projectDependency = new DefaultProjectDependency(project, null, true)
+
+        when:
+        projectDependency.resolve(context)
+
+        then:
+        1 * context.transitive >> false
+        0 * _
     }
 
-    //@Test
-    public void getConfiguration() {
-        context.checking(new Expectations() {{
-            allowing(projectConfigurationsStub).getByName("conf1");
-            will(returnValue(projectConfigurationStub));
-        }});
+    void "if dependency is not transitive the resolution context will not contain all dependencies"() {
+        def context = Mock(DependencyResolveContext)
+        projectDependency = new DefaultProjectDependency(project, null, true)
+        projectDependency.setTransitive(false)
 
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1", instruction);
-        assertThat(projectDependency.getProjectConfiguration(), sameInstance((Configuration) projectConfigurationStub));
+        when:
+        projectDependency.resolve(context)
+
+        then:
+        0 * _
     }
 
-    //@Test
-    public void resolveDelegatesToAllSelfResolvingDependenciesInTargetConfiguration() {
-        final DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
-        final Dependency projectSelfResolvingDependency = context.mock(Dependency.class);
-        final ProjectDependency transitiveProjectDependencyStub = context.mock(ProjectDependency.class);
-        final DependencySet dependencies = context.mock(DependencySet.class);
-        context.checking(new Expectations() {{
-            allowing(projectConfigurationsStub).getByName("conf1");
-            will(returnValue(projectConfigurationStub));
+    void "is Buildable"() {
+        def context = Mock(TaskDependencyResolveContext)
 
-            allowing(projectConfigurationStub).getAllDependencies();
-            will(returnValue(dependencies));
+        def conf = project.configurations.add('conf')
+        def listener = Mock(ProjectAccessListener)
+        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
 
-            allowing(dependencies).iterator();
-            will(returnIterator(toList(projectSelfResolvingDependency, transitiveProjectDependencyStub)));
+        when:
+        projectDependency.buildDependencies.resolve(context)
 
-            allowing(resolveContext).isTransitive();
-            will(returnValue(true));
-            
-            one(resolveContext).add(projectSelfResolvingDependency);
-            
-            one(resolveContext).add(transitiveProjectDependencyStub);
-        }});
-
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1",
-                instruction);
-        projectDependency.resolve(resolveContext);
+        then:
+        1 * context.add(conf)
+        1 * context.add({it.is(conf.allArtifacts)})
+        1 * listener.beforeResolvingProjectDependency(project)
+        0 * _
     }
 
-    //@Test
-    public void resolveNotDelegatesToProjectDependenciesInTargetConfigurationIfConfigurationIsNonTransitive() {
-        final DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
-        context.checking(new Expectations() {{
-            allowing(resolveContext).isTransitive();
-            will(returnValue(false));
-        }});
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1",
-                instruction);
-        projectDependency.resolve(resolveContext);
-    }
-    
-    //@Test
-    public void resolveNotDelegatesToTransitiveProjectDependenciesIfProjectDependencyIsNonTransitive() {
-        DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1", instruction);
-        projectDependency.setTransitive(false);
-        projectDependency.resolve(resolveContext);
+    void "does not build project dependencies if configured so"() {
+        def context = Mock(TaskDependencyResolveContext)
+        project.configurations.add('conf')
+        projectDependency = new DefaultProjectDependency(project, 'conf', listener, false)
+
+        when:
+        projectDependency.buildDependencies.resolve(context)
+
+        then:
+        0 * _
     }
 
-    private Task taskInTargetProject(final String name) {
-        final Task task = context.mock(Task.class, name);
-        context.checking(new Expectations(){{
-            allowing(dependencyProjectStub).evaluate();
-            allowing(dependencyProjectTaskContainerStub).getByName(name);
-            will(returnValue(task));
-        }});
-        return task;
+    void "knows when content is equal"() {
+        def d1 = createProjectDependency()
+        def d2 = createProjectDependency()
+
+        expect:
+        d1.contentEquals(d2)
     }
 
-    //@Test
-    public void dependsOnTargetConfigurationAndArtifactsOfTargetConfiguration() {
-        Task a = taskInTargetProject("a");
-        Task b = taskInTargetProject("b");
-        Task c = taskInTargetProject("c");
-        expectTargetConfigurationHasDependencies(a, b);
-        expectTargetConfigurationHasArtifacts(c);
+    void "knows when content is not euqal"() {
+        def d1 = createProjectDependency()
+        def d2 = createProjectDependency()
+        d2.setTransitive(false)
 
-        assertThat(projectDependency.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(a, b, c)));
+        expect:
+        !d1.contentEquals(d2)
     }
 
-    private void expectTargetConfigurationHasDependencies(final Task... tasks) {
-        context.checking(new Expectations(){{
-            TaskDependency dependencyStub = context.mock(TaskDependency.class, "dependencies");
+    void "can copy"() {
+        def d1 = createProjectDependency()
+        def copy = d1.copy()
 
-            allowing(projectConfigurationStub).getBuildDependencies();
-            will(returnValue(dependencyStub));
-
-            allowing(dependencyStub).getDependencies(null);
-            will(returnValue(toSet(tasks)));
-        }});
+        expect:
+        assertDeepCopy(d1, copy)
+        d1.dependencyProject == copy.dependencyProject
     }
 
-    private void expectTargetConfigurationHasArtifacts(final Task... tasks) {
-        context.checking(new Expectations(){{
-            PublishArtifactSet artifacts = context.mock(PublishArtifactSet.class);
-            TaskDependency dependencyStub = context.mock(TaskDependency.class, "artifacts");
-
-            allowing(projectConfigurationStub).getAllArtifacts();
-            will(returnValue(artifacts));
-
-            allowing(artifacts).getBuildDependencies();
-            will(returnValue(dependencyStub));
-
-            allowing(dependencyStub).getDependencies(null);
-            will(returnValue(toSet(tasks)));
-        }});
+    private createProjectDependency() {
+        def out = new DefaultProjectDependency(project, "conf", listener, true)
+        out.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"))
+        out
     }
 
-    //@Test
-    public void doesNotDependOnAnythingWhenProjectRebuildIsDisabled() {
-        DefaultProjectDependency dependency = new DefaultProjectDependency(dependencyProjectStub,
-                false);
-        assertThat(dependency.getBuildDependencies().getDependencies(null), isEmpty());
-    }
+    void "knows if is equal"() {
+        expect:
+        assertThat(new DefaultProjectDependency(project, listener, true),
+                strictlyEqual(new DefaultProjectDependency(project, listener, true)))
 
-    //@Test
-    public void contentEqualsWithEqualDependencies() {
-        ProjectDependency dependency1 = createProjectDependency();
-        ProjectDependency dependency2 = createProjectDependency();
-        assertThat(dependency1.contentEquals(dependency2), equalTo(true));
-    }
+        assertThat(new DefaultProjectDependency(project, "conf1", listener, false),
+                strictlyEqual(new DefaultProjectDependency(project, "conf1", listener, false)))
 
-    //@Test
-    public void contentEqualsWithNonEqualDependencies() {
-        ProjectDependency dependency1 = createProjectDependency();
-        ProjectDependency dependency2 = createProjectDependency();
-        dependency2.setTransitive(!dependency1.isTransitive());
-        assertThat(dependency1.contentEquals(dependency2), equalTo(false));
-    }
+        when:
+        def base = new DefaultProjectDependency(project, "conf1", listener, true)
+        def differentConf = new DefaultProjectDependency(project, "conf2", listener, true)
+        def differentBuildDeps = new DefaultProjectDependency(project, "conf1", listener, false)
+        def differentProject = new DefaultProjectDependency(Mock(ProjectInternal), "conf1", listener, true)
 
-    //@Test
-    public void copy() {
-        ProjectDependency dependency = createProjectDependency();
-        ProjectDependency copiedDependency = dependency.copy();
-        assertDeepCopy(dependency, copiedDependency);
-        assertThat(copiedDependency.getDependencyProject(), sameInstance(dependency.getDependencyProject()));
-    }
-
-    private ProjectDependency createProjectDependency() {
-        ProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf", instruction);
-        projectDependency.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"));
-        return projectDependency;
-    }
-
-    //@Test
-    @Override
-    public void equality() {
-        assertThat(new DefaultProjectDependency(dependencyProjectStub, instruction), strictlyEqual(new DefaultProjectDependency(
-                dependencyProjectStub, instruction)));
-        assertThat(new DefaultProjectDependency(dependencyProjectStub, "conf1", instruction), strictlyEqual(new DefaultProjectDependency(
-                dependencyProjectStub, "conf1", instruction)));
-        assertThat(new DefaultProjectDependency(dependencyProjectStub, "conf1", instruction), not(equalTo(new DefaultProjectDependency(
-                dependencyProjectStub, "conf2", instruction))));
-        ProjectInternal otherProject = context.mock(ProjectInternal.class, "otherProject");
-        assertThat(new DefaultProjectDependency(dependencyProjectStub, instruction), not(equalTo(new DefaultProjectDependency(
-                otherProject, instruction))));
-        assertThat(new DefaultProjectDependency(dependencyProjectStub, instruction), not(equalTo(new DefaultProjectDependency(
-                dependencyProjectStub, false))));
+        then:
+        base != differentConf
+        base != differentBuildDeps
+        base != differentProject
     }
 }

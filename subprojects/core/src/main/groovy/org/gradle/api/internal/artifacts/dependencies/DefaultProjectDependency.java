@@ -24,8 +24,8 @@ import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
 
 import java.io.File;
@@ -99,7 +99,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         }
     }
 
-    public TaskDependency getBuildDependencies() {
+    public TaskDependencyInternal getBuildDependencies() {
         return taskDependency;
     }
 
@@ -135,7 +135,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!this.getConfiguration().equals(that.getConfiguration())) {
             return false;
         }
-        if (!this.buildProjectDependencies != that.buildProjectDependencies) {
+        if (this.buildProjectDependencies != that.buildProjectDependencies) {
             return false;
         }
         return true;
