@@ -16,7 +16,6 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.api.logging.Logging
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -25,9 +24,6 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
 public class PerformanceTestRunner {
-
-    private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
-
     def testDirectoryProvider = new TestNameTestDirectoryProvider()
     def current = new UnderDevelopmentGradleDistribution()
     def buildContext = new IntegrationTestBuildContext()

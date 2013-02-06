@@ -16,8 +16,7 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.PerformanceTestRunner
-import spock.lang.Specification
+import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
 import static org.gradle.performance.fixture.DataAmount.kbytes
@@ -26,18 +25,21 @@ import static org.gradle.performance.fixture.Duration.millis
 /**
  * by Szczepan Faber, created at: 2/9/12
  */
-class UpToDateBuildPerformanceTest extends Specification {
+class UpToDateBuildPerformanceTest extends AbstractPerformanceTest {
     @Unroll("Project '#testProject' up-to-date build")
     def "build"() {
-        expect:
-        def result = new PerformanceTestRunner(testProject: testProject,
-                tasksToRun: ['build'],
-                runs: 5,
-                warmUpRuns: 1,
-                targetVersions: ['1.0', 'last'],
-                maxExecutionTimeRegression: [maxExecutionTimeRegression, maxExecutionTimeRegression],
-                maxMemoryRegression: [kbytes(3000), kbytes(3000)]
-        ).run()
+        given:
+        runner.testProject = testProject
+        runner.tasksToRun = ['build']
+        runner.runs = 5
+        runner.targetVersions = ['1.0', 'last']
+        runner.maxExecutionTimeRegression = [maxExecutionTimeRegression, maxExecutionTimeRegression]
+        runner.maxMemoryRegression = [kbytes(3000), kbytes(3000)]
+
+        when:
+        def result = runner.run()
+
+        then:
         result.assertCurrentVersionHasNotRegressed()
 
         where:

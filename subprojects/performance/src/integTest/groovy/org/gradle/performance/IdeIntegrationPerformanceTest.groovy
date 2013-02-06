@@ -16,8 +16,7 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.PerformanceTestRunner
-import spock.lang.Specification
+import org.gradle.performance.fixture.AbstractPerformanceTest
 import spock.lang.Unroll
 
 import static org.gradle.performance.fixture.DataAmount.kbytes
@@ -26,18 +25,21 @@ import static org.gradle.performance.fixture.Duration.millis
 /**
  * by Szczepan Faber, created at: 2/9/12
  */
-class IdeIntegrationPerformanceTest extends Specification {
+class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
     @Unroll("Project '#testProject' eclipse")
     def "eclipse"() {
-        expect:
-        def result = new PerformanceTestRunner(testProject: testProject,
-                tasksToRun: ['eclipse'],
-                runs: 5,
-                warmUpRuns: 1,
-                targetVersions: ['1.0', '1.1', '1.2', 'last'],
-                maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: [kbytes(3000), kbytes(3000), kbytes(3000), kbytes(3000)]
-        ).run()
+        given:
+        runner.testProject = testProject
+        runner.tasksToRun = ['eclipse']
+        runner.runs = 5
+        runner.targetVersions = ['1.0', '1.1', '1.2', 'last']
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.maxMemoryRegression = [kbytes(3000), kbytes(3000), kbytes(3000), kbytes(3000)]
+
+        when:
+        def result = runner.run()
+
+        then:
         result.assertCurrentVersionHasNotRegressed()
 
         where:
@@ -49,15 +51,18 @@ class IdeIntegrationPerformanceTest extends Specification {
 
     @Unroll("Project '#testProject' idea")
     def "idea"() {
-        expect:
-        def result = new PerformanceTestRunner(testProject: testProject,
-                tasksToRun: ['idea'],
-                runs: 5,
-                warmUpRuns: 1,
-                targetVersions: ['1.0', '1.1', '1.2', 'last'],
-                maxExecutionTimeRegression: maxExecutionTimeRegression,
-                maxMemoryRegression: [kbytes(3000), kbytes(3000), kbytes(3000), kbytes(3000)]
-        ).run()
+        given:
+        runner.testProject = testProject
+        runner.tasksToRun = ['idea']
+        runner.runs = 5
+        runner.targetVersions = ['1.0', '1.1', '1.2', 'last']
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.maxMemoryRegression = [kbytes(3000), kbytes(3000), kbytes(3000), kbytes(3000)]
+
+        when:
+        def result = runner.run()
+
+        then:
         result.assertCurrentVersionHasNotRegressed()
 
         where:
