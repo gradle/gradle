@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionAwareHelper
@@ -46,7 +47,7 @@ class PmdExtension extends CodeQualityExtension implements IConventionAware{
     /**
      * The target jdk to use with pmd, 1.3, 1.4, 1.5, 1.6, 1.7 or jsp
      */
-    Object targetJdk
+    JavaVersion targetJdk
     
     /**
      * Convenience method for adding rule sets.

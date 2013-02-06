@@ -53,7 +53,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSetFiles = project.files()
         }
         extension.getConventionMapping().with{
-            targetJdk = { project.sourceCompatibility.toString() }
+            targetJdk = { project.sourceCompatibility }
         }
         return extension
     }
