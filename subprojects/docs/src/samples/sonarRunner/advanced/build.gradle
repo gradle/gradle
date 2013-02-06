@@ -9,8 +9,8 @@ sourceSets {
 // START SNIPPET source-sets
 sonarRunner {
     sonarProperties {
-        property "sonar.sources", properties["sonar.sources"] + sourceSets.custom.allSource.srcDirs
-        property "sonar.tests", properties["sonar.tests"] + sourceSets.integTest.allSource.srcDirs
+        properties["sonar.sources"] += sourceSets.custom.allSource.srcDirs
+        properties["sonar.tests"] += sourceSets.integTest.allSource.srcDirs
     }
 }
 // END SNIPPET source-sets
