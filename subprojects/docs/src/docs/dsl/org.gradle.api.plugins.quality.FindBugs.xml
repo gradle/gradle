@@ -42,7 +42,7 @@
             </tr>
             <tr>
                 <td>maxHeapSize</td>
-                <td><literal>project.findbugs.maxHeapSize</literal></td>
+                <td><literal>null</literal></td>
             </tr>
             <tr>
                 <td>visitors</td>
