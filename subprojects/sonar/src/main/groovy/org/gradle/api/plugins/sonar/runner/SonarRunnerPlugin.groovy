@@ -94,18 +94,18 @@ import org.gradle.internal.jvm.Jvm
  */
 class SonarRunnerPlugin implements Plugin<Project> {
     void apply(Project project) {
-        project.allprojects {
-            extensions.create("sonarRunner", SonarRunnerExtension)
-        }
-        def task = project.tasks.add("sonarRunner", SonarRunner)
-        project.plugins.withType(JavaPlugin) {
-            task.dependsOn(project.tasks.test)
-        }
-        task.conventionMapping.with {
+        def sonarRunnerTask = project.tasks.add("sonarRunner", SonarRunner)
+        sonarRunnerTask.conventionMapping.with {
             sonarProperties = {
                 def properties = new Properties()
                 computeSonarProperties(project, properties)
                 properties
+            }
+        }
+        project.allprojects {
+            extensions.create("sonarRunner", SonarRunnerExtension)
+            plugins.withType(JavaPlugin) {
+                sonarRunnerTask.dependsOn(tasks.test)
             }
         }
     }
