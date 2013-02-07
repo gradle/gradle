@@ -206,8 +206,8 @@ The java library distribution plugin now extends the new introduced distribution
 
     distributions {
         main {
-			...
-		}
+            ...
+        }
     }
  
 ### New Sonar Runner plugin
