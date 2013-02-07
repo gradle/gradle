@@ -18,7 +18,7 @@
             </tr>
             <tr>
                 <td>ruleSets</td>
-                <td><literal>["basic"] or ["java-basic"]</literal> depending on the PMD version used</td>
+                <td><literal>[]</literal></td>
             </tr>
             <tr>
                 <td>ruleSetFiles</td>

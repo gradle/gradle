@@ -247,6 +247,13 @@ a software component ['java', 'web'], custom artifacts or both. If no MavenPubli
    - Can specify component to publish
    - Can specify additional artifacts to publish
 
+### Changes to new Ivy publishing support
+
+### Changes to new PMD support
+
+The default value for ruleset extension has changed from ["basic"] to []. We moved the default to the `Pmd` task, so everything should just
+as it did before.
+
 ## Switch to Sonar Runner
 
 While every effort has been made to keep backwards compatibility with earlier versions of the Sonar plugin, the underlying switch to the
