@@ -60,8 +60,6 @@ class IvyPublishWarIntegTest extends AbstractIntegrationSpec {
 
         then:
         def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
-        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.war")
-        ivyModule.ivy.dependencies.isEmpty()
-        // TODO:DAZ Validate configurations and artifacts in ivy.xml
+        ivyModule.assertPublishedAsWebModule()
     }
 }

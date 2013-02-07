@@ -68,7 +68,7 @@ class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
 
         then: "module is published with artifacts"
         def ivyModule = ivyRepo.module("org.gradle.test", "publishEar", "1.9")
-        ivyModule.assertPublished()
+        ivyModule.assertPublishedAsEarModule()
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishEar-1.9.ear")
 
         and: "correct configurations declared"

@@ -30,12 +30,14 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultIvyPublicationTest extends Specification {
 
+    @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Module module = Mock()
     NotationParser<IvyArtifact> notationParser = Mock()
     File descriptorFile
@@ -132,7 +134,7 @@ class DefaultIvyPublicationTest extends Specification {
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "An IvyPublication cannot include multiple components"
+        e.message == "Ivy publication 'pub-name' cannot include multiple components"
     }
 
     def "creates configuration on first access"() {
@@ -224,13 +226,18 @@ class DefaultIvyPublicationTest extends Specification {
         publication.asNormalisedPublication().artifacts == [ivyArtifact1, ivyArtifact2] as Set
     }
 
-    def "getting normalised publication will fail with file that does not exist"() {
+
+    @Unroll
+    def "cannot publish with file that #message"() {
         def publication = createPublication()
         Object notation = new Object();
         IvyArtifact ivyArtifact = Mock()
-        def nonExistentFile = new File(testDirectoryProvider.testDirectory, 'does-not-exist')
 
         when:
+        notationParser.parseNotation(notation) >> ivyArtifact
+        ivyArtifact.file >> theFile
+
+        and:
         publication.configurations {
             config {
                 artifact notation
@@ -239,12 +246,13 @@ class DefaultIvyPublicationTest extends Specification {
         publication.asNormalisedPublication()
 
         then:
-        notationParser.parseNotation(notation) >> ivyArtifact
-        ivyArtifact.file >> nonExistentFile
-
-        and:
         def t = thrown InvalidUserDataException
-        t.message == "Attempted to publish an artifact that does not exist: '${nonExistentFile}'"
+        t.message == "Cannot publish ivy publication 'pub-name': artifact file ${message}: '${theFile}'"
+
+        where:
+        theFile                                                         | message
+        new File(testDirectoryProvider.testDirectory, 'does-not-exist') | 'does not exist'
+        testDirectoryProvider.testDirectory.createDir('sub_directory')  | 'is a directory'
     }
 
     def createPublication() {

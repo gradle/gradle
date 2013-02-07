@@ -71,7 +71,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public void from(SoftwareComponent component) {
         if (this.component != null) {
-            throw new InvalidUserDataException("An IvyPublication cannot include multiple components");
+            throw new InvalidUserDataException(String.format("Ivy publication '%s' cannot include multiple components", name));
         }
         this.component = (SoftwareComponentInternal) component;
 
@@ -126,7 +126,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 allArtifacts.addAll(ivyConfiguration.getArtifacts());
             }
         });
-        IvyNormalizedPublication ivyNormalizedPublication = new IvyNormalizedPublication(getModule(), allArtifacts, getDescriptorFile());
+        IvyNormalizedPublication ivyNormalizedPublication = new IvyNormalizedPublication(name, getModule(), allArtifacts, getDescriptorFile());
         ivyNormalizedPublication.validateArtifacts();
         return ivyNormalizedPublication;
     }

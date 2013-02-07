@@ -25,11 +25,13 @@ import java.util.Set;
 
 public class IvyNormalizedPublication {
 
+    private final String name;
     private final Module module;
     private final File descriptorFile;
     private final Set<IvyArtifact> artifacts;
 
-    public IvyNormalizedPublication(Module module, Set<IvyArtifact> artifacts, File descriptorFile) {
+    public IvyNormalizedPublication(String name, Module module, Set<IvyArtifact> artifacts, File descriptorFile) {
+        this.name = name;
         this.module = module;
         this.artifacts = artifacts;
         this.descriptorFile = descriptorFile;
@@ -49,14 +51,19 @@ public class IvyNormalizedPublication {
 
     public void validateArtifacts() {
         for (IvyArtifact artifact : artifacts) {
-            checkExists(artifact);
+            checkCanPublish(artifact);
         }
     }
 
-    private void checkExists(IvyArtifact artifact) {
-        if (artifact.getFile() == null || !artifact.getFile().exists()) {
-            throw new InvalidUserDataException(String.format("Attempted to publish an artifact that does not exist: '%s'", artifact.getFile()));
+    private void checkCanPublish(IvyArtifact artifact) {
+        File artifactFile = artifact.getFile();
+        if (artifactFile == null || !artifactFile.exists()) {
+            throw new InvalidUserDataException(String.format("Cannot publish ivy publication '%s': artifact file does not exist: '%s'", name, artifactFile));
+        }
+        if (artifactFile.isDirectory()) {
+            throw new InvalidUserDataException(String.format("Cannot publish ivy publication '%s': artifact file is a directory: '%s'", name, artifactFile));
         }
     }
+
 
 }

@@ -155,7 +155,7 @@ public class DefaultMavenPublicationTest extends Specification {
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "A MavenPublication cannot include multiple components"
+        e.message == "Maven publication 'pub-name' cannot include multiple components"
     }
 
     def "attaches artifacts parsed by notation parser"() {

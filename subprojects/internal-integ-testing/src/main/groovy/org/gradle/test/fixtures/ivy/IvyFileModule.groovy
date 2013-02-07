@@ -231,4 +231,8 @@ class IvyFileModule extends AbstractIvyModule {
         assertArtifactsPublished("${module}-${revision}.war", "ivy-${revision}.xml")
     }
 
+    void assertPublishedAsEarModule() {
+        assertPublished()
+        assertArtifactsPublished("${module}-${revision}.ear", "ivy-${revision}.xml")
+    }
 }

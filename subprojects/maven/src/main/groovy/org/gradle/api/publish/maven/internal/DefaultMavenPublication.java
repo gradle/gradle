@@ -80,7 +80,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public void from(SoftwareComponent component) {
         if (this.component != null) {
-            throw new InvalidUserDataException("A MavenPublication cannot include multiple components");
+            throw new InvalidUserDataException(String.format("Maven publication '%s' cannot include multiple components", name));
         }
         this.component = (SoftwareComponentInternal) component;
 

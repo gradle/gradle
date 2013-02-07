@@ -136,7 +136,7 @@ public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
-        failure.assertHasCause("An IvyPublication cannot include multiple components")
+        failure.assertHasCause("Ivy publication 'ivy' cannot include multiple components")
     }
 
 

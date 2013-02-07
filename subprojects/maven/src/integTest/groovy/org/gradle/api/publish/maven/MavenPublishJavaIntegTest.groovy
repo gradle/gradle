@@ -19,6 +19,8 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
+    def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+
     public void "can publish jar and meta-data to maven repository"() {
         given:
         createBuildScripts("""
@@ -35,7 +37,6 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
         run "publish"
 
         then:
-        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
         mavenModule.assertPublishedAsJavaModule()
 
         mavenModule.parsedPom.scopes.keySet() == ["runtime"] as Set
@@ -66,7 +67,6 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
         run "publish"
 
         then:
-        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
         mavenModule.assertPublished()
         mavenModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9.pom", "publishTest-1.9-source.jar")
     }

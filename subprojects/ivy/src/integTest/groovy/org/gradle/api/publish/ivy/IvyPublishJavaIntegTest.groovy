@@ -38,7 +38,7 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
         run "publish"
 
         then:
-        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.jar")
+        ivyModule.assertPublishedAsJavaModule()
         // TODO:DAZ check configurations and artifacts in ivy.xml
         ivyModule.ivy.dependencies.runtime.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
         ivyModule.ivy.dependencies.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
@@ -77,7 +77,6 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
             ext == "jar"
             "other" in conf
         }
-        // TODO Check artifacts in ivy.xml
     }
 
     def createBuildScripts(def append) {
