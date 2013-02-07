@@ -15,13 +15,12 @@
  */
 
 package org.gradle.api.publish.maven.internal.tasks
-
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.internal.SystemProperties
 import org.gradle.util.CollectionUtils
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class MavenPomFileGeneratorTest extends Specification {
@@ -149,8 +148,7 @@ $defaultCoordinates
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">$content</project>
 """
-        // Pom is always written with \n newlines
-        expected.replace(SystemProperties.getLineSeparator(), '\n')
+        expected = TextUtil.toPlatformLineSeparators(expected)
 
         assert generatedPom == expected
     }
