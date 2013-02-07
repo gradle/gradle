@@ -18,22 +18,17 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.ConventionAwareHelper
-import org.gradle.api.internal.ConventionMapping
-import org.gradle.api.internal.IConventionAware
 
 /**
  * Configuration options for the PMD plugin.
  *
  * @see PmdPlugin
  */
-class PmdExtension extends CodeQualityExtension implements IConventionAware {
+class PmdExtension extends CodeQualityExtension {
     private final Project project
-    private ConventionMapping conventionMapping;
 
     PmdExtension(Project project) {
         this.project = project
-        conventionMapping = new ConventionAwareHelper(this, project.getConvention());
     }
 
     /**
@@ -86,9 +81,5 @@ class PmdExtension extends CodeQualityExtension implements IConventionAware {
      */
     void ruleSetFiles(Object... ruleSetFiles) {
         this.ruleSetFiles.add(project.files(ruleSetFiles))
-    }
-
-    ConventionMapping getConventionMapping() {
-        return conventionMapping
     }
 }
