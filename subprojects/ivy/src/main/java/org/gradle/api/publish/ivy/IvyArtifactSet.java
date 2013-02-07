@@ -29,7 +29,7 @@ public interface IvyArtifactSet extends DomainObjectSet<IvyArtifact> {
      *
      * @param source The source of the artifact content.
      */
-    IvyArtifact addArtifact(Object source);
+    IvyArtifact artifact(Object source);
 
     /**
      * Creates and adds a {@link IvyArtifact} to the set, which is configured by the associated action.
@@ -37,5 +37,5 @@ public interface IvyArtifactSet extends DomainObjectSet<IvyArtifact> {
      * @param source The source of the artifact.
      * @param config An action to configure the values of the constructed {@link IvyArtifact}.
      */
-     IvyArtifact addArtifact(Object source, Action<? super IvyArtifact> config);
+     IvyArtifact artifact(Object source, Action<? super IvyArtifact> config);
 }

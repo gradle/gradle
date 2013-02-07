@@ -16,9 +16,10 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
-import org.gradle.api.Project;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -38,16 +40,29 @@ public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, T
     private final String version;
     private final NotationParser<IvyArtifact> delegate;
 
-    public IvyArtifactNotationParser(Instantiator instantiator, String version, Project project) {
+    public IvyArtifactNotationParser(Instantiator instantiator, String version, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.version = version;
-        FileNotationParser fileNotationParser = new FileNotationParser(project);
+        FileNotationParser fileNotationParser = new FileNotationParser(fileResolver);
+        ArchiveTaskNotationParser archiveTaskNotationParser = new ArchiveTaskNotationParser();
+        PublishArtifactNotationParser publishArtifactNotationParser = new PublishArtifactNotationParser();
+
+        NotationParser<IvyArtifact> sourceNotationParser = new NotationParserBuilder<IvyArtifact>()
+                .resultingType(IvyArtifact.class)
+                .parser(archiveTaskNotationParser)
+                .parser(publishArtifactNotationParser)
+                .parser(fileNotationParser)
+                .toComposite();
+
+        IvyArtifactMapNotationParser ivyArtifactMapNotationParser = new IvyArtifactMapNotationParser(sourceNotationParser, fileNotationParser);
+
         NotationParserBuilder<IvyArtifact> parserBuilder = new NotationParserBuilder<IvyArtifact>()
                 .resultingType(IvyArtifact.class)
-                .parser(new ArchiveTaskNotationParser())
-                .parser(new PublishArtifactNotationParser())
-                .parser(new FileMapNotationParser(fileNotationParser))
+                .parser(archiveTaskNotationParser)
+                .parser(publishArtifactNotationParser)
+                .parser(ivyArtifactMapNotationParser)
                 .parser(fileNotationParser);
+
         delegate = parserBuilder.toComposite();
     }
 
@@ -86,36 +101,16 @@ public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, T
         }
     }
 
-    private class FileMapNotationParser extends MapNotationParser<IvyArtifact> {
-        private final FileNotationParser fileParser;
-
-        private FileMapNotationParser(FileNotationParser fileParser) {
-            this.fileParser = fileParser;
-        }
-
-        protected IvyArtifact parseMap(@MapKey("file") Object file) {
-            return fileParser.parseNotation(file);
-        }
-    }
-
     private class FileNotationParser implements NotationParser<IvyArtifact> {
-        private final Project project;
+        private final FileResolver fileResolver;
 
-        private FileNotationParser(Project project) {
-            this.project = project;
+        private FileNotationParser(FileResolver fileResolver) {
+            this.fileResolver = fileResolver;
         }
 
         public IvyArtifact parseNotation(Object notation) throws UnsupportedNotationException {
-            File file = toProjectFile(notation);
+            File file = fileResolver.resolve(notation);
             return parseFile(file);
-        }
-
-        private File toProjectFile(Object notation) {
-            try {
-                return project.file(notation);
-            } catch (Exception e) {
-                throw new UnsupportedNotationException(notation);
-            }
         }
 
         protected IvyArtifact parseFile(File file) {
@@ -125,6 +120,32 @@ public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, T
 
         public void describe(Collection<String> candidateFormats) {
             candidateFormats.add("Anything that can be converted to a file, as per Project.file()");
+        }
+    }
+
+
+    private class IvyArtifactMapNotationParser extends MapNotationParser<IvyArtifact> {
+        private final NotationParser<IvyArtifact> sourceNotationParser;
+        private final NotationParser<IvyArtifact> fileNotationParser;
+
+        private IvyArtifactMapNotationParser(NotationParser<IvyArtifact> sourceNotationParser, NotationParser<IvyArtifact> fileNotationParser) {
+            this.sourceNotationParser = sourceNotationParser;
+            this.fileNotationParser = fileNotationParser;
+        }
+
+        protected IvyArtifact parseMap(@MapKey("source") @Optional Object source, @MapKey("file") @Optional Object file) {
+            if (source != null && file == null) {
+                return sourceNotationParser.parseNotation(source);
+            }
+            if (file != null && source == null) {
+                return fileNotationParser.parseNotation(file);
+            }
+            throw new InvalidUserDataException("Must supply exactly one of the following keys: [source, file]");
+        }
+
+        @Override
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Maps containing either a 'file' or a 'source' entry, e.g. [file: '/path/to/file', extension: 'zip'].");
         }
     }
 }

@@ -33,6 +33,6 @@ public class DefaultIvyConfigurationContainer extends AbstractNamedDomainObjectC
 
     @Override
     protected IvyConfiguration doCreate(String name) {
-        return getInstantiator().newInstance(DefaultIvyConfiguration.class, name, ivyArtifactNotationParser);
+        return getInstantiator().newInstance(DefaultIvyConfiguration.class, name, ivyArtifactNotationParser, getInstantiator());
     }
 }

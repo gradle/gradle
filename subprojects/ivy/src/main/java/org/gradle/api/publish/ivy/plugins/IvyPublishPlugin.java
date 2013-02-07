@@ -22,7 +22,9 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.PublicationContainerInternal;
@@ -68,7 +70,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         final PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
 
         final PublicationContainerInternal publicationContainer = (PublicationContainerInternal) extension.getPublications();
-        publicationContainer.registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, project));
+        publicationContainer.registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, ((ProjectInternal) project).getFileResolver()));
 
         TaskContainer tasks = project.getTasks();
 
@@ -86,17 +88,17 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private class IvyPublicationFactory implements PublicationFactory {
         private final Instantiator instantiator;
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
-        private final Project project;
+        private final FileResolver fileResolver;
 
-        private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, Project project) {
+        private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, FileResolver fileResolver) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
-            this.project = project;
+            this.fileResolver = fileResolver;
         }
 
         public Publication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
-            NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParser(instantiator, module.getVersion(), project);
+            NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParser(instantiator, module.getVersion(), fileResolver);
             return instantiator.newInstance(
                     DefaultIvyPublication.class,
                     name, instantiator, module, notationParser

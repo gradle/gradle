@@ -49,7 +49,7 @@ public class MavenArtifactNotationParserTest extends Specification {
         output == mavenArtifact
     }
 
-    def "adapts PublishArtifact to MavenArtifact"() {
+    def "creates MavenArtifact for PublishArtifact"() {
         when:
         def mavenArtifact = parser.parseNotation(publishArtifact)
 
@@ -91,7 +91,7 @@ public class MavenArtifactNotationParserTest extends Specification {
         mavenArtifact.buildDependencies == taskDependency
     }
 
-    def "adapts ArchivePublishArtifact to MavenArtifact"() {
+    def "creates MavenArtifact for ArchivePublishArtifact"() {
         when:
         def rootProject = HelperUtil.createRootProject()
         def archive = rootProject.task(type: Jar, {})

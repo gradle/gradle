@@ -21,6 +21,7 @@ import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -30,9 +31,9 @@ public class DefaultIvyConfiguration implements IvyConfiguration {
     private final DefaultIvyArtifactSet artifacts;
     private final Set<IvyConfiguration> extendsFrom = new LinkedHashSet<IvyConfiguration>();
 
-    public DefaultIvyConfiguration(String name, NotationParser<IvyArtifact> ivyArtifactNotationParser) {
+    public DefaultIvyConfiguration(String name, NotationParser<IvyArtifact> ivyArtifactNotationParser, Instantiator instantiator) {
         this.name = name;
-        this.artifacts = new DefaultIvyArtifactSet(ivyArtifactNotationParser);
+        this.artifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser);
     }
 
     public String getName() {
@@ -40,11 +41,11 @@ public class DefaultIvyConfiguration implements IvyConfiguration {
     }
 
     public IvyArtifact artifact(Object source) {
-        return artifacts.addArtifact(source);
+        return artifacts.artifact(source);
     }
 
     public IvyArtifact artifact(Object source, Action<? super IvyArtifact> config) {
-        return artifacts.addArtifact(source, config);
+        return artifacts.artifact(source, config);
     }
 
     public void setArtifacts(Iterable<Object> sources) {
