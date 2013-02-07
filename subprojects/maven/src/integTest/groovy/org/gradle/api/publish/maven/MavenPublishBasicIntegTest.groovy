@@ -187,7 +187,7 @@ class MavenPublishBasicIntegTest extends AbstractDependencyResolutionTest {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
-        failure.assertHasCause("A MavenPublication cannot include multiple components")
+        failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 
     @Ignore("Not yet implemented - currently the second publication will overwrite") // TODO:DAZ
