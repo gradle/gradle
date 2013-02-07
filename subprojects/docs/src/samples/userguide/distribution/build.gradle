@@ -7,7 +7,7 @@ version = '1.0.0'
 // START SNIPPET name-conf
 distributions {
     main {
-        name = 'my-name'
+        baseName = 'my-name'
     }
 }
 // END SNIPPET name-conf

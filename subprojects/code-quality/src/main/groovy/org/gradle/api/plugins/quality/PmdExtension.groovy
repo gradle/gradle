@@ -27,7 +27,7 @@ import org.gradle.api.internal.IConventionAware
  *
  * @see PmdPlugin
  */
-class PmdExtension extends CodeQualityExtension implements IConventionAware{
+class PmdExtension extends CodeQualityExtension implements IConventionAware {
     private final Project project
     private ConventionMapping conventionMapping;
 
@@ -48,7 +48,15 @@ class PmdExtension extends CodeQualityExtension implements IConventionAware{
      * The target jdk to use with pmd, 1.3, 1.4, 1.5, 1.6, 1.7 or jsp
      */
     JavaVersion targetJdk
-    
+
+    /**
+     * Sets the target jdk used with pmd.
+     *
+     * @value The value for the target jdk as defined by {@link JavaVersion#toVersion(Object)}
+     */
+    void setTargetJdk(def value) {
+        targetJdk = JavaVersion.toVersion(value)
+    }
     /**
      * Convenience method for adding rule sets.
      *
@@ -81,6 +89,6 @@ class PmdExtension extends CodeQualityExtension implements IConventionAware{
     }
 
     ConventionMapping getConventionMapping() {
-       return conventionMapping
+        return conventionMapping
     }
 }
