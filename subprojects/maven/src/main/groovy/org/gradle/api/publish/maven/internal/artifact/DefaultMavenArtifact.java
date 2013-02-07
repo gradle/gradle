@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
-abstract class ConfigurableMavenArtifact implements MavenArtifact {
+import java.io.File;
+
+public class DefaultMavenArtifact implements MavenArtifact {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+    private final File file;
     private String extension;
     private String classifier;
 
-    protected abstract String getBaseClassifier();
-    protected abstract String getBaseExtension();
+    public DefaultMavenArtifact(File file, String extension, String classifier) {
+        this.file = file;
+        this.extension = nullToEmpty(extension);
+        this.classifier = nullToEmpty(classifier);
+    }
+
+    public File getFile() {
+        return file;
+    }
 
     public String getExtension() {
-        return extension == null ? nullToEmpty(getBaseExtension()) : extension;
+        return extension;
     }
 
     public void setExtension(String extension) {
@@ -36,7 +47,7 @@ abstract class ConfigurableMavenArtifact implements MavenArtifact {
     }
 
     public String getClassifier() {
-        return classifier == null ? nullToEmpty(getBaseClassifier()) : classifier;
+        return classifier;
     }
 
     public void setClassifier(String classifier) {

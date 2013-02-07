@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.file.FileResolver;
@@ -81,8 +80,43 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
         }
 
         @Override
-        protected MavenArtifact parseType(AbstractArchiveTask notation) {
-            return instantiator.newInstance(ArchiveMavenArtifact.class, notation);
+        protected MavenArtifact parseType(AbstractArchiveTask archiveTask) {
+            DefaultMavenArtifact artifact = instantiator.newInstance(DefaultMavenArtifact.class, archiveTask.getArchivePath(), archiveTask.getExtension(), archiveTask.getClassifier());
+            artifact.builtBy(archiveTask);
+            return artifact;
+        }
+    }
+
+    private class PublishArtifactNotationParser extends TypedNotationParser<PublishArtifact, MavenArtifact> {
+        private PublishArtifactNotationParser() {
+            super(PublishArtifact.class);
+        }
+
+        @Override
+        protected MavenArtifact parseType(PublishArtifact publishArtifact) {
+            return instantiator.newInstance(PublishArtifactMavenArtifact.class, publishArtifact);
+        }
+    }
+
+    private class FileNotationParser implements NotationParser<MavenArtifact> {
+        private final FileResolver fileResolver;
+
+        private FileNotationParser(FileResolver fileResolver) {
+            this.fileResolver = fileResolver;
+        }
+
+        public MavenArtifact parseNotation(Object notation) throws UnsupportedNotationException {
+            File file = fileResolver.resolve(notation);
+            return parseFile(file);
+        }
+
+        protected MavenArtifact parseFile(File file) {
+            ArtifactFile artifactFile = new ArtifactFile(file, version);
+            return instantiator.newInstance(DefaultMavenArtifact.class, file, artifactFile.getExtension(), artifactFile.getClassifier());
+        }
+
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Anything that can be converted to a file, as per Project.file()");
         }
     }
 
@@ -108,39 +142,6 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
         @Override
         public void describe(Collection<String> candidateFormats) {
             candidateFormats.add("Maps containing either a 'file' or a 'source' entry, e.g. [file: '/path/to/file', extension: 'zip'].");
-        }
-    }
-
-    private class PublishArtifactNotationParser extends TypedNotationParser<PublishArtifact, MavenArtifact> {
-        private PublishArtifactNotationParser() {
-            super(PublishArtifact.class);
-        }
-
-        @Override
-        protected MavenArtifact parseType(PublishArtifact notation) {
-            return instantiator.newInstance(PublishArtifactMavenArtifact.class, notation);
-        }
-    }
-
-    private class FileNotationParser implements NotationParser<MavenArtifact> {
-        private final FileResolver fileResolver;
-
-        private FileNotationParser(FileResolver fileResolver) {
-            this.fileResolver = fileResolver;
-        }
-
-        public MavenArtifact parseNotation(Object notation) throws UnsupportedNotationException {
-            File file = fileResolver.resolve(notation);
-            return parseFile(file);
-        }
-
-        protected MavenArtifact parseFile(File file) {
-            ArtifactFile artifactFile = new ArtifactFile(file, version);
-            return instantiator.newInstance(FileMavenArtifact.class, file, artifactFile.getExtension(), artifactFile.getClassifier(), new Task[0]);
-        }
-
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Anything that can be converted to a file, as per Project.file()");
         }
     }
 }

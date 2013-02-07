@@ -217,7 +217,12 @@ allprojects {
 subprojects {
     apply plugin: "java"
     apply plugin: "maven-publish"
+}
 
+// Need to configure subprojects before publications, due to non-laziness. This is something we need to address soon.
+$append
+
+subprojects {
     publishing {
         repositories {
             maven { url "file:///\$rootProject.projectDir/maven-repo" }
@@ -229,8 +234,6 @@ subprojects {
         }
     }
 }
-
-$append
         """
     }
 }

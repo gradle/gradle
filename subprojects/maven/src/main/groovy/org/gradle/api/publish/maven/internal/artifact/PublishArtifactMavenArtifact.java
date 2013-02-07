@@ -16,36 +16,17 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
-import java.io.File;
-
-public class PublishArtifactMavenArtifact extends ConfigurableMavenArtifact implements MavenArtifact {
-    private final PublishArtifact delegate;
+public class PublishArtifactMavenArtifact extends DefaultMavenArtifact {
+    private final TaskDependency buildDependencies;
 
     public PublishArtifactMavenArtifact(PublishArtifact delegate) {
-        this.delegate = delegate;
-    }
-
-    public String getBaseExtension() {
-        return delegate.getExtension();
-    }
-
-    public String getBaseClassifier() {
-        return delegate.getClassifier();
-    }
-
-    public File getFile() {
-        return delegate.getFile();
-    }
-
-    @Override
-    public void builtBy(Object... tasks) {
-        throw new UnsupportedOperationException("Cannot set builtBy for MavenArtifact based on PublishArtifact. Set builtBy directly on PublishArtifact instead.");
+        super(delegate.getFile(), delegate.getExtension(), delegate.getClassifier());
+        buildDependencies = delegate.getBuildDependencies();
     }
 
     public TaskDependency getBuildDependencies() {
-        return delegate.getBuildDependencies();
+        return buildDependencies;
     }
 }
