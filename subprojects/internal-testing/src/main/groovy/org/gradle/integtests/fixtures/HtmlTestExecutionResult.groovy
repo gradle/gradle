@@ -27,8 +27,8 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     private File htmlReportDirectory
 
-    public HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "tests") {
-        this.htmlReportDirectory = new File(projectDirectory, "build/reports/$testReportDirectory");
+    public HtmlTestExecutionResult(File projectDirectory) {
+        this.htmlReportDirectory = new File(projectDirectory, "build/reports/tests");
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
@@ -82,7 +82,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
                 testsFailures[it.text()] = failure
             }
 
-            html.select("td.skipped").each {
+            html.select("tr > td.skipped:eq(0)").each {
                 testsSkipped << it.text()
                 testsExecuted << it.text()
             }
@@ -94,7 +94,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
-            assertThat(testsExecuted, equalTo(testNames as List))
+            assertThat(testsExecuted - testsSkipped, equalTo(testNames as List))
             return this
         }
 
