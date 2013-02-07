@@ -36,11 +36,11 @@ class TestNGTestClassProcessorTest extends Specification {
 
     private resultProcessor = Mock(TestResultProcessor)
 
-    private TestNGOptionsPojo options
+    private TestNGSpec options
     private TestNGTestClassProcessor processor
 
     void setup(){
-        options = Spy(TestNGOptionsPojo, constructorArgs:[new TestNGOptions(reportDir.testDirectory)]);
+        options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(reportDir.testDirectory)]);
         processor = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector);
     }
 

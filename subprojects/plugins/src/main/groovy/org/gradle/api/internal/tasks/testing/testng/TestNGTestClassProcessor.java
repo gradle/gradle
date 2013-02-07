@@ -30,7 +30,6 @@ import org.testng.ITestListener;
 import org.testng.TestNG;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,14 +37,14 @@ import java.util.List;
 public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
     private final File testReportDir;
-    private final TestNGOptionsPojo options;
+    private final TestNGSpec options;
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
     private final StandardOutputRedirector outputRedirector;
     private TestNGTestResultProcessorAdapter testResultProcessor;
     private ClassLoader applicationClassLoader;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGOptionsPojo options, List<File> suiteFiles, IdGenerator<?> idGenerator,
+    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator,
                                     StandardOutputRedirector outputRedirector) {
         this.testReportDir = testReportDir;
         this.options = options;
@@ -83,9 +82,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             ReflectionUtil.invoke(testNg, "setAnnotations", options.getAnnotations());
         } catch (NoSuchMethodException e) {
             /* do nothing; method has been removed in TestNG 6.3 */
-        } catch (InvocationTargetException e) {
-            throw new GradleException(String.format("Could not configure TestNG annotations with value '%s'.", options.getAnnotations()), e);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw new GradleException(String.format("Could not configure TestNG annotations with value '%s'.", options.getAnnotations()), e);
         }
         if (options.getJavadocAnnotations()) {

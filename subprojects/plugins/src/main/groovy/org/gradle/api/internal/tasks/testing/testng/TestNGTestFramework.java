@@ -51,7 +51,7 @@ public class TestNGTestFramework implements TestFramework {
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         options.setTestResources(testTask.getTestSrcDirs());
         List<File> suiteFiles = options.getSuites(testTask.getTemporaryDir());
-        return new TestClassProcessorFactoryImpl(testTask.getTestReportDir(), new TestNGOptionsPojo(options), suiteFiles);
+        return new TestClassProcessorFactoryImpl(testTask.getTestReportDir(), new TestNGSpec(options), suiteFiles);
     }
 
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
@@ -76,10 +76,10 @@ public class TestNGTestFramework implements TestFramework {
 
     private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
         private final File testReportDir;
-        private final TestNGOptionsPojo options;
+        private final TestNGSpec options;
         private final List<File> suiteFiles;
 
-        public TestClassProcessorFactoryImpl(File testReportDir, TestNGOptionsPojo options, List<File> suiteFiles) {
+        public TestClassProcessorFactoryImpl(File testReportDir, TestNGSpec options, List<File> suiteFiles) {
             this.testReportDir = testReportDir;
             this.options = options;
             this.suiteFiles = suiteFiles;

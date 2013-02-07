@@ -22,7 +22,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
-public class TestNGOptionsPojo implements Serializable {
+public class TestNGSpec implements Serializable {
     private static final long serialVersionUID = 1;
 
     private final String defaultSuiteName;
@@ -37,7 +37,7 @@ public class TestNGOptionsPojo implements Serializable {
     private final Set<String> excludeGroups;
     private final Set<String> listeners;
 
-    public TestNGOptionsPojo(TestNGOptions options) {
+    public TestNGSpec(TestNGOptions options) {
         this.defaultSuiteName = options.getSuiteName();
         this.defaultTestName = options.getTestName();
         this.parallel = options.getParallel();
