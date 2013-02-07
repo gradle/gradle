@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.tasks.internal;
+package org.gradle.api.publish.ivy.internal.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectList;

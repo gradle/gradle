@@ -23,9 +23,9 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
-import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication;
+import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
-import org.gradle.api.publish.ivy.internal.IvyPublisher;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
 import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal;
+package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Module;

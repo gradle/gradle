@@ -21,6 +21,7 @@ import org.gradle.api.publish.ivy.IvyModuleDescriptor
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
+import org.gradle.api.publish.ivy.internal.plugins.IvyPublicationDynamicDescriptorGenerationTaskCreator
 import org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor
 import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.util.HelperUtil

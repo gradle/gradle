@@ -21,6 +21,7 @@ import org.gradle.api.publish.Publication
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
+import org.gradle.api.publish.ivy.internal.plugins.IvyPublishDynamicTaskCreator
 import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository
 import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.util.HelperUtil

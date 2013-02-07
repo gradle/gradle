@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.ivy.IvyPublication;
+import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 
 import java.util.Set;
 

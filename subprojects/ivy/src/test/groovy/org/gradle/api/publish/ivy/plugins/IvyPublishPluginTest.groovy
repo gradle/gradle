@@ -21,7 +21,7 @@ import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication
-import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
+import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
 import org.gradle.util.HelperUtil
 import spock.lang.Specification

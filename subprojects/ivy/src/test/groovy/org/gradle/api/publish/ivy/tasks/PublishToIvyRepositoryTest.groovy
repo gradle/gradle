@@ -19,7 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.publish.ivy.IvyPublication
-import org.gradle.api.publish.ivy.internal.IvyNormalizedPublication
+import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
 import org.gradle.util.HelperUtil
 import spock.lang.Specification

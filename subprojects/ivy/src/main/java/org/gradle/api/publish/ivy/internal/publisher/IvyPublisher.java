@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal;
+package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
