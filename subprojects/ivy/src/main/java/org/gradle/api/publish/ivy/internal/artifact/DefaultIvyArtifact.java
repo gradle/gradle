@@ -31,7 +31,10 @@ public class DefaultIvyArtifact implements IvyArtifact {
 
     public DefaultIvyArtifact(File file, String name, String extension, String type) {
         this.file = file;
+        // TODO:DAZ Validate the name later when actually publishing
         this.name = notNull(name);
+
+        // TODO:DAZ Handle null values in publisher, don't convert here (part of validation story)
         this.extension = nullToEmpty(extension);
         this.type = nullToEmpty(type);
     }

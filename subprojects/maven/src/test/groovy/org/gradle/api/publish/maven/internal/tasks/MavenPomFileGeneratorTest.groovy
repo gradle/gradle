@@ -24,12 +24,17 @@ import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class MavenPomFileGeneratorTest extends Specification {
+    private static final String DEFAULT_COORDINATES =
+        """  <modelVersion>4.0.0</modelVersion>
+  <groupId>unknown</groupId>
+  <artifactId>empty-project</artifactId>
+  <version>0</version>"""
     MavenPomFileGenerator generator = new MavenPomFileGenerator()
 
     def "writes empty pom with default values"() {
         expect:
         checkPomContent """
-$defaultCoordinates
+$DEFAULT_COORDINATES
 """
     }
 
@@ -63,7 +68,7 @@ $defaultCoordinates
 
         and:
         checkPomContent """
-$defaultCoordinates
+$DEFAULT_COORDINATES
   <dependencies>
     <dependency>
       <groupId>dep-group</groupId>
@@ -90,7 +95,7 @@ $defaultCoordinates
 
         and:
         checkPomContent """
-$defaultCoordinates
+$DEFAULT_COORDINATES
   <dependencies>
     <dependency>
       <groupId>dep-group</groupId>
@@ -123,7 +128,7 @@ $defaultCoordinates
 
         and:
         checkPomContent """
-$defaultCoordinates
+$DEFAULT_COORDINATES
   <dependencies>
     <dependency>
       <groupId>dep-group</groupId>
@@ -158,12 +163,5 @@ $defaultCoordinates
         generator.write(writer)
 
         writer.buffer.toString()
-    }
-
-    private String getDefaultCoordinates() {
-        """  <modelVersion>4.0.0</modelVersion>
-  <groupId>unknown</groupId>
-  <artifactId>empty-project</artifactId>
-  <version>0</version>"""
     }
 }

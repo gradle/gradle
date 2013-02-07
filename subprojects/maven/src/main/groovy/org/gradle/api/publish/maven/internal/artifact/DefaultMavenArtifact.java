@@ -30,6 +30,8 @@ public class DefaultMavenArtifact implements MavenArtifact {
 
     public DefaultMavenArtifact(File file, String extension, String classifier) {
         this.file = file;
+
+        // TODO:DAZ Handle null values in publisher, don't convert here (part of validation story)
         this.extension = nullToEmpty(extension);
         this.classifier = nullToEmpty(classifier);
     }
