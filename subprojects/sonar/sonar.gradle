@@ -16,10 +16,6 @@
 
 apply from: "$rootDir/gradle/providedConfiguration.gradle"
 
-configurations {
-    oldIntegTestRuntime
-}
-
 dependencies {
     compile project(":core")
     compile project(":plugins")
@@ -27,6 +23,9 @@ dependencies {
 
     // Sonar Runner plugin
     compile "org.codehaus.sonar-plugins:sonar-runner:2.0"
+    // version number is part of module name, to allow for multiple versions on same class path
+    integTestRuntime "org.gradle.sonar:sonar-server-3.2:3.2@war"
+    integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir-3.2:3.2@zip"
     integTestRuntime "org.gradle.sonar:sonar-test-server:3.4@war"
     integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.4.0.1@zip"
 
@@ -40,22 +39,7 @@ dependencies {
     provided "org.codehaus.sonar:sonar-batch:2.9@jar"
     provided "org.codehaus.sonar:sonar-plugin-api:2.9@jar"
     provided "commons-configuration:commons-configuration:1.6@jar"
-    oldIntegTestRuntime "org.gradle.sonar:sonar-test-server:3.2@war"
-    oldIntegTestRuntime "org.gradle.sonar:sonar-test-server-home-dir:3.2@zip"
 }
 
 useTestFixtures()
 
-integTest {
-    exclude "org/gradle/api/plugins/sonar/SonarSmokeIntegrationTest.class"
-}
-
-task oldIntegTest(type: Test) {
-    include "org/gradle/api/plugins/sonar/SonarSmokeIntegrationTest.class"
-    classpath = integTest.classpath + configurations.oldIntegTestRuntime -
-            configurations.provided.fileCollection { it.group == "org.codehaus.sonar" || it.group == "commons-confguration" } -
-            configurations.integTestRuntime.fileCollection { it.group == "org.gradle.sonar" }
-    testClassesDir = integTest.testClassesDir
-}
-
-check.dependsOn(oldIntegTest)
