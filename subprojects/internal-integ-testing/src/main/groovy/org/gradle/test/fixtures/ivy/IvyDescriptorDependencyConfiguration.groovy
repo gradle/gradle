@@ -29,4 +29,8 @@ class IvyDescriptorDependencyConfiguration {
             throw new AssertionError("Could not find expected dependency $dep. Actual: $dependencies")
         }
     }
+
+    void assertDependsOnModules(String... modules) {
+        assert dependencies.collect { it.module } as Set == modules as Set
+    }
 }

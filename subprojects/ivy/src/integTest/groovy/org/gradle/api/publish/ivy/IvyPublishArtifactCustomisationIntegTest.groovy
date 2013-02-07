@@ -37,6 +37,8 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
                     }
                 }
             }
+""", """
+            publishIvyPublicationToIvyRepository.dependsOn(customDocsTask)
 """)
 
         when:
@@ -62,6 +64,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
                             artifact(customDocsTask.outputFile) {
                                 name "changedDocs"
                                 type "htm"
+                                builtBy customDocsTask
                             }
                         }
                         other {
@@ -90,7 +93,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
                     configurations {
                         custom {
                             artifact file: "customFile.txt", extension: "customExt"
-                            artifact file: customDocsTask.outputFile, name: "changedDocs", extension: "htm"
+                            artifact file: customDocsTask.outputFile, name: "changedDocs", extension: "htm", builtBy: customDocsTask
                         }
                     }
                 }
@@ -118,6 +121,8 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
                     }
                 }
             }
+""", """
+            publishIvyPublicationToIvyRepository.dependsOn(customDocsTask)
 """)
         when:
         succeeds 'publish'
@@ -135,7 +140,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
                     configurations {
                         runtime {
                             artifact "customFile.txt"
-                            artifact customDocsTask.outputFile
+                            artifact(customDocsTask.outputFile) { builtBy customDocsTask }
                         }
                         custom {
                             artifact customJar
@@ -232,8 +237,6 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
                 }
                 $publications
             }
-
-            publishIvyPublicationToIvyRepository.dependsOn(customDocsTask)
 
             $append
         """

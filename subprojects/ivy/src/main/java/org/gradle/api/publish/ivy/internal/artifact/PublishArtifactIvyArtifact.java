@@ -20,35 +20,15 @@ import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
-import java.io.File;
+public class PublishArtifactIvyArtifact extends DefaultIvyArtifact implements Buildable {
+    private final TaskDependency buildDependencies;
 
-public class PublishArtifactIvyArtifact extends ConfigurableIvyArtifact implements Buildable {
-    private final PublishArtifact delegate;
-
-    public PublishArtifactIvyArtifact(PublishArtifact delegate) {
-        this.delegate = delegate;
-    }
-
-    @Override
-    protected String getBaseName() {
-        return delegate.getName();
-    }
-
-    @Override
-    protected String getBaseType() {
-        return delegate.getType();
-    }
-
-    @Override
-    protected String getBaseExtension() {
-        return delegate.getExtension();
-    }
-
-    public File getFile() {
-        return delegate.getFile();
+    public PublishArtifactIvyArtifact(PublishArtifact publishArtifact) {
+        super(publishArtifact.getFile(), publishArtifact.getName(), publishArtifact.getExtension(), publishArtifact.getType());
+        this.buildDependencies = publishArtifact.getBuildDependencies();
     }
 
     public TaskDependency getBuildDependencies() {
-        return delegate.getBuildDependencies();
+        return buildDependencies;
     }
 }

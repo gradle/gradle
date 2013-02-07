@@ -65,8 +65,13 @@ public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, T
         }
 
         @Override
-        protected IvyArtifact parseType(AbstractArchiveTask notation) {
-            return instantiator.newInstance(ArchiveIvyArtifact.class, notation);
+        protected IvyArtifact parseType(AbstractArchiveTask archiveTask) {
+            DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
+                    DefaultIvyArtifact.class,
+                    archiveTask.getArchivePath(), archiveTask.getBaseName(), archiveTask.getExtension(), archiveTask.getExtension()
+            );
+            ivyArtifact.builtBy(archiveTask);
+            return ivyArtifact;
         }
     }
 
@@ -115,7 +120,7 @@ public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, T
 
         protected IvyArtifact parseFile(File file) {
             ArtifactFile artifactFile = new ArtifactFile(file, version);
-            return instantiator.newInstance(FileIvyArtifact.class, file, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension());
+            return instantiator.newInstance(DefaultIvyArtifact.class, file, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension());
         }
 
         public void describe(Collection<String> candidateFormats) {

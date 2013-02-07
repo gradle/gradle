@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.Action;
-import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -82,9 +81,7 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
     private class ArtifactsTaskDependency extends AbstractTaskDependency {
         public void resolve(TaskDependencyResolveContext context) {
             for (IvyArtifact ivyArtifact : DefaultIvyArtifactSet.this) {
-                if (ivyArtifact instanceof Buildable) {
-                    context.add(ivyArtifact);
-                }
+                context.add(ivyArtifact);
             }
         }
     }

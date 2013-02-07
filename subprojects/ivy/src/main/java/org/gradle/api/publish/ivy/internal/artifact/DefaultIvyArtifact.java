@@ -16,19 +16,32 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.tasks.TaskDependency;
 
-abstract class ConfigurableIvyArtifact implements IvyArtifact {
+import java.io.File;
+
+public class DefaultIvyArtifact implements IvyArtifact {
+    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+    private final File file;
     private String name;
-    private String type;
     private String extension;
+    private String type;
 
-    protected abstract String getBaseName();
-    protected abstract String getBaseType();
-    protected abstract String getBaseExtension();
+    public DefaultIvyArtifact(File file, String name, String extension, String type) {
+        this.file = file;
+        this.name = notNull(name);
+        this.extension = nullToEmpty(extension);
+        this.type = nullToEmpty(type);
+    }
+
+    public File getFile() {
+        return file;
+    }
 
     public String getName() {
-        return name == null ? getBaseName() : name;
+        return name;
     }
 
     public void setName(String name) {
@@ -36,7 +49,7 @@ abstract class ConfigurableIvyArtifact implements IvyArtifact {
     }
     
     public String getType() {
-        return type == null ? nullToEmpty(getBaseType()) : type;
+        return type;
     }
 
     public void setType(String type) {
@@ -44,7 +57,7 @@ abstract class ConfigurableIvyArtifact implements IvyArtifact {
     }
     
     public String getExtension() {
-        return extension == null ? nullToEmpty(getBaseExtension()) : extension;
+        return extension;
     }
 
     public void setExtension(String extension) {
@@ -60,5 +73,13 @@ abstract class ConfigurableIvyArtifact implements IvyArtifact {
             throw new IllegalArgumentException();
         }
         return input;
+    }
+
+    public void builtBy(Object... tasks) {
+        buildDependencies.add(tasks);
+    }
+
+    public TaskDependency getBuildDependencies() {
+        return buildDependencies;
     }
 }
