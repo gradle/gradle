@@ -67,36 +67,6 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canHandleWildcardConfigurations() throws IOException {
-        testFile('repo/projectA/projectA-1.2.jar') << "content"
-        testFile('repo/projectB/projectB-1.5.jar') << "content"
-        testFile('repo/projectB/projectB-child-1.5.jar') << "content"
-
-        testFile('build.gradle') << """
-configurations {
-    compile
-}
-dependencies {
-    repositories {
-        ivy {
-            artifactPattern "repo/[module]/[artifact]-[revision].jar"
-            ivyPattern "repo/[module]/[module]-[revision]-ivy.xml"
-        }
-    }
-    compile group: 'test', name: 'projectA', version: '1.2'
-}
-task retrieve(type: Sync) {
-  from configurations.compile
-  into 'libs'
-}
-"""
-
-        inTestDirectory().withTasks("retrieve").run()
-
-        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.5.jar', 'projectB-child-1.5.jar')
-    }
-
-    @Test
     public void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
         testFile('settings.gradle') << 'include "a", "b"'
         testFile('build.gradle') << """

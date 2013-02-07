@@ -46,18 +46,27 @@ class IvyFileModule extends AbstractIvyModule {
         configurations['default'] = [extendsFrom: ['runtime'], transitive: true]
     }
 
+    IvyFileModule configuration(String name, List extendsFrom = []) {
+        configurations[name] = [extendsFrom: extendsFrom, transitive: true]
+        return this
+    }
+
     /**
      * Adds an additional artifact to this module.
      * @param options Can specify any of name, type or classifier
      * @return this
      */
     IvyFileModule artifact(Map<String, ?> options) {
-        artifacts << [name: options.name ?: module, type: options.type ?: 'jar', classifier: options.classifier ?: null]
+        artifacts << [name: options.name ?: module, type: options.type ?: 'jar', classifier: options.classifier ?: null, conf: options.conf ?: '*']
         return this
     }
 
     IvyFileModule dependsOn(String organisation, String module, String revision) {
-        dependencies << [organisation: organisation, module: module, revision: revision]
+        return dependsOn(organisation, module, revision, null)
+    }
+
+    IvyFileModule dependsOn(String organisation, String module, String revision, String conf) {
+        dependencies << [organisation: organisation, module: module, revision: revision, conf: conf]
         return this
     }
 
@@ -147,7 +156,7 @@ class IvyFileModule extends AbstractIvyModule {
 	<publications>
 """
             artifacts.each { artifact ->
-                ivyFile << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.type}" conf="*" m:classifier="${artifact.classifier ?: ''}"/>
+                ivyFile << """<artifact name="${artifact.name}" type="${artifact.type}" ext="${artifact.type}" conf="${artifact.conf}" m:classifier="${artifact.classifier ?: ''}"/>
 """
             }
             ivyFile << """
@@ -155,7 +164,8 @@ class IvyFileModule extends AbstractIvyModule {
 	<dependencies>
 """
             dependencies.each { dep ->
-                ivyFile << """<dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}"/>
+                def confAttribute = dep.conf == null ? "" : """ conf="${dep.conf}" """
+                ivyFile << """<dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}" ${confAttribute}/>
 """
             }
             ivyFile << """
