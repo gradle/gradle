@@ -133,7 +133,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private File getDescriptorFile() {
         if (descriptorFile == null) {
-            throw new IllegalStateException("pomFile not set for publication");
+            throw new IllegalStateException("descriptorFile not set for publication");
         }
         return descriptorFile.getSingleFile();
     }

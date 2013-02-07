@@ -28,14 +28,11 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
-import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -44,11 +41,9 @@ import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.TaskDependency;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -63,8 +58,6 @@ import static org.gradle.util.CollectionUtils.collectArray;
 @Incubating
 public class GenerateIvyDescriptor extends DefaultTask {
 
-    private final FileCollection descriptorFile;
-
     private IvyModuleDescriptor descriptor;
     private Object destination;
 
@@ -78,8 +71,6 @@ public class GenerateIvyDescriptor extends DefaultTask {
 
         // Never up to date; we don't understand the data structures.
         getOutputs().upToDateWhen(Specs.satisfyNone());
-
-        this.descriptorFile = new DescriptorFileCollection();
     }
 
     /**
@@ -114,10 +105,6 @@ public class GenerateIvyDescriptor extends DefaultTask {
      */
     public void setDestination(Object destination) {
         this.destination = destination;
-    }
-
-    public FileCollection getDescriptorFile() {
-        return descriptorFile;
     }
 
     @TaskAction
@@ -160,29 +147,6 @@ public class GenerateIvyDescriptor extends DefaultTask {
                             ivyModuleDescriptor.getClass().getName()
                     )
             );
-        }
-    }
-
-    private class DescriptorFileCollection extends AbstractFileCollection {
-        private final DefaultTaskDependency dependency;
-
-        public DescriptorFileCollection() {
-            this.dependency = new DefaultTaskDependency();
-            this.dependency.add(GenerateIvyDescriptor.this);
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "ivy-xml";
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return dependency;
-        }
-
-        public Set<File> getFiles() {
-            return Collections.singleton(getDestination());
         }
     }
 
