@@ -58,11 +58,24 @@ class SonarRunnerPluginTest extends Specification {
     def "makes sonarRunner task depend on test task of all Java projects"() {
         when:
         project.plugins.apply(JavaPlugin)
-        childProject2.plugins.apply(JavaPlugin)
+        childProject.plugins.apply(JavaPlugin)
+        project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
         then:
         project.tasks.sonarRunner.dependsOn.contains(project.tasks.test)
-        project.tasks.sonarRunner.dependsOn.contains(childProject2.tasks.test)
+        project.tasks.sonarRunner.dependsOn.contains(childProject.tasks.test)
+    }
+
+    def "doesn't make sonarRunner task depend on test task of skipped project"() {
+        when:
+        project.plugins.apply(JavaPlugin)
+        childProject.plugins.apply(JavaPlugin)
+        childProject.sonarRunner.skipProject = true
+        project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
+
+        then:
+        project.tasks.sonarRunner.dependsOn.contains(project.tasks.test)
+        !project.tasks.sonarRunner.dependsOn.contains(childProject.tasks.test)
     }
 
     def "adds default properties for all projects"() {
