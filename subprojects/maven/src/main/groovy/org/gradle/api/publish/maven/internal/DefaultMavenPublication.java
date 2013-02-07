@@ -38,7 +38,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -49,6 +48,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
     private final DefaultMavenArtifactSet mavenArtifacts;
+    private final Set<Dependency> runtimeDependencies = new LinkedHashSet<Dependency>();
     private FileCollection pomFile;
     private SoftwareComponentInternal component;
 
@@ -88,7 +88,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             artifact(publishArtifact);
         }
 
-        // TODO:DAZ Copy the entire DependencySet from the component at this point
+        runtimeDependencies.addAll(this.component.getRuntimeDependencies());
     }
 
     public MavenArtifact artifact(Object source) {
@@ -119,7 +119,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public Set<Dependency> getRuntimeDependencies() {
-        return component == null ? Collections.<Dependency>emptySet() : component.getRuntimeDependencies();
+        return runtimeDependencies;
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
