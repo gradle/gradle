@@ -48,7 +48,7 @@ public class DefaultIvyConfiguration implements IvyConfiguration {
         return artifacts.artifact(source, config);
     }
 
-    public void setArtifacts(Iterable<Object> sources) {
+    public void setArtifacts(Iterable<?> sources) {
         artifacts.clear();
         for (Object source : sources) {
             artifact(source);

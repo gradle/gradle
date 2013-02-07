@@ -32,7 +32,7 @@ public interface IvyConfiguration extends Named {
 
     IvyArtifact artifact(Object source, Action<? super IvyArtifact> config);
 
-    void setArtifacts(Iterable<Object> sources);
+    void setArtifacts(Iterable<?> sources);
 
     IvyArtifactSet getArtifacts();
 
