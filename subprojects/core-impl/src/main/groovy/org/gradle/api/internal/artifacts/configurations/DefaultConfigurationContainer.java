@@ -93,10 +93,6 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
 
     public Configuration detachedConfiguration(Dependency... dependencies) {
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
-        return detachedConfiguration(name, dependencies);
-    }
-
-    public Configuration detachedConfiguration(String name, Dependency... dependencies) {
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(
                 name, name, detachedConfigurationsProvider, dependencyResolver,
