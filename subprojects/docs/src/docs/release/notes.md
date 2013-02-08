@@ -251,11 +251,6 @@ a software component ['java', 'web'], custom artifacts or both. If no MavenPubli
 
 The default value for ruleset extension has changed from ["basic"] to []. We moved the default to the `Pmd` task, so everything should just work as it did before.
 
-## Switch to Sonar Runner
-
-While every effort has been made to keep backwards compatibility with earlier versions of the Sonar plugin, the underlying switch to the
-[Sonar Runner](http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner) may cause some differences in behavior.
-
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
