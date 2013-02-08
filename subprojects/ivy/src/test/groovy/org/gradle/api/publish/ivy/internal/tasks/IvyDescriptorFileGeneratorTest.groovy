@@ -81,6 +81,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         when:
         def artifact1 = new DefaultIvyArtifact(null, "artifact1", "ext1", "type1")
         def artifact2 = new DefaultIvyArtifact(null, "artifact2", null, null)
+        artifact2.setConf("runtime")
         generator.addArtifact(artifact1)
         generator.addArtifact(artifact2)
 
@@ -91,7 +92,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                 it.@name == "artifact1"
                 it.@type == "type1"
                 it.@ext == "ext1"
-                it.@conf == "runtime"
+                it.@conf.isEmpty()
             }
             with (publications[0].artifact[1]) {
                 it.@name == "artifact2"
@@ -113,16 +114,18 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         projectDependency.dependencyProject >> Stub(Project) {
             getName() >> "project-name"
         }
+        projectDependency.configuration >> "default"
 
         and:
         moduleDependency.artifacts >> new HashSet<DependencyArtifact>()
         moduleDependency.group >> "dep-group"
         moduleDependency.name >> "dep-name-2"
         moduleDependency.version >> "dep-version"
+        moduleDependency.configuration >> "dep-conf"
 
         and:
-        generator.addDependency(projectDependency)
-        generator.addDependency(moduleDependency)
+        generator.addRuntimeDependency(projectDependency)
+        generator.addRuntimeDependency(moduleDependency)
 
         then:
         with (ivyXml) {
@@ -137,7 +140,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                 it.@org == "dep-group"
                 it.@name == "dep-name-2"
                 it.@rev == "dep-version"
-                it.@conf == "runtime->default"
+                it.@conf == "runtime->dep-conf"
             }
         }
     }
@@ -152,6 +155,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         dependency.group >> "dep-group"
         dependency.name >> "dep-name"
         dependency.version >> "dep-version"
+        dependency.configuration >> "default"
         artifact1.name >> "artifact-1"
         artifact1.type >> "type-1"
         artifact1.extension >> "ext-1"
@@ -160,7 +164,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         artifact2.classifier >> null
 
         and:
-        generator.addDependency(dependency)
+        generator.addRuntimeDependency(dependency)
 
         then:
         with (ivyXml) {

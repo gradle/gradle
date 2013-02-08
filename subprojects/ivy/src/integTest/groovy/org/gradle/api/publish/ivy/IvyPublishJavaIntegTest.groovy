@@ -39,9 +39,17 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
 
         then:
         ivyModule.assertPublishedAsJavaModule()
-        // TODO:DAZ check configurations and artifacts in ivy.xml
-        ivyModule.ivy.dependencies.runtime.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
-        ivyModule.ivy.dependencies.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
+
+        def ivy = ivyModule.ivy
+
+        ivy.configurations.keySet() == ["default", "runtime"] as Set
+        ivy.configurations["default"].extend == ["runtime"] as Set
+        ivy.configurations["runtime"].extend == null
+
+        ivy.artifacts["publishTest"].hasAttributes("jar", "jar", ["runtime"])
+
+        ivy.dependencies["runtime"].assertDependsOn("commons-collections", "commons-collections", "3.2.1")
+        ivy.dependencies["runtime"].assertDependsOn("commons-io", "commons-io", "1.4")
     }
 
     public void "can publish additional artifacts for java project"() {
@@ -56,7 +64,10 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        artifact sourceJar
+                        artifact(sourceJar) {
+                            type "source"
+                            conf "runtime"
+                        }
                     }
                 }
             }
@@ -68,11 +79,8 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
         then:
         ivyModule.assertPublished()
         ivyModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-source-1.9.jar", "ivy-1.9.xml")
-        with(ivyModule.ivy.artifacts."publishTest-source") {
-            name == "publishTest-source"
-            ext == "jar"
-            "runtime" in conf
-        }
+
+        ivyModule.ivy.artifacts["publishTest-source"].hasAttributes("jar", "source", ["runtime"])
     }
 
     def createBuildScripts(def append) {

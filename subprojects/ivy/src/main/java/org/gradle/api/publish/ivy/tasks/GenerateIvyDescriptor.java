@@ -102,7 +102,7 @@ public class GenerateIvyDescriptor extends DefaultTask {
         }
 
         for (Dependency runtimeDependency : descriptorInternal.getRuntimeDependencies()) {
-            ivyGenerator.addDependency(runtimeDependency);
+            ivyGenerator.addRuntimeDependency(runtimeDependency);
         }
 
         ivyGenerator.withXml(descriptorInternal.getXmlAction()).writeTo(getDestination());

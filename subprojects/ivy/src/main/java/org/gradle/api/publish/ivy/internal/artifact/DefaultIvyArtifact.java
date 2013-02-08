@@ -28,6 +28,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
     private String name;
     private String extension;
     private String type;
+    private String conf;
 
     public DefaultIvyArtifact(File file, String name, String extension, String type) {
         this.file = file;
@@ -65,6 +66,14 @@ public class DefaultIvyArtifact implements IvyArtifact {
 
     public void setExtension(String extension) {
         this.extension = notNull(extension);
+    }
+
+    public String getConf() {
+        return conf;
+    }
+
+    public void setConf(String conf) {
+        this.conf = conf;
     }
 
     private String nullToEmpty(String input) {

@@ -45,10 +45,9 @@ publishing {
     publications {
         ivy(IvyPublication) {
             from components.java
-            configurations {
-                runtime {
-                    artifact sourceJar
-                }
+            artifact(sourceJar) {
+                type "source"
+                conf "runtime"
             }
         }
     }

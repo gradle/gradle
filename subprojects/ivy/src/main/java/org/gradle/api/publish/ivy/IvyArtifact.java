@@ -63,6 +63,20 @@ public interface IvyArtifact extends Buildable {
     void setExtension(String extension);
 
     /**
+     * A comma separated list of public configurations in which this artifact is published.
+     * The '*' wildcard is used to designate that the artifact is published in all public configurations.
+     * @return The value of 'conf' for this artifact.
+     */
+    String getConf();
+
+    /**
+     * Sets a comma separated list of public configurations in which this artifact is published.
+     * The '*' wildcard can be used to designate that the artifact is published in all public configurations.
+     * @param conf The value of 'conf' for this artifact.
+     */
+    void setConf(String conf);
+
+    /**
      * The actual file contents to publish.
      */
     File getFile();

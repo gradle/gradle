@@ -27,10 +27,7 @@ import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.util.CollectionUtils;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,7 +58,7 @@ public class IvyDescriptorFileGenerator {
         return this;
     }
 
-    public IvyDescriptorFileGenerator addDependency(Dependency dependency) {
+    public IvyDescriptorFileGenerator addRuntimeDependency(Dependency dependency) {
         if (dependency instanceof ModuleDependency) {
             runtimeDependencies.add((ModuleDependency) dependency);
         }
@@ -142,9 +139,8 @@ public class IvyDescriptorFileGenerator {
                     .attribute("name", artifact.getName())
                     .attribute("type", artifact.getType())
                     .attribute("ext", artifact.getExtension())
-                    .attribute("conf", "runtime"); // TODO:DAZ This should be omitted by default, or use '*'.
-
-            xmlWriter.endElement();
+                    .attribute("conf", artifact.getConf())
+                    .endElement();
         }
         xmlWriter.endElement();
     }
@@ -155,13 +151,13 @@ public class IvyDescriptorFileGenerator {
         }
 
         xmlWriter.startElement("dependencies");
-
         for (ModuleDependency dep : runtimeDependencies) {
+            String conf = String.format("runtime->%s", dep.getConfiguration());
             xmlWriter.startElement("dependency")
                     .attribute("org", dep.getGroup())
                     .attribute("name", getDependencyName(dep))
                     .attribute("rev", dep.getVersion())
-                    .attribute("conf", "runtime->default");
+                    .attribute("conf", conf);
 
             for (DependencyArtifact dependencyArtifact : dep.getArtifacts()) {
                 printDependencyArtifact(dependencyArtifact, xmlWriter);

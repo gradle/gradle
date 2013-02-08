@@ -56,7 +56,7 @@ class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
                                 extend "runtime"
                             }
                         }
-                        artifact ear
+                        artifact source: ear, conf: "runtime"
                     }
                 }
             }
@@ -72,15 +72,11 @@ class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
 
         and: "correct configurations declared"
         ivyModule.ivy.configurations.keySet() == ["default", "runtime"] as Set
-        ivyModule.ivy.configurations.runtime.extend == [] as Set
+        ivyModule.ivy.configurations.runtime.extend == null
         ivyModule.ivy.configurations.default.extend == ["runtime"] as Set
 
         and: "artifact correctly declared"
-        with (ivyModule.ivy.artifacts.publishEar) {
-            type == "ear"
-            ext == "ear"
-            conf == ["runtime"]
-        }
+        ivyModule.ivy.artifacts.publishEar.hasAttributes("ear", "ear", ["runtime"])
 
         and: "no dependencies declared"
         ivyModule.ivy.dependencies.isEmpty()

@@ -81,7 +81,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.component = (SoftwareComponentInternal) component;
 
         for (PublishArtifact publishArtifact : this.component.getArtifacts()) {
-            artifact(publishArtifact);
+            artifact(publishArtifact).setConf("runtime");
         }
 
         createConfiguration("runtime");
