@@ -26,15 +26,9 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        runtime {
-                            artifact "customFile.txt"
-                            artifact customDocsTask.outputFile
-                        }
-                        custom {
-                            artifact customJar
-                        }
-                    }
+                    artifact "customFile.txt"
+                    artifact customDocsTask.outputFile
+                    artifact customJar
                 }
             }
 """, """
@@ -55,23 +49,17 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        custom {
-                            artifact("customFile.txt") {
-                                name "changedFile"
-                                extension "customExt"
-                            }
-                            artifact(customDocsTask.outputFile) {
-                                name "changedDocs"
-                                type "htm"
-                                builtBy customDocsTask
-                            }
-                        }
-                        other {
-                            artifact customJar {
-                                extension "war"
-                            }
-                        }
+                    artifact("customFile.txt") {
+                        name "changedFile"
+                        extension "customExt"
+                    }
+                    artifact(customDocsTask.outputFile) {
+                        name "changedDocs"
+                        type "htm"
+                        builtBy customDocsTask
+                    }
+                    artifact customJar {
+                        extension "war"
                     }
                 }
             }
@@ -90,12 +78,8 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        custom {
-                            artifact file: "customFile.txt", extension: "customExt"
-                            artifact file: customDocsTask.outputFile, name: "changedDocs", extension: "htm", builtBy: customDocsTask
-                        }
-                    }
+                    artifact file: "customFile.txt", extension: "customExt"
+                    artifact file: customDocsTask.outputFile, name: "changedDocs", extension: "htm", builtBy: customDocsTask
                 }
             }
 """)
@@ -114,11 +98,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
             publications {
                 ivy(IvyPublication) {
                     from components.java
-                    configurations {
-                        runtime {
-                            artifacts = ["customFile.txt", customDocsTask.outputFile, customJar]
-                        }
-                    }
+                    artifacts = ["customFile.txt", customDocsTask.outputFile, customJar]
                 }
             }
 """, """
@@ -137,22 +117,14 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        runtime {
-                            artifact "customFile.txt"
-                            artifact(customDocsTask.outputFile) { builtBy customDocsTask }
-                        }
-                        custom {
-                            artifact customJar
-                        }
-                    }
+                    artifact "customFile.txt"
+                    artifact(customDocsTask.outputFile) { builtBy customDocsTask }
+                    artifact customJar
                 }
             }
 """, """
-            publishing.publications.ivy.configurations.each {
-                it.artifacts.each {
-                    it.extension = "mod"
-                }
+            publishing.publications.ivy.artifacts.each {
+                it.extension = "mod"
             }
 """)
         when:
@@ -169,11 +141,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        custom {
-                            artifact file('no-extension')
-                        }
-                    }
+                    artifact file('no-extension')
                 }
             }
 """)
@@ -192,11 +160,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        custom {
-                            artifact "a-directory"
-                        }
-                    }
+                    artifact "a-directory"
                 }
             }
 """)

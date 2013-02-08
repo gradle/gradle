@@ -24,18 +24,26 @@ import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class MavenPomFileGeneratorTest extends Specification {
-    private static final String DEFAULT_COORDINATES =
-        """  <modelVersion>4.0.0</modelVersion>
-  <groupId>unknown</groupId>
-  <artifactId>empty-project</artifactId>
-  <version>0</version>"""
     MavenPomFileGenerator generator = new MavenPomFileGenerator()
+
+    def "writes correct prologue and schema declarations"() {
+        expect:
+        pomContent.startsWith(TextUtil.toPlatformLineSeparators(
+"""<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+"""))
+    }
 
     def "writes empty pom with default values"() {
         expect:
-        checkPomContent """
-$DEFAULT_COORDINATES
-"""
+        with (pom) {
+            modelVersion == "4.0.0"
+            groupId == "unknown"
+            artifactId == "empty-project"
+            version == "0"
+            dependencies.empty
+        }
     }
 
     def "writes configured coordinates"() {
@@ -46,13 +54,12 @@ $DEFAULT_COORDINATES
         generator.packaging = "pom"
 
         then:
-        checkPomContent """
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>group-id</groupId>
-  <artifactId>artifact-id</artifactId>
-  <version>1.0</version>
-  <packaging>pom</packaging>
-"""
+        with (pom) {
+            groupId == "group-id"
+            artifactId == "artifact-id"
+            version == "1.0"
+            packaging == "pom"
+        }
     }
 
     def "writes regular dependency"() {
@@ -67,17 +74,15 @@ $DEFAULT_COORDINATES
         dependency.version >> "dep-version"
 
         and:
-        checkPomContent """
-$DEFAULT_COORDINATES
-  <dependencies>
-    <dependency>
-      <groupId>dep-group</groupId>
-      <artifactId>dep-name</artifactId>
-      <version>dep-version</version>
-      <scope>runtime</scope>
-    </dependency>
-  </dependencies>
-"""
+        with (pom) {
+            dependencies.dependency.size() == 1
+            with (dependencies[0].dependency[0]) {
+                groupId == "dep-group"
+                artifactId == "dep-name"
+                version == "dep-version"
+                scope == "runtime"
+            }
+        }
     }
 
     def "writes project dependency"() {
@@ -94,17 +99,15 @@ $DEFAULT_COORDINATES
         }
 
         and:
-        checkPomContent """
-$DEFAULT_COORDINATES
-  <dependencies>
-    <dependency>
-      <groupId>dep-group</groupId>
-      <artifactId>project-name</artifactId>
-      <version>dep-version</version>
-      <scope>runtime</scope>
-    </dependency>
-  </dependencies>
-"""
+        with (pom) {
+            dependencies.dependency.size() == 1
+            with (dependencies[0].dependency[0]) {
+                groupId == "dep-group"
+                artifactId == "project-name"
+                version == "dep-version"
+                scope == "runtime"
+            }
+        }
     }
 
     def "writes dependency with artifacts"() {
@@ -127,41 +130,35 @@ $DEFAULT_COORDINATES
         artifact2.classifier >> null
 
         and:
-        checkPomContent """
-$DEFAULT_COORDINATES
-  <dependencies>
-    <dependency>
-      <groupId>dep-group</groupId>
-      <artifactId>artifact-1</artifactId>
-      <version>dep-version</version>
-      <type>type-1</type>
-      <classifier>classifier-1</classifier>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>dep-group</groupId>
-      <artifactId>artifact-2</artifactId>
-      <version>dep-version</version>
-      <scope>runtime</scope>
-    </dependency>
-  </dependencies>
-"""
+        with (pom) {
+            dependencies.dependency.size() == 2
+            with (dependencies[0].dependency[0]) {
+                groupId == "dep-group"
+                artifactId == "artifact-1"
+                version == "dep-version"
+                type == "type-1"
+                classifier == "classifier-1"
+                scope == "runtime"
+            }
+            with (dependencies[0].dependency[1]) {
+                groupId == "dep-group"
+                artifactId == "artifact-2"
+                version == "dep-version"
+                type.empty
+                classifier.empty
+                scope == "runtime"
+            }
+        }
     }
 
-    private void checkPomContent(def content) {
-        def expected = """<?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">$content</project>
-"""
-        expected = TextUtil.toPlatformLineSeparators(expected)
-
-        assert generatedPom == expected
+    private def getPom() {
+        String pomContent = getPomContent()
+        return new XmlSlurper().parse(new StringReader(pomContent));
     }
 
-    private String getGeneratedPom() {
+    private String getPomContent() {
         def writer = new StringWriter()
         generator.write(writer)
-
-        writer.buffer.toString()
+        return writer.toString()
     }
 }

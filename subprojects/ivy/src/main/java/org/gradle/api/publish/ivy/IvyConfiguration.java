@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
@@ -28,16 +27,18 @@ import java.util.Set;
 @Incubating
 public interface IvyConfiguration extends Named {
 
-    IvyArtifact artifact(Object source);
+    /**
+     * A configuration of this module that the this configuration extends.
+     * The extend value can use the following wildcards:
+     * <ul>
+     *     <li>* - all other configurations</li>
+     *     <li>*(public) - all other public configurations</li>
+     *     <li>*(private) - all other private configurations</li>
+     * </ul>
+     * @param configuration The extended configuration
+     */
+    void extend(String configuration);
 
-    IvyArtifact artifact(Object source, Action<? super IvyArtifact> config);
-
-    void setArtifacts(Iterable<?> sources);
-
-    IvyArtifactSet getArtifacts();
-
-    void extend(IvyConfiguration parent);
-
-    Set<IvyConfiguration> getExtends();
+    Set<String> getExtends();
 
 }

@@ -56,11 +56,7 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        configurations {
-                            other {
-                                artifact sourceJar
-                            }
-                        }
+                        artifact sourceJar
                     }
                 }
             }
@@ -75,7 +71,7 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
         with(ivyModule.ivy.artifacts."publishTest-source") {
             name == "publishTest-source"
             ext == "jar"
-            "other" in conf
+            "runtime" in conf
         }
     }
 

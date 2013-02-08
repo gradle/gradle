@@ -51,13 +51,12 @@ class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
                 publications {
                     ivyEar(IvyPublication) {
                         configurations {
-                            runtime {
-                                artifact ear
-                            }
+                            runtime {}
                             "default" {
-                                extend configurations.runtime
+                                extend "runtime"
                             }
                         }
+                        artifact ear
                     }
                 }
             }

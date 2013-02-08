@@ -118,4 +118,13 @@ public interface IvyPublication extends Publication {
     void configurations(Action<? super IvyConfigurationContainer> action);
 
     IvyConfigurationContainer getConfigurations();
+
+    IvyArtifact artifact(Object source);
+
+    IvyArtifact artifact(Object source, Action<? super IvyArtifact> config);
+
+    void setArtifacts(Iterable<?> sources);
+
+    IvyArtifactSet getArtifacts();
+
 }

@@ -16,39 +16,22 @@
 
 package org.gradle.api.publish.ivy.tasks;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
-import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
+import org.gradle.api.publish.ivy.internal.tasks.IvyDescriptorFileGenerator;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Set;
-
-import static org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
-import static org.gradle.util.CollectionUtils.collectArray;
 
 /**
  * Generates an Ivy XML Module Descriptor file.
@@ -62,12 +45,10 @@ public class GenerateIvyDescriptor extends DefaultTask {
     private Object destination;
 
     private final FileResolver fileResolver;
-    private final ArtifactPublicationServices publicationServices;
 
     @Inject
-    public GenerateIvyDescriptor(FileResolver fileResolver, ArtifactPublicationServices publicationServices) {
+    public GenerateIvyDescriptor(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
-        this.publicationServices = publicationServices;
 
         // Never up to date; we don't understand the data structures.
         getOutputs().upToDateWhen(Specs.satisfyNone());
@@ -109,29 +90,22 @@ public class GenerateIvyDescriptor extends DefaultTask {
 
     @TaskAction
     public void doGenerate() {
-
         IvyModuleDescriptorInternal descriptorInternal = toIvyModuleDescriptorInternal(getDescriptor());
 
-        XmlTransformer xmlTransformer = new XmlTransformer();
-        xmlTransformer.addAction(descriptorInternal.getXmlAction());
-
-        // TODO This should use the actual configurations from the publication, not assume runtime.
-        IvyDescriptorBuilder ivyDescriptorBuilder = new IvyDescriptorBuilder(publicationServices.getDescriptorFileModuleConverter(), descriptorInternal.getModule());
+        IvyDescriptorFileGenerator ivyGenerator = new IvyDescriptorFileGenerator(descriptorInternal.getModule());
         for (IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations()) {
-            ivyDescriptorBuilder.addConfiguration(ivyConfiguration);
-            for (IvyArtifact ivyArtifact : ivyConfiguration.getArtifacts()) {
-                ivyDescriptorBuilder.addArtifact(ivyConfiguration.getName(), ivyArtifact);
-            }
+            ivyGenerator.addConfiguration(ivyConfiguration);
         }
 
-        // This assumes the runtime configuration is added, which is always true when there are dependencies (added by component)
-        // TODO: Attach dependencies to configuration
+        for (IvyArtifact ivyArtifact : descriptorInternal.getArtifacts()) {
+            ivyGenerator.addArtifact(ivyArtifact);
+        }
+
         for (Dependency runtimeDependency : descriptorInternal.getRuntimeDependencies()) {
-            ivyDescriptorBuilder.addDependency("runtime", runtimeDependency);
+            ivyGenerator.addDependency(runtimeDependency);
         }
 
-        IvyModuleDescriptorWriter ivyModuleDescriptorWriter = publicationServices.getIvyModuleDescriptorWriter();
-        ivyModuleDescriptorWriter.write(ivyDescriptorBuilder.build(), getDestination(), xmlTransformer);
+        ivyGenerator.withXml(descriptorInternal.getXmlAction()).writeTo(getDestination());
     }
 
     private static IvyModuleDescriptorInternal toIvyModuleDescriptorInternal(IvyModuleDescriptor ivyModuleDescriptor) {
@@ -150,51 +124,4 @@ public class GenerateIvyDescriptor extends DefaultTask {
         }
     }
 
-    private static class IvyDescriptorBuilder {
-        private final ModuleDescriptorConverter dependencyDescriptorFactory;
-        private final DefaultModuleDescriptor moduleDescriptor;
-
-        public IvyDescriptorBuilder(ModuleDescriptorConverter dependencyDescriptorFactory, Module module) {
-            this.dependencyDescriptorFactory = dependencyDescriptorFactory;
-            moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(module), module.getStatus(), null);
-        }
-
-        public void addConfiguration(IvyConfiguration ivyConfiguration) {
-            Set<IvyConfiguration> extendsConfigurations = ivyConfiguration.getExtends();
-            int size = extendsConfigurations.size();
-            String[] extendsNames = collectArray(extendsConfigurations.toArray(new IvyConfiguration[size]), new String[size], new Transformer<String, IvyConfiguration>() {
-                public String transform(IvyConfiguration original) {
-                    return original.getName();
-                }
-            });
-            org.apache.ivy.core.module.descriptor.Configuration configuration =
-                    new org.apache.ivy.core.module.descriptor.Configuration(ivyConfiguration.getName(), PUBLIC, null, extendsNames, true, null);
-            moduleDescriptor.addConfiguration(configuration);
-        }
-
-        public void addArtifact(String configuration, IvyArtifact artifact) {
-            moduleDescriptor.addArtifact(configuration, createIvyArtifact(artifact, moduleDescriptor.getModuleRevisionId()));
-        }
-
-        private Artifact createIvyArtifact(IvyArtifact ivyArtifact, ModuleRevisionId moduleRevisionId) {
-            return new DefaultArtifact(
-                    moduleRevisionId,
-                    null,
-                    ivyArtifact.getName(),
-                    ivyArtifact.getType(),
-                    ivyArtifact.getExtension(),
-                    new HashMap<String, String>());
-        }
-
-        public void addDependency(String configuration, Dependency dependency) {
-            if (dependency instanceof ModuleDependency) {
-                dependencyDescriptorFactory.addDependencyDescriptor(configuration, moduleDescriptor, (ModuleDependency) dependency);
-            }
-        }
-
-        public ModuleDescriptor build() {
-            return moduleDescriptor;
-        }
-
-    }
 }
