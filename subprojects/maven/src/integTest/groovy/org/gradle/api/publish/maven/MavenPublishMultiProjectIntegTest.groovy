@@ -20,15 +20,11 @@ import spock.lang.Ignore
 
 class MavenPublishMultiProjectIntegTest extends AbstractIntegrationSpec {
     def project1module = mavenRepo.module("org.gradle.test", "project1", "1.9")
+    def project2module = mavenRepo.module("org.gradle.test", "project2", "1.9")
+    def project3module = mavenRepo.module("org.gradle.test", "project3", "1.9")
 
     def "project dependency correctly reflected in POM"() {
-        createBuildScripts("""
-project(":project1") {
-    dependencies {
-        compile project(":project2")
-    }
-}
-        """)
+        createBuildScripts("")
 
         when:
         run "publish"
@@ -39,12 +35,6 @@ project(":project1") {
 
     def "maven-publish plugin does not take archivesBaseName into account when publishing"() {
         createBuildScripts("""
-project(":project1") {
-    dependencies {
-        compile project(":project2")
-    }
-}
-
 project(":project2") {
     archivesBaseName = "changed"
 }
@@ -59,12 +49,6 @@ project(":project2") {
 
     def "maven-publish plugin does not take mavenDeployer.pom.artifactId into account when publishing"() {
         createBuildScripts("""
-project(":project1") {
-    dependencies {
-        compile project(":project2")
-    }
-}
-
 project(":project2") {
     apply plugin: 'maven'
     uploadArchives {
@@ -86,11 +70,14 @@ project(":project2") {
     }
 
     private def projectsCorrectlyPublished() {
-        def project2 = mavenRepo.module("org.gradle.test", "project2", "1.9")
-        project2.assertPublishedAsJavaModule()
+        project1module.assertPublishedAsJavaModule()
+        project1module.parsedPom.scopes.runtime.assertDependsOnArtifacts("project2", "project3")
 
-        def project1pom = project1module.parsedPom
-        project1pom.scopes.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
+        project2module.assertPublishedAsJavaModule()
+        project2module.parsedPom.scopes.runtime.assertDependsOnArtifacts("project3")
+
+        project3module.assertPublishedAsJavaModule()
+        project3module.parsedPom.scopes == null
 
         return true
     }
@@ -141,7 +128,7 @@ project(":project2") {
         project1module.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 
-    @Ignore("This does not work: fix this as part of making the project coordinates customisable via DSL") // TODO:DAZ
+    @Ignore("This does not work: fix this as part of making the project coordinates customisable via DSL") // TODO:DAZ Prevent modification of coordinates via withXml
     def "project dependency correctly reflected in POM if dependency publication pom is changed"() {
         createBuildScripts("""
 project(":project1") {
@@ -171,38 +158,6 @@ project(":project2") {
         pom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
     }
 
-    def "multiple project dependencies correctly reflected in POMs"() {
-        createBuildScripts("""
-project(":project1") {
-    dependencies {
-        compile project(":project2")
-        compile project(":project3")
-    }
-}
-
-project(":project2") {
-    dependencies {
-        compile project(":project3")
-    }
-}
-        """)
-
-        when:
-        run "publish"
-
-        then:
-        def pom = project1module.parsedPom
-        pom.scopes.runtime.assertDependsOnArtifacts("project2", "project3")
-
-        and:
-        def pom2 = mavenRepo.module("org.gradle.test", "project2", "1.9").parsedPom
-        pom2.scopes.runtime.assertDependsOnArtifacts("project3")
-
-        and:
-        def pom3 = mavenRepo.module("org.gradle.test", "project3", "1.9").parsedPom
-        pom3.scopes.runtime == null
-    }
-
     private void createBuildScripts(String append = "") {
         settingsFile << """
 include "project1", "project2", "project3"
@@ -220,6 +175,18 @@ subprojects {
 }
 
 // Need to configure subprojects before publications, due to non-laziness. This is something we need to address soon.
+project(":project1") {
+    dependencies {
+        compile project(":project2")
+        compile project(":project3")
+    }
+}
+project(":project2") {
+    dependencies {
+        compile project(":project3")
+    }
+}
+
 $append
 
 subprojects {

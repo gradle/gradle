@@ -16,31 +16,34 @@
 
 package org.gradle.api.internal.java;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
 public class JavaLibrary implements SoftwareComponentInternal {
+    private final LinkedHashSet<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
+    private final DependencySet runtimeDependencies;
 
-    private final Configuration runtimeConfiguration;
-
-    public JavaLibrary(Configuration runtimeConfiguration) {
-        this.runtimeConfiguration = runtimeConfiguration;
+    public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
+        artifacts.add(jarArtifact);
+        this.runtimeDependencies = runtimeDependencies;
     }
 
     public String getName() {
         return "java";
     }
 
-    public PublishArtifactSet getArtifacts() {
-        return runtimeConfiguration.getAllArtifacts();
+    public Set<PublishArtifact> getArtifacts() {
+        return artifacts;
     }
 
     public DependencySet getRuntimeDependencies() {
-        return runtimeConfiguration.getAllDependencies();
+        return runtimeDependencies;
     }
 }

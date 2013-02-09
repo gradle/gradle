@@ -23,9 +23,9 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.java.JavaLibrary;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.java.JavaLibrary;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -69,11 +69,10 @@ public class JavaPlugin implements Plugin<Project> {
 
         configureSourceSets(javaConvention);
         configureConfigurations(project);
-        configureComponent(project);
 
         configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
-        configureArchives(project, javaConvention);
+        configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
     }
 
@@ -99,7 +98,7 @@ public class JavaPlugin implements Plugin<Project> {
         addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
     }
 
-    private void configureArchives(final Project project, final JavaPluginConvention pluginConvention) {
+    private void configureArchivesAndComponent(final Project project, final JavaPluginConvention pluginConvention) {
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.getManifest().from(pluginConvention.getManifest());
         jar.setDescription("Assembles a jar archive containing the main classes.");
@@ -111,8 +110,12 @@ public class JavaPlugin implements Plugin<Project> {
             }
         });
 
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(jar));
-        project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME).getArtifacts().add(new ArchivePublishArtifact(jar));
+        ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
+        Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
+
+        runtimeConfiguration.getArtifacts().add(jarArtifact);
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
+        project.getComponents().add(new JavaLibrary(jarArtifact, runtimeConfiguration.getAllDependencies()));
     }
 
     private void configureBuild(Project project) {
@@ -160,11 +163,6 @@ public class JavaPlugin implements Plugin<Project> {
         configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration);
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
-    }
-
-
-    private void configureComponent(Project project) {
-        project.getComponents().add(new JavaLibrary(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME)));
     }
 
     /**

@@ -52,6 +52,36 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
         ivy.dependencies["runtime"].assertDependsOn("commons-io", "commons-io", "1.4")
     }
 
+    public void "ignores extra artifacts added to configurations"() {
+        given:
+        createBuildScripts("""
+            task extraJar(type: Jar) {
+                from sourceSets.main.allJava
+                baseName "publishTest-extra"
+            }
+
+            artifacts {
+                runtime extraJar
+                archives extraJar
+                it."default" extraJar
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        ivyModule.assertPublishedAsJavaModule()
+    }
+
     public void "can publish additional artifacts for java project"() {
         given:
         createBuildScripts("""

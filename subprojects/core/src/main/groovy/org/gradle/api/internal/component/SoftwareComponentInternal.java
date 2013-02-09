@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.component;
 
-import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 
+import java.util.Set;
+
 public interface SoftwareComponentInternal extends SoftwareComponent {
-    PublishArtifactSet getArtifacts();
-    DependencySet getRuntimeDependencies();
+    Set<PublishArtifact> getArtifacts();
+    Set<Dependency> getRuntimeDependencies();
 }
