@@ -39,6 +39,9 @@ class IvyPublishWarIntegTest extends AbstractIntegrationSpec {
             dependencies {
                 compile "commons-collections:commons-collections:3.2.1"
                 runtime "commons-io:commons-io:1.4"
+                providedCompile "commons-lang:commons-lang:2.6"
+                providedRuntime "commons-cli:commons-cli:1.2"
+                testCompile "junit:junit:4.11"
             }
 
             publishing {
@@ -58,12 +61,17 @@ class IvyPublishWarIntegTest extends AbstractIntegrationSpec {
         when:
         run "publish"
 
-        then:
+        then: "module is published with artifacts"
         def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
         ivyModule.assertPublishedAsWebModule()
 
-        def ivy = ivyModule.ivy
-        ivy.artifacts["publishTest"].hasAttributes("war", "war", ["runtime"])
-        ivy.dependencies.isEmpty()
+        and: "correct configurations and depdendencies declared"
+        with (ivyModule.ivy) {
+            configurations.keySet() == ["default", "runtime"] as Set
+            configurations.runtime.extend == null
+            configurations.default.extend == ["runtime"] as Set
+
+            dependencies.isEmpty()
+        }
     }
 }
