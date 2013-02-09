@@ -70,7 +70,6 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
                 } finally {
                     IvyContext.popContext();
                 }
-                // TODO:DAZ Need to create a metadata download report here
                 return new ResolvedModuleRevision(loopback, loopback, dependency.getDescriptor(), null);
             }
         });
