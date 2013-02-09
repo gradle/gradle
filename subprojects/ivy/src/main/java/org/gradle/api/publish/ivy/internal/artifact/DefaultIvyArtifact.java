@@ -33,13 +33,12 @@ public class DefaultIvyArtifact implements IvyArtifact {
 
     public DefaultIvyArtifact(File file, String name, String extension, String type, String classifier) {
         this.file = file;
-        // TODO:DAZ Validate the name later when actually publishing
-        this.name = notNull(name);
+        // TODO:DAZ Validate the name later when actually publishing (validation story)
+        this.name = name;
 
-        // TODO:DAZ Handle null values in publisher, don't convert here (part of validation story)
-        this.extension = nullToEmpty(extension);
-        this.type = nullToEmpty(type);
-        this.classifier = nullToEmpty(classifier);
+        this.extension = extension;
+        this.type = type;
+        this.classifier = classifier;
     }
 
     public File getFile() {
@@ -51,7 +50,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
     }
 
     public void setName(String name) {
-        this.name = notNull(name);
+        this.name = name;
     }
     
     public String getType() {
@@ -59,7 +58,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
     }
 
     public void setType(String type) {
-        this.type = notNull(type);
+        this.type = type;
     }
     
     public String getExtension() {
@@ -67,7 +66,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
     }
 
     public void setExtension(String extension) {
-        this.extension = notNull(extension);
+        this.extension = extension;
     }
 
     public String getClassifier() {
@@ -75,7 +74,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
     }
 
     public void setClassifier(String classifier) {
-        this.classifier = notNull(classifier);
+        this.classifier = classifier;
     }
 
     public String getConf() {
@@ -84,17 +83,6 @@ public class DefaultIvyArtifact implements IvyArtifact {
 
     public void setConf(String conf) {
         this.conf = conf;
-    }
-
-    private String nullToEmpty(String input) {
-        return input == null ? "" : input;
-    }
-
-    private String notNull(String input) {
-        if (input == null) {
-            throw new IllegalArgumentException();
-        }
-        return input;
     }
 
     public void builtBy(Object... tasks) {

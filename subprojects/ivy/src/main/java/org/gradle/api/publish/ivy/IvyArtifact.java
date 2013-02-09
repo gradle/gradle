@@ -39,38 +39,35 @@ public interface IvyArtifact extends Buildable {
     void setName(String name);
 
     /**
-     * The type used to publish the artifact file, never <code>null</code>.
+     * The type used to publish the artifact file.
      */
     String getType();
 
     /**
      * Sets the type used to publish the artifact file.
      * @param type The type.
-     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setType(String type);
 
     /**
-     * The extension used to publish the artifact file, never <code>null</code>.
+     * The extension used to publish the artifact file.
      */
     String getExtension();
 
     /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
-     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setExtension(String extension);
 
     /**
-     * The classifier used to publish the artifact file, never <code>null</code>.
+     * The classifier used to publish the artifact file.
      */
     String getClassifier();
 
     /**
      * Sets the classifier used to publish the artifact file.
      * @param classifier The classifier.
-     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setClassifier(String classifier);
 
