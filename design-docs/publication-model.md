@@ -167,7 +167,6 @@ To customise a Maven publication:
 The 'artifact' creation method will accept the following forms of input:
 * A PublishArtifact, that will be adapted to MavenArtifact
 * An AbstractArchiveTask, that will be adapted to MavenArtifact
-* A Task or TaskOutputs, that will be adapted to MavenArtifact
 * Anything that is valid input to Project.file()
 * One of the previous 4, together with a configuration closure that permits setting of classifier, extension and builtBy properties.
 * A map with 'file' entry, that is interpreted as per Project.file(). Additional entries for 'classifier' and 'extension' and 'builtBy'.
@@ -281,7 +280,6 @@ To customise an Ivy publication:
 The 'artifact' creation method will accept the following forms of input:
 * A PublishArtifact, that will be adapted to IvyArtifact
 * An AbstractArchiveTask, that will be adapted to IvyArtifact
-* A Task or TaskOutputs, that will be adapted to IvyArtifact
 * Anything that is valid input to Project.file()
 * Any of the previous 4, together with a configuration closure that permits setting of name, type, classifier, extension and builtBy properties
 * A map with 'file' entry, that is interpreted as per Project.file(). Additional entries for 'name', 'type', 'extension', 'classifier' and 'builtBy'.
@@ -295,6 +293,27 @@ This allows them to inherit the default ('*') in ivy.xml or take the default val
 ### Test cases
 
 * Verify that `archivesBaseName` does not affect the published artifact names.
+
+## Handle compound source inputs when adding artifacts to Ivy or Maven publications
+
+Currently, all artifact inputs map one-one with a published artifact. We should handle compound inputs that will result in the creation of multiple artifacts.
+
+Inputs to consider:
+* FileCollection
+* TaskOutputs
+* Task (take TaskOutputs)
+* Any Iterable<Object>
+
+Any supplied configuration closure will be applied to each created artifact.
+
+### Test cases
+
+* Unit tests for various conversions
+* For both of `ivy-publish` and `maven-publish`
+    * Publish with artifact constructed by task with multiple file outputs. Validate that the task executes before publishing, and that each output is added to the publication as an artifact.
+    * Publish with artifacts constructed from a Collection containing a File, Map, and Task inputs.
+    * Verify that configuration closure is applied to each artifact generated from a compound input.
+    * Verify that publication fails with artifact from TaskOutputs that includes a directory output.
 
 ## Validate publication coordinates
 
