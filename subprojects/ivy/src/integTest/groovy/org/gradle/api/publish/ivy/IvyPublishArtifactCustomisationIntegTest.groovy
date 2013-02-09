@@ -180,6 +180,25 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         module.ivy.artifacts["no-extension"].hasAttributes(null, null, null)
     }
 
+    def "can publish artifact with classifier"() {
+        given:
+        file("no-extension") << "some content"
+        createBuildScripts("""
+            publications {
+                ivy(IvyPublication) {
+                    artifact source: customJar, classifier: "classy"
+                }
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublished()
+        module.assertArtifactsPublished("ivy-2.4.xml", "customJar-2.4-classy.jar")
+        module.ivy.artifacts["customJar"].hasAttributes("jar", "jar", null, "classy")
+    }
+
     def "can add custom configurations"() {
         given:
         createBuildScripts("""

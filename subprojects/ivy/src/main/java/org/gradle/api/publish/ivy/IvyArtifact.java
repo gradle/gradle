@@ -63,6 +63,18 @@ public interface IvyArtifact extends Buildable {
     void setExtension(String extension);
 
     /**
+     * The classifier used to publish the artifact file, never <code>null</code>.
+     */
+    String getClassifier();
+
+    /**
+     * Sets the classifier used to publish the artifact file.
+     * @param classifier The classifier.
+     * @throws IllegalArgumentException on <code>null</code> input.
+     */
+    void setClassifier(String classifier);
+
+    /**
      * A comma separated list of public configurations in which this artifact is published.
      * The '*' wildcard is used to designate that the artifact is published in all public configurations.
      * @return The value of 'conf' for this artifact.

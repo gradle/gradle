@@ -87,7 +87,7 @@ public class IvyDescriptorFileGenerator {
         try {
             withXmlActions.transform(descriptorWriter, IVY_FILE_ENCODING, new ErroringAction<Writer>() {
                 protected void doExecute(Writer writer) throws IOException {
-                    writeBaseDescriptor(writer);
+                    writeDescriptor(writer);
                 }
             });
         } finally {
@@ -95,9 +95,13 @@ public class IvyDescriptorFileGenerator {
         }
     }
 
-    private void writeBaseDescriptor(final Writer writer) throws IOException {
+    private void writeDescriptor(final Writer writer) throws IOException {
         OptionalAttributeXmlWriter xmlWriter = new OptionalAttributeXmlWriter(writer, "  ", IVY_FILE_ENCODING);
         xmlWriter.startElement("ivy-module").attribute("version", "2.0");
+        if (hasClassifier()) {
+            xmlWriter.attribute("xmlns:m", "http://ant.apache.org/ivy/maven");
+        }
+
         xmlWriter.startElement("info")
                 .attribute("organisation", module.getGroup())
                 .attribute("module", module.getName())
@@ -112,6 +116,21 @@ public class IvyDescriptorFileGenerator {
         xmlWriter.endElement();
     }
 
+    private boolean hasClassifier() {
+        for (IvyArtifact artifact : artifacts) {
+            if (artifact.getClassifier() != null) {
+                return true;
+            }
+        }
+        for (ModuleDependency runtimeDependency : runtimeDependencies) {
+            for (DependencyArtifact dependencyArtifact : runtimeDependency.getArtifacts()) {
+                if (dependencyArtifact.getClassifier() != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     private void writeConfigurations(OptionalAttributeXmlWriter xmlWriter) throws IOException {
         if (configurations.isEmpty()) {
             return;
@@ -140,6 +159,7 @@ public class IvyDescriptorFileGenerator {
                     .attribute("type", artifact.getType())
                     .attribute("ext", artifact.getExtension())
                     .attribute("conf", artifact.getConf())
+                    .attribute("m:classifier", artifact.getClassifier())
                     .endElement();
         }
         xmlWriter.endElement();
@@ -173,11 +193,11 @@ public class IvyDescriptorFileGenerator {
 
     private void printDependencyArtifact(DependencyArtifact dependencyArtifact, OptionalAttributeXmlWriter xmlWriter) throws IOException {
         // TODO Use IvyArtifact here
-        // TODO Handle classifier
         xmlWriter.startElement("artifact")
                 .attribute("name", dependencyArtifact.getName())
                 .attribute("type", dependencyArtifact.getType())
                 .attribute("ext", dependencyArtifact.getExtension())
+                .attribute("m:classifier", dependencyArtifact.getClassifier())
                 .endElement();
     }
 

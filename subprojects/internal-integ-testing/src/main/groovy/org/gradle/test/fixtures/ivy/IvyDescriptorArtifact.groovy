@@ -23,9 +23,10 @@ class IvyDescriptorArtifact {
     List<String> conf
     Map<String, String> mavenAttributes
 
-    void hasAttributes(def ext, def type, def conf) {
+    void hasAttributes(def ext, def type, def conf, def classifier = null) {
         assert this.ext == ext
         assert this.type == type
         assert this.conf == conf
+        assert this.mavenAttributes.get("classifier") == classifier
     }
 }

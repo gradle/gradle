@@ -9,7 +9,7 @@
   </configurations>
   <publications>
     <artifact name="ivypublish" type="jar" ext="jar" conf="runtime"/>
-    <artifact name="ivypublishSource" type="source" ext="jar" conf="runtime"/>
+    <artifact name="ivypublish" type="source" ext="jar" conf="runtime" m:classifier="source" xmlns:m="http://ant.apache.org/ivy/maven"/>
   </publications>
   <dependencies>
     <dependency org="junit" name="junit" rev="4.10" conf="runtime-&gt;default"/>

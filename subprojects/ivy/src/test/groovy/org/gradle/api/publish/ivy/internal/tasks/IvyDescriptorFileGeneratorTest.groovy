@@ -77,21 +77,25 @@ class IvyDescriptorFileGeneratorTest extends Specification {
             }
         }
     }
+
     def "writes supplied publication artifacts"() {
         when:
-        def artifact1 = new DefaultIvyArtifact(null, "artifact1", "ext1", "type1")
-        def artifact2 = new DefaultIvyArtifact(null, "artifact2", null, null)
+        def artifact1 = new DefaultIvyArtifact(null, "artifact1", "ext1", "type1", null)
+        def artifact2 = new DefaultIvyArtifact(null, "artifact2", null, null, "classy")
         artifact2.setConf("runtime")
         generator.addArtifact(artifact1)
         generator.addArtifact(artifact2)
 
         then:
+        includesMavenNamespace()
+        and:
         with (ivyXml) {
             publications.artifact.size() == 2
             with (publications[0].artifact[0]) {
                 it.@name == "artifact1"
                 it.@type == "type1"
                 it.@ext == "ext1"
+                it.@classifier.isEmpty()
                 it.@conf.isEmpty()
             }
             with (publications[0].artifact[1]) {
@@ -99,10 +103,10 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                 it.@type.isEmpty()
                 it.@ext.isEmpty()
                 it.@conf == "runtime"
+                it.@classifier == "classy"
             }
         }
     }
-
     def "writes supplied dependencies"() {
         def projectDependency = Mock(ProjectDependency)
         def moduleDependency = Mock(ModuleDependency)
@@ -159,14 +163,18 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         artifact1.name >> "artifact-1"
         artifact1.type >> "type-1"
         artifact1.extension >> "ext-1"
+        artifact1.classifier >> null
         artifact2.name >> "artifact-2"
         artifact2.type >> null
-        artifact2.classifier >> null
+        artifact2.classifier >> "classy"
 
         and:
         generator.addRuntimeDependency(dependency)
 
         then:
+        includesMavenNamespace()
+
+        and:
         with (ivyXml) {
             dependencies.dependency.size() == 1
             with (dependencies[0].dependency[0]) {
@@ -180,13 +188,13 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                     it.@name == "artifact-1"
                     it.@type == "type-1"
                     it.@ext == "ext-1"
-                    it.@conf.isEmpty()
+                    it.@classifier.isEmpty()
                 }
                 with (artifact[1]) {
                     it.@name == "artifact-2"
                     it.@type.isEmpty()
                     it.@ext.isEmpty()
-                    it.@conf.isEmpty()
+                    it.@classifier == "classy"
                 }
             }
         }
@@ -211,6 +219,14 @@ class IvyDescriptorFileGeneratorTest extends Specification {
             info.@revision == "3"
             info.description == "custom-description"
         }
+    }
+
+
+    private boolean includesMavenNamespace() {
+        ivyFileContent.startsWith(TextUtil.toPlatformLineSeparators(
+                """<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
+"""))
     }
 
     private def getIvyXml() {

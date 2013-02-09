@@ -28,9 +28,10 @@ public class DefaultIvyArtifact implements IvyArtifact {
     private String name;
     private String extension;
     private String type;
+    private String classifier;
     private String conf;
 
-    public DefaultIvyArtifact(File file, String name, String extension, String type) {
+    public DefaultIvyArtifact(File file, String name, String extension, String type, String classifier) {
         this.file = file;
         // TODO:DAZ Validate the name later when actually publishing
         this.name = notNull(name);
@@ -38,6 +39,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
         // TODO:DAZ Handle null values in publisher, don't convert here (part of validation story)
         this.extension = nullToEmpty(extension);
         this.type = nullToEmpty(type);
+        this.classifier = nullToEmpty(classifier);
     }
 
     public File getFile() {
@@ -66,6 +68,14 @@ public class DefaultIvyArtifact implements IvyArtifact {
 
     public void setExtension(String extension) {
         this.extension = notNull(extension);
+    }
+
+    public String getClassifier() {
+        return classifier;
+    }
+
+    public void setClassifier(String classifier) {
+        this.classifier = notNull(classifier);
     }
 
     public String getConf() {
