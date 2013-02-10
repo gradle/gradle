@@ -42,10 +42,7 @@ import org.gradle.internal.reflect.Instantiator;
 import javax.inject.Inject;
 
 /**
- * Configures the project to publish a “main” IvyPublication to a “main” IvyArtifactRepository.
- *
- * Creates an IvyPublication named "main" in project.publications, configured to publish all of the visible configurations of the project.
- * Creates an IvyArtifactRepository
+ * Adds the ability to publish in the Ivy format to Ivy repositories.
  *
  * @since 1.3
  */

@@ -170,6 +170,12 @@
                 <td>org.gradle.api.publish.ivy.IvyPublication</td>
             </tr>
             <tr>
+                <td>org.gradle.api.publish.ivy.IvyArtifact</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyArtifactSet</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.publish.ivy.IvyModuleDescriptor</td>
             </tr>
             <tr>

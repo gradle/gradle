@@ -22,23 +22,27 @@ import org.gradle.api.Named;
 import java.util.Set;
 
 /**
- * A configuration included in an {@link IvyPublication}.
+ * A configuration included in an {@link IvyPublication}, which will be published in the ivy descriptor file generated.
  */
 @Incubating
 public interface IvyConfiguration extends Named {
 
     /**
-     * A configuration of this module that the this configuration extends.
+     * Add the name of a configuration that this configuration extends.
      * The extend value can use the following wildcards:
      * <ul>
      *     <li>* - all other configurations</li>
      *     <li>*(public) - all other public configurations</li>
      *     <li>*(private) - all other private configurations</li>
      * </ul>
-     * @param configuration The extended configuration
+     * @param configuration The extended configuration name
      */
     void extend(String configuration);
 
+    /**
+     * The set of names of extended configurations, added via {@link #extend(String)}.
+     *
+     * @return The names of extended configurations.
+     */
     Set<String> getExtends();
-
 }

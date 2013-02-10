@@ -98,8 +98,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return configurations.create(name);
     }
 
-    public void configurations(Action<? super IvyConfigurationContainer> action) {
-        action.execute(configurations);
+    public void configurations(Action<? super IvyConfigurationContainer> config) {
+        config.execute(configurations);
     }
 
     public IvyConfigurationContainer getConfigurations() {

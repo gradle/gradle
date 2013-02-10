@@ -20,12 +20,31 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 
 /**
- * A Collection of {@link IvyArtifact}s to be included in a {@link IvyPublication}.
+ * A Collection of {@link IvyArtifact}s to be included in an {@link IvyPublication}.
+ *
+ * Being a {@link DomainObjectSet}, a {@code IvyArtifactSet} provides convenient methods for querying, filtering, and applying actions to the set of {@link IvyArtifact}s.
+ *
+ * <pre autoTested="true">
+ * apply plugin: 'ivy-publish'
+ *
+ * def publication = publishing.publications.add("my-pub", IvyPublication)
+ * def artifacts = publication.artifacts
+ *
+ * artifacts.matching({
+ *     it.type == "source"
+ * }).all({
+ *     it.extension = "src.jar"
+ * })
+ * </pre>
+ *
+ * @see DomainObjectSet
  */
 @Incubating
 public interface IvyArtifactSet extends DomainObjectSet<IvyArtifact> {
     /**
      * Creates and adds a {@link IvyArtifact} to the set.
+     *
+     * The semantics of this method are the same as {@link IvyPublication#artifact(Object)}.
      *
      * @param source The source of the artifact content.
      */
@@ -33,6 +52,8 @@ public interface IvyArtifactSet extends DomainObjectSet<IvyArtifact> {
 
     /**
      * Creates and adds a {@link IvyArtifact} to the set, which is configured by the associated action.
+     *
+     * The semantics of this method are the same as {@link IvyPublication#artifact(Object, Action)}.
      *
      * @param source The source of the artifact.
      * @param config An action to configure the values of the constructed {@link IvyArtifact}.

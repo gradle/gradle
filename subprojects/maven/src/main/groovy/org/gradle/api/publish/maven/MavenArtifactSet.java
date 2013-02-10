@@ -38,7 +38,6 @@ import org.gradle.api.Incubating;
  * </pre>
  *
  * @see DomainObjectSet
- *
  */
 @Incubating
 public interface MavenArtifactSet extends DomainObjectSet<MavenArtifact> {
@@ -54,7 +53,7 @@ public interface MavenArtifactSet extends DomainObjectSet<MavenArtifact> {
     /**
      * Creates and adds a {@link MavenArtifact} to the set, which is configured by the associated action.
      *
-     * The semantics of this method are the same as {@link MavenPublication#artifact(Object, org.gradle.api.Action)}.
+     * The semantics of this method are the same as {@link MavenPublication#artifact(Object, Action)}.
      *
      * @param source The source of the artifact.
      * @param config An action or closure to configure the values of the constructed {@link MavenArtifact}.

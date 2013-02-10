@@ -26,6 +26,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>builtBy</td>
+            </tr>
         </table>
     </section>
 </section>
