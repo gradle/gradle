@@ -32,7 +32,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         createDir('libs') {
             file 'a.jar'
         }
-        createDir('src/dist') {
+        createDir('src/main/dist') {
             file 'file1.txt'
             dir2 {
                 file 'file2.txt'
@@ -43,11 +43,15 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         and:
         buildFile << """
 		apply plugin:'java-library-distribution'
+
+		    version = 1.2
+
             distributions{
                 main{
 				    baseName ='SuperApp'
-			    }
-            }
+				}
+			}
+
 			dependencies {
 				runtime files('libs/a.jar')
 			}
@@ -56,8 +60,8 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         run 'distZip'
         then:
         def expandDir = file('expanded')
-        file('build/distributions/SuperApp.zip').unzipTo(expandDir)
-        expandDir.assertHasDescendants('lib/a.jar', 'file1.txt', 'dir2/file2.txt', 'canCreateADistributionWithSrcDistRuntime.jar')
+        file('build/distributions/SuperApp-1.2.zip').unzipTo(expandDir)
+        expandDir.assertHasDescendants('lib/a.jar', 'file1.txt', 'dir2/file2.txt', 'canCreateADistributionWithSrcDistRuntime-1.2.jar')
     }
 
     def canCreateADistributionWithReasonableDefaults() {
@@ -86,8 +90,8 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         when:
         buildFile << """
             apply plugin:'java-library-distribution'
-            distributions {
-                main {
+            distributions{
+                main{
                     baseName = null
                 }
             }
@@ -96,6 +100,7 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         runAndFail 'distZip'
         failure.assertThatDescription(containsString("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."))
     }
+
 
     def canCreateADistributionIncludingOtherFile() {
         given:
@@ -121,19 +126,21 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
 		apply plugin:'java-library-distribution'
             distributions{
                 main{
-    				baseName ='SuperApp'
-	    		}
-            }
+				    baseName ='SuperApp'
+				    contents {
+				        from  'other'
+				        from ('other2'){
+				            into('other2')
+				        }
+
+				    }
+				}
+			}
+
 			dependencies {
 				runtime files('libs/a.jar')
 			}
 
-			distZip{
-				from('other')
-				from('other2'){
-					into('other2')
-				}
-			}
         """
         when:
         run 'distZip'
