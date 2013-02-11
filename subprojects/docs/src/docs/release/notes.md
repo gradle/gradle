@@ -220,6 +220,17 @@ The java library distribution plugin now extends the new introduced distribution
             ...
         }
     }
+
+### Build Dashboard Plugin
+
+The Build Dashboard plugin adds a task to projects to generate a build dashboard html report which contains references to all reports that were generated during the build. In the following example,
+the `build-dashboard` plugin is added to a project which has also the `groovy` and the `codenarc` plugin applied:
+
+	apply plugin: 'groovy'
+    apply plugin: 'build-dashboard'
+	apply plugin: 'codenarc'
+	
+By running the `buildDashboard` task after other tasks that generate reports (e.g. by running `gradle check buildDashboard`), the generated build dashboard contains links to the `test` and the `codenarc` reports.
  
 ### New Sonar Runner plugin
 
