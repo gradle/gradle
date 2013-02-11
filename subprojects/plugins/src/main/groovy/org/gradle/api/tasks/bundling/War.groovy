@@ -104,7 +104,7 @@ class War extends Jar {
     /**
      * Adds files to the classpath to include in the WAR archive.
      *
-     * @param classpath The files to add. These are evaluated as for {@link org.gradle.api.Project#files(Object [])}
+     * @param classpath The files to add. These are evaluated as per {@link org.gradle.api.Project#files(Object [])}
      */
     void classpath(Object... classpath) {
         FileCollection oldClasspath = getClasspath()

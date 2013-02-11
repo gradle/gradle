@@ -93,7 +93,7 @@ public interface SourceSet {
 
     /**
      * Registers a set of tasks which are responsible for compiling this source set into the classes directory. The
-     * paths are evaluated as for {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * paths are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      *
      * @param taskPaths The tasks which compile this source set.
      * @return this
