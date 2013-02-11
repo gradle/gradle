@@ -68,4 +68,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
     ServiceRegistryFactory getServices();
 
     StandardOutputCapture getStandardOutputCapture();
+
+    ProjectStateInternal getState();
 }

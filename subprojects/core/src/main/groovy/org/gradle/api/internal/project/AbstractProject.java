@@ -331,8 +331,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return dependsOnProjects;
     }
 
-
-
     public ProjectStateInternal getState() {
         return state;
     }
