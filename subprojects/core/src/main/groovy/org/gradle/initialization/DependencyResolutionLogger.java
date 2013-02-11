@@ -24,7 +24,11 @@ import java.util.LinkedList;
 
 // TODO:DAZ Think about a better way to do thread-safety here, maybe
 public class DependencyResolutionLogger implements DependencyResolutionListener {
-    private final ThreadLocal<LinkedList<ProgressLogger>> progressLoggers = new ThreadLocal<LinkedList<ProgressLogger>>();
+    private final ThreadLocal<LinkedList<ProgressLogger>> progressLoggers = new ThreadLocal<LinkedList<ProgressLogger>>() {
+        protected LinkedList<ProgressLogger> initialValue() {
+            return new LinkedList<ProgressLogger>();
+        }
+    };
     private final LoggerBuilder loggerBuilder;
 
     public DependencyResolutionLogger(ProgressLoggerFactory loggerFactory) {
@@ -38,17 +42,14 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
     //TODO SF add concurrent unit test coverage
     public void beforeResolve(ResolvableDependencies dependencies) {
         LinkedList<ProgressLogger> loggers = progressLoggers.get();
-        if (loggers == null) {
-            loggers = new LinkedList<ProgressLogger>();
-            progressLoggers.set(loggers);
-        }
+        progressLoggers.set(loggers);
         ProgressLogger logger = loggerBuilder.newLogger(dependencies);
         loggers.add(logger);
     }
 
     public void afterResolve(ResolvableDependencies dependencies) {
         LinkedList<ProgressLogger> loggers = progressLoggers.get();
-        if (loggers == null || loggers.isEmpty()) {
+        if (loggers.isEmpty()) {
             throw new IllegalStateException("Logging operation was not started or it has already completed.");
         }
         ProgressLogger logger = loggers.removeLast();
