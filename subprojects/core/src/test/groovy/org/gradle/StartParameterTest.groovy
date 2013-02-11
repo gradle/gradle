@@ -20,12 +20,10 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import org.junit.Test
-
-import static org.gradle.util.Matchers.*
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 import spock.lang.Specification
+
+import static org.gradle.util.Matchers.isSerializable
+import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter
@@ -55,7 +53,7 @@ class StartParameterTest extends Specification {
         parameter.recompileScripts = true;
 
         when:
-        StartParameter newInstance = parameter.newInstance()
+        def newInstance = parameter.newInstance()
 
         then:
         parameter == newInstance
@@ -65,6 +63,33 @@ class StartParameterTest extends Specification {
 
         then:
         parameter != newInstance
+    }
+
+    void "mutable collections are not shared"() {
+        def parameter = new StartParameter()
+        parameter.taskNames = ['a']
+        parameter.excludedTaskNames = ['foo']
+        parameter.projectProperties = [a: 'a']
+        parameter.systemPropertiesArgs = [b: 'b']
+        parameter.initScripts = [new File('init script'), new File("/path/to/another init script")]
+
+        when:
+        def newInstance = parameter.newInstance()
+
+        then:
+        !parameter.initScripts.is(newInstance.initScripts)
+        !parameter.taskNames.is(newInstance.taskNames)
+        //TODO SF is this intentional that excludedTaskNames are not included?
+//        !parameter.excludedTaskNames.is(newInstance.excludedTaskNames)
+        !parameter.projectProperties.is(newInstance.projectProperties)
+        !parameter.systemPropertiesArgs.is(newInstance.systemPropertiesArgs)
+
+        and:
+        parameter.initScripts == newInstance.initScripts
+        parameter.taskNames == newInstance.taskNames
+//        parameter.excludedTaskNames == newInstance.excludedTaskNames
+        parameter.projectProperties == newInstance.projectProperties
+        parameter.systemPropertiesArgs == newInstance.systemPropertiesArgs
     }
 
     void "default values"() {

@@ -116,18 +116,17 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return the new parameters.
      */
     public StartParameter newInstance() {
-        //TODO some of the collections are shared between the source and target
         StartParameter parameter = new StartParameter();
         parameter.buildFile = buildFile;
         parameter.projectDir = projectDir;
         parameter.settingsFile = settingsFile;
         parameter.useEmptySettings = useEmptySettings;
-        parameter.taskNames = taskNames;
+        parameter.taskNames = new ArrayList<String>(taskNames);
         parameter.buildProjectDependencies = buildProjectDependencies;
         parameter.currentDir = currentDir;
         parameter.searchUpwards = searchUpwards;
-        parameter.projectProperties = projectProperties;
-        parameter.systemPropertiesArgs = systemPropertiesArgs;
+        parameter.projectProperties = new HashMap<String, String>(projectProperties);
+        parameter.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         parameter.gradleUserHomeDir = gradleUserHomeDir;
         parameter.gradleHomeDir = gradleHomeDir;
         parameter.cacheUsage = cacheUsage;
