@@ -63,7 +63,7 @@ Failed to execute sample:
 -File: $file
 -Sample:
 $sample
--Problem: see the full stactrace below.
+-Problem: see the full stacktrace below.
 *****
 """, e);
             }

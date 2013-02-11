@@ -25,28 +25,28 @@ import java.util.Set;
  */
 public interface ConfigurableFileCollection extends FileCollection {
     /**
-     * Returns the set of source paths for this collection. The paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * Returns the set of source paths for this collection. The paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @return The set of source paths. Returns an empty set if none.
      */
     Set<Object> getFrom();
 
     /**
-     * Sets the source paths for this collection. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * Sets the source paths for this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param paths The paths.
      */
     void setFrom(Iterable<?> paths);
 
     /**
-     * Sets the source paths for this collection. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * Sets the source paths for this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param paths The paths.
      */
     void setFrom(Object... paths);
 
     /**
-     * Adds a set of source paths to this collection. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * Adds a set of source paths to this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param paths The files to add.
      * @return this
@@ -63,7 +63,7 @@ public interface ConfigurableFileCollection extends FileCollection {
     /**
      * Sets the tasks which build the files of this collection.
      *
-     * @param tasks The tasks. These are evaluated as for {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
      */
     ConfigurableFileCollection setBuiltBy(Iterable<?> tasks);
@@ -71,7 +71,7 @@ public interface ConfigurableFileCollection extends FileCollection {
     /**
      * Registers some tasks which build the files of this collection.
      *
-     * @param tasks The tasks. These are evaluated as for {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
      */
     ConfigurableFileCollection builtBy(Object... tasks);
