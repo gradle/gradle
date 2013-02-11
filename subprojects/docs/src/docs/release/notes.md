@@ -287,7 +287,7 @@ We would like to thank the following community members for making contributions 
 * Klaus Illusioni - Fixed Eclipse wtp component generation issue (GRADLE-2653)
 * Alex Birmingham - Fixed PMD Javadoc
 * Matthieu Leclercq - Fixed the nested configuration resolution issue (GRADLE-2477)
-
+* Dan Stine - Userguide cleanups.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
