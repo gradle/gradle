@@ -47,7 +47,7 @@
             compiled and executed using JUnit or TestNG.
         </para>
     </section>
-    
+
     <section>
         <title>Tasks</title>
         <para>The Java plugin adds a number of tasks to your project, as shown below.</para>
@@ -223,7 +223,7 @@
                 <td>Assembles the given source set's classes directory.</td>
             </tr>
         </table>
-        
+
         <para>The Java plugin also adds a number of tasks which form a lifecycle for the project:</para>
 
         <table>
@@ -654,7 +654,7 @@
                 <td>
                     <literal>sourceCompatibility</literal>
                 </td>
-                <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or a Number, eg
+                <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or a Number, e.g.
                     <literal>'1.5'</literal> or <literal>1.5</literal>.
                 </td>
                 <td>Value of the current used JVM</td>
@@ -664,7 +664,7 @@
                 <td>
                     <literal>targetCompatibility</literal>
                 </td>
-                <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or Number, eg
+                <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or Number, e.g.
                     <literal>'1.5'</literal> or <literal>1.5</literal>.
                 </td>
                 <td>
@@ -958,7 +958,7 @@
             <ulink url='http://download.oracle.com/javase/1.5.0/docs/tooldocs/windows/javadoc.html#referenceguide'>reference documentation</ulink>
             of the Javadoc executable.
             For a complete list of supported Javadoc options consult the API documentation of the following classes:
-            <apilink class="org.gradle.external.javadoc.CoreJavadocOptions"/> and <apilink class="org.gradle.external.javadoc.StandardJavadocDocletOptions"/>. 
+            <apilink class="org.gradle.external.javadoc.CoreJavadocOptions"/> and <apilink class="org.gradle.external.javadoc.StandardJavadocDocletOptions"/>.
         </para>
         <table>
             <title>Java plugin - Javadoc properties</title>
@@ -1091,11 +1091,11 @@
                 <td><literal><replaceable>sourceSet</replaceable>.output.classesDir</literal></td>
             </tr>
         </table>
-        
+
         <para>The compile task delegates to Ant's javac task. Setting <literal>options.useAnt</literal> to <literal>false</literal>
             activates Gradle's direct compiler integration, bypassing the Ant task. In a future Gradle release, this will become the default.
         </para>
-        
+
         <para>By default, the Java compiler runs in the Gradle process. Setting <literal>options.fork</literal> to <literal>true</literal>
             causes compilation to occur in a separate process. In the case of the Ant javac task, this means that a new process will be
             forked for each compile task, which can slow down compilation. Conversely, Gradle's direct compiler integration (see above) will
@@ -1123,7 +1123,7 @@
                 suspended and listening on port 5005. This makes it very easy to debug your tests.  You may also enable
                 this using a system property as specified below.
             </para>
-            <para>You can specify whether or not to execute your tests in parallel. Gradle provides parallel test execution 
+            <para>You can specify whether or not to execute your tests in parallel. Gradle provides parallel test execution
                 by running multiple test processes concurrently. Each test process executes only a single test at a time, so you
                 generally don't need to do anything special to your tests to take advantage of this.
                 The <literal>maxParallelForks</literal> property specifies the maximum number of test processes to run
@@ -1185,7 +1185,7 @@
             </para>
             <para>Setting a system property of <literal>taskName.debug</literal> will run the tests in debug mode,
                   suspended and listening on port 5005.  For example:
-                  <literal>gradle test -Dtest.single=ThisUniquelyNamedTest -Dtest.debug</literal>                
+                  <literal>gradle test -Dtest.single=ThisUniquelyNamedTest -Dtest.debug</literal>
             </para>
         </section>
 
@@ -1352,5 +1352,5 @@
         <para>How to upload your archives is described in <xref linkend="artifact_management"/>.
         </para>
     </section>
-    
+
 </chapter>

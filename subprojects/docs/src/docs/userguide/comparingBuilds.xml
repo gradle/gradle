@@ -148,7 +148,7 @@
                 This includes <literal>jar</literal>, <literal>war</literal> and <literal>ear</literal> archives.
             </para>
             <para>
-                Future versions will provide support for comparing outcomes such as test execution (i.e. which tests were executed, which tests failed etc.)
+                Future versions will provide support for comparing outcomes such as test execution (i.e. which tests were executed, which tests failed, etc.)
             </para>
         </section>
     </section>

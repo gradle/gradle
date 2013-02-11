@@ -55,7 +55,7 @@
         </para>
         <para>In future the daemon will offer more features:
             <itemizedlist>
-                <listitem>Snappy up-to-date checks: use native file system change notifications (eg via jdk7 nio.2)
+                <listitem>Snappy up-to-date checks: use native file system change notifications (e.g. via jdk7 nio.2)
                     to preemptively perform up-to-date analysis.</listitem>
                 <listitem>Even faster builds: preemptively evaluate projects, so that the model is ready
                     when the user next invokes Gradle.</listitem>

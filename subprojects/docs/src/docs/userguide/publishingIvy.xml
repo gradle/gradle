@@ -124,7 +124,7 @@
             <title>Publishing custom artifacts</title>
             <para>
                 It is also possible to explicitly configure artifacts to be included in the publication. Artifacts are commonly supplied as raw files, or as instances of
-                <apilink class="org.gradle.api.tasks.bundling.AbstractArchiveTask"/> (eg. Jar, Zip).
+                <apilink class="org.gradle.api.tasks.bundling.AbstractArchiveTask"/> (e.g. Jar, Zip).
             </para>
             <para>
                 For each custom artifact, it is possible to specify the <literal>extension</literal> and <literal>classifier</literal> values to use for publication. Note that
