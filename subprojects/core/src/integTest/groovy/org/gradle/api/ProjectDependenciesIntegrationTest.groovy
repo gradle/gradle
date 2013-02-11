@@ -51,4 +51,41 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         then:
         result.output.contains "Resolved at configuration time: [impl.jar, foo-1.0.jar]"
     }
+
+    def "configuring project dependencies by map is validated"() {
+        settingsFile << "include 'impl'"
+        buildFile << """
+            allprojects { configurations.add('conf') }
+            task extraKey << {
+                def dep = dependencies.project(path: ":impl", configuration: ":conf", foo: "bar")
+                assert dep.foo == "bar"
+            }
+            task missingPath << {
+                dependencies.project(paths: ":impl", configuration: ":conf")
+            }
+            task missingConfiguration << {
+                dependencies.project(path: ":impl", configurations: ":conf")
+            }
+        """
+
+        when:
+        executer.withDeprecationChecksDisabled()
+        run("extraKey")
+
+        then:
+        noExceptionThrown()
+
+        when:
+        executer.withDeprecationChecksDisabled()
+        run("missingConfiguration")
+
+        then:
+        noExceptionThrown()
+
+        when:
+        runAndFail("missingPath")
+
+        then:
+        failureHasCause("Required keys [path] are missing from map")
+    }
 }

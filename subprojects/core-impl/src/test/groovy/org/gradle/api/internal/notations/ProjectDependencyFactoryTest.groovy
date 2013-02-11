@@ -16,6 +16,7 @@
 package org.gradle.api.internal.notations;
 
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.project.ProjectInternal
@@ -35,7 +36,7 @@ public class ProjectDependencyFactoryTest extends Specification {
     def depFactory = new DefaultProjectDependencyFactory(Mock(ProjectAccessListener), new DirectInstantiator(), true)
     def factory = new ProjectDependencyFactory(depFactory)
 
-    def testCreateProjectDependencyWithMapNotation() {
+    def "creates project dependency with map notation"() {
         given:
         boolean expectedTransitive = false;
         final Map<String, Object> mapNotation = GUtil.map("path", ":foo:bar", "configuration", "compile", "transitive", expectedTransitive);
@@ -50,5 +51,17 @@ public class ProjectDependencyFactoryTest extends Specification {
         projectDependency.getDependencyProject() == projectDummy
         projectDependency.getConfiguration() == "compile"
         projectDependency.isTransitive() == expectedTransitive
+    }
+
+    def "fails with decent message if provided map is invalid"() {
+        given:
+        projectFinder.getProject(':foo:bar') >> projectDummy
+
+        when:
+        factory.createFromMap(projectFinder, GUtil.map("paths", ":foo:bar"));
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message.contains("Required keys [path] are missing from map")
     }
 }

@@ -85,6 +85,8 @@ public abstract class MapNotationParser<T> extends TypedNotationParser<Map, T> i
             params[i] = value;
         }
         if (!missing.isEmpty()) {
+            //TODO SF below could be better.
+            //Throwing InvalidUserDataException here means that useful context information (including candidate formats, etc.) is not presented to the user
             throw new InvalidUserDataException(String.format("Required keys %s are missing from map %s.", missing, values));
         }
 
