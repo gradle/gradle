@@ -91,14 +91,6 @@ This mode is still incubating but should work very well with builds that have
 (e.g. avoiding having a subproject accessing the model of another project).
 The best place to start configuring on demand is diving into [this section in the user guide](userguide/multi_project_builds.html#sec:configuration_on_demand).
 
-### Improvements to the 'maven-publish' plugin
-
-The incubating '`maven-publish`' plugin is an alternative to the existing '`maven`' plugin, and will eventually replace it. This release adds more power to the plugin, including
- the ability to choose a software component to publish, customise the set of published artifacts, and generate a POM file without publishing.
-
-For complete details on the '`maven-publish`' plugin, check out the [user guide chapter](userguide/publishing-maven.html) as well as the
-[DSL reference](dsl/org.gradle.api.publish.maven.MavenPublication.html).
-
 ### New gradle property 'org.gradle.parallel'
 
 New Gradle property can be used to configure your [build environment](userguide/build_environment.html#sec:gradle_configuration_properties).
@@ -107,10 +99,10 @@ The incubating parallel build execution can now be configured in a persistent fa
     //gradle.properties file
     org.gradle.parallel=true
 
-### Choose a software component to publish
+### Easy publication of software components with the 'maven-publish' or 'ivy-publish' plugins
 
 Gradle 1.5 includes the concept of a Software Component, which defines something that can be produced by a Gradle project, like a Java Library or a Web Application.
-The 'maven-publish' plugin is component-aware, simplifying the process of publishing a component, which defines the set of artifacts and dependencies for publishing.
+Both the 'ivy-publish' and 'maven-publish' plugins are component-aware, simplifying the process of publishing a module. The component defines the set of artifacts and dependencies for publishing.
 Presently, the set of components available for publishing is limited to 'java' and 'web', added by the 'java' and 'war' plugins respectively.
 
 Publishing the 'web' component will result in the war file being published with no runtime dependencies (dependencies are bundled in the war):
@@ -125,24 +117,28 @@ Publishing the 'web' component will result in the war file being published with 
 
     publishing {
         repositories {
-            maven {
-                url 'http://mycompany.org/repo'
-            }
+            maven { url 'http://mycompany.org/mavenRepo' }
+            ivy { url 'http://mycompany.org/ivyRepo' }
         }
         publications {
             mavenWeb(MavenPublication) {
                 from components.web
             }
+            ivyWeb(IvyPublication) {
+                from components.java // Include the standard java artifacts
+            }
         }
     }
 
-### Customise artifacts published
+### Customise artifacts published with the 'maven-publish' or 'ivy-publish' plugins
 
-This release introduces an API/DSL for customising the set of artifacts to publish to a Maven repository. This DSL allows gives a Gradle build complete control over which artifacts
-are published, and the classifier/extension used to publish them.
+This release introduces an API/DSL for customising the set of artifacts to publish to a Maven repository or an Ivy repository.
+Due to differences in the capabilities of Ivy vs Maven repositories, the DSL is slightly different between IvyPublication and MavenPublication.
+This DSL allows gives a Gradle build complete control over which artifacts are published, and the classifier/extension used to publish them.
 
     apply plugin: 'java'
     apply plugin: 'maven-publish'
+    apply plugin: 'ivy-publish'
 
     group = 'group'
     version = '1.0'
@@ -151,13 +147,13 @@ are published, and the classifier/extension used to publish them.
 
     task sourceJar(type: Jar) {
         from sourceSets.main.allJava
+        classifier "source"
     }
 
     publishing {
         repositories {
-            maven {
-                url 'http://mycompany.org/repo'
-            }
+            maven { url 'http://mycompany.org/mavenRepo' }
+            ivy { url 'http://mycompany.org/ivyRepo' }
         }
         publications {
             mavenCustom(MavenPublication) {
@@ -168,14 +164,29 @@ are published, and the classifier/extension used to publish them.
                 artifact("project-docs.htm") {
                     classifier "docs"
                     extension "html"
+                    builtBy myDocsTask
+                }
+            }
+            ivyCustom(IvyPublication) {
+                from components.java // Include the standard java artifacts
+                artifact(sourceJar) {
+                    type "source"
+                    conf "runtime"
+                    classifier "source"
+                }
+                artifact("project-docs.htm") {
+                    classifier "docs"
+                    extension "html"
+                    builtBy myDocsTask
                 }
             }
         }
     }
 
-Be sure to check out the [DSL reference](dsl/org.gradle.api.publish.maven.MavenPublication.html) for complete details on how the set of artifacts can be customised.
+Be sure to check out the DSL reference for [MavenPublication](dsl/org.gradle.api.publish.maven.MavenPublication.html) and [IvyPublication](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
+for complete details on how the set of artifacts can be customised.
 
-### Generate POM file without publishing
+### Generate POM file without publishing with the 'maven-publish' plugin
 
 Pom file generation has been moved into a separate task, so that it is now possible to generate the Maven Pom file without actually publishing your project. All details of
 the publishing model are still considered in Pom generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
@@ -231,21 +242,23 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Changes to new Maven publishing support
+### Changes to incubating Maven publishing support
 
-Breaking changes have been made to the new, incubating, Maven publishing support.
+Breaking changes have been made to the incubating 'maven-publish' plugin, which provides an alternative means to publish to Maven repositories.
 
 Previously the 'maven-publish' plugin added a MavenPublication for any java component on the project, which meant that with the 'java' plugin applied no addition configuration
 was required to publish the jar file. It is now necessary to explicitly add a MavenPublication to the 'publishing.publications' container. The added publication can include
 a software component ['java', 'web'], custom artifacts or both. If no MavenPublication is added when using the 'maven-publish' plugin, then nothing will be published.
 
-### Changes to new Ivy publishing support
+### Changes to incubating Ivy publishing support
 
-- Removed GenerateIvyDescriptor.xmlAction property. Set it on ivy.descriptor.withXml
-- Publication must be explicitly added
-- Nothing is included in publication by default
-   - Can specify component to publish
-   - Can specify additional artifacts to publish
+Breaking changes have been made to the incubating 'ivy-publish' plugin, which provides an alternative means to publish to Ivy repositories.
+
+- An IvyPublication must be explicitly added to the `publications` container; no publication is added implicitly.
+    - If no IvyPublication is configured, nothing will be published to Ivy.
+- An IvyPublication does not include any artifacts or dependencies by default; these must be added directly or via a SoftwareComponent.
+    - If no artifacts are configured, an ivy.xml file will be published with no artifacts or dependencies declared.
+- Removed `GenerateIvyDescriptor.xmlAction` property. The `ivy.descriptor.withXml()` method provides a way to customise the generated module descriptor.
 
 ### Changes to new PMD support
 
