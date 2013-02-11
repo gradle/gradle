@@ -28,7 +28,9 @@ class VersionSelectionReasonsTest extends Specification {
         expect:
         withConflictResolution(REQUESTED) == CONFLICT_RESOLUTION
         withConflictResolution(SELECTED_BY_RULE) == CONFLICT_RESOLUTION_BY_RULE
+    }
 
+    def "does not decorate unsupported reasons"() {
         when:
         withConflictResolution(FORCED)
 
