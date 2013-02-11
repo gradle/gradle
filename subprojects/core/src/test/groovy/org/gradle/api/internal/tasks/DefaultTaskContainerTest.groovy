@@ -38,7 +38,8 @@ public class DefaultTaskContainerTest extends Specification {
     private taskFactory = Mock(ITaskFactory)
     private project = Mock(ProjectInternal, name: "<project>")
     private taskCount = 1;
-    private container = new DefaultTaskContainer(project, Mock(Instantiator), taskFactory, Mock(ProjectAccessListener))
+    private accessListener = Mock(ProjectAccessListener)
+    private container = new DefaultTaskContainer(project, Mock(Instantiator), taskFactory, accessListener)
 
     void "adds by Map"() {
         def options = singletonMap("option", "value")
@@ -208,7 +209,7 @@ public class DefaultTaskContainerTest extends Specification {
         container.findByPath(":other:task")
 
         then:
-        1 * otherProject.ensureEvaluated()
+        1 * accessListener.beforeRequestingTaskByPath(otherProject)
     }
 
     void "does not find unknown tasks by path"() {
