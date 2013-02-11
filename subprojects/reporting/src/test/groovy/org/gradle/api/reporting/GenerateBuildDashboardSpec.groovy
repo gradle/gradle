@@ -15,45 +15,21 @@
  */
 package org.gradle.api.reporting
 
-import org.gradle.api.Task
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.DependencyInjectingInstantiator
-import org.gradle.api.internal.project.AbstractProject
-import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
-import org.gradle.api.internal.project.taskfactory.TaskFactory
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.util.GUtil
 import org.gradle.util.HelperUtil
 import org.junit.Test
 import spock.lang.Specification
 
-import static org.junit.Assert.assertTrue
-
 class GenerateBuildDashboardSpec extends Specification {
-
-    private DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry();
-    private Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry);
-    private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
 
     @Test
     def "does no work if html report is disabled"() {
         setup:
-        GenerateBuildDashboard task = createTask("dashboard")
+        GenerateBuildDashboard task = HelperUtil.createTask(GenerateBuildDashboard)
         when:
         task.reports.html.enabled = false
         and:
         task.run()
         then:
         !task.didWork
-    }
-
-    public Task createTask(String name) {
-        AbstractProject project = HelperUtil.createRootProject();
-        serviceRegistry.add(Instantiator.class, new DirectInstantiator());
-        Task task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, GenerateBuildDashboard.class, Task.TASK_NAME, name));
-        assertTrue(GenerateBuildDashboard.class.isAssignableFrom(task.getClass()));
-        return GenerateBuildDashboard.class.cast(task);
     }
 }
