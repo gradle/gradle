@@ -24,7 +24,7 @@ import org.gradle.api.Action;
 public interface ManifestMergeSpec {
     /**
      * Adds a merge path to a manifest that should be merged into the base manifest. A merge path can be either another
-     * {@link org.gradle.api.java.archives.Manifest} or a path that is evaluated as for
+     * {@link org.gradle.api.java.archives.Manifest} or a path that is evaluated as per
      * {@link org.gradle.api.Project#files(Object...)} . If multiple merge paths are specified, the manifest are merged
      * in the order in which they are added.
      * 

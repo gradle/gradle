@@ -57,7 +57,7 @@
             <apilink class="org.gradle.api.Project" method="files(java.lang.Object...)"/> method. You can pass this method any number of
             objects, which are then converted into a set of <classname>File</classname> objects. The
             <literal>files()</literal> method accepts any type of object as its parameters. These are evaluated relative
-            to the project directory, as for the <literal>file()</literal> method, described in <xref linkend="sec:locating_files"/>.
+            to the project directory, as per the <literal>file()</literal> method, described in <xref linkend="sec:locating_files"/>.
             You can also pass collections, iterables, maps and arrays to the <literal>files()</literal> method. These are flattened
             and the contents converted to <classname>File</classname> instances.
         </para>

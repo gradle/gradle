@@ -93,7 +93,7 @@ public interface IvyArtifact extends Buildable {
     /**
      * Registers some tasks which build this artifact.
      *
-     * @param tasks The tasks. These are evaluated as for {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      */
     void builtBy(Object... tasks);
 }
