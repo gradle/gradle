@@ -35,7 +35,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     def "works with single-module project"() {
         buildFile << "task foo"
         when:
-        run("-u", "foo")
+        run("-u", "foo") //to avoid catching unrelated gradle.properties
         then:
         fixture.assertProjectsConfigured(":")
         assert output.contains(DefaultBuildConfigurer.CONFIGURATION_ON_DEMAND_MESSAGE)
@@ -242,27 +242,5 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.assertProjectsConfigured(":", ":impl", ":api")
         result.assertTasksExecuted(":api:foo", ":impl:bar")
-    }
-
-    def "start parameter informs about the configuration on demand mode"() {
-        buildFile << "assert gradle.startParameter.configureOnDemand"
-        expect:
-        run("-u") //to avoid catching unrelated gradle.properties
-    }
-
-    def "can be enabled from command line and start parameter informs about it, too"() {
-        file("gradle.properties") << "org.gradle.configureondemand=false"
-
-        settingsFile << "include 'api', 'impl'"
-        buildFile << """
-            allprojects { task foo };
-            assert gradle.startParameter.configureOnDemand
-        """
-
-        when:
-        run("--configure-on-demand", ":api:foo")
-
-        then:
-        fixture.assertProjectsConfigured(":", ":api")
     }
 }
