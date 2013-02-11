@@ -37,7 +37,7 @@ public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
         ArchiveCopyAction archiveAction = (ArchiveCopyAction) action;
         try {
             tarFile = archiveAction.getArchivePath();
-            OutputStream outStr = archiveAction.getCompressor().compress(tarFile);
+            OutputStream outStr = archiveAction.getCompressor().createArchiveOutputStream(tarFile);
             tarOutStr = new TarOutputStream(outStr);
             tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
         } catch (Exception e) {
