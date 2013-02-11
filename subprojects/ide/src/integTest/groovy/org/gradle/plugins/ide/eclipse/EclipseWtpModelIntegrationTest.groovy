@@ -38,10 +38,9 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
         file('someExtraSourceDir').mkdirs()
         file('src/foo/bar').mkdirs()
 
-        def repoDir = file("repo")
-        maven(repoDir).module("gradle", "foo").publish()
-        maven(repoDir).module("gradle", "bar").publish()
-        maven(repoDir).module("gradle", "baz").publish()
+        mavenRepo.module("gradle", "foo").publish()
+        mavenRepo.module("gradle", "bar").publish()
+        mavenRepo.module("gradle", "baz").publish()
 
         //when
         runEclipseTask """
@@ -55,7 +54,7 @@ configurations {
 }
 
 repositories {
-  maven { url "${repoDir.toURI()}" }
+  maven { url "${mavenRepo.toURI()}" }
 }
 
 dependencies {
@@ -115,11 +114,10 @@ eclipse {
     @Test
     void "wtp component respects configuration modifications"() {
         //given
-        def repoDir = file("repo")
-        maven(repoDir).module("gradle", "foo").publish()
-        maven(repoDir).module("gradle", "bar").publish()
-        maven(repoDir).module("gradle", "baz").publish()
-        maven(repoDir).module("gradle", "baz", "2.0").publish()
+        mavenRepo.module("gradle", "foo").publish()
+        mavenRepo.module("gradle", "bar").publish()
+        mavenRepo.module("gradle", "baz").publish()
+        mavenRepo.module("gradle", "baz", "2.0").publish()
 
         //when
         runEclipseTask """
@@ -128,7 +126,7 @@ apply plugin: 'war'
 apply plugin: 'eclipse-wtp'
 
 repositories {
-  maven { url "${repoDir.toURI()}" }
+  maven { url "${mavenRepo.toURI()}" }
 }
 
 dependencies {
