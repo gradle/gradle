@@ -466,12 +466,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return this;
     }
 
-    public void ensureEvaluated() {
-        if (this.gradle.getStartParameter().isConfigureOnDemand()) {
-            this.evaluate();
-        }
-    }
-
     public TaskContainerInternal getTasks() {
         return taskContainer;
     }
