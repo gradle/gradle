@@ -170,11 +170,23 @@ the root project so that this will be possible.
 - Use strict mode as the default when configure-on-demand is used.
 - Use transitional mode as the default when configure-on-demand is not used.
 
+## IDE plugins work with configure on demand
+
+The IDE plugins currently use tightly coupled models and hooks such as `projectsEvaluated`. To work correctly, we'd need to do one of:
+
+- Have some way for the IDE plugins to opt-in to tight coupling, but have this trigger configure-everything when the IDE model is requested
+- Change the IDE plugins to use a decoupled model.
+- Replace the existing IDE plugins with new decoupled plugins.
+
 ## Improve how tooling api deals with multi-project builds
 
-Currently, building tasks takes advantage of COD. Building model always causes everything to get evaluated.
+There are several problems with how the tooling API deals with multi-project builds.
+
+Implementation-wise, currently only running tasks takes advantage of COD. Requesting a model always causes everything to get configured.
 There's a forum request from Attila (NetBeans) to improve that.
 
-## Configure on demand fully respects --no-rebuild (e.g. does not even configure the target project)
+The tooling API project model also allows navigation from one project to all others in the hierarchy, which means that all projects must be configured.
 
-I'd say this should have very low priority
+## Configure on demand fully respects `--no-rebuild`
+
+When running with `--no-rebuild`, the target project of any project dependency should not be configured, or we should remove `--no-rebuild`.
