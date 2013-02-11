@@ -256,7 +256,9 @@ The default value for ruleset extension has changed from ["basic"] to []. We mov
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * Joe Sortelli - Fixed incorrect handling of `ivy.xml` where dependency configuration contained wildcard values (GRADLE-2352)
-* David M. Carr - When JUnit tests have assumption failures, treat them as "skipped" (GRADLE-2454)
+* David M. Carr
+    * When JUnit tests have assumption failures, treat them as "skipped" (GRADLE-2454)
+    * Documentation cleanups.
 * Sébastien Cogneau - Introduce a basic distribution plugin
 * Kenny Stridh
 	* Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
@@ -271,7 +273,6 @@ We would like to thank the following community members for making contributions 
 * Kallin Nagelberg - Fixed grammar in the `SourceSetOutput` documentation
 * Klaus Illusioni - Fixed Eclipse wtp component generation issue (GRADLE-2653)
 * Alex Birmingham - Fixed PMD Javadoc
-
 * Matthieu Leclercq - Fixed the nested configuration resolution issue (GRADLE-2477)
 
 
