@@ -32,7 +32,12 @@ public interface Distribution extends Named {
     String getName();
 
     /**
-     * The baseName of the Distribution used to configure the baseName in the according Zip task.
+     * Get the baseName of the Distribution used to configure the baseName in the according Zip task.
      */
     String getBaseName();
+
+    /**
+     * Set the baseName of the Distribution used to configure the baseName in the according Zip task.
+     */
+    void setBaseName(String baseName);
 }
