@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskpath;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 
 /**
@@ -32,7 +31,7 @@ public class ResolvedTaskPath {
         this.prefix = prefix;
         this.taskName = taskName;
         this.project = project;
-        this.isQualified = isQualified(originalPath);
+        this.isQualified = prefix.length() > 0;
     }
 
     public boolean isQualified() {
@@ -55,7 +54,4 @@ public class ResolvedTaskPath {
         return project;
     }
 
-    public static boolean isQualified(String path) {
-        return path.contains(Project.PATH_SEPARATOR);
-    }
 }

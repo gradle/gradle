@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskpath;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 
@@ -45,10 +44,12 @@ public class TaskPathResolver {
         String taskName; //eg. 'someTask' or 'sT'
         String prefix; //eg. '', ':' or ':foo:bar'
 
-        if (ResolvedTaskPath.isQualified(path)) {
-            project = projectFinder.findProject(path, startFrom);
-            taskName = StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR);
-            prefix = project.getPath() + Project.PATH_SEPARATOR;
+        if (path.contains(Project.PATH_SEPARATOR)) {
+            int idx = path.lastIndexOf(Project.PATH_SEPARATOR);
+            taskName = path.substring(idx+1);
+            prefix = path.substring(0, idx+1);
+            String projectPath = Project.PATH_SEPARATOR.equals(prefix) ? prefix : path.substring(0, idx);
+            project = projectFinder.findProject(projectPath, startFrom);
         } else {
             project = startFrom;
             taskName = path;

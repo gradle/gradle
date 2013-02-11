@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskpath;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,25 +28,16 @@ import java.util.Map;
  */
 public class ProjectFinderByTaskPath {
 
-    public ProjectInternal findProject(String taskPath, ProjectInternal startFrom) {
-        if (!taskPath.contains(Project.PATH_SEPARATOR)) {
-            throw new IllegalArgumentException("I can only find tasks based on a task path (e.g. containing ':'). However, '" + taskPath + "' was passed.");
-        }
-        String projectPath = StringUtils.substringBeforeLast(taskPath, Project.PATH_SEPARATOR);
-        projectPath = projectPath.length() == 0 ? Project.PATH_SEPARATOR : projectPath;
-        return findProjectNow(projectPath, startFrom);
-    }
-
-    private static ProjectInternal findProjectNow(String path, ProjectInternal startFrom) {
-        if (path.equals(Project.PATH_SEPARATOR)) {
+    public ProjectInternal findProject(String projectPath, ProjectInternal startFrom) {
+        if (projectPath.equals(Project.PATH_SEPARATOR)) {
             return startFrom.getRootProject();
         }
         Project current = startFrom;
-        if (path.startsWith(Project.PATH_SEPARATOR)) {
+        if (projectPath.startsWith(Project.PATH_SEPARATOR)) {
             current = current.getRootProject();
-            path = path.substring(1);
+            projectPath = projectPath.substring(1);
         }
-        for (String pattern : path.split(Project.PATH_SEPARATOR)) {
+        for (String pattern : projectPath.split(Project.PATH_SEPARATOR)) {
             Map<String, Project> children = current.getChildProjects();
 
             NameMatcher matcher = new NameMatcher();

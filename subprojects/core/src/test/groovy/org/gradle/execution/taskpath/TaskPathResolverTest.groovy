@@ -30,20 +30,56 @@ class TaskPathResolverTest extends Specification {
 
     def "resolves qualified path"() {
         def fooProject = Stub(ProjectInternal) {
-            getPath() >> ":foo"
+            getPath() >> ":x:foo"
         }
 
         when:
-        def path = resolver.resolvePath(":foo:someTask", project)
+        def path = resolver.resolvePath(":x:foo:someTask", project)
 
         then:
-        1 * finder.findProject(":foo:someTask", project) >> fooProject
+        1 * finder.findProject(":x:foo", project) >> fooProject
 
         and:
         path.qualified
         path.taskName == 'someTask'
-        path.prefix == ':foo:'
+        path.prefix == ':x:foo:'
         path.project == fooProject
+    }
+
+    def "resolves qualified relative path"() {
+        def fooProject = Stub(ProjectInternal) {
+            getPath() >> ":x:foo"
+        }
+
+        when:
+        def path = resolver.resolvePath("x:foo:someTask", project)
+
+        then:
+        1 * finder.findProject("x:foo", project) >> fooProject
+
+        and:
+        path.qualified
+        path.taskName == 'someTask'
+        path.prefix == "x:foo:"
+        path.project == fooProject
+    }
+
+    def "resolves qualified root task"() {
+        def root = Stub(ProjectInternal) {
+            getPath() >> ":"
+        }
+
+        when:
+        def path = resolver.resolvePath(":someTask", project)
+
+        then:
+        1 * finder.findProject(":", project) >> root
+
+        and:
+        path.qualified
+        path.taskName == 'someTask'
+        path.prefix == ':'
+        path.project == root
     }
 
     def "resolves unqualified path"() {

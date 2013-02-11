@@ -41,33 +41,24 @@ class ProjectFinderByTaskPathTest extends Specification {
 
     def "finds project from root"() {
         expect:
-        finder.findProject(":foo:bar:someTask", foo) == bar
-        finder.findProject(":foo:bar:someTask", bar) == bar
-        finder.findProject(":foo:bar:someTask", root) == bar
-        finder.findProject(":foo:someTask", bar) == foo
-        finder.findProject(":someTask", bar) == root
+        finder.findProject(":foo:bar", foo) == bar
+        finder.findProject(":foo:bar", bar) == bar
+        finder.findProject(":foo:bar", root) == bar
+        finder.findProject(":foo", bar) == foo
     }
 
     def "finds project relatively"() {
         expect:
-        finder.findProject("foo:bar:someTask", root) == bar
-        finder.findProject("foo:someTask", root) == foo
-        finder.findProject("bar:someTask", foo) == bar
+        finder.findProject("foo:bar", root) == bar
+        finder.findProject("foo", root) == foo
+        finder.findProject("bar", foo) == bar
     }
 
     def "provides decent information when project cannot be found"() {
         when:
-        finder.findProject("foo:xxx:someTask", root)
+        finder.findProject("foo:xxx", root)
         then:
         def ex = thrown(ProjectFinderByTaskPath.ProjectLookupException)
         ex.message.contains("xxx")
-    }
-
-    def "only allows valid task path as input"() {
-        when:
-        finder.findProject("someTaskName", foo)
-        then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message.contains('someTaskName')
     }
 }
