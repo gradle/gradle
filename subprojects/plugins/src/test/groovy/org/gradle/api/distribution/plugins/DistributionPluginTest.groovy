@@ -17,7 +17,6 @@
 package org.gradle.api.distribution.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.distribution.Distribution
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.reflect.Instantiator
@@ -44,14 +43,14 @@ class DistributionPluginTest extends Specification {
         then:
         def task = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
-        task.archiveName == "${project.distributions[Distribution.MAIN_DISTRIBUTION_NAME].baseName}.zip"
+        task.archiveName == "${project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].baseName}.zip"
     }
 
 
     public void "distribution name is configurable"() {
         when:
         plugin.apply(project)
-        project.distributions[Distribution.MAIN_DISTRIBUTION_NAME].baseName = "SuperApp";
+        project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].baseName = "SuperApp";
 
         then:
         def distZipTask = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
