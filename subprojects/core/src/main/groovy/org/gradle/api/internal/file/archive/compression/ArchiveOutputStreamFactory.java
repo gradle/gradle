@@ -25,7 +25,7 @@ import java.io.OutputStream;
 public interface ArchiveOutputStreamFactory {
 
     /**
-     * Returns the output stream that is able to createArchiveOutputStream into the destination file
+     * Returns the output stream that is able to compress into the destination file
      *
      * @param destination the destination of the archive output stream
      */
