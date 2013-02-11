@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api
+
+
+package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -25,23 +27,27 @@ import spock.lang.IgnoreIf
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
 
+    void setup() {
+        executer.beforeExecute { it.withArguments("-u") } //to avoid using unwanted gradle.properties
+    }
+
     def "parallel mode enabled from command line"() {
         buildFile << "assert gradle.startParameter.parallelThreadCount == 15"
         expect:
-        run("-u", "--parallel-threads=15")
+        run("--parallel-threads=15")
     }
 
     def "parallel mode enabled via gradle.properties"() {
         file("gradle.properties") << "org.gradle.parallel=true"
         buildFile << "assert gradle.startParameter.parallelThreadCount == -1"
         expect:
-        run("-u")
+        run()
     }
 
     def "parallel mode setting at command line takes precedence over gradle.properties"() {
-        file("gradle.properties") << "org.gradle.parallel=true"
+        file("gradle.properties") << "org.gradle.parallel=false"
         buildFile << "assert gradle.startParameter.parallelThreadCount == 15"
         expect:
-        run("-u", "--parallel-threads=15")
+        run("--parallel-threads=15")
     }
 }
