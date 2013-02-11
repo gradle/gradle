@@ -26,7 +26,7 @@
             <term>Automatic provisioning of Sonar Runner</term>
             <listitem>
                 <para>The ability to execute the Sonar Runner via a regular Gradle task makes it available anywhere Gradle is available
-                    (develeper build, CI server, etc.), without the need to download, setup, and maintain a Sonar Runner installation.</para>
+                    (developer build, CI server, etc.), without the need to download, setup, and maintain a Sonar Runner installation.</para>
             </listitem>
         </varlistentry>
         <varlistentry>

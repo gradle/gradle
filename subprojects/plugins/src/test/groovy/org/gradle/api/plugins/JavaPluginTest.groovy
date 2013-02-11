@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.java.JavaLibrary
 import org.gradle.api.internal.plugins.EmbeddableJavaProject
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
@@ -93,7 +94,17 @@ class JavaPluginTest {
         def archivesConfiguration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
         assertThat(archivesConfiguration.artifacts.collect { it.archiveTask }, equalTo([project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]))
     }
-    
+
+    @Test public void addsJavaLibraryComponent() {
+        javaPlugin.apply(project)
+
+        def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
+
+        JavaLibrary javaLibrary = project.components.getByName("java")
+        assertThat(javaLibrary.artifacts.collect {it.archiveTask}, equalTo([jarTask]))
+        assertThat(javaLibrary.runtimeDependencies, equalTo(project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies))
+    }
+
     @Test public void createsStandardSourceSetsAndAppliesMappings() {
         javaPlugin.apply(project)
 

@@ -69,7 +69,7 @@ public interface TaskOutputs {
     /**
      * Registers some output files for this task.
      *
-     * @param paths The output files. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * @param paths The output files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
     TaskOutputs files(Object... paths);
@@ -77,7 +77,7 @@ public interface TaskOutputs {
     /**
      * Registers some output file for this task.
      *
-     * @param path The output file. The given path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @param path The output file. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
      */
     TaskOutputs file(Object path);
@@ -85,7 +85,7 @@ public interface TaskOutputs {
     /**
      * Registers an output directory for this task.
      *
-     * @param path The output directory. The given path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @param path The output directory. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
      */
     TaskOutputs dir(Object path);

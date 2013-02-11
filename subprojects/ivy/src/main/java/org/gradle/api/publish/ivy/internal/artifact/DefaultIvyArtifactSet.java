@@ -33,14 +33,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> implements IvyArtifactSet {
-    private final String configurationName;
+    private final String publicationName;
     private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
     private final ArtifactsFileCollection files = new ArtifactsFileCollection();
     private final NotationParser<IvyArtifact> ivyArtifactParser;
 
-    public DefaultIvyArtifactSet(String configurationName, NotationParser<IvyArtifact> ivyArtifactParser) {
+    public DefaultIvyArtifactSet(String publicationName, NotationParser<IvyArtifact> ivyArtifactParser) {
         super(IvyArtifact.class);
-        this.configurationName = configurationName;
+        this.publicationName = publicationName;
         this.ivyArtifactParser = ivyArtifactParser;
     }
 
@@ -62,9 +62,8 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
 
     private class ArtifactsFileCollection extends AbstractFileCollection {
 
-        // TODO:DAZ Change this to publication name, once we have removed the nesting inside configuration
         public String getDisplayName() {
-            return String.format("artifacts for " + configurationName + " configuration");
+            return String.format("artifacts for ivy publication '%s'", publicationName);
         }
 
         @Override

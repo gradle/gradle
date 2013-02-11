@@ -77,7 +77,7 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
     private void ensureAllProjectsEvaluated(GradleInternal gradle) {
         gradle.getRootProject().allprojects((Action) new Action<ProjectInternal>() {
             public void execute(ProjectInternal projectInternal) {
-                projectInternal.ensureEvaluated();
+                projectInternal.evaluate();
             }
         });
     }

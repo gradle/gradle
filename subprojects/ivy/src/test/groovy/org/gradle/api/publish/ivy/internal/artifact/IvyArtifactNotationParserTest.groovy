@@ -129,7 +129,7 @@ public class IvyArtifactNotationParserTest extends Specification {
         where:
         fileName                       | name        | extension | type
         "some-file-1.2.zip"            | "some-file" | "zip"     | "zip"
-        "some-file"                    | "some-file" | ""        | ""
+        "some-file"                    | "some-file" | null      | null
         "some-file-1.2-classifier.zip" | "some-file" | "zip"     | "zip"
     }
 

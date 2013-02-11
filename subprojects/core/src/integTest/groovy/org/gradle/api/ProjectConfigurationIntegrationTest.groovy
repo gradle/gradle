@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,5 +14,25 @@
  * limitations under the License.
  */
 
-rootProject.name = 'ivypublish'
-include 'subproject'
+package org.gradle.api
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+/**
+ * by Szczepan Faber, created at: 11/21/12
+ */
+class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
+
+    def "accessing the task by path from containing project is safe"() {
+        buildFile << """
+            task foobar
+            println "the name: " + tasks.getByPath(":foobar").name
+        """
+
+        when:
+        run()
+
+        then:
+        output.contains "the name: foobar"
+    }
+}

@@ -16,36 +16,63 @@
 
 package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class IvyPublishMultiProjectIntegTest extends AbstractIntegrationSpec {
-    def project1module = ivyRepo.module("org.gradle.test", "project1", "1.9")
+    def project1 = ivyRepo.module("org.gradle.test", "project1", "1.9")
+    def project2 = ivyRepo.module("org.gradle.test", "project2", "1.9")
+    def project3 = ivyRepo.module("org.gradle.test", "project3", "1.9")
 
-    def "project dependency correctly reflected in descriptor"() {
-        createBuildScripts("""
-project(":project1") {
-    dependencies {
-        compile project(":project2")
-    }
-}
-        """)
+    def "project dependencies correctly reflected in descriptor"() {
+        createBuildScripts("")
 
         when:
         run "publish"
 
         then:
-        projectsCorrectlyPublished()
+        project1.assertPublishedAsJavaModule()
+        project1.ivy.dependencies.runtime.assertDependsOnModules("project2", "project3")
+
+        project2.assertPublishedAsJavaModule()
+        project2.ivy.dependencies.runtime.assertDependsOnModules("project3")
+
+        project3.assertPublishedAsJavaModule()
+        project3.ivy.dependencies.runtime == null
     }
 
-    @Ignore // TODO:DAZ Fix this
-    def "ivy-publish plugin does not take archivesBaseName into account when publishing"() {
-        createBuildScripts("""
-project(":project1") {
-    dependencies {
-        compile project(":project2")
-    }
+    def "can resolve published project"() {
+        when:
+        createBuildScripts("")
+        succeeds "publish"
+
+        then:
+        project1.assertPublishedAsJavaModule()
+
+        when:
+        settingsFile << ""
+        buildFile << """
+apply plugin: 'java'
+
+repositories {
+    ivy { url "${ivyRepo.uri}" }
 }
+dependencies {
+    compile "org.gradle.test:project1:1.9"
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
 
+        then:
+        succeeds "retrieve"
+
+        and:
+        file('libs').assertHasDescendants('project1-1.9.jar', 'project2-1.9.jar', 'project3-1.9.jar')
+    }
+
+    def "ivy-publish plugin does not take archivesBaseName into account for publication name"() {
+        createBuildScripts("""
 project(":project2") {
     archivesBaseName = "changed"
 }
@@ -55,7 +82,16 @@ project(":project2") {
         run "publish"
 
         then:
-        projectsCorrectlyPublished()
+        project1.assertPublishedAsJavaModule()
+        project1.ivy.dependencies.runtime.assertDependsOnModules("project2", "project3")
+
+        // published with the correct coordinates, even though artifact has different name
+        project2.assertPublished()
+        project2.assertArtifactsPublished("changed-${project2.revision}.jar", "ivy-${project2.revision}.xml")
+        project2.ivy.dependencies.runtime.assertDependsOnModules("project3")
+
+        project3.assertPublishedAsJavaModule()
+        project3.ivy.dependencies.runtime == null
     }
 
     def "ivy-publish plugin uses target project name for project dependency when target project does not have ivy-publish plugin applied"() {
@@ -99,47 +135,11 @@ project(":project2") {
         run "publish"
 
         then:
-        project1module.assertPublishedAsJavaModule()
-        project1module.ivy.dependencies.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
+        project1.assertPublishedAsJavaModule()
+        project1.ivy.dependencies.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 
 
-    private def projectsCorrectlyPublished() {
-        def project2 = ivyRepo.module("org.gradle.test", "project2", "1.9")
-        project2.assertPublishedAsJavaModule()
-
-        project1module.ivy.dependencies.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
-
-        return true
-    }
-
-    def "multiple project dependencies correctly reflected in ivy descriptor"() {
-        def project2module = ivyRepo.module("org.gradle.test", "project2", "1.9")
-        def project3module = ivyRepo.module("org.gradle.test", "project3", "1.9")
-
-        createBuildScripts("""
-project(":project1") {
-    dependencies {
-        compile project(":project2")
-        compile project(":project3")
-    }
-}
-
-project(":project2") {
-    dependencies {
-        compile project(":project3")
-    }
-}
-        """)
-
-        when:
-        run "publish"
-
-        then:
-        project1module.ivy.dependencies["runtime"].assertDependsOnModules("project2", "project3")
-        project2module.ivy.dependencies["runtime"].assertDependsOnModules("project3")
-        project3module.ivy.dependencies["runtime"] == null
-    }
 
     private void createBuildScripts(String append = "") {
         settingsFile << """
@@ -158,12 +158,24 @@ subprojects {
 }
 
 // Need to configure subprojects before publications, due to non-laziness. This is something we need to address soon.
+project(":project1") {
+    dependencies {
+        compile project(":project2")
+        compile project(":project3")
+    }
+}
+project(":project2") {
+    dependencies {
+        compile project(":project3")
+    }
+}
+
 $append
 
 subprojects {
     publishing {
         repositories {
-            ivy { url "file:///\$rootProject.projectDir/ivy-repo" }
+            ivy { url "${ivyRepo.uri}" }
         }
         publications {
             ivy(IvyPublication) {

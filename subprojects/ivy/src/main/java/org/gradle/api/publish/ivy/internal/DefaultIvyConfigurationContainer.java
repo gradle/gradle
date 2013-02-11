@@ -17,22 +17,18 @@
 package org.gradle.api.publish.ivy.internal;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultIvyConfigurationContainer extends AbstractNamedDomainObjectContainer<IvyConfiguration> implements IvyConfigurationContainer {
-    private final NotationParser<IvyArtifact> ivyArtifactNotationParser;
 
-    public DefaultIvyConfigurationContainer(NotationParser<IvyArtifact> ivyArtifactNotationParser, Instantiator instantiator) {
+    public DefaultIvyConfigurationContainer(Instantiator instantiator) {
         super(IvyConfiguration.class, instantiator);
-        this.ivyArtifactNotationParser = ivyArtifactNotationParser;
     }
 
     @Override
     protected IvyConfiguration doCreate(String name) {
-        return getInstantiator().newInstance(DefaultIvyConfiguration.class, name, ivyArtifactNotationParser, getInstantiator());
+        return getInstantiator().newInstance(DefaultIvyConfiguration.class, name);
     }
 }

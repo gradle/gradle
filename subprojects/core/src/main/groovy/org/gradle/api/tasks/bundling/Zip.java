@@ -28,7 +28,7 @@ import java.io.File;
 /**
  * Assembles a ZIP archive.
  * 
- * The default is to compress the contents of the zip.
+ * The default is to createArchiveOutputStream the contents of the zip.
  * 
  * @author Hans Dockter
  */
@@ -68,7 +68,7 @@ public class Zip extends AbstractArchiveTask {
     }
 
     /**
-     * Zip compress action implementation.
+     * Zip createArchiveOutputStream action implementation.
      */
     protected class ZipCopyActionImpl extends CopyActionImpl implements ZipCopyAction {
         public ZipCopyActionImpl(FileResolver fileResolver) {

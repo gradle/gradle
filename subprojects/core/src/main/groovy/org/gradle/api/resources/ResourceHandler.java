@@ -23,17 +23,17 @@ public interface ResourceHandler {
 
     /**
      * Creates resource that points to a gzip compressed file at the given path.
-     * The path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
-     * @param path The path evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @param path The path evaluated as per {@link org.gradle.api.Project#file(Object)}.
      */
     ReadableResource gzip(Object path);
 
     /**
      * Creates resource that points to a bzip2 compressed file at the given path.
-     * The path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
-     * @param path The path evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @param path The path evaluated as per {@link org.gradle.api.Project#file(Object)}.
      */
     ReadableResource bzip2(Object path);
 }

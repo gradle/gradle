@@ -39,28 +39,51 @@ public interface IvyArtifact extends Buildable {
     void setName(String name);
 
     /**
-     * The type used to publish the artifact file, never <code>null</code>.
+     * The type used to publish the artifact file.
      */
     String getType();
 
     /**
      * Sets the type used to publish the artifact file.
      * @param type The type.
-     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setType(String type);
 
     /**
-     * The extension used to publish the artifact file, never <code>null</code>.
+     * The extension used to publish the artifact file.
      */
     String getExtension();
 
     /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
-     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setExtension(String extension);
+
+    /**
+     * The classifier used to publish the artifact file.
+     */
+    String getClassifier();
+
+    /**
+     * Sets the classifier used to publish the artifact file.
+     * @param classifier The classifier.
+     */
+    void setClassifier(String classifier);
+
+    /**
+     * A comma separated list of public configurations in which this artifact is published.
+     * The '*' wildcard is used to designate that the artifact is published in all public configurations.
+     * @return The value of 'conf' for this artifact.
+     */
+    String getConf();
+
+    /**
+     * Sets a comma separated list of public configurations in which this artifact is published.
+     * The '*' wildcard can be used to designate that the artifact is published in all public configurations.
+     * @param conf The value of 'conf' for this artifact.
+     */
+    void setConf(String conf);
 
     /**
      * The actual file contents to publish.
@@ -70,7 +93,7 @@ public interface IvyArtifact extends Buildable {
     /**
      * Registers some tasks which build this artifact.
      *
-     * @param tasks The tasks. These are evaluated as for {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      */
     void builtBy(Object... tasks);
 }

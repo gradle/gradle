@@ -3,19 +3,19 @@
         <title>Properties</title>
         <table>
             <thead>
-                <tr><td>Name</td>
+                <tr>
+                    <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>name</td>
-            </tr>
         </table>
     </section>
     <section>
         <title>Methods</title>
         <table>
             <thead>
-                <tr><td>Name</td></tr>
+                <tr>
+                    <td>Name</td>
+                </tr>
             </thead>
         </table>
     </section>

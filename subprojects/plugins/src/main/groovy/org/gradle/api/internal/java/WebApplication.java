@@ -17,15 +17,11 @@
 package org.gradle.api.internal.java;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.artifacts.DefaultDependencySet;
-import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 
 import java.util.Collections;
+import java.util.Set;
 
 public class WebApplication implements SoftwareComponentInternal {
 
@@ -39,12 +35,11 @@ public class WebApplication implements SoftwareComponentInternal {
         return "web";
     }
 
-    public PublishArtifactSet getArtifacts() {
-        return new DefaultPublishArtifactSet("publish", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class, Collections.singleton(warArtifact)));
+    public Set<PublishArtifact> getArtifacts() {
+        return Collections.singleton(warArtifact);
     }
 
-    public DependencySet getRuntimeDependencies() {
-        // TODO: What are the correct dependencies for a web application?
-        return new DefaultDependencySet("publish", new DefaultDomainObjectSet<Dependency>(Dependency.class));
+    public Set<Dependency> getRuntimeDependencies() {
+        return Collections.emptySet();
     }
 }

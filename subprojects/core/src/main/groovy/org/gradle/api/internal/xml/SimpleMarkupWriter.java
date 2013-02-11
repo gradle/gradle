@@ -19,8 +19,6 @@ package org.gradle.api.internal.xml;
 import org.gradle.internal.SystemProperties;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.LinkedList;
 
@@ -34,10 +32,6 @@ public class SimpleMarkupWriter extends Writer {
     private Context context = Context.Outside;
     private int squareBrackets;
     private final String indent;
-
-    public SimpleMarkupWriter(OutputStream output, String indent) throws IOException {
-        this(new OutputStreamWriter(output, "UTF-8"), indent);
-    }
 
     public SimpleMarkupWriter(Writer writer, String indent) throws IOException {
         this.indent = indent;

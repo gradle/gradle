@@ -31,7 +31,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         // Need forking executer
-        // '-ea' is always set on the forked process. So I've added it explicitly here. // TODO:DAZ Clean this up
+        // '-ea' is always set on the forked process. So I've added it explicitly here.
         executer.requireGradleHome().withEnvironmentVars(["JAVA_OPTS": "-ea"])
         executer.requireIsolatedDaemons()
     }

@@ -46,7 +46,7 @@ public class Bzip2Archiver implements ReadableResource {
         // this is not very beautiful but at some point we will
         // get rid of ArchiveOutputStreamFactory in favor of the writable Resource
         return new ArchiveOutputStreamFactory() {
-            public OutputStream compress(File destination) {
+            public OutputStream createArchiveOutputStream(File destination) {
                 try {
                     OutputStream outStr = new FileOutputStream(destination);
                     outStr.write('B');

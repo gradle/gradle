@@ -24,7 +24,7 @@ public class PublishArtifactIvyArtifact extends DefaultIvyArtifact implements Bu
     private final TaskDependency buildDependencies;
 
     public PublishArtifactIvyArtifact(PublishArtifact publishArtifact) {
-        super(publishArtifact.getFile(), publishArtifact.getName(), publishArtifact.getExtension(), publishArtifact.getType());
+        super(publishArtifact.getFile(), publishArtifact.getName(), publishArtifact.getExtension(), publishArtifact.getType(), publishArtifact.getClassifier());
         this.buildDependencies = publishArtifact.getBuildDependencies();
     }
 

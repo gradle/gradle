@@ -24,7 +24,7 @@ abstract class AbstractZipCompressor implements ZipCompressor {
 
     abstract public int getCompressedMethod();
 
-    public ZipOutputStream compress(File destination) {
+    public ZipOutputStream createArchiveOutputStream(File destination) {
         try {
             ZipOutputStream outStream = new ZipOutputStream(destination);
             outStream.setMethod(getCompressedMethod());

@@ -247,7 +247,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * generated into. The path parameter is evaluated as described for {@link #file(Object)}. This mean you can use,
      * amongst other things, a relative or absolute path or File object to specify the build directory.</p>
      *
-     * @param path The build directory. This is evaluated as for {@link #file(Object)}
+     * @param path The build directory. This is evaluated as per {@link #file(Object)}
      */
     void setBuildDir(Object path);
 
@@ -700,10 +700,10 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
      * types to this method:</p>
      *
-     * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
+     * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as per {@link #file(Object)}. A string
      * that starts with {@code file:} is treated as a file URL.</li>
      *
-     * <li>A {@link File}. Interpreted relative to the project directory, as for {@link #file(Object)}.</li>
+     * <li>A {@link File}. Interpreted relative to the project directory, as per {@link #file(Object)}.</li>
      *
      * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
      * {@code file:} URLs are supported.
@@ -725,7 +725,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      *
      * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task.</li>
      *
-     * <li>An Object. Its {@code toString()} value is treated the same way as a String, as for {@link #file(Object)}.
+     * <li>An Object. Its {@code toString()} value is treated the same way as a String, as per {@link #file(Object)}.
      * This has been deprecated and will be removed in the next version of Gradle.</li>
      *
      * </ul>
@@ -742,7 +742,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     ConfigurableFileCollection files(Object... paths);
 
     /**
-     * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as for {@link
+     * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
      * #files(Object...)}. The file collection is configured using the given closure. The file collection is passed to
      * the closure as its delegate. Example:</p>
      * <pre>
@@ -754,7 +754,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
      * of the collection is queried.</p>
      *
-     * @param paths The contents of the file collection. Evaluated as for {@link #files(Object...)}.
+     * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
      */
@@ -762,7 +762,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
-     * as for {@link #file(Object)}.</p>
+     * as per {@link #file(Object)}.</p>
      *
      * <p><b>Note:</b> to use a closure as the baseDir, you must explicitly cast the closure to {@code Object} to force
      * the use of this method instead of {@link #fileTree(Closure)}. Example:</p>
@@ -775,14 +775,14 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
-     * @param baseDir The base directory of the file tree. Evaluated as for {@link #file(Object)}.
+     * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @return the file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Object baseDir);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
-     * as for {@link #file(Object)}. The closure will be used to configure the new file tree.
+     * as per {@link #file(Object)}. The closure will be used to configure the new file tree.
      * The file tree is passed to the closure as its delegate.  Example:</p>
      *
      * <pre>
@@ -795,7 +795,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
-     * @param baseDir The base directory of the file tree. Evaluated as for {@link #file(Object)}.
+     * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
      * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
      * @return the configured file tree. Never returns null.
      */
@@ -842,14 +842,14 @@ public interface Project extends Comparable<Project>, ExtensionAware {
 
     /**
      * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
-     * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
      * method to unzip a ZIP file.</p>
      *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
-     * @param zipPath The ZIP file. Evaluated as for {@link #file(Object)}.
+     * @param zipPath The ZIP file. Evaluated as per {@link #file(Object)}.
      * @return the file tree. Never returns null.
      */
     FileTree zipTree(Object zipPath);
@@ -859,7 +859,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path can be:
      * <ul>
      *   <li>an instance of {@link org.gradle.api.resources.Resource}</li>
-     *   <li>any other object is evaluated as for {@link #file(Object)}</li>
+     *   <li>any other object is evaluated as per {@link #file(Object)}</li>
      * </ul>
      *
      * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
@@ -895,7 +895,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * Creates a directory and returns a file pointing to it.
      *
-     * @param path The path for the directory to be created. Evaluated as for {@link #file(Object)}.
+     * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.
      * @return the created directory
      * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
      */

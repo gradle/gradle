@@ -21,14 +21,17 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.Cast;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.util.GUtil;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 public class IvyPublisher {
 
@@ -51,12 +54,16 @@ public class IvyPublisher {
     }
 
     public Artifact createIvyArtifact(IvyArtifact ivyArtifact, ModuleRevisionId moduleRevisionId) {
+        Map<String, String> extraAttributes = new HashMap<String, String>();
+        if (GUtil.isTrue(ivyArtifact.getClassifier())) {
+            extraAttributes.put(Dependency.CLASSIFIER, ivyArtifact.getClassifier());
+        }
         return new DefaultArtifact(
                 moduleRevisionId,
                 null,
                 ivyArtifact.getName(),
                 ivyArtifact.getType(),
                 ivyArtifact.getExtension(),
-                new HashMap<String, String>());
+                extraAttributes);
     }
 }

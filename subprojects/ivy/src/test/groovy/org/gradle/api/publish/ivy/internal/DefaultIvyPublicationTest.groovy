@@ -97,6 +97,7 @@ class DefaultIvyPublicationTest extends Specification {
         component.artifacts >> publishArtifactSet
         publishArtifactSet.iterator() >> [artifact].iterator()
         component.runtimeDependencies >> dependencySet
+        dependencySet.iterator() >> [].iterator()
 
         notationParser.parseNotation(artifact) >> ivyArtifact
 
@@ -110,10 +111,10 @@ class DefaultIvyPublicationTest extends Specification {
 
         and:
         publication.configurations.size() == 2
-        publication.configurations.runtime.artifacts == [ivyArtifact] as Set
         publication.configurations.runtime.extends == [] as Set
-        publication.configurations."default".extends == [publication.configurations.runtime] as Set
+        publication.configurations."default".extends == ["runtime"] as Set
 
+        publication.artifacts == [ivyArtifact] as Set
     }
 
     def "cannot add multiple components"() {
@@ -121,6 +122,7 @@ class DefaultIvyPublicationTest extends Specification {
         def publication = createPublication()
         SoftwareComponentInternal component = Mock()
         PublishArtifactSet publishArtifactSet = Mock()
+        DependencySet dependencySet = Mock()
 
         when:
         publication.from(component)
@@ -128,6 +130,8 @@ class DefaultIvyPublicationTest extends Specification {
         then:
         component.artifacts >> publishArtifactSet
         publishArtifactSet.iterator() >> [].iterator()
+        component.runtimeDependencies >> dependencySet
+        dependencySet.iterator() >> [].iterator()
 
         when:
         publication.from(Mock(SoftwareComponentInternal))
@@ -160,15 +164,11 @@ class DefaultIvyPublicationTest extends Specification {
         notationParser.parseNotation(notation) >> ivyArtifact
 
         and:
-        publication.configurations {
-            config {
-                artifact notation
-            }
-        }
+        publication.artifact notation
 
         then:
         artifactsOf(publication) == [ivyArtifact] as Set
-        publication.configurations.config.artifacts == [ivyArtifact] as Set
+        publication.artifacts == [ivyArtifact] as Set
         publication.publishableFiles.files == [descriptorFile, artifactFile] as Set
     }
 
@@ -184,12 +184,8 @@ class DefaultIvyPublicationTest extends Specification {
         0 * ivyArtifact._
 
         and:
-        publication.configurations {
-            config {
-                artifact(notation) {
-                    extension = 'changed'
-                }
-            }
+        publication.artifact(notation) {
+            extension = 'changed'
         }
 
         then:
@@ -204,26 +200,20 @@ class DefaultIvyPublicationTest extends Specification {
         IvyArtifact ivyArtifact2 = createArtifact()
 
         when:
-        publication.configurations {
-            config {
-                artifact "notation"
-            }
-        }
+        publication.artifact "notation"
 
         then:
         notationParser.parseNotation("notation") >> Mock(IvyArtifact)
 
         when:
-        publication.configurations.config.artifacts = ["notation1", "notation2"]
+        publication.artifacts = ["notation1", "notation2"]
 
         then:
         notationParser.parseNotation("notation1") >> ivyArtifact1
         notationParser.parseNotation("notation2") >> ivyArtifact2
 
         and:
-        artifactsOf(publication) == [ivyArtifact1, ivyArtifact2] as Set
-        publication.configurations.config.artifacts == [ivyArtifact1, ivyArtifact2] as Set
-        publication.asNormalisedPublication().artifacts == [ivyArtifact1, ivyArtifact2] as Set
+        publication.artifacts == [ivyArtifact1, ivyArtifact2] as Set
     }
 
 
@@ -238,11 +228,7 @@ class DefaultIvyPublicationTest extends Specification {
         ivyArtifact.file >> theFile
 
         and:
-        publication.configurations {
-            config {
-                artifact notation
-            }
-        }
+        publication.artifact notation
         publication.asNormalisedPublication()
 
         then:

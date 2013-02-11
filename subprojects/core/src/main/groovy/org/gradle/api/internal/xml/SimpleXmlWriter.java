@@ -18,6 +18,8 @@ package org.gradle.api.internal.xml;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 /**
  * <p>A streaming XML writer. Encodes characters and CDATA. Provides only basic state validation, and some simple indentation.</p>
@@ -33,11 +35,15 @@ public class SimpleXmlWriter extends SimpleMarkupWriter {
     }
 
     public SimpleXmlWriter(OutputStream output, String indent) throws IOException {
-        super(output, indent);
-        writeXmlDeclaration();
+        this(new OutputStreamWriter(output, "UTF-8"), indent, "UTF-8");
     }
 
-    private void writeXmlDeclaration() throws IOException {
-        writeRaw("<?xml version=\"1.1\" encoding=\"UTF-8\"?>");
+    public SimpleXmlWriter(Writer writer, String indent, String encoding) throws IOException {
+        super(writer, indent);
+        writeXmlDeclaration(encoding);
+    }
+
+    private void writeXmlDeclaration(String encoding) throws IOException {
+        writeRaw(String.format("<?xml version=\"1.1\" encoding=\"%s\"?>", encoding));
     }
 }

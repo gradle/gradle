@@ -39,9 +39,47 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
 
         then:
         ivyModule.assertPublishedAsJavaModule()
-        // TODO:DAZ check configurations and artifacts in ivy.xml
-        ivyModule.ivy.dependencies.runtime.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
-        ivyModule.ivy.dependencies.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
+
+        with (ivyModule.ivy) {
+            configurations.keySet() == ["default", "runtime"] as Set
+            configurations["default"].extend == ["runtime"] as Set
+            configurations["runtime"].extend == null
+
+            artifacts["publishTest"].hasAttributes("jar", "jar", ["runtime"])
+
+            dependencies["runtime"].assertDependsOn("commons-collections", "commons-collections", "3.2.1")
+            dependencies["runtime"].assertDependsOn("commons-io", "commons-io", "1.4")
+        }
+    }
+
+    public void "ignores extra artifacts added to configurations"() {
+        given:
+        createBuildScripts("""
+            task extraJar(type: Jar) {
+                from sourceSets.main.allJava
+                baseName "publishTest-extra"
+            }
+
+            artifacts {
+                runtime extraJar
+                archives extraJar
+                it."default" extraJar
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        ivyModule.assertPublishedAsJavaModule()
     }
 
     public void "can publish additional artifacts for java project"() {
@@ -56,10 +94,9 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        configurations {
-                            other {
-                                artifact sourceJar
-                            }
+                        artifact(sourceJar) {
+                            type "source"
+                            conf "runtime"
                         }
                     }
                 }
@@ -72,11 +109,8 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
         then:
         ivyModule.assertPublished()
         ivyModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-source-1.9.jar", "ivy-1.9.xml")
-        with(ivyModule.ivy.artifacts."publishTest-source") {
-            name == "publishTest-source"
-            ext == "jar"
-            "other" in conf
-        }
+
+        ivyModule.ivy.artifacts["publishTest-source"].hasAttributes("jar", "source", ["runtime"])
     }
 
     def createBuildScripts(def append) {

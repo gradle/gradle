@@ -206,7 +206,7 @@ public interface MavenPublication extends Publication {
      * Clears any previously added artifacts from {@link #getArtifacts} and creates artifacts from the specified sources.
      * Each supplied source is interpreted as per {@link #artifact(Object)}.
      *
-     * For example, to include the dependencies declared by a component but use a custom set of artifacts:
+     * For example, to exclude the dependencies declared by a component and instead use a custom set of artifacts:
      * <pre autoTested="true">
      * apply plugin: "java"
      * apply plugin: "maven-publish"

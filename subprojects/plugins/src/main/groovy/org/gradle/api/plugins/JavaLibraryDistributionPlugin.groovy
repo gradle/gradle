@@ -19,7 +19,6 @@ package org.gradle.api.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.distribution.Distribution
 import org.gradle.api.distribution.plugins.DistributionPlugin
 
 /**
@@ -41,7 +40,7 @@ class JavaLibraryDistributionPlugin implements Plugin<Project> {
     }
 
     private void addPluginExtension() {
-        project.distributions[Distribution.MAIN_DISTRIBUTION_NAME]
+        project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
     }
 
     private void configureDistZipTask() {

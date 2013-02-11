@@ -26,14 +26,11 @@ import org.gradle.internal.reflect.Instantiator;
  * @author scogneau
  */
 public class DefaultDistributionContainer extends AbstractNamedDomainObjectContainer<Distribution> implements DistributionContainer {
-    final String projectName;
-
-    public DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator, String projectName) {
+    public DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator) {
         super(type, instantiator);
-        this.projectName = projectName;
     }
 
     protected Distribution doCreate(String name) {
-        return new DefaultDistribution(name, projectName);
+        return getInstantiator().newInstance(DefaultDistribution.class, name);
     }
 }

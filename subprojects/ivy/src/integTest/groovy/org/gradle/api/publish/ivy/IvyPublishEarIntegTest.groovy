@@ -51,13 +51,12 @@ class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
                 publications {
                     ivyEar(IvyPublication) {
                         configurations {
-                            runtime {
-                                artifact ear
-                            }
+                            runtime {}
                             "default" {
-                                extend configurations.runtime
+                                extend "runtime"
                             }
                         }
+                        artifact source: ear, conf: "runtime"
                     }
                 }
             }
@@ -69,21 +68,14 @@ class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
         then: "module is published with artifacts"
         def ivyModule = ivyRepo.module("org.gradle.test", "publishEar", "1.9")
         ivyModule.assertPublishedAsEarModule()
-        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishEar-1.9.ear")
 
-        and: "correct configurations declared"
-        ivyModule.ivy.configurations.keySet() == ["default", "runtime"] as Set
-        ivyModule.ivy.configurations.runtime.extend == [] as Set
-        ivyModule.ivy.configurations.default.extend == ["runtime"] as Set
+        and: "correct configurations and dependencies declared"
+        with (ivyModule.ivy) {
+            configurations.keySet() == ["default", "runtime"] as Set
+            configurations.runtime.extend == null
+            configurations.default.extend == ["runtime"] as Set
 
-        and: "artifact correctly declared"
-        with (ivyModule.ivy.artifacts.publishEar) {
-            type == "ear"
-            ext == "ear"
-            conf == ["runtime"]
+            dependencies.isEmpty()
         }
-
-        and: "no dependencies declared"
-        ivyModule.ivy.dependencies.isEmpty()
     }
 }

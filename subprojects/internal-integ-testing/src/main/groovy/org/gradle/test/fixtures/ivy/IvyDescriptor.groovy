@@ -39,7 +39,7 @@ class IvyDescriptor {
         ivy.configurations.conf.each {
             configurations[it.@name] = new IvyDescriptorConfiguration(
                     name: it.@name, visibility: it.@visibility, description: it.@description,
-                    extend: it.@extends == null ? [] : it.@extends.split(",")*.trim()
+                    extend: it.@extends == null ? null : it.@extends.split(",")*.trim()
             )
         }
 
@@ -60,7 +60,8 @@ class IvyDescriptor {
         ivy.publications.artifact.each { artifact ->
             def ivyArtifact = new IvyDescriptorArtifact(
                     name: artifact.@name, type: artifact.@type,
-                    ext: artifact.@ext, conf: artifact.@conf.split(",") as List,
+                    ext: artifact.@ext,
+                    conf: artifact.@conf == null ? null : artifact.@conf.split(",") as List,
                     mavenAttributes: artifact.attributes().findAll { it.key instanceof QName && it.key.namespaceURI == "http://ant.apache.org/ivy/maven" }.collectEntries { [it.key.localPart, it.value] }
             )
 

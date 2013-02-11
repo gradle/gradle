@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,24 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 /**
- * by Szczepan Faber, created at: 9/10/12
+ * by Szczepan Faber, created at: 2/11/13
  */
-class ModuleVersionSelectorStrictSpecTest extends Specification {
+class DefaultModuleVersionSelectorTest extends Specification {
+
+    def "equality"() {
+        def selector = newSelector("org", "util", "1.0")
+
+        def same = newSelector("org", "util", "1.0")
+        def diffGroup = newSelector("foo", "util", "1.0")
+        def diffName = newSelector("org", "foo", "1.0")
+        def diffVersion = newSelector("org", "util", "2.0")
+
+        expect:
+        selector == same
+        selector != diffGroup
+        selector != diffName
+        selector != diffVersion
+    }
 
     def "knows if matches the id"() {
         def selector = newSelector("org", "util", "1.0")

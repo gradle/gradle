@@ -99,13 +99,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
         then:
         file('generated-ivy.xml').assertIsFile()
         IvyDescriptor ivy = new IvyDescriptor(file('generated-ivy.xml'))
-        with (ivy.artifacts[moduleName]) {
-            name == moduleName
-            ext == 'jar'
-            conf == ['runtime']
-        }
-
-        and:
+        ivy.artifacts[moduleName].hasAttributes("jar", "jar", ["runtime"])
         module.ivyFile.assertDoesNotExist()
     }
 

@@ -51,7 +51,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      * The target jdk to use with pmd
      */
     @Input
-    String targetJdk
+    TargetJdk targetJdk
 
     /**
      * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for
@@ -86,7 +86,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
         }
         def antPmdArgs = [failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount"]
         if (oldBranch){
-            antPmdArgs["targetjdk"] = getTargetJdk()
+            antPmdArgs["targetjdk"] = getTargetJdk().getName()
         }
         antBuilder.withClasspath(getPmdClasspath()).execute {
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')

@@ -21,6 +21,21 @@ import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * The set of {@link IvyConfiguration}s that will be included in the {@link IvyPublication}.
+ *
+ * Being a {@link org.gradle.api.NamedDomainObjectContainer}, a {@code IvyConfigurationContainer} provides
+ * convenient methods for adding, querying, filtering, and applying actions to the set of {@link IvyConfiguration}s.
+ *
+ * <pre autoTested="true">
+ * apply plugin: 'ivy-publish'
+ *
+ * def publication = publishing.publications.add("my-pub", IvyPublication)
+ * def configurations = publication.configurations
+ *
+ * configurations.create("extended", { extend "default"})
+ * configurations.all {
+ *     extend "base"
+ * }
+ * </pre>
  */
 @Incubating
 public interface IvyConfigurationContainer extends NamedDomainObjectContainer<IvyConfiguration> {

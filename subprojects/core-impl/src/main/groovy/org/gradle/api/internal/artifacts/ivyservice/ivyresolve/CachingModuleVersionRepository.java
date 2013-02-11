@@ -158,7 +158,6 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
 
         LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
-        // TODO:DAZ Could provide artifact metadata and file here from artifactFileStore (it's not needed currently)
         result.resolved(cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule(), new CachingModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule(), cachedModuleDescriptor.getModuleSource()));
     }
 

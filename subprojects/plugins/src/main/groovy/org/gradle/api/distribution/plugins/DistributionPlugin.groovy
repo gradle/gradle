@@ -38,6 +38,12 @@ import javax.inject.Inject
 class DistributionPlugin implements Plugin<Project> {
 
     static final String DISTRIBUTION_PLUGIN_NAME = "distribution"
+
+    /**
+     * Name of the main distribution
+     */
+    static final String MAIN_DISTRIBUTION_NAME = "main";
+
     static final String DISTRIBUTION_GROUP = DISTRIBUTION_PLUGIN_NAME
     static final String TASK_DIST_ZIP_NAME = "distZip"
 
@@ -56,18 +62,18 @@ class DistributionPlugin implements Plugin<Project> {
     }
 
     void addPluginExtension() {
-        extension = project.extensions.create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, project.name)
-        extension.all{
-            dist -> addTask(dist)
+        extension = project.extensions.create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator)
+        extension.all { dist ->
+            dist.baseName = dist.name == MAIN_DISTRIBUTION_NAME ? project.name : String.format("%s-%s", project.name, name);
+            addTask(dist)
 
         }
-        Distribution mainDistribution = extension.create(Distribution.MAIN_DISTRIBUTION_NAME)
-        mainDistribution.baseName = project.name
+        extension.create(DistributionPlugin.MAIN_DISTRIBUTION_NAME)
     }
 
     void addTask(Distribution distribution) {
         def taskName = TASK_DIST_ZIP_NAME
-        if (!Distribution.MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
+        if (!MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
             taskName = distribution.name + "DistZip"
         }
         def distZipTask = project.tasks.add(taskName, Zip)

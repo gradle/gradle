@@ -21,6 +21,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.UserCodeAction;
+import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.listener.ActionBroadcast;
 
@@ -49,6 +50,10 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
     public Set<IvyConfiguration> getConfigurations() {
         return ivyPublication.getConfigurations();
+    }
+
+    public Set<IvyArtifact> getArtifacts() {
+        return ivyPublication.getArtifacts();
     }
 
     public Set<Dependency> getRuntimeDependencies() {

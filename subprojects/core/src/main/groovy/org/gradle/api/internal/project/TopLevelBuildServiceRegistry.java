@@ -223,15 +223,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected ProjectAccessListener createProjectAccessListener() {
-        return new ProjectAccessListener() {
-            public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
-                targetProject.ensureEvaluated();
-            }
-
-            public void beforeResolvingProjectDependency(ProjectInternal dependencyProject) {
-                dependencyProject.evaluate();
-            }
-        };
+        return new DefaultProjectAccessListener();
     }
 
     protected ProfileEventAdapter createProfileEventAdapter() {

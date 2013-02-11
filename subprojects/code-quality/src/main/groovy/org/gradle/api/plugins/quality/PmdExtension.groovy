@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 
@@ -42,15 +41,15 @@ class PmdExtension extends CodeQualityExtension {
     /**
      * The target jdk to use with pmd, 1.3, 1.4, 1.5, 1.6, 1.7 or jsp
      */
-    JavaVersion targetJdk
+    TargetJdk targetJdk
 
     /**
      * Sets the target jdk used with pmd.
      *
-     * @value The value for the target jdk as defined by {@link JavaVersion#toVersion(Object)}
+     * @value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
      */
     void setTargetJdk(def value) {
-        targetJdk = JavaVersion.toVersion(value)
+        targetJdk = TargetJdk.toVersion(value)
     }
     /**
      * Convenience method for adding rule sets.

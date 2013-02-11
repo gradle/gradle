@@ -27,9 +27,8 @@ public class DefaultDistribution implements Distribution {
     private String baseName;
     private final String name;
 
-    public DefaultDistribution(String name, String projectName) {
+    public DefaultDistribution(String name) {
         this.name = name;
-        this.baseName = name == MAIN_DISTRIBUTION_NAME ? projectName : String.format("%s-%s", projectName, name);
     }
 
     public String getName() {
@@ -38,5 +37,9 @@ public class DefaultDistribution implements Distribution {
 
     public String getBaseName() {
         return baseName;
+    }
+
+    public void setBaseName(String baseName) {
+        this.baseName = baseName;
     }
 }

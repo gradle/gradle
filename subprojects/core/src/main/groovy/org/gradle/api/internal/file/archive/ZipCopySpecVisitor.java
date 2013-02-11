@@ -33,7 +33,7 @@ public class ZipCopySpecVisitor extends EmptyCopySpecVisitor {
         ZipCopyAction archiveAction = (ZipCopyAction) action;
         zipFile = archiveAction.getArchivePath();
         try {
-            zipOutStr = archiveAction.getCompressor().compress(zipFile);
+            zipOutStr = archiveAction.getCompressor().createArchiveOutputStream(zipFile);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create ZIP '%s'.", zipFile), e);
         }

@@ -30,6 +30,7 @@ import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
+import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -42,15 +43,18 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final IvyModuleDescriptorInternal descriptor;
     private final Module module;
     private final IvyConfigurationContainer configurations;
+    private final DefaultIvyArtifactSet ivyArtifacts;
+    private final Set<Dependency> runtimeDependencies = new LinkedHashSet<Dependency>();
     private FileCollection descriptorFile;
     private SoftwareComponentInternal component;
 
     public DefaultIvyPublication(
-            String name, Instantiator instantiator, Module module, NotationParser<IvyArtifact> ivyArtifactParser
+            String name, Instantiator instantiator, Module module, NotationParser<IvyArtifact> ivyArtifactNotationParser
     ) {
         this.name = name;
         this.module = module;
-        configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, ivyArtifactParser, instantiator);
+        configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator);
+        ivyArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser);
         descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, this);
     }
 
@@ -76,16 +80,17 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         }
         this.component = (SoftwareComponentInternal) component;
 
-        IvyConfiguration runtimeConfiguration = getConfiguration("runtime");
         for (PublishArtifact publishArtifact : this.component.getArtifacts()) {
-            runtimeConfiguration.artifact(publishArtifact);
+            artifact(publishArtifact).setConf("runtime");
         }
 
-        IvyConfiguration defaultConfiguration = getConfiguration("default");
-        defaultConfiguration.extend(runtimeConfiguration);
+        createConfiguration("runtime");
+        createConfiguration("default").extend("runtime");
+
+        runtimeDependencies.addAll(this.component.getRuntimeDependencies());
     }
 
-    private IvyConfiguration getConfiguration(String name) {
+    private IvyConfiguration createConfiguration(String name) {
         IvyConfiguration configuration = configurations.findByName(name);
         if (configuration != null) {
             return configuration;
@@ -93,23 +98,35 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return configurations.create(name);
     }
 
-    public void configurations(Action<? super IvyConfigurationContainer> action) {
-        action.execute(configurations);
+    public void configurations(Action<? super IvyConfigurationContainer> config) {
+        config.execute(configurations);
     }
 
     public IvyConfigurationContainer getConfigurations() {
         return configurations;
     }
 
+    public IvyArtifact artifact(Object source) {
+        return ivyArtifacts.artifact(source);
+    }
+
+    public IvyArtifact artifact(Object source, Action<? super IvyArtifact> config) {
+        return ivyArtifacts.artifact(source, config);
+    }
+
+    public void setArtifacts(Iterable<?> sources) {
+        ivyArtifacts.clear();
+        for (Object source : sources) {
+            artifact(source);
+        }
+    }
+
+    public DefaultIvyArtifactSet getArtifacts() {
+        return ivyArtifacts;
+    }
+
     public FileCollection getPublishableFiles() {
-        final List<FileCollection> allFiles = new ArrayList<FileCollection>();
-        configurations.withType(DefaultIvyConfiguration.class).all(new Action<DefaultIvyConfiguration>() {
-            public void execute(DefaultIvyConfiguration ivyConfiguration) {
-                allFiles.add(ivyConfiguration.getArtifacts().getFiles());
-            }
-        });
-        allFiles.add(descriptorFile);
-        return new UnionFileCollection(allFiles);
+        return new UnionFileCollection(ivyArtifacts.getFiles(), descriptorFile);
     }
 
     public Module getModule() {
@@ -117,17 +134,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public Set<Dependency> getRuntimeDependencies() {
-        return component == null ? Collections.<Dependency>emptySet() : component.getRuntimeDependencies();
+        return runtimeDependencies;
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        final Set<IvyArtifact> allArtifacts = new LinkedHashSet<IvyArtifact>();
-        configurations.withType(DefaultIvyConfiguration.class).all(new Action<DefaultIvyConfiguration>() {
-            public void execute(DefaultIvyConfiguration ivyConfiguration) {
-                allArtifacts.addAll(ivyConfiguration.getArtifacts());
-            }
-        });
-        IvyNormalizedPublication ivyNormalizedPublication = new IvyNormalizedPublication(name, getModule(), allArtifacts, getDescriptorFile());
+        IvyNormalizedPublication ivyNormalizedPublication = new IvyNormalizedPublication(name, getModule(), ivyArtifacts, getDescriptorFile());
         ivyNormalizedPublication.validateArtifacts();
         return ivyNormalizedPublication;
     }

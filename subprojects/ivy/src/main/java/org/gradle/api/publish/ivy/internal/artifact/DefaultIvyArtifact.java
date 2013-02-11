@@ -28,15 +28,17 @@ public class DefaultIvyArtifact implements IvyArtifact {
     private String name;
     private String extension;
     private String type;
+    private String classifier;
+    private String conf;
 
-    public DefaultIvyArtifact(File file, String name, String extension, String type) {
+    public DefaultIvyArtifact(File file, String name, String extension, String type, String classifier) {
         this.file = file;
-        // TODO:DAZ Validate the name later when actually publishing
-        this.name = notNull(name);
+        // TODO:DAZ Validate the name later when actually publishing (validation story)
+        this.name = name;
 
-        // TODO:DAZ Handle null values in publisher, don't convert here (part of validation story)
-        this.extension = nullToEmpty(extension);
-        this.type = nullToEmpty(type);
+        this.extension = extension;
+        this.type = type;
+        this.classifier = classifier;
     }
 
     public File getFile() {
@@ -48,7 +50,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
     }
 
     public void setName(String name) {
-        this.name = notNull(name);
+        this.name = name;
     }
     
     public String getType() {
@@ -56,7 +58,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
     }
 
     public void setType(String type) {
-        this.type = notNull(type);
+        this.type = type;
     }
     
     public String getExtension() {
@@ -64,18 +66,23 @@ public class DefaultIvyArtifact implements IvyArtifact {
     }
 
     public void setExtension(String extension) {
-        this.extension = notNull(extension);
+        this.extension = extension;
     }
 
-    private String nullToEmpty(String input) {
-        return input == null ? "" : input;
+    public String getClassifier() {
+        return classifier;
     }
 
-    private String notNull(String input) {
-        if (input == null) {
-            throw new IllegalArgumentException();
-        }
-        return input;
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
+    }
+
+    public String getConf() {
+        return conf;
+    }
+
+    public void setConf(String conf) {
+        this.conf = conf;
     }
 
     public void builtBy(Object... tasks) {

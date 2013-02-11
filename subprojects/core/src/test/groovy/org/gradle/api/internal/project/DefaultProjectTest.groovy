@@ -16,18 +16,14 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.api.component.SoftwareComponentContainer
-
-import java.awt.Point
-import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
-import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileOperations
@@ -42,6 +38,7 @@ import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Factory
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.StandardOutputCapture
@@ -50,14 +47,17 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+
+import java.awt.Point
+import java.text.FieldPosition
+
 import org.gradle.api.*
 import org.gradle.api.internal.*
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.internal.reflect.Instantiator
 
 /**
  * @author Hans Dockter
@@ -92,7 +92,7 @@ class DefaultProjectTest {
     Factory<AntBuilder> antBuilderFactoryMock = context.mock(Factory.class)
     AntBuilder testAntBuilder
 
-    DefaultConfigurationContainer configurationContainerMock = context.mock(DefaultConfigurationContainer.class)
+    ConfigurationContainerInternal configurationContainerMock = context.mock(ConfigurationContainerInternal.class)
     RepositoryHandler repositoryHandlerMock = context.mock(RepositoryHandler.class)
     DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory.class)
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
@@ -170,33 +170,7 @@ class DefaultProjectTest {
         }
     }
 
-  @Ignore void testArtifacts() {
-        boolean called = false;
-        ArtifactHandler artifactHandlerMock = [testMethod: { called = true }] as ArtifactHandler
-        project.artifactHandler = artifactHandlerMock
-        project.artifacts {
-            testMethod()
-        }
-        assertTrue(called)
-  }
-
-  @Test void testDependencies() {
-      context.checking {
-          one(dependencyHandlerMock).add('conf', 'dep')
-      }
-      project.dependencies {
-          add('conf', 'dep')
-      }
-  }
-
-  @Test void testConfigurations() {
-        Closure cl = { }
-        context.checking {
-          one(configurationContainerMock).configure(cl)
-        }
-        project.configurationContainer = configurationContainerMock
-        project.configurations cl
-    }
+    //TODO please move more coverage to NewDefaultProjectTest
 
   @Test void testScriptClasspath() {
         context.checking {

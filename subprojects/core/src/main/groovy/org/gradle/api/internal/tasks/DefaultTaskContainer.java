@@ -118,7 +118,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
         projectAccessListener.beforeRequestingTaskByPath(project);
 
-        project.ensureEvaluated();
         return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
     }
 

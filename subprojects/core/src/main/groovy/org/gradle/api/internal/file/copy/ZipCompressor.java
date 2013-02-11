@@ -22,5 +22,5 @@ import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFacto
 
 public interface ZipCompressor extends ArchiveOutputStreamFactory {
 
-    ZipOutputStream compress(File destination);
+    ZipOutputStream createArchiveOutputStream(File destination);
 }

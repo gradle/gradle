@@ -331,8 +331,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return dependsOnProjects;
     }
 
-
-
     public ProjectStateInternal getState() {
         return state;
     }
@@ -466,12 +464,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         projectEvaluator.evaluate(this, state);
         state.rethrowFailure();
         return this;
-    }
-
-    public void ensureEvaluated() {
-        if (this.gradle.getStartParameter().isConfigureOnDemand()) {
-            this.evaluate();
-        }
     }
 
     public TaskContainerInternal getTasks() {

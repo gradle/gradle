@@ -70,10 +70,16 @@ class IvyPublishUnicodeIntegTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "can publish artifacts with version, extension and type containing #title characters"() {
+    def "can publish artifacts with attributes containing #title characters"() {
         given:
         file("content-file") << "some content"
         def module = ivyRepo.module(organisation, moduleName, version)
+
+        def artifact = "artifact${nameSuffix}"
+        def extension = "extension${nameSuffix}"
+        def type = "type${nameSuffix}"
+        def conf = "conf${nameSuffix}"
+        def classifier = "classifier${nameSuffix}"
 
         settingsFile.text = "rootProject.name = '${moduleName}'"
         buildFile.text = """
@@ -90,7 +96,7 @@ class IvyPublishUnicodeIntegTest extends AbstractIntegrationSpec {
                     ivy(IvyPublication) {
                         configurations {
                             custom {
-                                artifact file: "content-file", name: "${artifact}", extension: "${extension}", type: "${type}"
+                                artifact file: "content-file", name: "${artifact}", extension: "${extension}", type: "${type}", conf: "${conf}", classifier: "${classifier}"
                             }
                         }
                     }
@@ -102,13 +108,12 @@ class IvyPublishUnicodeIntegTest extends AbstractIntegrationSpec {
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("ivy-${version}.xml", "${artifact}-${version}.${extension}")
-
-        // TODO:DAZ validate type in ivy file
+        module.assertArtifactsPublished("ivy-${version}.xml", "${artifact}-${version}-${classifier}.${extension}")
+        module.ivy.artifacts[artifact].hasAttributes(extension, type, [conf], classifier)
 
         where:
-        title        | organisation      | moduleName           | version               | artifact               | extension         | type
-        "non-ascii"  | "org-√æず"        | "module-∫ʙぴ"        | "version-₦ガき∆"       | "artifact-ç√∫"         | "ext-ç√∫"         | "type-ç√∫"
-        "whitespace" | "org with spaces" | "module with spaces" | "version with spaces" | "artifact with spaces" | "ext with spaces" | "type with spaces"
+        title        | organisation      | moduleName           | version               | nameSuffix
+        "non-ascii"  | "org-√æず"        | "module-∫ʙぴ"        | "version-₦ガき∆"       | "-ç√∫"
+        "whitespace" | "org with spaces" | "module with spaces" | "version with spaces" | " with spaces"
     }
 }

@@ -52,7 +52,6 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
 
-        // TODO:DAZ inject this
         moduleDescriptorStore = new ModuleDescriptorStore(new PathKeyFileStore(cacheMetadata.getCacheDir()), new IvyXmlModuleDescriptorWriter(), new IvyXmlModuleDescriptorParser());
     }
 

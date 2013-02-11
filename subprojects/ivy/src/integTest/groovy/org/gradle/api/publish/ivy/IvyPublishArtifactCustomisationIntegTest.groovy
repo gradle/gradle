@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.ivy.IvyDescriptorArtifact
 
 class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
 
@@ -26,15 +27,9 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        runtime {
-                            artifact "customFile.txt"
-                            artifact customDocsTask.outputFile
-                        }
-                        custom {
-                            artifact customJar
-                        }
-                    }
+                    artifact "customFile.txt"
+                    artifact customDocsTask.outputFile
+                    artifact customJar
                 }
             }
 """, """
@@ -47,7 +42,12 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "customFile-2.4.txt", "customDocs-2.4.html", "customJar-2.4.jar")
-        // TODO:DAZ Validate configurations
+
+        and:
+        def ivy = module.ivy
+        ivy.artifacts["customFile"].hasAttributes("txt", "txt", null)
+        ivy.artifacts["customDocs"].hasAttributes("html", "html", null)
+        ivy.artifacts["customJar"].hasAttributes("jar", "jar", null)
     }
 
     def "can configure custom artifacts when creating"() {
@@ -55,23 +55,19 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        custom {
-                            artifact("customFile.txt") {
-                                name "changedFile"
-                                extension "customExt"
-                            }
-                            artifact(customDocsTask.outputFile) {
-                                name "changedDocs"
-                                type "htm"
-                                builtBy customDocsTask
-                            }
-                        }
-                        other {
-                            artifact customJar {
-                                extension "war"
-                            }
-                        }
+                    artifact("customFile.txt") {
+                        name "changedFile"
+                        extension "customExt"
+                        conf "foo,bar"
+                    }
+                    artifact(customDocsTask.outputFile) {
+                        name "changedDocs"
+                        type "htm"
+                        builtBy customDocsTask
+                    }
+                    artifact(customJar) {
+                        extension "war"
+                        conf "*"
                     }
                 }
             }
@@ -82,7 +78,12 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "changedFile-2.4.customExt", "changedDocs-2.4.html", "customJar-2.4.war")
-        // TODO:DAZ Validate configurations
+
+        and:
+        def ivy = module.ivy
+        ivy.artifacts["changedFile"].hasAttributes("customExt", "txt", ["foo", "bar"])
+        ivy.artifacts["changedDocs"].hasAttributes("html", "htm", null)
+        ivy.artifacts["customJar"].hasAttributes("war", "jar", ["*"])
     }
 
     def "can publish custom file artifacts with map notation"() {
@@ -90,12 +91,9 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        custom {
-                            artifact file: "customFile.txt", extension: "customExt"
-                            artifact file: customDocsTask.outputFile, name: "changedDocs", extension: "htm", builtBy: customDocsTask
-                        }
-                    }
+                    artifact file: "customFile.txt", extension: "customExt", conf: "foo,bar"
+                    artifact file: customDocsTask.outputFile, name: "changedDocs", extension: "htm", builtBy: customDocsTask
+                    artifact source: customJar, name: "changedJar", extension: "war", type: "web-archive", conf: "*"
                 }
             }
 """)
@@ -104,8 +102,13 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("ivy-2.4.xml", "customFile-2.4.customExt", "changedDocs-2.4.htm")
-        // TODO:DAZ Validate configurations
+        module.assertArtifactsPublished("ivy-2.4.xml", "customFile-2.4.customExt", "changedDocs-2.4.htm", "changedJar-2.4.war")
+
+        and:
+        def ivy = module.ivy
+        ivy.artifacts["customFile"].hasAttributes("customExt", "txt", ["foo", "bar"])
+        ivy.artifacts["changedDocs"].hasAttributes("htm", "html", null)
+        ivy.artifacts["changedJar"].hasAttributes("war", "web-archive", ["*"])
     }
 
     def "can set custom artifacts to override component artifacts"() {
@@ -114,11 +117,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
             publications {
                 ivy(IvyPublication) {
                     from components.java
-                    configurations {
-                        runtime {
-                            artifacts = ["customFile.txt", customDocsTask.outputFile, customJar]
-                        }
-                    }
+                    artifacts = ["customFile.txt", customDocsTask.outputFile, customJar]
                 }
             }
 """, """
@@ -130,6 +129,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "customFile-2.4.txt", "customDocs-2.4.html", "customJar-2.4.jar")
+        module.ivy.artifacts.keySet() == ["customFile", "customDocs", "customJar"] as Set
     }
 
     def "can configure custom artifacts post creation"() {
@@ -137,22 +137,15 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        runtime {
-                            artifact "customFile.txt"
-                            artifact(customDocsTask.outputFile) { builtBy customDocsTask }
-                        }
-                        custom {
-                            artifact customJar
-                        }
-                    }
+                    artifact "customFile.txt"
+                    artifact(customDocsTask.outputFile) { builtBy customDocsTask }
+                    artifact customJar
                 }
             }
 """, """
-            publishing.publications.ivy.configurations.each {
-                it.artifacts.each {
-                    it.extension = "mod"
-                }
+            publishing.publications.ivy.artifacts.each {
+                it.extension = "mod"
+                it.conf = "mod-conf"
             }
 """)
         when:
@@ -161,6 +154,11 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "customFile-2.4.mod", "customDocs-2.4.mod", "customJar-2.4.mod")
+
+        for (IvyDescriptorArtifact artifact : module.ivy.artifacts.values()) {
+            artifact.ext == "mod"
+            artifact.conf == "mod-conf"
+        }
     }
 
     def "can publish artifact with no extension"() {
@@ -169,11 +167,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        custom {
-                            artifact file('no-extension')
-                        }
-                    }
+                    artifact file('no-extension')
                 }
             }
 """)
@@ -183,6 +177,55 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "no-extension-2.4")
+        module.ivy.artifacts["no-extension"].hasAttributes(null, null, null)
+    }
+
+    def "can publish artifact with classifier"() {
+        given:
+        file("no-extension") << "some content"
+        createBuildScripts("""
+            publications {
+                ivy(IvyPublication) {
+                    artifact source: customJar, classifier: "classy"
+                }
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublished()
+        module.assertArtifactsPublished("ivy-2.4.xml", "customJar-2.4-classy.jar")
+        module.ivy.artifacts["customJar"].hasAttributes("jar", "jar", null, "classy")
+    }
+
+    def "can add custom configurations"() {
+        given:
+        createBuildScripts("""
+            publications {
+                ivy(IvyPublication) {
+                    configurations {
+                        runtime
+                        base {}
+                        custom {
+                            extend "runtime"
+                            extend "base"
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublished()
+        def ivy = module.ivy
+        ivy.configurations.keySet() == ["base", "custom", "runtime"] as Set
+        ivy.configurations["runtime"].extend == null
+        ivy.configurations["base"].extend == null
+        ivy.configurations["custom"].extend == ["runtime", "base"] as Set
     }
 
     def "reports failure publishing when validation fails"() {
@@ -192,11 +235,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    configurations {
-                        custom {
-                            artifact "a-directory"
-                        }
-                    }
+                    artifact "a-directory"
                 }
             }
 """)
