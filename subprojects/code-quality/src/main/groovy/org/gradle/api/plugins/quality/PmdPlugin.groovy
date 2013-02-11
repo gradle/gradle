@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.VersionNumber
@@ -53,9 +54,19 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSetFiles = project.files()
         }
         extension.getConventionMapping().with{
-            targetJdk = { project.sourceCompatibility }
+            targetJdk = { getDefaultTargetJdk(project.sourceCompatibility) }
         }
         return extension
+    }
+
+    TargetJdk getDefaultTargetJdk(JavaVersion javaVersion) {
+        try{
+            return TargetJdk.toVersion(javaVersion.toString())
+        }catch(IllegalArgumentException illegalArgumentException){
+            // TargetJDK does not include 1.1, 1.2 and 1.8;
+            // Use same fallback as Pmd
+            return TargetJdk.VERSION_1_4
+        }
     }
 
     @Override
@@ -79,7 +90,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSets = { extension.ruleSets }
             ruleSetFiles = { extension.ruleSetFiles }
             ignoreFailures = { extension.ignoreFailures }
-            targetJdk = { extension.targetJdk.toString() }
+            targetJdk = { extension.targetJdk }
             task.reports.all { report ->
                 report.conventionMapping.with {
                     enabled = { true }
