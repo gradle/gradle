@@ -33,14 +33,10 @@ class TargetJdkSpec extends Specification {
     def convertsStringToVersion() {
         expect:
         TargetJdk.toVersion("1.3") == TargetJdk.VERSION_1_3
+        TargetJdk.toVersion("1.4") == TargetJdk.VERSION_1_4
         TargetJdk.toVersion("1.5") == TargetJdk.VERSION_1_5
-        TargetJdk.toVersion("1.5.4") == TargetJdk.VERSION_1_5
-        TargetJdk.toVersion("1.5_4") == TargetJdk.VERSION_1_5
-        TargetJdk.toVersion("1.5.0.4_b109") == TargetJdk.VERSION_1_5
-
-        TargetJdk.toVersion("5") == TargetJdk.VERSION_1_5
-        TargetJdk.toVersion("6") == TargetJdk.VERSION_1_6
-        TargetJdk.toVersion("7") == TargetJdk.VERSION_1_7
+        TargetJdk.toVersion("1.6") == TargetJdk.VERSION_1_6
+        TargetJdk.toVersion("1.7") == TargetJdk.VERSION_1_7
         TargetJdk.toVersion("jsp") == TargetJdk.VERSION_JSP
         TargetJdk.toVersion("JSP") == TargetJdk.VERSION_JSP
     }
@@ -73,10 +69,9 @@ class TargetJdkSpec extends Specification {
     def convertsNumberToVersion() {
         expect:
         TargetJdk.toVersion(1.3) == TargetJdk.VERSION_1_3
+        TargetJdk.toVersion(1.4) == TargetJdk.VERSION_1_4
         TargetJdk.toVersion(1.5) == TargetJdk.VERSION_1_5
-        TargetJdk.toVersion(5) == TargetJdk.VERSION_1_5
-        TargetJdk.toVersion(6) == TargetJdk.VERSION_1_6
-        TargetJdk.toVersion(7) == TargetJdk.VERSION_1_7
+        TargetJdk.toVersion(1.6) == TargetJdk.VERSION_1_6
         TargetJdk.toVersion(1.7) == TargetJdk.VERSION_1_7
     }
 
@@ -102,7 +97,7 @@ class TargetJdkSpec extends Specification {
             TargetJdk.toVersion(value);
             org.junit.Assert.fail();
         } catch (IllegalArgumentException e) {
-            assert e.getMessage() == "Could not determine java version from '" + value + "'."
+            assert e.getMessage() == "Could not determine targetjdk from '" + value + "'."
         }
     }
 }

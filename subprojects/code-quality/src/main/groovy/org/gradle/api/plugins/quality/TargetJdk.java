@@ -16,28 +16,22 @@
 
 package org.gradle.api.plugins.quality;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * Represents the PMD targetjdk property available for PMD < 5.0
- * */
+ */
 public enum TargetJdk {
-    VERSION_1_3(false),
-    VERSION_1_4(false),
-    VERSION_1_5(true),
-    VERSION_1_6(true),
-    VERSION_1_7(true),
-    VERSION_JSP(false);
+    VERSION_1_3,
+    VERSION_1_4,
+    VERSION_1_5,
+    VERSION_1_6,
+    VERSION_1_7,
+    VERSION_JSP;
 
-    private boolean hasMajorVersion;
-
-    private TargetJdk(boolean hasMajorVersion) {
-        this.hasMajorVersion = hasMajorVersion;
+    private TargetJdk() {
     }
 
     /**
-     * Converts the given object into a {@code JavaVersion}.
+     * Converts the given object into a {@code TargetJdk}.
      *
      * @param value An object whose toString() value is to be converted. May be null.
      * @return The version, or null if the provided value is null.
@@ -52,25 +46,21 @@ public enum TargetJdk {
         }
 
         String name = value.toString();
-        if(name.equalsIgnoreCase("jsp")){
+        if (name.equalsIgnoreCase("1.7")) {
+            return VERSION_1_7;
+        } else if (name.equalsIgnoreCase("1.6")) {
+            return VERSION_1_6;
+        } else if (name.equalsIgnoreCase("1.5")) {
+            return VERSION_1_5;
+        } else if (name.equalsIgnoreCase("1.4")) {
+            return VERSION_1_4;
+        } else if (name.equalsIgnoreCase("1.3")) {
+            return VERSION_1_3;
+        } else if (name.equalsIgnoreCase("jsp")) {
             return VERSION_JSP;
+        } else {
+            throw new IllegalArgumentException(String.format("Could not determine targetjdk from '%s'.", name));
         }
-
-        if (name.matches("\\d")) {
-            int index = Integer.parseInt(name) - 1;
-            if (index > 1 && index <= values().length && values()[index-2].hasMajorVersion) {
-                return values()[index-2];
-            }
-        }
-
-        Matcher matcher = Pattern.compile("1\\.(\\d)(\\D.*)?").matcher(name);
-        if (matcher.matches()) {
-            int versionIdx = Integer.parseInt(matcher.group(1)) - 1;
-            if (versionIdx > 1 && versionIdx <= values().length) {
-                return values()[versionIdx - 2];
-            }
-        }
-        throw new IllegalArgumentException(String.format("Could not determine java version from '%s'.", name));
     }
 
     @Override
