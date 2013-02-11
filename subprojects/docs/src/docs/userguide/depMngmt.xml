@@ -206,7 +206,7 @@
             <title>Use Dynamic Versions and Changing Modules</title>
             <para>There are many situation when you want to use the latest version of a particular dependency, or the latest in a range of versions. This can be a requirement during development, or
                 you may be developing a library that is designed to work with a range of dependency versions. You can easily depend on these constantly changing dependencies by using a<emphasis>
-                    dynamic version</emphasis>. A dynamic version can be either a version range (eg.<literal>2.+</literal>) or it can be a placeholder for the latest version available (eg.<literal>
+                    dynamic version</emphasis>. A dynamic version can be either a version range (e.g.<literal>2.+</literal>) or it can be a placeholder for the latest version available (e.g.<literal>
                     latest.integration</literal>).
             </para>
             <para>Alternatively, sometimes the module you request can change over time, even for the same version. An example of this type of
@@ -1162,7 +1162,7 @@ someroot/[artifact]-[revision].[ext]
                     Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache.
                     The information stored in the metadata cache includes:
                     <itemizedlist>
-                        <listitem>The result of resolving a dynamic version (eg 1.+) to a concrete version (eg 1.2).</listitem>
+                        <listitem>The result of resolving a dynamic version (e.g. <literal>1.+</literal>) to a concrete version (e.g. <literal>1.2</literal>).</listitem>
                         <listitem>The resolved module metadata for a particular module, including module artifacts and module dependencies.</listitem>
                         <listitem>The resolved artifact metadata for a particular artifact, including a pointer to the downloaded artifact file.</listitem>
                         <listitem>The

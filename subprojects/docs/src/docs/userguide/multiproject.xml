@@ -605,7 +605,7 @@
         </para>
         <para>Two projects are said to be <emphasis>decoupled</emphasis> if they do not directly access each other's project model. Decoupled projects may only interact in terms of
             declared dependencies: project dependencies (<xref linkend='sub:project_dependencies'/>) and/or task dependencies (<xref linkend='sec:task_dependencies'/>).
-            Any other form of project interaction (ie. by modifying another project object or by reading a value from another project object) causes the projects to
+            Any other form of project interaction (i.e. by modifying another project object or by reading a value from another project object) causes the projects to
             be coupled.
         </para>
         <para>
@@ -615,7 +615,7 @@
             define common configuration, but as far as Gradle is concerned this root project is still a fully-fledged project, and by using <literal>allprojects</literal>
             that project is effectively coupled to all other projects.
         </para>
-        <para>This means that using any form of shared build script logic or configuration injection (<literal>allprojects</literal>, <literal>subprojects</literal>, etc)
+        <para>This means that using any form of shared build script logic or configuration injection (<literal>allprojects</literal>, <literal>subprojects</literal>, etc.)
             will cause your projects to be coupled. As we extend the concept of project decoupling and provide features that take advantage of decoupled projects,
             we will also introduce new features to help you to solve common use cases (like configuration injection) without causing your projects to be coupled.
         </para>
