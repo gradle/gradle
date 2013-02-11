@@ -54,7 +54,7 @@ configurations {
 }
 
 repositories {
-  maven { url "${mavenRepo.toURI()}" }
+  maven { url "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -126,7 +126,7 @@ apply plugin: 'war'
 apply plugin: 'eclipse-wtp'
 
 repositories {
-  maven { url "${mavenRepo.toURI()}" }
+  maven { url "${mavenRepo.uri}" }
 }
 
 dependencies {
