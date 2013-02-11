@@ -8,32 +8,40 @@ subprojects {
     repositories {
         mavenCentral()
     }
-
+    // START SNIPPET publish-custom-artifact
     task sourceJar(type: Jar) {
         from sourceSets.main.java
         classifier "source"
     }
+    // END SNIPPET publish-custom-artifact
 }
 
 project(":project1") {
+    description = "The first project"
+
     dependencies {
        compile 'junit:junit:4.11', project(':project2')
     }
 }
 
 project(":project2") {
+    description = "The second project"
+
     dependencies {
        compile 'commons-collections:commons-collections:3.1'
     }
 }
 
 subprojects {
+// START SNIPPET publish-custom-artifact
     publishing {
+// END SNIPPET publish-custom-artifact
         repositories {
             ivy {
                 url "file://${rootProject.buildDir}/repo" // change to point to your repo, e.g. http://my.org/repo
             }
         }
+// START SNIPPET publish-custom-artifact
         publications {
             ivy(IvyPublication) {
                 from components.java
@@ -41,7 +49,13 @@ subprojects {
                     type "source"
                     conf "runtime"
                 }
+// END SNIPPET publish-custom-artifact
+                descriptor.withXml {
+                    asNode().info[0].appendNode('description', description)
+                }
+// START SNIPPET publish-custom-artifact
             }
         }
     }
+// END SNIPPET publish-custom-artifact
 }

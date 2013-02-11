@@ -66,6 +66,18 @@
     </section>
     <section id="publishing_maven:publications">
         <title>Publications</title>
+        <note>
+            <para>
+                If you are not familiar with project artifacts and configurations, you should read the <xref linkend="artifact_management" />
+                that introduces these concepts. This chapter also describes “publishing artifacts” using a different mechanism than what is
+                described in this chapter. The publishing functionality described here will eventually supersede that functionality.
+            </para>
+        </note>
+        <para>
+            Publication objects describe the structure/configuration of a publication to be created. Publications are published to repositories via tasks, and the
+            configuration of the publication object determines exactly what is published. All of the publications of a project are defined in the
+            <apilink class="org.gradle.api.publish.PublishingExtension" method="getPublications()" /> container. Each publication has a unique name within the project.
+        </para>
         <para>
             For the “<literal>maven-publish</literal>” plugin to have any effect, a <apilink class="org.gradle.api.publish.maven.MavenPublication" /> must be added to the set of publications.
             This publication determines which artifacts are actually published as well as the details included in the associated POM file.
@@ -158,8 +170,14 @@
             <para>
                 See <apilink class="org.gradle.api.publish.maven.MavenPom" method="withXml(org.gradle.api.Action)" /> for the relevant API reference documentation.
             </para>
+            <para>
+                It is possible to modify any aspect of the created POM should you need to.
+                This means that it is also possible to modify the POM in such a way that it is no longer a valid
+                Maven Pom, so care must be taken when using this feature.
+            </para>
         </section>
     </section>
+
     <section id="publishing_maven:repositories">
         <title>Repositories</title>
         <para>

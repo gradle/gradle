@@ -1,14 +1,9 @@
-:generateIvyModuleDescriptor
-:subproject:compileJava
-:subproject:processResources UP-TO-DATE
-:subproject:classes
-:subproject:jar
-:compileJava
+:generateIvyJavaIvyModuleDescriptor
+:compileJava UP-TO-DATE
 :processResources UP-TO-DATE
-:classes
+:classes UP-TO-DATE
 :jar
-:sourceJar
-:publishIvyPublicationToIvyRepository
+:publishIvyJavaPublicationToIvyRepository
 
 BUILD SUCCESSFUL
 

@@ -16,6 +16,7 @@
 package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.util.TextUtil
 import org.junit.Rule
 
 public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
@@ -59,6 +60,8 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies.runtime.assertDependsOn('junit', 'junit', '4.11')
             dependencies.runtime.assertDependsOn('org.gradle.sample', 'project2', '1.0')
+
+            description == "The first project"
         }
 
         and:
@@ -69,7 +72,16 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
             configurations.keySet() == ['default', 'runtime'] as Set
 
             dependencies.runtime.assertDependsOn('commons-collections', 'commons-collections', '3.1')
+
+            description == "The second project"
         }
+
+        def actualIvyXmlText = project1module.ivyFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
+        actualIvyXmlText == getExpectedIvyOutput(javaProject.dir.file("output-ivy.xml"))
+    }
+
+    String getExpectedIvyOutput(def outputFile) {
+        outputFile.readLines()[1..-1].join(TextUtil.getPlatformLineSeparator()).trim()
     }
 
     def "descriptor-customization sample"() {

@@ -4,7 +4,7 @@ group = 'org.gradle.sample'
 version = '1.0'
 
 publishing {
-// START SNIPPET descriptor-modification
+// START SNIPPET customize-descriptor
     publications {
         ivyCustom(IvyPublication) {
             descriptor.withXml {
@@ -12,7 +12,7 @@ publishing {
             }
         }
     }
-// END SNIPPET descriptor-modification
+// END SNIPPET customize-descriptor
     repositories {
         ivy {
             url "file://$buildDir/repo" // change to point to your repo, e.g. http://my.org/repo
