@@ -29,21 +29,20 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
             return new LinkedList<ProgressLogger>();
         }
     };
-    private final LoggerBuilder loggerBuilder;
+    private final ProgressLoggerFactory loggerFactory;
 
     public DependencyResolutionLogger(ProgressLoggerFactory loggerFactory) {
-        this(new LoggerBuilder(loggerFactory));
-    }
-
-    public DependencyResolutionLogger(LoggerBuilder loggerBuilder) {
-        this.loggerBuilder = loggerBuilder;
+        this.loggerFactory = loggerFactory;
     }
 
     //TODO SF add concurrent unit test coverage
     public void beforeResolve(ResolvableDependencies dependencies) {
         LinkedList<ProgressLogger> loggers = progressLoggers.get();
         progressLoggers.set(loggers);
-        ProgressLogger logger = loggerBuilder.newLogger(dependencies);
+        ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
+        logger.setDescription(String.format("Resolve %s", dependencies));
+        logger.setShortDescription(String.format("Resolving %s", dependencies));
+        logger.started();
         loggers.add(logger);
     }
 
@@ -56,23 +55,6 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
         logger.completed();
         if (loggers.isEmpty()) {
             progressLoggers.remove();
-        }
-    }
-
-    static class LoggerBuilder {
-
-        private final ProgressLoggerFactory loggerFactory;
-
-        public LoggerBuilder(ProgressLoggerFactory loggerFactory) {
-            this.loggerFactory = loggerFactory;
-        }
-
-        public ProgressLogger newLogger(ResolvableDependencies dependencies) {
-            ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
-            logger.setDescription(String.format("Resolve %s", dependencies));
-            logger.setShortDescription(String.format("Resolving %s", dependencies));
-            logger.started();
-            return logger;
         }
     }
 }

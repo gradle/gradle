@@ -21,10 +21,10 @@ import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
 class DependencyResolutionLoggerTest extends Specification {
-    DependencyResolutionLogger.LoggerBuilder loggerBuilder = Mock()
+    ProgressLoggerFactory loggerFactory = Stub()
     ResolvableDependencies dependencies = Mock()
     ProgressLogger progressLogger = Mock()
-    DependencyResolutionLogger logger = new DependencyResolutionLogger(loggerBuilder)
+    DependencyResolutionLogger logger = new DependencyResolutionLogger(loggerFactory)
 
     def "generates progress logging events as dependency sets are resolved"() {
         def progressLoggerFactory = Mock(ProgressLoggerFactory)
@@ -51,33 +51,25 @@ class DependencyResolutionLoggerTest extends Specification {
         def otherDeps = Mock(ResolvableDependencies, name: "otherDeps")
         def otherLogger = Mock(ProgressLogger, name: "otherLogger")
 
+        loggerFactory.newOperation(_) >>> [progressLogger, otherLogger]
+
         when:
         logger.beforeResolve(dependencies)
-
-        then:
-        1 * loggerBuilder.newLogger(dependencies) >> progressLogger
-        0 * _
-
-        when:
         logger.beforeResolve(otherDeps)
 
-        then:
-        1 * loggerBuilder.newLogger(otherDeps) >> otherLogger
-        0 * _
-
-        when:
+        and:
         logger.afterResolve(otherDeps)
-
-        then:
-        1 * otherLogger.completed()
-        0 * _
-
-        when:
         logger.afterResolve(dependencies)
 
         then:
+        1 * otherLogger.completed()
+        then:
         1 * progressLogger.completed()
-        0 * _
+
+        when:
+        logger.afterResolve(dependencies)
+        then:
+        thrown(IllegalStateException)
     }
 
     def "cannot complete resolution without starting it first"() {
@@ -89,8 +81,6 @@ class DependencyResolutionLoggerTest extends Specification {
     }
 
     def "fails fast if afterResolve called multiple times"() {
-        loggerBuilder.newLogger(_) >> progressLogger
-
         when:
         logger.beforeResolve(dependencies)
 
