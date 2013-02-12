@@ -65,7 +65,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
                     ivy {
                         descriptor {
                             withXml {
-                                asNode().info[0].@revision = "3"
+                                asNode().info[0].appendNode('description', 'Customized descriptor')
                             }
                         }
                     }
@@ -79,9 +79,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
         ":jar" in skippedTasks
 
         and:
-        // Note that the modified “coordinates” do not affect how the module is published
-        // This is not the desired behaviour and will be fixed in the future so that XML modification changes the publication model consistently.
-        module.ivy.revision == "3"
+        module.ivy.description == "Customized descriptor"
     }
 
     def "can generate ivy.xml without publishing"() {
@@ -122,5 +120,26 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
         failure.assertHasDescription("Execution failed for task ':generateIvyModuleDescriptor'")
         failure.assertHasCause("Could not apply withXml() to Ivy module descriptor")
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
+    }
+
+    def "produces sensible error when withXML modifies publication coordinates"() {
+        when:
+        buildFile << """
+            publishing {
+                publications {
+                    ivy {
+                        descriptor.withXml {
+                            asNode().info[0].@revision = "2.1"
+                        }
+                    }
+                }
+            }
+        """
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'")
+        failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
+        failure.assertHasCause("Publication revision does not match ivy descriptor. Cannot edit revision directly in the ivy descriptor file.")
     }
 }

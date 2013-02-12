@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-
-
-package org.gradle.api.publish.maven
-
+package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.maven.MavenFileModule
+import org.gradle.test.fixtures.ivy.IvyFileModule
 import spock.lang.Unroll
 
-class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec {
+class IvyPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec {
     private static final String PUNCTUATION_CHARS = '-!@#$%^&*()_+=,.?{}[]<>'
     private static final String NON_ASCII_CHARS = '-√æず∫ʙぴ₦ガき∆ç√∫'
     private static final String FILESYSTEM_RESERVED_CHARS = '-/\\?%*:|"<>.'
@@ -31,32 +28,33 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
     // TODO:DAZ These are currently unsupported for filesystem repositories. Fix or prevent with validation.
     private static final String UNSUPPORTED_CHARS = '/\\:.'
 
-    // Group and Artifact are restricted to [A-Za-z0-9_\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
-    def groupId = 'a-valid.group'
-    def artifactId = 'valid_artifact.name'
-
     @Unroll
-    def "can publish with version and description containing #title characters"() {
+    def "can publish with project coordinates containing #title characters"() {
         given:
-        def version = "version${suffix}"
+        file("content-file") << "some content"
+        def organisation = "organisation${suffix}"
+        def moduleName = "module${suffix}"
+        def version = "revision${suffix}"
         def description = "description${suffix}"
-        settingsFile << "rootProject.name = '${artifactId}'"
-        buildFile << """
-            apply plugin: 'maven-publish'
+        def module = ivyRepo.module(organisation, moduleName, version)
+
+        settingsFile.text = "rootProject.name = '${moduleName}'"
+        buildFile.text = """
+            apply plugin: 'ivy-publish'
             apply plugin: 'java'
 
-            group = '${groupId}'
+            group = '${organisation}'
             version = '${version}'
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    ivy { url "${ivyRepo.uri}" }
                 }
                 publications {
-                    maven(MavenPublication) {
+                    ivy(IvyPublication) {
                         from components.java
-                        pom.withXml {
-                            asNode().appendNode('description', '${description}')
+                        descriptor.withXml {
+                            asNode().info[0].appendNode('description', '${description}')
                         }
                     }
                 }
@@ -66,12 +64,11 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module(groupId, artifactId, version)
-        module.assertPublishedAsJavaModule()
-        module.parsedPom.description == description
+        module.assertPublished()
+        module.ivy.description == description
 
         and:
-        resolveArtifacts(module) == ["${artifactId}-${version}.jar"]
+        resolveArtifacts(module) == ["${moduleName}-${version}.jar"]
 
         where:
         title        | suffix
@@ -83,30 +80,36 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
     }
 
     @Unroll
-    def "can publish artifacts with version, extension and classifier containing #title characters"() {
+    def "can publish artifacts with attributes containing #title characters"() {
         given:
         file("content-file") << "some content"
-        def version = "version${suffix}"
-        def extension = "extension${suffix}"
-        def classifier = "classifier${suffix}"
 
-        and:
-        settingsFile << "rootProject.name = '${artifactId}'"
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+        def organisation = "organisation${nameSuffix}"
+        def moduleName = "module${nameSuffix}"
+        def version = "revision${nameSuffix}"
+        def module = ivyRepo.module(organisation, moduleName, version)
 
-            group = '${groupId}'
+        def artifact = "artifact${nameSuffix}"
+        def extension = "extension${nameSuffix}"
+        def type = "type${nameSuffix}"
+        def conf = "conf${nameSuffix}".replace(",", "") // conf uses ',' as a delimiter
+        def classifier = "classifier${nameSuffix}"
+
+        settingsFile.text = "rootProject.name = '${moduleName}'"
+        buildFile.text = """
+            apply plugin: 'ivy-publish'
+
+            group = '${organisation}'
             version = '${version}'
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    ivy { url "${ivyRepo.uri}" }
                 }
                 publications {
-                    maven(MavenPublication) {
-                        from components.java
-                        artifact file: 'content-file', extension: '${extension}', classifier: '${classifier}'
+                    ivy(IvyPublication) {
+                        configurations.create('${conf}')
+                        artifact file: 'content-file', name: '${artifact}', extension: '${extension}', type: '${type}', conf: '${conf}', classifier: '${classifier}'
                     }
                 }
             }
@@ -115,16 +118,14 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module(groupId, artifactId, version)
         module.assertPublished()
-
-        module.assertArtifactsPublished("${artifactId}-${version}.pom", "${artifactId}-${version}.jar", "${artifactId}-${version}-${classifier}.${extension}")
+        module.assertArtifactsPublished("ivy-${version}.xml", "${artifact}-${version}-${classifier}.${extension}")
 
         and:
-        resolveArtifacts(module, extension, classifier) == ["${artifactId}-${version}-${classifier}.${extension}"]
+        resolveArtifacts(module, conf) == ["${artifact}-${version}-${classifier}.${extension}"]
 
         where:
-        title        | suffix
+        title        | nameSuffix
         "punctuation"| removeUnsupported(PUNCTUATION_CHARS)
         "non-ascii"  | removeUnsupported(NON_ASCII_CHARS)
         "whitespace" | " with spaces"
@@ -134,18 +135,17 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
 
     def "fails with reasonable error message for invalid identifier value"() {
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
 
             group = ''
             version = ''
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    ivy { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    maven(MavenPublication)
+                    ivy(IvyPublication)
                 }
             }
         """
@@ -153,27 +153,28 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
         fails 'publish'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':publishMavenPublicationToMavenRepository'"
-        failure.assertHasCause "Failed to publish publication 'maven' to repository 'maven'"
-        failure.assertHasCause "The groupId value cannot be empty"
+        failure.assertHasDescription "Execution failed for task ':publishIvyPublicationToIvyRepository'"
+        failure.assertHasCause "Failed to publish publication 'ivy' to repository 'ivy'"
+        failure.assertHasCause "The organisation value cannot be empty"
     }
 
-    private def resolveArtifacts(MavenFileModule module) {
-        doResolveArtifacts("group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}'")
+    private def resolveArtifacts(IvyFileModule module) {
+        doResolveArtifacts("group: '${module.organisation}', name: '${module.module}', version: '${module.revision}'")
     }
 
-    private def resolveArtifacts(MavenFileModule module, def extension, def classifier) {
-        doResolveArtifacts("group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}', classifier: '${classifier}', ext: '${extension}'")
+    private def resolveArtifacts(IvyFileModule module, def configuration) {
+        doResolveArtifacts("group: '${module.organisation}', name: '${module.module}', version: '${module.revision}', configuration: '${configuration}'")
     }
 
     private def doResolveArtifacts(def dependency) {
+        // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
         buildFile.text = """
             configurations {
                 resolve
             }
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                ivy { url "${ivyRepo.uri}" }
             }
             dependencies {
                 resolve $dependency
@@ -196,4 +197,5 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
         }
         return output
     }
+
 }

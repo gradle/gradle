@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 
 /**
- * A {@code MavenPublishValidationException} is thrown when attempting to publish with an invalid {@link MavenPublication}.
+ * Thrown when attempting to publish with an invalid {@link MavenPublication}.
  *
  * @since 1.4
  */
