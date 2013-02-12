@@ -28,11 +28,11 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
 
     def "can customise pom xml"() {
         given:
-        settingsFile << "rootProject.name = 'root'"
+        settingsFile << "rootProject.name = 'customisePom'"
         buildFile << """
             apply plugin: 'maven-publish'
 
-            group = 'group'
+            group = 'org.gradle.test'
             version = '1.0'
 
             publishing {
@@ -42,9 +42,6 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                 publications {
                     mavenCustom(MavenPublication) {
                         pom.withXml {
-                            asNode().groupId[0].value = "changed-group"
-                            asNode().artifactId[0].value = "changed-artifact"
-                            asNode().version[0].value = "changed-version"
                             asNode().appendNode('description', "custom-description")
 
                             def dependency = asNode().appendNode('dependencies').appendNode('dependency')
@@ -61,7 +58,7 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         succeeds 'publish'
 
         then:
-        def module = mavenRepo.module('changed-group', 'changed-artifact', 'changed-version')
+        def module = mavenRepo.module('org.gradle.test', 'customisePom', '1.0')
         module.assertPublished()
         module.parsedPom.description == 'custom-description'
         module.parsedPom.scopes.runtime.assertDependsOn("junit", "junit", "4.11")
@@ -139,5 +136,37 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':generatePomFileForMavenPublication'")
         failure.assertHasCause("Could not apply withXml() to generated POM")
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
+    }
+
+    def "has reasonable error message when withXml produces invalid POM file"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        pom.withXml {
+                            asNode().appendNode('invalid-node', "This is not a valid node for a Maven POM")
+                        }
+                    }
+                }
+            }
+        """
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'")
+        failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
+        failure.assertHasCause("POM file is invalid. Check any modifications you have made to the POM file.")
     }
 }

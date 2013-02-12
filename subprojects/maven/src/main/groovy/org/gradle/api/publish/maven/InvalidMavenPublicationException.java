@@ -29,4 +29,8 @@ public class InvalidMavenPublicationException extends InvalidUserDataException {
     public InvalidMavenPublicationException(String message) {
         super(message);
     }
+
+    public InvalidMavenPublicationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

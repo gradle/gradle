@@ -19,7 +19,14 @@ package org.gradle.api.publish.maven.internal.publisher;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.internal.MavenProjectIdentity;
+import org.gradle.internal.UncheckedException;
+import org.gradle.mvn3.org.apache.maven.model.Model;
+import org.gradle.mvn3.org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.gradle.mvn3.org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.util.GUtil;
+
+import java.io.File;
+import java.io.FileReader;
 
 public class ValidatingMavenPublisher implements MavenPublisher {
     private static final java.lang.String ID_REGEX = "[A-Za-z0-9_\\-.]+";
@@ -30,12 +37,13 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
-        validate(publication.getProjectIdentity());
+        validateIdentity(publication.getProjectIdentity());
+        validatePomFileCoordinates(publication.getProjectIdentity(), publication.getPomFile());
 
         delegate.publish(publication, artifactRepository);
     }
 
-    private void validate(MavenProjectIdentity projectIdentity) {
+    private void validateIdentity(MavenProjectIdentity projectIdentity) {
         checkValidMavenIdentifier("groupId", projectIdentity.getGroupId());
         checkValidMavenIdentifier("artifactId", projectIdentity.getArtifactId());
         checkNonEmpty("version", projectIdentity.getVersion());
@@ -51,6 +59,32 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     private void checkNonEmpty(String name, String value) {
         if (!GUtil.isTrue(value)) {
             throw new InvalidMavenPublicationException(String.format("The %s value cannot be empty", name));
+        }
+    }
+
+    private void validatePomFileCoordinates(MavenProjectIdentity projectIdentity, File pomFile) {
+        Model model = parsePomFileIntoMavenModel(pomFile);
+        checkMatches("groupId", projectIdentity.getGroupId(), model.getGroupId());
+        checkMatches("artifactId", projectIdentity.getArtifactId(), model.getArtifactId());
+        checkMatches("version", projectIdentity.getVersion(), model.getVersion());
+    }
+
+    private void checkMatches(String name, String projectIdentityValue, String pomFileValue) {
+        if (!projectIdentityValue.equals(pomFileValue)) {
+            throw new InvalidMavenPublicationException(String.format("Publication %1$s does not match POM file value. Cannot edit %1$s directly in the POM file.", name));
+        }
+    }
+
+    private Model parsePomFileIntoMavenModel(File pomFile) {
+        try {
+            FileReader reader = new FileReader(pomFile);
+            Model model = new MavenXpp3Reader().read(reader);
+            model.setPomFile(pomFile);
+            return model;
+        } catch (XmlPullParserException parseException) {
+            throw new InvalidMavenPublicationException("POM file is invalid. Check any modifications you have made to the POM file.", parseException);
+        } catch (Exception ex) {
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 }
