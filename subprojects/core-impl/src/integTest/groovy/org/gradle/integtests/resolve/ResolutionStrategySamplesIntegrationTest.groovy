@@ -18,8 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 /**
@@ -29,8 +27,6 @@ class ResolutionStrategySamplesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder, 'userguide/artifacts/resolutionStrategy')
 
-    @Requires(TestPrecondition.NOT_JDK5)
-    //because some of the api of the samples does not work with JDK5, see GRADLE-1949
     void "can resolve dependencies"()
     {
         mavenRepo.module("org", "foo").publish()

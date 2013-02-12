@@ -26,6 +26,7 @@ import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
+import org.gradle.api.internal.notations.parsers.TimeUnitsNotationParser;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -98,8 +99,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public void cacheDynamicVersionsFor(int value, String units) {
-        TimeUnit timeUnit = TimeUnit.valueOf(units.toUpperCase());
-        cacheDynamicVersionsFor(value, timeUnit);
+        TimeUnitsNotationParser parser = new TimeUnitsNotationParser(value);
+        TimeUnit timeUnit = parser.parseNotation(units);
+        cacheDynamicVersionsFor(parser.getNormalizedValue(), timeUnit);
     }
 
     public void cacheDynamicVersionsFor(int value, TimeUnit units) {
@@ -107,8 +109,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public void cacheChangingModulesFor(int value, String units) {
-        TimeUnit timeUnit = TimeUnit.valueOf(units.toUpperCase());
-        cacheChangingModulesFor(value, timeUnit);
+        TimeUnitsNotationParser parser = new TimeUnitsNotationParser(value);
+        TimeUnit timeUnit = parser.parseNotation(units);
+        cacheChangingModulesFor(parser.getNormalizedValue(), timeUnit);
     }
 
     public void cacheChangingModulesFor(int value, TimeUnit units) {

@@ -22,6 +22,8 @@ import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import spock.lang.Specification
 
+import java.util.concurrent.TimeUnit
+
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.util.Assertions.assertThat
 
@@ -30,7 +32,8 @@ import static org.gradle.util.Assertions.assertThat
  */
 public class DefaultResolutionStrategySpec extends Specification {
 
-    def strategy = new DefaultResolutionStrategy()
+    def cachePolicy = Mock(DefaultCachePolicy)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, [] as Set)
 
     def "allows setting forced modules"() {
         expect:
@@ -141,11 +144,8 @@ public class DefaultResolutionStrategySpec extends Specification {
     def "provides a copy"() {
         given:
         def newCachePolicy = Mock(DefaultCachePolicy)
-        def cachePolicy = Mock(DefaultCachePolicy) {
-            copy() >> newCachePolicy
-        }
+        cachePolicy.copy() >> newCachePolicy
 
-        strategy = new DefaultResolutionStrategy(cachePolicy, [] as Set)
         strategy.failOnVersionConflict()
         strategy.force("org:foo:1.0")
         strategy.eachDependency(Mock(Action))
@@ -160,5 +160,37 @@ public class DefaultResolutionStrategySpec extends Specification {
 
         strategy.cachePolicy == cachePolicy
         copy.cachePolicy == newCachePolicy
+    }
+
+    def "configures changing modules cache with jdk5+ units"() {
+        when:
+        strategy.cacheChangingModulesFor(30000, "milliseconds")
+
+        then:
+        1 * cachePolicy.cacheChangingModulesFor(30000, TimeUnit.MILLISECONDS)
+    }
+
+    def "configures changing modules cache with jdk6+ units"() {
+        when:
+        strategy.cacheChangingModulesFor(5, "minutes")
+
+        then:
+        1 * cachePolicy.cacheChangingModulesFor(5 * 60 * 1000, TimeUnit.MILLISECONDS)
+    }
+
+    def "configures dynamic version cache with jdk5+ units"() {
+        when:
+        strategy.cacheDynamicVersionsFor(10000, "milliseconds")
+
+        then:
+        1 * cachePolicy.cacheDynamicVersionsFor(10000, TimeUnit.MILLISECONDS)
+    }
+
+    def "configures dynamic version cache with jdk6+ units"() {
+        when:
+        strategy.cacheDynamicVersionsFor(1, "hours")
+
+        then:
+        1 * cachePolicy.cacheDynamicVersionsFor(1 * 60 * 60 * 1000, TimeUnit.MILLISECONDS)
     }
 }
