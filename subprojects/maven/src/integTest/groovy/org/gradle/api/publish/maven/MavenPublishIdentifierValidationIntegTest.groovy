@@ -17,29 +17,28 @@
 
 
 package org.gradle.api.publish.maven
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.maven.MavenFileModule
 import spock.lang.Unroll
 
-/**
- * Tests maven POM customisation
- */
-class MavenPublishUnicodeIntegTest extends AbstractIntegrationSpec {
+class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec {
+    // Group and Artifact are restricted to [A-Za-z0-9_\\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
+    def groupId = 'a-valid.group'
+    def artifactId = 'valid_artifact.name'
 
     @Unroll
     def "can publish with version and description containing #title characters"() {
-        // Group and Artifact are restricted to [A-Za-z0-9_\\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
-        def groupId = 'group'
-        def artifactId = 'artifact'
-
         given:
-        file("content-file") << "some content"
+        def version = "version${suffix}"
+        def description = "description${suffix}"
         settingsFile << "rootProject.name = '${artifactId}'"
         buildFile << """
             apply plugin: 'maven-publish'
             apply plugin: 'java'
 
             group = '${groupId}'
-            version = '${version}'
+            version = "${version}"
 
             publishing {
                 repositories {
@@ -47,6 +46,7 @@ class MavenPublishUnicodeIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     maven(MavenPublication) {
+                        from components.java
                         pom.withXml {
                             asNode().appendNode('description', "${description}")
                         }
@@ -59,25 +59,25 @@ class MavenPublishUnicodeIntegTest extends AbstractIntegrationSpec {
 
         then:
         def module = mavenRepo.module(groupId, artifactId, version)
-        module.assertPublishedAsPomModule()
+        module.assertPublishedAsJavaModule()
         module.parsedPom.description == description
 
-        where:
-        title        | version               | description
-        "non-ascii"  | "version-₦ガき∆"        | "description-ç√∫"
-        "whitespace" | "version with spaces" | "description with spaces"
+        and:
+        resolveArtifacts(module) == ["${artifactId}-${version}.jar"]
 
-        // TODO:DAZ This doesn't currently work: fix this or explicitly fail in validation story
-//        "xml markup" "<version-html/>" | "Description <b>with</b> markup"
+        where:
+        title        | suffix
+        "punctuation"| "-#%@*&(){}<>"
+        "non-ascii"  | "-₦ガき∆ç√∫"
+        "whitespace" | " with spaces"
+
+        // TODO:DAZ These don't work. Fix or prevent with validation
+//        "filesystem" | "\\\\ . /"
+//        "xml markup" | "<with-xml-markup/>"
     }
 
     @Unroll
     def "can publish artifacts with version, extension and classifier containing #title characters"() {
-        // Group and Artifact are restricted to [A-Za-z0-9_\\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
-        def groupId = 'group'
-        def artifactId = 'artifact'
-
-
         given:
         file("content-file") << "some content"
         settingsFile << "rootProject.name = '${artifactId}'"
@@ -94,6 +94,7 @@ class MavenPublishUnicodeIntegTest extends AbstractIntegrationSpec {
                 }
                 publications {
                     maven(MavenPublication) {
+                        from components.java
                         artifact file: "content-file", extension: "${extension}", classifier: "${classifier}"
                     }
                 }
@@ -106,7 +107,10 @@ class MavenPublishUnicodeIntegTest extends AbstractIntegrationSpec {
         def module = mavenRepo.module(groupId, artifactId, version)
         module.assertPublished()
 
-        module.assertArtifactsPublished("${artifactId}-${version}.pom", "${artifactId}-${version}-${classifier}.${extension}")
+        module.assertArtifactsPublished("${artifactId}-${version}.pom", "${artifactId}-${version}.jar", "${artifactId}-${version}-${classifier}.${extension}")
+
+        and:
+        resolveArtifacts(module, extension, classifier) == ["${artifactId}-${version}-${classifier}.${extension}"]
 
         where:
         title        | version               | extension               | classifier
@@ -115,5 +119,62 @@ class MavenPublishUnicodeIntegTest extends AbstractIntegrationSpec {
 
         // TODO:DAZ HTML markup - get it working or validate early
 //        "markup"     | "version <with/> markup" | "extension <with/> markup" | "classifier <with/> markup"
+    }
+
+
+    def "fails with reasonable error message for invalid identifier value"() {
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = ''
+            version = ''
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication)
+                }
+            }
+        """
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription "Execution failed for task ':publishMavenPublicationToMavenRepository'"
+        failure.assertHasCause "Failed to publish publication 'maven' to repository 'maven'"
+        failure.assertHasCause "The groupId value cannot be empty"
+    }
+
+    private def resolveArtifacts(MavenFileModule module) {
+        doResolveArtifacts("group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}'")
+    }
+
+    private def resolveArtifacts(MavenFileModule module, def extension, def classifier) {
+        doResolveArtifacts("group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}', classifier: '${classifier}', ext: '${extension}'")
+    }
+
+    private def doResolveArtifacts(def dependency) {
+        buildFile << """
+            configurations {
+                resolve
+            }
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                resolve $dependency
+            }
+
+            task resolveArtifacts(type: Sync) {
+                from configurations.resolve
+                into "artifacts"
+            }
+
+"""
+        assert succeeds("resolveArtifacts")
+        return file("artifacts").list()
     }
 }

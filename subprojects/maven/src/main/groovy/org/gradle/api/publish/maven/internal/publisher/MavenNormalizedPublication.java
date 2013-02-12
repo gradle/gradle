@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.api.publish.maven.internal.MavenProjectIdentity;
 
 import java.io.File;
 import java.util.Set;
@@ -26,12 +27,14 @@ public class MavenNormalizedPublication {
 
     private final String name;
     private final File pomFile;
+    private final MavenProjectIdentity projectIdentity;
     private final MavenArtifact mainArtifact;
     private final Set<MavenArtifact> additionalArtifacts;
 
-    public MavenNormalizedPublication(String name, File pomFile, MavenArtifact mainArtifact, Set<MavenArtifact> additionalArtifacts) {
+    public MavenNormalizedPublication(String name, File pomFile, MavenProjectIdentity projectIdentity, MavenArtifact mainArtifact, Set<MavenArtifact> additionalArtifacts) {
         this.name = name;
         this.pomFile = pomFile;
+        this.projectIdentity = projectIdentity;
         this.mainArtifact = mainArtifact;
         this.additionalArtifacts = additionalArtifacts;
     }
@@ -46,6 +49,10 @@ public class MavenNormalizedPublication {
 
     public Set<MavenArtifact> getAdditionalArtifacts() {
         return additionalArtifacts;
+    }
+
+    public MavenProjectIdentity getProjectIdentity() {
+        return projectIdentity;
     }
 
     public void validateArtifacts() {

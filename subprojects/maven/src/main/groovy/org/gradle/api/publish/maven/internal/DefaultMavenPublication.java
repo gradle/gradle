@@ -124,7 +124,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public MavenNormalizedPublication asNormalisedPublication() {
         // TODO:DAZ Change this so that the MavenNormalizedPublication just has a set of artifacts. Move determination of 'main' artifact into MavenPublisher
-        MavenNormalizedPublication mavenNormalizedPublication = new MavenNormalizedPublication(name, getPomFile(), getMainArtifact(), getAdditionalArtifacts());
+        MavenNormalizedPublication mavenNormalizedPublication = new MavenNormalizedPublication(name, getPomFile(), projectIdentity, getMainArtifact(), getAdditionalArtifacts());
         // TODO:DAZ Move this into MavenPublisher
         mavenNormalizedPublication.validateArtifacts();
         return mavenNormalizedPublication;

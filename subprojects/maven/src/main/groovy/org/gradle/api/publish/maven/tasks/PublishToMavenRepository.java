@@ -27,6 +27,7 @@ import org.gradle.api.publish.maven.internal.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.AntTaskBackedMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
+import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
@@ -142,9 +143,11 @@ public class PublishToMavenRepository extends DefaultTask {
         new PublishOperation(publication, repository) {
             @Override
             protected void publish() throws Exception {
+                // TODO:DAZ inject this
                 MavenPublisher antBackedPublisher = new AntTaskBackedMavenPublisher(loggingManagerFactory, getTemporaryDirFactory());
                 MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(antBackedPublisher);
-                staticLockingPublisher.publish(publication.asNormalisedPublication(), repository);
+                MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
+                validatingPublisher.publish(publication.asNormalisedPublication(), repository);
             }
         }.run();
     }
