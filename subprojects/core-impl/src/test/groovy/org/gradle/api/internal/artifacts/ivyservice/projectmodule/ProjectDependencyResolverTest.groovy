@@ -21,14 +21,17 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.initialization.ProjectAccessListener
 import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
     final ProjectModuleRegistry registry = Mock()
-    final DependencyDescriptor dependencyDescriptor = Mock()
     final ModuleRevisionId moduleRevisionId = Mock()
     final DependencyToModuleResolver target = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target)
+    final ProjectAccessListener projectAccessListener = Mock()
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target, projectAccessListener)
 
     def "resolves project dependency"() {
         setup:
@@ -36,8 +39,12 @@ class ProjectDependencyResolverTest extends Specification {
         1 * moduleRevisionId.name >> "project"
         1 * moduleRevisionId.revision >> "1.0"
 
-        ModuleDescriptor moduleDescriptor = Mock()
-        BuildableModuleVersionResolveResult result = Mock()
+        def moduleDescriptor = Mock(ModuleDescriptor)
+        def result = Mock(BuildableModuleVersionResolveResult)
+        def dependencyProject = Mock(ProjectInternal)
+        def dependencyDescriptor = Stub(ProjectDependencyDescriptor) {
+            getTargetProject() >> dependencyProject
+        }
 
         when:
         resolver.resolve(dependencyDescriptor, result)
@@ -51,18 +58,19 @@ class ProjectDependencyResolverTest extends Specification {
             moduleVersionIdentifier.name == "project"
             moduleVersionIdentifier.version == "1.0"
         }
+        1 * projectAccessListener.beforeResolvingProjectDependency(dependencyProject)
         0 * result._
     }
 
     def "delegates to backing resolver for non-project dependency"() {
-        BuildableModuleVersionResolveResult result = Mock()
+        def result = Mock(BuildableModuleVersionResolveResult)
+        def dependencyDescriptor = Mock(DependencyDescriptor)
 
         when:
         resolver.resolve(dependencyDescriptor, result)
 
         then:
-        1 * registry.findProject(dependencyDescriptor) >> null
         1 * target.resolve(dependencyDescriptor, result)
-        0 * result._
+        0 * _
     }
 }

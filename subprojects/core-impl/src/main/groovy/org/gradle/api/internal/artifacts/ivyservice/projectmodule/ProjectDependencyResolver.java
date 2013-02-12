@@ -21,6 +21,8 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
+import org.gradle.initialization.ProjectAccessListener;
 
 import java.io.File;
 
@@ -28,16 +30,20 @@ public class ProjectDependencyResolver implements DependencyToModuleResolver {
     private final ProjectModuleRegistry projectModuleRegistry;
     private final DependencyToModuleResolver resolver;
     private final ProjectArtifactResolver artifactResolver;
+    private final ProjectAccessListener projectAccessListener;
 
-    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleResolver resolver) {
+    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleResolver resolver, ProjectAccessListener projectAccessListener) {
         this.projectModuleRegistry = projectModuleRegistry;
         this.resolver = resolver;
+        this.projectAccessListener = projectAccessListener;
         artifactResolver = new ProjectArtifactResolver();
     }
 
     public void resolve(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionResolveResult result) {
-        ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(dependencyDescriptor);
-        if (moduleDescriptor != null) {
+        if (dependencyDescriptor instanceof ProjectDependencyDescriptor) {
+            ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) dependencyDescriptor;
+            projectAccessListener.beforeResolvingProjectDependency(desc.getTargetProject());
+            ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(desc);
             final ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
             final DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
             result.resolved(moduleVersionIdentifier, moduleDescriptor, artifactResolver);

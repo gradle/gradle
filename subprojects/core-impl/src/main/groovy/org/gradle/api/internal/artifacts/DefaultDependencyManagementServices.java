@@ -134,9 +134,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected DependencyFactory createDependencyFactory() {
         Instantiator instantiator = get(Instantiator.class);
 
-        ProjectAccessListener projectAccessListener = get(ProjectAccessListener.class);
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
-                projectAccessListener, instantiator, get(StartParameter.class).isBuildProjectDependencies());
+                get(ProjectAccessListener.class), instantiator, get(StartParameter.class).isBuildProjectDependencies());
 
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
         DependencyProjectNotationParser projParser = new DependencyProjectNotationParser(factory);
@@ -362,7 +361,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(PublishModuleDescriptorConverter.class),
                     resolvedArtifactFactory,
                     new DefaultProjectModuleRegistry(
-                            get(PublishModuleDescriptorConverter.class))
+                            get(PublishModuleDescriptorConverter.class)),
+                    get(ProjectAccessListener.class)
             );
             return new ErrorHandlingArtifactDependencyResolver(
                     new ShortcircuitEmptyConfigsArtifactDependencyResolver(

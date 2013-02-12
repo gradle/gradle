@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
+import org.gradle.initialization.ProjectAccessListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,13 +38,15 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final ResolveIvyFactory ivyFactory;
     private final ProjectModuleRegistry projectModuleRegistry;
+    private final ProjectAccessListener projectAccessListener;
 
     public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory,
-                                     ProjectModuleRegistry projectModuleRegistry) {
+                                     ProjectModuleRegistry projectModuleRegistry, ProjectAccessListener projectAccessListener) {
         this.ivyFactory = ivyFactory;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.projectModuleRegistry = projectModuleRegistry;
+        this.projectAccessListener = projectAccessListener;
     }
 
     public ResolverResults resolve(ConfigurationInternal configuration) throws ResolveException {
@@ -53,7 +56,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         DependencyToModuleResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
         dependencyResolver = new ClientModuleResolver(dependencyResolver);
-        dependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver);
+        dependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver, projectAccessListener);
         DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, ivyAdapter.getResolveData().getSettings().getVersionMatcher());
         idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveRule());
 

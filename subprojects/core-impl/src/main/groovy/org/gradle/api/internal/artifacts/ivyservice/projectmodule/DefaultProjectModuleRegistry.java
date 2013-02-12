@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
@@ -33,12 +32,8 @@ public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
     }
 
-    public ModuleDescriptor findProject(DependencyDescriptor descriptor) {
-        if (!(descriptor instanceof ProjectDependencyDescriptor)) {
-            return null;
-        }
-        ProjectDependencyDescriptor projectDependencyDescriptor = (ProjectDependencyDescriptor) descriptor;
-        ProjectInternal project = projectDependencyDescriptor.getTargetProject();
+    public ModuleDescriptor findProject(ProjectDependencyDescriptor descriptor) {
+        ProjectInternal project = descriptor.getTargetProject();
         Module projectModule = project.getModule();
         ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule);
 
