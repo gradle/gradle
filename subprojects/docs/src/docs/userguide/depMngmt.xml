@@ -1104,12 +1104,11 @@ someroot/[artifact]-[revision].[ext]
                     There are many other reasons why certain version of a dependency might be unwanted and a different version is preferred.
                 </para>
                 <para>
-                    In below example, we will demonstrate how to avoid a dependency to 'org.cool.software:cool-library:1.2'
-                    and prefer different version of 'cool-library'. Let's imagine, version 1.2.1 contains important fixes
-                    and hence we prefer 1.2.1 over 1.2.
+                    In below example, the dependency resolution is configured to prefer a different version of a certain library.
+                    Let's imagine version 1.2.1 contains important fixes and hence we prefer it over 1.2.
                     Bear in mind that in the example below, only version 1.2 is replaced with 1.2.1.
                     If there are other versions that participate in a conflict resolution the final version may be different.
-                    For example the 'newest' conflict resolution strategy can select version 1.3 because this version was also pulled transitively.
+                    For example the 'newest' conflict resolution strategy can select version 1.3 if this version was also pulled transitively.
                     <sample id="blacklisting_version" dir="userguide/artifacts/resolutionStrategy" title="Blacklisting a version with a replacement">
                         <sourcefile file="build.gradle" snippet="blacklisting_version"/>
                     </sample>
