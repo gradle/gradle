@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.api.publish.maven.internal
-
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
@@ -25,7 +24,6 @@ import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.notations.api.NotationParser
-import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.reflect.DirectInstantiator
@@ -34,7 +32,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 public class DefaultMavenPublicationTest extends Specification {
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
@@ -224,111 +221,6 @@ public class DefaultMavenPublicationTest extends Specification {
         and:
         publication.artifacts.size() == 2
         publication.artifacts == [mavenArtifact1, mavenArtifact2] as Set
-    }
-
-    def "mainArtifact is one without classifier"() {
-        given:
-        def publication = createPublication()
-        MavenArtifact mavenArtifact1 = createArtifact()
-        MavenArtifact mavenArtifact2 = createArtifact()
-        MavenArtifact mavenArtifact3 = createArtifact()
-
-        when:
-        notationParser.parseNotation('artifact1') >> mavenArtifact1
-        mavenArtifact1.classifier >> "source"
-        notationParser.parseNotation('artifact2') >> mavenArtifact2
-        mavenArtifact2.extension >> "ext"
-        notationParser.parseNotation('artifact3') >> mavenArtifact3
-        mavenArtifact3.classifier >> "docs"
-
-        and:
-        publication.artifact 'artifact1'
-        publication.artifact 'artifact2'
-        publication.artifact 'artifact3'
-
-        then:
-        publication.mavenProjectIdentity.packaging == "ext"
-        publication.asNormalisedPublication().mainArtifact == mavenArtifact2
-        publication.asNormalisedPublication().additionalArtifacts == [mavenArtifact1, mavenArtifact3] as Set
-    }
-
-    def "cannot publish with ambiguous mainArtifact"() {
-        given:
-        def publication = createPublication()
-        MavenArtifact artifact1 = Stub() {
-            getExtension() >> "ext1"
-        }
-        MavenArtifact artifact2 = Stub() {
-            getExtension() >> "ext2"
-        }
-
-        when:
-        publication.artifact "art1"
-        publication.artifact "art2"
-
-        then:
-        notationParser.parseNotation("art1") >> artifact1
-        notationParser.parseNotation("art2") >> artifact2
-
-        when:
-        publication.asNormalisedPublication()
-
-        then:
-        def t = thrown InvalidMavenPublicationException
-        t.message == "Cannot determine main artifact for maven publication 'pub-name': multiple artifacts found with empty classifier."
-    }
-
-
-    def "cannot publish with duplicate artifacts"() {
-        given:
-        def publication = createPublication()
-        MavenArtifact artifact1 = Stub() {
-            getExtension() >> "ext1"
-            getClassifier() >> "classified"
-        }
-        MavenArtifact artifact2 = Stub() {
-            getExtension() >> "ext1"
-            getClassifier() >> "classified"
-        }
-
-        when:
-        publication.artifact "art1"
-        publication.artifact "art2"
-
-        then:
-        notationParser.parseNotation("art1") >> artifact1
-        notationParser.parseNotation("art2") >> artifact2
-
-        when:
-        publication.asNormalisedPublication()
-
-        then:
-        def t = thrown InvalidMavenPublicationException
-        t.message == "Cannot publish maven publication 'pub-name': multiple artifacts with the identical extension 'ext1' and classifier 'classified'."
-    }
-
-    @Unroll
-    def "cannot publish with file that #message"() {
-        def publication = createPublication()
-        Object notation = new Object();
-        MavenArtifact mavenArtifact = Mock()
-
-        when:
-        notationParser.parseNotation(notation) >> mavenArtifact
-        mavenArtifact.file >> theFile
-
-        and:
-        publication.artifact notation
-        publication.asNormalisedPublication()
-
-        then:
-        def t = thrown InvalidMavenPublicationException
-        t.message == "Cannot publish maven publication 'pub-name': artifact file ${message}: '${theFile}'"
-
-        where:
-        theFile                                                         | message
-        new File(testDirectoryProvider.testDirectory, 'does-not-exist') | 'does not exist'
-        testDirectoryProvider.testDirectory.createDir('sub_directory')  | 'is a directory'
     }
 
     def createPublication() {

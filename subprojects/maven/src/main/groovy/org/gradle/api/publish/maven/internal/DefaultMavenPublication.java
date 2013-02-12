@@ -26,19 +26,15 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
-import org.gradle.api.publish.maven.internal.artifact.MavenArtifactKey;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -123,47 +119,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
-        // TODO:DAZ Change this so that the MavenNormalizedPublication just has a set of artifacts. Move determination of 'main' artifact into MavenPublisher
-        MavenNormalizedPublication mavenNormalizedPublication = new MavenNormalizedPublication(name, getPomFile(), projectIdentity, getMainArtifact(), getAdditionalArtifacts());
-        // TODO:DAZ Move this into MavenPublisher
-        mavenNormalizedPublication.validateArtifacts();
-        return mavenNormalizedPublication;
-    }
-
-    private MavenArtifact getMainArtifact() {
-        // TODO:DAZ Move this logic into MavenPublisher - moving logic out of domain layer into service layer.
-        Set<MavenArtifact> candidateMainArtifacts = CollectionUtils.filter(mavenArtifacts, new Spec<MavenArtifact>() {
-            public boolean isSatisfiedBy(MavenArtifact element) {
-                return element.getClassifier() == null || element.getClassifier().length() == 0;
-            }
-        });
-        if (candidateMainArtifacts.isEmpty()) {
-            return null;
-        }
-        if (candidateMainArtifacts.size() > 1) {
-            throw new InvalidMavenPublicationException(String.format("Cannot determine main artifact for maven publication '%s': multiple artifacts found with empty classifier.", name));
-        }
-        return candidateMainArtifacts.iterator().next();
-    }
-
-    private Set<MavenArtifact> getAdditionalArtifacts() {
-        MavenArtifact mainArtifact = getMainArtifact();
-        Set<MavenArtifactKey> keys = new HashSet<MavenArtifactKey>();
-        Set<MavenArtifact> additionalArtifacts = new LinkedHashSet<MavenArtifact>();
-        for (MavenArtifact artifact : mavenArtifacts) {
-            if (artifact == mainArtifact) {
-                continue;
-            }
-            // TODO:DAZ Move this validation into the MavenPublisher service
-            MavenArtifactKey key = new MavenArtifactKey(artifact);
-            if (keys.contains(key)) {
-                throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': multiple artifacts with the identical extension '%s' and classifier '%s'.",
-                        name, artifact.getExtension(), artifact.getClassifier()));
-            }
-            keys.add(key);
-            additionalArtifacts.add(artifact);
-        }
-        return additionalArtifacts;
+        return new MavenNormalizedPublication(name, getPomFile(), projectIdentity, getArtifacts());
     }
 
     private File getPomFile() {
@@ -193,7 +149,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
 
         public String getPackaging() {
-            return getMainArtifact() == null ? "pom" : getMainArtifact().getExtension();
+            for (MavenArtifact mavenArtifact : mavenArtifacts) {
+                if (!GUtil.isTrue(mavenArtifact.getClassifier()) && GUtil.isTrue(mavenArtifact.getExtension())) {
+                    return mavenArtifact.getExtension();
+                }
+            }
+            return "pom";
         }
     }
 }

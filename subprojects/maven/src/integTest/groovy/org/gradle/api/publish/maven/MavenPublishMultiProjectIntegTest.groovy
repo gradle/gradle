@@ -161,7 +161,7 @@ project(":project2") {
         project1.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
     }
 
-    @Ignore("This does not work: fix this as part of making the project coordinates customisable via DSL") // TODO:DAZ Prevent modification of coordinates via withXml
+    @Ignore("This does not work: fix this as part of making the project coordinates customisable via DSL") // TODO:DAZ Fix this
     def "project dependency correctly reflected in POM if dependency publication pom is changed"() {
         createBuildScripts("""
 project(":project1") {

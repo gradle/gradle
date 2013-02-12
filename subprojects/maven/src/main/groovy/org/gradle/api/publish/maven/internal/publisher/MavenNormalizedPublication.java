@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
-import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.internal.MavenProjectIdentity;
 
@@ -28,50 +27,28 @@ public class MavenNormalizedPublication {
     private final String name;
     private final File pomFile;
     private final MavenProjectIdentity projectIdentity;
-    private final MavenArtifact mainArtifact;
-    private final Set<MavenArtifact> additionalArtifacts;
+    private final Set<MavenArtifact> artifacts;
 
-    public MavenNormalizedPublication(String name, File pomFile, MavenProjectIdentity projectIdentity, MavenArtifact mainArtifact, Set<MavenArtifact> additionalArtifacts) {
+    public MavenNormalizedPublication(String name, File pomFile, MavenProjectIdentity projectIdentity, Set<MavenArtifact> artifacts) {
         this.name = name;
         this.pomFile = pomFile;
         this.projectIdentity = projectIdentity;
-        this.mainArtifact = mainArtifact;
-        this.additionalArtifacts = additionalArtifacts;
+        this.artifacts = artifacts;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public File getPomFile() {
         return pomFile;
     }
 
-    public MavenArtifact getMainArtifact() {
-        return mainArtifact;
-    }
-
-    public Set<MavenArtifact> getAdditionalArtifacts() {
-        return additionalArtifacts;
+    public Set<MavenArtifact> getArtifacts() {
+        return artifacts;
     }
 
     public MavenProjectIdentity getProjectIdentity() {
         return projectIdentity;
     }
-
-    public void validateArtifacts() {
-        if (mainArtifact != null) {
-            checkCanPublish(mainArtifact);
-        }
-        for (MavenArtifact artifact : additionalArtifacts) {
-            checkCanPublish(artifact);
-        }
-    }
-
-    private void checkCanPublish(MavenArtifact artifact) {
-        File artifactFile = artifact.getFile();
-        if (artifactFile == null || !artifactFile.exists()) {
-            throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': artifact file does not exist: '%s'", name, artifactFile));
-        }
-        if (artifactFile.isDirectory()) {
-            throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': artifact file is a directory: '%s'", name, artifactFile));
-        }
-    }
-
 }

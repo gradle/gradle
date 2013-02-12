@@ -18,7 +18,9 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
+import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.internal.MavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.artifact.MavenArtifactKey;
 import org.gradle.internal.UncheckedException;
 import org.gradle.mvn3.org.apache.maven.model.Model;
 import org.gradle.mvn3.org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -27,6 +29,8 @@ import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ValidatingMavenPublisher implements MavenPublisher {
     private static final java.lang.String ID_REGEX = "[A-Za-z0-9_\\-.]+";
@@ -39,6 +43,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         validateIdentity(publication.getProjectIdentity());
         validatePomFileCoordinates(publication.getProjectIdentity(), publication.getPomFile());
+        validateArtifacts(publication);
 
         delegate.publish(publication, artifactRepository);
     }
@@ -85,6 +90,33 @@ public class ValidatingMavenPublisher implements MavenPublisher {
             throw new InvalidMavenPublicationException("POM file is invalid. Check any modifications you have made to the POM file.", parseException);
         } catch (Exception ex) {
             throw UncheckedException.throwAsUncheckedException(ex);
+        }
+    }
+
+    private void validateArtifacts(MavenNormalizedPublication publication) {
+        Set<MavenArtifactKey> keys = new HashSet<MavenArtifactKey>();
+        for (MavenArtifact artifact : publication.getArtifacts()) {
+            checkCanPublish(publication.getName(), artifact);
+
+            MavenArtifactKey key = new MavenArtifactKey(artifact);
+            if (keys.contains(key)) {
+                throw new InvalidMavenPublicationException(
+                        String.format(
+                                "Cannot publish maven publication '%s': multiple artifacts with the identical extension '%s' and classifier '%s'.",
+                                publication.getName(), artifact.getExtension(), artifact.getClassifier()
+                        ));
+            }
+            keys.add(key);
+        }
+    }
+
+    private void checkCanPublish(String publicationName, MavenArtifact artifact) {
+        File artifactFile = artifact.getFile();
+        if (artifactFile == null || !artifactFile.exists()) {
+            throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': artifact file does not exist: '%s'", publicationName, artifactFile));
+        }
+        if (artifactFile.isDirectory()) {
+            throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': artifact file is a directory: '%s'", publicationName, artifactFile));
         }
     }
 }
