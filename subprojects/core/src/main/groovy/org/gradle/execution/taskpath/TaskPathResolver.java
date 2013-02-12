@@ -46,7 +46,7 @@ public class TaskPathResolver {
 
         if (path.contains(Project.PATH_SEPARATOR)) {
             int idx = path.lastIndexOf(Project.PATH_SEPARATOR);
-            taskName = path.substring(idx+1);
+            taskName = path.substring(idx + 1);
             prefix = path.substring(0, idx+1);
             String projectPath = Project.PATH_SEPARATOR.equals(prefix) ? prefix : path.substring(0, idx);
             project = projectFinder.findProject(projectPath, startFrom);
@@ -55,6 +55,6 @@ public class TaskPathResolver {
             taskName = path;
             prefix = "";
         }
-        return new ResolvedTaskPath(path, prefix, taskName, project);
+        return new ResolvedTaskPath(prefix, taskName, project);
     }
 }

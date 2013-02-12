@@ -27,7 +27,7 @@ public class ResolvedTaskPath {
     private final ProjectInternal project;
     private final boolean isQualified;
 
-    public ResolvedTaskPath(String originalPath, String prefix, String taskName, ProjectInternal project) {
+    public ResolvedTaskPath(String prefix, String taskName, ProjectInternal project) {
         this.prefix = prefix;
         this.taskName = taskName;
         this.project = project;

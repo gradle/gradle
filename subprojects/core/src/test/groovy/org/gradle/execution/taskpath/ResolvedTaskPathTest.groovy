@@ -26,8 +26,8 @@ class ResolvedTaskPathTest extends Specification {
 
     def "knows if path is qualified"() {
         expect:
-        new ResolvedTaskPath(":foo:someTask", ":foo:", "someTask", Mock(ProjectInternal)).qualified
-        new ResolvedTaskPath(":someTask", ":", "someTask", Mock(ProjectInternal)).qualified
-        !new ResolvedTaskPath("someTask", "", "someTask", Mock(ProjectInternal)).qualified
+        new ResolvedTaskPath(":foo:", "someTask", Mock(ProjectInternal)).qualified
+        new ResolvedTaskPath(":", "someTask", Mock(ProjectInternal)).qualified
+        !new ResolvedTaskPath("", "someTask", Mock(ProjectInternal)).qualified
     }
 }
