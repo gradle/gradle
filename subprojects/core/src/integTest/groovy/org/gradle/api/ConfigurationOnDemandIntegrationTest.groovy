@@ -35,7 +35,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     def "works with single-module project"() {
         buildFile << "task foo"
         when:
-        run("-u", "foo") //to avoid catching unrelated gradle.properties
+        run("foo")
         then:
         fixture.assertProjectsConfigured(":")
         assert output.contains(DefaultBuildConfigurer.CONFIGURATION_ON_DEMAND_MESSAGE)

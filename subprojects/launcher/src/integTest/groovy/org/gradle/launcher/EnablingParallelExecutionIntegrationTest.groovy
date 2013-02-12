@@ -27,10 +27,6 @@ import spock.lang.IgnoreIf
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    void setup() {
-        executer.beforeExecute { it.withArguments("-u") } //to avoid using unwanted gradle.properties
-    }
-
     def "parallel mode enabled from command line"() {
         buildFile << "assert gradle.startParameter.parallelThreadCount == 15"
         expect:

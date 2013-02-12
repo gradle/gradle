@@ -31,7 +31,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         file("gradle.properties") << "org.gradle.configureondemand=true"
         buildFile << "assert gradle.startParameter.configureOnDemand"
         expect:
-        run("-u") //to avoid catching unrelated gradle.properties
+        run()
     }
 
     def "can be enabled from command line and start parameter informs about it, too"() {
