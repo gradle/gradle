@@ -36,7 +36,7 @@ class ProjectLifecycleFixture extends InitScriptExecuterFixture {
         """File outputFile = file("${fixtureData.toURI()}")
            def listener = new ProjectEvaluationListener() {
                 void afterEvaluate(Project project, ProjectState state) {
-                    outputFile << project.path + " "
+                    outputFile << project.path + ";"
                 }
                 void beforeEvaluate(Project project) {}
            }
@@ -47,7 +47,7 @@ class ProjectLifecycleFixture extends InitScriptExecuterFixture {
     }
 
     void afterBuild() {
-        configuredProjects = asList(fixtureData.text.split())
+        configuredProjects = asList(fixtureData.text.split(";"))
         assert fixtureData.delete()
     }
 
