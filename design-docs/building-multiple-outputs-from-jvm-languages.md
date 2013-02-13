@@ -23,6 +23,10 @@ languages.
 
 An Android application is assembled in to multiple _build types_, such as 'debug' or 'release'.
 
+## Build a library for multiple Scala or Groovy runtimes
+
+A library is compiled and published for multiple Scala or Groovy runtimes.
+
 # Implementation plan
 
 The implementation plan involves introducing some new model elements:
@@ -295,8 +299,11 @@ JavaScript source set that is built from some input source sets.
 
 This story allows a JVM binary to be attached to a Java library component for publishing.
 
+## Story: Deprecate and remove `sourceSets` extension
+
 # Open issues
 
+* Bust up plugins project in some way.
 * Consuming vs producing.
 * Custom source sets.
 * Warn or fail when some source for a class packaging cannot be handled.

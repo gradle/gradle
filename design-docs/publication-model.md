@@ -317,16 +317,19 @@ Any supplied configuration closure will be applied to each created artifact.
 
 ## Validate publication coordinates
 
-Validate the following prior to publication:
-
-* The groupId, artifactId and version specified for a Maven publication are non-empty strings.
-* The groupId and artifactId specified for a Maven publication match the regexp `[A-Za-z0-9_\\-.]+` (see `DefaultModelValidator` in Maven source)
-* The organisation, module and revision specified for an Ivy publication are non-empty strings.
-* Each publication identifier in the build (ie every publication in every project) is unique.
-* The XML actions do not change the publication identifier.
+1. Validate the following prior to publication:
+    * The groupId, artifactId and version specified for a Maven publication are non-empty strings.
+    * The groupId and artifactId specified for a Maven publication match the regexp `[A-Za-z0-9_\\-.]+` (see `DefaultModelValidator` in Maven source)
+    * The organisation, module and revision specified for an Ivy publication are non-empty strings.
+    * Each publication identifier in the build (ie every publication in every project) is unique.
+    * The XML actions do not change the publication identifier.
+2. Reorganise validation so that it is triggered by the `MavenPublisher` service and the (whatever the ivy equialent is) service.
+3. Use a consistent exception heirarchy for publication validation failures. For example, if using an `InvalidMavenPublicationException` then add an equivalent
+   `InvalidateIvyPublicationException`.
 
 ### Test cases
 
+* Publication fails for a project with no group or version defined.
 * Publication coordinates can contain non-ascii characters, whitespace, xml markup and reserved filesystem characters, where permitted by the format.
   Verify that these publications can be resolved by Gradle.
 * Reasonable error messages are given when the above validation fails.
@@ -422,6 +425,21 @@ And:
     3. Assert that another build can resolve project-A from this Ivy repository.
     4. Publish both projects to a Maven repository.
     5. Assert that another build can resolve project-A from this Maven repository.
+
+## Warn when a domain object that is used as input for a publication is changed after the domain object is used
+
+- The attributes and output file of a `PublishArtifact` used to define an artifact
+- The attributes and output file of an `AbstractArchiveTask` used to define an artifact
+- The output files of a `Task`.
+- The project group or version.
+- The elements of a collection used to define artifacts.
+- The runtime dependencies of a component.
+
+## Allow the configuration of publications to be deferred until required
+
+## Defer the creation of publication tasks until after the publications have been configured
+
+## Warn when a publication is changed after the publication tasks have been configured
 
 ## Allow outgoing dependencies to be customised
 

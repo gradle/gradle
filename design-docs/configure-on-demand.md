@@ -161,6 +161,11 @@ the root project so that this will be possible.
 - Possibly offer 'legacy', 'transitional' and 'strict' modes, where legacy ignores coupling, transitional warns and strict fails.
 - Use transitional as the default when configure on demand is enabled, otherwise use legacy.
 
+Need to detect:
+
+- Tasks.getByPath()
+- More TBD, see also [project-configuration-model.md](project-configuration-model.md)
+
 ## Build author uses artifacts produced by another project without direct coupling between projects
 
 ## Build author uses model objects configured in another project without direct coupling between projects
