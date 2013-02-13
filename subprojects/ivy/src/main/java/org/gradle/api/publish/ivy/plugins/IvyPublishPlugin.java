@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.PublicationContainerInternal;
@@ -51,13 +50,13 @@ public class IvyPublishPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final FileResolver fileResolver;
 
     @Inject
-    public IvyPublishPlugin(
-            Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider
-    ) {
+    public IvyPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.fileResolver = fileResolver;
     }
 
     public void apply(final Project project) {
@@ -67,7 +66,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         final PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
 
         final PublicationContainerInternal publicationContainer = (PublicationContainerInternal) extension.getPublications();
-        publicationContainer.registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, ((ProjectInternal) project).getFileResolver()));
+        publicationContainer.registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
 
         TaskContainer tasks = project.getTasks();
 

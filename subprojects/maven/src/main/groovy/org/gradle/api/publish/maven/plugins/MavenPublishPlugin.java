@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.PublicationContainerInternal;
 import org.gradle.api.publish.internal.PublicationFactory;
@@ -53,19 +52,20 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final FileResolver fileResolver;
 
     @Inject
-    public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.fileResolver = fileResolver;
     }
 
     public void apply(final Project project) {
         project.getPlugins().apply(PublishingPlugin.class);
         final PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
-        
+
         final PublicationContainerInternal publicationContainer = (PublicationContainerInternal) extension.getPublications();
-        FileResolver fileResolver = ((ProjectInternal) project).getFileResolver();
         publicationContainer.registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
 
         TaskContainer tasks = project.getTasks();
