@@ -23,7 +23,6 @@ import org.jruby.ext.posix.FileStat;
 public interface LibC extends Library {
     //CHECKSTYLE:OFF
     public int setenv(String name, String value, int overwrite) throws LastErrorException;
-    public int unsetenv(String name) throws LastErrorException;
     public String getcwd(byte[] out, int size) throws LastErrorException;
     public int chdir(String dirAbsolutePath) throws LastErrorException;
     public int getpid();
