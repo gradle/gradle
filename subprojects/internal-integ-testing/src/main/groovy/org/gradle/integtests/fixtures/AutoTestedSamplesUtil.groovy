@@ -54,6 +54,9 @@ I tried looking for a root folder here: $candidates
         file.text.eachMatch(/(?ms).*?<pre autoTested.*?>(.*?)<\/pre>(.*?)/) {
             def sample = it[1]
             sample = sample.replaceAll(/(?m)^\s*?\*/, '')
+            sample = sample.replace('&lt;', '<')
+            sample = sample.replace('&gt;', '>')
+            sample = sample.replace('&amp;', '&')
             try {
                 runner.call(file, sample)
             } catch (Exception e) {
