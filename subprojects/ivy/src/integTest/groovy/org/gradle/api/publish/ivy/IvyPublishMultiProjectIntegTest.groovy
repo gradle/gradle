@@ -116,7 +116,7 @@ project(":project1") {
 
     publishing {
         repositories {
-            ivy { url "file:///\$rootProject.projectDir/ivy-repo" }
+            ivy { url "${ivyRepo.uri}" }
         }
         publications {
             ivy(IvyPublication) {
