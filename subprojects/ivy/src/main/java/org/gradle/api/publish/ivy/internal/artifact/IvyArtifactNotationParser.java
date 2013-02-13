@@ -97,8 +97,13 @@ public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, T
         }
 
         @Override
-        protected IvyArtifact parseType(PublishArtifact notation) {
-            return instantiator.newInstance(PublishArtifactIvyArtifact.class, notation);
+        protected IvyArtifact parseType(PublishArtifact publishArtifact) {
+            DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
+                    DefaultIvyArtifact.class,
+                    publishArtifact.getFile(), publishArtifact.getName(), emptyToNull(publishArtifact.getExtension()), emptyToNull(publishArtifact.getType()), emptyToNull(publishArtifact.getClassifier())
+            );
+            ivyArtifact.builtBy(publishArtifact.getBuildDependencies());
+            return ivyArtifact;
         }
     }
 
@@ -152,4 +157,9 @@ public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, T
             candidateFormats.add("Maps containing either a 'file' or a 'source' entry, e.g. [file: '/path/to/file', extension: 'zip'].");
         }
     }
+
+    private static String emptyToNull(String value) {
+        return GUtil.elvis(value, null);
+    }
+
 }

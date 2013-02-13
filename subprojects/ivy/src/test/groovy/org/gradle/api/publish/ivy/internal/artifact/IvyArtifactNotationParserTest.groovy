@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.publish.ivy.internal.artifact
 
-import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.file.FileResolver
@@ -29,15 +30,17 @@ import spock.lang.Specification
 
 public class IvyArtifactNotationParserTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
-    FileResolver fileResolver = Mock()
-    TaskDependency taskDependency = Mock()
-    PublishArtifact publishArtifact = Stub() {
+    def fileResolver = Mock(FileResolver)
+    def taskDependency = Mock(TaskDependency)
+    def publishArtifact = Stub(PublishArtifact) {
         getName() >> 'name'
         getExtension() >> 'extension'
         getType() >> 'type'
         getFile() >> new File('foo')
         getBuildDependencies() >> taskDependency
     }
+    def task = Mock(Task)
+    def dependencies = Collections.singleton(Mock(Task))
     IvyArtifactNotationParser parser = new IvyArtifactNotationParser(instantiator, "1.2", fileResolver)
 
     def "directly returns IvyArtifact input"() {
@@ -58,9 +61,11 @@ public class IvyArtifactNotationParserTest extends Specification {
         ivyArtifact.type == publishArtifact.type
         ivyArtifact.file == publishArtifact.file
 
-        and:
-        ivyArtifact instanceof Buildable
-        ivyArtifact.buildDependencies == taskDependency
+        when:
+        taskDependency.getDependencies(task) >> dependencies
+
+        then:
+        ivyArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
     def "creates IvyArtifact for source map notation"() {
@@ -73,9 +78,11 @@ public class IvyArtifactNotationParserTest extends Specification {
         ivyArtifact.type == publishArtifact.type
         ivyArtifact.file == publishArtifact.file
 
-        and:
-        ivyArtifact instanceof Buildable
-        ivyArtifact.buildDependencies == taskDependency
+        when:
+        taskDependency.getDependencies(task) >> dependencies
+
+        then:
+        ivyArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
     def "creates and configures IvyArtifact for source map notation"() {
@@ -88,9 +95,11 @@ public class IvyArtifactNotationParserTest extends Specification {
         ivyArtifact.extension == "the-ext"
         ivyArtifact.type == "the-type"
 
-        and:
-        ivyArtifact instanceof Buildable
-        ivyArtifact.buildDependencies == taskDependency
+        when:
+        taskDependency.getDependencies(task) >> dependencies
+
+        then:
+        ivyArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
     def "creates IvyArtifact for ArchivePublishArtifact"() {
@@ -106,8 +115,7 @@ public class IvyArtifactNotationParserTest extends Specification {
         ivyArtifact.name == "base-name"
         ivyArtifact.extension == "extension"
         ivyArtifact.file == archive.archivePath
-        ivyArtifact instanceof Buildable
-        (ivyArtifact as Buildable).buildDependencies.getDependencies(null) == [archive] as Set
+        ivyArtifact.buildDependencies.getDependencies(null) == [archive] as Set
     }
 
     def "creates IvyArtifact for file notation"() {

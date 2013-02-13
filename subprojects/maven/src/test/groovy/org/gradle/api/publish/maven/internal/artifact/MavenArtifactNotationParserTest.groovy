@@ -15,7 +15,6 @@
  */
 package org.gradle.api.publish.maven.internal.artifact
 
-import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.file.FileResolver
@@ -29,14 +28,16 @@ import spock.lang.Specification
 
 public class MavenArtifactNotationParserTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
-    TaskDependency taskDependency = Mock()
-    FileResolver fileResolver = Mock()
-    PublishArtifact publishArtifact = Stub() {
+    def taskDependency = Mock(TaskDependency)
+    def fileResolver = Mock(FileResolver)
+    def publishArtifact = Stub(PublishArtifact) {
         getExtension() >> 'extension'
         getClassifier() >> 'classifier'
         getFile() >> new File('foo')
         getBuildDependencies() >> taskDependency
     }
+    def task = Mock(Task)
+    def dependencies = Collections.singleton(Mock(Task))
 
     MavenArtifactNotationParser parser = new MavenArtifactNotationParser(instantiator, "1.2", fileResolver)
 
@@ -51,6 +52,7 @@ public class MavenArtifactNotationParserTest extends Specification {
 
     def "creates MavenArtifact for PublishArtifact"() {
         when:
+        taskDependency.getDependencies(task) >> dependencies
         def mavenArtifact = parser.parseNotation(publishArtifact)
 
         then:
@@ -59,12 +61,12 @@ public class MavenArtifactNotationParserTest extends Specification {
         mavenArtifact.file == publishArtifact.file
 
         and:
-        mavenArtifact instanceof Buildable
-        mavenArtifact.buildDependencies == taskDependency
+        mavenArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
     def "creates MavenArtifact for source map notation"() {
         when:
+        taskDependency.getDependencies(task) >> dependencies
         MavenArtifact mavenArtifact = parser.parseNotation(source: publishArtifact)
 
         then:
@@ -73,12 +75,12 @@ public class MavenArtifactNotationParserTest extends Specification {
         mavenArtifact.file == publishArtifact.file
 
         and:
-        mavenArtifact instanceof Buildable
-        mavenArtifact.buildDependencies == taskDependency
+        mavenArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
     def "creates and configures MavenArtifact for source map notation"() {
         when:
+        taskDependency.getDependencies(task) >> dependencies
         MavenArtifact mavenArtifact = parser.parseNotation(source: publishArtifact, extension: "ext", classifier: "classy")
 
         then:
@@ -87,8 +89,7 @@ public class MavenArtifactNotationParserTest extends Specification {
         mavenArtifact.classifier == "classy"
 
         and:
-        mavenArtifact instanceof Buildable
-        mavenArtifact.buildDependencies == taskDependency
+        mavenArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
     def "creates MavenArtifact for ArchivePublishArtifact"() {
@@ -105,8 +106,7 @@ public class MavenArtifactNotationParserTest extends Specification {
         mavenArtifact.extension == artifactExtension
         mavenArtifact.classifier == artifactClassifier
         mavenArtifact.file == archive.archivePath
-        mavenArtifact instanceof Buildable
-        (mavenArtifact as Buildable).buildDependencies.getDependencies(null) == [archive] as Set
+        mavenArtifact.buildDependencies.getDependencies(null) == [archive] as Set
 
         where:
         archiveClassifier | artifactClassifier | archiveExtension | artifactExtension

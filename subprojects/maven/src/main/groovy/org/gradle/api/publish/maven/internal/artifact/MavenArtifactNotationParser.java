@@ -97,7 +97,11 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
 
         @Override
         protected MavenArtifact parseType(PublishArtifact publishArtifact) {
-            return instantiator.newInstance(PublishArtifactMavenArtifact.class, publishArtifact);
+            DefaultMavenArtifact artifact = instantiator.newInstance(
+                    DefaultMavenArtifact.class,
+                    publishArtifact.getFile(), emptyToNull(publishArtifact.getExtension()), emptyToNull(publishArtifact.getClassifier()));
+            artifact.builtBy(publishArtifact.getBuildDependencies());
+            return artifact;
         }
     }
 
@@ -146,5 +150,9 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
         public void describe(Collection<String> candidateFormats) {
             candidateFormats.add("Maps containing either a 'file' or a 'source' entry, e.g. [file: '/path/to/file', extension: 'zip'].");
         }
+    }
+
+    private static String emptyToNull(String value) {
+        return GUtil.elvis(value, null);
     }
 }
