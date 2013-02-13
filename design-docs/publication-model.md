@@ -446,19 +446,19 @@ And:
 This step decouples the incoming and outgoing dependencies, to allow each publication to include a different set of dependencies:
 
 1. Add a `MavenDependency` interface, with the following properties:
-    * `groupId`
-    * `artifactId`
-    * `version`
-    * `type`
-    * `optional`
-    * `scope`
+    * `groupId` (required)
+    * `artifactId` (required)
+    * `version` (required)
+    * `type` (optional, not empty string)
+    * `optional` (boolean, default to false and do not include in POM)
+    * `scope` (optional, default to null and restrict values to [compile, provided, runtime, test, system])
 2. Add a `MavenDependencySet` concept. This is a collection of `MavenDependency` instances.
 3. Add a `MavenDependencySet` to `MavenPublication`.
 4. Add an `IvyDependency` interface, with the following properties:
-    * `organisation`
-    * `module`
-    * `revision`
-    * `confMapping`
+    * `organisation` (required)
+    * `module` (required)
+    * `revision` (required)
+    * `confMapping` (optional, not empty string)
 5. Add an `IvyDependencySet` concept. This is a collection of `IvyDependency` instances.
 6. Add an `IvyDependencySet` to `IvyPublication`.
 
@@ -473,7 +473,7 @@ To add dependencies to a Maven publication:
                 dependency "other-group:other-artifact:1.0" {
                     scope "compile"
                 }
-                dependency groupId: "some-group", artifactId: "some-artifact", version: "1.4", scope: "any-scope"
+                dependency groupId: "some-group", artifactId: "some-artifact", version: "1.4", scope: "provided"
             }
         }
     }
@@ -487,7 +487,7 @@ To replace dependencies in a Maven publication:
             maven(MavenPublication) {
                 dependencies = [
                     "other-group:other-artifact:1.0",
-                    {groupId: "some-group", artifactId: "some-artifact", version: "1.4", scope: "any-scope"}
+                    {groupId: "some-group", artifactId: "some-artifact", version: "1.4", scope: "provided"}
                 ]
             }
         }
