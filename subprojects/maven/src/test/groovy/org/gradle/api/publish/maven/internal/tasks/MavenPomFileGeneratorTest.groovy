@@ -62,6 +62,20 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
+    def "encodes coordinates for XML and unicode"() {
+        when:
+        generator.groupId = 'group-ぴ₦ガき∆ç√∫'
+        generator.artifactId = 'artifact-<tag attrib="value"/>-markup'
+        generator.version = 'version-&"'
+
+        then:
+        with (pom) {
+            groupId == 'group-ぴ₦ガき∆ç√∫'
+            artifactId == 'artifact-<tag attrib="value"/>-markup'
+            version == 'version-&"'
+        }
+    }
+
     def "writes regular dependency"() {
         def dependency = Mock(ModuleDependency)
         when:
