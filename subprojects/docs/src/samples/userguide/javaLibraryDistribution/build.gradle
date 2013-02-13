@@ -5,7 +5,6 @@ apply plugin: 'java-library-distribution'
 version = '1.0.0'
 
 // START SNIPPET name-conf
-<<<<<<< HEAD
 distributions {
     main{
         baseName = 'my-name'
