@@ -29,7 +29,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
     private static final String XML_MARKUP_CHARS = '-<with>some<xml-markup/></with>'
 
     // TODO:DAZ These are currently unsupported for filesystem repositories. Fix or prevent with validation.
-    private static final String UNSUPPORTED_CHARS = '/\\:.<>'
+    private static final String UNSUPPORTED_CHARS = '/\\?%*:|"<>.'
 
     // Group and Artifact are restricted to [A-Za-z0-9_\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
     def groupId = 'a-valid.group'
