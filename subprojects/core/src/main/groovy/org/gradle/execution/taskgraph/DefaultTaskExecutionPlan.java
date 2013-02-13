@@ -38,6 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
 class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
+    private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private Spec<? super Task> filter = Specs.satisfyAll();
@@ -47,20 +48,14 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
         List<Task> queue = new ArrayList<Task>(tasks);
-        Collections.sort(queue);
 
         Set<Task> visiting = new HashSet<Task>();
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
         while (!queue.isEmpty()) {
             Task task = queue.get(0);
-            if (!filter.isSatisfiedBy(task)) {
-                // Filtered - skip
-                queue.remove(0);
-                continue;
-            }
-            if (executionPlan.containsKey(task)) {
-                // Already in plan - skip
+
+            if (graph.hasTask(task)) {
                 queue.remove(0);
                 continue;
             }
@@ -78,18 +73,64 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     queue.add(0, dependsOnTask);
                 }
             } else {
-                // Have visited this task's dependencies - add it to the end of the plan
+                // Have visited this task's dependencies - add it to the graph
                 queue.remove(0);
                 visiting.remove(task);
+                Set<? extends Task> dependencies = context.getDependencies(task);
+                for (Task dependency : dependencies) {
+                    graph.addEdge(task, dependency);
+                }
+                if (dependencies.size() == 0) {
+                    graph.addNode(task);
+                }
+            }
+        }
+
+        determineExecutionPlan();
+    }
+
+    private void determineExecutionPlan() {
+        List<TaskDependencyGraphNode> nodeQueue = new ArrayList<TaskDependencyGraphNode>(graph.getNodesWithoutIncomingEdges());
+        Collections.sort(nodeQueue);
+        Set<TaskDependencyGraphNode> visitingNodes = new HashSet<TaskDependencyGraphNode>();
+        while (!nodeQueue.isEmpty()) {
+            TaskDependencyGraphNode taskNode = nodeQueue.get(0);
+            if (!filter.isSatisfiedBy(taskNode.getTask())) {
+                // Filtered - skip
+                nodeQueue.remove(0);
+                continue;
+            }
+            if (executionPlan.containsKey(taskNode.getTask())) {
+                // Already in plan - skip
+                nodeQueue.remove(0);
+                continue;
+            }
+
+            if (visitingNodes.add(taskNode)) {
+                // Have not seen this task before - add its dependencies to the head of the queue and leave this
+                // task in the queue
+                Set<TaskDependencyGraphNode> dependsOnTasks = new TreeSet<TaskDependencyGraphNode>(Collections.reverseOrder());
+                dependsOnTasks.addAll(taskNode.getSuccessors());
+                for (TaskDependencyGraphNode dependsOnTask : dependsOnTasks) {
+                    if (visitingNodes.contains(dependsOnTask)) {
+                        throw new CircularReferenceException(String.format(
+                                "Circular dependency between tasks. Cycle includes [%s, %s].", taskNode.getTask(), dependsOnTask.getTask()));
+                    }
+                    nodeQueue.add(0, dependsOnTask);
+                }
+            } else {
+                // Have visited this task's dependencies - add it to the end of the plan
+                nodeQueue.remove(0);
+                visitingNodes.remove(taskNode);
                 Set<TaskInfo> dependencies = new HashSet<TaskInfo>();
-                for (Task dependency : context.getDependencies(task)) {
-                    TaskInfo dependencyInfo = executionPlan.get(dependency);
+                for (TaskDependencyGraphNode dependency : taskNode.getSuccessors()) {
+                    TaskInfo dependencyInfo = executionPlan.get(dependency.getTask());
                     if (dependencyInfo != null) {
                         dependencies.add(dependencyInfo);
                     }
                     // else - the dependency has been filtered, so ignore it
                 }
-                executionPlan.put(task, new TaskInfo((TaskInternal) task, dependencies));
+                executionPlan.put(taskNode.getTask(), new TaskInfo((TaskInternal) taskNode.getTask(), dependencies));
             }
         }
     }
@@ -97,6 +138,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void clear() {
         lock.lock();
         try {
+            graph.clear();
             executionPlan.clear();
             failures.clear();
             runningProjects.clear();
