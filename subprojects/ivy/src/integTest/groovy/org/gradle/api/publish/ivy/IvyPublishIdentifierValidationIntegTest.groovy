@@ -155,7 +155,7 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription "Execution failed for task ':publishIvyPublicationToIvyRepository'"
         failure.assertHasCause "Failed to publish publication 'ivy' to repository 'ivy'"
-        failure.assertHasCause "The organisation value cannot be empty"
+        failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
     }
 
     private def resolveArtifacts(IvyFileModule module) {

@@ -167,6 +167,6 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
-        failure.assertHasCause("POM file is invalid. Check any modifications you have made to the POM file.")
+        failure.assertHasCause("Invalid publication 'maven': POM file is invalid. Check any modifications you have made to the POM file.")
     }
 }

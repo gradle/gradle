@@ -140,6 +140,6 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'")
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertHasCause("Publication revision does not match ivy descriptor. Cannot edit revision directly in the ivy descriptor file.")
+        failure.assertHasCause("Invalid publication 'ivy': supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file).")
     }
 }

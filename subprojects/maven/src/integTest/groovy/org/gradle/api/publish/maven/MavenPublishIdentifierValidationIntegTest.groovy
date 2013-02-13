@@ -155,7 +155,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
         then:
         failure.assertHasDescription "Execution failed for task ':publishMavenPublicationToMavenRepository'"
         failure.assertHasCause "Failed to publish publication 'maven' to repository 'maven'"
-        failure.assertHasCause "The groupId value cannot be empty"
+        failure.assertHasCause "Invalid publication 'maven': groupId cannot be empty"
     }
 
     private def resolveArtifacts(MavenFileModule module) {
