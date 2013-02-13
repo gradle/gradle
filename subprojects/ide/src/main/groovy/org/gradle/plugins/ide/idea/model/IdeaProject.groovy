@@ -47,7 +47,7 @@ import org.gradle.util.ConfigureUtil
  *     outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
  *
  *     //you can add project-level libraries
- *     projectLibraries << new ProjectLibrary(name: "my-library", classes: [new Path("path/to/library")])
+ *     projectLibraries &lt;&lt; new ProjectLibrary(name: "my-library", classes: [new Path("path/to/library")])
  *   }
  * }
  * </pre>

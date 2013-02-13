@@ -286,7 +286,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Sets the directory to use to select the default project, and to search for the settings file. Set to null to use the default current directory.
      *
-     * @param currentDir The directory. Should not be null.
+     * @param currentDir The directory. Set to null to use the default.
      */
     public void setCurrentDir(File currentDir) {
         if (currentDir != null) {
@@ -321,7 +321,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedency overy JVM system properties.
+     * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedence over JVM system properties.
      *
      * @return The merged system properties
      */
