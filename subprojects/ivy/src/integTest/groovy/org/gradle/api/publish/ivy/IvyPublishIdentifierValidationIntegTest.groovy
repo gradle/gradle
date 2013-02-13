@@ -26,7 +26,7 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec {
     private static final String XML_MARKUP_CHARS = '-<with>some<xml-markup/></with>'
 
     // TODO:DAZ These are currently unsupported for filesystem repositories. Fix or prevent with validation.
-    private static final String UNSUPPORTED_CHARS = '/\\:.'
+    private static final String UNSUPPORTED_CHARS = '/\\:.<>'
 
     @Unroll
     def "can publish with project coordinates containing #title characters"() {
