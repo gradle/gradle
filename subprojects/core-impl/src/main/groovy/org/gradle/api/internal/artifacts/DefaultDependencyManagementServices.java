@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -27,7 +28,7 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationCont
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
-import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -151,11 +152,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 projParser,
                 new DependencyClassPathNotationParser(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()));
 
-        DependencyNotationParser dependencyNotationParser = new DependencyNotationParser(notationParsers);
-
         return new DefaultDependencyFactory(
-                dependencyNotationParser,
-                new ClientModuleNotationParser(instantiator),
+                new DependencyNotationParserFactory(notationParsers).create(),
+                new ClientModuleNotationParserFactory(instantiator).create(),
                 projectDependencyFactory);
     }
 
@@ -325,11 +324,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         public ArtifactHandler getArtifactHandler() {
             if (artifactHandler == null) {
-                artifactHandler = new DefaultArtifactHandler(
-                        getConfigurationContainer(),
-                        new DefaultPublishArtifactFactory(
-                                get(Instantiator.class),
-                                dependencyMetaDataProvider));
+                NotationParser<PublishArtifact> publishArtifactNotationParser = new PublishArtifactNotationParserFactory(get(Instantiator.class), dependencyMetaDataProvider).create();
+                artifactHandler = new DefaultArtifactHandler(getConfigurationContainer(), publishArtifactNotationParser);
             }
             return artifactHandler;
         }

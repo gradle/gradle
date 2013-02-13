@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.artifact
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.bundling.Jar
@@ -26,7 +27,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-public class MavenArtifactNotationParserTest extends Specification {
+public class MavenArtifactNotationParserFactoryTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
     def taskDependency = Mock(TaskDependency)
     def fileResolver = Mock(FileResolver)
@@ -39,7 +40,7 @@ public class MavenArtifactNotationParserTest extends Specification {
     def task = Mock(Task)
     def dependencies = Collections.singleton(Mock(Task))
 
-    MavenArtifactNotationParser parser = new MavenArtifactNotationParser(instantiator, "1.2", fileResolver)
+    NotationParser<MavenArtifact> parser = new MavenArtifactNotationParserFactory(instantiator, "1.2", fileResolver).create()
 
     def "directly returns MavenArtifact input"() {
         when:

@@ -24,11 +24,11 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -37,29 +37,23 @@ import java.util.Collection;
 /**
  * @author Hans Dockter
  */
-public class DefaultPublishArtifactFactory implements NotationParser<PublishArtifact>, TopLevelNotationParser {
+public class PublishArtifactNotationParserFactory implements Factory<NotationParser<PublishArtifact>> {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider metaDataProvider;
-    private final NotationParser<PublishArtifact> delegate;
 
-    public DefaultPublishArtifactFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider) {
+    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider) {
         this.instantiator = instantiator;
         this.metaDataProvider = metaDataProvider;
+    }
+
+    public NotationParser<PublishArtifact> create() {
         FileNotationParser fileParser = new FileNotationParser();
-        delegate = new NotationParserBuilder<PublishArtifact>()
+        return new NotationParserBuilder<PublishArtifact>()
                 .resultingType(PublishArtifact.class)
                 .parser(new ArchiveTaskNotationParser())
                 .parser(new FileMapNotationParser(fileParser))
                 .parser(fileParser)
                 .toComposite();
-    }
-
-    public void describe(Collection<String> candidateFormats) {
-        delegate.describe(candidateFormats);
-    }
-
-    public PublishArtifact parseNotation(Object notation) {
-        return delegate.parseNotation(notation);
     }
 
     private class ArchiveTaskNotationParser extends TypedNotationParser<AbstractArchiveTask, PublishArtifact> {

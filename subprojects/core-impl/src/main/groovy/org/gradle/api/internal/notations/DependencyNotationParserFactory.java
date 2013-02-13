@@ -16,43 +16,26 @@
 
 package org.gradle.api.internal.notations;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.api.TopLevelNotationParser;
-
-import java.util.Collection;
+import org.gradle.internal.Factory;
 
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public class DependencyNotationParser implements TopLevelNotationParser, NotationParser<Dependency> {
+public class DependencyNotationParserFactory implements Factory<NotationParser<Dependency>> {
 
-    private final NotationParser<Dependency> delegate;
+    private final Iterable<NotationParser<? extends Dependency>> compositeParsers;
 
-    public DependencyNotationParser(Iterable<NotationParser<? extends Dependency>> compositeParsers) {
-        delegate = new NotationParserBuilder<Dependency>()
+    public DependencyNotationParserFactory(Iterable<NotationParser<? extends Dependency>> compositeParsers) {
+        this.compositeParsers = compositeParsers;
+    }
+
+    public NotationParser<Dependency> create() {
+        return new NotationParserBuilder<Dependency>()
                 .resultingType(Dependency.class)
                 .parsers(compositeParsers)
                 .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
                 .toComposite();
-    }
-
-    DependencyNotationParser(NotationParser<Dependency> delegate) {
-        this.delegate = delegate;
-    }
-
-    public void describe(Collection<String> candidateFormats) {
-        delegate.describe(candidateFormats);
-    }
-
-    public Dependency parseNotation(Object dependencyNotation) {
-        try {
-            return delegate.parseNotation(dependencyNotation);
-        } catch (GradleException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
-        }
     }
 }

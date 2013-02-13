@@ -32,10 +32,10 @@ import spock.lang.Specification
 /**
  * @author Hans Dockter
  */
-public class DefaultPublishArtifactFactoryTest extends Specification {
+public class PublishArtifactNotationParserFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
     final Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
-    final DefaultPublishArtifactFactory publishArtifactFactory = new DefaultPublishArtifactFactory(instantiator, provider)
+    final PublishArtifactNotationParserFactory publishArtifactFactory = new PublishArtifactNotationParserFactory(instantiator, provider)
 
     def setup() {
         Module module = Mock()

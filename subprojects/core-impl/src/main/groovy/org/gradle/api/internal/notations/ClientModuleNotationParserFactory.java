@@ -16,33 +16,28 @@
 package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.ClientModule;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.api.TopLevelNotationParser;
-
-import java.util.Collection;
+import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.Instantiator;
 
 /**
  * @author Hans Dockter
  */
-public class ClientModuleNotationParser implements TopLevelNotationParser, NotationParser<ClientModule> {
+public class ClientModuleNotationParserFactory implements Factory<NotationParser<ClientModule>> {
 
-    private final NotationParser<ClientModule> delegate;
+    private final Instantiator instantiator;
 
-    public ClientModuleNotationParser(Instantiator instantiator) {
-        delegate = new NotationParserBuilder<ClientModule>()
+    public ClientModuleNotationParserFactory(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
+
+    public NotationParser<ClientModule> create() {
+        return new NotationParserBuilder<ClientModule>()
                 .resultingType(ClientModule.class)
                 .parser(new DependencyStringNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
                 .parser(new DependencyMapNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
                 .toComposite();
-    }
 
-    public void describe(Collection<String> candidateFormats) {
-        delegate.describe(candidateFormats);
-    }
-
-    public ClientModule parseNotation(Object notation) {
-        return delegate.parseNotation(notation);
     }
 }

@@ -24,10 +24,10 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 11/9/11
  */
-public class DependencyNotationParserTest extends Specification {
+public class DependencyNotationParserFactoryTest extends Specification {
 
     def notationParser = Mock(NotationParser)
-    def parser = new DependencyNotationParser(notationParser);
+    def parser = new DependencyNotationParserFactory(notationParser);
 
     def "consumes notation and forwards gradle exception"() {
         given:

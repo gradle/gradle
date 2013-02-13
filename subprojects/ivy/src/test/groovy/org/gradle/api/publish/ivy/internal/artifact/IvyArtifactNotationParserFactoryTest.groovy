@@ -15,11 +15,14 @@
  */
 
 
+
+
 package org.gradle.api.publish.ivy.internal.artifact
 
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.bundling.Jar
@@ -28,7 +31,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
-public class IvyArtifactNotationParserTest extends Specification {
+public class IvyArtifactNotationParserFactoryTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
     def fileResolver = Mock(FileResolver)
     def taskDependency = Mock(TaskDependency)
@@ -41,11 +44,11 @@ public class IvyArtifactNotationParserTest extends Specification {
     }
     def task = Mock(Task)
     def dependencies = Collections.singleton(Mock(Task))
-    IvyArtifactNotationParser parser = new IvyArtifactNotationParser(instantiator, "1.2", fileResolver)
+    NotationParser<IvyArtifact> parser = new IvyArtifactNotationParserFactory(instantiator, "1.2", fileResolver).create()
 
     def "directly returns IvyArtifact input"() {
         when:
-        IvyArtifact ivyArtifact = Mock()
+        def ivyArtifact = Mock(IvyArtifact)
 
         then:
         parser.parseNotation(ivyArtifact) == ivyArtifact
@@ -161,7 +164,7 @@ public class IvyArtifactNotationParserTest extends Specification {
     def "creates and configures IvyArtifact for file map notation"() {
         given:
         File file = new File('some-file-1.2.zip')
-        Task task = Mock()
+        def task = Mock(Task)
 
         when:
         IvyArtifact ivyArtifact = parser.parseNotation(file: 'some-file', name: "the-name", extension: "ext", builtBy: task)

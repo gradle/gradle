@@ -23,16 +23,18 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.PublicationContainerInternal;
 import org.gradle.api.publish.internal.PublicationFactory;
+import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication;
+import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
 import org.gradle.api.publish.maven.internal.plugins.GeneratePomTaskCreator;
 import org.gradle.api.publish.maven.internal.plugins.MavenPublishDynamicTaskCreator;
 import org.gradle.api.publish.maven.internal.plugins.MavenPublishLocalDynamicTaskCreator;
-import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParser;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -97,7 +99,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         public MavenPublication create(final String name) {
 
             Module module = dependencyMetaDataProvider.getModule();
-            MavenArtifactNotationParser artifactNotationParser = new MavenArtifactNotationParser(instantiator, module.getVersion(), fileResolver);
+            NotationParser<MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, module.getVersion(), fileResolver).create();
 
             return instantiator.newInstance(
                     DefaultMavenPublication.class,

@@ -32,7 +32,7 @@ import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
-import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactNotationParser;
+import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactNotationParserFactory;
 import org.gradle.api.publish.ivy.internal.plugins.IvyPublicationDynamicDescriptorGenerationTaskCreator;
 import org.gradle.api.publish.ivy.internal.plugins.IvyPublishDynamicTaskCreator;
 import org.gradle.api.publish.plugins.PublishingPlugin;
@@ -95,7 +95,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
 
         public Publication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
-            NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParser(instantiator, module.getVersion(), fileResolver);
+            NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, module.getVersion(), fileResolver).create();
             return instantiator.newInstance(
                     DefaultIvyPublication.class,
                     name, instantiator, module, notationParser
