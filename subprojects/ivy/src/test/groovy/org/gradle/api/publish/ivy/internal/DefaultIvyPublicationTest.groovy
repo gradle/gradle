@@ -32,7 +32,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultIvyPublicationTest extends Specification {
 
@@ -214,31 +213,6 @@ class DefaultIvyPublicationTest extends Specification {
 
         and:
         publication.artifacts == [ivyArtifact1, ivyArtifact2] as Set
-    }
-
-
-    @Unroll
-    def "cannot publish with file that #message"() {
-        def publication = createPublication()
-        Object notation = new Object();
-        IvyArtifact ivyArtifact = Mock()
-
-        when:
-        notationParser.parseNotation(notation) >> ivyArtifact
-        ivyArtifact.file >> theFile
-
-        and:
-        publication.artifact notation
-        publication.asNormalisedPublication()
-
-        then:
-        def t = thrown InvalidUserDataException
-        t.message == "Cannot publish ivy publication 'pub-name': artifact file ${message}: '${theFile}'"
-
-        where:
-        theFile                                                         | message
-        new File(testDirectoryProvider.testDirectory, 'does-not-exist') | 'does not exist'
-        testDirectoryProvider.testDirectory.createDir('sub_directory')  | 'is a directory'
     }
 
     def createPublication() {

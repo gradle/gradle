@@ -138,9 +138,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        IvyNormalizedPublication ivyNormalizedPublication = new IvyNormalizedPublication(name, getModule(), ivyArtifacts, getDescriptorFile());
-        ivyNormalizedPublication.validateArtifacts();
-        return ivyNormalizedPublication;
+        return new IvyNormalizedPublication(name, getModule(), getDescriptorFile(), ivyArtifacts);
     }
 
     private File getDescriptorFile() {

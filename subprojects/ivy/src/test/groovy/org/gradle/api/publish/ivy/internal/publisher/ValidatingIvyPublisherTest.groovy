@@ -15,24 +15,29 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publisher
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultModule
+import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.tasks.IvyDescriptorFileGenerator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
+
+import static java.util.Collections.emptySet
+import static org.gradle.util.CollectionUtils.toSet
 
 public class ValidatingIvyPublisherTest extends Specification {
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    @Shared TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
     def delegate = Mock(IvyPublisher)
     def publisher = new ValidatingIvyPublisher(delegate)
 
     def "delegates when publication is valid"() {
         when:
         def module = module("the-group", "the-artifact", "the-version")
-        def publication = new IvyNormalizedPublication("pub-name",  module, Collections.emptySet(), createIvyXmlFile("the-group", "the-artifact", "the-version"))
+        def publication = new IvyNormalizedPublication("pub-name", module, ivyFile("the-group", "the-artifact", "the-version"), emptySet())
         def repository = Mock(IvyArtifactRepository)
 
         and:
@@ -45,7 +50,7 @@ public class ValidatingIvyPublisherTest extends Specification {
     def "validates project coordinates"() {
         given:
         def projectIdentity = module(group, name, version)
-        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, Collections.emptySet(), createIvyXmlFile(group, name, version))
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(group, name, version), emptySet())
         def repository = Mock(IvyArtifactRepository)
 
         when:
@@ -53,19 +58,22 @@ public class ValidatingIvyPublisherTest extends Specification {
 
         then:
         def e = thrown InvalidUserDataException
-        e.message == message
+        e.message == "Invalid publication 'pub-name': $message."
 
         where:
         group          | name     | version   | message
-        ""             | "module" | "version" | "The organisation value cannot be empty"
-        "organisation" | ""       | "version" | "The module name value cannot be empty"
-        "organisation" | "module" | ""        | "The revision value cannot be empty"
+        ""             | "module" | "version" | "organisation cannot be empty"
+        "organisation" | ""       | "version" | "module name cannot be empty"
+        "organisation" | "module" | ""        | "revision cannot be empty"
+        null           | "module" | "version" | "organisation cannot be empty"
+        "organisation" | null     | "version" | "module name cannot be empty"
+        "organisation" | "module" | null      | "revision cannot be empty"
     }
 
     def "project coordinates must match ivy descriptor file"() {
         given:
         def projectIdentity = module("org", "module", "version")
-        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, Collections.emptySet(), createIvyXmlFile(organisation, module, version))
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(organisation, module, version), emptySet())
         def repository = Mock(IvyArtifactRepository)
 
         when:
@@ -73,13 +81,63 @@ public class ValidatingIvyPublisherTest extends Specification {
 
         then:
         def e = thrown InvalidUserDataException
-        e.message == message
+        e.message == "Invalid publication 'pub-name': $message"
 
         where:
         organisation | module       | version       | message
-        "org-mod"    | "module"     | "version"     | "Publication organisation does not match ivy descriptor. Cannot edit organisation directly in the ivy descriptor file."
-        "org"        | "module-mod" | "version"     | "Publication module name does not match ivy descriptor. Cannot edit module name directly in the ivy descriptor file."
-        "org"        | "module"     | "version-mod" | "Publication revision does not match ivy descriptor. Cannot edit revision directly in the ivy descriptor file."
+        "org-mod"    | "module"     | "version"     | "supplied organisation does not match ivy descriptor (cannot edit organisation directly in the ivy descriptor file)."
+        "org"        | "module-mod" | "version"     | "supplied module name does not match ivy descriptor (cannot edit module name directly in the ivy descriptor file)."
+        "org"        | "module"     | "version-mod" | "supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file)."
+    }
+
+    def "validates artifact attributes"() {
+        given:
+
+        def ivyArtifact = Stub(IvyArtifact) {
+            getName() >> name
+            getType() >> type
+            getExtension() >> extension
+            getClassifier() >> classifier
+        }
+        def publication = new IvyNormalizedPublication("pub-name", module("org", "module", "version"), ivyFile("org", "module", "version"), toSet([ivyArtifact]))
+
+        when:
+        publisher.publish(publication, Mock(IvyArtifactRepository))
+
+        then:
+        def t = thrown InvalidUserDataException
+        t.message == "Invalid publication 'pub-name': artifact ${attribute} cannot be ${error}."
+
+        where:
+        attribute |name       |type  | extension | classifier | error
+        "name" | null | "type" | "ext" | "classifier" | "empty"
+        "name" | "" | "type" | "ext" | "classifier" | "empty"
+        "type" | "name" | "" | "ext" | "classifier" | "an empty string. Use null instead"
+        "extension" | "name" | "type" | "" | "classifier" | "an empty string. Use null instead"
+        "classifier" | "name" | "type" | "ext" | "" | "an empty string. Use null instead"
+    }
+
+    @Unroll
+    def "cannot publish with file that #message"() {
+        def ivyArtifact = Mock(IvyArtifact)
+        def publication = new IvyNormalizedPublication("pub-name", module("group", "artifact", "version"), ivyFile("group", "artifact", "version"), toSet([ivyArtifact]))
+
+        when:
+        publisher.publish(publication, Mock(IvyArtifactRepository))
+
+        then:
+        ivyArtifact.name >> "name"
+        ivyArtifact.type >> "type"
+        ivyArtifact.file >> theFile
+
+        and:
+        def t = thrown InvalidUserDataException
+        t.message == "Cannot publish ivy publication 'pub-name': artifact file ${message}: '${theFile}'"
+
+        where:
+        theFile                                                         | message
+        new File(testDir.testDirectory, 'does-not-exist') | 'does not exist'
+        testDir.testDirectory.createDir('sub_directory')  | 'is a directory'
     }
 
     private def module(def groupId, def artifactId, def version) {
@@ -90,7 +148,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         }
     }
 
-    private def createIvyXmlFile(def group, def moduleName, def version) {
+    private def ivyFile(def group, def moduleName, def version) {
         def ivyXmlFile = testDir.file("ivy")
         IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultModule(group, moduleName, version))
         ivyFileGenerator.writeTo(ivyXmlFile)

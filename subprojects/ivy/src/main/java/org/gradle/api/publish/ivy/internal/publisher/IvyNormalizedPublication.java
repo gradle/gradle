@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.publish.ivy.IvyArtifact;
 
@@ -30,11 +29,15 @@ public class IvyNormalizedPublication {
     private final File descriptorFile;
     private final Set<IvyArtifact> artifacts;
 
-    public IvyNormalizedPublication(String name, Module module, Set<IvyArtifact> artifacts, File descriptorFile) {
+    public IvyNormalizedPublication(String name, Module module, File descriptorFile, Set<IvyArtifact> artifacts) {
         this.name = name;
         this.module = module;
         this.artifacts = artifacts;
         this.descriptorFile = descriptorFile;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public Module getModule() {
@@ -48,22 +51,4 @@ public class IvyNormalizedPublication {
     public Set<IvyArtifact> getArtifacts() {
         return artifacts;
     }
-
-    public void validateArtifacts() {
-        for (IvyArtifact artifact : artifacts) {
-            checkCanPublish(artifact);
-        }
-    }
-
-    private void checkCanPublish(IvyArtifact artifact) {
-        File artifactFile = artifact.getFile();
-        if (artifactFile == null || !artifactFile.exists()) {
-            throw new InvalidUserDataException(String.format("Cannot publish ivy publication '%s': artifact file does not exist: '%s'", name, artifactFile));
-        }
-        if (artifactFile.isDirectory()) {
-            throw new InvalidUserDataException(String.format("Cannot publish ivy publication '%s': artifact file is a directory: '%s'", name, artifactFile));
-        }
-    }
-
-
 }

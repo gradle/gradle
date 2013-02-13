@@ -33,7 +33,6 @@ public class DefaultIvyArtifact implements IvyArtifact {
 
     public DefaultIvyArtifact(File file, String name, String extension, String type, String classifier) {
         this.file = file;
-        // TODO:DAZ Validate the name later when actually publishing (validation story)
         this.name = name;
 
         this.extension = extension;

@@ -19,13 +19,19 @@ package org.gradle.api.publish.ivy.internal.artifact;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.GUtil;
 
 public class PublishArtifactIvyArtifact extends DefaultIvyArtifact implements Buildable {
     private final TaskDependency buildDependencies;
 
     public PublishArtifactIvyArtifact(PublishArtifact publishArtifact) {
-        super(publishArtifact.getFile(), publishArtifact.getName(), publishArtifact.getExtension(), publishArtifact.getType(), publishArtifact.getClassifier());
+        super(publishArtifact.getFile(), publishArtifact.getName(),
+                emptyToNull(publishArtifact.getExtension()), emptyToNull(publishArtifact.getType()), emptyToNull(publishArtifact.getClassifier()));
         this.buildDependencies = publishArtifact.getBuildDependencies();
+    }
+
+    private static String emptyToNull(String value) {
+        return GUtil.elvis(value, null);
     }
 
     public TaskDependency getBuildDependencies() {

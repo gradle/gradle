@@ -31,6 +31,7 @@ import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Collection;
@@ -83,7 +84,7 @@ public class IvyArtifactNotationParser implements NotationParser<IvyArtifact>, T
         protected IvyArtifact parseType(AbstractArchiveTask archiveTask) {
             DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
                     DefaultIvyArtifact.class,
-                    archiveTask.getArchivePath(), archiveTask.getBaseName(), archiveTask.getExtension(), archiveTask.getExtension(), archiveTask.getClassifier()
+                    archiveTask.getArchivePath(), archiveTask.getBaseName(), GUtil.elvis(archiveTask.getExtension(), null), archiveTask.getExtension(), GUtil.elvis(archiveTask.getClassifier(), null)
             );
             ivyArtifact.builtBy(archiveTask);
             return ivyArtifact;
