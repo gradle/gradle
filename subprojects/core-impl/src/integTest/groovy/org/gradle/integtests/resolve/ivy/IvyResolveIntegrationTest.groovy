@@ -18,8 +18,6 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class IvyResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def ivyRepo2 = ivy("ivy-repo2")
-
     def "dependency includes all artifacts and transitive dependencies of referenced configuration"() {
         given:
         ivyRepo.module("org.gradle", "test", "1.45")
@@ -149,7 +147,6 @@ configurations {
 dependencies {
     repositories {
         ivy { url "${ivyRepo.uri}" }
-        ivy { url "${ivyRepo2.uri}" }
     }
     compile 'ivy.configuration:projectA:1.2'
 }
@@ -159,10 +156,10 @@ task retrieve(type: Sync) {
 }
 """
         when: "projectA uses a wildcard configuration mapping for dependency on projectB"
-        ivyRepo.module('ivy.configuration', 'projectA', '1.2')
+        def moduleA = ivyRepo.module('ivy.configuration', 'projectA', '1.2')
                 .configuration('parent')
                 .artifact([:])
-                .dependsOn('ivy.configuration', 'projectB', 'latest.integration', 'runtime->*')
+                .dependsOn('ivy.configuration', 'projectB', '1.5', 'runtime->*')
                 .publish()
 
         ivyRepo.module('ivy.configuration', 'projectB', '1.5')
@@ -181,16 +178,23 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.5.jar', 'projectB-child-1.5.jar', 'projectC-1.7.jar')
 
         when: "projectB-1.5 is replaced by conflict resolution with projectB-1.6 that has a different set of configurations"
-        ivyRepo2.module('ivy.configuration', 'projectB', '1.6')
+
+        ivyRepo.module('ivy.configuration', 'projectB', '1.6')
                 .configuration('other')
                 .artifact([name: 'projectB-other', conf: 'other'])
                 .publish()
+
+        ivyRepo.module('ivy.configuration', 'projectD', '1.0')
+                .dependsOn('ivy.configuration', 'projectB', '1.6')
+                .publish()
+
+        moduleA.dependsOn('ivy.configuration', 'projectD', '1.0').publish()
 
         and:
         succeeds 'retrieve'
 
         then: "we resolve artifacts from projectB-1.6 only"
-        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar', 'projectB-other-1.6.jar')
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar', 'projectB-other-1.6.jar', 'projectD-1.0.jar')
     }
 
 }
