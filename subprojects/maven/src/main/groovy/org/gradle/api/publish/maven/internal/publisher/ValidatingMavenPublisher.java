@@ -96,6 +96,9 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     private void validateArtifacts(MavenNormalizedPublication publication) {
         Set<MavenArtifactKey> keys = new HashSet<MavenArtifactKey>();
         for (MavenArtifact artifact : publication.getArtifacts()) {
+            checkArtifactAttribute("extension", artifact.getExtension());
+            checkArtifactAttribute("classifier", artifact.getClassifier());
+
             checkCanPublish(publication.getName(), artifact);
 
             MavenArtifactKey key = new MavenArtifactKey(artifact);
@@ -107,6 +110,12 @@ public class ValidatingMavenPublisher implements MavenPublisher {
                         ));
             }
             keys.add(key);
+        }
+    }
+
+    private void checkArtifactAttribute(String name, String value) {
+        if (value != null && value.length() == 0) {
+            throw new InvalidMavenPublicationException(String.format("An artifact %s value cannot be an empty string. Use null instead.", name));
         }
     }
 

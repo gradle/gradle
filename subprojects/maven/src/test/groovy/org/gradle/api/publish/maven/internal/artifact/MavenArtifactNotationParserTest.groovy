@@ -111,7 +111,8 @@ public class MavenArtifactNotationParserTest extends Specification {
         where:
         archiveClassifier | artifactClassifier | archiveExtension | artifactExtension
         "classifier"      | "classifier"       | "extension"      | "extension"
-        null              | ""                 | null             | ""
+        null              | null               | null             | null
+        ""                | null               | ""               | null
     }
 
     def "creates MavenArtifact for file notation"() {

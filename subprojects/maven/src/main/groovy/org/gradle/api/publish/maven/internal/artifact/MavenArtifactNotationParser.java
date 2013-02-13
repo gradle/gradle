@@ -31,6 +31,7 @@ import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Collection;
@@ -81,7 +82,9 @@ public class MavenArtifactNotationParser implements NotationParser<MavenArtifact
 
         @Override
         protected MavenArtifact parseType(AbstractArchiveTask archiveTask) {
-            DefaultMavenArtifact artifact = instantiator.newInstance(DefaultMavenArtifact.class, archiveTask.getArchivePath(), archiveTask.getExtension(), archiveTask.getClassifier());
+            DefaultMavenArtifact artifact = instantiator.newInstance(
+                    DefaultMavenArtifact.class,
+                    archiveTask.getArchivePath(), GUtil.elvis(archiveTask.getExtension(), null), GUtil.elvis(archiveTask.getClassifier(), null));
             artifact.builtBy(archiveTask);
             return artifact;
         }

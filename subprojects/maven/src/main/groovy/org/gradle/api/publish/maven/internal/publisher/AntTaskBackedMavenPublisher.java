@@ -33,6 +33,7 @@ import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,9 +92,9 @@ public class AntTaskBackedMavenPublisher implements MavenPublisher {
                 continue;
             }
             AttachedArtifact attachedArtifact = installOrDeployTask.createAttach();
-            attachedArtifact.setClassifier(mavenArtifact.getClassifier());
+            attachedArtifact.setClassifier(GUtil.elvis(mavenArtifact.getClassifier(), ""));
+            attachedArtifact.setType(GUtil.elvis(mavenArtifact.getExtension(), ""));
             attachedArtifact.setFile(mavenArtifact.getFile());
-            attachedArtifact.setType(mavenArtifact.getExtension());
         }
     }
 

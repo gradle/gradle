@@ -80,7 +80,7 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
                         builtBy customFileTask
                     }
                     artifact customJar {
-                        classifier ""
+                        classifier null
                         extension "war"
                     }
                 }
@@ -103,7 +103,7 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
                 mavenCustom(MavenPublication) {
                     artifact file: "customFile.txt", classifier: "output"
                     artifact file: customFileTask.outputFile, extension: "htm", classifier: "documentation", builtBy: customFileTask
-                    artifact source: customJar, extension: "war", classifier: ""
+                    artifact source: customJar, extension: "war", classifier: null
                 }
             }
 """)

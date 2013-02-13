@@ -94,6 +94,27 @@ public class ValidatingMavenPublisherTest extends Specification {
         "group"     | "artifact"     | "version-mod" | "Publication version does not match POM file value. Cannot edit version directly in the POM file."
     }
 
+    def "validates artifact attributes"() {
+        def projectIdentity = projectIdentity("group", "artifact", "version")
+        def pomFile = createPomFile("group", "artifact", "version")
+        def mavenArtifact = Stub(MavenArtifact) {
+            getExtension() >> extension
+            getClassifier() >> classifier
+        }
+        def publication = new MavenNormalizedPublication("pub-name", pomFile, projectIdentity, Collections.singleton(mavenArtifact))
+
+        when:
+        publisher.publish(publication, Mock(MavenArtifactRepository))
+
+        then:
+        def t = thrown InvalidMavenPublicationException
+        t.message == "An artifact ${name} value cannot be an empty string. Use null instead."
+
+        where:
+        name         | extension | classifier
+        "extension"  | ""        | "classifier"
+        "classifier" | "ext"     | ""
+    }
 
     @Unroll
     def "cannot publish with file that #message"() {

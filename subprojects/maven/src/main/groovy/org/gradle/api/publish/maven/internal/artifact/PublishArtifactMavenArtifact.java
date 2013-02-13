@@ -17,12 +17,13 @@ package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.GUtil;
 
 public class PublishArtifactMavenArtifact extends DefaultMavenArtifact {
     private final TaskDependency buildDependencies;
 
     public PublishArtifactMavenArtifact(PublishArtifact delegate) {
-        super(delegate.getFile(), delegate.getExtension(), delegate.getClassifier());
+        super(delegate.getFile(), GUtil.elvis(delegate.getExtension(), null), GUtil.elvis(delegate.getClassifier(), null));
         buildDependencies = delegate.getBuildDependencies();
     }
 
