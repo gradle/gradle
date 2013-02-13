@@ -15,6 +15,7 @@
  */
 package org.gradle.api.publish.internal;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.publish.Publication;
 
 import java.util.LinkedHashMap;
@@ -33,6 +34,6 @@ public class CompositePublicationFactory {
                 return (T) entry.getValue().create(name);
             }
         }
-        throw new IllegalArgumentException("No registered factory for publications of type: " + type);
+        throw new InvalidUserDataException("Cannot create publications of type: " + type);
     }
 }
