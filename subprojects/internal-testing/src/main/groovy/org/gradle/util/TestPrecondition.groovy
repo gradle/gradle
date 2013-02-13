@@ -93,6 +93,9 @@ enum TestPrecondition {
     NOT_JDK7({
         !JDK7.fulfilled
     }),
+    CAN_RESOLVE_UNICODE_POM({
+        !(JDK6.fulfilled && LINUX.fulfilled)
+    }),
     JDK7_POSIX({
         JDK7.fulfilled && NOT_WINDOWS.fulfilled
     });
