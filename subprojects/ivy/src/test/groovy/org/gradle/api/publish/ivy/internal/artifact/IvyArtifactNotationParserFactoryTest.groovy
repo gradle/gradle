@@ -88,6 +88,24 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         ivyArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
+    def "creates IvyArtifact for source map notation with file"() {
+        given:
+        File file = new File('some-file-1.2.zip')
+
+        when:
+        def ivyArtifact = parser.parseNotation(source: 'some-file')
+
+        then:
+        fileResolver.resolve('some-file') >> file
+
+        and:
+        ivyArtifact.name == "some-file"
+        ivyArtifact.extension == "zip"
+        ivyArtifact.type == "zip"
+        ivyArtifact.file == file
+    }
+
+
     def "creates and configures IvyArtifact for source map notation"() {
         when:
         IvyArtifact ivyArtifact = parser.parseNotation(source: publishArtifact, name: 'the-name', extension: "the-ext", type: "the-type")
@@ -142,41 +160,6 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         "some-file-1.2.zip"            | "some-file" | "zip"     | "zip"
         "some-file"                    | "some-file" | null      | null
         "some-file-1.2-classifier.zip" | "some-file" | "zip"     | "zip"
-    }
-
-    def "creates IvyArtifact for file map notation"() {
-        given:
-        File file = new File('some-file-1.2.zip')
-
-        when:
-        def ivyArtifact = parser.parseNotation(file: 'some-file')
-
-        then:
-        fileResolver.resolve('some-file') >> file
-
-        and:
-        ivyArtifact.name == "some-file"
-        ivyArtifact.extension == "zip"
-        ivyArtifact.type == "zip"
-        ivyArtifact.file == file
-    }
-
-    def "creates and configures IvyArtifact for file map notation"() {
-        given:
-        File file = new File('some-file-1.2.zip')
-        def task = Mock(Task)
-
-        when:
-        IvyArtifact ivyArtifact = parser.parseNotation(file: 'some-file', name: "the-name", extension: "ext", builtBy: task)
-
-        then:
-        fileResolver.resolve('some-file') >> file
-
-        and:
-        ivyArtifact.file == file
-        ivyArtifact.name == "the-name"
-        ivyArtifact.extension == "ext"
-        ivyArtifact.buildDependencies.getDependencies(Mock(Task)) == [task] as Set
     }
 
 }

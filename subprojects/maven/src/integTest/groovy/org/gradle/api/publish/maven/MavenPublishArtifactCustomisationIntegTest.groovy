@@ -101,8 +101,8 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         createBuildScripts("""
             publications {
                 mavenCustom(MavenPublication) {
-                    artifact file: "customFile.txt", classifier: "output"
-                    artifact file: customFileTask.outputFile, extension: "htm", classifier: "documentation", builtBy: customFileTask
+                    artifact source: "customFile.txt", classifier: "output"
+                    artifact source: customFileTask.outputFile, extension: "htm", classifier: "documentation", builtBy: customFileTask
                     artifact source: customJar, extension: "war", classifier: null
                 }
             }

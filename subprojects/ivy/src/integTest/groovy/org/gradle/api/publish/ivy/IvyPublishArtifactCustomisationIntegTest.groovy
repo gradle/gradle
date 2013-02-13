@@ -91,8 +91,8 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    artifact file: "customFile.txt", extension: "customExt", conf: "foo,bar"
-                    artifact file: customDocsTask.outputFile, name: "changedDocs", extension: "htm", builtBy: customDocsTask
+                    artifact source: "customFile.txt", extension: "customExt", conf: "foo,bar"
+                    artifact source: customDocsTask.outputFile, name: "changedDocs", extension: "htm", builtBy: customDocsTask
                     artifact source: customJar, name: "changedJar", extension: "war", type: "web-archive", conf: "*"
                 }
             }

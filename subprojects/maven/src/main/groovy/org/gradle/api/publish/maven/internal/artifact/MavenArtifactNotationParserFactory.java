@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.file.FileResolver;
@@ -27,7 +26,6 @@ import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
@@ -59,7 +57,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
                 .parser(fileNotationParser)
                 .toComposite();
 
-        MavenArtifactMapNotationParser mavenArtifactMapNotationParser = new MavenArtifactMapNotationParser(sourceNotationParser, fileNotationParser);
+        MavenArtifactMapNotationParser mavenArtifactMapNotationParser = new MavenArtifactMapNotationParser(sourceNotationParser);
 
         NotationParserBuilder<MavenArtifact> parserBuilder = new NotationParserBuilder<MavenArtifact>()
                 .resultingType(MavenArtifact.class)
@@ -125,26 +123,18 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
 
     private class MavenArtifactMapNotationParser extends MapNotationParser<MavenArtifact> {
         private final NotationParser<MavenArtifact> sourceNotationParser;
-        private final NotationParser<MavenArtifact> fileNotationParser;
 
-        private MavenArtifactMapNotationParser(NotationParser<MavenArtifact> sourceNotationParser, NotationParser<MavenArtifact> fileNotationParser) {
+        private MavenArtifactMapNotationParser(NotationParser<MavenArtifact> sourceNotationParser) {
             this.sourceNotationParser = sourceNotationParser;
-            this.fileNotationParser = fileNotationParser;
         }
 
-        protected MavenArtifact parseMap(@MapKey("source") @Optional Object source, @MapKey("file") @Optional Object file) {
-            if (source != null && file == null) {
-                return sourceNotationParser.parseNotation(source);
-            }
-            if (file != null && source == null) {
-                return fileNotationParser.parseNotation(file);
-            }
-            throw new InvalidUserDataException("Must supply exactly one of the following keys: [source, file]");
+        protected MavenArtifact parseMap(@MapKey("source") Object source) {
+            return sourceNotationParser.parseNotation(source);
         }
 
         @Override
         public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Maps containing either a 'file' or a 'source' entry, e.g. [file: '/path/to/file', extension: 'zip'].");
+            candidateFormats.add("Maps containing either a 'source' entry, e.g. [source: '/path/to/file', extension: 'zip'].");
         }
     }
 

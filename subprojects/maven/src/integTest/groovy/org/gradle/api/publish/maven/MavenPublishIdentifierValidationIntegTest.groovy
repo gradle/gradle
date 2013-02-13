@@ -106,7 +106,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
                 publications {
                     maven(MavenPublication) {
                         from components.java
-                        artifact file: 'content-file', extension: '${extension}', classifier: '${classifier}'
+                        artifact source: 'content-file', extension: '${extension}', classifier: '${classifier}'
                     }
                 }
             }

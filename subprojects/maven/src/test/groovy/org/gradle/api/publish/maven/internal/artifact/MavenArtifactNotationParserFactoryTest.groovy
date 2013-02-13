@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,6 +93,22 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
         mavenArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
+    def "creates MavenArtifact for source map notation with file"() {
+        given:
+        File file = new File('some-file-1.2-classifier.zip')
+
+        when:
+        MavenArtifact mavenArtifact = parser.parseNotation(source: 'some-file')
+
+        then:
+        fileResolver.resolve('some-file') >> file
+
+        and:
+        mavenArtifact.extension == "zip"
+        mavenArtifact.classifier == "classifier"
+        mavenArtifact.file == file
+    }
+
     def "creates MavenArtifact for ArchivePublishArtifact"() {
         when:
         def rootProject = HelperUtil.createRootProject()
@@ -136,55 +152,5 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
         "some-file"                    | ""        | ""
         "some-file.zip"                | "zip"     | ""
         "some-file-1.2-classifier.zip" | "zip"     | "classifier"
-    }
-
-    def "creates MavenArtifact for file map notation"() {
-        given:
-        File file = new File('some-file-1.2-classifier.zip')
-
-        when:
-        MavenArtifact mavenArtifact = parser.parseNotation(file: 'some-file')
-
-        then:
-        fileResolver.resolve('some-file') >> file
-
-        and:
-        mavenArtifact.extension == "zip"
-        mavenArtifact.classifier == "classifier"
-        mavenArtifact.file == file
-    }
-
-    def "creates MavenArtifact for source map notation with file"() {
-        given:
-        File file = new File('some-file-1.2-classifier.zip')
-
-        when:
-        MavenArtifact mavenArtifact = parser.parseNotation(source: 'some-file')
-
-        then:
-        fileResolver.resolve('some-file') >> file
-
-        and:
-        mavenArtifact.extension == "zip"
-        mavenArtifact.classifier == "classifier"
-        mavenArtifact.file == file
-    }
-
-    def "creates and configures MavenArtifact for file map notation"() {
-        given:
-        File file = new File('some-file-1.2-classifier.zip')
-        Task task = Mock()
-
-        when:
-        MavenArtifact mavenArtifact = parser.parseNotation(file: 'some-file', extension: "ext", classifier: "classy", builtBy: task)
-
-        then:
-        fileResolver.resolve('some-file') >> file
-
-        and:
-        mavenArtifact.file == file
-        mavenArtifact.extension == "ext"
-        mavenArtifact.classifier == "classy"
-        mavenArtifact.buildDependencies.getDependencies(Mock(Task)) == [task] as Set
     }
 }

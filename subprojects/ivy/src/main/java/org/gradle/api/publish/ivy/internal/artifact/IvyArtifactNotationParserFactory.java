@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.file.FileResolver;
@@ -27,7 +26,6 @@ import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
@@ -59,7 +57,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
                 .parser(fileNotationParser)
                 .toComposite();
 
-        IvyArtifactMapNotationParser ivyArtifactMapNotationParser = new IvyArtifactMapNotationParser(sourceNotationParser, fileNotationParser);
+        IvyArtifactMapNotationParser ivyArtifactMapNotationParser = new IvyArtifactMapNotationParser(sourceNotationParser);
 
         NotationParserBuilder<IvyArtifact> parserBuilder = new NotationParserBuilder<IvyArtifact>()
                 .resultingType(IvyArtifact.class)
@@ -131,21 +129,13 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
     private class IvyArtifactMapNotationParser extends MapNotationParser<IvyArtifact> {
         private final NotationParser<IvyArtifact> sourceNotationParser;
-        private final NotationParser<IvyArtifact> fileNotationParser;
 
-        private IvyArtifactMapNotationParser(NotationParser<IvyArtifact> sourceNotationParser, NotationParser<IvyArtifact> fileNotationParser) {
+        private IvyArtifactMapNotationParser(NotationParser<IvyArtifact> sourceNotationParser) {
             this.sourceNotationParser = sourceNotationParser;
-            this.fileNotationParser = fileNotationParser;
         }
 
-        protected IvyArtifact parseMap(@MapKey("source") @Optional Object source, @MapKey("file") @Optional Object file) {
-            if (source != null && file == null) {
-                return sourceNotationParser.parseNotation(source);
-            }
-            if (file != null && source == null) {
-                return fileNotationParser.parseNotation(file);
-            }
-            throw new InvalidUserDataException("Must supply exactly one of the following keys: [source, file]");
+        protected IvyArtifact parseMap(@MapKey("source") Object source) {
+            return sourceNotationParser.parseNotation(source);
         }
 
         @Override

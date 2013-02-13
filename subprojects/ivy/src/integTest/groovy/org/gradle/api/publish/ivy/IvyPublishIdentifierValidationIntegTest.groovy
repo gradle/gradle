@@ -115,7 +115,7 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec {
                 publications {
                     ivy(IvyPublication) {
                         configurations.create('${conf}')
-                        artifact file: 'content-file', name: '${artifact}', extension: '${extension}', type: '${type}', conf: '${conf}', classifier: '${classifier}'
+                        artifact source: 'content-file', name: '${artifact}', extension: '${extension}', type: '${type}', conf: '${conf}', classifier: '${classifier}'
                     }
                 }
             }
