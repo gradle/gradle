@@ -16,15 +16,17 @@
 
 package org.gradle.plugins.jsoup
 
-import org.gradle.api.Project
-import org.gradle.api.Plugin
-import org.gradle.api.tasks.Copy
+import org.jsoup.nodes.Document
+import org.gradle.api.file.FileCopyDetails
 
-class JsoupPlugin implements Plugin<Project> {
+class JsoupTransformTarget {
 
-    void apply(Project project) {
-        project.tasks.withType(Copy) { Copy task ->
-            task.extensions.create("jsoup", JsoupCopyExtension, task)
-        }
+    final Document document
+    final FileCopyDetails fileCopyDetails
+
+    JsoupTransformTarget(Document document, FileCopyDetails fileCopyDetails) {
+        this.document = document
+        this.fileCopyDetails = fileCopyDetails
     }
+
 }

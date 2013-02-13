@@ -362,7 +362,6 @@ task userguide {
 }
 
 import org.gradle.plugins.pegdown.PegDown
-import org.gradle.plugins.jsoup.Jsoup
 
 task editReleaseNotes() {
     group = "release notes"
@@ -372,29 +371,18 @@ task editReleaseNotes() {
 }
 
 task releaseNotesMarkdown(type: PegDown) {
+    group = "release notes"
     source "src/docs/release/notes.md"
-    destination "$buildDir/release-notes/notes-raw.html"
-}
-
-task decorateReleaseNotes(type: Jsoup) {
-    source releaseNotesMarkdown
-    destination "$buildDir/release-notes/notes-decorated.html"
-
-    inputs.files cssFiles
-    inputs.file "release-notes-transform.gradle"
-    apply from: "release-notes-transform.gradle"
+    destination "$buildDir/release-notes-raw/release-notes.html"
 }
 
 task releaseNotes(type: Copy) {
     group = "release notes"
     ext.fileName = "release-notes.html"
     into "$docsDir"
-    from decorateReleaseNotes, {
-        rename ".+", fileName
-        doFirst {
-            owner.filter(ReplaceTokens, tokens: [version: project.version.toString(), versionBase: rootProject.versionBase])
-        }
-    }
+    from releaseNotesMarkdown
+    jsoup.plugins "src/transforms/release-notes.gradle"
+    filter(ReplaceTokens, tokens: [version: project.version.toString(), versionBase: rootProject.versionBase])
 }
 
 task viewReleaseNotes(dependsOn: releaseNotes) {
