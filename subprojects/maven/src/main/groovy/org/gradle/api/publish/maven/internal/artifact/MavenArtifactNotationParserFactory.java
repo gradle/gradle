@@ -100,14 +100,14 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
     }
 
     private class FileNotationParser implements NotationParser<MavenArtifact> {
-        private final FileResolver fileResolver;
+        private final NotationParser<File> fileResolverNotationParser;
 
         private FileNotationParser(FileResolver fileResolver) {
-            this.fileResolver = fileResolver;
+            this.fileResolverNotationParser = fileResolver.asNotationParser();
         }
 
         public MavenArtifact parseNotation(Object notation) throws UnsupportedNotationException {
-            File file = fileResolver.resolve(notation);
+            File file = fileResolverNotationParser.parseNotation(notation);
             return parseFile(file);
         }
 
@@ -117,7 +117,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         }
 
         public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Anything that can be converted to a file, as per Project.file()");
+            fileResolverNotationParser.describe(candidateFormats);
         }
     }
 

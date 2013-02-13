@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.publish.maven.internal.artifact
 
 import org.gradle.api.Task
@@ -30,7 +32,7 @@ import spock.lang.Specification
 public class MavenArtifactNotationParserFactoryTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
     def taskDependency = Mock(TaskDependency)
-    def fileResolver = Mock(FileResolver)
+    def fileNotationParser = Mock(NotationParser)
     def publishArtifact = Stub(PublishArtifact) {
         getExtension() >> 'extension'
         getClassifier() >> 'classifier'
@@ -40,7 +42,14 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
     def task = Mock(Task)
     def dependencies = Collections.singleton(Mock(Task))
 
-    NotationParser<MavenArtifact> parser = new MavenArtifactNotationParserFactory(instantiator, "1.2", fileResolver).create()
+    NotationParser<MavenArtifact> parser
+
+    def "setup"() {
+        def fileResolver = Stub(FileResolver) {
+            asNotationParser() >> fileNotationParser
+        }
+        parser = new MavenArtifactNotationParserFactory(instantiator, "1.2", fileResolver).create()
+    }
 
     def "directly returns MavenArtifact input"() {
         when:
@@ -101,7 +110,7 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
         MavenArtifact mavenArtifact = parser.parseNotation(source: 'some-file')
 
         then:
-        fileResolver.resolve('some-file') >> file
+        fileNotationParser.parseNotation('some-file') >> file
 
         and:
         mavenArtifact.extension == "zip"
@@ -140,7 +149,7 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
         MavenArtifact mavenArtifact = parser.parseNotation('some-file')
 
         then:
-        fileResolver.resolve('some-file') >> file
+        fileNotationParser.parseNotation('some-file') >> file
 
         and:
         mavenArtifact.extension == "zip"

@@ -102,14 +102,14 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
     }
 
     private class FileNotationParser implements NotationParser<IvyArtifact> {
-        private final FileResolver fileResolver;
+        private final NotationParser<File> fileResolverNotationParser;
 
         private FileNotationParser(FileResolver fileResolver) {
-            this.fileResolver = fileResolver;
+            this.fileResolverNotationParser = fileResolver.asNotationParser();
         }
 
         public IvyArtifact parseNotation(Object notation) throws UnsupportedNotationException {
-            File file = fileResolver.resolve(notation);
+            File file = fileResolverNotationParser.parseNotation(notation);
             return parseFile(file);
         }
 
@@ -122,10 +122,9 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         }
 
         public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Anything that can be converted to a file, as per Project.file()");
+            fileResolverNotationParser.describe(candidateFormats);
         }
     }
-
 
     private class IvyArtifactMapNotationParser extends MapNotationParser<IvyArtifact> {
         private final NotationParser<IvyArtifact> sourceNotationParser;

@@ -17,8 +17,9 @@
 
 
 
-package org.gradle.api.publish.ivy.internal.artifact
 
+
+package org.gradle.api.publish.ivy.internal.artifact
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.file.FileResolver
@@ -33,7 +34,7 @@ import spock.lang.Specification
 
 public class IvyArtifactNotationParserFactoryTest extends Specification {
     Instantiator instantiator = new DirectInstantiator()
-    def fileResolver = Mock(FileResolver)
+    def fileNotationParser = Mock(NotationParser)
     def taskDependency = Mock(TaskDependency)
     def publishArtifact = Stub(PublishArtifact) {
         getName() >> 'name'
@@ -44,7 +45,15 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
     }
     def task = Mock(Task)
     def dependencies = Collections.singleton(Mock(Task))
-    NotationParser<IvyArtifact> parser = new IvyArtifactNotationParserFactory(instantiator, "1.2", fileResolver).create()
+
+    NotationParser<IvyArtifact> parser
+
+    def "setup"() {
+        def fileResolver = Stub(FileResolver) {
+            asNotationParser() >> fileNotationParser
+        }
+        parser = new IvyArtifactNotationParserFactory(instantiator, "1.2", fileResolver).create()
+    }
 
     def "directly returns IvyArtifact input"() {
         when:
@@ -96,7 +105,7 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         def ivyArtifact = parser.parseNotation(source: 'some-file')
 
         then:
-        fileResolver.resolve('some-file') >> file
+        fileNotationParser.parseNotation('some-file') >> file
 
         and:
         ivyArtifact.name == "some-file"
@@ -147,7 +156,7 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         IvyArtifact ivyArtifact = parser.parseNotation('some-file')
 
         then:
-        fileResolver.resolve('some-file') >> file
+        fileNotationParser.parseNotation('some-file') >> file
 
         and:
         ivyArtifact.name == name
