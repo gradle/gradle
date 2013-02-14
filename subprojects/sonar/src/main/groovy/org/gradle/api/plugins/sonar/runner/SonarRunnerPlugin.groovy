@@ -95,7 +95,11 @@ import org.gradle.internal.jvm.Jvm
  */
 @Incubating
 class SonarRunnerPlugin implements Plugin<Project> {
+    // the project to which the plugin was applied
+    Project targetProject
+
     void apply(Project project) {
+        targetProject = project
         def sonarRunnerTask = project.tasks.add("sonarRunner", SonarRunner)
         sonarRunnerTask.conventionMapping.with {
             sonarProperties = {
@@ -121,9 +125,12 @@ class SonarRunnerPlugin implements Plugin<Project> {
         Map<String, Object> rawProperties = [:]
         addGradleDefaults(project, rawProperties)
         extension.evaluateSonarPropertiesBlocks(rawProperties)
-        if (project.parent == null) { addSystemProperties(rawProperties) }
+        if (project == targetProject) { addSystemProperties(rawProperties) }
 
-        def projectPrefix = project.path.substring(1).replace(":", ".")
+        def projectPrefix = project.path.substring(targetProject.path.size()).replace(":", ".")
+        if (projectPrefix.startsWith(".")) {
+            projectPrefix = projectPrefix.substring(1)
+        }
         convertProperties(rawProperties, projectPrefix, properties)
         
         def enabledChildProjects = project.childProjects.values().findAll { !it.sonarRunner.skipProject }
@@ -146,7 +153,7 @@ class SonarRunnerPlugin implements Plugin<Project> {
         properties["sonar.projectBaseDir"] = project.projectDir
         properties["sonar.dynamicAnalysis"] = "reuseReports"
 
-        if (project.parent == null) {
+        if (project == targetProject) {
             properties["sonar.environment.information.key"] = "Gradle"
             properties["sonar.environment.information.version"] = project.gradle.gradleVersion
             properties["sonar.working.directory"] = new File(project.buildDir, "sonar")
