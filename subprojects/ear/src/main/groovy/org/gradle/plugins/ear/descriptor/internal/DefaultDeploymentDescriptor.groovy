@@ -185,7 +185,7 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     public DefaultDeploymentDescriptor writeTo(Object path) {
-        IoActions.writeFile(fileResolver.resolve(path), new ErroringAction<Writer>() {
+        IoActions.writeTextFile(fileResolver.resolve(path), new ErroringAction<Writer>() {
             @Override
             void doExecute(Writer writer) {
                 writeTo(writer);

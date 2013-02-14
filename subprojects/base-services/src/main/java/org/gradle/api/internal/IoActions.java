@@ -44,7 +44,7 @@ public abstract class IoActions {
      * @param output The file to write to
      * @param action The action to write the actual content
      */
-    public static void writeFile(File output, Action<? super BufferedWriter> action) {
+    public static void writeTextFile(File output, Action<? super BufferedWriter> action) {
         writeTextFile(output, Charset.defaultCharset().name(), action);
     }
 
