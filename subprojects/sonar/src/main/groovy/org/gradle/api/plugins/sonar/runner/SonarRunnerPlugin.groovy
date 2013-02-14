@@ -107,12 +107,10 @@ class SonarRunnerPlugin implements Plugin<Project> {
         project.allprojects {
             extensions.create("sonarRunner", SonarRunnerExtension)
         }
-        project.gradle.projectsEvaluated {
-            project.allprojects { prj ->
-                if (prj.plugins.hasPlugin(JavaPlugin) && !prj.sonarRunner.skipProject) {
-                    sonarRunnerTask.dependsOn(prj.tasks.test)
-                }
-            }
+        sonarRunnerTask.dependsOn {
+            project.allprojects.findAll { prj ->
+                prj.plugins.hasPlugin(JavaPlugin) && !prj.sonarRunner.skipProject
+            }.collect { it.tasks.test }
         }
     }
 

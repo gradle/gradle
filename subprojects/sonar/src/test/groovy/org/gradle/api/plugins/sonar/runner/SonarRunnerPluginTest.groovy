@@ -25,6 +25,10 @@ import org.junit.Rule
 
 import spock.lang.Specification
 
+import static spock.util.matcher.HamcrestSupport.*
+import static org.gradle.util.Matchers.*
+import static org.hamcrest.Matchers.*
+
 class SonarRunnerPluginTest extends Specification {
     @Rule SetSystemProperties systemProperties
 
@@ -59,11 +63,9 @@ class SonarRunnerPluginTest extends Specification {
         when:
         project.plugins.apply(JavaPlugin)
         childProject.plugins.apply(JavaPlugin)
-        project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
         then:
-        project.tasks.sonarRunner.dependsOn.contains(project.tasks.test)
-        project.tasks.sonarRunner.dependsOn.contains(childProject.tasks.test)
+        expect(project.tasks.sonarRunner, dependsOnPaths(containsInAnyOrder(":test", ":child:test")))
     }
 
     def "doesn't make sonarRunner task depend on test task of skipped project"() {
@@ -71,11 +73,9 @@ class SonarRunnerPluginTest extends Specification {
         project.plugins.apply(JavaPlugin)
         childProject.plugins.apply(JavaPlugin)
         childProject.sonarRunner.skipProject = true
-        project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
         then:
-        project.tasks.sonarRunner.dependsOn.contains(project.tasks.test)
-        !project.tasks.sonarRunner.dependsOn.contains(childProject.tasks.test)
+        expect(project.tasks.sonarRunner, dependsOnPaths(contains(":test")))
     }
 
     def "adds default properties for all projects"() {

@@ -273,14 +273,23 @@ public class Matchers {
     }
 
     @Factory
-    public static Matcher<Task> dependsOn(final Matcher<? extends Iterable<String>> matcher) {
+    public static Matcher<Task> dependsOn(Matcher<? extends Iterable<String>> matcher) {
+        return dependsOn(matcher, false);
+    }
+
+    @Factory
+    public static Matcher<Task> dependsOnPaths(Matcher<? extends Iterable<String>> matcher) {
+        return dependsOn(matcher, true);
+    }
+
+    private static Matcher<Task> dependsOn(final Matcher<? extends Iterable<String>> matcher, final boolean matchOnPaths) {
         return new BaseMatcher<Task>() {
             public boolean matches(Object o) {
                 Task task = (Task) o;
                 Set<String> names = new HashSet<String>();
                 Set<? extends Task> depTasks = task.getTaskDependencies().getDependencies(task);
                 for (Task depTask : depTasks) {
-                    names.add(depTask.getName());
+                    names.add(matchOnPaths ? depTask.getPath() : depTask.getName());
                 }
                 boolean matches = matcher.matches(names);
                 if (!matches) {
