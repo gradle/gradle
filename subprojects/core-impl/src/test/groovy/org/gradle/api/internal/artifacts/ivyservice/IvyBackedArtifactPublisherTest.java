@@ -57,7 +57,6 @@ public class IvyBackedArtifactPublisherTest {
     private IvyDependencyPublisher ivyDependencyPublisherMock = context.mock(IvyDependencyPublisher.class);
     private ModuleDescriptorConverter publishModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "publishConverter");
     private ModuleDescriptorConverter fileModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "fileConverter");
-    private IvyModuleDescriptorWriter ivyModuleDescriptorWriterMock = context.mock(IvyModuleDescriptorWriter.class);
     final List<DependencyResolver> publishResolversDummy = createPublishResolversDummy();
 
     @Test
@@ -83,7 +82,6 @@ public class IvyBackedArtifactPublisherTest {
             will(returnValue(new DefaultResolutionStrategy()));
             one(ivyDependencyPublisherMock).publish(expectedConfigurations,
                     publishResolversDummy, publishModuleDescriptorDummy, someDescriptorDestination, ivyEventManagerDummy);
-            allowing(ivyModuleDescriptorWriterMock).write(fileModuleDescriptorMock, someDescriptorDestination, null);
         }});
 
         ivyService.publish(publishResolversDummy, configuration.getModule(), configuration.getHierarchy(), someDescriptorDestination);

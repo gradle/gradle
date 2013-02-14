@@ -21,9 +21,6 @@ import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.Action
-import org.gradle.api.XmlProvider
-import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -36,7 +33,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     private ModuleDescriptor md = Mock();
     private ModuleRevisionId moduleRevisionId = Mock()
     private ModuleRevisionId resolvedModuleRevisionId = Mock()
-    private PrintWriter printWriter = Mock()
     def ivyXmlModuleDescriptorWriter = new IvyXmlModuleDescriptorWriter()
 
     def setup() {
@@ -83,30 +79,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         assert ivyModule.configurations.conf.collect {it.@name } == ["archives", "compile", "runtime"]
         assert ivyModule.publications.artifact.collect {it.@name } == ["testartifact"]
         assert ivyModule.dependencies.dependency.collect { "${it.@org}:${it.@name}:${it.@rev}" } == ["org.test:Dep1:1.0", "org.test:Dep2:1.0"]
-    }
-
-    def "can create ivy (modified) descriptor"() {
-        setup:
-        def dependency1 = mockDependencyDescriptor("Dep1")
-        def dependency2 = mockDependencyDescriptor("Dep2")
-        1 * md.dependencies >> [dependency1, dependency2]
-        when:
-        File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
-        XmlTransformer xmlTransformer = new XmlTransformer()
-        xmlTransformer.addAction(new Action<XmlProvider>() {
-            void execute(XmlProvider xml) {
-                def node = xml.asNode()
-                node.info[0].@status = "foo"
-                assert node.dependencies.dependency.collect { "${it.@org}:${it.@name}:${it.@rev}" } == ["org.test:Dep1:1.0", "org.test:Dep2:1.0"]
-                node.dependencies[0].dependency[0].@name = "changed"
-            }
-        })
-        ivyXmlModuleDescriptorWriter.write(md, ivyFile, xmlTransformer)
-
-        then:
-        def ivyModule = new XmlSlurper().parse(ivyFile);
-        ivyModule.info.@status == "foo"
-        ivyModule.dependencies.dependency.collect { "${it.@org}:${it.@name}:${it.@rev}" } == ["org.test:changed:1.0", "org.test:Dep2:1.0"]
     }
 
     def date(String timestamp) {
