@@ -50,7 +50,7 @@ class SonarProperties {
      *
      * @param properties the properties to be added
      */
-    void properties(Map<String, Object> properties) {
+    void properties(Map<String, ?> properties) {
         this.properties.putAll(properties)
     }
 }
