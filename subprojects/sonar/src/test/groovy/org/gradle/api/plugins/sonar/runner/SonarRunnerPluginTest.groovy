@@ -33,13 +33,13 @@ class SonarRunnerPluginTest extends Specification {
     @Rule SetSystemProperties systemProperties
 
     def rootProject = ProjectBuilder.builder().withName("root").build()
-    def project = ProjectBuilder.builder().withName("parent").withParent(rootProject).build()
-    def childProject = ProjectBuilder.builder().withName("child").withParent(project).build()
-    def childProject2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
+    def parentProject = ProjectBuilder.builder().withName("parent").withParent(rootProject).build()
+    def childProject = ProjectBuilder.builder().withName("child").withParent(parentProject).build()
+    def childProject2 = ProjectBuilder.builder().withName("child2").withParent(parentProject).build()
     def leafProject = ProjectBuilder.builder().withName("leaf").withParent(childProject).build()
 
     def setup() {
-        project.plugins.apply(SonarRunnerPlugin)
+        parentProject.plugins.apply(SonarRunnerPlugin)
         rootProject.allprojects {
             group = "group"
             version = 1.3
@@ -51,40 +51,40 @@ class SonarRunnerPluginTest extends Specification {
     def "adds a sonarRunner extension to the target project (i.e. the project to which the plugin is applied) and its subprojects"() {
         expect:
         rootProject.extensions.findByName("sonarRunner") == null
-        project.extensions.findByName("sonarRunner") instanceof SonarRunnerExtension
+        parentProject.extensions.findByName("sonarRunner") instanceof SonarRunnerExtension
         childProject.extensions.findByName("sonarRunner") instanceof SonarRunnerExtension
     }
 
     def "adds a sonarRunner task to the target project"() {
         expect:
-        project.tasks.findByName("sonarRunner") instanceof SonarRunner
+        parentProject.tasks.findByName("sonarRunner") instanceof SonarRunner
         childProject.tasks.findByName("sonarRunner") == null
     }
 
     def "makes sonarRunner task depend on test tasks of the target project and its subprojects"() {
         when:
         rootProject.plugins.apply(JavaPlugin)
-        project.plugins.apply(JavaPlugin)
+        parentProject.plugins.apply(JavaPlugin)
         childProject.plugins.apply(JavaPlugin)
 
         then:
-        expect(project.tasks.sonarRunner, dependsOnPaths(containsInAnyOrder(":parent:test", ":parent:child:test")))
+        expect(parentProject.tasks.sonarRunner, dependsOnPaths(containsInAnyOrder(":parent:test", ":parent:child:test")))
     }
 
     def "doesn't make sonarRunner task depend on test task of skipped projects"() {
         when:
         rootProject.plugins.apply(JavaPlugin)
-        project.plugins.apply(JavaPlugin)
+        parentProject.plugins.apply(JavaPlugin)
         childProject.plugins.apply(JavaPlugin)
         childProject.sonarRunner.skipProject = true
 
         then:
-        expect(project.tasks.sonarRunner, dependsOnPaths(contains(":parent:test")))
+        expect(parentProject.tasks.sonarRunner, dependsOnPaths(contains(":parent:test")))
     }
 
     def "adds default properties for target project and its subprojects"() {
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         properties["sonar.sources"] == ""
@@ -92,8 +92,8 @@ class SonarRunnerPluginTest extends Specification {
         properties["sonar.projectName"] == "parent"
         properties["sonar.projectDescription"] == "description"
         properties["sonar.projectVersion"] == "1.3"
-        properties["sonar.projectBaseDir"] == project.projectDir as String
-        properties["sonar.working.directory"] == new File(project.buildDir, "sonar") as String
+        properties["sonar.projectBaseDir"] == parentProject.projectDir as String
+        properties["sonar.working.directory"] == new File(parentProject.buildDir, "sonar") as String
         properties["sonar.dynamicAnalysis"] == "reuseReports"
 
         and:
@@ -108,12 +108,12 @@ class SonarRunnerPluginTest extends Specification {
 
     def "adds additional default properties for target project"() {
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         properties["sonar.environment.information.key"] == "Gradle"
-        properties["sonar.environment.information.version"] == project.gradle.gradleVersion
-        properties["sonar.working.directory"] == new File(project.buildDir, "sonar") as String
+        properties["sonar.environment.information.version"] == parentProject.gradle.gradleVersion
+        properties["sonar.working.directory"] == new File(parentProject.buildDir, "sonar") as String
 
         and:
         !properties.containsKey("child.sonar.environment.information.key")
@@ -122,15 +122,15 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "adds additional default properties for 'java-base' projects"() {
-        project.plugins.apply(JavaBasePlugin)
+        parentProject.plugins.apply(JavaBasePlugin)
         childProject.plugins.apply(JavaBasePlugin)
-        project.sourceCompatibility = 1.5
-        project.targetCompatibility = 1.6
+        parentProject.sourceCompatibility = 1.5
+        parentProject.targetCompatibility = 1.6
         childProject.sourceCompatibility = 1.6
         childProject.targetCompatibility = 1.7
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         properties["sonar.java.source"] == "1.5"
@@ -140,15 +140,15 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "adds additional default properties for 'java' projects"() {
-        project.plugins.apply(JavaPlugin)
+        parentProject.plugins.apply(JavaPlugin)
 
-        project.sourceSets.main.java.srcDirs = ["src"]
-        project.sourceSets.test.java.srcDirs = ["test"]
-        project.sourceSets.main.output.classesDir = "$project.buildDir/out"
-        project.sourceSets.main.output.resourcesDir = "$project.buildDir/out"
-        project.sourceSets.main.runtimeClasspath += project.files("lib/SomeLib.jar")
+        parentProject.sourceSets.main.java.srcDirs = ["src"]
+        parentProject.sourceSets.test.java.srcDirs = ["test"]
+        parentProject.sourceSets.main.output.classesDir = "$parentProject.buildDir/out"
+        parentProject.sourceSets.main.output.resourcesDir = "$parentProject.buildDir/out"
+        parentProject.sourceSets.main.runtimeClasspath += parentProject.files("lib/SomeLib.jar")
 
-        new TestFile(project.projectDir).create {
+        new TestFile(parentProject.projectDir).create {
             src {}
             test {}
             buildDir {
@@ -161,21 +161,21 @@ class SonarRunnerPluginTest extends Specification {
         }
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
-        properties["sonar.sources"] == new File(project.projectDir, "src") as String
-        properties["sonar.tests"] == new File(project.projectDir, "test") as String
-        properties["sonar.binaries"].contains(new File(project.buildDir, "out") as String)
-        properties["sonar.libraries"].contains(new File(project.projectDir, "lib/SomeLib.jar") as String)
-        properties["sonar.surefire.reportsPath"] == new File(project.buildDir, "test-results") as String
+        properties["sonar.sources"] == new File(parentProject.projectDir, "src") as String
+        properties["sonar.tests"] == new File(parentProject.projectDir, "test") as String
+        properties["sonar.binaries"].contains(new File(parentProject.buildDir, "out") as String)
+        properties["sonar.libraries"].contains(new File(parentProject.projectDir, "lib/SomeLib.jar") as String)
+        properties["sonar.surefire.reportsPath"] == new File(parentProject.buildDir, "test-results") as String
     }
 
     def "only adds existing directories"() {
-        project.plugins.apply(JavaPlugin)
+        parentProject.plugins.apply(JavaPlugin)
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         !properties.containsKey("sonar.sources")
@@ -186,12 +186,12 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "allows to configure Sonar properties via 'sonarRunner' extension"() {
-        project.sonarRunner.sonarProperties {
+        parentProject.sonarRunner.sonarProperties {
             property "sonar.some.key", "some value"
         }
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         properties["sonar.some.key"] == "some value"
@@ -206,7 +206,7 @@ class SonarRunnerPluginTest extends Specification {
         }
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         properties["child.sonar.some.key"] == "other value"
@@ -215,7 +215,7 @@ class SonarRunnerPluginTest extends Specification {
 
     def "adds 'modules' properties declaring (prefixes of) subprojects"() {
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         properties["sonar.modules"] in ["child,child2", "child2,child"]
@@ -244,14 +244,14 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "evaluates 'sonarRunner' block lazily"() {
-        project.version = "1.0"
-        project.sonarRunner.sonarProperties {
-            property "sonar.projectVersion", project.version
+        parentProject.version = "1.0"
+        parentProject.sonarRunner.sonarProperties {
+            property "sonar.projectVersion", parentProject.version
         }
-        project.version = "1.2.3"
+        parentProject.version = "1.2.3"
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         properties["sonar.projectVersion"] == "1.2.3"
@@ -264,13 +264,13 @@ class SonarRunnerPluginTest extends Specification {
             }
         }
 
-        project.sonarRunner.sonarProperties {
+        parentProject.sonarRunner.sonarProperties {
             property "some.object", object
             property "some.list", [1, object, 2]
         }
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         properties["some.object"] == "object"
@@ -278,12 +278,12 @@ class SonarRunnerPluginTest extends Specification {
     }
 
     def "removes Sonar properties with null values"() {
-        project.sonarRunner.sonarProperties {
+        parentProject.sonarRunner.sonarProperties {
             property "some.key", null
         }
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         !properties.containsKey("some.key")
@@ -294,7 +294,7 @@ class SonarRunnerPluginTest extends Specification {
         System.setProperty("sonar.projectVersion", "3.2")
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         properties["sonar.some.key"] == "some value"
@@ -328,12 +328,12 @@ class SonarRunnerPluginTest extends Specification {
 
     def "system properties win over values set in build script"() {
         System.setProperty("sonar.some.key", "win")
-        project.sonarRunner.sonarProperties {
+        parentProject.sonarRunner.sonarProperties {
             property "sonar.some.key", "lose"
         }
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         properties["sonar.some.key"] == "win"
@@ -343,7 +343,7 @@ class SonarRunnerPluginTest extends Specification {
         childProject.sonarRunner.skipProject = true
 
         when:
-        def properties = project.tasks.sonarRunner.sonarProperties
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
         !properties.any { key, value -> key.startsWith("child.sonar.") }
