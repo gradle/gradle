@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.Incubating
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
@@ -42,6 +43,7 @@ class Project extends XmlPersistableConfigurationObject {
     /**
      * The project-level libraries of the IDEA project.
      */
+    @Incubating
     Set<ProjectLibrary> projectLibraries = [] as LinkedHashSet
 
     private final PathFactory pathFactory

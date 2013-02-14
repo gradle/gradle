@@ -15,9 +15,12 @@
  */
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.Incubating
+
 /**
  * A project-level IDEA library.
  */
+@Incubating
 class ProjectLibrary extends Library {
     /**
      * The name of the library.
