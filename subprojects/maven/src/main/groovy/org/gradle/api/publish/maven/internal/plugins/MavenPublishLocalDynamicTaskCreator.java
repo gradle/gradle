@@ -54,7 +54,7 @@ public class MavenPublishLocalDynamicTaskCreator {
         PublishToMavenLocal publishTask = tasks.add(installTaskName, PublishToMavenLocal.class);
         publishTask.setPublication(publication);
         publishTask.setGroup("publishing");
-        publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven Local repository", publicationName));
+        publishTask.setDescription(String.format("Publishes Maven publication '%s' to the local Maven cache.", publicationName));
 
         publishToMavenLocalLifecycleTask.dependsOn(publishTask);
     }

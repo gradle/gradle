@@ -50,8 +50,7 @@ public class IvyPublicationDynamicDescriptorGenerationTaskCreator {
 
         String descriptorTaskName = calculateDescriptorTaskName(publicationName);
         GenerateIvyDescriptor descriptorTask = project.getTasks().add(descriptorTaskName, GenerateIvyDescriptor.class);
-        descriptorTask.setGroup("publishing");
-        descriptorTask.setDescription(String.format("Generates the Ivy Module Descriptor XML file for publication '%s'", publication.getName()));
+        descriptorTask.setDescription(String.format("Generates the Ivy Module Descriptor XML file for publication '%s'.", publication.getName()));
         descriptorTask.setDescriptor(publication.getDescriptor());
 
         ConventionMapping descriptorTaskConventionMapping = new DslObject(descriptorTask).getConventionMapping();

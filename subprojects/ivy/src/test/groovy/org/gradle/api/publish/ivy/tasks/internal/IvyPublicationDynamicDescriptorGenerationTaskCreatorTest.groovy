@@ -56,7 +56,6 @@ class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specifica
         then:
         descriptorGeneratorTasks.size() == 1
         GenerateIvyDescriptor task = project.tasks.generateIvyModuleDescriptor
-        task.group == "publishing"
         task.description != null
 
         when:
@@ -65,7 +64,7 @@ class IvyPublicationDynamicDescriptorGenerationTaskCreatorTest extends Specifica
         then:
         descriptorGeneratorTasks.size() == 2
         def task2 = project.tasks.generateOtherIvyModuleDescriptor
-        task2.group == "publishing"
+        task2
     }
 
     Publication publication(String name) {

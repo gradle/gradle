@@ -74,7 +74,7 @@ public class MavenPublishDynamicTaskCreator {
             publishTask.setPublication(publication);
             publishTask.setRepository(repository);
             publishTask.setGroup("publishing");
-            publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven repository '%s'", publicationName, repositoryName));
+            publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven repository '%s'.", publicationName, repositoryName));
 
             publishLifecycleTask.dependsOn(publishTask);
         }

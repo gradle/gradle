@@ -77,7 +77,7 @@ public class IvyPublishDynamicTaskCreator {
             publishTask.setPublication(publication);
             publishTask.setRepository(repository);
             publishTask.setGroup("publishing");
-            publishTask.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'", publicationName, repositoryName));
+            publishTask.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'.", publicationName, repositoryName));
 
             publishLifecycleTask.dependsOn(publishTask);
         }

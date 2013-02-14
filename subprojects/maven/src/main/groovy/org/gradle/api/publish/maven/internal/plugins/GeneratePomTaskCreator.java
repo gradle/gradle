@@ -50,8 +50,7 @@ public class GeneratePomTaskCreator {
 
         String descriptorTaskName = calculateDescriptorTaskName(publicationName);
         GenerateMavenPom generatePomTask = project.getTasks().add(descriptorTaskName, GenerateMavenPom.class);
-        generatePomTask.setGroup("publishing");
-        generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'", publication.getName()));
+        generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'.", publication.getName()));
         generatePomTask.setPom(publication.getPom());
 
         ConventionMapping descriptorTaskConventionMapping = new DslObject(generatePomTask).getConventionMapping();

@@ -81,6 +81,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         // Create install tasks automatically for any Maven publication
         Task publishLocalLifecycleTask = tasks.add(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
+        publishLocalLifecycleTask.setDescription("Publishes all Maven publications produced by this project to the local Maven cache.");
+        publishLocalLifecycleTask.setGroup("publishing");
         MavenPublishLocalDynamicTaskCreator publishLocalTaskCreator = new MavenPublishLocalDynamicTaskCreator(tasks, publishLocalLifecycleTask);
         publishLocalTaskCreator.monitor(extension.getPublications());
     }

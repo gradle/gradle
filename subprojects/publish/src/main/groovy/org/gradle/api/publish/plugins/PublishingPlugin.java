@@ -19,6 +19,7 @@ package org.gradle.api.publish.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.publish.PublicationContainer;
@@ -53,6 +54,8 @@ public class PublishingPlugin implements Plugin<Project> {
         PublicationContainer publications = instantiator.newInstance(GroovyPublicationContainer.class, instantiator);
         project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 
-        project.getTasks().add(PUBLISH_LIFECYCLE_TASK_NAME);
+        Task publishLifecycleTask = project.getTasks().add(PUBLISH_LIFECYCLE_TASK_NAME);
+        publishLifecycleTask.setDescription("Publishes all publications produced by this project.");
+        publishLifecycleTask.setGroup("publishing");
     }
 }
