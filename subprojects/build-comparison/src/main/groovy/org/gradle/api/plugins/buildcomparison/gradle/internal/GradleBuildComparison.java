@@ -239,7 +239,7 @@ public class GradleBuildComparison {
         fileStore.moveFilestore(new File(reportDir, FILES_DIR_NAME));
 
         final Charset encoding = Charset.defaultCharset();
-        IoActions.writeFile(new File(reportDir, HTML_REPORT_FILE_NAME), encoding.name(), new Action<BufferedWriter>() {
+        IoActions.writeTextFile(new File(reportDir, HTML_REPORT_FILE_NAME), encoding.name(), new Action<BufferedWriter>() {
             public void execute(BufferedWriter writer) {
                 createResultRenderer(encoding, reportDir, hostAttributes).render(result, writer);
             }

@@ -71,7 +71,7 @@ public class IvyDescriptorFileGenerator {
     }
 
     public IvyDescriptorFileGenerator writeTo(File file) {
-        IoActions.writeFile(file, IVY_FILE_ENCODING, new Action<BufferedWriter>() {
+        IoActions.writeTextFile(file, IVY_FILE_ENCODING, new Action<BufferedWriter>() {
             public void execute(BufferedWriter writer) {
                 try {
                     write(writer);

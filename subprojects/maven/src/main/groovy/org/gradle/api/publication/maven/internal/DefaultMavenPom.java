@@ -197,7 +197,7 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public DefaultMavenPom writeTo(Object path) {
-        IoActions.writeFile(fileResolver.resolve(path), POM_FILE_ENCODING, new Action<BufferedWriter>() {
+        IoActions.writeTextFile(fileResolver.resolve(path), POM_FILE_ENCODING, new Action<BufferedWriter>() {
             public void execute(BufferedWriter writer) {
                 writeTo(writer);
             }

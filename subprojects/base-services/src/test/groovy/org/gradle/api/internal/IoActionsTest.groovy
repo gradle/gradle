@@ -22,8 +22,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.IoActions.createFileWriteAction
-import static org.gradle.api.internal.IoActions.writeFile
+import static org.gradle.api.internal.IoActions.createTextFileWriteAction
+import static org.gradle.api.internal.IoActions.writeTextFile
 
 class IoActionsTest extends Specification {
 
@@ -34,7 +34,7 @@ class IoActionsTest extends Specification {
         def file = tmp.file("foo.txt")
 
         when:
-        createFileWriteAction(file, "UTF-8").execute(new Action<Writer>() {
+        createTextFileWriteAction(file, "UTF-8").execute(new Action<Writer>() {
             void execute(Writer writer) {
                 writer.write("bar")
             }
@@ -51,7 +51,7 @@ class IoActionsTest extends Specification {
         def action = Mock(Action)
 
         when:
-        createFileWriteAction(file, "UTF-8").execute(action)
+        createTextFileWriteAction(file, "UTF-8").execute(action)
 
         then:
         0 * action.execute(_)
@@ -66,7 +66,7 @@ class IoActionsTest extends Specification {
         def enc = "utf-8"
 
         when:
-        writeFile(file, enc, new Action() {
+        writeTextFile(file, enc, new Action() {
             void execute(writer) {
                 writer.append("bar⌘")
             }

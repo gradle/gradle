@@ -72,7 +72,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     public void write(ModuleDescriptor md, File output) {
-        IoActions.writeFile(output, "UTF-8", createWriterAction(md));
+        IoActions.writeTextFile(output, "UTF-8", createWriterAction(md));
     }
 
     private static void printDependencies(ModuleDescriptor md, Writer writer) throws IOException {

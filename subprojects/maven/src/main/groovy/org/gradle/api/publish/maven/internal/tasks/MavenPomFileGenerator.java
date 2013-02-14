@@ -76,7 +76,7 @@ public class MavenPomFileGenerator {
     }
 
     public MavenPomFileGenerator writeTo(File file) {
-        IoActions.writeFile(file, POM_FILE_ENCODING, new Action<BufferedWriter>() {
+        IoActions.writeTextFile(file, POM_FILE_ENCODING, new Action<BufferedWriter>() {
             public void execute(BufferedWriter writer) {
                 try {
                     write(writer);
