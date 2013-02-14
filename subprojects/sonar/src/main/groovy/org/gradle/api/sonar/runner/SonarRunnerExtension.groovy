@@ -16,8 +16,10 @@
 package org.gradle.api.sonar.runner
 
 import groovy.transform.PackageScope
+
+import org.gradle.api.Action
 import org.gradle.api.Incubating
-import org.gradle.util.ConfigureUtil
+import org.gradle.listener.ActionBroadcast
 
 /**
  * An extension for configuring the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">
@@ -46,13 +48,13 @@ class SonarRunnerExtension {
     boolean skipProject
 
     /**
-     * Adds a configuration block that configures Sonar properties for the associated Gradle project.
+     * Adds an action that configures Sonar properties for the associated Gradle project.
      * <em>Global</em> Sonar properties (e.g. database connection settings) have to be set on the
      * "root" project of the Sonar run. This is the project that has the {@code sonar-runner} plugin applied.
      *
-     * <p>The specified code block delegates to an instance of {@code SonarProperties}.
-     * Evaluation of the block is deferred until {@code sonarRunner.sonarProperties} is requested.
-     * Hence it is safe to reference other Gradle model properties from inside the block.
+     * <p>The action is passed an instance of {@code SonarProperties}.
+     * Evaluation of the action is deferred until {@code sonarRunner.sonarProperties} is requested.
+     * Hence it is safe to reference other Gradle model properties from inside the action.
      *
      * <p>Sonar properties can also be set via system properties (and therefore from the command line).
      * This is mainly useful for global Sonar properties like database credentials.
@@ -60,19 +62,17 @@ class SonarRunnerExtension {
      * Sonar run (i.e. the project that has the {@code sonar-runner} plugin applied). System properties take
      * precedence over properties declared in build scripts.
      *
-     * @param block a configuration block that configures Sonar properties for the associated Gradle project
+     * @param action an action that configures Sonar properties for the associated Gradle project
      */
-    void sonarProperties(Closure<?> block) {
-        sonarPropertiesBlocks << block
+    void sonarProperties(Action<? super SonarProperties> action) {
+        propertiesActions.add(action)
     }
 
-    private final List<Closure<?>> sonarPropertiesBlocks = []
+    private final ActionBroadcast<SonarProperties> propertiesActions = new ActionBroadcast<SonarProperties>()
 
     @PackageScope
     void evaluateSonarPropertiesBlocks(Map<String, Object> properties) {
         def sonarProperties = new SonarProperties(properties: properties)
-        for (block in sonarPropertiesBlocks) {
-            ConfigureUtil.configure(block, sonarProperties)
-        }
+        propertiesActions.execute(sonarProperties)
     }
 }
