@@ -153,7 +153,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 new DependencyClassPathNotationParser(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()));
 
         return new DefaultDependencyFactory(
-                new DependencyNotationParserFactory(notationParsers).create(),
+                new DependencyNotationParser(notationParsers),
                 new ClientModuleNotationParserFactory(instantiator).create(),
                 projectDependencyFactory);
     }

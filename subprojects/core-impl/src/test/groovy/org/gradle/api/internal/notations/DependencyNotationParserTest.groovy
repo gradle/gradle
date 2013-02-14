@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 11/9/11
  */
-public class DependencyNotationParserFactoryTest extends Specification {
+public class DependencyNotationParserTest extends Specification {
 
     def notationParser = Mock(NotationParser)
-    def parser = new DependencyNotationParserFactory(notationParser);
+    def parser = new DependencyNotationParser(notationParser);
 
     def "consumes notation and forwards gradle exception"() {
         given:

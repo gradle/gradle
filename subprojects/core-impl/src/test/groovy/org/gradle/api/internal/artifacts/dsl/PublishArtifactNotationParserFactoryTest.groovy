@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl;
+package org.gradle.api.internal.artifacts.dsl
 
-
-import java.awt.Point
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
+
+import java.awt.*
 
 /**
  * @author Hans Dockter
@@ -35,7 +36,8 @@ import spock.lang.Specification
 public class PublishArtifactNotationParserFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
     final Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
-    final PublishArtifactNotationParserFactory publishArtifactFactory = new PublishArtifactNotationParserFactory(instantiator, provider)
+    final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider)
+    final NotationParser<PublishArtifact> publishArtifactNotationParser = publishArtifactNotationParserFactory.create();
 
     def setup() {
         Module module = Mock()
@@ -47,7 +49,7 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
         PublishArtifact original = Mock()
 
         when:
-        def publishArtifact = publishArtifactFactory.parseNotation(original)
+        def publishArtifact = publishArtifactNotationParser.parseNotation(original)
 
         then:
         publishArtifact == original
@@ -58,7 +60,7 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
         archiveTask.getArchivePath() >> new File("")
 
         when:
-        def publishArtifact = publishArtifactFactory.parseNotation(archiveTask)
+        def publishArtifact = publishArtifactNotationParser.parseNotation(archiveTask)
 
         then:
         publishArtifact instanceof ArchivePublishArtifact
@@ -69,7 +71,7 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
         def file = new File("some.zip")
 
         when:
-        def publishArtifact = publishArtifactFactory.parseNotation(file)
+        def publishArtifact = publishArtifactNotationParser.parseNotation(file)
 
         then:
         publishArtifact instanceof DefaultPublishArtifact
@@ -81,7 +83,7 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
         def file = new File("some-file-1.2-classifier.zip")
 
         when:
-        def publishArtifact = publishArtifactFactory.parseNotation(file: file, type: 'someType', builtBy: task)
+        def publishArtifact = publishArtifactNotationParser.parseNotation(file: file, type: 'someType', builtBy: task)
 
         then:
         publishArtifact instanceof DefaultPublishArtifact
@@ -95,7 +97,7 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
 
     public void createArtifactWithNullNotationShouldThrowInvalidUserDataEx() {
         when:
-        publishArtifactFactory.parseNotation(null)
+        publishArtifactNotationParser.parseNotation(null)
 
         then:
         thrown(InvalidUserDataException)
@@ -103,7 +105,7 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
 
     public void createArtifactWithUnknownNotationShouldThrowInvalidUserDataEx() {
         when:
-        publishArtifactFactory.parseNotation(new Point(1, 2))
+        publishArtifactNotationParser.parseNotation(new Point(1, 2))
 
         then:
         thrown(InvalidUserDataException)

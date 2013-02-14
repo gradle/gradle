@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,42 @@
 
 package org.gradle.api.internal.notations;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.internal.Factory;
+
+import java.util.Collection;
 
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public class DependencyNotationParserFactory implements Factory<NotationParser<Dependency>> {
+public class DependencyNotationParser implements NotationParser<Dependency> {
 
-    private final Iterable<NotationParser<? extends Dependency>> compositeParsers;
+    private final NotationParser<Dependency> delegate;
 
-    public DependencyNotationParserFactory(Iterable<NotationParser<? extends Dependency>> compositeParsers) {
-        this.compositeParsers = compositeParsers;
-    }
-
-    public NotationParser<Dependency> create() {
-        return new NotationParserBuilder<Dependency>()
+    public DependencyNotationParser(Iterable<NotationParser<? extends Dependency>> compositeParsers) {
+        delegate = new NotationParserBuilder<Dependency>()
                 .resultingType(Dependency.class)
                 .parsers(compositeParsers)
                 .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
                 .toComposite();
+    }
+
+    DependencyNotationParser(NotationParser<Dependency> delegate) {
+        this.delegate = delegate;
+    }
+
+    public void describe(Collection<String> candidateFormats) {
+        delegate.describe(candidateFormats);
+    }
+
+    public Dependency parseNotation(Object dependencyNotation) {
+        try {
+            return delegate.parseNotation(dependencyNotation);
+        } catch (GradleException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
+        }
     }
 }
