@@ -94,7 +94,8 @@ enum TestPrecondition {
         !JDK7.fulfilled
     }),
     CAN_RESOLVE_UNICODE_POM({
-        !(JDK6.fulfilled && LINUX.fulfilled)
+        // Ivy parsing Maven POM files with unicode characters is broken in JDK1.6 on Linux (& Unknown OS)
+        !(JDK6.fulfilled && (LINUX.fulfilled || UNKNOWN_OS.fulfilled))
     }),
     JDK7_POSIX({
         JDK7.fulfilled && NOT_WINDOWS.fulfilled
