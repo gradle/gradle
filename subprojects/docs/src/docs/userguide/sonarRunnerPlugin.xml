@@ -15,7 +15,11 @@
   -->
 <chapter id="sonar_runner_plugin">
     <title>The Sonar Runner Plugin</title>
-
+    <note>
+        <para>
+            The Sonar Runner plugin is <link linkend="sec:incubating_state">incubating</link>.
+        </para>
+    </note>
     <para>The Sonar Runner plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
         a web-based platform for monitoring code quality. It is based on the <ulink url="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</ulink>,
         a Sonar client component that analyzes source code and build outputs, and stores all collected information in the Sonar database.
@@ -47,9 +51,9 @@
     <section>
         <title>Plugin Status and Compatibility</title>
         <para>
-            The Sonar Runner plugin is the successor to the <link linkend="sonar_plugin">Sonar Plugin</link>. It currently has incubating status.
-            The plugin is based on Sonar Runner 2.0, which makes it compatible with Sonar 2.11 and higher. Unlike the Sonar plugin,
-            the Sonar Runner plugin works fine with Sonar 3.4 and higher.
+            The Sonar Runner plugin is the successor to the <link linkend="sonar_plugin">Sonar Plugin</link>. It is currently
+            <link linkend="sec:incubating_state">incubating</link>. The plugin is based on Sonar Runner 2.0, which makes it compatible
+            with Sonar 2.11 and higher. Unlike the Sonar plugin, the Sonar Runner plugin works fine with Sonar 3.4 and higher.
         </para>
     </section>
 
