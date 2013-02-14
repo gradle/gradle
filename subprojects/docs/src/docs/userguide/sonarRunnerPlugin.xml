@@ -78,7 +78,7 @@
 
     <section>
         <title>Configuring the Sonar Runner</title>
-        <para>The Sonar Runner plugin adds a <apilink class="org.gradle.api.plugins.sonar.runner.SonarRunner" /> extension to the project,
+        <para>The Sonar Runner plugin adds a <apilink class="org.gradle.api.sonar.runner.SonarRunner" /> extension to the project,
             which allows to configure the Sonar Runner via key/value pairs known as <firstterm>Sonar properties</firstterm>. A typical base line configuration
             includes connection settings for the Sonar server and database.
         </para>
@@ -312,7 +312,7 @@
             <tr>
                 <td><literal>sonarRunner</literal></td>
                 <td>-</td>
-                <td><apilink class="org.gradle.api.plugins.sonar.runner.SonarRunner"/></td>
+                <td><apilink class="org.gradle.api.sonar.runner.SonarRunner"/></td>
                 <td>Analyzes a project hierarchy and stores the results in the Sonar database.</td>
             </tr>
         </table>
