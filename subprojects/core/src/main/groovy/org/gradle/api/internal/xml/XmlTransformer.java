@@ -86,7 +86,7 @@ public class XmlTransformer implements Transformer<String, String> {
     public void transform(Writer destination, String encoding, Action<? super Writer> generator) {
         StringWriter stringWriter = new StringWriter();
         generator.execute(stringWriter);
-        transform(stringWriter.toString(), destination, encoding);
+        doTransform(stringWriter.toString()).writeTo(destination, encoding);
     }
 
     public String transform(String original) {
@@ -95,10 +95,6 @@ public class XmlTransformer implements Transformer<String, String> {
 
     public void transform(String original, Writer destination) {
         doTransform(original).writeTo(destination);
-    }
-
-    public void transform(String original, Writer destination, String encoding) {
-        doTransform(original).writeTo(destination, encoding);
     }
 
     public void transform(String original, OutputStream destination) {
@@ -110,6 +106,10 @@ public class XmlTransformer implements Transformer<String, String> {
     }
 
     public void transform(Node original, OutputStream destination) {
+        doTransform(original).writeTo(destination);
+    }
+
+    public void transform(Node original, File destination) {
         doTransform(original).writeTo(destination);
     }
 
@@ -179,6 +179,19 @@ public class XmlTransformer implements Transformer<String, String> {
 
         public void writeTo(Writer writer, String encoding) {
             doWriteTo(writer, encoding);
+        }
+
+        public void writeTo(File file) {
+            try {
+                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file));
+                try {
+                    writeTo(outputStream);
+                } finally {
+                    outputStream.close();
+                }
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
 
         public void writeTo(OutputStream stream) {
