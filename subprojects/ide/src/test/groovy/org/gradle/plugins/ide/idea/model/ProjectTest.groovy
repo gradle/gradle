@@ -70,7 +70,7 @@ class ProjectTest extends Specification {
         project.modulePaths.size() == 0
         project.wildcards == [] as Set
         project.jdk == new Jdk(true, true, "JDK_1_5", null)
-        project.projectLibraries == []
+        project.projectLibraries.empty
     }
 
     def toXml_shouldContainCustomValues() {
