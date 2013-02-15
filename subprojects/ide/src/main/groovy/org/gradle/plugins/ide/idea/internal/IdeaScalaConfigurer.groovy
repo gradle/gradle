@@ -58,7 +58,7 @@ class IdeaScalaConfigurer {
             def scalaPlugin = scalaProject.plugins.getPlugin(ScalaBasePlugin)
             IdeaModule ideaModule = scalaProject.idea.module
 
-            // TODO: should we make resolveDependencies() cache its result for later use by GenerateIdeaModule?
+            // could make resolveDependencies() cache its result for later use by GenerateIdeaModule
             def dependencies = ideaModule.resolveDependencies()
             def moduleLibraries = dependencies.findAll { it instanceof ModuleLibrary }
             def filePaths = moduleLibraries.collectMany { it.classes.findAll { it instanceof FilePath } }
