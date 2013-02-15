@@ -25,7 +25,6 @@ class ProjectLibraryTest extends Specification {
         expect:
         with(library) {
             name == null
-            gradleGenerated
             classes == [] as Set
             sources == [] as Set
             javadoc == [] as Set
@@ -46,7 +45,7 @@ class ProjectLibraryTest extends Specification {
     }
 
     def "generates correct XML"() {
-        def lib = new ProjectLibrary(name: "lib", gradleGenerated: true,
+        def lib = new ProjectLibrary(name: "lib",
                 classes: [new Path("class/one"), new Path("class/two")] as LinkedHashSet,
                 javadoc: [new Path("javadoc/one"), new Path("javadoc/two")] as LinkedHashSet,
                 sources: [new Path("source/one"), new Path("source/two")] as LinkedHashSet,
@@ -63,7 +62,7 @@ class ProjectLibraryTest extends Specification {
         printer.print(parent)
         writer.toString().trim() == """
 <parent>
-  <library name="lib" gradleGenerated="true">
+  <library name="lib">
     <CLASSES>
       <root url="class/one"/>
       <root url="class/two"/>

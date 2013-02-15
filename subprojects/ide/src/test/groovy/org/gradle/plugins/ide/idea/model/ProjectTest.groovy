@@ -51,6 +51,17 @@ class ProjectTest extends Specification {
         project.jdk == new Jdk("1.6", new IdeaLanguageLevel(JavaVersion.VERSION_1_5))
     }
 
+    def "project libraries are overwritten with generated content"() {
+        def libraries = [new ProjectLibrary(name: "newlib", classes: [path("newlib1.jar")])]
+
+        when:
+        project.load(customProjectReader)
+        project.configure([], "1.6", new IdeaLanguageLevel("JDK_1_5"), [], libraries)
+
+        then:
+        project.projectLibraries as List == libraries
+    }
+
     def loadDefaults() {
         when:
         project.loadDefaults()
@@ -59,6 +70,7 @@ class ProjectTest extends Specification {
         project.modulePaths.size() == 0
         project.wildcards == [] as Set
         project.jdk == new Jdk(true, true, "JDK_1_5", null)
+        project.projectLibraries == []
     }
 
     def toXml_shouldContainCustomValues() {

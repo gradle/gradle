@@ -57,4 +57,15 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
   </component>
+  <component name="libraryTable">
+  <library name="scala-compiler-2.10.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/lib1.jar!/" />
+      <root url="jar://$USER_HOME$/lib2.jar!/" />
+      <root url="jar://$USER_HOME$/lib3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
 </project>

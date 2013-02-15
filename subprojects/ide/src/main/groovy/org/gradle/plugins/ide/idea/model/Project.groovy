@@ -60,8 +60,8 @@ class Project extends XmlPersistableConfigurationObject {
         }
         this.modulePaths.addAll(modulePaths)
         this.wildcards.addAll(wildcards)
-        this.projectLibraries.removeAll { it.gradleGenerated }
-        this.projectLibraries.addAll(projectLibraries)
+        // overwrite rather than append libraries
+        this.projectLibraries = projectLibraries
     }
 
     @Override protected void load(Node xml) {
@@ -135,12 +135,10 @@ class Project extends XmlPersistableConfigurationObject {
         def libraryTable = findLibraryTable()
         for (library in libraryTable.library) {
             def name = library.@name
-            def gradleGenerated = library.attributes().containsKey("gradleGenerated")
             def classes = library.CLASSES.root.@url.collect { pathFactory.path(it) }
             def javadoc = library.JAVADOC.root.@url.collect { pathFactory.path(it) }
             def sources = library.SOURCES.root.@url.collect { pathFactory.path(it) }
-            projectLibraries << new ProjectLibrary(name: name, gradleGenerated: gradleGenerated,
-                    classes: classes, javadoc: javadoc, sources: sources)
+            projectLibraries << new ProjectLibrary(name: name, classes: classes, javadoc: javadoc, sources: sources)
         }
     }
 
