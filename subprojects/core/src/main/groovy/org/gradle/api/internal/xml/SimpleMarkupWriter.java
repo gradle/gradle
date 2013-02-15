@@ -25,7 +25,9 @@ import java.util.LinkedList;
 /**
  * <p>A streaming markup writer. Encodes characters and CDATA. Provides only basic state validation, and some simple indentation.</p>
  *
- * <p>This class also is-a Writer, and any characters written to this writer will be encoded as appropriate.</p>
+ * <p>This class also is-a {@link Writer}, and any characters written to this writer will be encoded as appropriate. Note, however, that
+ * calling {@link #close()} on this object does not close the backing stream.
+ * </p>
  */
 public class SimpleMarkupWriter extends Writer {
     private enum Context {
@@ -38,7 +40,7 @@ public class SimpleMarkupWriter extends Writer {
     private int squareBrackets;
     private final String indent;
 
-    public SimpleMarkupWriter(Writer writer, String indent) throws IOException {
+    protected SimpleMarkupWriter(Writer writer, String indent) throws IOException {
         this.indent = indent;
         this.output = writer;
     }
