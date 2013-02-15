@@ -30,7 +30,9 @@ public class VersionSelectionReasons {
     public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION_BY_RULE = new DefaultModuleVersionSelectionReason(false, true, true, "selected by rule and conflict resolution");
 
     public static ModuleVersionSelectionReason withConflictResolution(ModuleVersionSelectionReason reason) {
-        if (reason == SELECTED_BY_RULE) {
+        if (reason.isConflictResolution()) {
+            return reason;
+        } else if (reason == SELECTED_BY_RULE) {
             return CONFLICT_RESOLUTION_BY_RULE;
         } else if (reason == REQUESTED) {
             return CONFLICT_RESOLUTION;
@@ -66,6 +68,10 @@ public class VersionSelectionReasons {
         }
 
         public String getDescription() {
+            return description;
+        }
+
+        public String toString() {
             return description;
         }
     }

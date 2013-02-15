@@ -717,6 +717,37 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertResolutionFailure(":conf").assertHasCause("Invalid format: 'foobar'")
     }
 
+    def "module selected by conflict resolution can be selected again in a another pass of conflict resolution"()
+    {
+        mavenRepo.module("org", "a", "1.0").publish()
+        mavenRepo.module("org", "a", "2.0").dependsOn("org", "b", "2.5").publish()
+        mavenRepo.module("org", "b", "3.0").publish()
+        mavenRepo.module("org", "b", "4.0").publish()
+
+        /*
+        I agree this dependency set is awkward but it is the simplest reproducible scenario
+        a:1.0
+        a:2.0 -> b:2.5
+        b:3.0
+        b:4.0
+        */
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org:b:3.0', 'org:b:4.0', 'org:a:1.0', 'org:a:2.0'
+            }
+"""
+
+        when:
+        run("dependencies")
+
+        then:
+        noExceptionThrown()
+        //TODO SF add more reasonable assertion
+    }
+
     String getCommon() {
         """configurations { conf }
         repositories {
