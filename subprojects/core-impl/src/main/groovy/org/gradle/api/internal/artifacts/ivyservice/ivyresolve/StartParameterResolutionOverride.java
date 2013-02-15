@@ -72,7 +72,7 @@ public class StartParameterResolutionOverride {
     }
 
     public ModuleVersionRepository overrideModuleVersionRepository(ModuleVersionRepository original) {
-        if (startParameter.isOffline() && !original.isLocal()) {
+        if (startParameter.isOffline()) {
             return new OfflineModuleVersionRepository(original);
         }
         return original;

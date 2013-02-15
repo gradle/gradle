@@ -83,12 +83,12 @@ public class ResolveIvyFactory {
             } else {
                 moduleVersionRepository = new IvyDependencyResolverAdapter(rawResolver);
             }
-            moduleVersionRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
-            moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
             LocalAwareModuleVersionRepository cachingRepository;
             if (moduleVersionRepository.isLocal()) {
                 cachingRepository = new LocalModuleVersionRepository(moduleVersionRepository);
             } else {
+                moduleVersionRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
+                moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
                 cachingRepository = new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
                         configuration.getResolutionStrategy().getCachePolicy(), timeProvider);
             }
