@@ -96,6 +96,16 @@ apply plugin: 'idea'
     }
 
     @Test
+    void addsScalaFacetAndCompilerLibraries() {
+        executer.withTasks('idea').run()
+
+        assertHasExpectedContents('root.ipr')
+        assertHasExpectedContents('project1/project1.iml')
+        assertHasExpectedContents('project2/project2.iml')
+        assertHasExpectedContents('project3/project3.iml')
+    }
+
+    @Test
     void outputDirsDefaultToToIdeaDefaults() {
         runIdeaTask("apply plugin: 'java'; apply plugin: 'idea'")
 

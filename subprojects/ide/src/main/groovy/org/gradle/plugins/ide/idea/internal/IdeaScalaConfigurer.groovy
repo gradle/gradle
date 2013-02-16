@@ -66,7 +66,7 @@ class IdeaScalaConfigurer {
             def scalaClasspath = scalaPlugin.inferScalaCompilerClasspath(files)
             def compilerJar = scalaPlugin.findScalaJar(scalaClasspath, "compiler")
             def version = compilerJar == null ? "?" : scalaPlugin.getScalaVersion(compilerJar)
-            def library = createProjectLibrary(rootProject, "scala-compiler-$version", scalaClasspath)
+            def library = createProjectLibrary("scala-compiler-$version", scalaClasspath)
             def duplicate = scalaCompilerLibraries.values().find { it.classes == library.classes }
             scalaCompilerLibraries[scalaProject.path] = duplicate ?: library
         }
@@ -123,7 +123,7 @@ class IdeaScalaConfigurer {
         }
     }
 
-    private ProjectLibrary createProjectLibrary(Project rootProject, String name, Iterable<File> jars) {
-        new ProjectLibrary(name: name, classes: jars.collect { rootProject.idea.project.pathFactory.path(it) })
+    private ProjectLibrary createProjectLibrary(String name, Iterable<File> jars) {
+        new ProjectLibrary(name: name, classes: jars as Set)
     }
 }
