@@ -33,10 +33,6 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    static {
-        XMLUnit.setIgnoreWhitespace(true)
-    }
-
     @Test
     void mergesImlCorrectly() {
         def buildFile = file("master/build.gradle")
@@ -363,7 +359,7 @@ apply plugin: "idea"
         Diff diff = new Diff(expectedXml, actualXml)
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
         try {
-            XMLAssert.assertXMLEqual(diff, true)
+            assert diff.similar()
         } catch (AssertionError e) {
             if (OperatingSystem.current().unix) {
                 def process = ["diff", expectedFile.absolutePath, file.absolutePath].execute()
