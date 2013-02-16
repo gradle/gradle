@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.idea
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
+import org.custommonkey.xmlunit.XMLUnit
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
@@ -31,6 +32,10 @@ import java.util.regex.Pattern
 class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
+
+    static {
+        XMLUnit.setIgnoreWhitespace(true)
+    }
 
     @Test
     void mergesImlCorrectly() {
