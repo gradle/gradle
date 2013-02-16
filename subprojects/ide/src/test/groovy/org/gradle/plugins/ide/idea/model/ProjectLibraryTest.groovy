@@ -46,7 +46,7 @@ class ProjectLibraryTest extends Specification {
     }
 
     def "generates correct XML"() {
-        def userHome = new File(SystemProperties.userHome)
+        def userHome = new File(SystemProperties.javaIoTmpDir)
 
         def lib = new ProjectLibrary(name: "lib",
                 classes: [new File(userHome, "class/one.jar"), new File(userHome, "class/two.jar")] as LinkedHashSet,
