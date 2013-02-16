@@ -123,7 +123,7 @@ class Project extends XmlPersistableConfigurationObject {
         moduleManager.modules
     }
 
-    private findLibraryTable() {
+    private Node findLibraryTable() {
         def libraryTable = xml.component.find { it.@name == 'libraryTable' }
         if (!libraryTable) {
             libraryTable = xml.appendNode('component', [name:  'libraryTable'])
@@ -135,22 +135,22 @@ class Project extends XmlPersistableConfigurationObject {
         def libraryTable = findLibraryTable()
         for (library in libraryTable.library) {
             def name = library.@name
-            def classes = library.CLASSES.root.@url.collect { pathFactory.path(it) }
-            def javadoc = library.JAVADOC.root.@url.collect { pathFactory.path(it) }
-            def sources = library.SOURCES.root.@url.collect { pathFactory.path(it) }
+            def classes = library.CLASSES.root.@url.collect { new File(it) }
+            def javadoc = library.JAVADOC.root.@url.collect { new File(it) }
+            def sources = library.SOURCES.root.@url.collect { new File(it) }
             projectLibraries << new ProjectLibrary(name: name, classes: classes, javadoc: javadoc, sources: sources)
         }
     }
 
     private void storeProjectLibraries() {
-        def libraryTable = findLibraryTable()
+        Node libraryTable = findLibraryTable()
         if (projectLibraries.empty) {
             xml.remove(libraryTable)
             return
         }
         libraryTable.value = new NodeList()
         for (library in projectLibraries) {
-            library.addToNode(libraryTable)
+            library.addToNode(libraryTable, pathFactory)
         }
     }
 

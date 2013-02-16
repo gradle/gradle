@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.internal.SystemProperties
+
 import spock.lang.Specification
 
 class ProjectLibraryTest extends Specification {
@@ -28,7 +30,6 @@ class ProjectLibraryTest extends Specification {
             classes == [] as Set
             sources == [] as Set
             javadoc == [] as Set
-            jarDirectories == [] as Set
         }
     }
 
@@ -36,25 +37,28 @@ class ProjectLibraryTest extends Specification {
         expect:
         new ProjectLibrary() == new ProjectLibrary()
         new ProjectLibrary(name: "lib1") == new ProjectLibrary(name: "lib1")
-        new ProjectLibrary(name: "lib1", classes:  [new Path("class/one"), new Path("class/two")]) ==
-                new ProjectLibrary(name: "lib1", classes: [new Path("class/two"), new Path("class/one")])
+        new ProjectLibrary(name: "lib1", classes:  [new File("class/one"), new File("class/two")]) ==
+                new ProjectLibrary(name: "lib1", classes: [new File("class/two"), new File("class/one")])
 
         new ProjectLibrary(name: "lib1") != new ProjectLibrary(name: "OTHER")
-        new ProjectLibrary(name: "lib1", classes:  [new Path("class/one"), new Path("class/two")]) !=
-                new ProjectLibrary(name: "lib1", classes:  [new Path("class/one"), new Path("class/OTHER")])
+        new ProjectLibrary(name: "lib1", classes:  [new File("class/one"), new File("class/two")]) !=
+                new ProjectLibrary(name: "lib1", classes:  [new File("class/one"), new File("class/OTHER")])
     }
 
     def "generates correct XML"() {
+        def userHome = new File(SystemProperties.userHome)
+
         def lib = new ProjectLibrary(name: "lib",
-                classes: [new Path("class/one"), new Path("class/two")] as LinkedHashSet,
-                javadoc: [new Path("javadoc/one"), new Path("javadoc/two")] as LinkedHashSet,
-                sources: [new Path("source/one"), new Path("source/two")] as LinkedHashSet,
-                jarDirectories: [new JarDirectory(new Path("jardir/one"), true),
-                        new JarDirectory(new Path("jardir/two"), false)] as LinkedHashSet)
+                classes: [new File(userHome, "class/one.jar"), new File(userHome, "class/two.jar")] as LinkedHashSet,
+                javadoc: [new File(userHome, "javadoc/one.jar"), new File(userHome, "javadoc/two.jar")] as LinkedHashSet,
+                sources: [new File(userHome, "source/one.jar"), new File(userHome, "source/two.jar")] as LinkedHashSet)
+
+        def pathFactory = new PathFactory()
+        pathFactory.addPathVariable("USER_HOME", userHome)
 
         when:
         def parent = new Node(null, "parent")
-        lib.addToNode(parent)
+        lib.addToNode(parent, pathFactory)
 
         then:
         def writer = new StringWriter()
@@ -64,19 +68,17 @@ class ProjectLibraryTest extends Specification {
 <parent>
   <library name="lib">
     <CLASSES>
-      <root url="class/one"/>
-      <root url="class/two"/>
+      <root url="jar://\$USER_HOME\$/class/one.jar!/"/>
+      <root url="jar://\$USER_HOME\$/class/two.jar!/"/>
     </CLASSES>
     <JAVADOC>
-      <root url="javadoc/one"/>
-      <root url="javadoc/two"/>
+      <root url="jar://\$USER_HOME\$/javadoc/one.jar!/"/>
+      <root url="jar://\$USER_HOME\$/javadoc/two.jar!/"/>
     </JAVADOC>
     <SOURCES>
-      <root url="source/one"/>
-      <root url="source/two"/>
+      <root url="jar://\$USER_HOME\$/source/one.jar!/"/>
+      <root url="jar://\$USER_HOME\$/source/two.jar!/"/>
     </SOURCES>
-    <jarDirectory url="jardir/one" recursive="true"/>
-    <jarDirectory url="jardir/two" recursive="false"/>
   </library>
 </parent>
 """.trim()
