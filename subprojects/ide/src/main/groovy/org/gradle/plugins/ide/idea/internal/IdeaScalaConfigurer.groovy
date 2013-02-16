@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.idea.internal
 
-import org.gradle.api.Nullable
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.plugins.scala.ScalaBasePlugin
@@ -88,7 +87,7 @@ class IdeaScalaConfigurer {
         }
     }
 
-    private void declareScalaFacet(@Nullable ProjectLibrary scalaCompilerLibrary, Node iml) {
+    private void declareScalaFacet(ProjectLibrary scalaCompilerLibrary, Node iml) {
         def facetManager = iml.component.find { it.@name == "FacetManager" }
         if (!facetManager) {
             facetManager = iml.appendNode("component", [name: "FacetManager"])
@@ -115,7 +114,7 @@ class IdeaScalaConfigurer {
             libraryName = configuration.appendNode("option", [name: "compilerLibraryName"])
         }
 
-        libraryName.@value = scalaCompilerLibrary == null ? "" : scalaCompilerLibrary.name
+        libraryName.@value = scalaCompilerLibrary.name
     }
 
     private Collection<Project> findProjectsApplyingIdeaAndScalaPlugins() {
