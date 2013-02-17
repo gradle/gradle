@@ -426,24 +426,9 @@ And:
     4. Publish both projects to a Maven repository.
     5. Assert that another build can resolve project-A from this Maven repository.
 
-## Warn when a domain object that is used as input for a publication is changed after the domain object is used
+## Allow outgoing dependency declarations to be customised
 
-- The attributes and output file of a `PublishArtifact` used to define an artifact
-- The attributes and output file of an `AbstractArchiveTask` used to define an artifact
-- The output files of a `Task`.
-- The project group or version.
-- The elements of a collection used to define artifacts.
-- The runtime dependencies of a component.
-
-## Allow the configuration of publications to be deferred until required
-
-## Defer the creation of publication tasks until after the publications have been configured
-
-## Warn when a publication is changed after the publication tasks have been configured
-
-## Allow outgoing dependencies to be customised
-
-This step decouples the incoming and outgoing dependencies, to allow each publication to include a different set of dependencies:
+This step decouples the incoming and outgoing dependency declarations, to allow each publication to include a different set of dependencies:
 
 1. Add a `MavenDependency` interface, with the following properties:
     * `groupId` (required)
