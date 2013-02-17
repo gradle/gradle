@@ -204,7 +204,7 @@ Running `gradle implClasses` will compile the impl source.
 
 TBD - running `gradle assemble` does what?
 
-## Story: Build binaries from multiple source
+## Story: Build binaries from multiple source sets
 
 ## Story: Dependencies between source sets
 
@@ -256,7 +256,8 @@ to deal with the fact that a given source file may end up in multiple outputs.
 
 ## Story: IDE plugins support arbitrary source sets
 
-This story changes the IDE plugins to use the source sets in the `source` container.
+This story changes the IDE plugins to use the source sets in the `source` container, and to expose all source to the IDE, rather than just the `main` and `test`
+source sets.
 
 ## Story: Groovy source sets
 
@@ -294,6 +295,10 @@ This story introduces the concept of native binaries, as a refactoring of the ex
 
 This story introduces the concept JavaScript source sets and binaries. A JavaScript binary is simply a
 JavaScript source set that is built from some input source sets.
+
+## Story: Sonar-runner plugin supports arbitrary source sets
+
+Using whatever mechanism that the IDE plugins use to distinguish between production and test source.
 
 ## Story: Attach binary to Java library component
 
