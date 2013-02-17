@@ -139,7 +139,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         @Override
         public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Maps containing either a 'file' or a 'source' entry, e.g. [file: '/path/to/file', extension: 'zip'].");
+            candidateFormats.add("Maps containing a 'source' entry, e.g. [source: '/path/to/file', extension: 'zip'].");
         }
     }
 

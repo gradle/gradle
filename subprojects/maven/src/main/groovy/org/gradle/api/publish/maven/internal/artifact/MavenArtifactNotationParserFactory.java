@@ -134,7 +134,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
 
         @Override
         public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Maps containing either a 'source' entry, e.g. [source: '/path/to/file', extension: 'zip'].");
+            candidateFormats.add("Maps containing a 'source' entry, e.g. [source: '/path/to/file', extension: 'zip'].");
         }
     }
 
