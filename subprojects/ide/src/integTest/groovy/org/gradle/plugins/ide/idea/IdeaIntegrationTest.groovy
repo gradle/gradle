@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -94,6 +95,7 @@ apply plugin: 'idea'
         assertHasExpectedContents('root.iml')
     }
 
+    @Ignore
     @Test
     void addsScalaFacetAndCompilerLibraries() {
         executer.withTasks('idea').run()
