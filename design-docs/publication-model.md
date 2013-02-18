@@ -348,6 +348,14 @@ Validate the following prior to publication:
   Verify that these artifacts can be resolved by Gradle.
 * Reasonable error messages are given when the above validation fails.
 
+## Verify that publications can be consumed by Ivy and Maven
+
+### Test cases
+
+* Check that an Ant build that uses Ivy can resolve a Java library published to an Ivy repository.
+* Check that an Ant build that uses Ivy can resolve a Java library published to an Maven repository.
+* Check that a Maven build can resolve a Java library published to a Maven repository.
+
 ## Customising the Maven and Ivy publication identifier
 
 This step will allow some basic customisation of the meta data model for each publication:
@@ -551,20 +559,21 @@ Provided dependencies should be included in the generated POM and ivy.xml
 
 ## Allow further types of components to be published
 
-* Publishing Ear project -> runtime dependencies should be included.
-* Publishing C++ Exe project -> runtime dependencies should be included.
-* Publishing C++ Lib project -> runtime and headers dependencies should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
+* Publishing Ear -> container runtime dependencies should be included.
+* Publishing C++ Exe -> runtime dependencies should be included.
+* Publishing C++ Lib -> runtime, link and compile-tome dependencies should be included. Artifacts should not use classifiers, header type should be 'cpp-headers', not 'zip'.
+* Publishing distribition -> no dependencies should be included.
 * Fix No pom published when using 'cpp-lib' plugin, due to no main artifact.
 
-### Test cases
+## Add support for resolving and publishing via SFTP
 
-* Copy existing Maven publication tests for non-java projects and rework to use `maven-publish` plugin.
+Add an SFTP resource transport and allow this to be used in an Ivy or Maven repository definition.
 
-## Can attach multiple components to a publication
+## Add support for resolving and publishing via WebDAV
 
-TBD
+Add a WebDAV resource transport and allow this to be used in an Ivy or Maven repository definition.
 
-## Signing plugin supports signing a publication
+## Can sign a publication
 
 To sign an Ivy module when it is published to the remote repository:
 
@@ -578,17 +587,11 @@ Running `gradle release` will build, sign and upload the artifacts.
 Running `gradle publish` will build and upload the artifacts, but not sign them.
 Running `gradle publishMavenLocal` will build the artifact, but not sign them.
 
+## Publish source and API documentation for JVM libraries
+
 ## Reuse the Gradle resource transports for publishing to a Maven repository
 
 To provide progress logging, better error reporting, better handling of authenticated repositories, etc.
-
-## Add support for resolving and publishing via SFTP
-
-Add an SFTP resource transport and allow this to be used in an Ivy or Maven repository definition.
-
-## Add support for resolving and publishing via WebDAV
-
-Add a WebDAV resource transport and allow this to be used in an Ivy or Maven repository definition.
 
 ## Port Maven publication from Maven 2 to Maven 3 classes
 
@@ -599,6 +602,10 @@ Add a WebDAV resource transport and allow this to be used in an Ivy or Maven rep
 5. Change legacy `MavenDeployer` to use `MavenResolver`.
 6. Remove Maven 2 as a dependency.
 7. Remove jarjar hacks from Maven 3 classes.
+
+## Can attach multiple components to a publication
+
+TBD
 
 ## Publish components in dependency order
 
@@ -611,10 +618,6 @@ Fail fast when user-provided credentials are not valid.
 ## Publish artifacts as late as possible in the build
 
 Schedule validation tasks before publication tasks, while still respecting task dependencies.
-
-## Publish components in dependency order
-
-Ensure that when publishing multiple components to a given destination, that they are published in dependency order.
 
 ## Remove old DSL
 
@@ -638,36 +641,6 @@ At any point above, and as required, more meta-data for a publication can be mad
 1. Add `name`, `description`, `url`, `licenses`, `organization`, `scm`, `issueManagement` and `mailingLists` to `MavenPublication`
 2. Add extended attributes to `IvyModuleDescriptor`, `IvyConfiguration` and `IvyArtifact`.
 3. Add exclusions, inclusions, etc.
-
-## Introduce components
-
-A rough plan:
-
-1. Add `Component` and container of components.
-2. The `java-base` plugin adds a `java` component.
-    * Has-a api classpath and a runtime classpath, expressed as a `Classpath` (a container to which dependencies and files can be added, can be
-      resolved as either a dependency set or a file collection).
-3. The `java` plugin specialises the `java` component:
-    * Wires up the `runtime` dependencies to the `runtime` classpath.
-    * Adds the Jar to the `runtime` classpath.
-4. The `ivy-publish` plugin wires up the `api` and `runtime` configurations to the `api` and `runtime` classpaths.
-5. The `maven-publish` plugin wires up the `api` and `runtime` scopes to the `compile` and `runtime` classpaths.
-6. The `idea` plugin and `eclipse` plugin export the dependencies included in the `api` classpath.
-7. The `application`, `war` and `ear` plugins bundle up the `runtime` dependencies of the `java` component.
-    * Adds a `jvm-application`, `war` and `ear` component, respectively.
-8. The `cpp-lib` plugin adds a `cpp-library` component for each library.
-9. The `cpp-exe` plugin add a `cpp-executable` component for each executable.
-10. The `javascript` plugin adds a `javascript` component.
-
-Each component is available as a local publication, and can be referenced from any other project.
-
-TBD - how each component is mapped to Ivy and Maven modules.
-    - is each component merged into the 'main' publications?
-    - or is there a publication per component?
-    - or is there explicit attachment?
-    - does applying the '$lang-library' plugin implicitly make the library component available as a publication?
-
-TBD - consuming components.
 
 # Open issues
 

@@ -1,4 +1,6 @@
 
+# Introduction
+
 In almost every build, there are dependencies between the build logic that defines the Gradle model and the build logic
 that uses that model to do something useful. Here's an example:
 
@@ -35,9 +37,11 @@ There are a number of problems with this approach:
 5. Lazy data structures must retain references to their inputs, which results in a large connected graph of objects
    that cannot be garbage collected. When data is eager, the input objects can be released as soon as the build logic
    has completed (or short-circuited).
+6. Validation must be deferred until task execution.
 
 The aim of this specification is to define a mechanism to flip around the flow so that build logic is applied lazily and
-domain objects are eager. The new publication DSL will be used to validate this approach.
+domain objects are eager. The new publication DSL will be used to validate this approach. If successful, this will then
+be rolled out to other incubating plugins, and later, to existing plugins in a backwards compatible way.
 
 # Implementation plan
 
