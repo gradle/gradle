@@ -46,7 +46,6 @@ public class ModuleVersionSelectorParsers {
     private static NotationParserBuilder<ModuleVersionSelector> builder() {
         return new NotationParserBuilder<ModuleVersionSelector>()
                 .resultingType(ModuleVersionSelector.class)
-                .nullUnsupported()
                 .parser(new StringParser())
                 .parser(new MapParser());
     }

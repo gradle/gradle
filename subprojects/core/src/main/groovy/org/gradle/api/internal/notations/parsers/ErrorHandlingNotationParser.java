@@ -33,13 +33,11 @@ public class ErrorHandlingNotationParser<T> implements NotationParser<T> {
     private final String targetTypeDisplayName;
     private final String invalidNotationMessage;
     private final NotationParser<T> delegate;
-    private final boolean nullUnsupported;
 
-    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, NotationParser<T> delegate, boolean nullUnsupported) {
+    public ErrorHandlingNotationParser(String targetTypeDisplayName, String invalidNotationMessage, NotationParser<T> delegate) {
         this.targetTypeDisplayName = targetTypeDisplayName;
         this.invalidNotationMessage = invalidNotationMessage;
         this.delegate = delegate;
-        this.nullUnsupported = nullUnsupported;
     }
 
     public void describe(Collection<String> candidateFormats) {
@@ -47,22 +45,16 @@ public class ErrorHandlingNotationParser<T> implements NotationParser<T> {
     }
 
     public T parseNotation(Object notation) {
-        Object brokenNotation;
-        if (nullUnsupported && notation == null) {
-            brokenNotation = null;
+        Formatter message = new Formatter();
+        if (notation == null) {
+            //we don't support null input at the moment. If you need this please implement it.
+            message.format("Cannot convert a null value to an object of type %s.%n", targetTypeDisplayName);
         } else {
             try {
                 return delegate.parseNotation(notation);
             } catch (UnsupportedNotationException e) {
-                brokenNotation = e.getNotation();
+                message.format("Cannot convert the provided notation to an object of type %s: %s.%n", targetTypeDisplayName, e.getNotation());
             }
-        }
-
-        Formatter message = new Formatter();
-        if (brokenNotation == null) {
-            message.format("Cannot convert a null value to an object of type %s.%n", targetTypeDisplayName);
-        } else {
-            message.format("Cannot convert the provided notation to an object of type %s: %s.%n", targetTypeDisplayName, brokenNotation);
         }
 
         message.format("The following types/formats are supported:");
