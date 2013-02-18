@@ -24,9 +24,15 @@ import java.util.Set;
 public class TaskDependencyGraphNode implements Comparable<TaskDependencyGraphNode> {
     private final Task task;
     private final Set<TaskDependencyGraphNode> successors = new HashSet<TaskDependencyGraphNode>();
+    private boolean required;
+
+    public TaskDependencyGraphNode(Task task, boolean required) {
+        this.task = task;
+        this.required = required;
+    }
 
     public TaskDependencyGraphNode(Task task) {
-        this.task = task;
+        this(task, true);
     }
 
     public Task getTask() {
@@ -35,6 +41,14 @@ public class TaskDependencyGraphNode implements Comparable<TaskDependencyGraphNo
 
     public Set<TaskDependencyGraphNode> getSuccessors() {
         return successors;
+    }
+
+    public boolean getRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
     }
 
     public void addEdgeTo(TaskDependencyGraphNode toNode) {

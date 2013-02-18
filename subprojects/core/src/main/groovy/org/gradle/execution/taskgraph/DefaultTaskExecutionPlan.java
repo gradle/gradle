@@ -25,6 +25,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.CollectionUtils;
 
 import java.util.*;
 import java.util.concurrent.locks.Condition;
@@ -48,14 +49,14 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
         List<Task> queue = new ArrayList<Task>(tasks);
-
+        Collections.sort(queue);
         Set<Task> visiting = new HashSet<Task>();
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
         while (!queue.isEmpty()) {
             Task task = queue.get(0);
 
-            if (graph.hasTask(task)) {
+            if (graph.hasTask(task) && graph.getNode(task).getRequired()) {
                 queue.remove(0);
                 continue;
             }
@@ -83,6 +84,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 if (dependencies.size() == 0) {
                     graph.addNode(task);
                 }
+                for (Task mustRunAfter : task.getMustRunAfter()) {
+                    graph.addEdge(task, mustRunAfter, false);
+                }
             }
         }
 
@@ -90,8 +94,12 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void determineExecutionPlan() {
+        executionPlan.clear();
         List<TaskDependencyGraphNode> nodeQueue = new ArrayList<TaskDependencyGraphNode>(graph.getNodesWithoutIncomingEdges());
-        Collections.sort(nodeQueue);
+        if (nodeQueue.isEmpty()) {
+            throw new CircularReferenceException("Circular dependency between tasks.");
+        }
+
         Set<TaskDependencyGraphNode> visitingNodes = new HashSet<TaskDependencyGraphNode>();
         while (!nodeQueue.isEmpty()) {
             TaskDependencyGraphNode taskNode = nodeQueue.get(0);
@@ -111,6 +119,11 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // task in the queue
                 Set<TaskDependencyGraphNode> dependsOnTasks = new TreeSet<TaskDependencyGraphNode>(Collections.reverseOrder());
                 dependsOnTasks.addAll(taskNode.getSuccessors());
+                dependsOnTasks = CollectionUtils.filter(dependsOnTasks, new Spec<TaskDependencyGraphNode>() {
+                    public boolean isSatisfiedBy(TaskDependencyGraphNode element) {
+                        return element.getRequired();
+                    }
+                });
                 for (TaskDependencyGraphNode dependsOnTask : dependsOnTasks) {
                     if (visitingNodes.contains(dependsOnTask)) {
                         throw new CircularReferenceException(String.format(

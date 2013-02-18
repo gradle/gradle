@@ -48,6 +48,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -94,6 +95,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskStatusNagger taskStatusNagger;
     private ObservableList observableActionList;
+
+    private final Set<Task> mustRunAfter = new HashSet<Task>();
 
     protected AbstractTask() {
         this(taskInfo());
@@ -512,5 +515,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 Thread.currentThread().setContextClassLoader(original);
             }
         }
+    }
+
+    public void mustRunAfter(Task... tasks) {
+        for (Task task : tasks) {
+            mustRunAfter.add(task);
+        }
+    }
+
+    public Set<Task> getMustRunAfter() {
+        return mustRunAfter;
     }
 }

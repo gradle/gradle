@@ -92,6 +92,15 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test
+    public void testMustRunAfter() {
+        Task mustRunAfterTask = createTask(project, "somename")
+        Task task = createTask(project, TEST_TASK_NAME)
+
+        task.mustRunAfter(mustRunAfterTask)
+        assert task.mustRunAfter == [mustRunAfterTask] as Set
+    }
+
+    @Test
     public void testConfigure() {
         Closure action1 = { Task t -> }
         assertSame(task, task.configure {

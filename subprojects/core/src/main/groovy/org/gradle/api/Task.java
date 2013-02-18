@@ -538,5 +538,9 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return The directory. Never returns null. The directory will already exist.
      */
     File getTemporaryDir();
+
+    void mustRunAfter(Task... tasks);
+
+    Set<Task> getMustRunAfter();
 }
 

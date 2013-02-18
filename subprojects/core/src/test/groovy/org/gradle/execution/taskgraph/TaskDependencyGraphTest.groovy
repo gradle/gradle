@@ -35,8 +35,14 @@ class TaskDependencyGraphTest extends Specification {
         graph.tasks == [a, b] as Set
 
         and:
-        !graph.getNode(a).successors
-        !graph.getNode(b).successors
+        with graph.getNode(a), {
+            !successors
+            required
+        }
+        with graph.getNode(b), {
+            !successors
+            required
+        }
     }
 
     void 'adding edges'() {
@@ -45,10 +51,53 @@ class TaskDependencyGraphTest extends Specification {
         graph.addEdge(a, c)
 
         then:
-        graph.tasks == [a, b, c] as Set
-        graph.getNode(a).successors*.task == [b, c]
-        !graph.getNode(b).successors
-        !graph.getNode(c).successors
+        with graph, {
+            tasks == [a, b, c] as Set
+            getNode(a).successors*.task == [b, c]
+            !getNode(b).successors
+            !getNode(c).successors
+            [a, b, c].every { getNode(it).required }
+        }
+    }
+
+    void 'adding edges to non required tasks'() {
+        when:
+        graph.addEdge(a, b, false)
+
+        then:
+        with graph, {
+            getNode(a).required
+            !getNode(b).required
+        }
+    }
+
+    void 'adding edges to previously non required tasks'() {
+        when:
+        graph.addEdge(a, b, false)
+        graph.addEdge(c, b)
+
+        then:
+        [a, b, c].every { graph.getNode(it).required }
+    }
+
+    void 'adding edges to previously required tasks'() {
+        when:
+        graph.addEdge(a, b)
+        graph.addEdge(c, b, false)
+
+        then:
+        [a, b, c].every { graph.getNode(it).required }
+    }
+
+    void 'adding a previously non required task'() {
+        when:
+        graph.addEdge(a, b, false)
+        graph.addEdge(b, c)
+        graph.addEdge(a, d, false)
+        graph.addNode(d)
+
+        then:
+        [a, b, c, d].every { graph.getNode(it).required }
     }
 
     void 'nodes without incoming edges'() {

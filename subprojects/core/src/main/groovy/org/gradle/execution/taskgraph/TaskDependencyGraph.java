@@ -41,18 +41,24 @@ public class TaskDependencyGraph {
     }
 
     public void addEdge(Task fromTask, Task toTask) {
+        addEdge(fromTask, toTask, true);
+    }
+
+    public void addEdge(Task fromTask, Task toTask, boolean toTaskIsRequired) {
         TaskDependencyGraphNode fromNode;
         TaskDependencyGraphNode toNode;
         if (!hasTask(fromTask)) {
-            fromNode = createNode(fromTask);
+            fromNode = createNode(fromTask, true);
             nodesWithoutIncomingEdges.add(fromNode);
         } else {
             fromNode = nodes.get(fromTask);
+            fromNode.setRequired(true);
         }
         if (!hasTask(toTask)) {
-            toNode = createNode(toTask);
+            toNode = createNode(toTask, toTaskIsRequired);
         } else {
             toNode = nodes.get(toTask);
+            toNode.setRequired(toNode.getRequired() || toTaskIsRequired);
             nodesWithoutIncomingEdges.remove(toNode);
         }
         fromNode.addEdgeTo(toNode);
@@ -60,8 +66,10 @@ public class TaskDependencyGraph {
 
     public void addNode(Task task) {
         if (!hasTask(task)) {
-            TaskDependencyGraphNode node = createNode(task);
+            TaskDependencyGraphNode node = createNode(task, true);
             nodesWithoutIncomingEdges.add(node);
+        } else {
+            getNode(task).setRequired(true);
         }
     }
 
@@ -69,8 +77,8 @@ public class TaskDependencyGraph {
         return nodes.get(task);
     }
 
-    private TaskDependencyGraphNode createNode(Task task) {
-        TaskDependencyGraphNode node = new TaskDependencyGraphNode(task);
+    private TaskDependencyGraphNode createNode(Task task, boolean required) {
+        TaskDependencyGraphNode node = new TaskDependencyGraphNode(task, required);
         nodes.put(task, node);
         return node;
     }
