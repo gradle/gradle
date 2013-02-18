@@ -62,6 +62,10 @@ public enum TargetJdk {
 
     @Override
     public String toString() {
+        return getName();
+    }
+
+    public String getName() {
         return name().substring("VERSION_".length()).replace('_', '.').toLowerCase();
     }
 }
