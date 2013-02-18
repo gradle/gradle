@@ -20,19 +20,18 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.publish.ivy.internal.DefaultIvyConfiguration
+import org.gradle.api.publish.ivy.internal.DefaultIvyProjectIdentity
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.util.CollectionUtils
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class IvyDescriptorFileGeneratorTest extends Specification {
-    Module module = new DefaultModule("my-org", "my-name", "my-version", "my-status")
-    IvyDescriptorFileGenerator generator = new IvyDescriptorFileGenerator(module)
+    def projectIdentity = new DefaultIvyProjectIdentity("my-org", "my-name", "my-version")
+    IvyDescriptorFileGenerator generator = new IvyDescriptorFileGenerator(projectIdentity)
 
     def "writes correct prologue and schema declarations"() {
         expect:
@@ -48,11 +47,19 @@ class IvyDescriptorFileGeneratorTest extends Specification {
             info.@organisation == "my-org"
             info.@module == "my-name"
             info.@revision == "my-version"
-            info.@status == "my-status"
+            info.@status.isEmpty()
             configurations.isEmpty()
             publications.isEmpty()
             dependencies.isEmpty()
         }
+    }
+
+    def "writes supplied status"() {
+        when:
+        generator.setStatus("my-status")
+
+        then:
+        ivyXml.info.@status == "my-status"
     }
 
     def "writes supplied configurations"() {

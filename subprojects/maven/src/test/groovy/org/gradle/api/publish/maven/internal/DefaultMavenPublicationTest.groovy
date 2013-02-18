@@ -18,7 +18,6 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -35,7 +34,7 @@ import spock.lang.Specification
 
 public class DefaultMavenPublicationTest extends Specification {
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    Module module = Mock()
+    def module = Mock(MavenProjectIdentity)
     NotationParser<MavenArtifact> notationParser = Mock()
     TestFile pomDir
     TestFile pomFile
@@ -48,40 +47,32 @@ public class DefaultMavenPublicationTest extends Specification {
         artifactFile << "some content"
     }
 
-    def "name property is passed through"() {
+    def "name and identity properties are passed through"() {
         when:
-        def publication = createPublication()
-
-        then:
-        publication.name == "pub-name"
-    }
-
-    def "project identity is adapted from module and main artifact"() {
-        when:
-        module.name >> "name"
-        module.group >> "group"
+        module.artifactId >> "name"
+        module.groupId >> "group"
         module.version >> "version"
 
         and:
         def publication = createPublication()
-        def identity = publication.mavenProjectIdentity
 
         then:
-        identity.groupId == "group"
-        identity.artifactId == "name"
-        identity.version == "version"
-        identity.packaging == "pom"
+        publication.name == "pub-name"
+        publication.mavenProjectIdentity == module
+    }
 
+    def "packaging is taken from first added artifact without extension"() {
         when:
         MavenArtifact mavenArtifact = Mock()
         notationParser.parseNotation("artifact") >> mavenArtifact
         mavenArtifact.extension >> "ext"
 
         and:
+        def publication = createPublication()
         publication.artifact "artifact"
 
         then:
-        identity.packaging == "ext"
+        publication.pom.packaging == "ext"
     }
 
     def "empty publishableFiles and artifacts when no component is added"() {
@@ -184,6 +175,7 @@ public class DefaultMavenPublicationTest extends Specification {
         mavenArtifact.file >> artifactFile
         mavenArtifact.classifier >> null
         1 * mavenArtifact.setExtension('changed')
+        _ * mavenArtifact.getExtension() >> 'changed'
         0 * mavenArtifact._
 
         and:
@@ -201,15 +193,14 @@ public class DefaultMavenPublicationTest extends Specification {
     def "can use setter to replace existing artifacts set"() {
         given:
         def publication = createPublication()
-        Object notation = new Object();
-        MavenArtifact mavenArtifact1 = Mock()
-        MavenArtifact mavenArtifact2 = Mock()
+        def mavenArtifact1 = Mock(MavenArtifact)
+        def mavenArtifact2 = Mock(MavenArtifact)
 
         when:
         publication.artifact "notation"
 
         then:
-        notationParser.parseNotation(notation) >> Mock(MavenArtifact)
+        notationParser.parseNotation("notation") >> Mock(MavenArtifact)
 
         when:
         publication.artifacts = ["notation1", "notation2"]

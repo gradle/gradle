@@ -16,7 +16,6 @@
 
 
 package org.gradle.api.publish.maven.internal.artifact
-
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.file.FileResolver

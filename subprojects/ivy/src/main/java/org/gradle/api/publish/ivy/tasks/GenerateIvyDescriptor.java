@@ -92,7 +92,8 @@ public class GenerateIvyDescriptor extends DefaultTask {
     public void doGenerate() {
         IvyModuleDescriptorInternal descriptorInternal = toIvyModuleDescriptorInternal(getDescriptor());
 
-        IvyDescriptorFileGenerator ivyGenerator = new IvyDescriptorFileGenerator(descriptorInternal.getModule());
+        IvyDescriptorFileGenerator ivyGenerator = new IvyDescriptorFileGenerator(descriptorInternal.getProjectIdentity());
+        ivyGenerator.setStatus(descriptorInternal.getStatus());
         for (IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations()) {
             ivyGenerator.addConfiguration(ivyConfiguration);
         }

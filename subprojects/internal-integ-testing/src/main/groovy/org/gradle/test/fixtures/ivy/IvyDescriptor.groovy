@@ -27,6 +27,7 @@ class IvyDescriptor {
     String organisation
     String module
     String revision
+    String status
     String description
 
     IvyDescriptor(File ivyFile) {
@@ -34,6 +35,7 @@ class IvyDescriptor {
         organisation = ivy.info[0].@organisation
         module = ivy.info[0].@module
         revision = ivy.info[0].@revision
+        status = ivy.info[0].@status
         description = ivy.info[0].description[0]?.text()
 
         ivy.configurations.conf.each {

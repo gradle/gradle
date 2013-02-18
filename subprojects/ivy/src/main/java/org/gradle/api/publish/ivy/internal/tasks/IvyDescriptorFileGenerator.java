@@ -25,9 +25,13 @@ import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
+import org.gradle.api.publish.ivy.internal.IvyProjectIdentity;
 import org.gradle.util.CollectionUtils;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,14 +42,19 @@ public class IvyDescriptorFileGenerator {
     private static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
 
     private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
-    private final Module module;
+    private final IvyProjectIdentity projectIdentity;
+    private String status;
     private XmlTransformer withXmlActions = new XmlTransformer();
     private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
     private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
     private List<ModuleDependency> runtimeDependencies = new ArrayList<ModuleDependency>();
 
-    public IvyDescriptorFileGenerator(Module module) {
-        this.module = module;
+    public IvyDescriptorFileGenerator(IvyProjectIdentity projectIdentity) {
+        this.projectIdentity = projectIdentity;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public IvyDescriptorFileGenerator addConfiguration(IvyConfiguration ivyConfiguration) {
@@ -103,10 +112,10 @@ public class IvyDescriptorFileGenerator {
         }
 
         xmlWriter.startElement("info")
-                .attribute("organisation", module.getGroup())
-                .attribute("module", module.getName())
-                .attribute("revision", module.getVersion())
-                .attribute("status", module.getStatus())
+                .attribute("organisation", projectIdentity.getOrganisation())
+                .attribute("module", projectIdentity.getModule())
+                .attribute("revision", projectIdentity.getRevision())
+                .attribute("status", status)
                 .attribute("publication", ivyDateFormat.format(new Date()))
                 .endElement();
 
@@ -115,7 +124,6 @@ public class IvyDescriptorFileGenerator {
         writeDependencies(xmlWriter);
         xmlWriter.endElement();
     }
-
     private boolean hasClassifier() {
         for (IvyArtifact artifact : artifacts) {
             if (artifact.getClassifier() != null) {
@@ -131,6 +139,7 @@ public class IvyDescriptorFileGenerator {
         }
         return false;
     }
+
     private void writeConfigurations(OptionalAttributeXmlWriter xmlWriter) throws IOException {
         if (configurations.isEmpty()) {
             return;

@@ -19,7 +19,6 @@ package org.gradle.api.publish.ivy.internal;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -31,13 +30,23 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
 
     private final ActionBroadcast<XmlProvider> xmlActions = new ActionBroadcast<XmlProvider>();
     private final IvyPublicationInternal ivyPublication;
+    private String status;
 
     public DefaultIvyModuleDescriptor(IvyPublicationInternal ivyPublication) {
         this.ivyPublication = ivyPublication;
     }
 
-    public Module getModule() {
-        return ivyPublication.getModule();
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        // TODO:DAZ Validate status: limit to the set of statuses that we handle? (Validate here and allow custom status setting via withXml)
+        this.status = status;
+    }
+
+    public IvyProjectIdentity getProjectIdentity() {
+        return ivyPublication.getProjectIdentity();
     }
 
     public void withXml(Action<? super XmlProvider> action) {

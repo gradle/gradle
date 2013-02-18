@@ -15,13 +15,11 @@
  */
 
 package org.gradle.api.publish.ivy.plugins
-
 import org.gradle.api.Project
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication
-import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication
 import org.gradle.api.publish.ivy.internal.IvyPublicationInternal
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -29,31 +27,31 @@ import spock.lang.Specification
 class IvyPublishPluginTest extends Specification {
 
     Project project = HelperUtil.createRootProject()
-    PublishingExtension extension
+    PublishingExtension publishing
 
     def setup() {
         project.plugins.apply(IvyPublishPlugin)
-        extension = project.extensions.getByType(PublishingExtension)
+        publishing = project.extensions.getByType(PublishingExtension)
     }
 
     def "no publication without component"() {
         expect:
-        extension.publications.empty
+        publishing.publications.empty
     }
 
     def "publication can be added"() {
         when:
-        extension.publications.add("test", IvyPublication)
+        publishing.publications.add("test", IvyPublication)
 
         then:
-        extension.publications.size() == 1
-        extension.publications.test instanceof DefaultIvyPublication
+        publishing.publications.size() == 1
+        publishing.publications.test instanceof DefaultIvyPublication
     }
 
     def "creates publish task for publication and repository"() {
         when:
-        extension.publications.add("test", IvyPublication)
-        extension.repositories { ivy { url = "http://foo.com" } }
+        publishing.publications.add("test", IvyPublication)
+        publishing.repositories { ivy { url = "http://foo.com" } }
         def publishTask = project.tasks["publishTestPublicationToIvyRepository"]
 
         then:
@@ -61,44 +59,38 @@ class IvyPublishPluginTest extends Specification {
         project.tasks["publish"].dependsOn.contains publishTask
     }
 
-    def "ivy publication takes coordinates from project"() {
-        when:
-        extension.publications.add("ivy", IvyPublication)
-        IvyPublicationInternal publication = extension.publications.ivy
-
-        then:
-        publication.name == "ivy"
-
+    def "ivy publication coordinates are a snapshot of project identity"() {
         when:
         project.group = "foo"
         project.version = 1.0
         project.status = "integration"
 
         and:
-        IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication()
+        publishing.publications.add("test", IvyPublication)
 
         then:
-        normalizedPublication.module.name == project.name
-        normalizedPublication.module.group == project.group
-        normalizedPublication.module.version == project.version.toString()
-        normalizedPublication.module.status == project.status
+        with (publishing.publications.test) {
+            projectIdentity.module == project.name
+            projectIdentity.organisation == "foo"
+            projectIdentity.revision == "1.0"
+            descriptor.status == "integration"
+        }
 
         when:
-        project.group = "bar"
-        project.version = 2.0
-        project.status = "final"
-        normalizedPublication = publication.asNormalisedPublication()
+        project.group = "changed-group"
+        project.version = "changed-version"
 
         then:
-        normalizedPublication.module.group == project.group
-        normalizedPublication.module.version == project.version.toString()
-        normalizedPublication.module.status == project.status
+        with (publishing.publications.test) {
+            projectIdentity.organisation == "foo"
+            projectIdentity.revision == "1.0"
+        }
     }
 
     def "can configure descriptor"() {
         given:
-        extension.publications.add("ivy", IvyPublication)
-        IvyPublicationInternal publication = extension.publications.ivy
+        publishing.publications.add("ivy", IvyPublication)
+        IvyPublicationInternal publication = publishing.publications.ivy
 
         when:
         publication.descriptor {

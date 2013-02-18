@@ -29,7 +29,9 @@ import org.gradle.api.publish.internal.PublicationContainerInternal;
 import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.DefaultMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.DefaultMavenPublication;
+import org.gradle.api.publish.maven.internal.MavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
 import org.gradle.api.publish.maven.internal.plugins.GeneratePomTaskCreator;
 import org.gradle.api.publish.maven.internal.plugins.MavenPublishDynamicTaskCreator;
@@ -101,11 +103,12 @@ public class MavenPublishPlugin implements Plugin<Project> {
         public MavenPublication create(final String name) {
 
             Module module = dependencyMetaDataProvider.getModule();
+            MavenProjectIdentity projectIdentity = new DefaultMavenProjectIdentity(module.getGroup(), module.getName(), module.getVersion());
             NotationParser<MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, module.getVersion(), fileResolver).create();
 
             return instantiator.newInstance(
                     DefaultMavenPublication.class,
-                    name, module, artifactNotationParser, instantiator
+                    name, projectIdentity, artifactNotationParser, instantiator
             );
         }
     }

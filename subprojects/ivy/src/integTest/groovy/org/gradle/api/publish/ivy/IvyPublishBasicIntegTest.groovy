@@ -67,6 +67,7 @@ public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
         def module = ivyRepo.module('org.gradle.test', 'empty-project', '1.0')
         module.assertPublished()
         module.assertArtifactsPublished("ivy-1.0.xml")
+        module.ivy.status == "release"
     }
 
     def "can publish simple jar"() {
@@ -81,6 +82,7 @@ public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
 
             group = 'group'
             version = '1.0'
+            status = 'integration'
 
             publishing {
                 repositories {
@@ -106,6 +108,7 @@ public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
 
         then: "jar is published to defined ivy repository"
         module.assertPublishedAsJavaModule()
+        module.ivy.status == 'integration'
         module.moduleDir.file('root-1.0.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
     }
 

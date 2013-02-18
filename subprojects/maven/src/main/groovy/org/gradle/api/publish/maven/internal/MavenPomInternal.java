@@ -27,6 +27,8 @@ public interface MavenPomInternal extends MavenPom {
 
     MavenProjectIdentity getProjectIdentity();
 
+    String getPackaging();
+
     Set<Dependency> getRuntimeDependencies();
 
     Action<XmlProvider> getXmlAction();

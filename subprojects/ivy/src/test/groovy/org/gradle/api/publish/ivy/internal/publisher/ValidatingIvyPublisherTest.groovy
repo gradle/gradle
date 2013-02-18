@@ -16,10 +16,10 @@
 
 package org.gradle.api.publish.ivy.internal.publisher
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
-import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.publish.ivy.IvyArtifact
+import org.gradle.api.publish.ivy.internal.DefaultIvyProjectIdentity
+import org.gradle.api.publish.ivy.internal.IvyProjectIdentity
 import org.gradle.api.publish.ivy.internal.tasks.IvyDescriptorFileGenerator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared
@@ -36,8 +36,8 @@ public class ValidatingIvyPublisherTest extends Specification {
 
     def "delegates when publication is valid"() {
         when:
-        def module = module("the-group", "the-artifact", "the-version")
-        def publication = new IvyNormalizedPublication("pub-name", module, ivyFile("the-group", "the-artifact", "the-version"), emptySet())
+        def projectIdentity = this.projectIdentity("the-group", "the-artifact", "the-version")
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("the-group", "the-artifact", "the-version"), emptySet())
         def repository = Mock(IvyArtifactRepository)
 
         and:
@@ -49,7 +49,7 @@ public class ValidatingIvyPublisherTest extends Specification {
 
     def "validates project coordinates"() {
         given:
-        def projectIdentity = module(group, name, version)
+        def projectIdentity = projectIdentity(group, name, version)
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(group, name, version), emptySet())
         def repository = Mock(IvyArtifactRepository)
 
@@ -72,7 +72,7 @@ public class ValidatingIvyPublisherTest extends Specification {
 
     def "project coordinates must match ivy descriptor file"() {
         given:
-        def projectIdentity = module("org", "module", "version")
+        def projectIdentity = projectIdentity("org", "module", "version")
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(organisation, module, version), emptySet())
         def repository = Mock(IvyArtifactRepository)
 
@@ -99,7 +99,7 @@ public class ValidatingIvyPublisherTest extends Specification {
             getExtension() >> extension
             getClassifier() >> classifier
         }
-        def publication = new IvyNormalizedPublication("pub-name", module("org", "module", "version"), ivyFile("org", "module", "version"), toSet([ivyArtifact]))
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity("org", "module", "version"), ivyFile("org", "module", "version"), toSet([ivyArtifact]))
 
         when:
         publisher.publish(publication, Mock(IvyArtifactRepository))
@@ -120,7 +120,7 @@ public class ValidatingIvyPublisherTest extends Specification {
     @Unroll
     def "cannot publish with file that #message"() {
         def ivyArtifact = Mock(IvyArtifact)
-        def publication = new IvyNormalizedPublication("pub-name", module("group", "artifact", "version"), ivyFile("group", "artifact", "version"), toSet([ivyArtifact]))
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity("group", "artifact", "version"), ivyFile("group", "artifact", "version"), toSet([ivyArtifact]))
 
         when:
         publisher.publish(publication, Mock(IvyArtifactRepository))
@@ -140,17 +140,17 @@ public class ValidatingIvyPublisherTest extends Specification {
         testDir.testDirectory.createDir('sub_directory')  | 'is a directory'
     }
 
-    private def module(def groupId, def artifactId, def version) {
-        return Stub(Module) {
-            getGroup() >> groupId
-            getName() >> artifactId
-            getVersion() >> version
+    private def projectIdentity(def groupId, def artifactId, def version) {
+        return Stub(IvyProjectIdentity) {
+            getOrganisation() >> groupId
+            getModule() >> artifactId
+            getRevision() >> version
         }
     }
 
     private def ivyFile(def group, def moduleName, def version) {
         def ivyXmlFile = testDir.file("ivy")
-        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultModule(group, moduleName, version))
+        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyProjectIdentity(group, moduleName, version))
         ivyFileGenerator.writeTo(ivyXmlFile)
         return ivyXmlFile
     }

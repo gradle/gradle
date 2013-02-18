@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.AsmBackedClassGenerator
@@ -37,8 +36,8 @@ class DefaultIvyPublicationTest extends Specification {
 
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    Module module = Mock()
-    NotationParser<IvyArtifact> notationParser = Mock()
+    def projectIdentity = Mock(IvyProjectIdentity)
+    def notationParser = Mock(NotationParser)
     File descriptorFile
     File artifactFile
 
@@ -56,22 +55,6 @@ class DefaultIvyPublicationTest extends Specification {
         publication.name == "pub-name"
     }
 
-    def "project identity is taken directly adapted from project module"() {
-        when:
-        module.name >> "name"
-        module.group >> "group"
-        module.version >> "version"
-
-        and:
-        def publication = createPublication()
-        def descriptorModule = publication.descriptor.module
-
-        then:
-        descriptorModule.group == "group"
-        descriptorModule.name == "name"
-        descriptorModule.version == "version"
-    }
-
     def "empty publishableFiles and artifacts when no component is added"() {
         when:
         def publication = createPublication()
@@ -86,11 +69,11 @@ class DefaultIvyPublicationTest extends Specification {
         given:
         def publication = createPublication()
 
-        SoftwareComponentInternal component = Mock()
-        PublishArtifactSet publishArtifactSet = Mock()
-        PublishArtifact artifact = Mock()
-        DependencySet dependencySet = Mock()
-        IvyArtifact ivyArtifact = createArtifact()
+        def component = Mock(SoftwareComponentInternal)
+        def publishArtifactSet = Mock(PublishArtifactSet)
+        def artifact = Mock(PublishArtifact)
+        def dependencySet = Mock(DependencySet)
+        def ivyArtifact = createArtifact()
 
         when:
         component.artifacts >> publishArtifactSet
@@ -119,9 +102,9 @@ class DefaultIvyPublicationTest extends Specification {
     def "cannot add multiple components"() {
         given:
         def publication = createPublication()
-        SoftwareComponentInternal component = Mock()
-        PublishArtifactSet publishArtifactSet = Mock()
-        DependencySet dependencySet = Mock()
+        def component = Mock(SoftwareComponentInternal)
+        def publishArtifactSet = Mock(PublishArtifactSet)
+        def dependencySet = Mock(DependencySet)
 
         when:
         publication.from(component)
@@ -156,8 +139,8 @@ class DefaultIvyPublicationTest extends Specification {
     def "attaches artifacts parsed by notation parser to configuration"() {
         given:
         def publication = createPublication()
-        Object notation = new Object();
-        IvyArtifact ivyArtifact = createArtifact()
+        def notation = new Object();
+        def ivyArtifact = createArtifact()
 
         when:
         notationParser.parseNotation(notation) >> ivyArtifact
@@ -174,8 +157,8 @@ class DefaultIvyPublicationTest extends Specification {
     def "attaches and configures artifacts parsed by notation parser"() {
         given:
         def publication = createPublication()
-        Object notation = new Object();
-        IvyArtifact ivyArtifact = createArtifact()
+        def notation = new Object();
+        def ivyArtifact = createArtifact()
 
         when:
         notationParser.parseNotation(notation) >> ivyArtifact
@@ -195,8 +178,8 @@ class DefaultIvyPublicationTest extends Specification {
     def "can use setter to replace existing artifacts set on configuration"() {
         given:
         def publication = createPublication()
-        IvyArtifact ivyArtifact1 = createArtifact()
-        IvyArtifact ivyArtifact2 = createArtifact()
+        def ivyArtifact1 = createArtifact()
+        def ivyArtifact2 = createArtifact()
 
         when:
         publication.artifact "notation"
@@ -216,7 +199,7 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = instantiator.newInstance(DefaultIvyPublication, "pub-name", instantiator, module, notationParser)
+        def publication = instantiator.newInstance(DefaultIvyPublication, "pub-name", instantiator, projectIdentity, notationParser)
         publication.setDescriptorFile(new SimpleFileCollection(descriptorFile))
         return publication;
     }

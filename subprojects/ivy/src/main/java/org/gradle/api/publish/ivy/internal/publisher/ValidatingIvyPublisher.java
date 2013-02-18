@@ -20,10 +20,9 @@ import groovy.util.Node;
 import groovy.util.XmlParser;
 import groovy.xml.QName;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.internal.IvyProjectIdentity;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
 
@@ -44,9 +43,10 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     }
 
     private void validateIdentity(IvyNormalizedPublication publication) {
-        checkNonEmpty(publication.getName(), "organisation", publication.getModule().getGroup());
-        checkNonEmpty(publication.getName(), "module name", publication.getModule().getName());
-        checkNonEmpty(publication.getName(), "revision", publication.getModule().getVersion());
+        IvyProjectIdentity identity = publication.getProjectIdentity();
+        checkNonEmpty(publication.getName(), "organisation", identity.getOrganisation());
+        checkNonEmpty(publication.getName(), "module name", identity.getModule());
+        checkNonEmpty(publication.getName(), "revision", identity.getRevision());
     }
 
     private void checkNonEmpty(String publicationName, String name, String value) {
@@ -56,11 +56,11 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     }
 
     private void validateIvyDescriptorFileCoordinates(IvyNormalizedPublication publication) {
-        Module module = publication.getModule();
-        Module ivyXmlModule = parseIvyFileIntoModule(publication.getDescriptorFile());
-        checkMatches(publication.getName(), "organisation", module.getGroup(), ivyXmlModule.getGroup());
-        checkMatches(publication.getName(), "module name", module.getName(), ivyXmlModule.getName());
-        checkMatches(publication.getName(), "revision", module.getVersion(), ivyXmlModule.getVersion());
+        IvyProjectIdentity identity = publication.getProjectIdentity();
+        Node infoNode = getIvyFileInfoNode(publication.getDescriptorFile());
+        checkMatches(publication.getName(), "organisation", identity.getOrganisation(), (String) infoNode.attribute("organisation"));
+        checkMatches(publication.getName(), "module name", identity.getModule(), (String) infoNode.attribute("module"));
+        checkMatches(publication.getName(), "revision", identity.getRevision(), (String) infoNode.attribute("revision"));
     }
 
     private void checkMatches(String publicationName, String name, String projectIdentityValue, String pomFileValue) {
@@ -72,7 +72,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         }
     }
 
-    private Module parseIvyFileIntoModule(File ivyFile) {
+    private Node getIvyFileInfoNode(File ivyFile) {
         Node rootNode;
         try {
             // TODO:DAZ Turn on XML validation, and add a schema to the generated ivy file
@@ -81,8 +81,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
             throw UncheckedException.throwAsUncheckedException(ex);
         }
 
-        Node infoNode = (Node) rootNode.getAt(new QName("info")).get(0);
-        return new DefaultModule((String) infoNode.attribute("organisation"), (String) infoNode.attribute("module"), (String) infoNode.attribute("revision"));
+        return (Node) rootNode.getAt(new QName("info")).get(0);
     }
 
     public void validateArtifacts(IvyNormalizedPublication publication) {

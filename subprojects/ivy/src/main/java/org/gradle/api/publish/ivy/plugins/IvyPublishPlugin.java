@@ -30,7 +30,9 @@ import org.gradle.api.publish.internal.PublicationContainerInternal;
 import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
+import org.gradle.api.publish.ivy.internal.DefaultIvyProjectIdentity;
 import org.gradle.api.publish.ivy.internal.DefaultIvyPublication;
+import org.gradle.api.publish.ivy.internal.IvyProjectIdentity;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactNotationParserFactory;
 import org.gradle.api.publish.ivy.internal.plugins.IvyPublicationDynamicDescriptorGenerationTaskCreator;
 import org.gradle.api.publish.ivy.internal.plugins.IvyPublishDynamicTaskCreator;
@@ -94,12 +96,16 @@ public class IvyPublishPlugin implements Plugin<Project> {
 
         public Publication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
+            IvyProjectIdentity projectIdentity = new DefaultIvyProjectIdentity(module.getGroup(), module.getName(), module.getVersion());
+            // TODO:DAZ Ditch the magic parsing of file names
             NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, module.getVersion(), fileResolver).create();
-            return instantiator.newInstance(
+            DefaultIvyPublication ivyPublication = instantiator.newInstance(
                     DefaultIvyPublication.class,
-                    name, instantiator, module, notationParser
+                    name, instantiator, projectIdentity, notationParser
             );
-
+            // TODO:DAZ Not sure if status is a property of the descriptor, or a property of the publication itself.
+            ivyPublication.getDescriptor().setStatus(module.getStatus());
+            return ivyPublication;
         }
     }
 }

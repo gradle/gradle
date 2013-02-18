@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven.internal;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
@@ -49,11 +48,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private SoftwareComponentInternal component;
 
     public DefaultMavenPublication(
-            String name, Module module, NotationParser<MavenArtifact> mavenArtifactParser, Instantiator instantiator
+            String name, MavenProjectIdentity projectIdentity, NotationParser<MavenArtifact> mavenArtifactParser, Instantiator instantiator
     ) {
         this.name = name;
-        // TODO:DAZ Don't use Module in MavenPublication stuff : fix this as part of making Publish Coordinates configurable
-        this.projectIdentity = new PublicationProjectIdentity(module);
+        this.projectIdentity = projectIdentity;
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
     }
@@ -62,9 +60,43 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return name;
     }
 
+    public String getGroupId() {
+        return projectIdentity.getGroupId();
+    }
+
+    public void setGroupId(String groupId) {
+        projectIdentity.setGroupId(groupId);
+    }
+
+    public String getArtifactId() {
+        return projectIdentity.getArtifactId();
+    }
+
+    public void setArtifactId(String artifactId) {
+        projectIdentity.setArtifactId(artifactId);
+    }
+
+    public String getVersion() {
+        return projectIdentity.getVersion();
+    }
+
+    public void setVersion(String version) {
+        projectIdentity.setVersion(version);
+    }
+
     public MavenPomInternal getPom() {
         return pom;
     }
+
+    public String determinePackagingFromArtifacts() {
+        for (MavenArtifact mavenArtifact : mavenArtifacts) {
+            if (!GUtil.isTrue(mavenArtifact.getClassifier()) && GUtil.isTrue(mavenArtifact.getExtension())) {
+                return mavenArtifact.getExtension();
+            }
+        }
+        return "pom";
+    }
+
 
     public void setPomFile(FileCollection pomFile) {
         this.pomFile = pomFile;
@@ -127,34 +159,5 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             throw new IllegalStateException("pomFile not set for publication");
         }
         return pomFile.getSingleFile();
-    }
-
-    private class PublicationProjectIdentity implements MavenProjectIdentity {
-        private final Module module;
-
-        private PublicationProjectIdentity(Module module) {
-            this.module = module;
-        }
-
-        public String getArtifactId() {
-            return module.getName();
-        }
-
-        public String getGroupId() {
-            return module.getGroup();
-        }
-
-        public String getVersion() {
-            return module.getVersion();
-        }
-
-        public String getPackaging() {
-            for (MavenArtifact mavenArtifact : mavenArtifacts) {
-                if (!GUtil.isTrue(mavenArtifact.getClassifier()) && GUtil.isTrue(mavenArtifact.getExtension())) {
-                    return mavenArtifact.getExtension();
-                }
-            }
-            return "pom";
-        }
     }
 }

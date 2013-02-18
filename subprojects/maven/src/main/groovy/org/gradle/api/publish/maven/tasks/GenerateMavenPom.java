@@ -91,18 +91,19 @@ public class GenerateMavenPom extends DefaultTask {
         MavenPomInternal pomInternal = (MavenPomInternal) getPom();
 
         MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator();
-        copyIdentity(pomInternal.getProjectIdentity(), pomGenerator);
+        copyIdentity(pomInternal, pomGenerator);
         copyDependencies(pomInternal.getRuntimeDependencies(), pomGenerator);
         pomGenerator.withXml(pomInternal.getXmlAction());
 
         pomGenerator.writeTo(getDestination());
     }
 
-    private void copyIdentity(MavenProjectIdentity projectIdentity, MavenPomFileGenerator pom) {
+    private void copyIdentity(MavenPomInternal pomInternal, MavenPomFileGenerator pom) {
+        MavenProjectIdentity projectIdentity = pomInternal.getProjectIdentity();
         pom.setArtifactId(projectIdentity.getArtifactId());
         pom.setGroupId(projectIdentity.getGroupId());
         pom.setVersion(projectIdentity.getVersion());
-        pom.setPackaging(projectIdentity.getPackaging());
+        pom.setPackaging(pomInternal.getPackaging());
     }
 
     private void copyDependencies(Set<Dependency> runtimeDependencies, MavenPomFileGenerator pom) {

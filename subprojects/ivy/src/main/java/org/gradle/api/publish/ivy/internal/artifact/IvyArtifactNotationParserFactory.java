@@ -41,6 +41,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
     public IvyArtifactNotationParserFactory(Instantiator instantiator, String version, FileResolver fileResolver) {
         this.instantiator = instantiator;
+        // TODO:DAZ Remove the use of version in parsing artifact names
         this.version = version;
         this.fileResolver = fileResolver;
     }

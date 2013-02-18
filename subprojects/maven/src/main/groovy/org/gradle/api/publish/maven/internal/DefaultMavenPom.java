@@ -41,6 +41,10 @@ public class DefaultMavenPom implements MavenPomInternal {
         return xmlAction;
     }
 
+    public String getPackaging() {
+        return mavenPublication.determinePackagingFromArtifacts();
+    }
+
     public MavenProjectIdentity getProjectIdentity() {
         return mavenPublication.getMavenProjectIdentity();
     }

@@ -19,7 +19,6 @@ package org.gradle.api.publish.ivy.internal;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
@@ -35,13 +34,14 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private final String name;
     private final IvyModuleDescriptorInternal descriptor;
-    private final Module module;
+    private final IvyProjectIdentity projectIdentity;
     private final IvyConfigurationContainer configurations;
     private final DefaultIvyArtifactSet ivyArtifacts;
     private final Set<Dependency> runtimeDependencies = new LinkedHashSet<Dependency>();
@@ -49,10 +49,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private SoftwareComponentInternal component;
 
     public DefaultIvyPublication(
-            String name, Instantiator instantiator, Module module, NotationParser<IvyArtifact> ivyArtifactNotationParser
+            String name, Instantiator instantiator, IvyProjectIdentity projectIdentity, NotationParser<IvyArtifact> ivyArtifactNotationParser
     ) {
         this.name = name;
-        this.module = module;
+        this.projectIdentity = projectIdentity;
         configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator);
         ivyArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser);
         descriptor = instantiator.newInstance(DefaultIvyModuleDescriptor.class, this);
@@ -129,8 +129,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return new UnionFileCollection(ivyArtifacts.getFiles(), descriptorFile);
     }
 
-    public Module getModule() {
-        return module;
+    public IvyProjectIdentity getProjectIdentity() {
+        return projectIdentity;
     }
 
     public Set<Dependency> getRuntimeDependencies() {
@@ -138,7 +138,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(name, getModule(), getDescriptorFile(), ivyArtifacts);
+        return new IvyNormalizedPublication(name, getProjectIdentity(), getDescriptorFile(), ivyArtifacts);
     }
 
     private File getDescriptorFile() {

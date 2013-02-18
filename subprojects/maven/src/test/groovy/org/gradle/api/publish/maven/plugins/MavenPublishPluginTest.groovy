@@ -33,8 +33,8 @@ class MavenPublishPluginTest extends Specification {
 
     def project = HelperUtil.createRootProject()
     PublishingExtension publishing
-    FileCollection componentArtifacts = Mock()
-    SoftwareComponentInternal component = Stub()
+    def componentArtifacts = Mock(FileCollection)
+    def component = Stub(SoftwareComponentInternal)
 
     def setup() {
         project.plugins.apply(MavenPublishPlugin)
@@ -163,12 +163,13 @@ class MavenPublishPluginTest extends Specification {
         return allTasks
     }
 
-    def "publication identity is live wrt project properties"() {
+    def "publication identity is a snapshot of project properties"() {
         when:
-        publishing.publications.add("test", MavenPublication)
-
         project.group = "group"
         project.version = "version"
+
+        and:
+        publishing.publications.add("test", MavenPublication)
 
         then:
         with(publishing.publications.test.mavenProjectIdentity) {
@@ -182,8 +183,8 @@ class MavenPublishPluginTest extends Specification {
 
         then:
         with(publishing.publications.test.mavenProjectIdentity) {
-            groupId == "changed-group"
-            version == "changed-version"
+            groupId == "group"
+            version == "version"
         }
     }
 

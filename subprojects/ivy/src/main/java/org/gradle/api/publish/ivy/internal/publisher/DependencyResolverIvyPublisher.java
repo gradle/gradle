@@ -27,9 +27,11 @@ import org.gradle.api.internal.Cast;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.internal.IvyProjectIdentity;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +39,9 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
 
     public void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository) {
         DependencyResolver dependencyResolver = Cast.cast(ArtifactRepositoryInternal.class, repository).createResolver();
-        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(publication.getModule());
+        IvyProjectIdentity projectIdentity = publication.getProjectIdentity();
+        Map<String, String> extraAttributes = Collections.emptyMap();
+        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision(), extraAttributes);
 
         try {
 
