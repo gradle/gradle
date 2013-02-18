@@ -27,17 +27,17 @@ import org.gradle.api.Named;
 @Incubating
 public interface Distribution extends Named {
     /**
-     * The name of the Distribution.
+     * The name of this distribution.
      */
     String getName();
 
     /**
-     * Get the baseName of the Distribution used to configure the baseName in the according Zip task.
+     * Returns the baseName of the distribution. This is used to configure the baseName in the according Zip task.
      */
     String getBaseName();
 
     /**
-     * Set the baseName of the Distribution used to configure the baseName in the according Zip task.
+     * Set the baseName of the distribution. This is used to configure the baseName in the according Zip task.
      */
     void setBaseName(String baseName);
 }
