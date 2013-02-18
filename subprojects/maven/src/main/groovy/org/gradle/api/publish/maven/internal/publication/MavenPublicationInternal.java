@@ -28,9 +28,6 @@ public interface MavenPublicationInternal extends MavenPublication {
 
     MavenPomInternal getPom();
 
-    // TODO:DAZ Remove this attempt to guess packaging from artifacts. Packaging should come from component, or be explicitly set.
-    String determinePackagingFromArtifacts();
-
     void setPomFile(FileCollection pomFile);
 
     FileCollection getPublishableFiles();
@@ -40,6 +37,9 @@ public interface MavenPublicationInternal extends MavenPublication {
     Set<Dependency> getRuntimeDependencies();
 
     MavenNormalizedPublication asNormalisedPublication();
+
+    // TODO:DAZ Remove this attempt to guess packaging from artifacts. Packaging should come from component, or be explicitly set.
+    String determinePackagingFromArtifacts();
 
 }
 

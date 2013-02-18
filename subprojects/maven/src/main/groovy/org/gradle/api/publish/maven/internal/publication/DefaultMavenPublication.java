@@ -61,47 +61,14 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return name;
     }
 
-    public String getGroupId() {
-        return projectIdentity.getGroupId();
-    }
-
-    public void setGroupId(String groupId) {
-        projectIdentity.setGroupId(groupId);
-    }
-
-    public String getArtifactId() {
-        return projectIdentity.getArtifactId();
-    }
-
-    public void setArtifactId(String artifactId) {
-        projectIdentity.setArtifactId(artifactId);
-    }
-
-    public String getVersion() {
-        return projectIdentity.getVersion();
-    }
-
-    public void setVersion(String version) {
-        projectIdentity.setVersion(version);
-    }
-
     public MavenPomInternal getPom() {
         return pom;
     }
 
-    public String determinePackagingFromArtifacts() {
-        for (MavenArtifact mavenArtifact : mavenArtifacts) {
-            if (!GUtil.isTrue(mavenArtifact.getClassifier()) && GUtil.isTrue(mavenArtifact.getExtension())) {
-                return mavenArtifact.getExtension();
-            }
-        }
-        return "pom";
-    }
-
-
     public void setPomFile(FileCollection pomFile) {
         this.pomFile = pomFile;
     }
+
 
     public void pom(Action<? super MavenPom> configure) {
         configure.execute(pom);
@@ -160,5 +127,14 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             throw new IllegalStateException("pomFile not set for publication");
         }
         return pomFile.getSingleFile();
+    }
+
+    public String determinePackagingFromArtifacts() {
+        for (MavenArtifact mavenArtifact : mavenArtifacts) {
+            if (!GUtil.isTrue(mavenArtifact.getClassifier()) && GUtil.isTrue(mavenArtifact.getExtension())) {
+                return mavenArtifact.getExtension();
+            }
+        }
+        return "pom";
     }
 }
