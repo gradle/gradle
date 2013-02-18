@@ -29,7 +29,7 @@ import static org.junit.Assert.assertThat
  * @author Hans Dockter
  */
 class StartParameterTest extends Specification {
-    @Rule private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    @Rule private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule private SetSystemProperties systemProperties = new SetSystemProperties()
 
     void "new instance has correct state"() {
@@ -48,9 +48,10 @@ class StartParameterTest extends Specification {
         parameter.logLevel = LogLevel.WARN
         parameter.colorOutput = false
         parameter.continueOnFailure = true
-        parameter.rerunTasks = true;
-        parameter.refreshDependencies = true;
-        parameter.recompileScripts = true;
+        parameter.rerunTasks = true
+        parameter.refreshDependencies = true
+        parameter.recompileScripts = true
+        parameter.configureOnDemand = true
 
         when:
         def newInstance = parameter.newInstance()
@@ -93,7 +94,7 @@ class StartParameterTest extends Specification {
     }
 
     void "default values"() {
-        def parameter = new StartParameter();
+        def parameter = new StartParameter()
 
         expect:
         parameter.gradleUserHomeDir == StartParameter.DEFAULT_GRADLE_USER_HOME
@@ -216,7 +217,7 @@ class StartParameterTest extends Specification {
     }
 
     void "can use empty settings script"() {
-        StartParameter parameter = new StartParameter();
+        StartParameter parameter = new StartParameter()
 
         when:
         parameter.useEmptySettings()
@@ -246,6 +247,7 @@ class StartParameterTest extends Specification {
         parameter.cacheUsage = CacheUsage.REBUILD
         parameter.logLevel = LogLevel.DEBUG
         parameter.colorOutput = false
+        parameter.configureOnDemand = true
 
         // Non-copied
         parameter.currentDir = new File("other")
@@ -262,11 +264,12 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
 
         when:
-        StartParameter newParameter = parameter.newBuild();
+        StartParameter newParameter = parameter.newBuild()
 
         then:
         newParameter != parameter
 
+        newParameter.configureOnDemand == parameter.configureOnDemand
         newParameter.gradleUserHomeDir == parameter.gradleUserHomeDir
         newParameter.cacheUsage == parameter.cacheUsage
         newParameter.logLevel == parameter.logLevel

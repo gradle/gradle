@@ -116,35 +116,24 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return the new parameters.
      */
     public StartParameter newInstance() {
-        StartParameter parameter = new StartParameter();
-        parameter.buildFile = buildFile;
-        parameter.projectDir = projectDir;
-        parameter.settingsFile = settingsFile;
-        parameter.useEmptySettings = useEmptySettings;
-        parameter.taskNames = new ArrayList<String>(taskNames);
-        parameter.buildProjectDependencies = buildProjectDependencies;
-        parameter.currentDir = currentDir;
-        parameter.searchUpwards = searchUpwards;
-        parameter.projectProperties = new HashMap<String, String>(projectProperties);
-        parameter.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
-        parameter.gradleUserHomeDir = gradleUserHomeDir;
-        parameter.gradleHomeDir = gradleHomeDir;
-        parameter.cacheUsage = cacheUsage;
-        parameter.initScripts = new ArrayList<File>(initScripts);
-        parameter.setLogLevel(getLogLevel());
-        parameter.setColorOutput(isColorOutput());
-        parameter.setShowStacktrace(getShowStacktrace());
-        parameter.dryRun = dryRun;
-        parameter.rerunTasks = rerunTasks;
-        parameter.recompileScripts = recompileScripts;
-        parameter.profile = profile;
-        parameter.projectCacheDir = projectCacheDir;
-        parameter.continueOnFailure = continueOnFailure;
-        parameter.offline = offline;
-        parameter.refreshDependencies = refreshDependencies;
-        parameter.parallelThreadCount = parallelThreadCount;
+        StartParameter p = newBuild();
 
-        return parameter;
+        p.buildFile = buildFile;
+        p.projectDir = projectDir;
+        p.settingsFile = settingsFile;
+        p.useEmptySettings = useEmptySettings;
+        p.taskNames = new ArrayList<String>(taskNames);
+        p.buildProjectDependencies = buildProjectDependencies;
+        p.currentDir = currentDir;
+        p.searchUpwards = searchUpwards;
+        p.projectProperties = new HashMap<String, String>(projectProperties);
+        p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
+        p.gradleHomeDir = gradleHomeDir;
+        p.initScripts = new ArrayList<File>(initScripts);
+        p.dryRun = dryRun;
+        p.projectCacheDir = projectCacheDir;
+
+        return p;
     }
 
     /**
@@ -154,20 +143,23 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return The new parameters.
      */
     public StartParameter newBuild() {
-        StartParameter startParameter = new StartParameter();
-        startParameter.gradleUserHomeDir = gradleUserHomeDir;
-        startParameter.cacheUsage = cacheUsage;
-        startParameter.setLogLevel(getLogLevel());
-        startParameter.setColorOutput(isColorOutput());
-        startParameter.setShowStacktrace(getShowStacktrace());
-        startParameter.profile = profile;
-        startParameter.continueOnFailure = continueOnFailure;
-        startParameter.offline = offline;
-        startParameter.rerunTasks = rerunTasks;
-        startParameter.recompileScripts = recompileScripts;
-        startParameter.refreshDependencies = refreshDependencies;
-        startParameter.parallelThreadCount = parallelThreadCount;
-        return startParameter;
+        StartParameter p = new StartParameter();
+
+        p.gradleUserHomeDir = gradleUserHomeDir;
+        p.cacheUsage = cacheUsage;
+        p.setLogLevel(getLogLevel());
+        p.setColorOutput(isColorOutput());
+        p.setShowStacktrace(getShowStacktrace());
+        p.profile = profile;
+        p.continueOnFailure = continueOnFailure;
+        p.offline = offline;
+        p.rerunTasks = rerunTasks;
+        p.recompileScripts = recompileScripts;
+        p.refreshDependencies = refreshDependencies;
+        p.parallelThreadCount = parallelThreadCount;
+        p.configureOnDemand = configureOnDemand;
+
+        return p;
     }
 
     public boolean equals(Object obj) {
