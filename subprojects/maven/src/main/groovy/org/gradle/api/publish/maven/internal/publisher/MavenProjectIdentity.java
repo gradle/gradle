@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api.publish.maven.internal.publisher;
 
-import org.gradle.api.Action;
-import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.publish.maven.MavenPom;
+public interface MavenProjectIdentity {
 
-import java.util.Set;
+    String getGroupId();
 
-public interface MavenPomInternal extends MavenPom {
+    void setGroupId(String groupId);
 
-    MavenProjectIdentity getProjectIdentity();
+    String getArtifactId();
 
-    String getPackaging();
+    void setArtifactId(String artifactId);
 
-    Set<Dependency> getRuntimeDependencies();
+    String getVersion();
 
-    Action<XmlProvider> getXmlAction();
+    void setVersion(String version);
+
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal
+package org.gradle.api.publish.ivy.internal.publication
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.PublishArtifact
@@ -25,6 +25,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.publish.ivy.IvyArtifact
+import org.gradle.api.publish.ivy.internal.publisher.IvyProjectIdentity
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestDirectoryProvider

@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublicationContainer;
-import org.gradle.api.publish.ivy.internal.IvyPublicationInternal;
+import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor;
 
 import java.io.File;

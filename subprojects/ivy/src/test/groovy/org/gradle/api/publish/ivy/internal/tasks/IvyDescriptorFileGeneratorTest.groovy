@@ -22,8 +22,8 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.publish.ivy.internal.DefaultIvyConfiguration
-import org.gradle.api.publish.ivy.internal.DefaultIvyProjectIdentity
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyProjectIdentity
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.util.CollectionUtils
 import org.gradle.util.TextUtil

@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
-import org.gradle.api.publish.ivy.internal.IvyModuleDescriptorInternal;
+import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorInternal;
 import org.gradle.api.publish.ivy.internal.tasks.IvyDescriptorFileGenerator;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.OutputFile;

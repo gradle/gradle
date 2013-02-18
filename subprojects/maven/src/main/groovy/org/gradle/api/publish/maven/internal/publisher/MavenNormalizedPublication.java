@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.publish.maven.internal.MavenProjectIdentity;
 
 import java.io.File;
 import java.util.Set;

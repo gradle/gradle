@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.internal.IvyProjectIdentity;
 
 import java.io.File;
 import java.util.Set;

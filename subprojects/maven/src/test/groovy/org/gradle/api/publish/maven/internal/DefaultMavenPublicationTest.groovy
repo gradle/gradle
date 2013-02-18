@@ -24,6 +24,8 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.publish.maven.MavenArtifact
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestDirectoryProvider

@@ -25,7 +25,7 @@ import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.internal.IvyProjectIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyProjectIdentity;
 import org.gradle.util.CollectionUtils;
 
 import java.io.BufferedWriter;

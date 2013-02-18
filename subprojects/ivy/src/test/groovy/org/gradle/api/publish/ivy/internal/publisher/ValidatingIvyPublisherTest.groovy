@@ -18,8 +18,7 @@ package org.gradle.api.publish.ivy.internal.publisher
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.publish.ivy.IvyArtifact
-import org.gradle.api.publish.ivy.internal.DefaultIvyProjectIdentity
-import org.gradle.api.publish.ivy.internal.IvyProjectIdentity
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyProjectIdentity
 import org.gradle.api.publish.ivy.internal.tasks.IvyDescriptorFileGenerator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared

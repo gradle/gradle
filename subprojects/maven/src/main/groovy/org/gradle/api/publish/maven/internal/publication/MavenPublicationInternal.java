@@ -14,26 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal;
+package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.publish.ivy.IvyPublication;
-import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
+import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 import java.util.Set;
 
-public interface IvyPublicationInternal extends IvyPublication {
+public interface MavenPublicationInternal extends MavenPublication {
 
-    IvyProjectIdentity getProjectIdentity();
+    MavenPomInternal getPom();
 
-    IvyModuleDescriptorInternal getDescriptor();
+    // TODO:DAZ Remove this attempt to guess packaging from artifacts. Packaging should come from component, or be explicitly set.
+    String determinePackagingFromArtifacts();
 
-    void setDescriptorFile(FileCollection descriptorFile);
+    void setPomFile(FileCollection pomFile);
 
     FileCollection getPublishableFiles();
 
+    MavenProjectIdentity getMavenProjectIdentity();
+
     Set<Dependency> getRuntimeDependencies();
 
-    IvyNormalizedPublication asNormalisedPublication();
+    MavenNormalizedPublication asNormalisedPublication();
+
 }
+

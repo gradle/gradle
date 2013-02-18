@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal;
+package org.gradle.api.publish.ivy.internal.publication;
+
+import org.gradle.api.publish.ivy.internal.publisher.IvyProjectIdentity;
 
 public class DefaultIvyProjectIdentity implements IvyProjectIdentity {
     private String organisation;

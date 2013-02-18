@@ -14,31 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api.publish.maven.internal.publication;
 
+import org.gradle.api.Action;
+import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.publish.maven.MavenPublication;
-import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
+import org.gradle.api.publish.maven.MavenPom;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 import java.util.Set;
 
-public interface MavenPublicationInternal extends MavenPublication {
+public interface MavenPomInternal extends MavenPom {
 
-    MavenPomInternal getPom();
+    MavenProjectIdentity getProjectIdentity();
 
-    // TODO:DAZ Remove this attempt to guess packaging from artifacts. Packaging should come from component, or be explicitly set.
-    String determinePackagingFromArtifacts();
-
-    void setPomFile(FileCollection pomFile);
-
-    FileCollection getPublishableFiles();
-
-    MavenProjectIdentity getMavenProjectIdentity();
+    String getPackaging();
 
     Set<Dependency> getRuntimeDependencies();
 
-    MavenNormalizedPublication asNormalisedPublication();
-
+    Action<XmlProvider> getXmlAction();
 }
-

@@ -22,7 +22,6 @@ import groovy.xml.QName;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.internal.IvyProjectIdentity;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
 

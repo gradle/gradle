@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.listener.ActionBroadcast;
 
 import java.util.Set;

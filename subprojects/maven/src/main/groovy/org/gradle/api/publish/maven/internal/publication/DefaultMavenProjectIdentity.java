@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal;
+package org.gradle.api.publish.maven.internal.publication;
+
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 public class DefaultMavenProjectIdentity implements MavenProjectIdentity {
     private String groupId;

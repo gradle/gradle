@@ -20,7 +20,6 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
-import org.gradle.api.publish.maven.internal.MavenProjectIdentity
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator
 import org.gradle.mvn3.org.codehaus.plexus.util.xml.pull.XmlPullParserException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

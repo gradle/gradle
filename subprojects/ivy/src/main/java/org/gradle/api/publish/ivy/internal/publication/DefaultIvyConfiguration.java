@@ -14,21 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal;
+package org.gradle.api.publish.ivy.internal.publication;
 
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.IvyConfigurationContainer;
-import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultIvyConfigurationContainer extends AbstractNamedDomainObjectContainer<IvyConfiguration> implements IvyConfigurationContainer {
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-    public DefaultIvyConfigurationContainer(Instantiator instantiator) {
-        super(IvyConfiguration.class, instantiator);
+public class DefaultIvyConfiguration implements IvyConfiguration {
+    private final String name;
+    private final Set<String> extendsFrom = new LinkedHashSet<String>();
+
+    public DefaultIvyConfiguration(String name) {
+        this.name = name;
     }
 
-    @Override
-    protected IvyConfiguration doCreate(String name) {
-        return getInstantiator().newInstance(DefaultIvyConfiguration.class, name);
+    public String getName() {
+        return name;
+    }
+
+    public void extend(String configuration) {
+        extendsFrom.add(configuration);
+    }
+
+    public Set<String> getExtends() {
+        return extendsFrom;
     }
 }

@@ -27,7 +27,6 @@ import org.gradle.api.internal.Cast;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.internal.IvyProjectIdentity;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
