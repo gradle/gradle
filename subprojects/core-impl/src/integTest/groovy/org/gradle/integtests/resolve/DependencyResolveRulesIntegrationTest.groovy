@@ -730,6 +730,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         a:2.0 -> b:2.5
         b:3.0
         b:4.0
+
+        the conflict resolution of b:
+        1st pass: b:3 vs b:4(wins)
+        2nd pass: b:2.5 vs b:4(wins *again*)
         */
 
         buildFile << """
@@ -738,14 +742,15 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 conf 'org:b:3.0', 'org:b:4.0', 'org:a:1.0', 'org:a:2.0'
             }
+
+            task check << {
+                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
+                assert modules.find { it.id.name == 'b' && it.id.version == '4.0' && it.selectionReason.conflictResolution }
+            }
 """
 
-        when:
-        run("dependencies")
-
-        then:
-        noExceptionThrown()
-        //TODO SF add more reasonable assertion
+        expect:
+        run("check")
     }
 
     String getCommon() {
