@@ -16,11 +16,14 @@ a Scala compiler library that matches the Scala version used on the project's cl
 
 The test report generation was refactored and is now slightly faster than in previous Gradle releases.
 
-### Full support of project dependencies at configuration time
+### Improved usability of project dependencies
 
-The resolution of a project dependency at configuration time is now fully supported.
+Improvements in Gradle's configuration model continue.
+Project dependencies at configuration time are now fully supported.
 Prior to this change, any resolution of a project dependency at configuration time may have led to confusing behavior because the target project may not have been configured yet.
 Now the resolution of the project dependency implies configuration of the target project.
+It means that the configuration of the projects might have a different order now (e.g. more correct order).
+This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
  
 ## Promoted features
 
@@ -280,6 +283,12 @@ Breaking changes have been made to the incubating 'ivy-publish' plugin, which pr
 ### Changes to new PMD support
 
 The default value for ruleset extension has changed from ["basic"] to []. We moved the default to the `Pmd` task, so everything should just work as it did before.
+
+### Order in which projects are configured
+
+Improving the usability of project dependencies (see the section above)
+might change the order in which projects are configured.
+This change should not cause any trouble in existing builds.
 
 ## External contributions
 
