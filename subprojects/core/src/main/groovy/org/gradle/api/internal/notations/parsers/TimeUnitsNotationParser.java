@@ -20,39 +20,34 @@ import org.gradle.api.InvalidUserDataException;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.gradle.api.internal.notations.parsers.NormalizedTimeUnit.millis;
+
 /**
  * by Szczepan Faber, created at: 2/12/13
  */
-public class TimeUnitsNotationParser extends TypedNotationParser<CharSequence, TimeUnit> {
+public class TimeUnitsNotationParser extends TypedNotationParser<CharSequence, NormalizedTimeUnit> {
 
-    private int value;
+    private final int value;
 
     public TimeUnitsNotationParser(int value) {
         super(CharSequence.class);
         this.value = value;
     }
 
-    protected TimeUnit parseType(CharSequence notation) {
+    protected NormalizedTimeUnit parseType(CharSequence notation) {
         String candidate = notation.toString().toUpperCase();
         //jdk5 does not have days, hours or minutes, normalizing to millis
         if (candidate.equals("DAYS")) {
-            value *= 24 * 60 * 60 * 1000;
-            return TimeUnit.MILLISECONDS;
+            return millis(value * 24 * 60 * 60 * 1000);
         } else if (candidate.equals("HOURS")) {
-            value *= 60 * 60 * 1000;
-            return TimeUnit.MILLISECONDS;
+            return millis(value * 60 * 60 * 1000);
         } else if (candidate.equals("MINUTES")) {
-            value *= 60 * 1000;
-            return TimeUnit.MILLISECONDS;
+            return millis(value * 60 * 1000);
         }
         try {
-            return TimeUnit.valueOf(candidate);
+            return new NormalizedTimeUnit(value, TimeUnit.valueOf(candidate));
         } catch (Exception e) {
             throw new InvalidUserDataException("Unable to parse provided TimeUnit: " + notation, e);
         }
-    }
-
-    public int getNormalizedValue() {
-        return value;
     }
 }
