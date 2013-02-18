@@ -27,9 +27,6 @@ public enum TargetJdk {
     VERSION_1_7,
     VERSION_JSP;
 
-    private TargetJdk() {
-    }
-
     /**
      * Converts the given object into a {@code TargetJdk}.
      *
@@ -65,10 +62,6 @@ public enum TargetJdk {
 
     @Override
     public String toString() {
-        return getName();
-    }
-
-    private String getName() {
         return name().substring("VERSION_".length()).replace('_', '.').toLowerCase();
     }
 }
