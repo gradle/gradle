@@ -119,7 +119,6 @@ public class IdeaModelBuilder implements BuildsModel {
                 .setName(ideaModule.getName())
                 .setParent(ideaProject)
                 .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
-                .setModuleFileDir(ideaModule.getIml().getGenerateTo())
                 .setContentRoots(Collections.singletonList(contentRoot))
                 .setCompilerOutput(new DefaultIdeaCompilerOutput()
                     .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
