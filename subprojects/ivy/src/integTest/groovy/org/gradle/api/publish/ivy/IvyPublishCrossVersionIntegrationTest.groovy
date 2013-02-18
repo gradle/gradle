@@ -92,8 +92,8 @@ publishing {
                 println "Adding resolver directly due to no 'ivy' repository support"
                 add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
                     name = 'repo'
-                    addIvyPattern "${repoDir}/[organisation]/[module]/[revision]/ivy-[revision].xml"
-                    addArtifactPattern "${repoDir}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+                    addIvyPattern("${repoDir.absolutePath}/[organisation]/[module]/[revision]/ivy-[revision].xml")
+                    addArtifactPattern("${repoDir.absolutePath}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
                     descriptor = 'required'
                     checkmodified = true
                 }
