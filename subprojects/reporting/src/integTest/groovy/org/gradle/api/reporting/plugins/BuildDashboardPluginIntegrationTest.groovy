@@ -95,6 +95,14 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         dashboardLinksCount == 2
     }
 
+    void 'buildDashboard task always runs after report generating tasks'() {
+        when:
+        run(BUILD_DASHBOARD_TASK_NAME, 'check')
+
+        then:
+        dashboardLinksCount == 2
+    }
+
     void 'no report is generated if it is disabled'() {
         given:
         buildFile << """
@@ -143,7 +151,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         setupSubproject()
 
         when:
-        run('check', BUILD_DASHBOARD_TASK_NAME)
+        run(BUILD_DASHBOARD_TASK_NAME, 'check')
 
         then:
         dashboardLinksCount == 3
