@@ -33,22 +33,19 @@ import javax.inject.Inject
 import org.gradle.api.plugins.BasePlugin
 
 /**
- * <p>A {@link Plugin} to package project as a distribution</p>
+ * <p>A {@link Plugin} to package project as a distribution.</p>
  *
  * @author scogneau
  *
  */
 @Incubating
 class DistributionPlugin implements Plugin<Project> {
-
-    static final String DISTRIBUTION_PLUGIN_NAME = "distribution"
-
     /**
      * Name of the main distribution
      */
-    static final String MAIN_DISTRIBUTION_NAME = "main";
+    static final String MAIN_DISTRIBUTION_NAME = "main"
 
-    static final String DISTRIBUTION_GROUP = DISTRIBUTION_PLUGIN_NAME
+    static final String DISTRIBUTION_GROUP = "distribution"
     static final String TASK_DIST_ZIP_NAME = "distZip"
     static final String TASK_DIST_TAR_NAME = "distTar"
     static final String TASK_INSTALL_NAME = "installDist"
@@ -72,6 +69,7 @@ class DistributionPlugin implements Plugin<Project> {
         extension = project.extensions.create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, project.fileResolver)
         extension.all { dist ->
             dist.baseName = dist.name == MAIN_DISTRIBUTION_NAME ? project.name : String.format("%s-%s", project.name, dist.name)
+            dist.contents.from("src/${dist.name}/dist")
             addZipTask(dist)
             addTarTask(dist)
             addInstallTask(dist)
@@ -85,7 +83,6 @@ class DistributionPlugin implements Plugin<Project> {
             taskName = distribution.name + "DistZip"
         }
         configureArchiveTask(taskName, distribution, Zip)
-
     }
 
     void addTarTask(Distribution distribution) {
@@ -94,21 +91,20 @@ class DistributionPlugin implements Plugin<Project> {
             taskName = distribution.name + "DistTar"
         }
         configureArchiveTask(taskName, distribution, Tar)
-
     }
 
     private <T extends AbstractArchiveTask> void configureArchiveTask(String taskName, Distribution distribution, Class<T> type) {
-        def distZipTask = project.tasks.add(taskName, type)
-        distZipTask.description = "Bundles the project as a distribution."
-        distZipTask.group = DISTRIBUTION_GROUP
-        distZipTask.conventionMapping.baseName = {
+        def archiveTask = project.tasks.add(taskName, type)
+        archiveTask.description = "Bundles the project as a distribution."
+        archiveTask.group = DISTRIBUTION_GROUP
+        archiveTask.conventionMapping.baseName = {
             if (distribution.baseName == null || distribution.baseName.equals("")) {
                 throw new GradleException("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin.")
             }
             distribution.baseName
         }
-        distZipTask.conventionMapping.version = { project.version != Project.DEFAULT_VERSION ? project.version.toString() : null }
-        distZipTask.from("src/main/" + distribution.name) {
+        def baseDir = { archiveTask.archiveName - ".${archiveTask.extension}" }
+        archiveTask.into(baseDir) {
             with(distribution.contents)
         }
     }

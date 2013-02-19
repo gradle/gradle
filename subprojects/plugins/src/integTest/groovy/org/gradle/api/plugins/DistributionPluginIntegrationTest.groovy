@@ -54,7 +54,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds('customDistZip')
         and:
         file('build/distributions/TestProject-custom.zip').usingNativeTools().unzipTo(file("unzip"))
-        file("unzip/someFile").assertIsFile()
+        file("unzip/TestProject-custom/someFile").assertIsFile()
     }
 
     def createTaskForCustomDistributionWithCustomName() {
@@ -75,7 +75,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds('customDistZip')
         and:
         file('build/distributions/customName.zip').usingNativeTools().unzipTo(file("unzip"))
-        file("unzip/someFile").assertIsFile()
+        file("unzip/customName/someFile").assertIsFile()
     }
 
 
@@ -195,7 +195,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
     def createCreateArchiveForCustomDistribution(){
         given:
-        createDir('src/main/custom') {
+        createDir('src/custom/dist') {
             file 'file1.txt'
             dir2 {
                 file 'file2.txt'
@@ -218,7 +218,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
     def includeFileFromSrcMainCustom() {
         given:
-        createDir('src/main/custom'){
+        createDir('src/custom/dist'){
             file 'file1.txt'
             dir {
                 file 'file2.txt'
@@ -238,12 +238,14 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         run('customDistZip')
         then:
         file('build/distributions/TestProject-custom-1.2.zip').usingNativeTools().unzipTo(file("unzip"))
-        file("unzip").assertHasDescendants('file1.txt','dir/file2.txt')
+        file("unzip").assertHasDescendants(
+                'TestProject-custom-1.2/file1.txt',
+                'TestProject-custom-1.2/dir/file2.txt')
     }
 
     def includeFileFromDistContent() {
         given:
-        createDir('src/main/custom'){
+        createDir('src/custom/dist'){
             file 'file1.txt'
             dir {
                 file 'file2.txt'
@@ -277,12 +279,16 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         run('customDistZip')
         then:
         file('build/distributions/TestProject-custom-1.2.zip').usingNativeTools().unzipTo(file("unzip"))
-        file("unzip").assertHasDescendants('file1.txt','dir/file2.txt','docs/file3.txt','docs/dir2/file4.txt')
+        file("unzip").assertHasDescendants(
+                'TestProject-custom-1.2/file1.txt',
+                'TestProject-custom-1.2/dir/file2.txt',
+                'TestProject-custom-1.2/docs/file3.txt',
+                'TestProject-custom-1.2/docs/dir2/file4.txt')
     }
 
     def installFromDistContent() {
         given:
-        createDir('src/main/custom'){
+        createDir('src/custom/dist'){
             file 'file1.txt'
             dir {
                 file 'file2.txt'
@@ -306,17 +312,20 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                         from ( 'docs' ){
                             into 'docs'
                         }
-
-
                     }
                 }
             }
             """
         when:
-        run('installcustomDist')
+        run('installCustomDist')
+
         then:
         file('build/install/TestProject-custom').exists()
-        file('build/install/TestProject-custom').assertHasDescendants('docs/file3.txt','docs/dir2/file4.txt')
+        file('build/install/TestProject-custom').assertHasDescendants(
+                'file1.txt',
+                'dir/file2.txt',
+                'docs/file3.txt',
+                'docs/dir2/file4.txt')
     }
 
     def createTarTaskForCustomDistribution() {
@@ -337,7 +346,6 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds('customDistTar')
         and:
         file('build/distributions/TestProject-custom.tar').usingNativeTools().untarTo(file("untar"))
-        file("untar/someFile").assertIsFile()
+        file("untar/TestProject-custom/someFile").assertIsFile()
     }
-
 }

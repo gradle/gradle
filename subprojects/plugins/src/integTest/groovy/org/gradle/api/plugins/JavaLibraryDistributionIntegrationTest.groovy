@@ -55,10 +55,11 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         then:
         def expandDir = file('expanded')
         file('build/distributions/DefaultJavaDistribution.zip').unzipTo(expandDir)
-        expandDir.assertHasDescendants('lib/commons-collections-3.1.jar',
-                'lib/commons-lang-2.6.jar',
-                'DefaultJavaDistribution.jar')
-        expandDir.file('DefaultJavaDistribution.jar').assertIsCopyOf(file('build/libs/DefaultJavaDistribution.jar'))
+        expandDir.assertHasDescendants(
+                'DefaultJavaDistribution/lib/commons-collections-3.1.jar',
+                'DefaultJavaDistribution/lib/commons-lang-2.6.jar',
+                'DefaultJavaDistribution/DefaultJavaDistribution.jar')
+        expandDir.file('DefaultJavaDistribution/DefaultJavaDistribution.jar').assertIsCopyOf(file('build/libs/DefaultJavaDistribution.jar'))
     }
 
     def "can include additional source files in distribution"() {
@@ -67,6 +68,12 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
             file 'file1.txt'
             dir2 {
                 file 'file2.txt'
+            }
+        }
+        createDir('src/dist') {
+            file 'dist1.txt'
+            dir2 {
+                file 'dist2.txt'
             }
         }
         createDir('others/dist') {
@@ -108,7 +115,15 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         then:
         def expandDir = file('expanded')
         file('build/distributions/SuperApp-1.2.zip').unzipTo(expandDir)
-        expandDir.assertHasDescendants('lib/commons-lang-2.6.jar', 'file1.txt', 'other1.txt', 'dir2/file2.txt', 'dir2/other2.txt', 'canCreateADistributionWithSrcDistRuntime-1.2.jar')
+        expandDir.assertHasDescendants(
+                'SuperApp-1.2/lib/commons-lang-2.6.jar',
+                'SuperApp-1.2/file1.txt',
+                'SuperApp-1.2/dist1.txt',
+                'SuperApp-1.2/other1.txt',
+                'SuperApp-1.2/dir2/file2.txt',
+                'SuperApp-1.2/dir2/dist2.txt',
+                'SuperApp-1.2/dir2/other2.txt',
+                'SuperApp-1.2/canCreateADistributionWithSrcDistRuntime-1.2.jar')
     }
 
     def "fails when distribution baseName is null"() {
