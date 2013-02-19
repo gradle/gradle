@@ -25,11 +25,10 @@ import spock.lang.Specification
 
 class JavaLibraryDistributionPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject();
-    private final JavaLibraryDistributionPlugin plugin = new JavaLibraryDistributionPlugin();
 
     def "applies JavaPlugin and adds convention object with default values"() {
         when:
-        plugin.apply(project)
+        project.apply(plugin: JavaLibraryDistributionPlugin)
 
         then:
         project.plugins.hasPlugin(JavaPlugin.class)
@@ -40,7 +39,7 @@ class JavaLibraryDistributionPluginTest extends Specification {
 
     def "adds distZip task to project"() {
         when:
-        plugin.apply(project)
+        project.apply(plugin: JavaLibraryDistributionPlugin)
 
         then:
         def task = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
@@ -50,7 +49,7 @@ class JavaLibraryDistributionPluginTest extends Specification {
 
     public void "distribution name is configurable"() {
         when:
-        plugin.apply(project)
+        project.apply(plugin: JavaLibraryDistributionPlugin)
         project.distributions.main.baseName = "SuperApp";
 
         then:

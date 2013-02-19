@@ -21,26 +21,23 @@ import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class DistributionPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject();
-    private final DistributionPlugin plugin = new DistributionPlugin(project.services.get(Instantiator));
 
     def "adds convention object with default values"() {
         when:
-        plugin.apply(project)
+        project.apply(plugin: DistributionPlugin)
 
         then:
         project.extensions.getByType(DistributionContainer.class) != null
-
     }
 
     def "adds distZip task to project"() {
         when:
-        plugin.apply(project)
+        project.apply(plugin: DistributionPlugin)
 
         then:
         def task = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
@@ -50,34 +47,32 @@ class DistributionPluginTest extends Specification {
 
     def "adds distTar task to project"() {
         when:
-        plugin.apply(project)
+        project.apply(plugin: DistributionPlugin)
 
         then:
         def task = project.tasks[DistributionPlugin.TASK_DIST_TAR_NAME]
         task instanceof Tar
-        task.archiveName == "${project.distributions[Distribution.MAIN_DISTRIBUTION_NAME].baseName}.tar"
+        task.archiveName == "${project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].baseName}.tar"
     }
 
     def "adds installDist task to project"() {
         when:
-        plugin.apply(project)
+        project.apply(plugin: DistributionPlugin)
 
         then:
         def task = project.tasks[DistributionPlugin.TASK_INSTALL_NAME]
         task instanceof Sync
-        task.destinationDir == project.file("build/install/${project.distributions[Distribution.MAIN_DISTRIBUTION_NAME].baseName}")
+        task.destinationDir == project.file("build/install/${project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].baseName}")
     }
 
 
     public void "distribution name is configurable"() {
         when:
-        plugin.apply(project)
+        project.apply(plugin: DistributionPlugin)
         project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].baseName = "SuperApp";
 
         then:
         def distZipTask = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
         distZipTask.archiveName == "SuperApp.zip"
     }
-
-
 }
