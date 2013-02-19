@@ -56,7 +56,7 @@ class DistributionPluginTest extends Specification {
         then:
         def task = project.tasks.distZip
         task instanceof Zip
-        task.archiveName == "test-project.zip"
+        task.archivePath == project.file("build/distributions/test-project.zip")
     }
 
     def "adds distZip task for custom distribution"() {
@@ -67,7 +67,7 @@ class DistributionPluginTest extends Specification {
         then:
         def task = project.tasks.customDistZip
         task instanceof Zip
-        task.archiveName == "test-project-custom.zip"
+        task.archivePath == project.file("build/distributions/test-project-custom.zip")
     }
 
     def "adds distTar task for main distribution"() {
@@ -77,7 +77,7 @@ class DistributionPluginTest extends Specification {
         then:
         def task = project.tasks.distTar
         task instanceof Tar
-        task.archiveName == "test-project.tar"
+        task.archivePath == project.file("build/distributions/test-project.tar")
     }
 
     def "adds distTar task for custom distribution"() {
@@ -88,7 +88,19 @@ class DistributionPluginTest extends Specification {
         then:
         def task = project.tasks.customDistTar
         task instanceof Tar
-        task.archiveName == "test-project-custom.tar"
+        task.archivePath == project.file("build/distributions/test-project-custom.tar")
+    }
+
+    def "distribution names include project version when specified"() {
+        when:
+        project.apply(plugin: DistributionPlugin)
+        project.version = '1.2'
+
+        then:
+        def zip = project.tasks.distZip
+        zip.archivePath == project.file("build/distributions/test-project-1.2.zip")
+        def tar = project.tasks.distTar
+        tar.archivePath == project.file("build/distributions/test-project-1.2.tar")
     }
 
     def "adds installDist task for main distribution"() {

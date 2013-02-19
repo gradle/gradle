@@ -53,7 +53,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         succeeds('customDistZip')
         and:
-        file('TestProject-custom.zip').usingNativeTools().unzipTo(file("unzip"))
+        file('build/distributions/TestProject-custom.zip').usingNativeTools().unzipTo(file("unzip"))
         file("unzip/someFile").assertIsFile()
     }
 
@@ -74,7 +74,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         succeeds('customDistZip')
         and:
-        file('customName.zip').usingNativeTools().unzipTo(file("unzip"))
+        file('build/distributions/customName.zip').usingNativeTools().unzipTo(file("unzip"))
         file("unzip/someFile").assertIsFile()
     }
 
@@ -123,7 +123,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run('distZip')
         then:
-        file('myDistribution.zip').exists()
+        file('build/distributions/myDistribution.zip').exists()
     }
 
     def createDistributionWithVersion() {
@@ -151,7 +151,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run('distZip')
         then:
-        file('myDistribution-1.2.zip').exists()
+        file('build/distributions/myDistribution-1.2.zip').exists()
     }
 
     def createDistributionWithoutBaseNameAndVersion() {
@@ -170,7 +170,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run('distZip')
         then:
-        file('TestProject.zip').exists()
+        file('build/distributions/TestProject.zip').exists()
     }
 
     def createDistributionWithoutBaseNameAndWithVersion() {
@@ -190,7 +190,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run('distZip')
         then:
-        file('TestProject-1.2.zip').exists()
+        file('build/distributions/TestProject-1.2.zip').exists()
     }
 
     def createCreateArchiveForCustomDistribution(){
@@ -212,7 +212,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run('customDistZip')
         then:
-        file('TestProject-custom.zip').exists()
+        file('build/distributions/TestProject-custom.zip').exists()
     }
 
 
@@ -237,8 +237,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run('customDistZip')
         then:
-        file('TestProject-custom-1.2.zip').exists()
-        file('TestProject-custom-1.2.zip').usingNativeTools().unzipTo(file("unzip"))
+        file('build/distributions/TestProject-custom-1.2.zip').usingNativeTools().unzipTo(file("unzip"))
         file("unzip").assertHasDescendants('file1.txt','dir/file2.txt')
     }
 
@@ -277,8 +276,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run('customDistZip')
         then:
-        file('TestProject-custom-1.2.zip').exists()
-        file('TestProject-custom-1.2.zip').usingNativeTools().unzipTo(file("unzip"))
+        file('build/distributions/TestProject-custom-1.2.zip').usingNativeTools().unzipTo(file("unzip"))
         file("unzip").assertHasDescendants('file1.txt','dir/file2.txt','docs/file3.txt','docs/dir2/file4.txt')
     }
 
@@ -338,7 +336,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         succeeds('customDistTar')
         and:
-        file('TestProject-custom.tar').usingNativeTools().untarTo(file("untar"))
+        file('build/distributions/TestProject-custom.tar').usingNativeTools().untarTo(file("untar"))
         file("untar/someFile").assertIsFile()
     }
 

@@ -30,6 +30,7 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
 
 import javax.inject.Inject
+import org.gradle.api.plugins.BasePlugin
 
 /**
  * <p>A {@link Plugin} to package project as a distribution</p>
@@ -63,6 +64,7 @@ class DistributionPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         this.project = project
+        project.plugins.apply(BasePlugin)
         addPluginExtension()
     }
 
