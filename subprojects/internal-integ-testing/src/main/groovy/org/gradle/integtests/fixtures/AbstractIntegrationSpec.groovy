@@ -42,8 +42,6 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     private MavenFileRepository mavenRepo
     private IvyFileRepository ivyRepo
 
-    private List<Closure> executerActions = []
-
     protected TestFile getBuildFile() {
         testDirectory.file('build.gradle')
     }
@@ -97,12 +95,7 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     protected ExecutionResult succeeds(String... tasks) {
-        supplyExecuterActions()
         result = executer.withTasks(*tasks).run()
-    }
-
-    void supplyExecuterActions() {
-        executerActions.each { it(executer) }
     }
 
     protected ExecutionFailure runAndFail(String... tasks) {
@@ -110,7 +103,6 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
     
     protected ExecutionFailure fails(String... tasks) {
-        supplyExecuterActions()
         failure = executer.withTasks(*tasks).runWithFailure()
         result = failure
     }
