@@ -206,10 +206,10 @@ the task will be named `generatePomFileForMavenCustomPublication`.
 
 ### Distribution Plugin
 
-The distribution plugin extends the language plugins with common distribution related tasks.
-It allows bundling a project including binaries, sources and documentation.
+Thanks to a contribution from Sébastien Cogneau, a new `distribution` plugin has been added. This plugin adds general-purpose for support bundling and installing distributions.
 
-This plugin adds a main default distribution. The plugin adds one `main` distribution. The `distZip` task can be used to create a ZIP containing the main distribution.
+This plugin adds a `main` distribution, and you can add additional distributions. For each distribution, tasks are added to create a ZIP or TAR file for the distribution and
+to install the distribution.
 
 You can define multiple distributions:
 
@@ -222,7 +222,9 @@ To build the additional distributions you can run the generated Zip tasks enterp
 
 ### Java Library Distribution Plugin
 
-The java library distribution plugin now extends the new introduced distribution plugin. The `distribution` extension was removed. The `main` distribution is now accessible using the distributions extension:
+The Java library distribution plugin now extends the new introduced distribution plugin. Thanks to this, you can now create TAR files and install Java library distributions.
+
+The `distribution` extension was removed. The `main` distribution is now accessible using the distributions extension:
 
     distributions {
         main {
@@ -232,8 +234,9 @@ The java library distribution plugin now extends the new introduced distribution
 
 ### Build Dashboard Plugin
 
-The Build Dashboard plugin adds a task to projects to generate a build dashboard html report which contains references to all reports that were generated during the build. In the following example,
-the `build-dashboard` plugin is added to a project which has also the `groovy` and the `codenarc` plugin applied:
+Thanks to a contribution from Marcin Erdmann, a new `build-dashboard` plugin has been added. This plugin adds a task to projects to generate a build dashboard HTML report which contains
+references to all reports that were generated during the build. In the following example, the `build-dashboard` plugin is added to a project which has also the `groovy` and
+the `codenarc` plugin applied:
 
 	apply plugin: 'groovy'
     apply plugin: 'build-dashboard'
@@ -298,7 +301,7 @@ We would like to thank the following community members for making contributions 
 * David M. Carr
     * When JUnit tests have assumption failures, treat them as "skipped" (GRADLE-2454)
     * Documentation cleanups.
-* Sébastien Cogneau - Introduce a basic distribution plugin
+* Sébastien Cogneau - Introduce the distribution plugin
 * Kenny Stridh
 	* Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
 	* Add support for PMD version 5.0.+
