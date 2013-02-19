@@ -39,6 +39,7 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec {
             }
             repositories {
                 ivy { url "${ivyRepo.uri}" }
+                mavenCentral()
             }
             dependencies {
                 resolve $dependency

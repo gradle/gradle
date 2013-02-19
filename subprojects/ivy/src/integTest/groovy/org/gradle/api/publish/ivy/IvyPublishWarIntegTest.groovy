@@ -15,9 +15,7 @@
  */
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class IvyPublishWarIntegTest extends AbstractIntegrationSpec {
+class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
 
     public void "can publish WAR only for mixed java and WAR project"() {
         given:
@@ -73,5 +71,8 @@ class IvyPublishWarIntegTest extends AbstractIntegrationSpec {
 
             dependencies.isEmpty()
         }
+
+        and: "can resolve warfile"
+        resolveArtifacts(ivyModule) == ["publishTest-1.9.war"]
     }
 }

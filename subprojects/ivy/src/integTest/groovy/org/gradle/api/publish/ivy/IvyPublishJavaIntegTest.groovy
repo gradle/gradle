@@ -17,9 +17,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
+class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
 
     public void "can publish jar and descriptor to ivy repository"() {
@@ -50,6 +48,9 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
             dependencies["runtime"].assertDependsOn("commons-collections", "commons-collections", "3.2.1")
             dependencies["runtime"].assertDependsOn("commons-io", "commons-io", "1.4")
         }
+
+        and:
+        resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
     }
 
     public void "ignores extra artifacts added to configurations"() {
@@ -111,6 +112,9 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
         ivyModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-source-1.9.jar", "ivy-1.9.xml")
 
         ivyModule.ivy.artifacts["publishTest-source"].hasAttributes("jar", "source", ["runtime"])
+
+        and:
+        resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar", "publishTest-source-1.9.jar"]
     }
 
     def createBuildScripts(def append) {

@@ -16,9 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
+class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
     public void "can publish EAR only for mixed java and WAR and EAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishEar' "
@@ -77,5 +75,8 @@ class IvyPublishEarIntegTest extends AbstractIntegrationSpec {
 
             dependencies.isEmpty()
         }
+
+        and: "can resolve ear module"
+        resolveArtifacts(ivyModule) == ["publishEar-1.9.ear"]
     }
 }
