@@ -25,54 +25,100 @@ import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class DistributionPluginTest extends Specification {
-    private final Project project = HelperUtil.createRootProject();
+    private final Project project = HelperUtil.builder().withName("test-project").build()
 
-    def "adds convention object with default values"() {
+    def "adds convention object and a main distribution"() {
         when:
         project.apply(plugin: DistributionPlugin)
 
         then:
-        project.extensions.getByType(DistributionContainer.class) != null
+        def distributions = project.extensions.getByType(DistributionContainer.class)
+        def dist = distributions.main
+        dist.name == 'main'
+        dist.baseName == 'test-project'
     }
 
-    def "adds distZip task to project"() {
+    def "provides default values for additional distributions"() {
         when:
         project.apply(plugin: DistributionPlugin)
 
         then:
-        def task = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
+        def distributions = project.extensions.getByType(DistributionContainer.class)
+        def dist = distributions.create('custom')
+        dist.name == 'custom'
+        dist.baseName == 'test-project-custom'
+    }
+
+    def "adds distZip task for main distribution"() {
+        when:
+        project.apply(plugin: DistributionPlugin)
+
+        then:
+        def task = project.tasks.distZip
         task instanceof Zip
-        task.archiveName == "${project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].baseName}.zip"
+        task.archiveName == "test-project.zip"
     }
 
-    def "adds distTar task to project"() {
+    def "adds distZip task for custom distribution"() {
+        when:
+        project.apply(plugin: DistributionPlugin)
+        project.distributions.create('custom')
+
+        then:
+        def task = project.tasks.customDistZip
+        task instanceof Zip
+        task.archiveName == "test-project-custom.zip"
+    }
+
+    def "adds distTar task for main distribution"() {
         when:
         project.apply(plugin: DistributionPlugin)
 
         then:
-        def task = project.tasks[DistributionPlugin.TASK_DIST_TAR_NAME]
+        def task = project.tasks.distTar
         task instanceof Tar
-        task.archiveName == "${project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].baseName}.tar"
+        task.archiveName == "test-project.tar"
     }
 
-    def "adds installDist task to project"() {
+    def "adds distTar task for custom distribution"() {
+        when:
+        project.apply(plugin: DistributionPlugin)
+        project.distributions.create('custom')
+
+        then:
+        def task = project.tasks.customDistTar
+        task instanceof Tar
+        task.archiveName == "test-project-custom.tar"
+    }
+
+    def "adds installDist task for main distribution"() {
         when:
         project.apply(plugin: DistributionPlugin)
 
         then:
-        def task = project.tasks[DistributionPlugin.TASK_INSTALL_NAME]
+        def task = project.installDist
         task instanceof Sync
-        task.destinationDir == project.file("build/install/${project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].baseName}")
+        task.destinationDir == project.file("build/install/test-project")
     }
 
+    def "adds installDist task for custom distribution"() {
+        when:
+        project.apply(plugin: DistributionPlugin)
+        project.distributions.create('custom')
+
+        then:
+        def task = project.installCustomDist
+        task instanceof Sync
+        task.destinationDir == project.file("build/install/test-project-custom")
+    }
 
     public void "distribution name is configurable"() {
         when:
         project.apply(plugin: DistributionPlugin)
-        project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].baseName = "SuperApp";
+        project.distributions.main.baseName = "SuperApp";
 
         then:
-        def distZipTask = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
+        def distZipTask = project.tasks.distZip
         distZipTask.archiveName == "SuperApp.zip"
     }
 }

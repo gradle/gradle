@@ -114,7 +114,7 @@ class DistributionPlugin implements Plugin<Project> {
     private void addInstallTask(Distribution distribution) {
         def taskName = TASK_INSTALL_NAME
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
-            taskName = "install"+distribution.name + "Dist"
+            taskName = "install"+ distribution.name.capitalize() + "Dist"
         }
         def installTask = project.tasks.add(taskName, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."

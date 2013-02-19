@@ -73,6 +73,10 @@ class HelperUtil {
          return project.services.get(ITaskFactory).createTask([name: name, type: type])
      }
 
+    static ProjectBuilder builder() {
+        return ProjectBuilder.builder().withProjectDir(TestNameTestDirectoryProvider.newInstance().testDirectory)
+    }
+
      static DefaultProject createRootProject() {
          createRootProject(TestNameTestDirectoryProvider.newInstance().testDirectory)
      }

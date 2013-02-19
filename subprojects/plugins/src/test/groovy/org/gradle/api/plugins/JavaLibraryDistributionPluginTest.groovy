@@ -19,12 +19,11 @@ import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.api.distribution.Distribution
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class JavaLibraryDistributionPluginTest extends Specification {
-    private final Project project = HelperUtil.createRootProject();
+    private final Project project = HelperUtil.builder().withName("test-project").build()
 
     def "applies JavaPlugin and adds convention object with default values"() {
         when:
@@ -42,18 +41,8 @@ class JavaLibraryDistributionPluginTest extends Specification {
         project.apply(plugin: JavaLibraryDistributionPlugin)
 
         then:
-        def task = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
+        def task = project.tasks.distZip
         task instanceof Zip
-        task.archiveName == "${project.distributions.main.baseName}.zip"
-    }
-
-    public void "distribution name is configurable"() {
-        when:
-        project.apply(plugin: JavaLibraryDistributionPlugin)
-        project.distributions.main.baseName = "SuperApp";
-
-        then:
-        def distZipTask = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
-        distZipTask.archiveName == "SuperApp.zip"
+        task.archiveName == "test-project.zip"
     }
 }
