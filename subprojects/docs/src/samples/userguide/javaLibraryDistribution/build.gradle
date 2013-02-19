@@ -12,14 +12,16 @@ distributions {
 }
 // END SNIPPET name-conf
 
-// START SNIPPET custom-distZip
-distZip {
-    from('oneFile') //Copy to the root of the distribution
-    from('secondFile') {
-        into('dist') // Copy to the dist directory
+// START SNIPPET custom-distribution
+distributions {
+    main {
+        baseName = 'my-name'
+        contents {
+            from { 'src/dist' }
+        }
     }
 }
-// END SNIPPET custom-distZip
+// END SNIPPET custom-distribution
 
 repositories {
     mavenCentral()

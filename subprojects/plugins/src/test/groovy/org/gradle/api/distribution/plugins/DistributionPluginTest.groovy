@@ -18,7 +18,9 @@ package org.gradle.api.distribution.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
+import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Tar
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
@@ -44,6 +46,26 @@ class DistributionPluginTest extends Specification {
         def task = project.tasks[DistributionPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
         task.archiveName == "${project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].baseName}.zip"
+    }
+
+    def "adds distTar task to project"() {
+        when:
+        plugin.apply(project)
+
+        then:
+        def task = project.tasks[DistributionPlugin.TASK_DIST_TAR_NAME]
+        task instanceof Tar
+        task.archiveName == "${project.distributions[Distribution.MAIN_DISTRIBUTION_NAME].baseName}.tar"
+    }
+
+    def "adds installDist task to project"() {
+        when:
+        plugin.apply(project)
+
+        then:
+        def task = project.tasks[DistributionPlugin.TASK_INSTALL_NAME]
+        task instanceof Sync
+        task.destinationDir == project.file("build/install/${project.distributions[Distribution.MAIN_DISTRIBUTION_NAME].baseName}")
     }
 
 
