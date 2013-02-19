@@ -107,7 +107,7 @@ More info in the [forum ticket](http://forums.gradle.org/gradle/topics/modeling_
 
 # Implementation Plan
 
-## Introduce a `java-library-distribution` plugin
+## Introduce a `java-library-distribution` plugin (DONE)
 
 An opinionated plugin that adds a single distribution that
 
@@ -159,13 +159,13 @@ Extract a general-purpose `distribution` plugin out of the `java-library-distrib
 
 1. Add a `distribution` plugin.
 2. Add a `Distribution` type that extends `Named` plus implementation class.
-3. Add a `DistributionsContainer` type that extends `NamedDomainObjectContainer<Distribution>` plus implementation class.
+3. Add a `DistributionContainer` type that extends `NamedDomainObjectContainer<Distribution>` plus implementation class.
 4. Change the `distribution` plugin to add this container as an extension called `distributions`.
 5. Change the `distribution` plugin to add a single instance called `main` to this container.
 7. Change the `java-library-distribution` plugin to apply the `distribution` plugin.
 8. Change the `distribution` plugin to add a ZIP task for each distribution in the container.
     - For the `main` distribution, this should be called `distZip`
-    - For other distributions, this should be caled `${dist.name}DistZip`.
+    - For other distributions, this should be called `${dist.name}DistZip`.
 9. Change the `java-library-distribution` plugin so that it no longer add a `distZip` task, but instead configures the `distZip`
    task instance that is added by the `distribution` plugin.
 
@@ -215,14 +215,14 @@ Allow the distributions defined by the `distribution` to be configured and remov
 
 1. Change the `Distribution` type to add a `baseName` property. This should default to:
     - `project.name` for the `main` distribution.
-    - `$project.name-${dist.name}` for other distributions.
+    - `${project.name}-${dist.name}` for other distributions.
 2. Make `Distribution.name` immutable.
 3. Change the `distribution` plugin to configure the dist zip task to add `into {$dist.baseName}-${project.version}`. Remove the corresponding
    configuration from the `java-library-distribution` plugin.
 4. Change the `java-library-distribution` plugin so that it no longer adds the `distribution` extension, and remove the `DistributionExtension`
    implementation.
 5. Change the `Distribution` type to add a `contents` property of type `CopySpec`. This should default to: `from 'src/${dist.name}/dist'`
-6. Change the `distribution` plugin to configure the dist zip task to add `from $dist.contents`.
+6. Change the `distribution` plugin to configure the dist ZIP task to add `from $dist.contents`.
 7. Change the `java-library-distribution` plugin to configure the main distribution's `contents` property instead of the dist zip task.
 
 ### DSL
@@ -301,11 +301,6 @@ To generate multiple distributions:
     - Configures the `main` distribution's `contents` to add `from applicationPluginConvention.applicationDistribution`.
     - No longer adds the `distZip` or `distTar` tasks.
 
-## Deprecate distribution configuration from the `application` plugin
-
-1. Deprecate `ApplicationPluginConvention.applicationName` and `applicationDistribution` properties.
-2. Deprecate the `installApp` task.
-
 ## All distribution archives are built when project is assembled
 
 1. Running `gradle assemble` will build the ZIP and TAR archives for all distributions.
@@ -317,6 +312,11 @@ To generate multiple distributions:
     - Publishes both the ZIP and TAR archives.
     - Generated meta-data does not include any dependency declarations.
     - Generated meta-data include details of components that have been bundled in the distribution.
+
+## Deprecate distribution configuration from the `application` plugin
+
+1. Deprecate `ApplicationPluginConvention.applicationName` and `applicationDistribution` properties.
+2. Deprecate the `installApp` task.
 
 # Later steps
 
