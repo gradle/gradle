@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.internal.SystemProperties
+
 /**
  * @author: Szczepan Faber, created at: 3/28/11
  */
@@ -35,7 +37,7 @@ class AutoTestedSamplesUtil {
     }
 
     String findDir(String dir) {
-        def workDir = System.getProperty("user.dir")
+        def workDir = SystemProperties.currentDir
         def candidates = [
             "$workDir/$dir",        //when ran from IDEA
             "$workDir/../../$dir"  //when ran from command line

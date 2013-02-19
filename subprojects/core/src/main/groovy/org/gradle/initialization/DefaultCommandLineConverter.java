@@ -19,7 +19,6 @@ import org.gradle.CacheUsage;
 import org.gradle.RefreshOptions;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cli.*;
@@ -33,13 +32,10 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
-    private static final String NO_SEARCH_UPWARDS = "u";
-    private static final String PROJECT_DIR = "p";
     private static final String NO_PROJECT_DEPENDENCY_REBUILD = "a";
     private static final String BUILD_FILE = "b";
     public static final String INIT_SCRIPT = "I";
     private static final String SETTINGS_FILE = "c";
-    public static final String GRADLE_USER_HOME = "g";
     private static final String CACHE = "C";
     private static final String DRY_RUN = "m";
     private static final String NO_OPT = "no-opt";
@@ -61,19 +57,19 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
+    private final LayoutCommandLineConverter layoutCommandLineConverter = new LayoutCommandLineConverter();
 
     public void configure(CommandLineParser parser) {
         loggingConfigurationCommandLineConverter.configure(parser);
         systemPropertiesCommandLineConverter.configure(parser);
         projectPropertiesCommandLineConverter.configure(parser);
+        layoutCommandLineConverter.configure(parser);
+
         parser.allowMixedSubcommandsAndOptions();
-        parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
         parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'")
                     .deprecated("Use '--rerun-tasks' or '--recompile-scripts' instead");
         parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specifies the project-specific cache directory. Defaults to .gradle in the root project directory.");
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
-        parser.option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
-        parser.option(GRADLE_USER_HOME, "gradle-user-home").hasArgument().hasDescription("Specifies the gradle user home directory.");
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
         parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
         parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
@@ -107,16 +103,18 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         Map<String, String> projectProperties = projectPropertiesCommandLineConverter.convert(options);
         startParameter.getProjectProperties().putAll(projectProperties);
 
-        if (options.hasOption(NO_SEARCH_UPWARDS)) {
-            startParameter.setSearchUpwards(false);
+        BuildLayoutParameters layout = new BuildLayoutParameters().setProjectDir(startParameter.getCurrentDir());
+        layoutCommandLineConverter.convert(options, layout);
+        if (layout.getGradleUserHomeDir() != null) {
+            startParameter.setGradleUserHomeDir(layout.getGradleUserHomeDir());
+        }
+        if (layout.getProjectDir() != null) {
+            startParameter.setProjectDir(layout.getProjectDir());
+        }
+        if (layout.getSearchUpwards() != null) {
+            startParameter.setSearchUpwards(layout.getSearchUpwards());
         }
 
-        if (options.hasOption(PROJECT_DIR)) {
-            startParameter.setProjectDir(resolver.resolve(options.option(PROJECT_DIR).getValue()));
-        }
-        if (options.hasOption(GRADLE_USER_HOME)) {
-            startParameter.setGradleUserHomeDir(resolver.resolve(options.option(GRADLE_USER_HOME).getValue()));
-        }
         if (options.hasOption(BUILD_FILE)) {
             startParameter.setBuildFile(resolver.resolve(options.option(BUILD_FILE).getValue()));
         }

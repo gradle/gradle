@@ -284,7 +284,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         if (currentDir != null) {
             this.currentDir = GFileUtils.canonicalise(currentDir);
         } else {
-            this.currentDir = GFileUtils.canonicalise(new File(System.getProperty("user.dir")));
+            this.currentDir = GFileUtils.canonicalise(SystemProperties.getCurrentDir());
         }
     }
 
