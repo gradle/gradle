@@ -158,9 +158,7 @@ public class IvyDescriptorFileGenerator {
     }
 
     private void writePublications(OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        if (artifacts.isEmpty()) {
-            return;
-        }
+        // Do not omit empty publications element, since this implies a single jar artifact in ivy-land.
         xmlWriter.startElement("publications");
         for (IvyArtifact artifact : artifacts) {
             xmlWriter.startElement("artifact")

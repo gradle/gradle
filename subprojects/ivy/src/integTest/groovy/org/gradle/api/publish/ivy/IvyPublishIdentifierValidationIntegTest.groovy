@@ -15,11 +15,10 @@
  */
 
 package org.gradle.api.publish.ivy
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.ivy.IvyFileModule
+
 import spock.lang.Unroll
 
-class IvyPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec {
+class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTest {
     private static final String PUNCTUATION_CHARS = '-!@#$%^&*()_+=,.?{}[]<>'
     private static final String NON_ASCII_CHARS = '-√æず∫ʙぴ₦ガき∆ç√∫'
     private static final String FILESYSTEM_RESERVED_CHARS = '-/\\?%*:|"<>.'
@@ -156,38 +155,6 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec {
         failure.assertHasDescription "Execution failed for task ':publishIvyPublicationToIvyRepository'"
         failure.assertHasCause "Failed to publish publication 'ivy' to repository 'ivy'"
         failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
-    }
-
-    private def resolveArtifacts(IvyFileModule module) {
-        doResolveArtifacts("group: '${module.organisation}', name: '${module.module}', version: '${module.revision}'")
-    }
-
-    private def resolveArtifacts(IvyFileModule module, def configuration) {
-        doResolveArtifacts("group: '${module.organisation}', name: '${module.module}', version: '${module.revision}', configuration: '${configuration}'")
-    }
-
-    private def doResolveArtifacts(def dependency) {
-        // Replace the existing buildfile with one for resolving the published module
-        settingsFile.text = "rootProject.name = 'resolve'"
-        buildFile.text = """
-            configurations {
-                resolve
-            }
-            repositories {
-                ivy { url "${ivyRepo.uri}" }
-            }
-            dependencies {
-                resolve $dependency
-            }
-
-            task resolveArtifacts(type: Sync) {
-                from configurations.resolve
-                into "artifacts"
-            }
-
-"""
-        assert succeeds("resolveArtifacts")
-        return file("artifacts").list()
     }
 
     def removeUnsupported(String characterList) {

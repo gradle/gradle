@@ -16,9 +16,8 @@
 
 
 package org.gradle.api.publish.ivy
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
+public class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
     def "publishes nothing without defined publication"() {
         given:
@@ -67,7 +66,17 @@ public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
         def module = ivyRepo.module('org.gradle.test', 'empty-project', '1.0')
         module.assertPublished()
         module.assertArtifactsPublished("ivy-1.0.xml")
-        module.ivy.status == "release"
+
+        and:
+        with (module.ivy) {
+            configurations.isEmpty()
+            artifacts.isEmpty()
+            dependencies.isEmpty()
+            status == "release"
+        }
+
+        and:
+        resolveArtifacts(module) == []
     }
 
     def "can publish simple jar"() {
@@ -110,6 +119,9 @@ public class IvyPublishBasicIntegTest extends AbstractIntegrationSpec {
         module.assertPublishedAsJavaModule()
         module.ivy.status == 'integration'
         module.moduleDir.file('root-1.0.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
+
+        and:
+        resolveArtifacts(module) == ['root-1.0.jar']
     }
 
     def "reports failure publishing when model validation fails"() {

@@ -49,7 +49,8 @@ class IvyDescriptorFileGeneratorTest extends Specification {
             info.@revision == "my-version"
             info.@status.isEmpty()
             configurations.isEmpty()
-            publications.isEmpty()
+            publications.size() == 1
+            publications.artifacts.isEmpty()
             dependencies.isEmpty()
         }
     }
