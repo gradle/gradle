@@ -15,12 +15,11 @@
  */
 package org.gradle.api.distribution.internal;
 
-import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecImpl;
-import org.gradle.util.ConfigureUtil;
 
 /**
  * Allow user to declare a distribution.
@@ -28,17 +27,13 @@ import org.gradle.util.ConfigureUtil;
  * @author scogneau
  */
 public class DefaultDistribution implements Distribution {
-
     private final String name;
-
     private String baseName;
-
-    private CopySpec contents;
+    private final CopySpec contents;
 
     public DefaultDistribution(String name, FileResolver fileResolver) {
         this.name = name;
         this.contents = new CopySpecImpl(fileResolver);
-        contents.from("src/"+name+"/dist");
     }
 
     public String getName() {
@@ -57,8 +52,8 @@ public class DefaultDistribution implements Distribution {
         return contents;
     }
 
-    public CopySpec contents(Closure contents) {
-        ConfigureUtil.configure(contents, this.contents);
-        return this.contents;
+    public CopySpec contents(Action<? super CopySpec> action) {
+        action.execute(contents);
+        return contents;
     }
 }

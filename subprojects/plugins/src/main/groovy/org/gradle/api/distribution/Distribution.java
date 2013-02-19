@@ -16,7 +16,7 @@
 
 package org.gradle.api.distribution;
 
-import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
@@ -34,20 +34,22 @@ public interface Distribution extends Named {
     String getName();
 
     /**
-     * Returns the baseName of the distribution. This is used to configure the baseName in the according Zip task.
+     * Returns the baseName of the distribution. This is used in file names for the distribution.
      */
     String getBaseName();
 
     /**
-     * Set the baseName of the distribution. This is used to configure the baseName in the according Zip task.
+     * Set the baseName of the distribution. This is used in file names for the distribution.
      */
     void setBaseName(String baseName);
 
     /**
-     * The contents of the Distribution.
+     * The contents of the distribution.
      */
     CopySpec getContents();
 
-
-    CopySpec contents(Closure contents);
+    /**
+     * Configures the contents of the distribution.
+     */
+    CopySpec contents(Action<? super CopySpec> action);
 }
