@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations;
-
+package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.listener.ListenerManager
-import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 public class DefaultConfigurationContainerSpec extends Specification {
@@ -77,17 +76,17 @@ public class DefaultConfigurationContainerSpec extends Specification {
 
         //finds configurations
         configurationContainer.findByName("compile") == compile
-        configurationContainer.findByName("fooo") == null
+        configurationContainer.findByName("foo") == null
         configurationContainer.findAll { it.name == "compile" } as Set == [compile] as Set
-        configurationContainer.findAll { it.name == "fooo" } as Set == [] as Set
+        configurationContainer.findAll { it.name == "foo" } as Set == [] as Set
 
         configurationContainer as List == [compile] as List
     }
 
     def "creates detached"() {
         given:
-        def dependency1 = HelperUtil.createDependency("group1", "name1", "version1");
-        def dependency2 = HelperUtil.createDependency("group2", "name2", "version2");
+        def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
+        def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")
 
         when:
         def detached = configurationContainer.detachedConfiguration(dependency1, dependency2);
