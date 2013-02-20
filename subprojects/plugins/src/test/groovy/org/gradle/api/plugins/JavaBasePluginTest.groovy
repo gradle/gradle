@@ -28,6 +28,7 @@ import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.sameCollection
@@ -48,8 +49,9 @@ class JavaBasePluginTest extends Specification {
         javaBasePlugin.apply(project)
 
         then:
-        project.getPlugins().hasPlugin(ReportingBasePlugin)
-        project.getPlugins().hasPlugin(BasePlugin)
+        project.plugins.hasPlugin(ReportingBasePlugin)
+        project.plugins.hasPlugin(BasePlugin)
+        project.plugins.hasPlugin(LanguageBasePlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
     }
 
@@ -221,4 +223,35 @@ class JavaBasePluginTest extends Specification {
         task.includes == ['**/pattern*.class'] as Set
     }
 
+    def "adds an equivalent functional source set for each 'old' source set"() {
+        javaBasePlugin.apply(project)
+
+        when:
+        project.sourceSets {
+            custom {
+                java {
+                    srcDirs = [project.file("src1"), project.file("src2")]
+                }
+                resources {
+                    srcDirs = [project.file("resrc1"), project.file("resrc2")]
+                }
+                compileClasspath = project.files("jar1.jar", "jar2.jar")
+            }
+        }
+
+        then:
+        def functional = project.sources.findByName("custom")
+        functional != null
+
+        and:
+        def java = functional.findByName("java")
+        java != null
+        java.source.srcDirs as Set == [project.file("src1"), project.file("src2")] as Set
+        java.compileClasspath.files as Set == project.files("jar1.jar", "jar2.jar") as Set
+
+        and:
+        def resources = functional.findByName("resources")
+        resources != null
+        resources.source.srcDirs as Set == [project.file("resrc1"), project.file("resrc2")] as Set
+    }
 }
