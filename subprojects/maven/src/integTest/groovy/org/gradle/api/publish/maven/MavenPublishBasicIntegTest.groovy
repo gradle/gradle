@@ -164,11 +164,10 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         def module = mavenRepo.module('org.gradle', 'snapshotPublish', '1.0-SNAPSHOT')
-        def snapshotVersion = "1.0${module.snapshotSuffix}"
-        module.assertArtifactsPublished("snapshotPublish-${snapshotVersion}.jar", "snapshotPublish-${snapshotVersion}.pom")
+        module.assertArtifactsPublished("snapshotPublish-${module.publishArtifactVersion}.jar", "snapshotPublish-${module.publishArtifactVersion}.pom", "maven-metadata.xml")
 
         and:
-        resolveArtifacts(module) == ["snapshotPublish-${snapshotVersion}.jar"]
+        resolveArtifacts(module) == ["snapshotPublish-${module.publishArtifactVersion}.jar"]
     }
 
     def "reports failure publishing when model validation fails"() {

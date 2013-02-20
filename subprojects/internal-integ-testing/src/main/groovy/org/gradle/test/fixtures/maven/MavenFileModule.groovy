@@ -106,25 +106,25 @@ class MavenFileModule implements MavenModule {
 
     void assertPublishedAsPomModule() {
         assertPublished()
-        assertArtifactsPublished("${artifactId}-${version}.pom")
+        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.pom")
         assert parsedPom.packaging == "pom"
     }
 
     void assertPublishedAsJavaModule() {
         assertPublished()
-        assertArtifactsPublished("${artifactId}-${version}.jar", "${artifactId}-${version}.pom")
+        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.jar", "${artifactId}-${publishArtifactVersion}.pom")
         assert parsedPom.packaging == null
     }
 
     void assertPublishedAsWebModule() {
         assertPublished()
-        assertArtifactsPublished("${artifactId}-${version}.war", "${artifactId}-${version}.pom")
+        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.war", "${artifactId}-${publishArtifactVersion}.pom")
         assert parsedPom.packaging == 'war'
     }
 
     void assertPublishedAsEarModule() {
         assertPublished()
-        assertArtifactsPublished("${artifactId}-${version}.ear", "${artifactId}-${version}.pom")
+        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.ear", "${artifactId}-${publishArtifactVersion}.pom")
         assert parsedPom.packaging == 'ear'
     }
 
@@ -132,11 +132,8 @@ class MavenFileModule implements MavenModule {
      * Asserts that exactly the given artifacts have been deployed, along with their checksum files
      */
     void assertArtifactsPublished(String... names) {
-        def artifactNames = names
-        // TODO:DAZ Get rid of this obfuscation: access the snapshot suffix directly in the tests
+        def artifactNames = names as Set
         if (uniqueSnapshots && version.endsWith('-SNAPSHOT')) {
-            def snapshotSuffix = getSnapshotSuffix()
-            artifactNames = names.collect { it.replace('-SNAPSHOT', snapshotSuffix)}
             artifactNames.add("maven-metadata.xml")
         }
         assert moduleDir.isDirectory()
@@ -147,14 +144,6 @@ class MavenFileModule implements MavenModule {
             assert actual.remove("${name}.sha1" as String)
         }
         assert actual.isEmpty()
-    }
-
-    String getSnapshotSuffix() {
-        assert uniqueSnapshots && version.endsWith('-SNAPSHOT')
-        def metaData = new XmlParser().parse(moduleDir.file('maven-metadata.xml'))
-        def timestamp = metaData.versioning.snapshot.timestamp[0].text().trim()
-        def build = metaData.versioning.snapshot.buildNumber[0].text().trim()
-        return "-${timestamp}-${build}"
     }
 
     MavenPom getParsedPom() {
@@ -209,9 +198,17 @@ class MavenFileModule implements MavenModule {
 
     String getPublishArtifactVersion() {
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-            return "${version.replaceFirst('-SNAPSHOT$', '')}-${timestampFormat.format(publishTimestamp)}-${publishCount}"
+            return "${version.replaceFirst('-SNAPSHOT$', '')}-${publishedSnapshotVersion}"
         }
         return version
+    }
+
+    private String getPublishedSnapshotVersion() {
+        assert uniqueSnapshots && version.endsWith('-SNAPSHOT')
+        def metaData = new XmlParser().parse(moduleDir.file('maven-metadata.xml').assertIsFile())
+        def timestamp = metaData.versioning.snapshot.timestamp[0].text().trim()
+        def build = metaData.versioning.snapshot.buildNumber[0].text().trim()
+        return "${timestamp}-${build}"
     }
 
     Date getPublishTimestamp() {

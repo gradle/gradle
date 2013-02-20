@@ -155,12 +155,11 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractMavenPublishInt
 
     def "can attach artifact with no extension"() {
         given:
-        file("no-extension-1.0-classifier") << "some content"
         createBuildScripts("""
             publications {
                 mavenCustom(MavenPublication) {
-                    artifact "customFile.txt"
-                    artifact "no-extension-1.0-classifier"
+                    from components.java
+                    artifact source: "customFile.txt", extension: null, classifier: "classified"
                 }
             }
 """)
@@ -170,12 +169,11 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractMavenPublishInt
         then:
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
-        module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-classifier")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.jar", "projectText-1.0-classified")
 
         // TODO:DAZ Find a way to resolve Maven artifact with no extension
 //        and:
-//        resolveArtifacts(module, [classifier: 'classifier', type: '']) == ["projectText-1.0.txt", "projectText-1.0-classifier"]
+//        resolveArtifact(module, '', 'classified') == ["projectText-1.0-classifier"]
     }
 
     def "reports failure publishing when validation fails"() {
