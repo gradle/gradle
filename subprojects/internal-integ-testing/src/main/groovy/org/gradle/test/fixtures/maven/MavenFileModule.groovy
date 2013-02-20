@@ -133,11 +133,10 @@ class MavenFileModule implements MavenModule {
      */
     void assertArtifactsPublished(String... names) {
         def artifactNames = names
+        // TODO:DAZ Get rid of this obfuscation: access the snapshot suffix directly in the tests
         if (uniqueSnapshots && version.endsWith('-SNAPSHOT')) {
-            def metaData = new XmlParser().parse(moduleDir.file('maven-metadata.xml'))
-            def timestamp = metaData.versioning.snapshot.timestamp[0].text().trim()
-            def build = metaData.versioning.snapshot.buildNumber[0].text().trim()
-            artifactNames = names.collect { it.replace('-SNAPSHOT', "-${timestamp}-${build}")}
+            def snapshotSuffix = getSnapshotSuffix()
+            artifactNames = names.collect { it.replace('-SNAPSHOT', snapshotSuffix)}
             artifactNames.add("maven-metadata.xml")
         }
         assert moduleDir.isDirectory()
@@ -148,6 +147,14 @@ class MavenFileModule implements MavenModule {
             assert actual.remove("${name}.sha1" as String)
         }
         assert actual.isEmpty()
+    }
+
+    String getSnapshotSuffix() {
+        assert uniqueSnapshots && version.endsWith('-SNAPSHOT')
+        def metaData = new XmlParser().parse(moduleDir.file('maven-metadata.xml'))
+        def timestamp = metaData.versioning.snapshot.timestamp[0].text().trim()
+        def build = metaData.versioning.snapshot.buildNumber[0].text().trim()
+        return "-${timestamp}-${build}"
     }
 
     MavenPom getParsedPom() {

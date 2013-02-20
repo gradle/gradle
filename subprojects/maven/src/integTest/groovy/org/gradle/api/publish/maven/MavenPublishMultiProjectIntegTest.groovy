@@ -15,10 +15,10 @@
  */
 
 package org.gradle.api.publish.maven
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import spock.lang.Ignore
 
-class MavenPublishMultiProjectIntegTest extends AbstractIntegrationSpec {
+class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
     def project1 = mavenRepo.module("org.gradle.test", "project1", "1.9")
     def project2 = mavenRepo.module("org.gradle.test", "project2", "1.9")
     def project3 = mavenRepo.module("org.gradle.test", "project3", "1.9")
@@ -111,6 +111,8 @@ project(":project2") {
 
         project3.assertPublishedAsJavaModule()
         project3.parsedPom.scopes == null
+
+        resolveArtifacts(project1) == ["project1-1.9.jar", "project2-1.9.jar", "project3-1.9.jar"]
 
         return true
     }

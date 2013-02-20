@@ -18,16 +18,13 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
-
 // Maven resolution with 'unusual' characters is currently broken on Java 1.6 CI (Ivy PomReader).
 // TODO:DAZ Fix this. Seems to be an issue with URI encoding deep down in Xerces. Might need to replace the PomReader with our own implementation.
 @Requires(TestPrecondition.CAN_RESOLVE_UNICODE_POM)
-class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec {
+class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishIntegTest {
     private static final String PUNCTUATION_CHARS = '-!@#$%^&*()_+=,.?{}[]<>'
     private static final String NON_ASCII_CHARS = '-√æず∫ʙぴ₦ガき∆ç√∫'
     private static final String FILESYSTEM_RESERVED_CHARS = '-/\\?%*:|"<>.'
@@ -126,7 +123,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
         module.assertArtifactsPublished("${artifactId}-${version}.pom", "${artifactId}-${version}.jar", "${artifactId}-${version}-${classifier}.${extension}")
 
         and:
-        resolveArtifacts(module, extension, classifier) == ["${artifactId}-${version}-${classifier}.${extension}"]
+        resolveArtifact(module, extension, classifier) == ["${artifactId}-${version}-${classifier}.${extension}"]
 
         where:
         title        | suffix
@@ -161,37 +158,6 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractIntegrationSpec 
         failure.assertHasDescription "Execution failed for task ':publishMavenPublicationToMavenRepository'"
         failure.assertHasCause "Failed to publish publication 'maven' to repository 'maven'"
         failure.assertHasCause "Invalid publication 'maven': groupId cannot be empty"
-    }
-
-    private def resolveArtifacts(MavenFileModule module) {
-        doResolveArtifacts("group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}'")
-    }
-
-    private def resolveArtifacts(MavenFileModule module, def extension, def classifier) {
-        doResolveArtifacts("group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}', classifier: '${classifier}', ext: '${extension}'")
-    }
-
-    private def doResolveArtifacts(def dependency) {
-        settingsFile.text = "rootProject.name = 'resolve'"
-        buildFile.text = """
-            configurations {
-                resolve
-            }
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            dependencies {
-                resolve $dependency
-            }
-
-            task resolveArtifacts(type: Sync) {
-                from configurations.resolve
-                into "artifacts"
-            }
-
-"""
-        assert succeeds("resolveArtifacts")
-        return file("artifacts").list()
     }
 
     def removeUnsupported(String characterList) {

@@ -16,9 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
+class MavenPublishArtifactCustomisationIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can attach custom artifacts"() {
         given:
@@ -40,7 +38,10 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar", "projectText-1.0-docs.html")
+
+        and:
+        resolveArtifacts(module, [classifier: 'customjar'], [classifier: 'docs', type: 'html']) == ["projectText-1.0-customjar.jar", "projectText-1.0-docs.html", "projectText-1.0.txt"]
     }
 
     def "can set custom artifacts to override component artifacts"() {
@@ -63,7 +64,10 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar", "projectText-1.0-docs.html")
+
+        and:
+        resolveArtifacts(module, [classifier: 'customjar'], [classifier: 'docs', type: 'html']) == ["projectText-1.0-customjar.jar", "projectText-1.0-docs.html", "projectText-1.0.txt"]
     }
 
     def "can configure custom artifacts when creating"() {
@@ -94,6 +98,9 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         module.assertPublished()
         module.parsedPom.packaging == "war"
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt")
+
+        and:
+        resolveArtifacts(module, [classifier: 'documentation', type: 'htm'], [classifier: 'output', type: 'txt']) == ["projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0.war"]
     }
 
     def "can attach custom file artifacts with map notation"() {
@@ -115,6 +122,9 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         module.assertPublished()
         module.parsedPom.packaging == "war"
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt")
+
+        and:
+        resolveArtifacts(module, [classifier: 'documentation', type: 'htm'], [classifier: 'output', type: 'txt']) == ["projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0.war"]
     }
 
     def "can configure custom artifacts post creation"() {
@@ -162,6 +172,10 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         module.assertPublished()
         module.parsedPom.packaging == "txt"
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-classifier")
+
+        // TODO:DAZ Find a way to resolve Maven artifact with no extension
+//        and:
+//        resolveArtifacts(module, [classifier: 'classifier', type: '']) == ["projectText-1.0.txt", "projectText-1.0-classifier"]
     }
 
     def "reports failure publishing when validation fails"() {

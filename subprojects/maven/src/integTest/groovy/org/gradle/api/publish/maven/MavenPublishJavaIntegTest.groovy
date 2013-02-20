@@ -16,9 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
+class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
     public void "can publish jar and meta-data to maven repository"() {
@@ -43,6 +41,9 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
         mavenModule.parsedPom.scopes.runtime.dependencies.size() == 2
         mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
         mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
+
+        and:
+        resolveArtifacts(mavenModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
     }
 
     public void "can publish attached artifacts to maven repository"() {
@@ -69,6 +70,9 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
         then:
         mavenModule.assertPublished()
         mavenModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9.pom", "publishTest-1.9-source.jar")
+
+        and:
+        resolveArtifacts(mavenModule, [classifier: 'source']) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]
     }
 
     public void "can configure artifacts added from component"() {
@@ -95,6 +99,9 @@ class MavenPublishJavaIntegTest extends AbstractIntegrationSpec {
         def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
         mavenModule.assertPublished()
         mavenModule.assertArtifactsPublished("publishTest-1.9-classified.jar", "publishTest-1.9.pom")
+
+        and:
+        resolveArtifact(mavenModule, 'jar', 'classified') == ["publishTest-1.9-classified.jar"]
     }
 
     def createBuildScripts(def append) {
