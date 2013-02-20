@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.util.GradleVersion
+import org.gradle.util.TextUtil
 
 @TargetVersions('0.9+')
 class IvyPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
@@ -88,12 +89,13 @@ publishing {
                 }
 """
         } else {
+            def repoPath = TextUtil.normaliseFileSeparators(repoDir.absolutePath)
             repositoryDefinition = """
                 println "Adding resolver directly due to no 'ivy' repository support"
                 add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
                     name = 'repo'
-                    addIvyPattern("${repoDir.absolutePath}/[organisation]/[module]/[revision]/ivy-[revision].xml")
-                    addArtifactPattern("${repoDir.absolutePath}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
+                    addIvyPattern("${repoPath}/[organisation]/[module]/[revision]/ivy-[revision].xml")
+                    addArtifactPattern("${repoPath}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
                     descriptor = 'required'
                     checkmodified = true
                 }
