@@ -23,6 +23,7 @@ import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -41,7 +42,7 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
     protected void doBuild(DaemonCommandExecution execution, Build build) {
         Properties originalSystemProperties = new Properties();
         originalSystemProperties.putAll(System.getProperties());
-        Map<String, String> originalEnv = System.getenv();
+        Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
         File originalProcessDir = GFileUtils.canonicalise(new File("."));
 
         for (Map.Entry<String, String> entry : build.getParameters().getSystemProperties().entrySet()) {
@@ -52,7 +53,6 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
 
         LOGGER.debug("Configuring env variables: {}", build.getParameters().getEnvVariables());
         processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
-
         processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
 
         try {
