@@ -24,15 +24,10 @@ import java.util.Set;
 public class TaskDependencyGraphNode implements Comparable<TaskDependencyGraphNode> {
     private final Task task;
     private final Set<TaskDependencyGraphNode> successors = new HashSet<TaskDependencyGraphNode>();
-    private boolean required;
-
-    public TaskDependencyGraphNode(Task task, boolean required) {
-        this.task = task;
-        this.required = required;
-    }
+    private boolean required = false;
 
     public TaskDependencyGraphNode(Task task) {
-        this(task, true);
+        this.task = task;
     }
 
     public Task getTask() {
