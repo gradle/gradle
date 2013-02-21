@@ -33,10 +33,12 @@ import java.util.concurrent.Callable;
  * @author Hans Dockter
  */
 public class ConventionAwareHelper implements ConventionMapping, HasConvention {
-    // prefix internal fields with _ so that they don't get into the way of propertyMissing()
+    //prefix internal fields with _ so that they don't get into the way of propertyMissing()
+    //CHECKSTYLE:OFF
     private final Convention _convention;
     private IConventionAware _source;
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
+    //CHECKSTYLE:ON
 
     /**
      * @see org.gradle.api.internal.AsmBackedClassGenerator.ClassBuilderImpl#mixInConventionAware()
