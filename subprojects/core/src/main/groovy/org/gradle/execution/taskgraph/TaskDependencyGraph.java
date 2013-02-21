@@ -26,11 +26,6 @@ import java.util.Set;
 public class TaskDependencyGraph {
 
     private final LinkedHashMap<Task, TaskDependencyGraphNode> nodes = new LinkedHashMap<Task, TaskDependencyGraphNode>();
-    private final List<TaskDependencyGraphNode> nodesWithoutIncomingEdges = new ArrayList<TaskDependencyGraphNode>();
-
-    public List<TaskDependencyGraphNode> getNodesWithoutIncomingEdges() {
-        return nodesWithoutIncomingEdges;
-    }
 
     public Set<Task> getTasks() {
         return nodes.keySet();
@@ -49,7 +44,6 @@ public class TaskDependencyGraph {
         TaskDependencyGraphNode toNode;
         if (!hasTask(fromTask)) {
             fromNode = createNode(fromTask, true);
-            nodesWithoutIncomingEdges.add(fromNode);
         } else {
             fromNode = nodes.get(fromTask);
             fromNode.setRequired(true);
@@ -59,7 +53,6 @@ public class TaskDependencyGraph {
         } else {
             toNode = nodes.get(toTask);
             toNode.setRequired(toNode.getRequired() || toTaskIsRequired);
-            nodesWithoutIncomingEdges.remove(toNode);
         }
         fromNode.addEdgeTo(toNode);
     }
@@ -67,7 +60,6 @@ public class TaskDependencyGraph {
     public void addNode(Task task) {
         if (!hasTask(task)) {
             TaskDependencyGraphNode node = createNode(task, true);
-            nodesWithoutIncomingEdges.add(node);
         } else {
             getNode(task).setRequired(true);
         }
@@ -85,6 +77,5 @@ public class TaskDependencyGraph {
 
     public void clear() {
         nodes.clear();
-        nodesWithoutIncomingEdges.clear();
     }
 }

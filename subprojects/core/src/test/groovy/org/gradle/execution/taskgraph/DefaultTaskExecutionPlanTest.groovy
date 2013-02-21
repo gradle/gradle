@@ -183,7 +183,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         thrown CircularReferenceException
     }
 
-    def "cannot add task that does not add any tasks without incoming edges"() {
+    def "cannot add a task with must run after induced circular reference"() {
         Task a = createTask("a")
         Task b = task("b", mustRunAfter: [a])
         Task c = task("c", dependsOn: [b])
@@ -197,7 +197,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         thrown CircularReferenceException
     }
 
-    def "cannot add a task with must run after induced circular reference"() {
+    def "cannot add a task with must run after induced circular reference that was previously in graph but not required"() {
         Task a = createTask("a")
         Task b = task("b", mustRunAfter: [a])
         Task c = task("c", dependsOn: [b])

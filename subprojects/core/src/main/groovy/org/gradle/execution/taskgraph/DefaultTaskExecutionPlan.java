@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -39,6 +40,7 @@ import java.util.concurrent.locks.ReentrantLock;
 class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
+    private final Set<Task> entryTasks = new LinkedHashSet<Task>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
@@ -50,6 +52,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void addToTaskGraph(Collection<? extends Task> tasks) {
         List<Task> queue = new ArrayList<Task>(tasks);
         Collections.sort(queue);
+        entryTasks.addAll(queue);
         Set<Task> visiting = new HashSet<Task>();
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
@@ -95,10 +98,12 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void determineExecutionPlan() {
         executionPlan.clear();
-        List<TaskDependencyGraphNode> nodeQueue = new ArrayList<TaskDependencyGraphNode>(graph.getNodesWithoutIncomingEdges());
-        if (nodeQueue.isEmpty()) {
-            throw new CircularReferenceException("Circular dependency between tasks.");
-        }
+
+        List<TaskDependencyGraphNode> nodeQueue = CollectionUtils.collect(new ArrayList<Task>(entryTasks), new Transformer<TaskDependencyGraphNode, Task>() {
+            public TaskDependencyGraphNode transform(Task original) {
+                return graph.getNode(original);
+            }
+        });
 
         Set<TaskDependencyGraphNode> visitingNodes = new HashSet<TaskDependencyGraphNode>();
         while (!nodeQueue.isEmpty()) {
@@ -152,6 +157,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         lock.lock();
         try {
             graph.clear();
+            entryTasks.clear();
             executionPlan.clear();
             failures.clear();
             runningProjects.clear();

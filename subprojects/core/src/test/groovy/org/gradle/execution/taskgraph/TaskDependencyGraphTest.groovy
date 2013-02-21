@@ -100,21 +100,6 @@ class TaskDependencyGraphTest extends Specification {
         [a, b, c, d].every { graph.getNode(it).required }
     }
 
-    void 'nodes without incoming edges'() {
-        when:
-        graph.addEdge(a, b)
-        graph.addNode(c)
-
-        then:
-        graph.nodesWithoutIncomingEdges*.task == [a, c]
-
-        when:
-        graph.addEdge(d, a)
-
-        then:
-        graph.nodesWithoutIncomingEdges*.task == [c, d]
-    }
-
     void 'clear'() {
         when:
         graph.addEdge(a, b)
@@ -123,7 +108,6 @@ class TaskDependencyGraphTest extends Specification {
 
         then:
         !graph.tasks
-        !graph.nodesWithoutIncomingEdges
     }
 
     void 'has task'() {
