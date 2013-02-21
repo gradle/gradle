@@ -31,7 +31,7 @@ public class CompositePublicationFactory {
     public <T extends Publication> T create(Class<T> type, String name) {
         for (Map.Entry<Class<? extends Publication>, PublicationFactory> entry : factories.entrySet()) {
             if (type.isAssignableFrom(entry.getKey())) {
-                return (T) entry.getValue().create(name);
+                return type.cast(entry.getValue().create(name));
             }
         }
         throw new InvalidUserDataException("Cannot create publications of type: " + type);
