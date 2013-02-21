@@ -17,6 +17,7 @@ package org.gradle.internal.nativeplatform.jna;
 
 import com.sun.jna.Native;
 import org.gradle.internal.nativeplatform.NativeIntegrationException;
+import org.gradle.internal.nativeplatform.processenvironment.AbstractProcessEnvironment;
 
 import java.io.File;
 

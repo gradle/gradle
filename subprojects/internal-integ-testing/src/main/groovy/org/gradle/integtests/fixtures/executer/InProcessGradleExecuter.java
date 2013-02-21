@@ -132,7 +132,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         Properties originalSysProperties = new Properties();
         originalSysProperties.putAll(System.getProperties());
         File originalUserDir = new File(originalSysProperties.getProperty("user.dir"));
-        Map<String, String> originalEnv = System.getenv();
+        Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
 
         // Augment the environment for the execution
         System.setIn(getStdin());
@@ -168,12 +168,12 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Restore the environment
             System.setProperties(originalSysProperties);
             processEnvironment.maybeSetProcessDir(originalUserDir);
-            for (Map.Entry<String, String> entry : originalEnv.entrySet()) {
-                String oldValue = entry.getValue();
+            for (String envVar: getEnvironmentVars().keySet()) {
+                String oldValue = originalEnv.get(envVar);
                 if (oldValue != null) {
-                    processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), oldValue);
+                    processEnvironment.maybeSetEnvironmentVariable(envVar, oldValue);
                 } else {
-                    processEnvironment.maybeRemoveEnvironmentVariable(entry.getKey());
+                    processEnvironment.maybeRemoveEnvironmentVariable(envVar);
                 }
             }
             factory.removeListener(listener);
