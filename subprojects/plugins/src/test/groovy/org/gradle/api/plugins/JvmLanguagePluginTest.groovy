@@ -47,4 +47,7 @@ class JvmLanguagePluginTest extends Specification {
         binary.classesDir == new File("$project.buildDir/classes/prod")
         project.tasks.findByName("prodClasses") != null
     }
+
+    // TODO once we have a DSL for adding binary/resource set
+    def "adds a 'processResources' task for every ResourceSet added to a ClassDirectoryBinary"() {}
 }

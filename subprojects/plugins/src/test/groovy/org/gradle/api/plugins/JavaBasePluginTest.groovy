@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.ClassDirectoryBinary
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -51,7 +52,7 @@ class JavaBasePluginTest extends Specification {
         then:
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
-        project.plugins.hasPlugin(LanguageBasePlugin)
+        project.plugins.hasPlugin(JavaLanguagePlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
     }
 
@@ -223,7 +224,7 @@ class JavaBasePluginTest extends Specification {
         task.includes == ['**/pattern*.class'] as Set
     }
 
-    def "adds an equivalent functional source set for each 'old' source set"() {
+    def "adds functional and language source sets for each source set added to the 'sourceSets' container"() {
         javaBasePlugin.apply(project)
 
         when:
@@ -253,5 +254,24 @@ class JavaBasePluginTest extends Specification {
         def resources = functional.findByName("resources")
         resources != null
         resources.source.srcDirs as Set == [project.file("resrc1"), project.file("resrc2")] as Set
+    }
+
+    def "adds a class directory binary for each source set added to the 'sourceSets' container"() {
+        javaBasePlugin.apply(project)
+
+        when:
+        project.sourceSets {
+            custom {
+                output.classesDir = project.file("classes")
+                output.resourcesDir = project.file("resources")
+            }
+        }
+
+        then:
+        def binary = project.binaries.jvm.findByName("custom")
+        binary instanceof ClassDirectoryBinary
+        binary.classesDir == project.file("classes")
+        binary.resourcesDir == project.file("resources")
+        binary.source as Set == [project.sources.custom.java, project.sources.custom.resources] as Set
     }
 }
