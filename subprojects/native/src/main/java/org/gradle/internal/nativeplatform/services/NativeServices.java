@@ -88,18 +88,26 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected ProcessEnvironment createProcessEnvironment() {
+        OperatingSystem operatingSystem = get(OperatingSystem.class);
         if (USE_NATIVE_PLATFORM) {
             try {
                 net.rubygrapefruit.platform.Process process = net.rubygrapefruit.platform.Native.get(Process.class);
                 return new NativePlatformBackedProcessEnvironment(process);
             } catch (NativeIntegrationUnavailableException ex) {
-                LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
+                if (operatingSystem.isWindows()) {
+                    LOGGER.warn("Native-platform process integration is not available. Continuing with fallback.");
+                } else {
+                    LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
+                }
             } catch (NativeException ex) {
-                LOGGER.debug("Unable to load from native-platform backed ProcessEnvironment. Continuing with fallback. Failure: {}", format(ex));
+                if (operatingSystem.isWindows()) {
+                    LOGGER.warn("Unable to load from native-platform backed ProcessEnvironment. Continuing with fallback. Failure: {}", format(ex));
+                } else {
+                    LOGGER.debug("Unable to load from native-platform backed ProcessEnvironment. Continuing with fallback. Failure: {}", format(ex));
+                }
             }
         }
 
-        OperatingSystem operatingSystem = get(OperatingSystem.class);
         try {
             if (operatingSystem.isUnix()) {
                 return new LibCBackedProcessEnvironment(get(LibC.class));
