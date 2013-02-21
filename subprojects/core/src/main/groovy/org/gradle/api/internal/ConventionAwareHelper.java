@@ -34,16 +34,15 @@ import java.util.concurrent.Callable;
  */
 public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     // prefix internal fields with _ so that they don't get into the way of propertyMissing()
-    private Convention _convention;
+    private final Convention _convention;
     private IConventionAware _source;
-    private Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
+    private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
 
     /**
      * @see org.gradle.api.internal.AsmBackedClassGenerator.ClassBuilderImpl#mixInConventionAware()
      */
     public ConventionAwareHelper(IConventionAware source) {
-        this._source = source;
-        this._convention = new DefaultConvention();
+        this(source, new DefaultConvention());
     }
 
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
