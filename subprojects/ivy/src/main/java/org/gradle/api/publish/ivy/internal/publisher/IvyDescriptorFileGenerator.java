@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.publish.ivy.internal.tasks;
+package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
@@ -28,7 +28,6 @@ import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.internal.publisher.IvyProjectIdentity;
 import org.gradle.util.CollectionUtils;
 
 import java.io.BufferedWriter;

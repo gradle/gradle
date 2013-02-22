@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal.tasks
-
+package org.gradle.api.publish.ivy.internal.publisher
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyProjectIdentity
-import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.util.CollectionUtils
 import org.gradle.util.TextUtil
 import spock.lang.Specification
