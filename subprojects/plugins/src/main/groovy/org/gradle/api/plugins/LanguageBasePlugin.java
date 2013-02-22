@@ -19,7 +19,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.DefaultProjectSourceSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.tasks.ProjectSourceSet;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -38,7 +37,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     public void apply(Project project) {
-        ProjectSourceSet sourceSets = instantiator.newInstance(DefaultProjectSourceSet.class, instantiator);
-        project.getExtensions().add("sources", sourceSets);
+        project.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
     }
 }
