@@ -24,11 +24,14 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyProjectIdentity
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class IvyDescriptorFileGeneratorTest extends Specification {
+    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def projectIdentity = new DefaultIvyProjectIdentity("my-org", "my-name", "my-version")
     IvyDescriptorFileGenerator generator = new IvyDescriptorFileGenerator(projectIdentity)
 
@@ -229,8 +232,8 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     }
 
 
-    private boolean includesMavenNamespace() {
-        ivyFileContent.startsWith(TextUtil.toPlatformLineSeparators(
+    private void includesMavenNamespace() {
+        assert ivyFileContent.startsWith(TextUtil.toPlatformLineSeparators(
                 """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
 """))
@@ -241,8 +244,8 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     }
 
     private String getIvyFileContent() {
-        def writer = new StringWriter()
-        generator.write(writer)
-        return writer.toString()
+        def ivyFile = testDirectoryProvider.testDirectory.file("ivy.xml")
+        generator.writeTo(ivyFile)
+        return ivyFile.text
     }
 }

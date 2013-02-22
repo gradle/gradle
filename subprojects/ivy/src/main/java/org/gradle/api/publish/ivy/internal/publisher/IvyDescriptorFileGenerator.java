@@ -22,15 +22,12 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.ErroringAction;
-import org.gradle.api.internal.IoActions;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.util.CollectionUtils;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -46,7 +43,7 @@ public class IvyDescriptorFileGenerator {
     private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
     private final IvyProjectIdentity projectIdentity;
     private String status;
-    private XmlTransformer withXmlActions = new XmlTransformer();
+    private XmlTransformer xmlTransformer = new XmlTransformer();
     private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
     private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
     private List<ModuleDependency> runtimeDependencies = new ArrayList<ModuleDependency>();
@@ -77,33 +74,21 @@ public class IvyDescriptorFileGenerator {
     }
 
     public IvyDescriptorFileGenerator withXml(final Action<XmlProvider> action) {
-        withXmlActions.addAction(action);
+        xmlTransformer.addAction(action);
         return this;
     }
 
     public IvyDescriptorFileGenerator writeTo(File file) {
-        IoActions.writeTextFile(file, IVY_FILE_ENCODING, new Action<BufferedWriter>() {
-            public void execute(BufferedWriter writer) {
+        xmlTransformer.transform(file, IVY_FILE_ENCODING, new Action<Writer>() {
+            public void execute(Writer writer) {
                 try {
-                    write(writer);
+                    writeDescriptor(writer);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
             }
         });
         return this;
-    }
-
-    protected void write(final Writer descriptorWriter) throws IOException {
-        try {
-            withXmlActions.transform(descriptorWriter, IVY_FILE_ENCODING, new ErroringAction<Writer>() {
-                protected void doExecute(Writer writer) throws IOException {
-                    writeDescriptor(writer);
-                }
-            });
-        } finally {
-            descriptorWriter.close();
-        }
     }
 
     private void writeDescriptor(final Writer writer) throws IOException {
