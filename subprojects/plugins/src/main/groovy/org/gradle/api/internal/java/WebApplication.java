@@ -40,6 +40,6 @@ public class WebApplication implements SoftwareComponentInternal {
     }
 
     public Set<Dependency> getRuntimeDependencies() {
-        return Collections.emptySet();
+        return null;
     }
 }

@@ -83,6 +83,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return add(name);
     }
 
+    public Task maybeCreate(String name) {
+        Task task = findByName(name);
+        if (task != null) {
+            return task;
+        }
+        return create(name);
+    }
+
     public Task add(String name) {
         return add(GUtil.map(Task.TASK_NAME, name));
     }

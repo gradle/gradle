@@ -42,6 +42,15 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
     T create(String name) throws InvalidUserDataException;
 
     /**
+     * Looks for an item with the given name, creating and adding it to this container if it does not exist.
+     *
+     * @param name The name to find or assign to the created object
+     * @return The found or created object. Never null.
+     */
+    @Incubating
+    T maybeCreate(String name);
+
+    /**
      * Creates a new item with the given name, adding it to this container, then configuring it with the given closure.
      *
      * @param name The name to assign to the created object

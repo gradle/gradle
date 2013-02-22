@@ -83,6 +83,7 @@ class DefaultIvyPublicationTest extends Specification {
         dependencySet.iterator() >> [].iterator()
 
         notationParser.parseNotation(artifact) >> ivyArtifact
+        1 * ivyArtifact.setConf("master")
 
         and:
         publication.from(component)
@@ -93,11 +94,37 @@ class DefaultIvyPublicationTest extends Specification {
         publication.runtimeDependencies == dependencySet
 
         and:
-        publication.configurations.size() == 2
+        publication.configurations.size() == 3
         publication.configurations.runtime.extends == [] as Set
-        publication.configurations."default".extends == ["runtime"] as Set
+        publication.configurations.master.extends == [] as Set
+        publication.configurations."default".extends == ["runtime", "master"] as Set
 
         publication.artifacts == [ivyArtifact] as Set
+    }
+
+    def "does not create unused configurations for component with no artifacts or dependencies"() {
+        given:
+        def publication = createPublication()
+
+        def component = Mock(SoftwareComponentInternal)
+        def publishArtifactSet = Mock(PublishArtifactSet)
+
+        when:
+        component.artifacts >> publishArtifactSet
+        publishArtifactSet.iterator() >> [].iterator()
+        component.runtimeDependencies >> null
+
+        and:
+        publication.from(component)
+
+        then:
+        publication.runtimeDependencies == [] as Set
+
+        and:
+        publication.configurations.size() == 1
+        publication.configurations."default".extends == [] as Set
+
+        publication.artifacts == [] as Set
     }
 
     def "cannot add multiple components"() {

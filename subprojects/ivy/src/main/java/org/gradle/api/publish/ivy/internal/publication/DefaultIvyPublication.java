@@ -26,7 +26,6 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
@@ -81,22 +80,21 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         }
         this.component = (SoftwareComponentInternal) component;
 
+        configurations.maybeCreate("default");
+
         for (PublishArtifact publishArtifact : this.component.getArtifacts()) {
-            artifact(publishArtifact).setConf("runtime");
+            artifact(publishArtifact).setConf("master");
+
+            configurations.maybeCreate("master");
+            configurations.getByName("default").extend("master");
         }
 
-        createConfiguration("runtime");
-        createConfiguration("default").extend("runtime");
+        if (this.component.getRuntimeDependencies() != null) {
+            runtimeDependencies.addAll(this.component.getRuntimeDependencies());
 
-        runtimeDependencies.addAll(this.component.getRuntimeDependencies());
-    }
-
-    private IvyConfiguration createConfiguration(String name) {
-        IvyConfiguration configuration = configurations.findByName(name);
-        if (configuration != null) {
-            return configuration;
+            configurations.maybeCreate("runtime");
+            configurations.getByName("default").extend("runtime");
         }
-        return configurations.create(name);
     }
 
     public void configurations(Action<? super IvyConfigurationContainer> config) {

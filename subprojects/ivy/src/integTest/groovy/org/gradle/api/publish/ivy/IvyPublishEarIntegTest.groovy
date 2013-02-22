@@ -49,12 +49,12 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
                 publications {
                     ivyEar(IvyPublication) {
                         configurations {
-                            runtime {}
+                            master {}
                             "default" {
-                                extend "runtime"
+                                extend "master"
                             }
                         }
-                        artifact source: ear, conf: "runtime"
+                        artifact source: ear, conf: "master"
                     }
                 }
             }
@@ -69,9 +69,9 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
 
         and: "correct configurations and dependencies declared"
         with (ivyModule.ivy) {
-            configurations.keySet() == ["default", "runtime"] as Set
-            configurations.runtime.extend == null
-            configurations.default.extend == ["runtime"] as Set
+            configurations.keySet() == ["default", "master"] as Set
+            configurations.default.extend == ["master"] as Set
+            configurations.master.extend == null
 
             dependencies.isEmpty()
         }

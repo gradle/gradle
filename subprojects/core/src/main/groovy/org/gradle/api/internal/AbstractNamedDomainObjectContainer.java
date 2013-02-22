@@ -41,6 +41,14 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
         return create(name, null);
     }
 
+    public T maybeCreate(String name) {
+        T item = findByName(name);
+        if (item != null) {
+            return item;
+        }
+        return create(name);
+    }
+
     public T create(String name, Closure configureClosure) {
         assertCanAdd(name);
         T object = doCreate(name);
