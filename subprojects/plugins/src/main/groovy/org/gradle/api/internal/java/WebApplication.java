@@ -19,12 +19,14 @@ package org.gradle.api.internal.java;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.Usage;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class WebApplication implements SoftwareComponentInternal {
 
+    private final Usage webArchiveUsage = new WebArchiveUsage();
     private final PublishArtifact warArtifact;
 
     public WebApplication(PublishArtifact warArtifact) {
@@ -35,11 +37,21 @@ public class WebApplication implements SoftwareComponentInternal {
         return "web";
     }
 
-    public Set<PublishArtifact> getArtifacts() {
-        return Collections.singleton(warArtifact);
+    public Set<Usage> getUsages() {
+        return Collections.singleton(webArchiveUsage);
     }
 
-    public Set<Dependency> getRuntimeDependencies() {
-        return null;
+    private class WebArchiveUsage implements Usage {
+        public String getName() {
+            return "master"; // TODO:DAZ Maybe come up with a better name
+        }
+
+        public Set<PublishArtifact> getArtifacts() {
+            return Collections.singleton(warArtifact);
+        }
+
+        public Set<Dependency> getDependencies() {
+            return Collections.emptySet();
+        }
     }
 }

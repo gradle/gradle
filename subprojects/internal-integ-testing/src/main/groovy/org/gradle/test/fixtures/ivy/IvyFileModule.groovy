@@ -226,7 +226,7 @@ class IvyFileModule extends AbstractIvyModule {
     void assertPublishedAsJavaModule() {
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.jar", "ivy-${revision}.xml")
-        ivy.expectArtifact(module, "jar").hasAttributes("jar", "jar", ["master"], null)
+        ivy.expectArtifact(module, "jar").hasAttributes("jar", "jar", ["runtime"], null)
     }
 
     void assertPublishedAsWebModule() {

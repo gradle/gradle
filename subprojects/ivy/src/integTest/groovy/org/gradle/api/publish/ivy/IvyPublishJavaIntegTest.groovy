@@ -39,12 +39,11 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         ivyModule.assertPublishedAsJavaModule()
 
         with (ivyModule.ivy) {
-            configurations.keySet() == ["default", "master", "runtime"] as Set
-            configurations["default"].extend == ["runtime", "master"] as Set
-            configurations["master"].extend == null
+            configurations.keySet() == ["default", "runtime"] as Set
+            configurations["default"].extend == ["runtime"] as Set
             configurations["runtime"].extend == null
 
-            expectArtifact("publishTest").hasAttributes("jar", "jar", ["master"])
+            expectArtifact("publishTest").hasAttributes("jar", "jar", ["runtime"])
 
             dependencies["runtime"].assertDependsOn("commons-collections", "commons-collections", "3.2.1")
             dependencies["runtime"].assertDependsOn("commons-io", "commons-io", "1.4")
@@ -99,7 +98,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                         artifact(sourceJar) {
                             classifier "source"
                             type "sources"
-                            conf "master"
+                            conf "runtime"
                         }
                     }
                 }
@@ -113,7 +112,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         ivyModule.assertPublished()
         ivyModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9-source.jar", "ivy-1.9.xml")
 
-        ivyModule.ivy.expectArtifact("publishTest", "jar", "source").hasAttributes("jar", "sources", ["master"], "source")
+        ivyModule.ivy.expectArtifact("publishTest", "jar", "source").hasAttributes("jar", "sources", ["runtime"], "source")
 
         and:
         resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]

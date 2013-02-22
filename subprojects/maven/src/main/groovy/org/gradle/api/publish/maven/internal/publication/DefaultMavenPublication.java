@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.Usage;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.publish.maven.MavenArtifact;
@@ -80,11 +81,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         this.component = (SoftwareComponentInternal) component;
 
-        for (PublishArtifact publishArtifact : this.component.getArtifacts()) {
-            artifact(publishArtifact);
-        }
+        for (Usage usage : this.component.getUsages()) {
+            // TODO:DAZ Need a smarter way to map usage to artifact classifier
+            for (PublishArtifact publishArtifact : usage.getArtifacts()) {
+                artifact(publishArtifact);
+            }
 
-        runtimeDependencies.addAll(this.component.getRuntimeDependencies());
+            // TODO:DAZ Need a smarter way to map usage to scope
+            runtimeDependencies.addAll(usage.getDependencies());
+        }
     }
 
     public MavenArtifact artifact(Object source) {

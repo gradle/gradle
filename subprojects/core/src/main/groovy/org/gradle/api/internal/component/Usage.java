@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.component;
 
-import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.Named;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 
 import java.util.Set;
 
-public interface SoftwareComponentInternal extends SoftwareComponent {
-    Set<Usage> getUsages();
-
+public interface Usage extends Named {
+    Set<PublishArtifact> getArtifacts();
+    Set<Dependency> getDependencies();
 }

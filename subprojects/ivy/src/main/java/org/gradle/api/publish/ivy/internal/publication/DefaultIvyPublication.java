@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.Usage;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.publish.ivy.IvyArtifact;
@@ -82,18 +83,17 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
         configurations.maybeCreate("default");
 
-        for (PublishArtifact publishArtifact : this.component.getArtifacts()) {
-            artifact(publishArtifact).setConf("master");
+        for (Usage usage : this.component.getUsages()) {
+            String conf = usage.getName();
+            configurations.maybeCreate(conf);
+            configurations.getByName("default").extend(conf);
 
-            configurations.maybeCreate("master");
-            configurations.getByName("default").extend("master");
-        }
+            for (PublishArtifact publishArtifact : usage.getArtifacts()) {
+                artifact(publishArtifact).setConf(conf);
+            }
 
-        if (this.component.getRuntimeDependencies() != null) {
-            runtimeDependencies.addAll(this.component.getRuntimeDependencies());
-
-            configurations.maybeCreate("runtime");
-            configurations.getByName("default").extend("runtime");
+            // TODO:DAZ This isn't right - need to model ivy dependencies by conf
+            runtimeDependencies.addAll(usage.getDependencies());
         }
     }
 
