@@ -105,15 +105,14 @@ public class ValidatingIvyPublisherTest extends Specification {
 
         then:
         def t = thrown InvalidUserDataException
-        t.message == "Invalid publication 'pub-name': artifact ${attribute} cannot be ${error}."
+        t.message == "Invalid publication 'pub-name': artifact ${attribute} cannot be an empty string. Use null instead."
 
         where:
-        attribute |name       |type  | extension | classifier | error
-        "name" | null | "type" | "ext" | "classifier" | "empty"
-        "name" | "" | "type" | "ext" | "classifier" | "empty"
-        "type" | "name" | "" | "ext" | "classifier" | "an empty string. Use null instead"
-        "extension" | "name" | "type" | "" | "classifier" | "an empty string. Use null instead"
-        "classifier" | "name" | "type" | "ext" | "" | "an empty string. Use null instead"
+        attribute |name       |type  | extension | classifier
+        "name" | "" | "type" | "ext" | "classifier"
+        "type" | "name" | "" | "ext" | "classifier"
+        "extension" | "name" | "type" | "" | "classifier"
+        "classifier" | "name" | "type" | "ext" | ""
     }
 
     @Unroll

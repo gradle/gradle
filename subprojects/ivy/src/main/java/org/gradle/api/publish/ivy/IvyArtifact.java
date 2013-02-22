@@ -27,14 +27,14 @@ import java.io.File;
 @Incubating
 public interface IvyArtifact extends Buildable {
     /**
-     * The name used to publish the artifact file, never <code>null</code>.
+     * The name used to publish the artifact file, or <code>null</code> if the module name should be used for the artifact name.
      */
     String getName();
 
     /**
      * Sets the name used to publish the artifact file.
+     * Set to <code>null</code> if the name of the containing module should be used for the artifact name.
      * @param name The name.
-     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setName(String name);
 

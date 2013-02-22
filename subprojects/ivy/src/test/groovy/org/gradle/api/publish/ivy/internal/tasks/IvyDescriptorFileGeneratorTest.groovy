@@ -88,8 +88,8 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes supplied publication artifacts"() {
         when:
-        def artifact1 = new DefaultIvyArtifact(null, "artifact1", "ext1", "type1", null)
-        def artifact2 = new DefaultIvyArtifact(null, "artifact2", null, null, "classy")
+        def artifact1 = new DefaultIvyArtifact(null, "artifact1", "ext1", "type1", "classy")
+        def artifact2 = new DefaultIvyArtifact(null, null, null, null, null)
         artifact2.setConf("runtime")
         generator.addArtifact(artifact1)
         generator.addArtifact(artifact2)
@@ -103,15 +103,15 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                 it.@name == "artifact1"
                 it.@type == "type1"
                 it.@ext == "ext1"
-                it.@classifier.isEmpty()
+                it.@classifier == "classy"
                 it.@conf.isEmpty()
             }
             with (publications[0].artifact[1]) {
-                it.@name == "artifact2"
+                it.@name == "my-name"
                 it.@type.isEmpty()
                 it.@ext.isEmpty()
+                it.@classifier.isEmpty()
                 it.@conf == "runtime"
-                it.@classifier == "classy"
             }
         }
     }

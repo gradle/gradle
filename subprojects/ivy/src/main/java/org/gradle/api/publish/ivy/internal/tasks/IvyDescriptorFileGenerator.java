@@ -18,7 +18,10 @@ package org.gradle.api.publish.ivy.internal.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.IoActions;
 import org.gradle.api.internal.xml.SimpleXmlWriter;
@@ -162,7 +165,7 @@ public class IvyDescriptorFileGenerator {
         xmlWriter.startElement("publications");
         for (IvyArtifact artifact : artifacts) {
             xmlWriter.startElement("artifact")
-                    .attribute("name", artifact.getName())
+                    .attribute("name", artifact.getName(), projectIdentity.getModule()) // TODO:DAZ We don't need this, since it's the ivy default. But I think it's nicer to be explicit.
                     .attribute("type", artifact.getType())
                     .attribute("ext", artifact.getExtension())
                     .attribute("conf", artifact.getConf())

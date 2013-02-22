@@ -22,8 +22,8 @@ import java.util.regex.Pattern
 
 class IvyDescriptor {
     final Map<String, IvyDescriptorDependencyConfiguration> dependencies = [:]
-    Map<String, IvyDescriptorArtifact> artifacts = [:]
     Map<String, IvyDescriptorConfiguration> configurations = [:]
+    List<IvyDescriptorArtifact> artifacts = []
     String organisation
     String module
     String revision
@@ -67,13 +67,26 @@ class IvyDescriptor {
                     mavenAttributes: artifact.attributes().findAll { it.key instanceof QName && it.key.namespaceURI == "http://ant.apache.org/ivy/maven" }.collectEntries { [it.key.localPart, it.value] }
             )
 
-            artifacts.put(ivyArtifact.name, ivyArtifact)
+            artifacts.add(ivyArtifact)
         }
 
     }
 
+    IvyDescriptorArtifact expectArtifact(String name, String ext, String classifier = null) {
+        return oneResult(artifacts.findAll({
+            it.name == name && it.ext == ext && it.classifier == classifier
+        }), [name, ext, classifier])
+    }
+
     IvyDescriptorArtifact expectArtifact(String name) {
-        assert artifacts.containsKey(name)
-        artifacts[name]
+        return oneResult(artifacts.findAll({
+            it.name == name
+        }), [name])
+    }
+
+    private IvyDescriptorArtifact oneResult(List<IvyDescriptorArtifact> artifacts, def description) {
+        assert artifacts.size() > 0 : "Expected artifact not found: $description"
+        assert artifacts.size() == 1 : "Multiple artifacts found: $description"
+        return artifacts.get(0)
     }
 }

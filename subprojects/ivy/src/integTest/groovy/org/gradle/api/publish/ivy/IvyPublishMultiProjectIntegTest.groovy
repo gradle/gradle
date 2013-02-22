@@ -41,7 +41,7 @@ class IvyPublishMultiProjectIntegTest extends AbstractIvyPublishIntegTest {
         resolveArtifacts(project1) == ['project1-1.9.jar', 'project2-1.9.jar', 'project3-1.9.jar']
     }
 
-    def "ivy-publish plugin does not take archivesBaseName into account for publication name"() {
+    def "ivy-publish plugin does not take archivesBaseName into account"() {
         createBuildScripts("""
 project(":project2") {
     archivesBaseName = "changed"
@@ -56,8 +56,7 @@ project(":project2") {
         project1.ivy.dependencies.runtime.assertDependsOnModules("project2", "project3")
 
         // published with the correct coordinates, even though artifact has different name
-        project2.assertPublished()
-        project2.assertArtifactsPublished("changed-${project2.revision}.jar", "ivy-${project2.revision}.xml")
+        project2.assertPublishedAsJavaModule()
         project2.ivy.dependencies.runtime.assertDependsOnModules("project3")
 
         project3.assertPublishedAsJavaModule()

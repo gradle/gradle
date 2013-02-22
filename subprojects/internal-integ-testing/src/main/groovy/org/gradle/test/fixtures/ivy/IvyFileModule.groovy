@@ -226,18 +226,18 @@ class IvyFileModule extends AbstractIvyModule {
     void assertPublishedAsJavaModule() {
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.jar", "ivy-${revision}.xml")
-        ivy.artifacts[module].hasAttributes("jar", "jar", ["runtime"], null)
+        ivy.expectArtifact(module, "jar").hasAttributes("jar", "jar", ["runtime"], null)
     }
 
     void assertPublishedAsWebModule() {
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.war", "ivy-${revision}.xml")
-        ivy.artifacts[module].hasAttributes("war", "war", ["runtime"])
+        ivy.expectArtifact(module, "war").hasAttributes("war", "war", ["runtime"])
     }
 
     void assertPublishedAsEarModule() {
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.ear", "ivy-${revision}.xml")
-        ivy.artifacts[module].hasAttributes("ear", "ear", ["runtime"])
+        ivy.expectArtifact(module, "ear").hasAttributes("ear", "ear", ["runtime"])
     }
 }

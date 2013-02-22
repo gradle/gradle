@@ -64,7 +64,7 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         return new DefaultArtifact(
                 moduleRevisionId,
                 null,
-                ivyArtifact.getName(),
+                GUtil.elvis(ivyArtifact.getName(), moduleRevisionId.getName()),
                 ivyArtifact.getType(),
                 ivyArtifact.getExtension(),
                 extraAttributes);

@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
-
 package org.gradle.api.publish.ivy.internal.artifact
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
@@ -68,7 +63,7 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         def ivyArtifact = parser.parseNotation(publishArtifact)
 
         then:
-        ivyArtifact.name == publishArtifact.name
+        ivyArtifact.name == null
         ivyArtifact.extension == publishArtifact.extension
         ivyArtifact.type == publishArtifact.type
         ivyArtifact.file == publishArtifact.file
@@ -85,7 +80,7 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         IvyArtifact ivyArtifact = parser.parseNotation(source: publishArtifact)
 
         then:
-        ivyArtifact.name == publishArtifact.name
+        ivyArtifact.name == null
         ivyArtifact.extension == publishArtifact.extension
         ivyArtifact.type == publishArtifact.type
         ivyArtifact.file == publishArtifact.file
@@ -108,7 +103,7 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         fileNotationParser.parseNotation('some-file') >> file
 
         and:
-        ivyArtifact.name == "some-file"
+        ivyArtifact.name == null
         ivyArtifact.extension == "zip"
         ivyArtifact.type == "zip"
         ivyArtifact.file == file
@@ -142,7 +137,7 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         IvyArtifact ivyArtifact = parser.parseNotation(archive)
 
         then:
-        ivyArtifact.name == "base-name"
+        ivyArtifact.name == null
         ivyArtifact.extension == "extension"
         ivyArtifact.file == archive.archivePath
         ivyArtifact.buildDependencies.getDependencies(null) == [archive] as Set
@@ -159,16 +154,17 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         fileNotationParser.parseNotation('some-file') >> file
 
         and:
-        ivyArtifact.name == name
+        ivyArtifact.name == null
         ivyArtifact.extension == extension
         ivyArtifact.type == type
+        ivyArtifact.classifier == classifier
         ivyArtifact.file == file
 
         where:
-        fileName                       | name        | extension | type
-        "some-file-1.2.zip"            | "some-file" | "zip"     | "zip"
-        "some-file"                    | "some-file" | null      | null
-        "some-file-1.2-classifier.zip" | "some-file" | "zip"     | "zip"
+        fileName                       | extension | type  | classifier
+        "some-file-1.2.zip"            | "zip"     | "zip" | null
+        "some-file"                    | null      | null  | null
+        "some-file-1.2-classifier.zip" | "zip"     | "zip" | "classifier"
     }
 
 }

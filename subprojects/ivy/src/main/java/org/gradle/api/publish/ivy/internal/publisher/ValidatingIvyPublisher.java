@@ -85,7 +85,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     public void validateArtifacts(IvyNormalizedPublication publication) {
         for (IvyArtifact artifact : publication.getArtifacts()) {
-            checkNonEmpty(publication.getName(), "artifact name", artifact.getName());
+            checkOptionalNonEmpty(publication.getName(), "artifact name", artifact.getName());
             checkOptionalNonEmpty(publication.getName(), "artifact type", artifact.getType());
             checkOptionalNonEmpty(publication.getName(), "artifact extension", artifact.getExtension());
             checkOptionalNonEmpty(publication.getName(), "artifact classifier", artifact.getClassifier());

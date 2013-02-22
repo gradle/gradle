@@ -79,7 +79,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         protected IvyArtifact parseType(AbstractArchiveTask archiveTask) {
             DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
                     DefaultIvyArtifact.class,
-                    archiveTask.getArchivePath(), archiveTask.getBaseName(), GUtil.elvis(archiveTask.getExtension(), null), archiveTask.getExtension(), GUtil.elvis(archiveTask.getClassifier(), null)
+                    archiveTask.getArchivePath(), null, GUtil.elvis(archiveTask.getExtension(), null), archiveTask.getExtension(), GUtil.elvis(archiveTask.getClassifier(), null)
             );
             ivyArtifact.builtBy(archiveTask);
             return ivyArtifact;
@@ -95,7 +95,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         protected IvyArtifact parseType(PublishArtifact publishArtifact) {
             DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
                     DefaultIvyArtifact.class,
-                    publishArtifact.getFile(), publishArtifact.getName(), emptyToNull(publishArtifact.getExtension()), emptyToNull(publishArtifact.getType()), emptyToNull(publishArtifact.getClassifier())
+                    publishArtifact.getFile(), null, emptyToNull(publishArtifact.getExtension()), emptyToNull(publishArtifact.getType()), emptyToNull(publishArtifact.getClassifier())
             );
             ivyArtifact.builtBy(publishArtifact.getBuildDependencies());
             return ivyArtifact;
@@ -117,8 +117,8 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         protected IvyArtifact parseFile(File file) {
             ArtifactFile artifactFile = new ArtifactFile(file, version);
             return instantiator.newInstance(
-                    DefaultIvyArtifact.class, file,
-                    artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier()
+                    DefaultIvyArtifact.class,
+                    file, null, artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier()
             );
         }
 
