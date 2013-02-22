@@ -16,8 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
@@ -36,13 +36,10 @@ import java.util.Collection;
 
 public class IvyArtifactNotationParserFactory implements Factory<NotationParser<IvyArtifact>> {
     private final Instantiator instantiator;
-    private final String version;
     private final FileResolver fileResolver;
 
-    public IvyArtifactNotationParserFactory(Instantiator instantiator, String version, FileResolver fileResolver) {
+    public IvyArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
-        // TODO:DAZ Remove the use of version in parsing artifact names
-        this.version = version;
         this.fileResolver = fileResolver;
     }
 
@@ -115,10 +112,10 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         }
 
         protected IvyArtifact parseFile(File file) {
-            ArtifactFile artifactFile = new ArtifactFile(file, version);
+            String extension = emptyToNull(StringUtils.substringAfterLast(file.getName(), "."));
             return instantiator.newInstance(
                     DefaultIvyArtifact.class,
-                    file, null, artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier()
+                    file, null, extension, extension, null
             );
         }
 

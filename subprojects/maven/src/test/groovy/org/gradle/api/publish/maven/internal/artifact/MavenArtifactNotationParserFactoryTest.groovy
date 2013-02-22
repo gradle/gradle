@@ -47,7 +47,7 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
         def fileResolver = Stub(FileResolver) {
             asNotationParser() >> fileNotationParser
         }
-        parser = new MavenArtifactNotationParserFactory(instantiator, "1.2", fileResolver).create()
+        parser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create()
     }
 
     def "directly returns MavenArtifact input"() {
@@ -113,8 +113,8 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
 
         and:
         mavenArtifact.extension == "zip"
-        mavenArtifact.classifier == "classifier"
         mavenArtifact.file == file
+        mavenArtifact.classifier == null
     }
 
     def "creates MavenArtifact for ArchivePublishArtifact"() {
@@ -141,24 +141,22 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
     }
 
     def "creates MavenArtifact for file notation"() {
-        given:
-        File file = new File('some-file-1.2-classifier.zip')
-
         when:
-        MavenArtifact mavenArtifact = parser.parseNotation('some-file')
-
-        then:
+        File file = new File(fileName)
         fileNotationParser.parseNotation('some-file') >> file
 
         and:
-        mavenArtifact.extension == "zip"
-        mavenArtifact.classifier == "classifier"
+        MavenArtifact mavenArtifact = parser.parseNotation('some-file')
+
+        then:
+        mavenArtifact.extension == extension
         mavenArtifact.file == file
+        mavenArtifact.classifier == null
 
         where:
-        fileName                       | extension | classifier
-        "some-file"                    | ""        | ""
-        "some-file.zip"                | "zip"     | ""
-        "some-file-1.2-classifier.zip" | "zip"     | "classifier"
+        fileName                       | extension
+        "some-file"                    | null
+        "some-file.zip"                | "zip"
+        "some-file-1.2-classifier.zip" | "zip"
     }
 }

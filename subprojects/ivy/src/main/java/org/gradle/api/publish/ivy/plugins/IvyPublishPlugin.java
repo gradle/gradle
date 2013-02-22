@@ -97,8 +97,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         public Publication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
             IvyProjectIdentity projectIdentity = new DefaultIvyProjectIdentity(module.getGroup(), module.getName(), module.getVersion());
-            // TODO:DAZ Ditch the magic parsing of file names
-            NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, module.getVersion(), fileResolver).create();
+            NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver).create();
             DefaultIvyPublication ivyPublication = instantiator.newInstance(
                     DefaultIvyPublication.class,
                     name, instantiator, projectIdentity, notationParser

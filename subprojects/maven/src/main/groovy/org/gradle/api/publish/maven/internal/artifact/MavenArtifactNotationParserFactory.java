@@ -16,8 +16,8 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.dsl.ArtifactFile;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
@@ -36,13 +36,10 @@ import java.util.Collection;
 
 public class MavenArtifactNotationParserFactory implements Factory<NotationParser<MavenArtifact>> {
     private final Instantiator instantiator;
-    private final String version;
     private final FileResolver fileResolver;
 
-    public MavenArtifactNotationParserFactory(Instantiator instantiator, String version, FileResolver fileResolver) {
+    public MavenArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
-        // TODO:DAZ Remove the use of version in parsing artifact names
-        this.version = version;
         this.fileResolver = fileResolver;
     }
 
@@ -113,8 +110,8 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         }
 
         protected MavenArtifact parseFile(File file) {
-            ArtifactFile artifactFile = new ArtifactFile(file, version);
-            return instantiator.newInstance(DefaultMavenArtifact.class, file, artifactFile.getExtension(), artifactFile.getClassifier());
+            String extension = StringUtils.substringAfterLast(file.getName(), ".");
+            return instantiator.newInstance(DefaultMavenArtifact.class, file, emptyToNull(extension), null);
         }
 
         public void describe(Collection<String> candidateFormats) {

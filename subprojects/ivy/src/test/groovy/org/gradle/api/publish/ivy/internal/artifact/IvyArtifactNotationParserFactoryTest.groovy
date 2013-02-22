@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.publish.ivy.internal.artifact
+
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.file.FileResolver
@@ -47,7 +48,7 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         def fileResolver = Stub(FileResolver) {
             asNotationParser() >> fileNotationParser
         }
-        parser = new IvyArtifactNotationParserFactory(instantiator, "1.2", fileResolver).create()
+        parser = new IvyArtifactNotationParserFactory(instantiator, fileResolver).create()
     }
 
     def "directly returns IvyArtifact input"() {
@@ -157,14 +158,14 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
         ivyArtifact.name == null
         ivyArtifact.extension == extension
         ivyArtifact.type == type
-        ivyArtifact.classifier == classifier
+        ivyArtifact.classifier == null
         ivyArtifact.file == file
 
         where:
-        fileName                       | extension | type  | classifier
-        "some-file-1.2.zip"            | "zip"     | "zip" | null
-        "some-file"                    | null      | null  | null
-        "some-file-1.2-classifier.zip" | "zip"     | "zip" | "classifier"
+        fileName                       | extension | type
+        "some-file-1.2.zip"            | "zip"     | "zip"
+        "some-file"                    | null      | null
+        "some-file-1.2-classifier.zip" | "zip"     | "zip"
     }
 
 }
