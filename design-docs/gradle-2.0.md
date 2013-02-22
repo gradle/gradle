@@ -7,8 +7,16 @@ Gradle 2.0 is the next major Gradle release that offers the opportunity to make 
 * Rename buildNeeded to buildUpstream
 * Add a new task buildStream which is equivalent to buildDownstream buildUpstream
 
-
 ## build.gradle in a multiproject build
 * A Gradle best pattern is to name the gradle file to be the same name as the subproject. 
 * In Gradle 2.0, lets support this out of the box, possibly as a preference to build.gradle, and maybe drop support for build.gradle in subprojects.
 
+## Why remind people about Maven?
+Change from:
+repositories {
+	mavenCentral()
+}
+to:
+repositories {
+	central()
+}
