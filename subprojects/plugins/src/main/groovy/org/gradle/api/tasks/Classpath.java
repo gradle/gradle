@@ -16,11 +16,13 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Buildable;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
 /**
  * A collection of files to be used as a class path.
  */
+@Incubating
 public interface Classpath extends Buildable {
     FileCollection getFiles();
 }

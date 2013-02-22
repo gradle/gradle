@@ -16,12 +16,14 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Buildable;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
  * A set of sources for a programming language.
  */
+@Incubating
 public interface LanguageSourceSet extends Named, Buildable {
     // TODO: do we want to keep using SourceDirectorySet in the new API?
     // would feel more natural if dirs could be added directly to LanguageSourceSet

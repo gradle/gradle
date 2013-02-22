@@ -15,9 +15,12 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
+
 /**
  * A set of sources for a JVM language.
  */
+@Incubating
 public interface JvmLanguageSourceSet extends LanguageSourceSet {
     Classpath getCompileClasspath();
 }

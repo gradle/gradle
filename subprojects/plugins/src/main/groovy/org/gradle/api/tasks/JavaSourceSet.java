@@ -15,7 +15,10 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
+
 /**
  * A set of sources passed to the Java compiler.
  */
+@Incubating
 public interface JavaSourceSet extends JvmLanguageSourceSet {}

@@ -28,6 +28,7 @@ import java.io.File;
 // between classes and resources dirs, instead of just maintaining a collection of dirs.
 // As far as generated resources are concerned, it might be better to model
 // them as an additional (Buildable) ResourceSet.
+@Incubating
 public interface ClassDirectoryBinary extends Named, Buildable {
     File getClassesDir();
     void setClassesDir(File dir);

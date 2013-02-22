@@ -17,10 +17,13 @@ package org.gradle.api.tasks;
 
 // TODO: should probably be a NamedDomainObjectContainer or so, which should be applied by language-base plugin (like for source sets)
 
+import org.gradle.api.Incubating;
+
 /**
  * A container for binaries produced by the build. Added to a project
  * by the {@link org.gradle.api.plugins.LanguageBasePlugin}.
  */
+@Incubating
 public interface BinaryContainer {
     JvmBinaryContainer getJvm();
 }

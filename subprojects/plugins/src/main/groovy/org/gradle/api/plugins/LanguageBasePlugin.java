@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.DefaultProjectSourceSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -27,6 +28,7 @@ import javax.inject.Inject;
  * Base plugin for language support. Adds a {@code sources} source set container to the project.
  * Part of the new source set and packaging model.
  */
+@Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
 

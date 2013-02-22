@@ -34,6 +34,7 @@ import java.util.concurrent.Callable;
  * {@link ClassDirectoryBinary}, and a {@code processResources} task for each {@link ResourceSet} added to a
  * {@link ClassDirectoryBinary}.
  */
+@Incubating
 public class JvmLanguagePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
 

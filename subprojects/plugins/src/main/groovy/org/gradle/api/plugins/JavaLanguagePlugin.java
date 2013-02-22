@@ -25,6 +25,7 @@ import org.gradle.api.tasks.compile.JavaCompile;
  * Plugin for compiling Java code. Applies the {@link JvmLanguagePlugin}.
  * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link ClassDirectoryBinary}.
  */
+@Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         final JvmLanguagePlugin jvmLanguagePlugin = target.getPlugins().apply(JvmLanguagePlugin.class);

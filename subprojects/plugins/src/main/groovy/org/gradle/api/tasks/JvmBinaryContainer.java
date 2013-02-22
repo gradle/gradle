@@ -15,10 +15,12 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * A container for JVM binaries.
  */
+@Incubating
 public interface JvmBinaryContainer extends NamedDomainObjectContainer<ClassDirectoryBinary> {
 }
