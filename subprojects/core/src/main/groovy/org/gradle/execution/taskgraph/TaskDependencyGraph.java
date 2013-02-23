@@ -18,9 +18,7 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Set;
 
 public class TaskDependencyGraph {
@@ -35,20 +33,25 @@ public class TaskDependencyGraph {
         return getTasks().contains(task);
     }
 
-    public void addEdge(Task fromTask, Task toTask) {
+    public void addHardEdge(Task fromTask, Task toTask) {
         addEdge(fromTask, toTask, true);
     }
 
-    public void addEdge(Task fromTask, Task toTask, boolean toTaskIsRequired) {
+    public void addSoftEdge(Task fromTask, Task toTask) {
+        addEdge(fromTask, toTask, false);
+    }
+
+    private void addEdge(Task fromTask, Task toTask, boolean isHard) {
         TaskDependencyGraphNode fromNode = getOrCreateNode(fromTask);
         fromNode.setRequired(true);
 
         TaskDependencyGraphNode toNode = getOrCreateNode(toTask);
-        if (toTaskIsRequired) {
+        if (isHard) {
             toNode.setRequired(true);
+            fromNode.addHardEdgeTo(toNode);
+        } else {
+            fromNode.addSoftEdgeTo(toNode);
         }
-
-        fromNode.addEdgeTo(toNode);
     }
 
     public void addNode(Task task) {

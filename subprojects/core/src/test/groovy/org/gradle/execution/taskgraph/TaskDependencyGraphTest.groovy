@@ -21,10 +21,17 @@ import spock.lang.Specification
 
 class TaskDependencyGraphTest extends Specification {
     def graph = new TaskDependencyGraph()
-    def a = Mock(Task)
-    def b = Mock(Task)
-    def c = Mock(Task)
-    def d = Mock(Task)
+    def a = task('a')
+    def b = task('b')
+    def c = task('c')
+    def d = task('d')
+
+    private Task task(String name) {
+        Mock(Task) {
+            getName() >> name
+            compareTo(_) >> { args -> name.compareTo(args[0].name)}
+        }
+    }
 
     void 'adding nodes'() {
         when:
@@ -35,46 +42,47 @@ class TaskDependencyGraphTest extends Specification {
         graph.tasks == [a, b] as Set
 
         and:
-        with graph.getNode(a), {
-            !successors
-            required
-        }
-        with graph.getNode(b), {
-            !successors
-            required
+        [a, b].every {
+            def node = graph.getNode(it)
+            node.required && !node.softSuccessors && !node.hardSuccessors
         }
     }
 
-    void 'adding edges'() {
+    void 'adding hard edges'() {
         when:
-        graph.addEdge(a, b)
-        graph.addEdge(a, c)
+        graph.addHardEdge(a, c)
+        graph.addHardEdge(a, b)
 
         then:
         with graph, {
-            tasks == [a, b, c] as Set
-            getNode(a).successors*.task == [b, c]
-            !getNode(b).successors
-            !getNode(c).successors
+            tasks == [a, c, b] as Set
+            getNode(a).hardSuccessors*.task == [b, c]
+            [b, c].every { !getNode(it).hardSuccessors }
             [a, b, c].every { getNode(it).required }
+            [a, b, c].every { !getNode(it).softSuccessors }
         }
     }
 
-    void 'adding edges to non required tasks'() {
+    void 'adding soft edges'() {
         when:
-        graph.addEdge(a, b, false)
+        graph.addSoftEdge(a, c)
+        graph.addSoftEdge(a, b)
 
         then:
         with graph, {
+            tasks == [a, c, b] as Set
+            getNode(a).softSuccessors*.task == [b, c]
+            [b, c].every { !getNode(it).softSuccessors }
             getNode(a).required
-            !getNode(b).required
+            [b, c].every { !getNode(it).required }
+            [a, b, c].every { !getNode(it).hardSuccessors }
         }
     }
 
     void 'adding edges to previously non required tasks'() {
         when:
-        graph.addEdge(a, b, false)
-        graph.addEdge(c, b)
+        graph.addSoftEdge(a, b)
+        graph.addHardEdge(c, b)
 
         then:
         [a, b, c].every { graph.getNode(it).required }
@@ -82,8 +90,8 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'adding edges to previously required tasks'() {
         when:
-        graph.addEdge(a, b)
-        graph.addEdge(c, b, false)
+        graph.addHardEdge(a, b)
+        graph.addSoftEdge(c, b)
 
         then:
         [a, b, c].every { graph.getNode(it).required }
@@ -91,9 +99,9 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'adding a previously non required task'() {
         when:
-        graph.addEdge(a, b, false)
-        graph.addEdge(b, c)
-        graph.addEdge(a, d, false)
+        graph.addSoftEdge(a, b)
+        graph.addHardEdge(b, c)
+        graph.addSoftEdge(a, d)
         graph.addNode(d)
 
         then:
@@ -102,7 +110,7 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'clear'() {
         when:
-        graph.addEdge(a, b)
+        graph.addHardEdge(a, b)
         graph.addNode(c)
         graph.clear()
 
@@ -112,7 +120,7 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'has task'() {
         when:
-        graph.addEdge(a, b)
+        graph.addHardEdge(a, b)
         graph.addNode(c)
 
         then:

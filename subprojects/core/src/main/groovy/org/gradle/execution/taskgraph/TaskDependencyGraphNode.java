@@ -18,12 +18,13 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class TaskDependencyGraphNode implements Comparable<TaskDependencyGraphNode> {
     private final Task task;
-    private final Set<TaskDependencyGraphNode> successors = new HashSet<TaskDependencyGraphNode>();
+    private final Set<TaskDependencyGraphNode> hardSuccessors = new TreeSet<TaskDependencyGraphNode>();
+    private final Set<TaskDependencyGraphNode> softSuccessors = new TreeSet<TaskDependencyGraphNode>();
     private boolean required = false;
 
     public TaskDependencyGraphNode(Task task) {
@@ -34,8 +35,12 @@ public class TaskDependencyGraphNode implements Comparable<TaskDependencyGraphNo
         return task;
     }
 
-    public Set<TaskDependencyGraphNode> getSuccessors() {
-        return successors;
+    public Set<TaskDependencyGraphNode> getHardSuccessors() {
+        return hardSuccessors;
+    }
+
+    public Set<TaskDependencyGraphNode> getSoftSuccessors() {
+        return softSuccessors;
     }
 
     public boolean getRequired() {
@@ -46,8 +51,12 @@ public class TaskDependencyGraphNode implements Comparable<TaskDependencyGraphNo
         this.required = required;
     }
 
-    public void addEdgeTo(TaskDependencyGraphNode toNode) {
-        successors.add(toNode);
+    public void addHardEdgeTo(TaskDependencyGraphNode toNode) {
+        hardSuccessors.add(toNode);
+    }
+
+    public void addSoftEdgeTo(TaskDependencyGraphNode toNode) {
+        softSuccessors.add(toNode);
     }
 
     public int compareTo(TaskDependencyGraphNode otherNode) {
