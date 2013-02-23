@@ -24,7 +24,7 @@ public interface BuildableModuleVersionResolveResult extends ModuleVersionResolv
     /**
      * Marks the module version as resolved, with the given meta-data and artifact resolver.
      */
-    void resolved(ModuleVersionIdentifier moduleRevisionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver);
+    void resolved(ModuleVersionIdentifier moduleVersionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver);
 
     /**
      * Marks the resolve as failed with the given exception.

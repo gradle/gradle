@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-// at some point, this is due to merge with ModuleVersionResolveResult
+/**
+ * The meta-data for a module version.
+ */
 public interface ModuleVersionDescriptor {
     ModuleVersionIdentifier getId();
 

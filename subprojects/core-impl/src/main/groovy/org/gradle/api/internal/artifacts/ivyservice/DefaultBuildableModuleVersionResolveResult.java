@@ -20,6 +20,8 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionDescriptor;
 
 public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
     private ModuleVersionIdentifier moduleVersionIdentifier;
@@ -33,13 +35,12 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         return this;
     }
 
-
     public void notFound(ModuleVersionIdentifier moduleVersionIdentifier) {
         failed(new ModuleVersionNotFoundException(moduleVersionIdentifier));
     }
 
-    public void resolved(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
-        this.moduleVersionIdentifier = moduleVersionIdentifier;
+    public void resolved(ModuleVersionIdentifier moduleVersionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
+        this.moduleVersionIdentifier = moduleVersionId;
         this.moduleDescriptor = descriptor;
         this.artifactResolver = artifactResolver;
     }
@@ -63,6 +64,13 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
     public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
         assertResolved();
         return moduleDescriptor;
+    }
+
+    public ModuleVersionDescriptor getMetaData() throws ModuleVersionResolveException {
+        assertResolved();
+        DefaultBuildableModuleVersionDescriptor metaData = new DefaultBuildableModuleVersionDescriptor();
+        metaData.resolved(moduleVersionIdentifier, moduleDescriptor, false, null);
+        return metaData;
     }
 
     public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {

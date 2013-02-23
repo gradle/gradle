@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 /**
@@ -37,9 +38,14 @@ public interface BuildableModuleVersionDescriptor extends ModuleVersionDescripto
     ModuleVersionResolveException getFailure();
 
     /**
-     * Marks the module version as resolved, with the given meta-data and provides the related CachedModuleDescriptor.
+     * Marks the module version as resolved, with the given meta-data.
      */
     void resolved(ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource);
+
+    /**
+     * Marks the module version as resolved, with the given meta-data.
+     */
+    void resolved(ModuleVersionIdentifier id, ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource);
 
     /**
      * Marks the resolve as failed with the given exception.
@@ -57,9 +63,9 @@ public interface BuildableModuleVersionDescriptor extends ModuleVersionDescripto
     void probablyMissing();
 
     /**
-     * The ModuleSource of the buildable result
+     * The repository-specific source for the module version.
      */
     public ModuleSource getModuleSource();
 
-
+    void setModuleSource(ModuleSource moduleSource);
 }

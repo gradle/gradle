@@ -84,7 +84,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             DependencyDescriptor enrichedDependencyDescriptor = enrichDependencyDescriptorWithSnapshotVersionInfo(dd, dependencyRevisionId, uniqueSnapshotVersion);
             super.getDependency(enrichedDependencyDescriptor, result);
             if (result.getState() == BuildableModuleVersionDescriptor.State.Resolved) {
-                result.resolved(result.getDescriptor(), result.isChanging(), new TimestampedModuleSource(uniqueSnapshotVersion));
+                result.setModuleSource(new TimestampedModuleSource(uniqueSnapshotVersion));
             }
         } else {
             super.getDependency(dd, result);

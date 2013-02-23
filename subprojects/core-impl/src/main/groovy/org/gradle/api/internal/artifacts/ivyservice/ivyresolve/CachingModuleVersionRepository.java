@@ -96,7 +96,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
                 moduleResolutionCache.cacheModuleResolution(delegate, dependencyDescriptor.getDependencyRevisionId(), result.getId());
                 final ModuleSource moduleSource = result.getModuleSource();
                 final ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.cacheModuleDescriptor(delegate, result.getId(), result.getDescriptor(), moduleSource, isChangingDependency(dependencyDescriptor, result));
-                result.resolved(result.getDescriptor(), result.isChanging(), new CachingModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule(), moduleSource));
+                result.setModuleSource(new CachingModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule(), moduleSource));
                 break;
             case Failed:
                 break;
@@ -158,7 +158,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
 
         LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
-        result.resolved(cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule(), new CachingModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule(), cachedModuleDescriptor.getModuleSource()));
+        result.resolved(moduleVersionIdentifier, cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule(), new CachingModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule(), cachedModuleDescriptor.getModuleSource()));
     }
 
     private boolean isChangingDependency(DependencyDescriptor descriptor, ModuleVersionDescriptor downloadedModule) {

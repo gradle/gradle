@@ -24,6 +24,23 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     def result = new DefaultBuildableModuleVersionResolveResult()
 
+    def "can query id and meta-data when resolved"() {
+        ModuleVersionIdentifier id = Mock()
+        ModuleDescriptor descriptor = Mock()
+        ArtifactResolver resolver = Mock()
+
+        when:
+        result.resolved(id, descriptor, resolver)
+
+        then:
+        result.id == id
+        result.descriptor == descriptor
+        result.artifactResolver == resolver
+        result.metaData.id == id
+        result.metaData.descriptor == descriptor
+        !result.metaData.changing
+    }
+
     def "cannot get id when no result has been specified"() {
         when:
         result.id
@@ -36,6 +53,15 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     def "cannot get descriptor when no result has been specified"() {
         when:
         result.descriptor
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'No result has been specified.'
+    }
+
+    def "cannot get meta-data when no result has been specified"() {
+        when:
+        result.metaData
 
         then:
         IllegalStateException e = thrown()

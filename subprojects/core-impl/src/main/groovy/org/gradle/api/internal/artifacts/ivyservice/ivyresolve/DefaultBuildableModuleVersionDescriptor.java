@@ -38,11 +38,16 @@ public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleV
     }
 
     public void resolved(ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource) {
+        ModuleRevisionId moduleRevisionId = descriptor.getModuleRevisionId();
+        DefaultModuleVersionIdentifier id = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+        resolved(id, descriptor, changing, moduleSource);
+    }
+
+    public void resolved(ModuleVersionIdentifier id, ModuleDescriptor descriptor, boolean changing, ModuleSource moduleSource) {
         reset(State.Resolved);
-        moduleDescriptor = descriptor;
+        this.moduleVersionIdentifier = id;
+        this.moduleDescriptor = descriptor;
         this.changing = changing;
-        final ModuleRevisionId moduleRevisionId = descriptor.getModuleRevisionId();
-        this.moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
         this.moduleSource = moduleSource;
     }
 
@@ -101,5 +106,10 @@ public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleV
     public ModuleSource getModuleSource() {
         assertResolved();
         return moduleSource;
+    }
+
+    public void setModuleSource(ModuleSource moduleSource) {
+        assertResolved();
+        this.moduleSource = moduleSource;
     }
 }
