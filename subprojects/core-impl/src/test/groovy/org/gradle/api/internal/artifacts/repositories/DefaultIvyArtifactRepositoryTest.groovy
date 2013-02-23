@@ -44,6 +44,12 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             fileResolver, credentials, transportFactory, locallyAvailableResourceFinder, new DirectInstantiator()
     )
 
+    def "default values"() {
+        expect:
+        repository.url == null
+        !repository.metaData.ivy.dynamicResolveMode
+    }
+
     def "cannot create a resolver for url with unknown scheme"() {
         repository.name = 'name'
         repository.artifactPattern 'pattern1'
@@ -56,7 +62,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "You may only specify 'file', 'http' and 'https' urls for an ivy repository."
+        e.message == "You may only specify 'file', 'http' and 'https' urls for an Ivy repository."
     }
 
     def "cannot creates a resolver for mixed url scheme"() {
@@ -73,7 +79,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories."
+        e.message == "You cannot mix file and http(s) urls for a single Ivy repository. Please declare 2 separate repositories."
     }
 
     def "creates a resolver for HTTP patterns"() {

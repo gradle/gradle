@@ -16,11 +16,12 @@
 package org.gradle.api.artifacts.repositories;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 
 import java.net.URI;
 
 /**
- * <p>An artifact repository which uses an Ivy format to store artifacts and meta-data</p>
+ * <p>An artifact repository which uses an Ivy format to store artifacts and meta-data.</p>
  *
  * <p>When used to resolve metadata and artifact files, all available patterns will be searched.</p>
  *
@@ -125,4 +126,12 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      */
     void layout(String layoutName, Closure config);
 
+    /**
+     * Returns the meta-data provider for this repository. The provider is responsible for locating and interpreting the meta-data for the modules and
+     * artifacts contained in this repository. Using the provider, you can configure how this should work.
+     *
+     * @return The meta-data provider for this repository.
+     */
+    @Incubating
+    ArtifactRepositoryMetaDataProvider getMetaData();
 }
