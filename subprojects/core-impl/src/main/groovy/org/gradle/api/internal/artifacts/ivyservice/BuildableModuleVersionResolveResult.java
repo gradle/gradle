@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 public interface BuildableModuleVersionResolveResult extends ModuleVersionResolveResult {
@@ -39,7 +38,7 @@ public interface BuildableModuleVersionResolveResult extends ModuleVersionResolv
     /**
      * Replaces the meta-data in the result. Result must already be resolved.
      */
-    void setMetaData(ModuleRevisionId moduleRevisionId, ModuleDescriptor descriptor);
+    void setMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor descriptor);
 
     /**
      * Replaces the artifact resolver in the result. Result must already be resolved.

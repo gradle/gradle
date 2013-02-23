@@ -34,7 +34,6 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
 
         then:
         result.id == id
-        result.descriptor == descriptor
         result.artifactResolver == resolver
         result.metaData.id == id
         result.metaData.descriptor == descriptor
@@ -44,15 +43,6 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     def "cannot get id when no result has been specified"() {
         when:
         result.id
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'No result has been specified.'
-    }
-
-    def "cannot get descriptor when no result has been specified"() {
-        when:
-        result.descriptor
 
         then:
         IllegalStateException e = thrown()
@@ -98,12 +88,12 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
         e == failure
     }
 
-    def "cannot get descriptor when resolve failed"() {
+    def "cannot get meta-data when resolve failed"() {
         def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
 
         when:
         result.failed(failure)
-        result.descriptor
+        result.metaData
 
         then:
         ModuleVersionResolveException e = thrown()

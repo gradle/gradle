@@ -56,7 +56,8 @@ class LazyDependencyToModuleResolverTest extends Specification {
         moduleResolveResult.id.name == module.moduleRevisionId.name
         moduleResolveResult.id.version == module.moduleRevisionId.revision
 
-        moduleResolveResult.descriptor == module
+        moduleResolveResult.metaData.id == moduleResolveResult.id
+        moduleResolveResult.metaData.descriptor == module
 
         1 * target.resolve(dependency, _) >> { args -> args[1].resolved(moduleIdentifier(module), module, Mock(ArtifactResolver))}
         0 * target._
@@ -135,7 +136,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         0 * target._
 
         when:
-        resolveResult.descriptor
+        resolveResult.metaData
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -202,7 +203,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         when:
         def resolveResult = idResolveResult.resolve()
-        resolveResult.descriptor
+        resolveResult.metaData
 
         then:
         e = thrown()

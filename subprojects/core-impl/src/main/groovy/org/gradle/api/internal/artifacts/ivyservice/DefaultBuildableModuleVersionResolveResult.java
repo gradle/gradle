@@ -17,20 +17,17 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionDescriptor;
 
 public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
-    private ModuleVersionIdentifier moduleVersionIdentifier;
-    private ModuleDescriptor moduleDescriptor;
+    private DefaultBuildableModuleVersionDescriptor metaData;
     private ModuleVersionResolveException failure;
     private ArtifactResolver artifactResolver;
 
     public DefaultBuildableModuleVersionResolveResult failed(ModuleVersionResolveException failure) {
-        moduleDescriptor = null;
+        metaData = null;
         this.failure = failure;
         return this;
     }
@@ -40,15 +37,15 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
     }
 
     public void resolved(ModuleVersionIdentifier moduleVersionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
-        this.moduleVersionIdentifier = moduleVersionId;
-        this.moduleDescriptor = descriptor;
+        metaData = new DefaultBuildableModuleVersionDescriptor();
+        metaData.resolved(moduleVersionId, descriptor, false, null);
         this.artifactResolver = artifactResolver;
     }
 
-    public void setMetaData(ModuleRevisionId moduleRevisionId, ModuleDescriptor descriptor) {
+    public void setMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor descriptor) {
         assertResolved();
-        this.moduleVersionIdentifier = toModuleVersionIdentifier(moduleRevisionId);
-        this.moduleDescriptor = descriptor;
+        metaData = new DefaultBuildableModuleVersionDescriptor();
+        metaData.resolved(moduleVersionIdentifier, descriptor, false, null);
     }
 
     public void setArtifactResolver(ArtifactResolver artifactResolver) {
@@ -58,18 +55,11 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
 
     public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
         assertResolved();
-        return moduleVersionIdentifier;
-    }
-
-    public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-        assertResolved();
-        return moduleDescriptor;
+        return metaData.getId();
     }
 
     public ModuleVersionDescriptor getMetaData() throws ModuleVersionResolveException {
         assertResolved();
-        DefaultBuildableModuleVersionDescriptor metaData = new DefaultBuildableModuleVersionDescriptor();
-        metaData.resolved(moduleVersionIdentifier, moduleDescriptor, false, null);
         return metaData;
     }
 
@@ -83,10 +73,6 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         return failure;
     }
 
-    private ModuleVersionIdentifier toModuleVersionIdentifier(ModuleRevisionId moduleRevisionId) {
-        return new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
-    }
-
     private void assertResolved() {
         assertHasResult();
         if (failure != null) {
@@ -95,7 +81,7 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
     }
 
     private void assertHasResult() {
-        if (failure == null && moduleDescriptor == null) {
+        if (failure == null && metaData == null) {
             throw new IllegalStateException("No result has been specified.");
         }
     }

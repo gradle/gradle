@@ -20,6 +20,8 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
@@ -34,6 +36,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class ClientModuleResolverTest extends Specification {
     final ModuleDescriptor module = Mock()
     final ModuleRevisionId moduleId = new ModuleRevisionId(new ModuleId("org", "name"), "1.0")
+    final ModuleVersionIdentifier moduleVersionId = new DefaultModuleVersionIdentifier("org", "name", "1.0")
     final DependencyToModuleResolver target = Mock()
     final ClientModuleResolver resolver = new ClientModuleResolver(target)
 
@@ -43,13 +46,14 @@ class ClientModuleResolverTest extends Specification {
 
         given:
         _ * dependencyDescriptor.targetModule >> module
+        _ * module.moduleRevisionId >> moduleId
 
         when:
         resolver.resolve(dependencyDescriptor, result)
 
         then:
         1 * target.resolve(dependencyDescriptor, result)
-        1 * result.setMetaData(module.moduleRevisionId, module)
+        1 * result.setMetaData(moduleVersionId, module)
         _ * result.failure >> null
         0 * result._
     }

@@ -938,7 +938,7 @@ public class DependencyGraphBuilder {
 
             try {
                 resolveResult = idResolveResult.resolve();
-                resolveState.getRevision(resolveResult.getId()).setDescriptor(resolveResult.getDescriptor());
+                resolveState.getRevision(resolveResult.getId()).setDescriptor(resolveResult.getMetaData().getDescriptor());
             } catch (ModuleVersionResolveException e) {
                 failure = e;
             }

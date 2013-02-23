@@ -70,7 +70,7 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
                 } finally {
                     IvyContext.popContext();
                 }
-                return new ResolvedModuleRevision(loopback, loopback, dependency.getDescriptor(), null);
+                return new ResolvedModuleRevision(loopback, loopback, dependency.getMetaData().getDescriptor(), null);
             }
         });
     }
