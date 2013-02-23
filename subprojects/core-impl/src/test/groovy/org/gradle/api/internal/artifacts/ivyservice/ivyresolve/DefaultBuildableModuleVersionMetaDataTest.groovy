@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
@@ -77,7 +78,28 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         descriptor.moduleSource == moduleSource
     }
 
-    def "cannot get result when not resolved"() {
+    def "builds the dependency meta-data from the module descriptor"() {
+        def id = Mock(ModuleVersionIdentifier)
+        def moduleDescriptor = Mock(ModuleDescriptor)
+        def dependency1 = Mock(DependencyDescriptor)
+        def dependency2 = Mock(DependencyDescriptor)
+
+        given:
+        moduleDescriptor.dependencies >> ([dependency1, dependency2] as DependencyDescriptor[])
+
+        and:
+        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
+
+        when:
+        def deps = descriptor.dependencies
+
+        then:
+        deps.size() == 2
+        deps[0].descriptor == dependency1
+        deps[1].descriptor == dependency2
+    }
+
+    def "cannot get descriptor when not resolved"() {
         when:
         descriptor.descriptor
 
@@ -91,7 +113,7 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         thrown(IllegalStateException)
     }
 
-    def "cannot get result when failed"() {
+    def "cannot get descriptor when failed"() {
         given:
         def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
         descriptor.failed(failure)
@@ -104,7 +126,7 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         e == failure
     }
 
-    def "cannot get result when missing"() {
+    def "cannot get descriptor when missing"() {
         given:
         descriptor.missing()
 
@@ -115,7 +137,7 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         thrown(IllegalStateException)
     }
 
-    def "cannot get result when probably missing"() {
+    def "cannot get descriptor when probably missing"() {
         given:
         descriptor.probablyMissing()
 

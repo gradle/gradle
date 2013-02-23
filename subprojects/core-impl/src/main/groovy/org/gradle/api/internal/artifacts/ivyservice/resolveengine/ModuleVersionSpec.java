@@ -29,7 +29,9 @@ import java.util.*;
  *
  * <p>This class attempts to reduce execution time, by flattening union and intersection specs, at the cost of more analysis at construction time. This is taken advantage of by {@link
  * DependencyGraphBuilder}, on the assumption that there are many more edges in the dependency graph than there are exclude rules (ie we evaluate the rules much more often that we construct them).
- * </p> <p>Also, this class attempts to be quite accurate in determining if 2 specs will match exactly the same set of modules. {@link DependencyGraphBuilder} uses this to avoid traversing the
+ * </p>
+ *
+ * <p>Also, this class attempts to be quite accurate in determining if 2 specs will match exactly the same set of modules. {@link DependencyGraphBuilder} uses this to avoid traversing the
  * dependency graph of a particular version that has already been traversed when a new incoming edge is added (eg a newly discovered dependency) and when an incoming edge is removed (eg a conflict
  * evicts a version that depends on the given version). </p>
  */

@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 
-import java.util.List;
+public interface DependencyMetaData {
+    ModuleVersionSelector getRequested();
 
-/**
- * The meta-data for a module version.
- */
-public interface ModuleVersionMetaData {
-    ModuleVersionIdentifier getId();
+    DependencyDescriptor getDescriptor();
 
-    ModuleDescriptor getDescriptor();
-
-    List<DependencyMetaData> getDependencies();
-
-    boolean isChanging();
+    DependencyMetaData withRequestedVersion(String requestedVersion);
 }

@@ -15,11 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultBuildableModuleVersionMetaData implements BuildableModuleVersionMetaData {
     private ModuleDescriptor moduleDescriptor;
@@ -98,6 +102,15 @@ public class DefaultBuildableModuleVersionMetaData implements BuildableModuleVer
         return moduleDescriptor;
     }
 
+    public List<DependencyMetaData> getDependencies() {
+        assertResolved();
+        List<DependencyMetaData> dependencies = new ArrayList<DependencyMetaData>();
+        for (final DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
+            dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
+        }
+        return dependencies;
+    }
+
     public boolean isChanging() {
         assertResolved();
         return changing;
@@ -112,4 +125,5 @@ public class DefaultBuildableModuleVersionMetaData implements BuildableModuleVer
         assertResolved();
         this.moduleSource = moduleSource;
     }
+
 }
