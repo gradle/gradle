@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 
 class IvyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "dependency includes all artifacts and transitive dependencies of referenced configuration"() {
@@ -159,14 +160,14 @@ task retrieve(type: Sync) {
         def moduleA = ivyRepo.module('ivy.configuration', 'projectA', '1.2')
                 .configuration('parent')
                 .artifact([:])
-                .dependsOn('ivy.configuration', 'projectB', '1.5', 'runtime->*')
+                .dependsOn(organisation: 'ivy.configuration', module: 'projectB', revision: '1.5', conf: 'runtime->*')
                 .publish()
 
         ivyRepo.module('ivy.configuration', 'projectB', '1.5')
                 .configuration('child')
                 .artifact([name: 'projectB', conf: 'runtime'])
                 .artifact([name: 'projectB-child', conf: 'child'])
-                .dependsOn('ivy.configuration', 'projectC', '1.7', 'child->*')
+                .dependsOn(organisation: 'ivy.configuration', module: 'projectC', revision: '1.7', conf: 'child->*')
                 .publish()
 
         ivyRepo.module('ivy.configuration', 'projectC', '1.7').artifact([:]).publish()
@@ -197,4 +198,53 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar', 'projectB-other-1.6.jar', 'projectD-1.0.jar')
     }
 
+    @Ignore
+    def "prefers revConstraint over rev when dynamic resolve mode is used"() {
+        given:
+        buildFile << """
+configurations {
+    compile
+}
+dependencies {
+    repositories {
+        ivy {
+            url "${ivyRepo.uri}"
+            metaData.ivy.dynamicResolve = project.useDynamicResolve
+        }
+    }
+    compile 'org:projectA:1.2'
+}
+task retrieve(type: Sync) {
+  from configurations.compile
+  into 'libs'
+}
+"""
+        ivyRepo.module('org', 'projectA', '1.2')
+                .dependsOn(organisation: 'org', module: 'projectB', revision: '1.5', revConstraint: '1.6')
+                .dependsOn(organisation: 'org', module: 'projectC', revision: 'alpha-12')
+                .publish()
+
+        ivyRepo.module('org', 'projectB', '1.5')
+                .publish()
+
+        ivyRepo.module('org', 'projectB', '1.6')
+                .publish()
+
+        ivyRepo.module('org', 'projectC', 'alpha-12')
+                .publish()
+
+        when:
+        executer.withArguments("-PuseDynamicResolve=true")
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar', 'projectC-alpha-12.jar')
+
+        when:
+        executer.withArguments("-PuseDynamicResolve=false")
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.5.jar', 'projectC-alpha-12.jar')
+    }
 }

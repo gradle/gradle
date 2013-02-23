@@ -62,11 +62,12 @@ class IvyFileModule extends AbstractIvyModule {
     }
 
     IvyFileModule dependsOn(String organisation, String module, String revision) {
-        return dependsOn(organisation, module, revision, null)
+        dependsOn([organisation: organisation, module: module, revision: revision])
+        return this
     }
 
-    IvyFileModule dependsOn(String organisation, String module, String revision, String conf) {
-        dependencies << [organisation: organisation, module: module, revision: revision, conf: conf]
+    IvyFileModule dependsOn(Map<String, String> attributes) {
+        dependencies << attributes
         return this
     }
 
@@ -165,7 +166,8 @@ class IvyFileModule extends AbstractIvyModule {
 """
             dependencies.each { dep ->
                 def confAttribute = dep.conf == null ? "" : """ conf="${dep.conf}" """
-                ivyFile << """<dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}" ${confAttribute}/>
+                def revConstraint = dep.revConstraint == null ? "" : """ revConstraint="${dep.revConstraint}" """
+                ivyFile << """<dependency org="${dep.organisation}" name="${dep.module}" rev="${dep.revision}" ${confAttribute} ${revConstraint}/>
 """
             }
             ivyFile << """

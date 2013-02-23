@@ -50,13 +50,13 @@ class IvyHttpModule extends AbstractIvyModule {
         return this
     }
 
-    IvyModule dependsOn(String organisation, String module, String revision) {
+    IvyHttpModule dependsOn(String organisation, String module, String revision) {
         backingModule.dependsOn(organisation, module, revision)
         return this
     }
 
-    IvyHttpModule dependsOn(String organisation, String module, String revision, String conf) {
-        backingModule.dependsOn(organisation, module, revision, conf)
+    IvyHttpModule dependsOn(Map<String, String> attributes) {
+        backingModule.dependsOn(attributes)
         return this
     }
 
