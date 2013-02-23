@@ -29,7 +29,7 @@ public interface ModuleVersionRepository {
 
     String getName();
 
-    void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result);
+    void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result);
 
     /**
      * Downloads the given artifact. Any failures are packaged up in the result.

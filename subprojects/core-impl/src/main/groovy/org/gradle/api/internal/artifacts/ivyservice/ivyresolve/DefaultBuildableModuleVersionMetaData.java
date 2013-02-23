@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
-public class DefaultBuildableModuleVersionDescriptor implements BuildableModuleVersionDescriptor {
+public class DefaultBuildableModuleVersionMetaData implements BuildableModuleVersionMetaData {
     private ModuleDescriptor moduleDescriptor;
     private boolean changing;
     private State state = State.Unknown;

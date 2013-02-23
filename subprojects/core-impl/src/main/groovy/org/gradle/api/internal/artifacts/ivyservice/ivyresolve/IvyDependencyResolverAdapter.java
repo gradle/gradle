@@ -43,7 +43,7 @@ public class IvyDependencyResolverAdapter extends AbstractDependencyResolverAdap
         super(resolver);
     }
 
-    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result) {
         ResolveData resolveData = IvyContextualiser.getIvyContext().getResolveData();
         try {
             ResolvedModuleRevision revision = resolver.getDependency(dependencyDescriptor, resolveData);

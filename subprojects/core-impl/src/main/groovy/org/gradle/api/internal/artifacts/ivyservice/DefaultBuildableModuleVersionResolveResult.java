@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
-    private DefaultBuildableModuleVersionDescriptor metaData;
+    private DefaultBuildableModuleVersionMetaData metaData;
     private ModuleVersionResolveException failure;
     private ArtifactResolver artifactResolver;
 
@@ -37,14 +37,14 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
     }
 
     public void resolved(ModuleVersionIdentifier moduleVersionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
-        metaData = new DefaultBuildableModuleVersionDescriptor();
+        metaData = new DefaultBuildableModuleVersionMetaData();
         metaData.resolved(moduleVersionId, descriptor, false, null);
         this.artifactResolver = artifactResolver;
     }
 
     public void setMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor descriptor) {
         assertResolved();
-        metaData = new DefaultBuildableModuleVersionDescriptor();
+        metaData = new DefaultBuildableModuleVersionMetaData();
         metaData.resolved(moduleVersionIdentifier, descriptor, false, null);
     }
 
@@ -58,7 +58,7 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         return metaData.getId();
     }
 
-    public ModuleVersionDescriptor getMetaData() throws ModuleVersionResolveException {
+    public ModuleVersionMetaData getMetaData() throws ModuleVersionResolveException {
         assertResolved();
         return metaData;
     }

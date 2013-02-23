@@ -35,11 +35,11 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
         delegate.resolve(artifact, result, moduleSource);
     }
 
-    public void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+    public void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result) {
         delegate.getDependency(dependencyDescriptor, result);
     }
 
-    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result) {
         result.missing();
     }
 

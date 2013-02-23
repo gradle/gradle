@@ -54,7 +54,7 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -148,7 +148,7 @@ public class ExternalResourceResolver implements DependencyResolver {
         throw new UnsupportedOperationException();
     }
 
-    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result) {
         ModuleRevisionId nsMrid = dependencyDescriptor.getDependencyRevisionId();
 
         boolean isDynamic = getVersionMatcher().isDynamic(nsMrid);

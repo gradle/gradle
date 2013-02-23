@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 /**
  * The meta-data for a module version.
  */
-public interface ModuleVersionDescriptor {
+public interface ModuleVersionMetaData {
     ModuleVersionIdentifier getId();
 
     ModuleDescriptor getDescriptor();

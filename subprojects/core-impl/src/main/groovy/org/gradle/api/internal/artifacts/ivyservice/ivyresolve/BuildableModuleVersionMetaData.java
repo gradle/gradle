@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 /**
  * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.
  */
-public interface BuildableModuleVersionDescriptor extends ModuleVersionDescriptor {
+public interface BuildableModuleVersionMetaData extends ModuleVersionMetaData {
     enum State {
         Resolved, Missing, Failed, ProbablyMissing, Unknown
     }

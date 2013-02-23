@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.*
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionDescriptor
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener
 import org.gradle.api.specs.Spec
@@ -839,7 +839,7 @@ class DependencyGraphBuilderTest extends Specification {
         def moduleVersionIdentifier = toModuleVersionIdentifier(to.moduleRevisionId)
         def idResolveResult = selectorResolvesTo(descriptor, moduleVersionIdentifier);
         ModuleVersionResolveResult resolveResult = Mock()
-        ModuleVersionDescriptor mvDescriptor = Mock()
+        ModuleVersionMetaData mvDescriptor = Mock()
         1 * idResolveResult.resolve() >> resolveResult
         1 * resolveResult.id >> moduleVersionIdentifier
         1 * resolveResult.metaData >> mvDescriptor

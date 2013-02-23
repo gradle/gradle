@@ -22,10 +22,10 @@ public interface LocalAwareModuleVersionRepository extends ModuleVersionReposito
     /**
      * Locates the given dependency, using only local resources.
      */
-    void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result);
+    void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result);
 
     /**
-     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(org.apache.ivy.core.module.descriptor.DependencyDescriptor, BuildableModuleVersionDescriptor)}.
+     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(org.apache.ivy.core.module.descriptor.DependencyDescriptor, BuildableModuleVersionMetaData)}.
      */
-    void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result);
+    void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result);
 }

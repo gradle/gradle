@@ -79,12 +79,12 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return delegate.isLocal();
     }
 
-    public void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+    public void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result) {
         DependencyDescriptor resolvedDependencyDescriptor = maybeUseCachedDynamicVersion(delegate, dependencyDescriptor);
         lookupModuleInCache(delegate, resolvedDependencyDescriptor, result);
     }
 
-    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result) {
         delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(dependencyDescriptor, true), result);
         switch (result.getState()) {
             case Missing:
@@ -122,7 +122,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return original;
     }
 
-    public void lookupModuleInCache(ModuleVersionRepository repository, DependencyDescriptor resolvedDependencyDescriptor, BuildableModuleVersionDescriptor result) {
+    public void lookupModuleInCache(ModuleVersionRepository repository, DependencyDescriptor resolvedDependencyDescriptor, BuildableModuleVersionMetaData result) {
         ModuleRevisionId resolvedModuleVersionId = resolvedDependencyDescriptor.getDependencyRevisionId();
         ModuleVersionIdentifier moduleVersionIdentifier = createModuleVersionIdentifier(resolvedModuleVersionId);
         ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(repository, moduleVersionIdentifier);
@@ -161,7 +161,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         result.resolved(moduleVersionIdentifier, cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule(), new CachingModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule(), cachedModuleDescriptor.getModuleSource()));
     }
 
-    private boolean isChangingDependency(DependencyDescriptor descriptor, ModuleVersionDescriptor downloadedModule) {
+    private boolean isChangingDependency(DependencyDescriptor descriptor, ModuleVersionMetaData downloadedModule) {
         if (descriptor.isChanging()) {
             return true;
         }

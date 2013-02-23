@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 public interface ModuleVersionResolveResult {
     /**
@@ -32,7 +32,7 @@ public interface ModuleVersionResolveResult {
      *
      * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
      */
-    ModuleVersionDescriptor getMetaData() throws ModuleVersionResolveException;
+    ModuleVersionMetaData getMetaData() throws ModuleVersionResolveException;
 
     /**
      * Returns the resolve failure, if any.

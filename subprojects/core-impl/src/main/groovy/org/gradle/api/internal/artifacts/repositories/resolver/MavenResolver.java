@@ -23,7 +23,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -69,7 +69,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         updatePatterns();
     }
 
-    public void getDependency(DependencyDescriptor dd, BuildableModuleVersionDescriptor result) {
+    public void getDependency(DependencyDescriptor dd, BuildableModuleVersionMetaData result) {
         if (isSnapshotVersion(dd)) {
             getSnapshotDependency(dd, result);
         } else {
@@ -77,13 +77,13 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
         }
     }
 
-    private void getSnapshotDependency(DependencyDescriptor dd, BuildableModuleVersionDescriptor result) {
+    private void getSnapshotDependency(DependencyDescriptor dd, BuildableModuleVersionMetaData result) {
         final ModuleRevisionId dependencyRevisionId = dd.getDependencyRevisionId();
         final String uniqueSnapshotVersion = findUniqueSnapshotVersion(dependencyRevisionId);
         if (uniqueSnapshotVersion != null) {
             DependencyDescriptor enrichedDependencyDescriptor = enrichDependencyDescriptorWithSnapshotVersionInfo(dd, dependencyRevisionId, uniqueSnapshotVersion);
             super.getDependency(enrichedDependencyDescriptor, result);
-            if (result.getState() == BuildableModuleVersionDescriptor.State.Resolved) {
+            if (result.getState() == BuildableModuleVersionMetaData.State.Resolved) {
                 result.setModuleSource(new TimestampedModuleSource(uniqueSnapshotVersion));
             }
         } else {

@@ -53,7 +53,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         List<Throwable> errors = new ArrayList<Throwable>();
         final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
         if (latestResolved != null) {
-            final ModuleVersionDescriptor downloadedModule = latestResolved.module;
+            final ModuleVersionMetaData downloadedModule = latestResolved.module;
             LOGGER.debug("Using module '{}' from repository '{}'", downloadedModule.getId(), latestResolved.repository.getName());
             for (Throwable error : errors) {
                 LOGGER.debug("Discarding resolve failure.", error);
@@ -167,7 +167,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
 
     private static class RepositoryResolveState {
         final LocalAwareModuleVersionRepository repository;
-        final DefaultBuildableModuleVersionDescriptor descriptor = new DefaultBuildableModuleVersionDescriptor();
+        final DefaultBuildableModuleVersionMetaData descriptor = new DefaultBuildableModuleVersionMetaData();
 
         boolean searchedLocally;
         boolean searchedRemotely;
@@ -184,7 +184,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
                 searchedRemotely = true;
                 repository.getDependency(dependencyDescriptor, descriptor);
             }
-            if (descriptor.getState() == BuildableModuleVersionDescriptor.State.Failed) {
+            if (descriptor.getState() == BuildableModuleVersionMetaData.State.Failed) {
                 throw descriptor.getFailure();
             }
         }
@@ -196,10 +196,10 @@ public class UserResolverChain implements DependencyToModuleResolver {
 
     private static class ModuleResolution implements ArtifactInfo {
         public final ModuleVersionRepository repository;
-        public final ModuleVersionDescriptor module;
+        public final ModuleVersionMetaData module;
         public final ModuleSource moduleSource;
 
-        public ModuleResolution(ModuleVersionRepository repository, ModuleVersionDescriptor module, ModuleSource moduleSource) {
+        public ModuleResolution(ModuleVersionRepository repository, ModuleVersionMetaData module, ModuleSource moduleSource) {
             this.repository = repository;
             this.module = module;
             this.moduleSource = moduleSource;

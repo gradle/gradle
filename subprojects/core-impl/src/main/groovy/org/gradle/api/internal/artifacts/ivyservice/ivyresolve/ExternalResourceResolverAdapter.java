@@ -31,7 +31,7 @@ public class ExternalResourceResolverAdapter extends AbstractDependencyResolverA
         this.resolver = resolver;
     }
 
-    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result) {
         resolver.getDependency(dependencyDescriptor, result);
     }
 
