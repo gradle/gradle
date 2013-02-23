@@ -80,15 +80,13 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // Have visited this task's dependencies - add it to the graph
                 queue.remove(0);
                 visiting.remove(task);
+                TaskDependencyGraphNode node = graph.addNode(task);
                 Set<? extends Task> dependencies = context.getDependencies(task);
                 for (Task dependency : dependencies) {
-                    graph.addHardEdge(task, dependency);
-                }
-                if (dependencies.size() == 0) {
-                    graph.addNode(task);
+                    graph.addHardEdge(node, dependency);
                 }
                 for (Task mustRunAfter : task.getMustRunAfter()) {
-                    graph.addSoftEdge(task, mustRunAfter);
+                    graph.addSoftEdge(node, mustRunAfter);
                 }
             }
         }

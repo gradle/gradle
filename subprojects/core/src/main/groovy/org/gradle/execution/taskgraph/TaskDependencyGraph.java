@@ -33,29 +33,20 @@ public class TaskDependencyGraph {
         return getTasks().contains(task);
     }
 
-    public void addHardEdge(Task fromTask, Task toTask) {
-        addEdge(fromTask, toTask, true);
-    }
-
-    public void addSoftEdge(Task fromTask, Task toTask) {
-        addEdge(fromTask, toTask, false);
-    }
-
-    private void addEdge(Task fromTask, Task toTask, boolean isHard) {
-        TaskDependencyGraphNode fromNode = getOrCreateNode(fromTask);
-        fromNode.setRequired(true);
-
+    public void addHardEdge(TaskDependencyGraphNode fromNode, Task toTask) {
         TaskDependencyGraphNode toNode = getOrCreateNode(toTask);
-        if (isHard) {
-            toNode.setRequired(true);
-            fromNode.addHardEdgeTo(toNode);
-        } else {
-            fromNode.addSoftEdgeTo(toNode);
-        }
+        toNode.setRequired(true);
+        fromNode.addHardEdgeTo(toNode);
     }
 
-    public void addNode(Task task) {
-        getOrCreateNode(task).setRequired(true);
+    public void addSoftEdge(TaskDependencyGraphNode fromNode, Task toTask) {
+        fromNode.addSoftEdgeTo(getOrCreateNode(toTask));
+    }
+
+    public TaskDependencyGraphNode addNode(Task task) {
+        TaskDependencyGraphNode node = getOrCreateNode(task);
+        node.setRequired(true);
+        return node;
     }
 
     public TaskDependencyGraphNode getNode(Task task) {

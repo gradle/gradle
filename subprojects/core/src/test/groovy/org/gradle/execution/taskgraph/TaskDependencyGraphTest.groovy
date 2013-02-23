@@ -50,8 +50,9 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'adding hard edges'() {
         when:
-        graph.addHardEdge(a, c)
-        graph.addHardEdge(a, b)
+        def nodeA = graph.addNode(a)
+        graph.addHardEdge(nodeA, c)
+        graph.addHardEdge(nodeA, b)
 
         then:
         with graph, {
@@ -65,8 +66,9 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'adding soft edges'() {
         when:
-        graph.addSoftEdge(a, c)
-        graph.addSoftEdge(a, b)
+        def nodeA = graph.addNode(a)
+        graph.addSoftEdge(nodeA, c)
+        graph.addSoftEdge(nodeA, b)
 
         then:
         with graph, {
@@ -81,8 +83,10 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'adding edges to previously non required tasks'() {
         when:
-        graph.addSoftEdge(a, b)
-        graph.addHardEdge(c, b)
+        def nodeA = graph.addNode(a)
+        def nodeC = graph.addNode(c)
+        graph.addSoftEdge(nodeA, b)
+        graph.addHardEdge(nodeC, b)
 
         then:
         [a, b, c].every { graph.getNode(it).required }
@@ -90,8 +94,10 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'adding edges to previously required tasks'() {
         when:
-        graph.addHardEdge(a, b)
-        graph.addSoftEdge(c, b)
+        def nodeA = graph.addNode(a)
+        def nodeC = graph.addNode(c)
+        graph.addHardEdge(nodeA, b)
+        graph.addSoftEdge(nodeC, b)
 
         then:
         [a, b, c].every { graph.getNode(it).required }
@@ -99,9 +105,11 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'adding a previously non required task'() {
         when:
-        graph.addSoftEdge(a, b)
-        graph.addHardEdge(b, c)
-        graph.addSoftEdge(a, d)
+        def nodeA = graph.addNode(a)
+        def nodeB = graph.addNode(b)
+        graph.addSoftEdge(nodeA, b)
+        graph.addHardEdge(nodeB, c)
+        graph.addSoftEdge(nodeA, d)
         graph.addNode(d)
 
         then:
@@ -110,7 +118,8 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'clear'() {
         when:
-        graph.addHardEdge(a, b)
+        def nodeA = graph.addNode(a)
+        graph.addHardEdge(nodeA, b)
         graph.addNode(c)
         graph.clear()
 
@@ -120,7 +129,8 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'has task'() {
         when:
-        graph.addHardEdge(a, b)
+        def nodeA = graph.addNode(a)
+        graph.addHardEdge(nodeA, b)
         graph.addNode(c)
 
         then:
