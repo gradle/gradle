@@ -96,6 +96,10 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         determineExecutionPlan();
     }
 
+    private void addAllReversed(List list, TreeSet set) {
+         org.apache.commons.collections.CollectionUtils.addAll(list, set.descendingIterator());
+    }
+
     private void determineExecutionPlan() {
         executionPlan.clear();
 
@@ -109,7 +113,6 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         while (!nodeQueue.isEmpty()) {
             TaskDependencyGraphNode taskNode = nodeQueue.get(0);
             if (!filter.isSatisfiedBy(taskNode.getTask()) || executionPlan.containsKey(taskNode.getTask()) || !taskNode.getRequired()) {
-                // Already in plan - skip
                 nodeQueue.remove(0);
                 continue;
             }
@@ -117,9 +120,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (visitingNodes.add(taskNode)) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
-                Set<TaskDependencyGraphNode> dependsOnTasks = new TreeSet<TaskDependencyGraphNode>(Collections.reverseOrder());
-                dependsOnTasks.addAll(taskNode.getHardSuccessors());
-                dependsOnTasks.addAll(taskNode.getSoftSuccessors());
+                ArrayList<TaskDependencyGraphNode> dependsOnTasks = new ArrayList<TaskDependencyGraphNode>();
+                addAllReversed(dependsOnTasks, taskNode.getHardSuccessors());
+                addAllReversed(dependsOnTasks, taskNode.getSoftSuccessors());
                 for (TaskDependencyGraphNode dependsOnTask : dependsOnTasks) {
                     if (visitingNodes.contains(dependsOnTask)) {
                         throw new CircularReferenceException(String.format(

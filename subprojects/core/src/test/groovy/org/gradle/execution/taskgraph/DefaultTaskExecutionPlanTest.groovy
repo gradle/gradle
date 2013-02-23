@@ -103,6 +103,20 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executedTasks == [b, c, a, d];
     }
 
+    def "returns must run after task dependencies in name order"() {
+        given:
+        Task a = task("a");
+        Task b = task("b");
+        Task c = task("c", mustRunAfter: [b, a]);
+        Task d = task("d", dependsOn: [b, a]);
+
+        when:
+        executionPlan.addToTaskGraph([c, d]);
+
+        then:
+        executedTasks == [a, b, c, d]
+    }
+
     def "common tasks in separate batches are returned only once"() {
         Task a = task("a");
         Task b = task("b");
@@ -143,6 +157,19 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         executedTasks == [a, b, c]
+    }
+
+    def "mustRunAfter dependencies are scheduled before regular dependencies"() {
+        Task a = task("a")
+        Task b = task("b")
+        Task c = task("c", dependsOn: [a], mustRunAfter: [b])
+        Task d = task("d", dependsOn: [b])
+
+        when:
+        executionPlan.addToTaskGraph([c, d])
+
+        then:
+        executedTasks == [b, a, c, d]
     }
 
     def "must run after does not pull in tasks that are not in the graph"() {
@@ -289,6 +316,30 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         RuntimeException failure = new RuntimeException();
         Task a = task("a", failure: failure);
         Task b = task("b");
+        executionPlan.addToTaskGraph([a, b])
+
+        TaskFailureHandler handler = Mock()
+        handler.onTaskFailure(a) >> {
+        }
+
+        when:
+        executionPlan.useFailureHandler(handler);
+
+        then:
+        executedTasks == [a, b]
+
+        when:
+        executionPlan.awaitCompletion()
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+    }
+
+    def "continues to return tasks when failure handler does not abort execution and task are mustRunAfter dependent"() {
+        RuntimeException failure = new RuntimeException();
+        Task a = task("a", failure: failure);
+        Task b = task("b", mustRunAfter: [a]);
         executionPlan.addToTaskGraph([a, b])
 
         TaskFailureHandler handler = Mock()

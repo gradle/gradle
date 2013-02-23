@@ -23,8 +23,8 @@ import java.util.TreeSet;
 
 public class TaskDependencyGraphNode implements Comparable<TaskDependencyGraphNode> {
     private final Task task;
-    private final Set<TaskDependencyGraphNode> hardSuccessors = new TreeSet<TaskDependencyGraphNode>();
-    private final Set<TaskDependencyGraphNode> softSuccessors = new TreeSet<TaskDependencyGraphNode>();
+    private final TreeSet<TaskDependencyGraphNode> hardSuccessors = new TreeSet<TaskDependencyGraphNode>();
+    private final TreeSet<TaskDependencyGraphNode> softSuccessors = new TreeSet<TaskDependencyGraphNode>();
     private boolean required = false;
 
     public TaskDependencyGraphNode(Task task) {
@@ -35,11 +35,11 @@ public class TaskDependencyGraphNode implements Comparable<TaskDependencyGraphNo
         return task;
     }
 
-    public Set<TaskDependencyGraphNode> getHardSuccessors() {
+    public TreeSet<TaskDependencyGraphNode> getHardSuccessors() {
         return hardSuccessors;
     }
 
-    public Set<TaskDependencyGraphNode> getSoftSuccessors() {
+    public TreeSet<TaskDependencyGraphNode> getSoftSuccessors() {
         return softSuccessors;
     }
 
