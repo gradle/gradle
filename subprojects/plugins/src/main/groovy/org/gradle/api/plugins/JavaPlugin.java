@@ -31,6 +31,7 @@ import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 
@@ -53,8 +54,11 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String TEST_CLASSES_TASK_NAME = "testClasses";
     public static final String COMPILE_TEST_JAVA_TASK_NAME = "compileTestJava";
     public static final String TEST_TASK_NAME = "test";
-    public static final String JAR_TASK_NAME = "jar";
     public static final String JAVADOC_TASK_NAME = "javadoc";
+
+    public static final String JAR_TASK_NAME = "jar";
+    public static final String SOURCE_ZIP_TASK_NAME = "sourceZip";
+    public static final String JAVADOC_ZIP_TASK_NAME = "javadocZip";
 
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
@@ -73,6 +77,8 @@ public class JavaPlugin implements Plugin<Project> {
         configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
+        configureJavaDocZip(project, javaConvention);
+        configureSourceZip(project, javaConvention);
         configureBuild(project);
     }
 
@@ -96,6 +102,26 @@ public class JavaPlugin implements Plugin<Project> {
         javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
         javadoc.setSource(mainSourceSet.getAllJava());
         addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
+    }
+
+    private void configureJavaDocZip(final Project project, final JavaPluginConvention pluginConvention) {
+        Task javadoc = project.getTasks().getByPath(JAVADOC_TASK_NAME);
+        Zip zip = project.getTasks().add(JAVADOC_ZIP_TASK_NAME, Zip.class);
+        zip.setDescription("Assembles a zip archive containing the javadoc.");
+        zip.setGroup(BasePlugin.UPLOAD_GROUP);
+        zip.from(javadoc.getOutputs());
+        zip.setClassifier("javadoc");
+        zip.dependsOn(javadoc);
+    }
+
+    private void configureSourceZip(final Project project, final JavaPluginConvention pluginConvention) {
+        Zip zip = project.getTasks().add(SOURCE_ZIP_TASK_NAME, Zip.class);
+        zip.setDescription("Assembles a zip archive containing the java source.");
+        zip.setGroup(BasePlugin.UPLOAD_GROUP);
+        zip.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getAllJava());
+        zip.setClassifier("source");
+        Task jar = project.getTasks().getByPath(JAR_TASK_NAME);
+        zip.dependsOn(jar);
     }
 
     private void configureArchivesAndComponent(final Project project, final JavaPluginConvention pluginConvention) {
