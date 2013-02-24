@@ -18,6 +18,7 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -88,24 +89,21 @@ public class DefaultMavenPublicationTest extends Specification {
         publication.runtimeDependencies.empty
     }
 
-    def "publishableFiles and artifacts when taken from added component"() {
+    def "artifacts and dependencies are taken from added component"() {
         given:
         def publication = createPublication()
         def component = Mock(SoftwareComponentInternal)
         def usage = Mock(Usage)
-        def publishArtifactSet = Mock(PublishArtifactSet)
         def artifact = Mock(PublishArtifact)
+        def dependency = Mock(ModuleDependency)
         def publishArtifactDependencies = Mock(TaskDependency)
-        def dependencySet = Mock(DependencySet)
 
         def mavenArtifact = Mock(MavenArtifact)
 
         when:
         component.usages >> [usage]
-        usage.artifacts >> publishArtifactSet
-        publishArtifactSet.iterator() >> [artifact].iterator()
-        usage.dependencies >> dependencySet
-        dependencySet.iterator() >> [].iterator()
+        usage.artifacts >> [artifact]
+        usage.dependencies >> [dependency]
 
         notationParser.parseNotation(artifact) >> mavenArtifact
         mavenArtifact.file >> artifactFile
@@ -116,7 +114,7 @@ public class DefaultMavenPublicationTest extends Specification {
         then:
         publication.publishableFiles.files == [pomFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
-        publication.runtimeDependencies == dependencySet
+        publication.runtimeDependencies == [dependency] as Set
 
         when:
         def task = Mock(Task)

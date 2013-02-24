@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.component;
+package org.gradle.api.publish.ivy.internal.dependency;
 
-import org.gradle.api.Named;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.PublishArtifact;
 
-import java.util.Set;
+public class DefaultIvyDependency implements IvyDependencyInternal {
+    private ModuleDependency dependency;
+    private String confMapping;
 
-public interface Usage extends Named {
-    Set<PublishArtifact> getArtifacts();
-    Set<ModuleDependency> getDependencies();
+    public DefaultIvyDependency(ModuleDependency dependency, String confMapping) {
+        this.dependency = dependency;
+        this.confMapping = confMapping;
+    }
+
+    public ModuleDependency getModuleDependency() {
+        return dependency;
+    }
+
+    public String getConfMapping() {
+        return confMapping;
+    }
 }

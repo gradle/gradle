@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.java;
 
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
@@ -50,7 +50,7 @@ public class WebApplication implements SoftwareComponentInternal {
             return Collections.singleton(warArtifact);
         }
 
-        public Set<Dependency> getDependencies() {
+        public Set<ModuleDependency> getDependencies() {
             return Collections.emptySet();
         }
     }

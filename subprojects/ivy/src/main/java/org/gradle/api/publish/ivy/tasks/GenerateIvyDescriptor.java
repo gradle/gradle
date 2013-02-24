@@ -19,10 +19,10 @@ package org.gradle.api.publish.ivy.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
+import org.gradle.api.publish.ivy.IvyDependency;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator;
@@ -102,8 +102,8 @@ public class GenerateIvyDescriptor extends DefaultTask {
             ivyGenerator.addArtifact(ivyArtifact);
         }
 
-        for (Dependency runtimeDependency : descriptorInternal.getRuntimeDependencies()) {
-            ivyGenerator.addRuntimeDependency(runtimeDependency);
+        for (IvyDependency ivyDependency : descriptorInternal.getDependencies()) {
+            ivyGenerator.addDependency(ivyDependency);
         }
 
         ivyGenerator.withXml(descriptorInternal.getXmlAction()).writeTo(getDestination());

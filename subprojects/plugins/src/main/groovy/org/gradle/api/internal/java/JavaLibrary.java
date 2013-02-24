@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.java;
 
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
@@ -55,8 +57,15 @@ public class JavaLibrary implements SoftwareComponentInternal {
             return artifacts;
         }
 
-        public DependencySet getDependencies() {
-            return runtimeDependencies;
+        public Set<ModuleDependency> getDependencies() {
+            // TODO:DAZ Remove this laziness
+            Set<ModuleDependency> moduleDependencies = new LinkedHashSet<ModuleDependency>();
+            for (Dependency runtimeDependency : runtimeDependencies) {
+                if (runtimeDependency instanceof ModuleDependency) {
+                    moduleDependencies.add((ModuleDependency) runtimeDependency);
+                }
+            }
+            return moduleDependencies;
         }
     }
 

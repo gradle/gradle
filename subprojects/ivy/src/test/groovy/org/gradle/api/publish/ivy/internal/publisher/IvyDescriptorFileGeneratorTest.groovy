@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
+import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyProjectIdentity
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -128,18 +129,16 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         projectDependency.dependencyProject >> Stub(Project) {
             getName() >> "project-name"
         }
-        projectDependency.configuration >> "default"
 
         and:
         moduleDependency.artifacts >> new HashSet<DependencyArtifact>()
         moduleDependency.group >> "dep-group"
         moduleDependency.name >> "dep-name-2"
         moduleDependency.version >> "dep-version"
-        moduleDependency.configuration >> "dep-conf"
 
         and:
-        generator.addRuntimeDependency(projectDependency)
-        generator.addRuntimeDependency(moduleDependency)
+        generator.addDependency(new DefaultIvyDependency(projectDependency, "confMappingProject"))
+        generator.addDependency(new DefaultIvyDependency(moduleDependency, "confMappingModule"))
 
         then:
         with (ivyXml) {
@@ -148,13 +147,13 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                 it.@org == "dep-group"
                 it.@name == "project-name"
                 it.@rev == "dep-version"
-                it.@conf == "runtime->default"
+                it.@conf == "confMappingProject"
             }
             with (dependencies[0].dependency[1]) {
                 it.@org == "dep-group"
                 it.@name == "dep-name-2"
                 it.@rev == "dep-version"
-                it.@conf == "runtime->dep-conf"
+                it.@conf == "confMappingModule"
             }
         }
     }
@@ -169,7 +168,6 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         dependency.group >> "dep-group"
         dependency.name >> "dep-name"
         dependency.version >> "dep-version"
-        dependency.configuration >> "default"
         artifact1.name >> "artifact-1"
         artifact1.type >> "type-1"
         artifact1.extension >> "ext-1"
@@ -179,7 +177,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         artifact2.classifier >> "classy"
 
         and:
-        generator.addRuntimeDependency(dependency)
+        generator.addDependency(new DefaultIvyDependency(dependency, "confMapping"))
 
         then:
         includesMavenNamespace()
@@ -191,7 +189,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
                 it.@org == "dep-group"
                 it.@name == "dep-name"
                 it.@rev == "dep-version"
-                it.@conf == "runtime->default"
+                it.@conf == "confMapping"
 
                 artifact.size() == 2
                 with (artifact[0]) {

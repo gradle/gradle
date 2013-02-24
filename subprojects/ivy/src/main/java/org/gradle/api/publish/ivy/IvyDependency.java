@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.component;
+package org.gradle.api.publish.ivy;
 
-import org.gradle.api.Named;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.Incubating;
+import org.gradle.api.internal.HasInternalProtocol;
 
-import java.util.Set;
+/**
+ * A module dependency declared in an ivy dependency descriptor published as part of an {@link IvyPublication}.
+ */
+@Incubating
+@HasInternalProtocol
+public interface IvyDependency {
 
-public interface Usage extends Named {
-    Set<PublishArtifact> getArtifacts();
-    Set<ModuleDependency> getDependencies();
+    /**
+     * The configuration mapping string that will be output for this dependency.
+     * A null value indicates that no "conf" attribute will be written for this dependency.
+     *
+     * @return the configuration mapping
+     */
+    String getConfMapping();
 }

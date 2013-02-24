@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -26,6 +26,8 @@ import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
+import org.gradle.api.publish.ivy.IvyDependency;
+import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -46,7 +48,7 @@ public class IvyDescriptorFileGenerator {
     private XmlTransformer xmlTransformer = new XmlTransformer();
     private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
     private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
-    private List<ModuleDependency> runtimeDependencies = new ArrayList<ModuleDependency>();
+    private List<DefaultIvyDependency> dependencies = new ArrayList<DefaultIvyDependency>();
 
     public IvyDescriptorFileGenerator(IvyProjectIdentity projectIdentity) {
         this.projectIdentity = projectIdentity;
@@ -66,10 +68,8 @@ public class IvyDescriptorFileGenerator {
         return this;
     }
 
-    public IvyDescriptorFileGenerator addRuntimeDependency(Dependency dependency) {
-        if (dependency instanceof ModuleDependency) {
-            runtimeDependencies.add((ModuleDependency) dependency);
-        }
+    public IvyDescriptorFileGenerator addDependency(IvyDependency ivyDependency) {
+        dependencies.add((DefaultIvyDependency) ivyDependency);
         return this;
     }
 
@@ -117,8 +117,8 @@ public class IvyDescriptorFileGenerator {
                 return true;
             }
         }
-        for (ModuleDependency runtimeDependency : runtimeDependencies) {
-            for (DependencyArtifact dependencyArtifact : runtimeDependency.getArtifacts()) {
+        for (DefaultIvyDependency dependency : this.dependencies) {
+            for (DependencyArtifact dependencyArtifact : dependency.getModuleDependency().getArtifacts()) {
                 if (dependencyArtifact.getClassifier() != null) {
                     return true;
                 }
@@ -160,18 +160,18 @@ public class IvyDescriptorFileGenerator {
     }
 
     private void writeDependencies(OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        if (runtimeDependencies.isEmpty()) {
+        if (dependencies.isEmpty()) {
             return;
         }
 
         xmlWriter.startElement("dependencies");
-        for (ModuleDependency dep : runtimeDependencies) {
-            String conf = String.format("runtime->%s", dep.getConfiguration());
+        for (DefaultIvyDependency dependency : dependencies) {
+            ModuleDependency dep = dependency.getModuleDependency();
             xmlWriter.startElement("dependency")
                     .attribute("org", dep.getGroup())
                     .attribute("name", getDependencyName(dep))
                     .attribute("rev", dep.getVersion())
-                    .attribute("conf", conf);
+                    .attribute("conf", dependency.getConfMapping());
 
             for (DependencyArtifact dependencyArtifact : dep.getArtifacts()) {
                 printDependencyArtifact(dependencyArtifact, xmlWriter);

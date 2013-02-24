@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.component;
+package org.gradle.api.publish.ivy.internal.dependency;
 
-import org.gradle.api.Named;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.publish.ivy.IvyDependency;
 
-import java.util.Set;
-
-public interface Usage extends Named {
-    Set<PublishArtifact> getArtifacts();
-    Set<ModuleDependency> getDependencies();
+public interface IvyDependencyInternal extends IvyDependency {
+    ModuleDependency getModuleDependency();
 }

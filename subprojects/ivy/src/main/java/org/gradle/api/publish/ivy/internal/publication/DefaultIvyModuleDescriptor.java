@@ -18,10 +18,10 @@ package org.gradle.api.publish.ivy.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
+import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyProjectIdentity;
 import org.gradle.listener.ActionBroadcast;
 
@@ -66,7 +66,7 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
         return ivyPublication.getArtifacts();
     }
 
-    public Set<Dependency> getRuntimeDependencies() {
-        return ivyPublication.getRuntimeDependencies();
+    public Set<IvyDependencyInternal> getDependencies() {
+        return ivyPublication.getDependencies();
     }
 }

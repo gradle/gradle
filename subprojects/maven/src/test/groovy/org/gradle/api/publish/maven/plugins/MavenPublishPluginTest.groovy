@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.plugins
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
-import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
@@ -49,7 +48,7 @@ class MavenPublishPluginTest extends Specification {
         component.artifacts >> artifactSet
     }
 
-    def "no publication without component"() {
+    def "no publication by default"() {
         expect:
         publishing.publications.empty
     }
@@ -72,29 +71,6 @@ class MavenPublishPluginTest extends Specification {
         project.tasks["publishTestPublicationToMavenRepository"] != null
         project.tasks["publishTestPublicationToMavenLocal"] != null
         project.tasks["generatePomFileForTestPublication"] != null
-    }
-
-    def "publication has artifacts from component"() {
-        given:
-        File artifactFile = project.file('artifactFile') << "content"
-        PublishArtifactSet artifactSet = Mock()
-        PublishArtifact artifact = Stub() {
-            getFile() >> artifactFile
-        }
-
-        when:
-        publishing.publications.add("test", MavenPublication) {
-            from component
-        }
-        def pub = publishing.publications.test;
-
-        then:
-        pub.artifacts.size() == 1
-        pub.artifacts.iterator().next().file == artifact.getFile()
-
-        and:
-        component.artifacts >> artifactSet
-        artifactSet.iterator() >> [artifact].iterator()
     }
 
     def "task is created for publishing to mavenLocal"() {
