@@ -127,8 +127,8 @@
                 <apilink class="org.gradle.api.tasks.bundling.AbstractArchiveTask"/> (e.g. Jar, Zip).
             </para>
             <para>
-                For each custom artifact, it is possible to specify the <literal>extension</literal> and <literal>classifier</literal> values to use for publication. Note that
-                only one of the published artifacts can have an empty classifier, and all other artifacts must have a unique classifier/extension combination.
+                For each custom artifact, it is possible to specify the <literal>name</literal>, <literal>extension</literal>, <literal>type</literal>, <literal>classifier</literal>
+                and <literal>conf</literal> values to use for publication. Note that each artifacts must have a unique name/classifier/extension combination.
             </para>
             <para>
                 Configure custom artifacts as follows:
@@ -166,8 +166,8 @@
                 <sourcefile file="build.gradle" snippet="customize-descriptor" />
             </sample>
             <para>
-                In this example we are adding a 'description' element for the generated POM. With this hook, you can modify any aspect of the POM.
-                For example, you could replace the version range for a dependency with the actual version used to produce the build.
+                In this example we are adding a 'description' element to the generated Ivy dependency descriptor, but this this hook, allows you to modify any aspect
+                of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
             </para>
             <para>
                 See <apilink class="org.gradle.api.publish.ivy.IvyModuleDescriptor" method="withXml(org.gradle.api.Action)" /> for the relevant API reference documentation.
