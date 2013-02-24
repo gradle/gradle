@@ -22,7 +22,7 @@ import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.MissingMethodException
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.listener.ListenerManager
@@ -43,12 +43,12 @@ import static org.junit.Assert.assertThat
 class DefaultConfigurationContainerTest {
     private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-    private ArtifactDependencyResolver dependencyResolver = context.mock(ArtifactDependencyResolver)
+    private ConfigurationResolver resolver = context.mock(ConfigurationResolver)
     private ListenerManager listenerManager = context.mock(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class)
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     private DefaultConfigurationContainer configurationHandler = instantiator.newInstance(DefaultConfigurationContainer.class,
-            dependencyResolver, instantiator, { name -> name } as DomainObjectContext,
+            resolver, instantiator, { name -> name } as DomainObjectContext,
             listenerManager, metaDataProvider)
 
     @Before

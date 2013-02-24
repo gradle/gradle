@@ -307,9 +307,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         public ConfigurationContainerInternal getConfigurationContainer() {
             if (configurationContainer == null) {
                 final Instantiator instantiator = parent.get(Instantiator.class);
-                ArtifactDependencyResolver dependencyResolver = createDependencyResolver(getResolveRepositoryHandler());
+                ConfigurationResolver resolver = createDependencyResolver(getResolveRepositoryHandler());
                 configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
-                        dependencyResolver, instantiator, domainObjectContext, parent.get(ListenerManager.class),
+                        resolver, instantiator, domainObjectContext, parent.get(ListenerManager.class),
                         dependencyMetaDataProvider);
             }
             return configurationContainer;
@@ -334,12 +334,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 return new DefaultArtifactPublicationServices(DefaultDependencyResolutionServices.this);
         }
 
-        ArtifactDependencyResolver createDependencyResolver(DefaultRepositoryHandler resolverProvider) {
+        ConfigurationResolver createDependencyResolver(DefaultRepositoryHandler repositories) {
             StartParameter startParameter = get(StartParameter.class);
             StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
             ResolveIvyFactory ivyFactory = new ResolveIvyFactory(
                     get(IvyFactory.class),
-                    resolverProvider,
+                    repositories,
                     get(SettingsConverter.class),
                     get(ModuleResolutionCache.class),
                     get(ModuleDescriptorCache.class),
@@ -360,12 +360,15 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                             get(PublishModuleDescriptorConverter.class)),
                     get(ProjectAccessListener.class)
             );
-            return new ErrorHandlingArtifactDependencyResolver(
-                    new ShortcircuitEmptyConfigsArtifactDependencyResolver(
-                            new SelfResolvingDependencyResolver(
-                                    new CacheLockingArtifactDependencyResolver(
-                                            get(CacheLockingManager.class),
-                                            resolver))));
+            return new DefaultConfigurationResolver(
+                    new ErrorHandlingArtifactDependencyResolver(
+                            new ShortcircuitEmptyConfigsArtifactDependencyResolver(
+                                    new SelfResolvingDependencyResolver(
+                                            new CacheLockingArtifactDependencyResolver(
+                                                    get(CacheLockingManager.class),
+                                                    resolver)))),
+                        repositories
+                    );
         }
 
         ArtifactPublisher createArtifactPublisher() {

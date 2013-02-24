@@ -53,7 +53,7 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class DefaultConfigurationTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
-    private ArtifactDependencyResolver dependencyResolver = context.mock(ArtifactDependencyResolver.class);
+    private ConfigurationResolver dependencyResolver = context.mock(ConfigurationResolver.class);
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);

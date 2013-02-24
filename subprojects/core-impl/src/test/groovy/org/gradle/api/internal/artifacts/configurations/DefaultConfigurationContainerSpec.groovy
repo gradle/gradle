@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.internal.reflect.Instantiator
@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 public class DefaultConfigurationContainerSpec extends Specification {
 
-    private ArtifactDependencyResolver dependencyResolver = Mock()
+    private ConfigurationResolver resolver = Mock()
     private Instantiator instantiator = Mock()
     private DomainObjectContext domainObjectContext = Mock()
     private ListenerManager listenerManager = Mock()
@@ -35,7 +35,7 @@ public class DefaultConfigurationContainerSpec extends Specification {
     def ConfigurationInternal conf = Mock()
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
-            dependencyResolver, instantiator, domainObjectContext,
+            resolver, instantiator, domainObjectContext,
             listenerManager, metaDataProvider);
 
     def "adds and gets"() {
@@ -43,7 +43,7 @@ public class DefaultConfigurationContainerSpec extends Specification {
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
         1 * instantiator.newInstance(DefaultResolutionStrategy.class) >> { new DefaultResolutionStrategy() }
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal) >> conf
+                resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal) >> conf
 
         when:
         def compile = configurationContainer.add("compile")
@@ -63,7 +63,7 @@ public class DefaultConfigurationContainerSpec extends Specification {
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
         1 * instantiator.newInstance(DefaultResolutionStrategy.class) >> { new DefaultResolutionStrategy() }
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal) >> conf
+                resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal) >> conf
 
         when:
         def compile = configurationContainer.add("compile") {

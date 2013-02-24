@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerManager;
@@ -38,7 +38,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     
-    private final ArtifactDependencyResolver dependencyResolver;
+    private final ConfigurationResolver resolver;
     private final Instantiator instantiator;
     private final DomainObjectContext context;
     private final ListenerManager listenerManager;
@@ -46,11 +46,11 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(ArtifactDependencyResolver dependencyResolver,
+    public DefaultConfigurationContainer(ConfigurationResolver resolver,
                                          Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
                                          DependencyMetaDataProvider dependencyMetaDataProvider) {
         super(Configuration.class, instantiator, new Configuration.Namer());
-        this.dependencyResolver = dependencyResolver;
+        this.resolver = resolver;
         this.instantiator = instantiator;
         this.context = context;
         this.listenerManager = listenerManager;
@@ -60,7 +60,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     @Override
     protected Configuration doCreate(String name) {
         return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name),
-                name, this, dependencyResolver, listenerManager,
+                name, this, resolver, listenerManager,
                 dependencyMetaDataProvider, instantiator.newInstance(DefaultResolutionStrategy.class));
     }
 
@@ -95,7 +95,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(
-                name, name, detachedConfigurationsProvider, dependencyResolver,
+                name, name, detachedConfigurationsProvider, resolver,
                 listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy());
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {

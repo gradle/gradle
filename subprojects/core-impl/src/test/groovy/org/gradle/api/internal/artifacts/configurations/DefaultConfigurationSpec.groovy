@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
+import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.TaskDependency
@@ -30,13 +30,13 @@ import org.gradle.api.artifacts.*
 class DefaultConfigurationSpec extends Specification {
 
     ConfigurationsProvider configurationsProvider = Mock()
-    ArtifactDependencyResolver dependencyResolver = Mock()
+    ConfigurationResolver resolver = Mock()
     ListenerManager listenerManager = Mock()
     DependencyMetaDataProvider metaDataProvider = Mock()
     ResolutionStrategyInternal resolutionStrategy = Mock()
 
     DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy)
+        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy)
     }
 
     DefaultPublishArtifact artifact(String name) {
@@ -56,7 +56,7 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     // You need to wrap this in an interaction {} block when calling it
-    ResolvedConfiguration resolvedConfiguration(Configuration config, ArtifactDependencyResolver dependencyResolver = dependencyResolver) {
+    ResolvedConfiguration resolvedConfiguration(Configuration config, ConfigurationResolver dependencyResolver = resolver) {
         ResolvedConfiguration resolvedConfiguration = Mock()
         1 * dependencyResolver.resolve(config) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
         resolvedConfiguration
@@ -180,7 +180,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         interaction { resolvedConfiguration(config) }
-        0 * dependencyResolver._
+        0 * resolver._
     }
 
     def "incoming dependencies set depends on all self resolving dependencies"() {
@@ -310,7 +310,7 @@ class DefaultConfigurationSpec extends Specification {
         def out = config.incoming.resolutionResult
 
         then:
-        1 * dependencyResolver.resolve(config) >> new ResolverResults(Mock(ResolvedConfiguration), result)
+        1 * resolver.resolve(config) >> new ResolverResults(Mock(ResolvedConfiguration), result)
         out == result
     }
 }

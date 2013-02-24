@@ -51,7 +51,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
     private String description;
     private ConfigurationsProvider configurationsProvider;
-    private final ArtifactDependencyResolver dependencyResolver;
+    private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
     private final DefaultDependencySet dependencies;
@@ -71,13 +71,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ResolutionStrategyInternal resolutionStrategy;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
-                                ArtifactDependencyResolver dependencyResolver, ListenerManager listenerManager,
+                                ConfigurationResolver resolver, ListenerManager listenerManager,
                                 DependencyMetaDataProvider metaDataProvider,
                                 ResolutionStrategyInternal resolutionStrategy) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
-        this.dependencyResolver = dependencyResolver;
+        this.resolver = resolver;
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
         this.resolutionStrategy = resolutionStrategy;
@@ -237,7 +237,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
-                cachedResolverResults = dependencyResolver.resolve(this);
+                cachedResolverResults = resolver.resolve(this);
                 if (cachedResolverResults.getResolvedConfiguration().hasError()) {
                     state = State.RESOLVED_WITH_FAILURES;
                 } else {
@@ -362,7 +362,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy.copy());
+                configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy());
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
