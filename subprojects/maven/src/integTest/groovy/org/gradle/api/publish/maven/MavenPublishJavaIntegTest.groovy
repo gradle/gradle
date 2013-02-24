@@ -38,9 +38,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         mavenModule.assertPublishedAsJavaModule()
 
         mavenModule.parsedPom.scopes.keySet() == ["runtime"] as Set
-        mavenModule.parsedPom.scopes.runtime.dependencies.size() == 2
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-collections", "commons-collections", "3.2.1")
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-io", "commons-io", "1.4")
+        mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.1", "commons-io:commons-io:1.4")
 
         and:
         resolveArtifacts(mavenModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]

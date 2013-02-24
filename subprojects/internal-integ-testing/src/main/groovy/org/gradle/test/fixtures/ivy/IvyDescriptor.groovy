@@ -15,15 +15,13 @@
  */
 
 package org.gradle.test.fixtures.ivy
-
 import groovy.xml.QName
-
-import java.util.regex.Pattern
+import org.apache.commons.lang.StringUtils
 
 class IvyDescriptor {
-    final Map<String, IvyDescriptorDependencyConfiguration> dependencies = [:]
     Map<String, IvyDescriptorConfiguration> configurations = [:]
     List<IvyDescriptorArtifact> artifacts = []
+    Map<String, IvyDescriptorDependency> dependencies = [:]
     String organisation
     String module
     String revision
@@ -45,20 +43,6 @@ class IvyDescriptor {
             )
         }
 
-        ivy.dependencies.dependency.each { dep ->
-            def configName = dep.@conf ?: "default"
-            def matcher = Pattern.compile("(\\w+)->\\w+").matcher(configName)
-            if (matcher.matches()) {
-                configName = matcher.group(1)
-            }
-            def config = dependencies[configName]
-            if (!config) {
-                config = new IvyDescriptorDependencyConfiguration()
-                dependencies[configName] = config
-            }
-            config.addDependency(dep.@org, dep.@name, dep.@rev)
-        }
-
         ivy.publications.artifact.each { artifact ->
             def ivyArtifact = new IvyDescriptorArtifact(
                     name: artifact.@name, type: artifact.@type,
@@ -70,6 +54,17 @@ class IvyDescriptor {
             artifacts.add(ivyArtifact)
         }
 
+
+        ivy.dependencies.dependency.each { dep ->
+            def ivyDependency = new IvyDescriptorDependency(
+                    org: dep.@org,
+                    module: dep.@name,
+                    revision: dep.@rev,
+                    conf: dep.@conf
+            )
+            def key = "${ivyDependency.org}:${ivyDependency.module}:${ivyDependency.revision}"
+            dependencies[key] = ivyDependency
+        }
     }
 
     IvyDescriptorArtifact expectArtifact(String name, String ext, String classifier = null) {
@@ -84,9 +79,18 @@ class IvyDescriptor {
         }), [name])
     }
 
-    private IvyDescriptorArtifact oneResult(List<IvyDescriptorArtifact> artifacts, def description) {
+    private static IvyDescriptorArtifact oneResult(List<IvyDescriptorArtifact> artifacts, def description) {
         assert artifacts.size() > 0 : "Expected artifact not found: $description"
         assert artifacts.size() == 1 : "Multiple artifacts found: $description"
         return artifacts.get(0)
+    }
+
+    def assertDependsOn(String[] expected) {
+        assert dependencies.size() == expected.length
+        expected.each {
+            String key = StringUtils.substringBefore(it, "@")
+            String conf = StringUtils.substringAfter(it, "@") + "->default"
+            assert dependencies[key].hasConf(conf)
+        }
     }
 }

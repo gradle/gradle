@@ -189,7 +189,7 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractMavenPublishInt
         then:
         failure.assertHasDescription("Execution failed for task ':publishMavenCustomPublicationToMavenRepository'.")
         failure.assertHasCause("Failed to publish publication 'mavenCustom' to repository 'maven'")
-        failure.assertHasCause("Cannot publish maven publication 'mavenCustom': artifact file is a directory")
+        failure.assertHasCause("Invalid publication 'mavenCustom': artifact file is a directory")
     }
 
     private createBuildScripts(def publications, def append = "") {

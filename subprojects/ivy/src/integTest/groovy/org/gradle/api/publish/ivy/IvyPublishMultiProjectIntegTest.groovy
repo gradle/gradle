@@ -29,13 +29,13 @@ class IvyPublishMultiProjectIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.ivy.dependencies.runtime.assertDependsOnModules("project2", "project3")
+        project1.ivy.assertDependsOn("org.gradle.test:project2:1.9@runtime", "org.gradle.test:project3:1.9@runtime")
 
         project2.assertPublishedAsJavaModule()
-        project2.ivy.dependencies.runtime.assertDependsOnModules("project3")
+        project2.ivy.assertDependsOn("org.gradle.test:project3:1.9@runtime")
 
         project3.assertPublishedAsJavaModule()
-        project3.ivy.dependencies.runtime == null
+        project3.ivy.dependencies.isEmpty()
 
         and:
         resolveArtifacts(project1) == ['project1-1.9.jar', 'project2-1.9.jar', 'project3-1.9.jar']
@@ -53,14 +53,14 @@ project(":project2") {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.ivy.dependencies.runtime.assertDependsOnModules("project2", "project3")
+        project1.ivy.assertDependsOn("org.gradle.test:project2:1.9@runtime", "org.gradle.test:project3:1.9@runtime")
 
         // published with the correct coordinates, even though artifact has different name
         project2.assertPublishedAsJavaModule()
-        project2.ivy.dependencies.runtime.assertDependsOnModules("project3")
+        project2.ivy.assertDependsOn("org.gradle.test:project3:1.9@runtime")
 
         project3.assertPublishedAsJavaModule()
-        project3.ivy.dependencies.runtime == null
+        project3.ivy.dependencies.isEmpty()
     }
 
     def "ivy-publish plugin uses target project name for project dependency when target project does not have ivy-publish plugin applied"() {
@@ -105,7 +105,7 @@ project(":project2") {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.ivy.dependencies.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
+        project1.ivy.assertDependsOn("org.gradle.test:project2:1.9@runtime")
     }
 
 

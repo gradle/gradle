@@ -57,7 +57,7 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
         module.assertPublished()
         module.assertArtifactsPublished("javaProject-1.0.jar", "javaProject-1.0-sources.jar", "javaProject-1.0.pom")
         module.parsedPom.packaging == null
-        module.parsedPom.scopes.runtime.assertDependsOn("commons-collections", "commons-collections", "3.0")
+        module.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.0")
     }
 
     def pomCustomization() {

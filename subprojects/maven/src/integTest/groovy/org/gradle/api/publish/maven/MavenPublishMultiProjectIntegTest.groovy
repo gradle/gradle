@@ -104,10 +104,10 @@ project(":project2") {
 
     private def projectsCorrectlyPublished() {
         project1.assertPublishedAsJavaModule()
-        project1.parsedPom.scopes.runtime.assertDependsOnArtifacts("project2", "project3")
+        project1.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test:project2:1.9", "org.gradle.test:project3:1.9")
 
         project2.assertPublishedAsJavaModule()
-        project2.parsedPom.scopes.runtime.assertDependsOnArtifacts("project3")
+        project2.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test:project3:1.9")
 
         project3.assertPublishedAsJavaModule()
         project3.parsedPom.scopes == null
@@ -160,7 +160,7 @@ project(":project2") {
         then:
 
         project1.assertPublishedAsJavaModule()
-        project1.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test", "project2", "1.9")
+        project1.parsedPom.scopes.runtime.assertDependsOn("org.gradle.test:project2:1.9")
     }
 
     @Ignore("This does not work: fix this as part of making the project coordinates customisable via DSL (using new mechanism to set artifactId")
@@ -190,7 +190,7 @@ project(":project2") {
 
         then:
         def pom = project1.parsedPom
-        pom.scopes.runtime.assertDependsOn("org.gradle.test", "changed", "1.9")
+        pom.scopes.runtime.assertDependsOn("org.gradle.test:changed:1.9")
     }
 
     private void createBuildScripts(String append = "") {

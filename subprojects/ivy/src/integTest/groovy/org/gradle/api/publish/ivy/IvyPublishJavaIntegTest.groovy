@@ -44,10 +44,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             configurations["runtime"].extend == null
 
             expectArtifact("publishTest").hasAttributes("jar", "jar", ["runtime"])
-
-            dependencies["runtime"].assertDependsOn("commons-collections", "commons-collections", "3.2.1")
-            dependencies["runtime"].assertDependsOn("commons-io", "commons-io", "1.4")
         }
+        // TODO:DAZ For some reason this doesn't work inside the with block. Investigate.
+        ivyModule.ivy.assertDependsOn("commons-collections:commons-collections:3.2.1@runtime", "commons-io:commons-io:1.4@runtime")
 
         and:
         resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
