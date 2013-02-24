@@ -75,24 +75,24 @@ public class ResolveIvyFactory {
         ResolveData resolveData = createResolveData(ivy, configuration.getName());
         IvyContextualiser contextualiser = new IvyContextualiser(ivy, resolveData);
         for (DependencyResolver rawResolver : rawResolvers) {
-            // TODO:DAZ This could be lazily provided via the ivy context. Then we can change resolverProvider.getResolvers() -> getRepositories().
-            rawResolver.setSettings(ivySettings);
-            ModuleVersionRepository moduleVersionRepository;
+            IvyAwareModuleVersionRepository moduleVersionRepository;
             if (rawResolver instanceof ExternalResourceResolver) {
                 moduleVersionRepository = new ExternalResourceResolverAdapter((ExternalResourceResolver) rawResolver);
             } else {
                 moduleVersionRepository = new IvyDependencyResolverAdapter(rawResolver);
             }
-            LocalAwareModuleVersionRepository cachingRepository;
+            moduleVersionRepository.setSettings(ivySettings);
+
+            LocalAwareModuleVersionRepository localAwareRepository;
             if (moduleVersionRepository.isLocal()) {
-                cachingRepository = new LocalModuleVersionRepository(moduleVersionRepository);
+                localAwareRepository = new LocalModuleVersionRepository(moduleVersionRepository);
             } else {
-                moduleVersionRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
-                moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
-                cachingRepository = new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
+                ModuleVersionRepository wrapperRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
+                wrapperRepository = startParameterResolutionOverride.overrideModuleVersionRepository(wrapperRepository);
+                localAwareRepository = new CachingModuleVersionRepository(wrapperRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
                         configuration.getResolutionStrategy().getCachePolicy(), timeProvider);
             }
-            LocalAwareModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(LocalAwareModuleVersionRepository.class, cachingRepository);
+            LocalAwareModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(LocalAwareModuleVersionRepository.class, localAwareRepository);
             userResolverChain.add(ivyContextualisedRepository);
         }
 

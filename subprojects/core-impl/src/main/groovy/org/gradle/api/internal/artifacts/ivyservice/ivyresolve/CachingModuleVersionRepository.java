@@ -73,10 +73,6 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return "Caching " + delegate.toString();
     }
 
-    public boolean isLocal() {
-        return delegate.isLocal();
-    }
-
     public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
         DependencyMetaData resolvedDependency = maybeUseCachedDynamicVersion(delegate, dependency);
         lookupModuleInCache(delegate, resolvedDependency, result);

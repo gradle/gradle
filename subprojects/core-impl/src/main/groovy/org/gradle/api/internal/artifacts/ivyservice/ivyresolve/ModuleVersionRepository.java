@@ -34,7 +34,4 @@ public interface ModuleVersionRepository {
      * Downloads the given artifact. Any failures are packaged up in the result.
      */
     void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource);
-
-    // TODO - should be internal to the implementation of this (is only used to communicate IvyDependencyResolverAdapter -> CachingModuleVersionRepository)
-    boolean isLocal();
 }

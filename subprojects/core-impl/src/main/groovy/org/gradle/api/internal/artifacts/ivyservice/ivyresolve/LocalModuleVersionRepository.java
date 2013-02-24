@@ -26,10 +26,6 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
         this.delegate = delegate;
     }
 
-    public boolean isLocal() {
-        return delegate.isLocal();
-    }
-
     public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
         delegate.resolve(artifact, result, moduleSource);
     }

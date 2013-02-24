@@ -39,10 +39,6 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         return repository.getName();
     }
 
-    public boolean isLocal() {
-        return repository.isLocal();
-    }
-
     public void getDependency(final DependencyMetaData dependency, final BuildableModuleVersionMetaData result) {
         cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, getId()), new Runnable() {
             public void run() {
