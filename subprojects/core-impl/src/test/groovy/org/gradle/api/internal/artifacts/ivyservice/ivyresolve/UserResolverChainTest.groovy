@@ -66,7 +66,7 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, rep ->
@@ -89,8 +89,8 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo.getLocalDependency(dependencyDescriptor, _)
-        1 * repo.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo.getLocalDependency(dependency, _)
+        1 * repo.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, rep ->
@@ -112,10 +112,10 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
             result.probablyMissing()
         }
-        1 * repo.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, rep ->
@@ -138,7 +138,7 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
         1 * result.notFound(dependencyId)
@@ -158,10 +158,10 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
             result.probablyMissing()
         }
-        1 * repo.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo.getDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
         1 * result.notFound(dependencyId)
@@ -187,13 +187,13 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolve(descriptor("1.1"), null)
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(version2, true, moduleSource)
         }
-        1 * repo3.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo3.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor("1.0"), true, null)
         }
         1 * result.resolved(moduleVersionIdentifier(version2), version2, _) >> { revision, descriptor, repo ->
@@ -225,7 +225,7 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { revisionId, descriptor, repo ->
@@ -254,10 +254,10 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
@@ -284,10 +284,10 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.probablyMissing()
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
@@ -313,11 +313,11 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.probablyMissing()
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _)
-        1 * repo2.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _)
+        1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
@@ -343,16 +343,16 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.probablyMissing()
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.probablyMissing()
         }
-        1 * repo1.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
-        1 * repo2.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
@@ -378,13 +378,13 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.probablyMissing()
         }
-        1 * repo2.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
@@ -411,14 +411,14 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.probablyMissing()
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _)
-        1 * repo2.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _)
+        1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
-        1 * repo1.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
@@ -444,10 +444,10 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             throw new RuntimeException("broken")
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
@@ -474,12 +474,12 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _)
-        1 * repo1.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _)
+        1 * repo1.getDependency(dependency, _) >> { dep, result ->
             throw new RuntimeException("broken")
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _)
-        1 * repo2.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _)
+        1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
         1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
@@ -506,11 +506,11 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             throw failure
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _)
-        1 * repo2.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _)
+        1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
         1 * result.failed({ it.cause == failure })
@@ -535,12 +535,12 @@ class UserResolverChainTest extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * repo1.getLocalDependency(dependencyDescriptor, _)
-        1 * repo1.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo1.getLocalDependency(dependency, _)
+        1 * repo1.getDependency(dependency, _) >> { dep, result ->
             throw failure
         }
-        1 * repo2.getLocalDependency(dependencyDescriptor, _)
-        1 * repo2.getDependency(dependencyDescriptor, _) >> { dep, result ->
+        1 * repo2.getLocalDependency(dependency, _)
+        1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.missing()
         }
         1 * result.failed({ it.cause == failure })

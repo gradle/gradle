@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import spock.lang.Specification
 
 /**
@@ -26,7 +26,7 @@ class DefaultUnresolvedDependencySpec extends Specification {
 
     def "provides module details"() {
         when:
-        def dep = new DefaultUnresolvedDependency(ModuleRevisionId.newInstance('org.foo', "foo", '1.0'), new RuntimeException("boo!"))
+        def dep = new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector('org.foo', "foo", '1.0'), new RuntimeException("boo!"))
 
         then:
         dep.selector.group == 'org.foo'

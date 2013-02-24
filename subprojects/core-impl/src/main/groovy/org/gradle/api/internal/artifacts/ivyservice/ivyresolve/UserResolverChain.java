@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
@@ -87,13 +86,12 @@ public class UserResolverChain implements DependencyToModuleResolver {
     }
 
     private ModuleResolution findLatestModule(DependencyMetaData dependency, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
-        DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
-        boolean isStaticVersion = !settings.getVersionMatcher().isDynamic(dependencyDescriptor.getDependencyRevisionId());
+        boolean isStaticVersion = !settings.getVersionMatcher().isDynamic(dependency.getDescriptor().getDependencyRevisionId());
         ModuleResolution best = null;
         while (!queue.isEmpty()) {
             RepositoryResolveState request = queue.removeFirst();
             try {
-                request.resolve(dependencyDescriptor);
+                request.resolve(dependency);
             } catch (Throwable t) {
                 failures.add(t);
                 continue;
@@ -175,13 +173,13 @@ public class UserResolverChain implements DependencyToModuleResolver {
             this.repository = repository;
         }
 
-        void resolve(DependencyDescriptor dependencyDescriptor) {
+        void resolve(DependencyMetaData dependency) {
             if (!searchedLocally) {
                 searchedLocally = true;
-                repository.getLocalDependency(dependencyDescriptor, descriptor);
+                repository.getLocalDependency(dependency, descriptor);
             } else {
                 searchedRemotely = true;
-                repository.getDependency(dependencyDescriptor, descriptor);
+                repository.getDependency(dependency, descriptor);
             }
             if (descriptor.getState() == BuildableModuleVersionMetaData.State.Failed) {
                 throw descriptor.getFailure();

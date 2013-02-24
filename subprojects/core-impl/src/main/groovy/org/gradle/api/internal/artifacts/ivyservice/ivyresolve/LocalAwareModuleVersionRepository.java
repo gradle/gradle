@@ -16,16 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-
 public interface LocalAwareModuleVersionRepository extends ModuleVersionRepository {
     /**
      * Locates the given dependency, using only local resources.
      */
-    void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result);
+    void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result);
 
     /**
-     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(org.apache.ivy.core.module.descriptor.DependencyDescriptor, BuildableModuleVersionMetaData)}.
+     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(DependencyMetaData, BuildableModuleVersionMetaData)}.
      */
-    void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result);
+    void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result);
 }

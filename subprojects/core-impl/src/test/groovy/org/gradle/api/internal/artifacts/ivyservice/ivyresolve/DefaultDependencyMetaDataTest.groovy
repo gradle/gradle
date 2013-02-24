@@ -16,26 +16,25 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import spock.lang.Specification
 
 class DefaultDependencyMetaDataTest extends Specification {
-    final DependencyDescriptor descriptor = Mock()
-    final DefaultDependencyMetaData metaData = new DefaultDependencyMetaData(descriptor)
-
-    def setup() {
-        _ * descriptor.getDependencyRevisionId() >> ModuleRevisionId.newInstance("org", "module", "1.2+")
-    }
+    final requestedModuleId = ModuleRevisionId.newInstance("org", "module", "1.2+")
 
     def "constructs selector from descriptor"() {
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+
         expect:
         metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.2+")
     }
 
     def "creates a copy with new requested version"() {
-        DependencyDescriptor descriptorCopy = Mock()
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
 
         given:
 
@@ -43,9 +42,36 @@ class DefaultDependencyMetaDataTest extends Specification {
         def copy = metaData.withRequestedVersion("1.3+")
 
         then:
-        1 * descriptor.clone(ModuleRevisionId.newInstance("org", "module", "1.3+")) >> descriptorCopy
+        copy.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.3+")
+        copy.descriptor.dependencyRevisionId == ModuleRevisionId.newInstance("org", "module", "1.3+")
+    }
 
-        and:
-        copy.descriptor == descriptorCopy
+    def "returns this if new requested version is the same as current requested version"() {
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+
+        expect:
+        metaData.withRequestedVersion("1.2+").is(metaData)
+        metaData.withRequestedVersion(DefaultModuleVersionSelector.newSelector("org", "module", "1.2+")).is(metaData)
+    }
+
+    def "can set changing flag"() {
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+
+        when:
+        def copy = metaData.withChanging()
+
+        then:
+        copy.descriptor.dependencyRevisionId == requestedModuleId
+        copy.descriptor.changing
+    }
+
+    def "returns this when changing is already true"() {
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, true)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+
+        expect:
+        metaData.withChanging().is(metaData)
     }
 }

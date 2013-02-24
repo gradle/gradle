@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
@@ -81,8 +83,8 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
     def "builds the dependency meta-data from the module descriptor"() {
         def id = Mock(ModuleVersionIdentifier)
         def moduleDescriptor = Mock(ModuleDescriptor)
-        def dependency1 = Mock(DependencyDescriptor)
-        def dependency2 = Mock(DependencyDescriptor)
+        def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
+        def dependency2 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
 
         given:
         moduleDescriptor.dependencies >> ([dependency1, dependency2] as DependencyDescriptor[])

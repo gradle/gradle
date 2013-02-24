@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 
 /**
@@ -29,7 +28,7 @@ public interface ModuleVersionRepository {
 
     String getName();
 
-    void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result);
+    void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result);
 
     /**
      * Downloads the given artifact. Any failures are packaged up in the result.

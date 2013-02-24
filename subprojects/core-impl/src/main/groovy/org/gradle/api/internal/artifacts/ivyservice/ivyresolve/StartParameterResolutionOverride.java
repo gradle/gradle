@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
@@ -97,8 +96,8 @@ public class StartParameterResolutionOverride {
             return false;
         }
 
-        public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result) {
-            result.failed(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), "No cached version of %s available for offline mode."));
+        public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+            result.failed(new ModuleVersionResolveException(dependency.getRequested(), "No cached version of %s available for offline mode."));
         }
 
         public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {

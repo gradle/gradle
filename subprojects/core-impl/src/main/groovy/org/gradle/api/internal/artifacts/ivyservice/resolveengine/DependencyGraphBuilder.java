@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -172,7 +171,7 @@ public class DependencyGraphBuilder {
     }
 
     private static class FailureState {
-        final Map<ModuleRevisionId, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleRevisionId, BrokenDependency>();
+        final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
         final ConfigurationNode root;
 
         private FailureState(ConfigurationNode root) {
@@ -180,13 +179,13 @@ public class DependencyGraphBuilder {
         }
 
         public void attachFailures(ResolvedConfigurationBuilder result) {
-            for (Map.Entry<ModuleRevisionId, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
-                Collection<List<ModuleRevisionId>> paths = calculatePaths(entry);
+            for (Map.Entry<ModuleVersionSelector, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
+                Collection<List<ModuleRevisionId>> paths = calculatePaths(entry.getValue());
                 result.addUnresolvedDependency(new DefaultUnresolvedDependency(entry.getKey(), entry.getValue().failure.withIncomingPaths(paths)));
             }
         }
 
-        private Collection<List<ModuleRevisionId>> calculatePaths(Map.Entry<ModuleRevisionId, BrokenDependency> entry) {
+        private Collection<List<ModuleRevisionId>> calculatePaths(BrokenDependency brokenDependency) {
             // Include the shortest path from each version that has a direct dependency on the broken dependency, back to the root
             
             Map<DefaultModuleRevisionResolveState, List<ModuleRevisionId>> shortestPaths = new LinkedHashMap<DefaultModuleRevisionResolveState, List<ModuleRevisionId>>();
@@ -195,7 +194,7 @@ public class DependencyGraphBuilder {
             shortestPaths.put(root.moduleRevision, rootPath);
 
             Set<DefaultModuleRevisionResolveState> directDependees = new LinkedHashSet<DefaultModuleRevisionResolveState>();
-            for (ConfigurationNode node : entry.getValue().requiredBy) {
+            for (ConfigurationNode node : brokenDependency.requiredBy) {
                 directDependees.add(node.moduleRevision);
             }
 
@@ -246,11 +245,11 @@ public class DependencyGraphBuilder {
             return paths;
         }
 
-        public void addUnresolvedDependency(DependencyEdge dependency, ModuleRevisionId revisionId, ModuleVersionResolveException failure) {
-            BrokenDependency breakage = failuresByRevisionId.get(revisionId);
+        public void addUnresolvedDependency(DependencyEdge dependency, ModuleVersionSelector requested, ModuleVersionResolveException failure) {
+            BrokenDependency breakage = failuresByRevisionId.get(requested);
             if (breakage == null) {
                 breakage = new BrokenDependency(failure);
-                failuresByRevisionId.put(revisionId, breakage);
+                failuresByRevisionId.put(requested, breakage);
             }
             breakage.requiredBy.add(dependency.from);
         }
@@ -407,10 +406,7 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleVersionSelector getRequested() {
-            return new DefaultModuleVersionSelector(
-                    dependencyDescriptor.getDependencyRevisionId().getOrganisation(),
-                    dependencyDescriptor.getDependencyRevisionId().getName(),
-                    dependencyDescriptor.getDependencyRevisionId().getRevision());
+            return dependencyMetaData.getRequested();
         }
 
         public ModuleVersionResolveException getFailure() {
@@ -429,7 +425,7 @@ public class DependencyGraphBuilder {
 
         public void collectFailures(FailureState failureState) {
             if (isFailed()) {
-                failureState.addUnresolvedDependency(this, selector.dependencyMetaData.getDescriptor().getDependencyRevisionId(), getFailure());
+                failureState.addUnresolvedDependency(this, selector.dependencyMetaData.getRequested(), getFailure());
             }
         }
 

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 
 public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepository {
@@ -35,11 +34,11 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
         delegate.resolve(artifact, result, moduleSource);
     }
 
-    public void getLocalDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result) {
-        delegate.getDependency(dependencyDescriptor, result);
+    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+        delegate.getDependency(dependency, result);
     }
 
-    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaData result) {
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
         result.missing();
     }
 

@@ -16,17 +16,24 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory;
+import org.gradle.internal.UncheckedException;
+
+import java.lang.reflect.Field;
 
 class DefaultDependencyMetaData implements DependencyMetaData {
     private final DependencyDescriptor dependencyDescriptor;
+    private DefaultModuleVersionSelector requested;
 
     public DefaultDependencyMetaData(DependencyDescriptor dependencyDescriptor) {
         this.dependencyDescriptor = dependencyDescriptor;
+        ModuleRevisionId dependencyRevisionId = dependencyDescriptor.getDependencyRevisionId();
+        requested = new DefaultModuleVersionSelector(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
     }
 
     @Override
@@ -35,21 +42,47 @@ class DefaultDependencyMetaData implements DependencyMetaData {
     }
 
     public ModuleVersionSelector getRequested() {
-        ModuleRevisionId dependencyRevisionId = dependencyDescriptor.getDependencyRevisionId();
-        return new DefaultModuleVersionSelector(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
+        return requested;
+    }
+
+    public boolean isChanging() {
+        return dependencyDescriptor.isChanging();
+    }
+
+    public DependencyDescriptor getDescriptor() {
+        return dependencyDescriptor;
     }
 
     public DependencyMetaData withRequestedVersion(String requestedVersion) {
+        if (requestedVersion.equals(requested.getVersion())) {
+            return this;
+        }
         return new DefaultDependencyMetaData(dependencyDescriptor.clone(ModuleRevisionId.newInstance(dependencyDescriptor.getDependencyRevisionId(), requestedVersion)));
     }
 
     public DependencyMetaData withRequestedVersion(ModuleVersionSelector requestedVersion) {
+        if (requestedVersion.equals(requested)) {
+            return this;
+        }
+
         ModuleRevisionId requestedId = ModuleRevisionId.newInstance(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
         DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
         return new DefaultDependencyMetaData(substitutedDescriptor);
     }
 
-    public DependencyDescriptor getDescriptor() {
-        return dependencyDescriptor;
+    public DependencyMetaData withChanging() {
+        if (dependencyDescriptor.isChanging()) {
+            return this;
+        }
+
+        DependencyDescriptor forcedChanging = dependencyDescriptor.clone(dependencyDescriptor.getDependencyRevisionId());
+        try {
+            Field field = DefaultDependencyDescriptor.class.getDeclaredField("isChanging");
+            field.setAccessible(true);
+            field.set(forcedChanging, true);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        return new DefaultDependencyMetaData(forcedChanging);
     }
 }
