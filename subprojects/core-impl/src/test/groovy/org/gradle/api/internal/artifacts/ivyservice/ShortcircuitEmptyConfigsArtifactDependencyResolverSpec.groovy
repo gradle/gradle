@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
@@ -30,6 +31,7 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
 
     final ArtifactDependencyResolver delegate = Mock()
     final ConfigurationInternal configuration = Mock()
+    final List<ResolutionAwareRepository> repositories = [Mock(ResolutionAwareRepository)]
     final DependencySet dependencies = Mock()
 
     final ShortcircuitEmptyConfigsArtifactDependencyResolver dependencyResolver = new ShortcircuitEmptyConfigsArtifactDependencyResolver(delegate);
@@ -41,7 +43,7 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
         configuration.getModule() >> new DefaultModule("org", "foo", "1.0")
 
         when:
-        ResolverResults results = dependencyResolver.resolve(configuration);
+        ResolverResults results = dependencyResolver.resolve(configuration, repositories);
         ResolvedConfiguration resolvedConfig = results.resolvedConfiguration
 
         then:
@@ -59,10 +61,10 @@ class ShortcircuitEmptyConfigsArtifactDependencyResolverSpec extends Specificati
 
         dependencies.isEmpty() >> false
         configuration.getAllDependencies() >> dependencies
-        delegate.resolve(configuration) >> resultsDummy
+        delegate.resolve(configuration, repositories) >> resultsDummy
 
         when:
-        def out = dependencyResolver.resolve(configuration)
+        def out = dependencyResolver.resolve(configuration, repositories)
 
         then:
         out == resultsDummy

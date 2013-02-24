@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.ArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
@@ -59,14 +58,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.instantiator = instantiator;
     }
 
-    public DependencyResolver createResolver() {
+    public IvyResolver createResolver() {
         URI uri = getUrl();
 
         Set<String> schemes = new LinkedHashSet<String>();
         layout.addSchemes(uri, schemes);
         additionalPatternsLayout.addSchemes(uri, schemes);
 
-        PatternBasedResolver resolver = createResolver(schemes);
+        IvyResolver resolver = createResolver(schemes);
 
         layout.apply(uri, resolver);
         additionalPatternsLayout.apply(uri, resolver);
@@ -74,7 +73,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return resolver;
     }
 
-    private PatternBasedResolver createResolver(Set<String> schemes) {
+    private IvyResolver createResolver(Set<String> schemes) {
         if (schemes.isEmpty()) {
             throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
         }

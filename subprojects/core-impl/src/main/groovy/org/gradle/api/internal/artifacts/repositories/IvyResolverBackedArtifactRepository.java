@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+package org.gradle.api.internal.artifacts.repositories;
 
-import java.util.List;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyDependencyResolverAdapter;
 
-/**
- * @author Hans Dockter
- */
-public interface ArtifactDependencyResolver {
-    ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException;
+public abstract class IvyResolverBackedArtifactRepository extends AbstractArtifactRepository implements ResolutionAwareRepository {
+    public IvyAwareModuleVersionRepository createResolveRepository() {
+        return new IvyDependencyResolverAdapter(createResolver());
+    }
 }

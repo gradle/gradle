@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
-public class FixedResolverArtifactRepository extends AbstractArtifactRepository implements ArtifactRepository, ArtifactRepositoryInternal {
+public class FixedResolverArtifactRepository extends IvyResolverBackedArtifactRepository implements ArtifactRepository, ArtifactRepositoryInternal {
     protected final DependencyResolver resolver;
 
     public FixedResolverArtifactRepository(DependencyResolver resolver) {

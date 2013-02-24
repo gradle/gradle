@@ -18,10 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.Transformers;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.util.CollectionUtils;
+
+import java.util.List;
 
 public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ArtifactDependencyResolver resolver;
@@ -33,6 +38,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     }
 
     public ResolverResults resolve(ConfigurationInternal configuration) throws ResolveException {
-        return resolver.resolve(configuration);
+        List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+        return resolver.resolve(configuration, resolutionAwareRepositories);
     }
 }

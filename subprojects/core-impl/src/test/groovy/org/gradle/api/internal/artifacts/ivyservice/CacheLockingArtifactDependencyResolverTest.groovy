@@ -18,11 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import spock.lang.Specification
 
 class CacheLockingArtifactDependencyResolverTest extends Specification {
     final CacheLockingManager lockingManager = Mock()
     final ArtifactDependencyResolver target = Mock()
+    final List<ResolutionAwareRepository> repositories = [Mock(ResolutionAwareRepository)]
     final CacheLockingArtifactDependencyResolver resolver = new CacheLockingArtifactDependencyResolver(lockingManager, target)
 
     def "resolves while holding a lock on the cache"() {
@@ -30,7 +32,7 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
         ResolverResults resolverResults = Mock()
 
         when:
-        def results = resolver.resolve(configuration)
+        def results = resolver.resolve(configuration, repositories)
 
         then:
         results == resolverResults
@@ -39,6 +41,6 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
         1 * lockingManager.useCache("resolve $configuration", !null) >> {
             it[1].create()
         }
-        1 * target.resolve(configuration) >> resolverResults
+        1 * target.resolve(configuration, repositories) >> resolverResults
     }
 }

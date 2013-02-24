@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.CachingDependencyResolveContext
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
@@ -35,18 +36,19 @@ public class SelfResolvingDependencyResolverTest extends Specification {
     private delegate = Mock(ArtifactDependencyResolver)
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private configuration = Mock(ConfigurationInternal)
+    private repositories = [Mock(ResolutionAwareRepository)]
     private dependencies = Mock(DependencySet)
 
     private resolver = new SelfResolvingDependencyResolver(delegate);
 
     void "returns correct resolved configuration"() {
         given:
-        delegate.resolve(configuration) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
+        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> true
 
         when:
-        def results = resolver.resolve(configuration)
+        def results = resolver.resolve(configuration, repositories)
 
         then:
         def conf = (SelfResolvingDependencyResolver.FilesAggregatingResolvedConfiguration) results.resolvedConfiguration
@@ -58,12 +60,12 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "uses configuration transitive setting"() {
         given:
-        delegate.resolve(configuration) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
+        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> false
 
         when:
-        def results = resolver.resolve(configuration)
+        def results = resolver.resolve(configuration, repositories)
 
         then:
         def conf = (SelfResolvingDependencyResolver.FilesAggregatingResolvedConfiguration) results.resolvedConfiguration
@@ -72,12 +74,12 @@ public class SelfResolvingDependencyResolverTest extends Specification {
 
     void "delegates to provided resolved configuration"() {
         given:
-        delegate.resolve(configuration) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
+        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration, Mock(ResolutionResult))
         configuration.getAllDependencies() >> dependencies
         configuration.isTransitive() >> true
 
         when:
-        def results = resolver.resolve(configuration)
+        def results = resolver.resolve(configuration, repositories)
         results.resolvedConfiguration.getFirstLevelModuleDependencies(Specs.satisfyAll())
         results.resolvedConfiguration.getResolvedArtifacts()
         results.resolvedConfiguration.hasError()

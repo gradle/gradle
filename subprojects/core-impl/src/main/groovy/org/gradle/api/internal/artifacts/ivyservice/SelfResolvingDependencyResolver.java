@@ -21,11 +21,13 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class SelfResolvingDependencyResolver implements ArtifactDependencyResolver {
@@ -35,8 +37,8 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
         this.resolver = resolver;
     }
 
-    public ResolverResults resolve(final ConfigurationInternal configuration) {
-        ResolverResults results = resolver.resolve(configuration);
+    public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
+        ResolverResults results = resolver.resolve(configuration, repositories);
         ResolvedConfiguration resolvedConfiguration = results.getResolvedConfiguration();
         Set<Dependency> dependencies = configuration.getAllDependencies();
         CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());

@@ -19,9 +19,11 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependencyResolver {
@@ -31,10 +33,10 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         this.dependencyResolver = dependencyResolver;
     }
 
-    public ResolverResults resolve(final ConfigurationInternal configuration) {
+    public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
         final ResolverResults results;
         try {
-            results = dependencyResolver.resolve(configuration);
+            results = dependencyResolver.resolve(configuration, repositories);
         } catch (final Throwable e) {
             return new ResolverResults(new BrokenResolvedConfiguration(e, configuration), wrapException(e, configuration));
         }
