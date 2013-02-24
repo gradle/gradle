@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
 import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
@@ -26,6 +27,22 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     def result = new DefaultBuildableModuleVersionResolveResult()
 
     def "can query id and meta-data when resolved"() {
+        ModuleVersionIdentifier id = Stub()
+        ModuleVersionMetaData metaData = Stub() {
+            getId() >> id
+        }
+        ArtifactResolver resolver = Stub()
+
+        when:
+        result.resolved(metaData, resolver)
+
+        then:
+        result.id == id
+        result.artifactResolver == resolver
+        result.metaData == metaData
+    }
+
+    def "can resolve using id and ivy descriptor"() {
         ModuleVersionIdentifier id = Mock()
         ModuleDescriptor descriptor = Mock()
         ArtifactResolver resolver = Mock()

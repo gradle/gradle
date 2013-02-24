@@ -17,11 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.slf4j.Logger;
@@ -56,7 +54,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
             for (Throwable error : errors) {
                 LOGGER.debug("Discarding resolve failure.", error);
             }
-            result.resolved(latestResolved.getId(), latestResolved.getDescriptor(), new ModuleVersionRepositoryArtifactResolverAdapter(latestResolved.repository, latestResolved.moduleSource));
+            result.resolved(latestResolved.module, new ModuleVersionRepositoryArtifactResolverAdapter(latestResolved.repository, latestResolved.moduleSource));
             return;
         }
         if (!errors.isEmpty()) {
@@ -200,14 +198,6 @@ public class UserResolverChain implements DependencyToModuleResolver {
             this.repository = repository;
             this.module = module;
             this.moduleSource = moduleSource;
-        }
-
-        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
-            return module.getId();
-        }
-
-        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-            return module.getDescriptor();
         }
 
         public boolean isGeneratedModuleDescriptor() {

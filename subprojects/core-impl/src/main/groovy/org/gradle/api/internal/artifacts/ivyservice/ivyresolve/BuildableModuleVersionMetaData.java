@@ -65,9 +65,14 @@ public interface BuildableModuleVersionMetaData extends ModuleVersionMetaData {
     void probablyMissing();
 
     /**
-     * The repository-specific source for the module version.
+     * The repository-specific source for this module version.
      */
     public ModuleSource getModuleSource();
 
     void setModuleSource(ModuleSource moduleSource);
+
+    /**
+     * Replaces the dependencies of this module version.
+     */
+    void setDependencies(Iterable<? extends DependencyMetaData> dependencies);
 }

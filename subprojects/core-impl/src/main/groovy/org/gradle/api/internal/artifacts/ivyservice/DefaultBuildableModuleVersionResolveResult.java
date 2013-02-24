@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 
 public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
-    private DefaultBuildableModuleVersionMetaData metaData;
+    private ModuleVersionMetaData metaData;
     private ModuleVersionResolveException failure;
     private ArtifactResolver artifactResolver;
 
@@ -38,15 +38,21 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
     }
 
     public void resolved(ModuleVersionIdentifier moduleVersionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
-        metaData = new DefaultBuildableModuleVersionMetaData();
+        DefaultBuildableModuleVersionMetaData metaData = new DefaultBuildableModuleVersionMetaData();
         metaData.resolved(moduleVersionId, descriptor, false, null);
+        resolved(metaData, artifactResolver);
+    }
+
+    public void resolved(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {
+        this.metaData = metaData;
         this.artifactResolver = artifactResolver;
     }
 
-    public void setMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor descriptor) {
+    public void setMetaData(ModuleDescriptor descriptor) {
         assertResolved();
-        metaData = new DefaultBuildableModuleVersionMetaData();
-        metaData.resolved(moduleVersionIdentifier, descriptor, false, null);
+        DefaultBuildableModuleVersionMetaData newMetaData = new DefaultBuildableModuleVersionMetaData();
+        newMetaData.resolved(metaData.getId(), descriptor, metaData.isChanging(), null);
+        this.metaData = newMetaData;
     }
 
     public void setArtifactResolver(ArtifactResolver artifactResolver) {

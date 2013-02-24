@@ -69,9 +69,11 @@ class UserResolverChainTest extends Specification {
         1 * repo.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, rep ->
-            assert rep.delegate == repo
-            assert rep.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo
+            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -93,9 +95,11 @@ class UserResolverChainTest extends Specification {
         1 * repo.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, rep ->
-            assert rep.delegate == repo
-            assert rep.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo
+            assert source.moduleSource == moduleSource
         }
         and:
         _ * repo.name >> "repo"
@@ -118,9 +122,11 @@ class UserResolverChainTest extends Specification {
         1 * repo.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, rep ->
-            assert rep.delegate == repo
-            assert rep.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo
+            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -196,9 +202,11 @@ class UserResolverChainTest extends Specification {
         1 * repo3.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor("1.0"), true, null)
         }
-        1 * result.resolved(moduleVersionIdentifier(version2), version2, _) >> { revision, descriptor, repo ->
-            assert repo.delegate == repo2
-            assert repo.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == moduleVersionIdentifier(version2)
+            assert metaData.descriptor == version2
+            assert source.delegate == repo2
+            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -228,9 +236,11 @@ class UserResolverChainTest extends Specification {
         1 * repo1.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { revisionId, descriptor, repo ->
-            assert repo.delegate == repo1
-            assert repo.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo1
+            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -260,9 +270,11 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
-            assert repo.delegate == repo2
-            assert repo.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo2
+            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -290,9 +302,11 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
-            assert repo.delegate == repo2
-            assert repo.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo2
+            assert source.moduleSource == moduleSource
         }
         and:
         _ * repo1.name >> "repo"
@@ -320,9 +334,11 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
-            assert repo.delegate == repo2
-            assert repo.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo2
+            assert source.moduleSource == moduleSource
         }
         and:
         _ * repo1.name >> "repo"
@@ -355,9 +371,11 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
-            assert repo.delegate == repo2
-            assert repo.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo2
+            assert source.moduleSource == moduleSource
         }
         and:
         _ * repo1.name >> "repo"
@@ -387,9 +405,11 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
-            assert repo.delegate == repo2
-            assert repo.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo2
+            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -421,9 +441,11 @@ class UserResolverChainTest extends Specification {
         1 * repo1.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
-            assert repo.delegate == repo1
-            assert repo.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo1
+            assert source.moduleSource == moduleSource
         }
         and:
         _ * repo1.name >> "repo"
@@ -450,9 +472,11 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getLocalDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
-            assert repo.delegate == repo2
-            assert repo.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo2
+            assert source.moduleSource == moduleSource
         }
 
         and:
@@ -482,10 +506,13 @@ class UserResolverChainTest extends Specification {
         1 * repo2.getDependency(dependency, _) >> { dep, result ->
             result.resolved(descriptor, true, moduleSource)
         }
-        1 * result.resolved(resolvedId, descriptor, _) >> { resolvedId, descr, repo ->
-            assert repo.delegate == repo2
-            assert repo.moduleSource == moduleSource
+        1 * result.resolved(_, _) >> { metaData, source ->
+            assert metaData.id == resolvedId
+            assert metaData.descriptor == descriptor
+            assert source.delegate == repo2
+            assert source.moduleSource == moduleSource
         }
+
         and:
         _ * repo1.name >> "repo"
         _ * repo2.name >> "repo"

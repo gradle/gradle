@@ -26,9 +26,18 @@ public interface DependencyMetaData {
 
     boolean isChanging();
 
+    /**
+     * Returns a copy of this dependency with the given requested version.
+     */
     DependencyMetaData withRequestedVersion(String requestedVersion);
 
+    /**
+     * Returns a copy of this dependency with the given requested version.
+     */
     DependencyMetaData withRequestedVersion(ModuleVersionSelector requestedVersion);
 
+    /**
+     * Returns a copy of this dependency with the changing flag set.
+     */
     DependencyMetaData withChanging();
 }

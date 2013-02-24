@@ -80,7 +80,7 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         descriptor.moduleSource == moduleSource
     }
 
-    def "builds the dependency meta-data from the module descriptor"() {
+    def "builds and caches the dependency meta-data from the module descriptor"() {
         def id = Mock(ModuleVersionIdentifier)
         def moduleDescriptor = Mock(ModuleDescriptor)
         def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
@@ -99,6 +99,28 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         deps.size() == 2
         deps[0].descriptor == dependency1
         deps[1].descriptor == dependency2
+
+        and:
+        descriptor.dependencies.is(deps)
+    }
+
+    def "can replace the dependencies for the module version"() {
+        def id = Mock(ModuleVersionIdentifier)
+        def moduleDescriptor = Mock(ModuleDescriptor)
+        def dependency1 = Mock(DependencyMetaData)
+        def dependency2 = Mock(DependencyMetaData)
+
+        given:
+        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
+
+        when:
+        descriptor.dependencies = [dependency1, dependency2]
+
+        then:
+        descriptor.dependencies == [dependency1, dependency2]
+
+        and:
+        0 * moduleDescriptor._
     }
 
     def "cannot get descriptor when not resolved"() {

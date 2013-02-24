@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ public class DefaultBuildableModuleVersionMetaData implements BuildableModuleVer
     private boolean changing;
     private State state = State.Unknown;
     private ModuleSource moduleSource;
-
+    private List<DependencyMetaData> dependencies;
     private ModuleVersionResolveException failure;
     private ModuleVersionIdentifier moduleVersionIdentifier;
 
@@ -104,11 +105,18 @@ public class DefaultBuildableModuleVersionMetaData implements BuildableModuleVer
 
     public List<DependencyMetaData> getDependencies() {
         assertResolved();
-        List<DependencyMetaData> dependencies = new ArrayList<DependencyMetaData>();
-        for (final DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
-            dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
+        if (dependencies == null) {
+            dependencies = new ArrayList<DependencyMetaData>();
+            for (final DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
+                dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
+            }
         }
         return dependencies;
+    }
+
+    public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
+        assertResolved();
+        this.dependencies = CollectionUtils.toList(dependencies);
     }
 
     public boolean isChanging() {
