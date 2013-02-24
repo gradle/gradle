@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory;
 
 class DefaultDependencyMetaData implements DependencyMetaData {
     private final DependencyDescriptor dependencyDescriptor;
@@ -40,6 +41,12 @@ class DefaultDependencyMetaData implements DependencyMetaData {
 
     public DependencyMetaData withRequestedVersion(String requestedVersion) {
         return new DefaultDependencyMetaData(dependencyDescriptor.clone(ModuleRevisionId.newInstance(dependencyDescriptor.getDependencyRevisionId(), requestedVersion)));
+    }
+
+    public DependencyMetaData withRequestedVersion(ModuleVersionSelector requestedVersion) {
+        ModuleRevisionId requestedId = ModuleRevisionId.newInstance(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
+        DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
+        return new DefaultDependencyMetaData(substitutedDescriptor);
     }
 
     public DependencyDescriptor getDescriptor() {

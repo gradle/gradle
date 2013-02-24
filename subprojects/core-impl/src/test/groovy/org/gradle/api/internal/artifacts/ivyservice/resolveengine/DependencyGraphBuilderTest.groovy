@@ -848,8 +848,11 @@ class DependencyGraphBuilderTest extends Specification {
     def doesNotResolve(Map<String, ?> args = [:], ModuleVersionMetaData from, ModuleVersionMetaData to) {
         def descriptor = dependsOn(args, from.descriptor, to.descriptor.moduleRevisionId)
         ModuleVersionIdResolveResult result = Mock()
-        (0..1) * dependencyResolver.resolve(descriptor) >> result
+        (0..1) * dependencyResolver.resolve({it.descriptor == descriptor}) >> result
         (0..1) * result.id >> to.id;
+        _ * result.failure >> null
+        _ * result.selectionReason >> null
+        0 * result._
     }
 
     def traversesMissing(Map<String, ?> args = [:], ModuleVersionMetaData from, ModuleVersionMetaData to) {
@@ -879,7 +882,7 @@ class DependencyGraphBuilderTest extends Specification {
     def brokenSelector(Map<String, ?> args = [:], ModuleVersionMetaData from, String to) {
         def descriptor = dependsOn(args, from.descriptor, ModuleRevisionId.newInstance("group", to, "1.0"))
         ModuleVersionIdResolveResult result = Mock()
-        (0..1) * dependencyResolver.resolve(descriptor) >> result
+        (0..1) * dependencyResolver.resolve({it.descriptor == descriptor}) >> result
         _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
         _ * result.selectionReason >> VersionSelectionReasons.REQUESTED
         0 * result._
@@ -905,7 +908,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def selectorResolvesTo(DependencyDescriptor descriptor, ModuleVersionIdentifier to) {
         ModuleVersionIdResolveResult result = Mock()
-        1 * dependencyResolver.resolve(descriptor) >> result
+        1 * dependencyResolver.resolve({it.descriptor == descriptor}) >> result
         1 * result.id >> to
         return result
     }

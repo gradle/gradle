@@ -62,15 +62,16 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
         final DependencyResolver loopback = this;
         return cacheLockingManager.useCache(String.format("Resolve %s", dd), new Factory<ResolvedModuleRevision>() {
             public ResolvedModuleRevision create() {
-                DefaultBuildableModuleVersionResolveResult dependency = new DefaultBuildableModuleVersionResolveResult();
+                DefaultBuildableModuleVersionResolveResult result = new DefaultBuildableModuleVersionResolveResult();
+                DefaultDependencyMetaData dependency = new DefaultDependencyMetaData(dd);
                 IvyContext ivyContext = IvyContext.pushNewCopyContext();
                 try {
                     ivyContext.setResolveData(data);
-                    userResolverChain.resolve(dd, dependency);
+                    userResolverChain.resolve(dependency, result);
                 } finally {
                     IvyContext.popContext();
                 }
-                return new ResolvedModuleRevision(loopback, loopback, dependency.getMetaData().getDescriptor(), null);
+                return new ResolvedModuleRevision(loopback, loopback, result.getMetaData().getDescriptor(), null);
             }
         });
     }
@@ -81,11 +82,12 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
             public ArtifactOrigin create() {
                 try {
                     DependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), false);
-                    DefaultBuildableModuleVersionResolveResult dependency = new DefaultBuildableModuleVersionResolveResult();
-                    userResolverChain.resolve(dependencyDescriptor, dependency);
-                    DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
-                    dependency.getArtifactResolver().resolve(artifact, result);
-                    File artifactFile = result.getFile();
+                    DefaultBuildableModuleVersionResolveResult resolveResult = new DefaultBuildableModuleVersionResolveResult();
+                    DefaultDependencyMetaData dependency = new DefaultDependencyMetaData(dependencyDescriptor);
+                    userResolverChain.resolve(dependency, resolveResult);
+                    DefaultBuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
+                    resolveResult.getArtifactResolver().resolve(artifact, artifactResolveResult);
+                    File artifactFile = artifactResolveResult.getFile();
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
                 } catch (ModuleVersionNotFoundException e) {
                     return null;

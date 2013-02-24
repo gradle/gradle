@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ModuleVersionSelector
 import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
@@ -122,7 +123,7 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
 
     def "fails with a not found exception when not found"() {
         when:
-        result.notFound(Mock(ModuleVersionIdentifier))
+        result.notFound(Mock(ModuleVersionSelector))
 
         then:
         result.failure instanceof ModuleVersionNotFoundException

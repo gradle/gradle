@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.ProjectAccessListener
@@ -45,9 +46,12 @@ class ProjectDependencyResolverTest extends Specification {
         def dependencyDescriptor = Stub(ProjectDependencyDescriptor) {
             getTargetProject() >> dependencyProject
         }
+        def dependencyMetaData = Stub(DependencyMetaData) {
+            getDescriptor() >> dependencyDescriptor
+        }
 
         when:
-        resolver.resolve(dependencyDescriptor, result)
+        resolver.resolve(dependencyMetaData, result)
 
         then:
         1 * registry.findProject(dependencyDescriptor) >> moduleDescriptor
@@ -65,12 +69,15 @@ class ProjectDependencyResolverTest extends Specification {
     def "delegates to backing resolver for non-project dependency"() {
         def result = Mock(BuildableModuleVersionResolveResult)
         def dependencyDescriptor = Mock(DependencyDescriptor)
+        def dependencyMetaData = Stub(DependencyMetaData) {
+            getDescriptor() >> dependencyDescriptor
+        }
 
         when:
-        resolver.resolve(dependencyDescriptor, result)
+        resolver.resolve(dependencyMetaData, result)
 
         then:
-        1 * target.resolve(dependencyDescriptor, result)
+        1 * target.resolve(dependencyMetaData, result)
         0 * _
     }
 }

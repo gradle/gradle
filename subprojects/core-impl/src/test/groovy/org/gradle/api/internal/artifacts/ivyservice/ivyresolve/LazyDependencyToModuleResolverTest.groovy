@@ -21,7 +21,9 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.version.VersionMatcher
+import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.*
 import spock.lang.Specification
 
@@ -269,7 +271,11 @@ class LazyDependencyToModuleResolverTest extends Specification {
         DependencyDescriptor descriptor = Mock()
         ModuleRevisionId id = ModuleRevisionId.newInstance("group", "module", "1.0")
         _ * descriptor.dependencyRevisionId >> id
-        return descriptor
+        DependencyMetaData metaData = Mock()
+        _ * metaData.descriptor >> descriptor
+        ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector("group", "module", "1.0")
+        _ * metaData.requested >> requested
+        return metaData
     }
 
     def artifact() {

@@ -32,6 +32,10 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         super(id, "Could not find %s.");
     }
 
+    public ModuleVersionNotFoundException(ModuleVersionSelector selector) {
+        super(selector, "Could not find any version that matches %s.");
+    }
+
     public ModuleVersionNotFoundException(ModuleVersionIdentifier id) {
         super(id, "Could not find %s.");
     }

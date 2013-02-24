@@ -19,12 +19,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,11 +46,11 @@ public class UserResolverChain implements DependencyToModuleResolver {
         moduleVersionRepositoryNames.add(repository.getName());
     }
 
-    public void resolve(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionResolveResult result) {
-        final ModuleRevisionId dependencyRevisionId = dependencyDescriptor.getDependencyRevisionId();
-        LOGGER.debug("Attempting to resolve module '{}' using repositories {}", dependencyRevisionId, moduleVersionRepositoryNames);
+    public void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result) {
+        ModuleVersionSelector requested = dependency.getRequested();
+        LOGGER.debug("Attempting to resolve module '{}' using repositories {}", requested, moduleVersionRepositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
-        final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
+        final ModuleResolution latestResolved = findLatestModule(dependency, errors);
         if (latestResolved != null) {
             final ModuleVersionMetaData downloadedModule = latestResolved.module;
             LOGGER.debug("Using module '{}' from repository '{}'", downloadedModule.getId(), latestResolved.repository.getName());
@@ -62,14 +61,13 @@ public class UserResolverChain implements DependencyToModuleResolver {
             return;
         }
         if (!errors.isEmpty()) {
-            result.failed(new ModuleVersionResolveException(dependencyRevisionId, errors));
+            result.failed(new ModuleVersionResolveException(requested, errors));
         } else {
-            final DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
-            result.notFound(moduleVersionIdentifier);
+            result.notFound(requested);
         }
     }
 
-    private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor, Collection<Throwable> failures) {
+    private ModuleResolution findLatestModule(DependencyMetaData dependency, Collection<Throwable> failures) {
         LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
         for (LocalAwareModuleVersionRepository repository : moduleVersionRepositories) {
             queue.add(new RepositoryResolveState(repository));
@@ -77,7 +75,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         LinkedList<RepositoryResolveState> missing = new LinkedList<RepositoryResolveState>();
 
         // A first pass to do local resolves only
-        ModuleResolution best = findLatestModule(dependencyDescriptor, queue, failures, missing);
+        ModuleResolution best = findLatestModule(dependency, queue, failures, missing);
         if (best != null) {
             return best;
         }
@@ -85,10 +83,11 @@ public class UserResolverChain implements DependencyToModuleResolver {
         // Nothing found - do a second pass
         queue.addAll(missing);
         missing.clear();
-        return findLatestModule(dependencyDescriptor, queue, failures, missing);
+        return findLatestModule(dependency, queue, failures, missing);
     }
 
-    private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
+    private ModuleResolution findLatestModule(DependencyMetaData dependency, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
+        DependencyDescriptor dependencyDescriptor = dependency.getDescriptor();
         boolean isStaticVersion = !settings.getVersionMatcher().isDynamic(dependencyDescriptor.getDependencyRevisionId());
         ModuleResolution best = null;
         while (!queue.isEmpty()) {

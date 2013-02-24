@@ -15,37 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleVersionIdResolver resolver;
     private Action<DependencyResolveDetailsInternal> rule;
-    private ReflectiveDependencyDescriptorFactory descriptorFactory;
 
     public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Action<DependencyResolveDetailsInternal> rule) {
-        this(resolver, rule, new ReflectiveDependencyDescriptorFactory());
-    }
-
-    VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver,
-                                                    Action<DependencyResolveDetailsInternal> rule,
-                                                    ReflectiveDependencyDescriptorFactory descriptorFactory) {
         this.resolver = resolver;
         this.rule = rule;
-        this.descriptorFactory = descriptorFactory;
     }
 
-    public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        ModuleVersionSelector module = new DefaultModuleVersionSelector(dependencyDescriptor.getDependencyRevisionId().getOrganisation(), dependencyDescriptor.getDependencyRevisionId().getName(), dependencyDescriptor.getDependencyRevisionId().getRevision());
+    public ModuleVersionIdResolveResult resolve(DependencyMetaData dependency) {
+        ModuleVersionSelector module = dependency.getRequested();
         DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails(module);
         try {
             rule.execute(details);
@@ -53,13 +41,11 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
             return new FailedDependencyResolveRuleResult(module, e);
         }
         if (details.isUpdated()) {
-            ModuleId moduleId = new ModuleId(details.getTarget().getGroup(), details.getTarget().getName());
-            ModuleRevisionId revisionId = new ModuleRevisionId(moduleId, details.getTarget().getVersion());
-            DependencyDescriptor descriptor = descriptorFactory.create(dependencyDescriptor, revisionId);
-            ModuleVersionIdResolveResult result = resolver.resolve(descriptor);
+            DependencyMetaData substitutedDependency = dependency.withRequestedVersion(details.getTarget());
+            ModuleVersionIdResolveResult result = resolver.resolve(substitutedDependency);
             return new SubstitutedModuleVersionIdResolveResult(result, details.getSelectionReason());
         }
-        return resolver.resolve(dependencyDescriptor);
+        return resolver.resolve(dependency);
     }
 
     private class FailedDependencyResolveRuleResult implements ModuleVersionIdResolveResult {

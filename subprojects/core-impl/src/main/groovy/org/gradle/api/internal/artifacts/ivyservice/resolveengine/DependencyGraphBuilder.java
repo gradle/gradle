@@ -919,7 +919,7 @@ public class DependencyGraphBuilder {
                 return null;
             }
 
-            idResolveResult = resolver.resolve(dependencyMetaData.getDescriptor());
+            idResolveResult = resolver.resolve(dependencyMetaData);
             idSelectionReason = idResolveResult.getSelectionReason();
             if (idResolveResult.getFailure() != null) {
                 failure = idResolveResult.getFailure();

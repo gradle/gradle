@@ -25,4 +25,6 @@ public interface DependencyMetaData {
     DependencyDescriptor getDescriptor();
 
     DependencyMetaData withRequestedVersion(String requestedVersion);
+
+    DependencyMetaData withRequestedVersion(ModuleVersionSelector requestedVersion);
 }

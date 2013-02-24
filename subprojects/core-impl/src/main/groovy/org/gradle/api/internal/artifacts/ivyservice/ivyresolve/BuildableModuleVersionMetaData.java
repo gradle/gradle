@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 
 /**
  * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.
+ *
+ * TODO - detach this from ModuleVersionMetaData, so that it has-a instead of is-a.
  */
 public interface BuildableModuleVersionMetaData extends ModuleVersionMetaData {
     enum State {
