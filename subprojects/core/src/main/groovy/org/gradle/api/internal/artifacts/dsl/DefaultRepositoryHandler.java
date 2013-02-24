@@ -27,7 +27,6 @@ import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -115,7 +114,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         ConfigureUtil.configureByMap(modifiedArgs, repository);
         DependencyResolver resolver = repositoryFactory.toResolver(repository);
         ConfigureUtil.configure(configClosure, resolver);
-        addRepository(new FixedResolverArtifactRepository(resolver), "mavenRepo");
+        addRepository(repositoryFactory.createResolverBackedRepository(resolver), "mavenRepo");
         return resolver;
     }
 

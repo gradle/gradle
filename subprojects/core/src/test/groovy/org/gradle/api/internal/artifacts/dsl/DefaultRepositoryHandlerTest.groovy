@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.apache.ivy.plugins.resolver.DependencyResolver
-import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
-import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository
+import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.internal.reflect.Instantiator
 import org.junit.Test
 
@@ -102,17 +101,18 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         TestMavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
         repositoryFactory.createMavenRepository() >> repository
         1 * repository.setName(repoName)
-        repository.getName() >> repoName
         1 * repository.setUrl(repoRoot)
         1 * repository.setArtifactUrls([testUrl1, testUrl2])
-        DependencyResolver resolver = new FileSystemResolver(name: "resolver")
+        DependencyResolver resolver = Mock()
         1 * repositoryFactory.toResolver(repository) >> resolver
+        ArtifactRepositoryInternal fixedRepo = Mock(ArtifactRepositoryInternal)
+        1 * repositoryFactory.createResolverBackedRepository(resolver) >> fixedRepo
+        fixedRepo.getName() >> repoName
 
         then:
         handler.mavenRepo([name: repoName, url: repoRoot, artifactUrls: [testUrl1, testUrl2]]).is(resolver)
         handler.size() == 1
-        handler.first() instanceof FixedResolverArtifactRepository
-        handler.first().createResolver() == resolver
+        handler.first() == fixedRepo
     }
 
     @Test
@@ -124,15 +124,17 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         TestMavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
         repositoryFactory.createMavenRepository() >> repository
         1 * repository.setName(repoName)
-        repository.getName() >> repoName
         1 * repository.setUrl(repoRoot)
-        DependencyResolver resolver = new FileSystemResolver(name: "resolver")
+        DependencyResolver resolver = Mock()
         1 * repositoryFactory.toResolver(repository) >> resolver
+        ArtifactRepositoryInternal fixedRepo = Mock(ArtifactRepositoryInternal)
+        1 * repositoryFactory.createResolverBackedRepository(resolver) >> fixedRepo
+        fixedRepo.getName() >> repoName
 
         then:
         handler.mavenRepo([name: repoName, url: repoRoot]).is(resolver)
         handler.size() == 1
-        handler.first().createResolver() == resolver
+        handler.first() == fixedRepo
     }
 
     @Test
@@ -142,15 +144,17 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
         TestMavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
         repositoryFactory.createMavenRepository() >> repository
-        repository.getName() >> null
         1 * repository.setUrl(repoRoot)
-        DependencyResolver resolver = new FileSystemResolver(name: "resolver")
+        DependencyResolver resolver = Mock()
         1 * repositoryFactory.toResolver(repository) >> resolver
+        ArtifactRepositoryInternal fixedRepo = Mock(ArtifactRepositoryInternal)
+        1 * repositoryFactory.createResolverBackedRepository(resolver) >> fixedRepo
+        1 * fixedRepo.setName("mavenRepo")
 
         then:
         handler.mavenRepo([url: repoRoot]).is(resolver)
         handler.size() == 1
-        handler.first().createResolver() == resolver
+        handler.first() == fixedRepo
     }
 
     public void createIvyRepositoryUsingClosure() {
