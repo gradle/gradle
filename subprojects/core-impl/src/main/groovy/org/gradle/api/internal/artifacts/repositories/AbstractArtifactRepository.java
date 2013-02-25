@@ -20,7 +20,7 @@ import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.util.DeprecationLogger;
 
-public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal {
+public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, ResolutionAwareRepository {
 
     private String name;
     private boolean isPartOfContainer;
