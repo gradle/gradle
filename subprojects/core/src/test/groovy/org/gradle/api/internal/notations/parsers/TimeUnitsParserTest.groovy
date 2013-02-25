@@ -25,12 +25,13 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS
 /**
  * by Szczepan Faber, created at: 2/12/13
  */
-class TimeUnitsNotationParserTest extends Specification {
+class TimeUnitsParserTest extends Specification {
+
+    def parser = new TimeUnitsParser()
 
     def "parses time units"() {
         expect:
-        def parser = new TimeUnitsNotationParser(value)
-        def unit = parser.parseType(input)
+        def unit = parser.parseNotation(input, value)
         unit.value == normalizedValue
         unit.timeUnit == parsed
 
@@ -45,7 +46,7 @@ class TimeUnitsNotationParserTest extends Specification {
 
     def "fails gracefully for invalid input"() {
         when:
-        new TimeUnitsNotationParser(133).parseType("foobar")
+        parser.parseNotation("foobar", 133)
         then:
         def ex = thrown(InvalidUserDataException)
         ex.message.contains("foobar")

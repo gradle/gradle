@@ -25,16 +25,9 @@ import static org.gradle.api.internal.notations.parsers.NormalizedTimeUnit.milli
 /**
  * by Szczepan Faber, created at: 2/12/13
  */
-public class TimeUnitsNotationParser extends TypedNotationParser<CharSequence, NormalizedTimeUnit> {
+public class TimeUnitsParser {
 
-    private final int value;
-
-    public TimeUnitsNotationParser(int value) {
-        super(CharSequence.class);
-        this.value = value;
-    }
-
-    protected NormalizedTimeUnit parseType(CharSequence notation) {
+    public NormalizedTimeUnit parseNotation(CharSequence notation, int value) {
         String candidate = notation.toString().toUpperCase();
         //jdk5 does not have days, hours or minutes, normalizing to millis
         if (candidate.equals("DAYS")) {
