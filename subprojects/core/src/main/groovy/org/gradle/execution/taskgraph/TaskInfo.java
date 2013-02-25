@@ -33,7 +33,7 @@ class TaskInfo implements Comparable<TaskInfo> {
     private Throwable executionFailure;
     private final TreeSet<TaskInfo> hardSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> softSuccessors = new TreeSet<TaskInfo>();
-    private boolean required = false;
+    private boolean required;
 
     public TaskInfo(TaskInternal task) {
         this.task = task;

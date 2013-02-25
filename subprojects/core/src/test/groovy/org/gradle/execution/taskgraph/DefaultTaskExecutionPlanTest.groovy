@@ -47,6 +47,11 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan = new DefaultTaskExecutionPlan()
     }
 
+    private void addToGraphAndPopulate(List tasks) {
+        executionPlan.addToTaskGraph(tasks)
+        executionPlan.determineExecutionPlan()
+    }
+
     def "returns tasks in dependency order"() {
         given:
         Task a = task("a");
@@ -55,7 +60,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task d = task("d", dependsOn: [c]);
 
         when:
-        executionPlan.addToTaskGraph(toList(d))
+        addToGraphAndPopulate([d])
 
         then:
         executedTasks == [a, b, c, d]
@@ -69,7 +74,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task d = task("d", dependsOn: [b, a, c]);
 
         when:
-        executionPlan.addToTaskGraph(toList(d));
+        addToGraphAndPopulate([d])
 
         then:
         executedTasks == [a, b, c, d]
@@ -82,7 +87,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task c = task("c");
 
         when:
-        executionPlan.addToTaskGraph(toList(b, c, a));
+        addToGraphAndPopulate(toList(b, c, a));
 
         then:
         executedTasks == [a, b, c]
@@ -97,7 +102,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         when:
         executionPlan.addToTaskGraph(toList(c, b));
-        executionPlan.addToTaskGraph(toList(d, a));
+        executionPlan.addToTaskGraph(toList(d, a))
+        executionPlan.determineExecutionPlan()
 
         then:
         executedTasks == [b, c, a, d];
@@ -111,7 +117,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task d = task("d", dependsOn: [b, a]);
 
         when:
-        executionPlan.addToTaskGraph([c, d]);
+        addToGraphAndPopulate([c, d]);
 
         then:
         executedTasks == [a, b, c, d]
@@ -127,6 +133,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         when:
         executionPlan.addToTaskGraph(toList(c));
         executionPlan.addToTaskGraph(toList(e));
+        executionPlan.determineExecutionPlan();
 
         then:
         executedTasks == [a, b, c, d, e];
@@ -139,7 +146,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task d = task("d", dependsOn: [c]);
 
         when:
-        executionPlan.addToTaskGraph(toList(d));
+        addToGraphAndPopulate(toList(d));
 
         then:
         executionPlan.getTasks() == [a, b, c, d];
@@ -154,6 +161,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         when:
         executionPlan.addToTaskGraph([c])
         executionPlan.addToTaskGraph([b])
+        executionPlan.determineExecutionPlan()
 
         then:
         executedTasks == [a, b, c]
@@ -166,7 +174,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task d = task("d", dependsOn: [b])
 
         when:
-        executionPlan.addToTaskGraph([c, d])
+        addToGraphAndPopulate([c, d])
 
         then:
         executedTasks == [b, a, c, d]
@@ -177,7 +185,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task b = task("b", mustRunAfter: [a])
 
         when:
-        executionPlan.addToTaskGraph([b])
+        addToGraphAndPopulate([b])
 
         then:
         executedTasks == [b]
@@ -190,7 +198,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task a = task("a", dependsOn: [b]);
 
         when:
-        executionPlan.addToTaskGraph(toList(a));
+        addToGraphAndPopulate(toList(a));
 
         then:
         executionPlan.getTasks() == [c, d, b, a]
@@ -204,7 +212,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         dependsOn(a, [c]);
 
         when:
-        executionPlan.addToTaskGraph([c])
+        addToGraphAndPopulate([c])
 
         then:
         thrown CircularReferenceException
@@ -218,7 +226,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         mustRunAfter(a, [])
 
         when:
-        executionPlan.addToTaskGraph([a])
+        addToGraphAndPopulate([a])
 
         then:
         thrown CircularReferenceException
@@ -235,6 +243,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         when:
         executionPlan.addToTaskGraph([a])
+        executionPlan.determineExecutionPlan()
 
         then:
         thrown CircularReferenceException
@@ -244,7 +253,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         RuntimeException failure = new RuntimeException("failure");
         Task a = task("a");
         Task b = task("b");
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
 
         when:
         def taskInfoA = taskToExecute
@@ -272,7 +281,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task b = task("b");
 
         when:
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
 
         then:
         executedTasks == [a]
@@ -290,7 +299,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task a = task("a", failure: failure);
         Task b = task("b");
 
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
 
         TaskFailureHandler handler = Mock()
         RuntimeException wrappedFailure = new RuntimeException("wrapped");
@@ -316,7 +325,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         RuntimeException failure = new RuntimeException();
         Task a = task("a", failure: failure);
         Task b = task("b");
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
 
         TaskFailureHandler handler = Mock()
         handler.onTaskFailure(a) >> {
@@ -340,7 +349,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         RuntimeException failure = new RuntimeException();
         Task a = task("a", failure: failure);
         Task b = task("b", mustRunAfter: [a]);
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
 
         TaskFailureHandler handler = Mock()
         handler.onTaskFailure(a) >> {
@@ -365,7 +374,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         final Task a = task("a", failure: failure)
         final Task b = task("b", dependsOn: [a])
         final Task c = task("c")
-        executionPlan.addToTaskGraph([b, c])
+        addToGraphAndPopulate([b, c])
 
         TaskFailureHandler handler = Mock()
         handler.onTaskFailure(a) >> {
@@ -391,7 +400,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task a = task("a");
 
         when:
-        executionPlan.addToTaskGraph(toList(a));
+        addToGraphAndPopulate(toList(a));
         executionPlan.clear()
 
         then:
@@ -415,14 +424,14 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task b = task("b")
 
         when:
-        executionPlan.addToTaskGraph([a])
+        addToGraphAndPopulate([a])
 
         then:
         executedTasks == [a]
 
         when:
         executionPlan.clear()
-        executionPlan.addToTaskGraph([b])
+        addToGraphAndPopulate([b])
 
         then:
         executedTasks == [b]
@@ -435,7 +444,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         when:
         executionPlan.useFilter({ it != a } as Spec<Task>);
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
 
         then:
         executionPlan.getTasks() == [b]
@@ -451,7 +460,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         when:
 
         executionPlan.useFilter({ it != a } as Spec<Task>)
-        executionPlan.addToTaskGraph([c])
+        addToGraphAndPopulate([c])
 
         then:
         executionPlan.tasks == [b, c]
@@ -465,7 +474,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         when:
         executionPlan.useFilter({ it != b } as Spec<Task>)
-        executionPlan.addToTaskGraph([c]);
+        addToGraphAndPopulate([c]);
 
         then:
         executedTasks == [c]

@@ -19,7 +19,6 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -90,17 +89,13 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
             }
         }
-
-        determineExecutionPlan();
     }
 
     private void addAllReversed(List list, TreeSet set) {
          org.apache.commons.collections.CollectionUtils.addAll(list, set.descendingIterator());
     }
 
-    private void determineExecutionPlan() {
-        executionPlan.clear();
-
+    public void determineExecutionPlan() {
         List<TaskInfo> nodeQueue = CollectionUtils.collect(new ArrayList<Task>(entryTasks), new Transformer<TaskInfo, Task>() {
             public TaskInfo transform(Task original) {
                 return graph.getNode(original);
