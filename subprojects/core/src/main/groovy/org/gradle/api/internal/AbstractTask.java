@@ -48,7 +48,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -70,6 +69,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private boolean enabled = true;
 
     private DefaultTaskDependency dependencies;
+
+    private DefaultTaskDependency mustRunAfter;
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
@@ -96,8 +97,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskStatusNagger taskStatusNagger;
     private ObservableList observableActionList;
 
-    private final Set<Task> mustRunAfter = new HashSet<Task>();
-
     protected AbstractTask() {
         this(taskInfo());
     }
@@ -118,6 +117,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         path = project.absoluteProjectPath(name);
         state = new TaskStateInternal(toString());
         dependencies = new DefaultTaskDependency(project.getTasks());
+        mustRunAfter = new DefaultTaskDependency(project.getTasks());
         services = project.getServices().createFor(this);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, getServices().get(Instantiator.class));
         taskStatusNagger = services.get(TaskStatusNagger.class);
@@ -517,13 +517,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    public void mustRunAfter(Task... tasks) {
-        for (Task task : tasks) {
-            mustRunAfter.add(task);
-        }
+    public void setMustRunAfter(Iterable<?> mustRunAfterTasks) {
+        mustRunAfter.setValues(mustRunAfterTasks);
     }
 
-    public Set<Task> getMustRunAfter() {
+    public Task mustRunAfter(Object... paths) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("Task.mustRunAfter(Object...)");
+        mustRunAfter.add(paths);
+        return this;
+    }
+
+    public TaskDependency getMustRunAfter() {
         return mustRunAfter;
     }
 }

@@ -480,14 +480,18 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executedTasks == [c]
     }
 
+    private TaskDependency taskDependencyResolvingTo(TaskInternal task, List<Task> tasks) {
+        Mock(TaskDependency) {
+            getDependencies(task) >> tasks
+        }
+    }
+
     private void dependsOn(TaskInternal task, List<Task> dependsOnTasks) {
-        TaskDependency taskDependency = Mock()
-        task.getTaskDependencies() >> taskDependency
-        taskDependency.getDependencies(task) >> (dependsOnTasks as Set)
+        task.getTaskDependencies() >> taskDependencyResolvingTo(task, dependsOnTasks)
     }
 
     private void mustRunAfter(TaskInternal task, List<Task> mustRunAfterTasks) {
-        task.getMustRunAfter() >> (mustRunAfterTasks as Set)
+        task.getMustRunAfter() >> taskDependencyResolvingTo(task, mustRunAfterTasks)
     }
 
     private void failure(TaskInternal task, final RuntimeException failure) {

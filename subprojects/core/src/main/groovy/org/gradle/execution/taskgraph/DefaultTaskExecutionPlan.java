@@ -84,7 +84,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 for (Task dependency : dependencies) {
                     graph.addHardEdge(node, dependency);
                 }
-                for (Task mustRunAfter : task.getMustRunAfter()) {
+                for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
                     graph.addSoftEdge(node, mustRunAfter);
                 }
             }

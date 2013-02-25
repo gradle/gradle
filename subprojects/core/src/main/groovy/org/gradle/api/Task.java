@@ -539,8 +539,10 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      */
     File getTemporaryDir();
 
-    void mustRunAfter(Task... tasks);
+    Task mustRunAfter(Object... paths);
 
-    Set<Task> getMustRunAfter();
+    void setMustRunAfter(Iterable<?> mustRunAfter);
+
+    TaskDependency getMustRunAfter();
 }
 
