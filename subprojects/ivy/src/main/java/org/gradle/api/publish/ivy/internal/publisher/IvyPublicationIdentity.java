@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-public interface IvyProjectIdentity {
+public interface IvyPublicationIdentity {
     String getOrganisation();
 
     void setOrganisation(String organisation);

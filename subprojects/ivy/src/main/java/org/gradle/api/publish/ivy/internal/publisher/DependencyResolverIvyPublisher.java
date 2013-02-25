@@ -36,7 +36,7 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
 
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
         DependencyResolver dependencyResolver = repository.createPublisher();
-        IvyProjectIdentity projectIdentity = publication.getProjectIdentity();
+        IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
         Map<String, String> extraAttributes = Collections.emptyMap();
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision(), extraAttributes);
 

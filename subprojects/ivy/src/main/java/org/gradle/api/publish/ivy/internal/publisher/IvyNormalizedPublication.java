@@ -24,11 +24,11 @@ import java.util.Set;
 public class IvyNormalizedPublication {
 
     private final String name;
-    private final IvyProjectIdentity projectIdentity;
+    private final IvyPublicationIdentity projectIdentity;
     private final File descriptorFile;
     private final Set<IvyArtifact> artifacts;
 
-    public IvyNormalizedPublication(String name, IvyProjectIdentity projectIdentity, File descriptorFile, Set<IvyArtifact> artifacts) {
+    public IvyNormalizedPublication(String name, IvyPublicationIdentity projectIdentity, File descriptorFile, Set<IvyArtifact> artifacts) {
         this.name = name;
         this.projectIdentity = projectIdentity;
         this.artifacts = artifacts;
@@ -39,7 +39,7 @@ public class IvyNormalizedPublication {
         return name;
     }
 
-    public IvyProjectIdentity getProjectIdentity() {
+    public IvyPublicationIdentity getProjectIdentity() {
         return projectIdentity;
     }
 

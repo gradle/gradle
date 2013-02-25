@@ -70,9 +70,9 @@ class IvyPublishPluginTest extends Specification {
 
         then:
         with (publishing.publications.test) {
-            projectIdentity.module == project.name
-            projectIdentity.organisation == "foo"
-            projectIdentity.revision == "1.0"
+            identity.module == project.name
+            identity.organisation == "foo"
+            identity.revision == "1.0"
             descriptor.status == "integration"
         }
 
@@ -82,8 +82,8 @@ class IvyPublishPluginTest extends Specification {
 
         then:
         with (publishing.publications.test) {
-            projectIdentity.organisation == "foo"
-            projectIdentity.revision == "1.0"
+            identity.organisation == "foo"
+            identity.revision == "1.0"
         }
     }
 

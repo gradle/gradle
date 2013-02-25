@@ -30,9 +30,9 @@ import org.gradle.api.publish.internal.PublicationContainerInternal;
 import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
-import org.gradle.api.publish.ivy.internal.publication.DefaultIvyProjectIdentity;
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity;
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication;
-import org.gradle.api.publish.ivy.internal.publisher.IvyProjectIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactNotationParserFactory;
 import org.gradle.api.publish.ivy.internal.plugins.IvyPublicationDynamicDescriptorGenerationTaskCreator;
 import org.gradle.api.publish.ivy.internal.plugins.IvyPublishDynamicTaskCreator;
@@ -96,11 +96,11 @@ public class IvyPublishPlugin implements Plugin<Project> {
 
         public Publication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
-            IvyProjectIdentity projectIdentity = new DefaultIvyProjectIdentity(module.getGroup(), module.getName(), module.getVersion());
-            NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver).create();
+            IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module.getGroup(), module.getName(), module.getVersion());
+            NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
             DefaultIvyPublication ivyPublication = instantiator.newInstance(
                     DefaultIvyPublication.class,
-                    name, instantiator, projectIdentity, notationParser
+                    name, instantiator, publicationIdentity, notationParser
             );
             // TODO:DAZ Not sure if status is a property of the descriptor, or a property of the publication itself.
             ivyPublication.getDescriptor().setStatus(module.getStatus());

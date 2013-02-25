@@ -43,14 +43,14 @@ public class IvyDescriptorFileGenerator {
     private static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
 
     private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
-    private final IvyProjectIdentity projectIdentity;
+    private final IvyPublicationIdentity projectIdentity;
     private String status;
     private XmlTransformer xmlTransformer = new XmlTransformer();
     private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
     private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
     private List<DefaultIvyDependency> dependencies = new ArrayList<DefaultIvyDependency>();
 
-    public IvyDescriptorFileGenerator(IvyProjectIdentity projectIdentity) {
+    public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity) {
         this.projectIdentity = projectIdentity;
     }
 

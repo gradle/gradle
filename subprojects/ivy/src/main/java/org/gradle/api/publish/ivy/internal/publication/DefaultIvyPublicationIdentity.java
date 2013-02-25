@@ -16,14 +16,14 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
-import org.gradle.api.publish.ivy.internal.publisher.IvyProjectIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
-public class DefaultIvyProjectIdentity implements IvyProjectIdentity {
+public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
     private String organisation;
     private String module;
     private String revision;
 
-    public DefaultIvyProjectIdentity(String organisation, String module, String revision) {
+    public DefaultIvyPublicationIdentity(String organisation, String module, String revision) {
         this.organisation = organisation;
         this.module = module;
         this.revision = revision;

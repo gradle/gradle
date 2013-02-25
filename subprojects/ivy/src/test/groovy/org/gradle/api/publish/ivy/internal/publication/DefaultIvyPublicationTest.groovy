@@ -28,7 +28,7 @@ import org.gradle.api.internal.component.Usage
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.notations.api.NotationParser
 import org.gradle.api.publish.ivy.IvyArtifact
-import org.gradle.api.publish.ivy.internal.publisher.IvyProjectIdentity
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -40,7 +40,7 @@ class DefaultIvyPublicationTest extends Specification {
 
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    def projectIdentity = Mock(IvyProjectIdentity)
+    def projectIdentity = Mock(IvyPublicationIdentity)
     def notationParser = Mock(NotationParser)
     File descriptorFile
     File artifactFile
