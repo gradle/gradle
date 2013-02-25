@@ -16,14 +16,16 @@
 
 package org.gradle.execution.taskgraph;
 
+
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 
 import java.util.LinkedHashMap;
 import java.util.Set;
 
 public class TaskDependencyGraph {
 
-    private final LinkedHashMap<Task, TaskDependencyGraphNode> nodes = new LinkedHashMap<Task, TaskDependencyGraphNode>();
+    private final LinkedHashMap<Task, TaskInfo> nodes = new LinkedHashMap<Task, TaskInfo>();
 
     public Set<Task> getTasks() {
         return nodes.keySet();
@@ -33,30 +35,30 @@ public class TaskDependencyGraph {
         return getTasks().contains(task);
     }
 
-    public void addHardEdge(TaskDependencyGraphNode fromNode, Task toTask) {
-        TaskDependencyGraphNode toNode = getOrCreateNode(toTask);
+    public void addHardEdge(TaskInfo fromNode, Task toTask) {
+        TaskInfo toNode = getOrCreateNode(toTask);
         toNode.setRequired(true);
-        fromNode.addHardEdgeTo(toNode);
+        fromNode.addHardSuccessor(toNode);
     }
 
-    public void addSoftEdge(TaskDependencyGraphNode fromNode, Task toTask) {
-        fromNode.addSoftEdgeTo(getOrCreateNode(toTask));
+    public void addSoftEdge(TaskInfo fromNode, Task toTask) {
+        fromNode.addSoftSuccessor(getOrCreateNode(toTask));
     }
 
-    public TaskDependencyGraphNode addNode(Task task) {
-        TaskDependencyGraphNode node = getOrCreateNode(task);
+    public TaskInfo addNode(Task task) {
+        TaskInfo node = getOrCreateNode(task);
         node.setRequired(true);
         return node;
     }
 
-    public TaskDependencyGraphNode getNode(Task task) {
+    public TaskInfo getNode(Task task) {
         return nodes.get(task);
     }
 
-    private TaskDependencyGraphNode getOrCreateNode(Task task) {
-        TaskDependencyGraphNode node = nodes.get(task);
+    private TaskInfo getOrCreateNode(Task task) {
+        TaskInfo node = nodes.get(task);
         if (node == null) {
-            node = new TaskDependencyGraphNode(task);
+            node = new TaskInfo((TaskInternal) task);
             nodes.put(task, node);
         }
         return node;

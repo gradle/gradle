@@ -16,7 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
-import org.gradle.api.Task
+import org.gradle.api.internal.TaskInternal
 import spock.lang.Specification
 
 class TaskDependencyGraphTest extends Specification {
@@ -26,8 +26,8 @@ class TaskDependencyGraphTest extends Specification {
     def c = task('c')
     def d = task('d')
 
-    private Task task(String name) {
-        Mock(Task) {
+    private TaskInternal task(String name) {
+        Mock(TaskInternal) {
             getName() >> name
             compareTo(_) >> { args -> name.compareTo(args[0].name)}
         }
