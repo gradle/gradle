@@ -18,7 +18,6 @@ import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyFileRepository
-import org.gradle.util.GradleVersion
 import org.gradle.util.TextUtil
 
 @TargetVersions('0.9+')
@@ -82,7 +81,7 @@ publishing {
         settingsFile.text = "rootProject.name = 'consumer'"
 
         def repositoryDefinition
-        if (supportsIvyRepositoryWithSpaceInArtifactPattern()) {
+        if (previous.fullySupportsIvyRepository) {
             repositoryDefinition = """
                 ivy {
                     url "${repo.uri}"
@@ -121,11 +120,6 @@ task retrieve(type: Sync) {
 """
 
         version previous withDeprecationChecksDisabled() withTasks 'retrieve' run()
-    }
-
-    private boolean supportsIvyRepositoryWithSpaceInArtifactPattern() {
-        // IvyArtifactRepository was introduced in milestone-3, but didn't support spaces in uri until milestone-7
-        return previous.version.compareTo(GradleVersion.version("1.0-milestone-7")) >= 0
     }
 
     def getPublishedVersion() {
