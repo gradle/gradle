@@ -32,11 +32,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.api.Action
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.*
 
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertEquals
@@ -45,6 +42,7 @@ import static org.junit.Assert.assertEquals
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock)
+@Ignore //TODO SF spockify
 class BuildSourceBuilderTest {
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()

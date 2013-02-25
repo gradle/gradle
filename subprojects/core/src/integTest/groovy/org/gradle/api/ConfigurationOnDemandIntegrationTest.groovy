@@ -242,4 +242,24 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
         result.assertTasksExecuted(":api:foo", ":impl:bar")
     }
+
+    def "supports buildSrc"() {
+        file("buildSrc/src/main/java/FooTask.java") << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+
+            public class FooTask extends DefaultTask {
+                @TaskAction public void logStuff(){
+                    System.out.println(String.format("Horray!!! '%s' executed.", getName()));
+                }
+            }
+        """
+
+        buildFile << "task foo(type: FooTask)"
+
+        when:
+        run("foo")
+        then:
+        output.contains "Horray!!!"
+    }
 }
