@@ -293,6 +293,10 @@ Improving the usability of project dependencies (see the section above)
 might change the order in which projects are configured.
 This change should not cause any trouble in existing builds.
 
+### `ArtifactRepositoryContainer.getResolvers()`
+
+This method has been deprecated and will be removed in Gradle 2.0.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

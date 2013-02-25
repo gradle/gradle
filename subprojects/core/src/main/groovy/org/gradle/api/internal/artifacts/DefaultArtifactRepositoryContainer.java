@@ -167,6 +167,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     public List<DependencyResolver> getResolvers() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ArtifactRepositoryContainer.getResolvers()");
         List<DependencyResolver> returnedResolvers = new ArrayList<DependencyResolver>();
         for (ArtifactRepository repository : this) {
             returnedResolvers.add(baseRepositoryFactory.toResolver(repository));

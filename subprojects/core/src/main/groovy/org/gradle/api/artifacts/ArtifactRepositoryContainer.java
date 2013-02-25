@@ -225,6 +225,8 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * Returns the resolvers in this container, in sequence.
      *
      * @return The resolvers in sequence. Returns an empty list if this container is empty.
+     * @deprecated No replacement.
      */
+    @Deprecated
     List<DependencyResolver> getResolvers();
 }
