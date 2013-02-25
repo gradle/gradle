@@ -26,6 +26,7 @@ import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
 import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
 import org.gradle.util.TextUtil
@@ -38,7 +39,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes correct prologue and schema declarations"() {
         expect:
-        ivyFileContent.startsWith(TextUtil.toPlatformLineSeparators(
+        ivyFile.text.startsWith(TextUtil.toPlatformLineSeparators(
 """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0">
 """))
@@ -57,6 +58,20 @@ class IvyDescriptorFileGeneratorTest extends Specification {
             publications.artifacts.isEmpty()
             dependencies.size() == 1
             dependencies.dependency.isEmpty()
+        }
+    }
+
+    def "encodes coordinates for XML and unicode"() {
+        when:
+        def projectIdentity = new DefaultIvyPublicationIdentity('org-ぴ₦ガき∆ç√∫', 'module-<tag attrib="value"/>-markup', 'version-&"')
+        generator = new IvyDescriptorFileGenerator(projectIdentity)
+
+
+        then:
+        with (ivyXml) {
+            info.@organisation == 'org-ぴ₦ガき∆ç√∫'
+            info.@module == 'module-<tag attrib="value"/>-markup'
+            info.@revision == 'version-&"'
         }
     }
 
@@ -219,7 +234,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         })
         generator.withXml(new Action<XmlProvider>() {
             void execute(XmlProvider t) {
-                t.asNode().info[0].appendNode("description", "custom-description")
+                t.asNode().info[0].appendNode("description", "custom-description-ぴ₦ガき∆ç√∫")
             }
         })
 
@@ -227,25 +242,24 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         with (ivyXml) {
             info.@organisation == "my-org"
             info.@revision == "3"
-            info.description == "custom-description"
+            info.description == "custom-description-ぴ₦ガき∆ç√∫"
         }
     }
 
-
     private void includesMavenNamespace() {
-        assert ivyFileContent.startsWith(TextUtil.toPlatformLineSeparators(
+        assert ivyFile.text.startsWith(TextUtil.toPlatformLineSeparators(
                 """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
 """))
     }
 
     private def getIvyXml() {
-        return new XmlSlurper().parse(new StringReader(ivyFileContent));
+        return new XmlSlurper().parse(ivyFile);
     }
 
-    private String getIvyFileContent() {
+    private TestFile getIvyFile() {
         def ivyFile = testDirectoryProvider.testDirectory.file("ivy.xml")
         generator.writeTo(ivyFile)
-        return ivyFile.text
+        return ivyFile
     }
 }

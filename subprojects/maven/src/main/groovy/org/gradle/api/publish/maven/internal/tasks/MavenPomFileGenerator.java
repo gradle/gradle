@@ -25,11 +25,8 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.ErroringAction;
-import org.gradle.api.internal.IoActions;
 import org.gradle.api.internal.xml.XmlTransformer;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -40,7 +37,7 @@ public class MavenPomFileGenerator {
     private static final String POM_VERSION = "4.0.0";
 
     private MavenProject mavenProject = new MavenProject();
-    private XmlTransformer withXmlActions = new XmlTransformer();
+    private XmlTransformer xmlTransformer = new XmlTransformer();
 
     public MavenPomFileGenerator() {
         mavenProject.setModelVersion(POM_VERSION);
@@ -67,7 +64,7 @@ public class MavenPomFileGenerator {
     }
 
     public MavenPomFileGenerator withXml(final Action<XmlProvider> action) {
-        withXmlActions.addAction(action);
+        xmlTransformer.addAction(action);
         return this;
     }
 
@@ -76,28 +73,16 @@ public class MavenPomFileGenerator {
     }
 
     public MavenPomFileGenerator writeTo(File file) {
-        IoActions.writeTextFile(file, POM_FILE_ENCODING, new Action<BufferedWriter>() {
-            public void execute(BufferedWriter writer) {
+        xmlTransformer.transform(file, POM_FILE_ENCODING, new Action<Writer>() {
+            public void execute(Writer writer) {
                 try {
-                    write(writer);
+                    mavenProject.writeModel(writer);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
             }
         });
         return this;
-    }
-
-    protected void write(final Writer pomWriter) throws IOException {
-        try {
-            withXmlActions.transform(pomWriter, POM_FILE_ENCODING, new ErroringAction<Writer>() {
-                protected void doExecute(Writer writer) throws IOException {
-                    mavenProject.writeModel(writer);
-                }
-            });
-        } finally {
-            pomWriter.close();
-        }
     }
 
     public void addRuntimeDependency(org.gradle.api.artifacts.Dependency dependency) {
