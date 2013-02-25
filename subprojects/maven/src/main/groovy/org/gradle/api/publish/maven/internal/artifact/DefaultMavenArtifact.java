@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven.internal.artifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -31,7 +32,8 @@ public class DefaultMavenArtifact implements MavenArtifact {
     public DefaultMavenArtifact(File file, String extension, String classifier) {
         this.file = file;
         this.extension = extension;
-        this.classifier = classifier;
+        // Handle empty classifiers that come from PublishArtifact and AbstractArchiveTask
+        this.classifier = GUtil.elvis(classifier, null);
     }
 
     public File getFile() {

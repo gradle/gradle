@@ -155,7 +155,7 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractMavenPublishInt
             publications {
                 mavenCustom(MavenPublication) {
                     from components.java
-                    artifact source: "customFile.txt", extension: null, classifier: "classified"
+                    artifact source: "customFile.txt", extension: "", classifier: "classified"
                 }
             }
 """)
@@ -174,12 +174,12 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractMavenPublishInt
 
     def "reports failure publishing when validation fails"() {
         given:
-        file("a-directory").createDir()
+        file("a-directory.dir").createDir()
 
         createBuildScripts("""
             publications {
                 mavenCustom(MavenPublication) {
-                    artifact "a-directory"
+                    artifact "a-directory.dir"
                 }
             }
 """)

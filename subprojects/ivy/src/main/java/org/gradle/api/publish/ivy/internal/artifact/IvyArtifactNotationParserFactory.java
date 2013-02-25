@@ -26,10 +26,10 @@ import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Collection;
@@ -37,10 +37,14 @@ import java.util.Collection;
 public class IvyArtifactNotationParserFactory implements Factory<NotationParser<IvyArtifact>> {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
+    private final String defaultArtifactName;
 
-    public IvyArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver) {
+    public IvyArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver, IvyPublicationIdentity publicationIdentity) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
+
+        // TODO - Need to handle name being modified after addition of artifacts, once we have that functionality.
+        this.defaultArtifactName = publicationIdentity.getModule();
     }
 
     public NotationParser<IvyArtifact> create() {
@@ -76,7 +80,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         protected IvyArtifact parseType(AbstractArchiveTask archiveTask) {
             DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
                     DefaultIvyArtifact.class,
-                    archiveTask.getArchivePath(), null, GUtil.elvis(archiveTask.getExtension(), null), archiveTask.getExtension(), GUtil.elvis(archiveTask.getClassifier(), null)
+                    archiveTask.getArchivePath(), defaultArtifactName, archiveTask.getExtension(), archiveTask.getExtension(), archiveTask.getClassifier()
             );
             ivyArtifact.builtBy(archiveTask);
             return ivyArtifact;
@@ -92,7 +96,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         protected IvyArtifact parseType(PublishArtifact publishArtifact) {
             DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
                     DefaultIvyArtifact.class,
-                    publishArtifact.getFile(), null, emptyToNull(publishArtifact.getExtension()), emptyToNull(publishArtifact.getType()), emptyToNull(publishArtifact.getClassifier())
+                    publishArtifact.getFile(), defaultArtifactName, publishArtifact.getExtension(), publishArtifact.getType(), publishArtifact.getClassifier()
             );
             ivyArtifact.builtBy(publishArtifact.getBuildDependencies());
             return ivyArtifact;
@@ -112,10 +116,10 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         }
 
         protected IvyArtifact parseFile(File file) {
-            String extension = emptyToNull(StringUtils.substringAfterLast(file.getName(), "."));
+            String extension = StringUtils.substringAfterLast(file.getName(), ".");
             return instantiator.newInstance(
                     DefaultIvyArtifact.class,
-                    file, null, extension, extension, null
+                    file, defaultArtifactName, extension, extension, null
             );
         }
 
@@ -140,9 +144,4 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
             candidateFormats.add("Maps containing a 'source' entry, e.g. [source: '/path/to/file', extension: 'zip'].");
         }
     }
-
-    private static String emptyToNull(String value) {
-        return GUtil.elvis(value, null);
-    }
-
 }

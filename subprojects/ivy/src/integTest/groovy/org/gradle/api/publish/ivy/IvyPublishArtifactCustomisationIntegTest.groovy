@@ -191,7 +191,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    artifact source: 'no-extension', name: 'no-extension'
+                    artifact source: 'no-extension', name: 'no-extension', type: 'ext-less'
                 }
             }
 """)
@@ -201,7 +201,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "no-extension-2.4")
-        module.ivy.expectArtifact("no-extension").hasAttributes(null, null, null)
+        module.ivy.expectArtifact("no-extension").hasAttributes("", "ext-less", null)
 
         // TODO:DAZ Fix publication with empty extension so it can be resolved
 //        and:
@@ -260,12 +260,12 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
 
     def "reports failure publishing when validation fails"() {
         given:
-        file("a-directory").createDir()
+        file("a-directory.dir").createDir()
 
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
-                    artifact "a-directory"
+                    artifact "a-directory.dir"
                 }
             }
 """)

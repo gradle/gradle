@@ -24,7 +24,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.mvn3.org.apache.maven.model.Model;
 import org.gradle.mvn3.org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.gradle.mvn3.org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.FileReader;
@@ -41,7 +40,6 @@ public class ValidatingMavenPublisher implements MavenPublisher {
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         validateIdentity(publication);
-        validatePomFileCoordinates(publication);
         validateArtifacts(publication);
 
         delegate.publish(publication, artifactRepository);
@@ -49,37 +47,16 @@ public class ValidatingMavenPublisher implements MavenPublisher {
 
     private void validateIdentity(MavenNormalizedPublication publication) {
         MavenProjectIdentity projectIdentity = publication.getProjectIdentity();
-        checkValidMavenIdentifier(publication.getName(), "groupId", projectIdentity.getGroupId());
-        checkValidMavenIdentifier(publication.getName(), "artifactId", projectIdentity.getArtifactId());
-        checkNonEmpty(publication.getName(), "version", projectIdentity.getVersion());
-    }
-
-    private void checkValidMavenIdentifier(String publicationName, String name, String value) {
-        checkNonEmpty(publicationName, name, value);
-        if (!value.matches(ID_REGEX)) {
-            throw new InvalidMavenPublicationException(publicationName, String.format("%s is not a valid Maven identifier (%s)", name, ID_REGEX));
-        }
-    }
-
-    private void checkNonEmpty(String publicationName, String name, String value) {
-        if (!GUtil.isTrue(value)) {
-            throw new InvalidMavenPublicationException(publicationName, String.format("%s cannot be empty", name));
-        }
-    }
-
-    private void validatePomFileCoordinates(MavenNormalizedPublication publication) {
-        MavenProjectIdentity projectIdentity = publication.getProjectIdentity();
         Model model = parsePomFileIntoMavenModel(publication);
-        checkMatches(publication.getName(), "groupId", projectIdentity.getGroupId(), model.getGroupId());
-        checkMatches(publication.getName(), "artifactId", projectIdentity.getArtifactId(), model.getArtifactId());
-        checkMatches(publication.getName(), "version", projectIdentity.getVersion(), model.getVersion());
-    }
-
-    private void checkMatches(String publicationName, String name, String projectIdentityValue, String pomFileValue) {
-        if (!projectIdentityValue.equals(pomFileValue)) {
-            throw new InvalidMavenPublicationException(publicationName,
-                    String.format("supplied %s does not match POM file (cannot edit %1$s directly in the POM file).", name));
-        }
+        field(publication, "groupId", projectIdentity.getGroupId())
+                .validMavenIdentifier()
+                .matches(model.getGroupId());
+        field(publication, "artifactId", projectIdentity.getArtifactId())
+                .validMavenIdentifier()
+                .matches(model.getArtifactId());
+        field(publication, "version", projectIdentity.getVersion())
+                .notEmpty()
+                .matches(model.getVersion());
     }
 
     private Model parsePomFileIntoMavenModel(MavenNormalizedPublication publication) {
@@ -100,8 +77,10 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     private void validateArtifacts(MavenNormalizedPublication publication) {
         Set<MavenArtifactKey> keys = new HashSet<MavenArtifactKey>();
         for (MavenArtifact artifact : publication.getArtifacts()) {
-            checkArtifactAttribute(publication.getName(), "extension", artifact.getExtension());
-            checkArtifactAttribute(publication.getName(), "classifier", artifact.getClassifier());
+            field(publication, "artifact extension", artifact.getExtension())
+                    .notNull();
+            field(publication, "artifact classifier", artifact.getClassifier())
+                    .optionalNotEmpty();
 
             checkCanPublish(publication.getName(), artifact);
 
@@ -131,6 +110,61 @@ public class ValidatingMavenPublisher implements MavenPublisher {
         }
         if (artifactFile.isDirectory()) {
             throw new InvalidMavenPublicationException(publicationName, String.format("artifact file is a directory: '%s'", artifactFile));
+        }
+    }
+
+    private FieldValidator field(MavenNormalizedPublication publication, String name, String value) {
+        return new FieldValidator(publication.getName(), name, value);
+    }
+
+    private static class FieldValidator {
+        private final String publicationName;
+        private final String name;
+        private final String value;
+
+        private FieldValidator(String publicationName, String name, String value) {
+            this.publicationName = publicationName;
+            this.name = name;
+            this.value = value;
+        }
+
+
+        public FieldValidator notNull() {
+            if (value == null) {
+                throw new InvalidMavenPublicationException(publicationName, String.format("%s cannot be null.", name));
+            }
+            return this;
+        }
+
+        public FieldValidator notEmpty() {
+            notNull();
+            if (value.length() == 0) {
+                throw new InvalidMavenPublicationException(publicationName, String.format("%s cannot be empty", name));
+            }
+            return this;
+        }
+
+        private FieldValidator validMavenIdentifier() {
+            notEmpty();
+            if (!value.matches(ID_REGEX)) {
+                throw new InvalidMavenPublicationException(publicationName, String.format("%s is not a valid Maven identifier (%s)", name, ID_REGEX));
+            }
+            return this;
+        }
+
+        public FieldValidator optionalNotEmpty() {
+            if (value != null && value.length() == 0) {
+                throw new InvalidMavenPublicationException(publicationName, String.format("%s cannot be an empty string. Use null instead.", name));
+            }
+            return this;
+        }
+
+        public FieldValidator matches(String expectedValue) {
+            if (!value.equals(expectedValue)) {
+                throw new InvalidMavenPublicationException(publicationName,
+                        String.format("supplied %s does not match POM file (cannot edit %1$s directly in the POM file).", name));
+            }
+            return this;
         }
     }
 }

@@ -109,12 +109,12 @@ public class ValidatingMavenPublisherTest extends Specification {
 
         then:
         def t = thrown InvalidMavenPublicationException
-        t.message == "Invalid publication 'pub-name': artifact ${name} cannot be an empty string. Use null instead."
+        t.message == "Invalid publication 'pub-name': artifact ${message}."
 
         where:
-        name         | extension | classifier
-        "extension"  | ""        | "classifier"
-        "classifier" | "ext"     | ""
+        extension | classifier   | message
+        null      | "classifier" | "extension cannot be null"
+        "ext"     | ""           | "classifier cannot be an empty string. Use null instead"
     }
 
     @Unroll
@@ -128,6 +128,7 @@ public class ValidatingMavenPublisherTest extends Specification {
         publisher.publish(publication, Mock(MavenArtifactRepository))
 
         then:
+        mavenArtifact.extension >> "ext"
         mavenArtifact.file >> theFile
 
         and:

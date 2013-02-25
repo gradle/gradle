@@ -22,7 +22,7 @@ import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
-import org.gradle.api.publish.ivy.internal.publisher.IvyProjectIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.listener.ActionBroadcast;
 
 import java.util.Set;
@@ -46,8 +46,8 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
         this.status = status;
     }
 
-    public IvyProjectIdentity getProjectIdentity() {
-        return ivyPublication.getProjectIdentity();
+    public IvyPublicationIdentity getProjectIdentity() {
+        return ivyPublication.getIdentity();
     }
 
     public void withXml(Action<? super XmlProvider> action) {

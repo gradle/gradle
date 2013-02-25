@@ -128,9 +128,6 @@ public class IvyDescriptorFileGenerator {
     }
 
     private void writeConfigurations(OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        if (configurations.isEmpty()) {
-            return;
-        }
         xmlWriter.startElement("configurations");
         for (IvyConfiguration configuration : configurations) {
             xmlWriter.startElement("conf")
@@ -145,11 +142,10 @@ public class IvyDescriptorFileGenerator {
     }
 
     private void writePublications(OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        // Do not omit empty publications element, since this implies a single jar artifact in ivy-land.
         xmlWriter.startElement("publications");
         for (IvyArtifact artifact : artifacts) {
             xmlWriter.startElement("artifact")
-                    .attribute("name", artifact.getName(), projectIdentity.getModule()) // TODO:DAZ We don't need this, since it's the ivy default. But I think it's nicer to be explicit.
+                    .attribute("name", artifact.getName())
                     .attribute("type", artifact.getType())
                     .attribute("ext", artifact.getExtension())
                     .attribute("conf", artifact.getConf())
@@ -160,10 +156,6 @@ public class IvyDescriptorFileGenerator {
     }
 
     private void writeDependencies(OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        if (dependencies.isEmpty()) {
-            return;
-        }
-
         xmlWriter.startElement("dependencies");
         for (DefaultIvyDependency dependency : dependencies) {
             ModuleDependency dep = dependency.getModuleDependency();
@@ -208,7 +200,7 @@ public class IvyDescriptorFileGenerator {
 
         @Override
         public OptionalAttributeXmlWriter attribute(String name, String value) throws IOException {
-            if (value != null && value.length() != 0) {
+            if (value != null) {
                 super.attribute(name, value);
             }
             return this;

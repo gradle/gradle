@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy.internal.publisher
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
 import org.gradle.api.publish.ivy.IvyArtifact
-import org.gradle.api.publish.ivy.internal.publication.DefaultIvyProjectIdentity
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared
 import spock.lang.Specification
@@ -64,9 +64,9 @@ public class ValidatingIvyPublisherTest extends Specification {
         ""             | "module" | "version" | "organisation cannot be empty"
         "organisation" | ""       | "version" | "module name cannot be empty"
         "organisation" | "module" | ""        | "revision cannot be empty"
-        null           | "module" | "version" | "organisation cannot be empty"
-        "organisation" | null     | "version" | "module name cannot be empty"
-        "organisation" | "module" | null      | "revision cannot be empty"
+        null           | "module" | "version" | "organisation cannot be null"
+        "organisation" | null     | "version" | "module name cannot be null"
+        "organisation" | "module" | null      | "revision cannot be null"
     }
 
     def "project coordinates must match ivy descriptor file"() {
@@ -105,14 +105,16 @@ public class ValidatingIvyPublisherTest extends Specification {
 
         then:
         def t = thrown InvalidIvyPublicationException
-        t.message == "Invalid publication 'pub-name': artifact ${attribute} cannot be an empty string. Use null instead."
+        t.message == "Invalid publication 'pub-name': artifact ${message}."
 
         where:
-        attribute |name       |type  | extension | classifier
-        "name" | "" | "type" | "ext" | "classifier"
-        "type" | "name" | "" | "ext" | "classifier"
-        "extension" | "name" | "type" | "" | "classifier"
-        "classifier" | "name" | "type" | "ext" | ""
+        name   | type   | extension | classifier   | message
+        null   | "type" | "ext"     | "classifier" | "name cannot be null"
+        ""     | "type" | "ext"     | "classifier" | "name cannot be empty"
+        "name" | null   | "ext"     | "classifier" | "type cannot be null"
+        "name" | ""     | "ext"     | "classifier" | "type cannot be empty"
+        "name" | "type" | null      | "classifier" | "extension cannot be null"
+        "name" | "type" | "ext"     | ""           | "classifier cannot be an empty string. Use null instead"
     }
 
     @Unroll
@@ -126,6 +128,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         then:
         ivyArtifact.name >> "name"
         ivyArtifact.type >> "type"
+        ivyArtifact.extension >> "ext"
         ivyArtifact.file >> theFile
 
         and:
@@ -139,7 +142,7 @@ public class ValidatingIvyPublisherTest extends Specification {
     }
 
     private def projectIdentity(def groupId, def artifactId, def version) {
-        return Stub(IvyProjectIdentity) {
+        return Stub(IvyPublicationIdentity) {
             getOrganisation() >> groupId
             getModule() >> artifactId
             getRevision() >> version
@@ -148,7 +151,7 @@ public class ValidatingIvyPublisherTest extends Specification {
 
     private def ivyFile(def group, def moduleName, def version) {
         def ivyXmlFile = testDir.file("ivy")
-        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyProjectIdentity(group, moduleName, version))
+        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity(group, moduleName, version))
         ivyFileGenerator.writeTo(ivyXmlFile)
         return ivyXmlFile
     }

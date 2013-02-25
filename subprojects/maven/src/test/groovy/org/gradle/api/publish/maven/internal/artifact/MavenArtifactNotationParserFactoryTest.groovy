@@ -137,7 +137,7 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
         archiveClassifier | artifactClassifier | archiveExtension | artifactExtension
         "classifier"      | "classifier"       | "extension"      | "extension"
         null              | null               | null             | null
-        ""                | null               | ""               | null
+        ""                | null               | ""               | ""
     }
 
     def "creates MavenArtifact for file notation"() {
@@ -155,7 +155,7 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
 
         where:
         fileName                       | extension
-        "some-file"                    | null
+        "some-file"                    | ""
         "some-file.zip"                | "zip"
         "some-file-1.2-classifier.zip" | "zip"
     }
