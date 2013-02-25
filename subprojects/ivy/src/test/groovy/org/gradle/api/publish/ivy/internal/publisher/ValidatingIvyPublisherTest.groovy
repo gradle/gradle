@@ -15,8 +15,9 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publisher
+
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyProjectIdentity
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -36,7 +37,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         when:
         def projectIdentity = this.projectIdentity("the-group", "the-artifact", "the-version")
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("the-group", "the-artifact", "the-version"), emptySet())
-        def repository = Mock(IvyArtifactRepository)
+        def repository = Mock(PublicationAwareRepository)
 
         and:
         publisher.publish(publication, repository)
@@ -49,7 +50,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         given:
         def projectIdentity = projectIdentity(group, name, version)
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(group, name, version), emptySet())
-        def repository = Mock(IvyArtifactRepository)
+        def repository = Mock(PublicationAwareRepository)
 
         when:
         publisher.publish(publication, repository)
@@ -72,7 +73,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         given:
         def projectIdentity = projectIdentity("org", "module", "version")
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile(organisation, module, version), emptySet())
-        def repository = Mock(IvyArtifactRepository)
+        def repository = Mock(PublicationAwareRepository)
 
         when:
         publisher.publish(publication, repository)
@@ -100,7 +101,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity("org", "module", "version"), ivyFile("org", "module", "version"), toSet([ivyArtifact]))
 
         when:
-        publisher.publish(publication, Mock(IvyArtifactRepository))
+        publisher.publish(publication, Mock(PublicationAwareRepository))
 
         then:
         def t = thrown InvalidUserDataException
@@ -120,7 +121,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity("group", "artifact", "version"), ivyFile("group", "artifact", "version"), toSet([ivyArtifact]))
 
         when:
-        publisher.publish(publication, Mock(IvyArtifactRepository))
+        publisher.publish(publication, Mock(PublicationAwareRepository))
 
         then:
         ivyArtifact.name >> "name"

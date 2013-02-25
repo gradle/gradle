@@ -20,7 +20,7 @@ import groovy.util.Node;
 import groovy.util.XmlParser;
 import groovy.xml.QName;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
@@ -34,7 +34,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         this.delegate = delegate;
     }
 
-    public void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository) {
+    public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
         validateIdentity(publication);
         validateIvyDescriptorFileCoordinates(publication);
         validateArtifacts(publication);

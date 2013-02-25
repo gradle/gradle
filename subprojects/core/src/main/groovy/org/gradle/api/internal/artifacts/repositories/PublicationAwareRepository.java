@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.ivy.internal.publisher;
+package org.gradle.api.internal.artifacts.repositories;
 
-import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 
-public interface IvyPublisher {
-    void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository);
+public interface PublicationAwareRepository {
+    DependencyResolver createPublisher();
 }

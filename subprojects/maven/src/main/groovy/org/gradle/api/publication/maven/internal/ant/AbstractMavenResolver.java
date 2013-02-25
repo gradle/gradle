@@ -85,11 +85,15 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");
     }
 
-    protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
+    public DependencyResolver createPublisher() {
+        return this;
+    }
 
     public DependencyResolver createResolver() {
         return this;
     }
+
+    protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
         throw new UnsupportedOperationException("A Maven deployer cannot be used to resolve dependencies. It can only be used to publish artifacts.");

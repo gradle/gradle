@@ -23,6 +23,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyDependencyReso
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 
 public abstract class IvyResolverBackedArtifactRepository extends AbstractArtifactRepository implements ResolutionAwareRepository {
+    public DependencyResolver createPublisher() {
+        return createResolver();
+    }
+
     public IvyAwareModuleVersionRepository createResolveRepository() {
         DependencyResolver resolver = createResolver();
         if (resolver instanceof ExternalResourceResolver) {

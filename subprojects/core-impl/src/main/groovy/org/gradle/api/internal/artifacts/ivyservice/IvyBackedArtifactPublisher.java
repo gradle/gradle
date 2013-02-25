@@ -22,9 +22,10 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.util.CollectionUtils;
+import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -51,8 +52,11 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         return ivyFactory.createIvy(settingsConverter.convertForPublish(publishResolvers));
     }
 
-    public void publish(Iterable<DependencyResolver> dependencyResolvers, Module module, Set<? extends Configuration> configurations, File descriptor) throws PublishException {
-        List<DependencyResolver> publishResolvers = CollectionUtils.toList(dependencyResolvers);
+    public void publish(Iterable<? extends PublicationAwareRepository> repositories, Module module, Set<? extends Configuration> configurations, File descriptor) throws PublishException {
+        List<DependencyResolver> publishResolvers = new ArrayList<DependencyResolver>();
+        for (PublicationAwareRepository repository : repositories) {
+            publishResolvers.add(repository.createPublisher());
+        }
         Ivy ivy = ivyForPublish(publishResolvers);
         Set<String> confs = Configurations.getNames(configurations, false);
         dependencyPublisher.publish(

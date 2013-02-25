@@ -18,21 +18,19 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.Transformers;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
+import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -40,7 +38,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.api.internal.Cast.cast;
 import static org.gradle.util.CollectionUtils.collect;
 
 /**
@@ -81,12 +78,8 @@ public class Upload extends ConventionTask {
                 ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorDestination);
             }
 
-            List<DependencyResolver> resolvers = collect(repositories, new Transformer<DependencyResolver, ArtifactRepository>() {
-                public DependencyResolver transform(ArtifactRepository repository) {
-                    return cast(ArtifactRepositoryInternal.class, repository).createResolver();
-                }
-            });
-            artifactPublisher.publish(resolvers,  module, configurationsToPublish, descriptorDestination);
+            List<PublicationAwareRepository> publishRepositories = collect(repositories, Transformers.cast(PublicationAwareRepository.class));
+            artifactPublisher.publish(publishRepositories,  module, configurationsToPublish, descriptorDestination);
         } catch (Exception e) {
             throw new PublishException(String.format("Could not publish configuration '%s'", configuration.getName()), e);
         }

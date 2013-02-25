@@ -22,10 +22,8 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.Cast;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
+import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.util.GUtil;
 
@@ -36,8 +34,8 @@ import java.util.Map;
 
 public class DependencyResolverIvyPublisher implements IvyPublisher {
 
-    public void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository) {
-        DependencyResolver dependencyResolver = Cast.cast(ArtifactRepositoryInternal.class, repository).createResolver();
+    public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
+        DependencyResolver dependencyResolver = repository.createPublisher();
         IvyProjectIdentity projectIdentity = publication.getProjectIdentity();
         Map<String, String> extraAttributes = Collections.emptyMap();
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision(), extraAttributes);

@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
+import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -57,7 +58,12 @@ public class IvyBackedArtifactPublisherTest {
     private IvyDependencyPublisher ivyDependencyPublisherMock = context.mock(IvyDependencyPublisher.class);
     private ModuleDescriptorConverter publishModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "publishConverter");
     private ModuleDescriptorConverter fileModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "fileConverter");
-    final List<DependencyResolver> publishResolversDummy = createPublishResolversDummy();
+    private DependencyResolver resolver1 = context.mock(DependencyResolver.class);
+    private DependencyResolver resolver2 = context.mock(DependencyResolver.class);
+    private PublicationAwareRepository repo1 = repo(resolver1);
+    private PublicationAwareRepository repo2 = repo(resolver2);
+    final List<DependencyResolver> publishResolversDummy = WrapUtil.toList(resolver1, resolver2);
+    final List<PublicationAwareRepository> publishRepositoriesDummy = WrapUtil.toList(repo1, repo2);
 
     @Test
     public void testPublish() throws IOException, ParseException {
@@ -84,7 +90,7 @@ public class IvyBackedArtifactPublisherTest {
                     publishResolversDummy, publishModuleDescriptorDummy, someDescriptorDestination, ivyEventManagerDummy);
         }});
 
-        ivyService.publish(publishResolversDummy, configuration.getModule(), configuration.getHierarchy(), someDescriptorDestination);
+        ivyService.publish(publishRepositoriesDummy, configuration.getModule(), configuration.getHierarchy(), someDescriptorDestination);
     }
 
     private IvyBackedArtifactPublisher createIvyService() {
@@ -93,10 +99,6 @@ public class IvyBackedArtifactPublisherTest {
                 publishModuleDescriptorConverter,
                 ivyFactoryStub,
                 ivyDependencyPublisherMock);
-    }
-
-    private List<DependencyResolver> createPublishResolversDummy() {
-        return WrapUtil.toList(context.mock(DependencyResolver.class, "publish"));
     }
 
     private Set<Configuration> createConfiguration() {
@@ -158,5 +160,14 @@ public class IvyBackedArtifactPublisherTest {
             will(returnValue(ivyEventManagerDummy));
         }});
         return ivyStub;
+    }
+
+    private PublicationAwareRepository repo(final DependencyResolver resolver) {
+        final PublicationAwareRepository repository = context.mock(PublicationAwareRepository.class);
+        context.checking(new Expectations() {{
+            one(repository).createPublisher();
+            will(returnValue(resolver));
+        }});
+        return repository;
     }
 }
