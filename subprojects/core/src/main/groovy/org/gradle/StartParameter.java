@@ -123,6 +123,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.settingsFile = settingsFile;
         p.useEmptySettings = useEmptySettings;
         p.taskNames = new ArrayList<String>(taskNames);
+        p.excludedTaskNames = new HashSet<String>(excludedTaskNames);
         p.buildProjectDependencies = buildProjectDependencies;
         p.currentDir = currentDir;
         p.searchUpwards = searchUpwards;

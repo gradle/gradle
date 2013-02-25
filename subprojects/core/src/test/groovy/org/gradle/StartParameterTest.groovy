@@ -80,15 +80,14 @@ class StartParameterTest extends Specification {
         then:
         !parameter.initScripts.is(newInstance.initScripts)
         !parameter.taskNames.is(newInstance.taskNames)
-        //TODO SF is this intentional that excludedTaskNames are not included?
-//        !parameter.excludedTaskNames.is(newInstance.excludedTaskNames)
+        !parameter.excludedTaskNames.is(newInstance.excludedTaskNames)
         !parameter.projectProperties.is(newInstance.projectProperties)
         !parameter.systemPropertiesArgs.is(newInstance.systemPropertiesArgs)
 
         and:
         parameter.initScripts == newInstance.initScripts
         parameter.taskNames == newInstance.taskNames
-//        parameter.excludedTaskNames == newInstance.excludedTaskNames
+        parameter.excludedTaskNames == newInstance.excludedTaskNames
         parameter.projectProperties == newInstance.projectProperties
         parameter.systemPropertiesArgs == newInstance.systemPropertiesArgs
     }
