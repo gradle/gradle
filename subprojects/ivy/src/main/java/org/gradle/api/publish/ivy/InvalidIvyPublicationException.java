@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven;
+package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 
 /**
- * Thrown when attempting to publish with an invalid {@link MavenPublication}.
+ * Thrown when attempting to publish with an invalid {@link IvyPublication}.
  *
- * @since 1.4
+ * @since 1.5
  */
 @Incubating
-public class InvalidMavenPublicationException extends InvalidUserDataException {
-    public InvalidMavenPublicationException(String publicationName, String error) {
+public class InvalidIvyPublicationException extends InvalidUserDataException {
+    public InvalidIvyPublicationException(String publicationName, String error) {
         super(formatMessage(publicationName, error));
-    }
-
-    public InvalidMavenPublicationException(String publicationName, String error, Throwable cause) {
-        super(formatMessage(publicationName, error), cause);
     }
 
     private static String formatMessage(String publicationName, String error) {

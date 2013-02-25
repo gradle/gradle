@@ -19,8 +19,8 @@ package org.gradle.api.publish.ivy.internal.publisher;
 import groovy.util.Node;
 import groovy.util.XmlParser;
 import groovy.xml.QName;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
+import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
@@ -50,7 +50,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private void checkNonEmpty(String publicationName, String name, String value) {
         if (!GUtil.isTrue(value)) {
-            throw new InvalidUserDataException(String.format("Invalid publication '%s': %s cannot be empty.", publicationName, name));
+            throw new InvalidIvyPublicationException(publicationName, String.format("%s cannot be empty.", name));
         }
     }
 
@@ -64,9 +64,8 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private void checkMatches(String publicationName, String name, String projectIdentityValue, String pomFileValue) {
         if (!projectIdentityValue.equals(pomFileValue)) {
-            throw new InvalidUserDataException(String.format(
-                    "Invalid publication '%s': supplied %s does not match ivy descriptor (cannot edit %2$s directly in the ivy descriptor file).",
-                    publicationName, name)
+            throw new InvalidIvyPublicationException(publicationName,
+                    String.format("supplied %s does not match ivy descriptor (cannot edit %1$s directly in the ivy descriptor file).", name)
             );
         }
     }
@@ -96,17 +95,17 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private void checkOptionalNonEmpty(String publicationName, String name, String value) {
         if (value != null && value.length() == 0) {
-            throw new InvalidUserDataException(String.format("Invalid publication '%s': %s cannot be an empty string. Use null instead.", publicationName, name));
+            throw new InvalidIvyPublicationException(publicationName, String.format("%s cannot be an empty string. Use null instead.", name));
         }
     }
 
     private void checkCanPublish(String name, IvyArtifact artifact) {
         File artifactFile = artifact.getFile();
         if (artifactFile == null || !artifactFile.exists()) {
-            throw new InvalidUserDataException(String.format("Cannot publish ivy publication '%s': artifact file does not exist: '%s'", name, artifactFile));
+            throw new InvalidIvyPublicationException(name, String.format("artifact file does not exist: '%s'", artifactFile));
         }
         if (artifactFile.isDirectory()) {
-            throw new InvalidUserDataException(String.format("Cannot publish ivy publication '%s': artifact file is a directory: '%s'", name, artifactFile));
+            throw new InvalidIvyPublicationException(name, String.format("artifact file is a directory: '%s'", artifactFile));
         }
     }
 }

@@ -132,7 +132,7 @@ public class ValidatingMavenPublisherTest extends Specification {
 
         and:
         def t = thrown InvalidMavenPublicationException
-        t.message == "Cannot publish maven publication 'pub-name': artifact file ${message}: '${theFile}'"
+        t.message == "Invalid publication 'pub-name': artifact file ${message}: '${theFile}'"
 
         where:
         theFile                                                         | message
@@ -161,7 +161,7 @@ public class ValidatingMavenPublisherTest extends Specification {
 
         then:
         def t = thrown InvalidMavenPublicationException
-        t.message == "Cannot publish maven publication 'pub-name': multiple artifacts with the identical extension 'ext1' and classifier 'classified'."
+        t.message == "Invalid publication 'pub-name': multiple artifacts with the identical extension 'ext1' and classifier 'classified'."
     }
 
     def "supplied POM file must be valid"() {

@@ -16,8 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.publisher
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
+import org.gradle.api.publish.ivy.InvalidIvyPublicationException
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyProjectIdentity
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -56,7 +56,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         publisher.publish(publication, repository)
 
         then:
-        def e = thrown InvalidUserDataException
+        def e = thrown InvalidIvyPublicationException
         e.message == "Invalid publication 'pub-name': $message."
 
         where:
@@ -79,7 +79,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         publisher.publish(publication, repository)
 
         then:
-        def e = thrown InvalidUserDataException
+        def e = thrown InvalidIvyPublicationException
         e.message == "Invalid publication 'pub-name': $message"
 
         where:
@@ -104,7 +104,7 @@ public class ValidatingIvyPublisherTest extends Specification {
         publisher.publish(publication, Mock(PublicationAwareRepository))
 
         then:
-        def t = thrown InvalidUserDataException
+        def t = thrown InvalidIvyPublicationException
         t.message == "Invalid publication 'pub-name': artifact ${attribute} cannot be an empty string. Use null instead."
 
         where:
@@ -129,8 +129,8 @@ public class ValidatingIvyPublisherTest extends Specification {
         ivyArtifact.file >> theFile
 
         and:
-        def t = thrown InvalidUserDataException
-        t.message == "Cannot publish ivy publication 'pub-name': artifact file ${message}: '${theFile}'"
+        def t = thrown InvalidIvyPublicationException
+        t.message == "Invalid publication 'pub-name': artifact file ${message}: '${theFile}'"
 
         where:
         theFile                                                         | message

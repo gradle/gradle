@@ -57,13 +57,13 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     private void checkValidMavenIdentifier(String publicationName, String name, String value) {
         checkNonEmpty(publicationName, name, value);
         if (!value.matches(ID_REGEX)) {
-            throw new InvalidMavenPublicationException(String.format("Invalid publication '%s': %s is not a valid Maven identifier (%s)", publicationName, name, ID_REGEX));
+            throw new InvalidMavenPublicationException(publicationName, String.format("%s is not a valid Maven identifier (%s)", name, ID_REGEX));
         }
     }
 
     private void checkNonEmpty(String publicationName, String name, String value) {
         if (!GUtil.isTrue(value)) {
-            throw new InvalidMavenPublicationException(String.format("Invalid publication '%s': %s cannot be empty", publicationName, name));
+            throw new InvalidMavenPublicationException(publicationName, String.format("%s cannot be empty", name));
         }
     }
 
@@ -77,9 +77,8 @@ public class ValidatingMavenPublisher implements MavenPublisher {
 
     private void checkMatches(String publicationName, String name, String projectIdentityValue, String pomFileValue) {
         if (!projectIdentityValue.equals(pomFileValue)) {
-            throw new InvalidMavenPublicationException(String.format(
-                    "Invalid publication '%s': supplied %s does not match POM file (cannot edit %2$s directly in the POM file).",
-                    publicationName, name));
+            throw new InvalidMavenPublicationException(publicationName,
+                    String.format("supplied %s does not match POM file (cannot edit %1$s directly in the POM file).", name));
         }
     }
 
@@ -90,8 +89,8 @@ public class ValidatingMavenPublisher implements MavenPublisher {
             model.setPomFile(publication.getPomFile());
             return model;
         } catch (XmlPullParserException parseException) {
-            throw new InvalidMavenPublicationException(
-                    String.format("Invalid publication '%s': POM file is invalid. Check any modifications you have made to the POM file.", publication.getName()),
+            throw new InvalidMavenPublicationException(publication.getName(),
+                    "POM file is invalid. Check any modifications you have made to the POM file.",
                     parseException);
         } catch (Exception ex) {
             throw UncheckedException.throwAsUncheckedException(ex);
@@ -108,10 +107,10 @@ public class ValidatingMavenPublisher implements MavenPublisher {
 
             MavenArtifactKey key = new MavenArtifactKey(artifact);
             if (keys.contains(key)) {
-                throw new InvalidMavenPublicationException(
+                throw new InvalidMavenPublicationException(publication.getName(),
                         String.format(
-                                "Cannot publish maven publication '%s': multiple artifacts with the identical extension '%s' and classifier '%s'.",
-                                publication.getName(), artifact.getExtension(), artifact.getClassifier()
+                                "multiple artifacts with the identical extension '%s' and classifier '%s'.",
+                                artifact.getExtension(), artifact.getClassifier()
                         ));
             }
             keys.add(key);
@@ -120,18 +119,18 @@ public class ValidatingMavenPublisher implements MavenPublisher {
 
     private void checkArtifactAttribute(String publicationName, String name, String value) {
         if (value != null && value.length() == 0) {
-            throw new InvalidMavenPublicationException(String.format(
-                    "Invalid publication '%s': artifact %s cannot be an empty string. Use null instead.", publicationName, name));
+            throw new InvalidMavenPublicationException(publicationName, String.format(
+                    "artifact %s cannot be an empty string. Use null instead.", name));
         }
     }
 
     private void checkCanPublish(String publicationName, MavenArtifact artifact) {
         File artifactFile = artifact.getFile();
         if (artifactFile == null || !artifactFile.exists()) {
-            throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': artifact file does not exist: '%s'", publicationName, artifactFile));
+            throw new InvalidMavenPublicationException(publicationName, String.format("artifact file does not exist: '%s'", artifactFile));
         }
         if (artifactFile.isDirectory()) {
-            throw new InvalidMavenPublicationException(String.format("Cannot publish maven publication '%s': artifact file is a directory: '%s'", publicationName, artifactFile));
+            throw new InvalidMavenPublicationException(publicationName, String.format("artifact file is a directory: '%s'", artifactFile));
         }
     }
 }

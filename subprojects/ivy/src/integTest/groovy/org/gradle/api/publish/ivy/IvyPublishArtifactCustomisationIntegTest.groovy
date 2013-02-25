@@ -275,7 +275,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
         then:
         failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertHasCause("Cannot publish ivy publication 'ivy': artifact file is a directory")
+        failure.assertHasCause("Invalid publication 'ivy': artifact file is a directory")
     }
 
     private createBuildScripts(def publications, def append = "") {

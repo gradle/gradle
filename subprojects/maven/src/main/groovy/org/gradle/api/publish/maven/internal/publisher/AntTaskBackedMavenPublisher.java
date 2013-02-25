@@ -108,8 +108,7 @@ public class AntTaskBackedMavenPublisher implements MavenPublisher {
             return null;
         }
         if (candidateMainArtifacts.size() > 1) {
-            throw new InvalidMavenPublicationException(
-                    String.format("Cannot determine main artifact for maven publication '%s': multiple artifacts found with empty classifier.", publicationName));
+            throw new InvalidMavenPublicationException(publicationName, "Cannot determine main artifact - multiple artifacts found with empty classifier.");
         }
         return candidateMainArtifacts.iterator().next();
     }
