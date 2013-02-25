@@ -22,11 +22,11 @@ import org.gradle.test.fixtures.ivy.IvyFileModule
 class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec {
 
     protected def resolveArtifacts(IvyFileModule module) {
-        doResolveArtifacts("group: '${module.organisation}', name: '${module.module}', version: '${module.revision}'")
+        doResolveArtifacts("group: '${sq(module.organisation)}', name: '${sq(module.module)}', version: '${sq(module.revision)}'")
     }
 
     protected def resolveArtifacts(IvyFileModule module, def configuration) {
-        doResolveArtifacts("group: '${module.organisation}', name: '${module.module}', version: '${module.revision}', configuration: '${configuration}'")
+        doResolveArtifacts("group: '${sq(module.organisation)}', name: '${sq(module.module)}', version: '${sq(module.revision)}', configuration: '${sq(configuration)}'")
     }
 
     private def doResolveArtifacts(def dependency) {
@@ -57,4 +57,11 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec {
         return artifactsList.sort()
     }
 
+    String sq(String input) {
+        return escapeForSingleQuoting(input)
+    }
+
+    String escapeForSingleQuoting(String input) {
+        return input.replace('\\', '\\\\').replace('\'', '\\\'')
+    }
 }

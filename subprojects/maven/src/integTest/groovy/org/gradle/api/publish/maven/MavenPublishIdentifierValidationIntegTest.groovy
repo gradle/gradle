@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.publish.maven
-
+import org.gradle.test.fixtures.publish.Identifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
+
 // Maven resolution with 'unusual' characters is currently broken on Java 1.6 CI (Ivy PomReader).
 // TODO:DAZ Fix this. Seems to be an issue with URI encoding deep down in Xerces. Might need to replace the PomReader with our own implementation.
 @Requires(TestPrecondition.CAN_RESOLVE_UNICODE_POM)
 class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishIntegTest {
-    private static final String PUNCTUATION_CHARS = '-!@#$%^&*()_+=,.?{}[]<>'
-    private static final String NON_ASCII_CHARS = '-√æず∫ʙぴ₦ガき∆ç√∫'
-    private static final String FILESYSTEM_RESERVED_CHARS = '-/\\?%*:|"<>.'
-    private static final String XML_MARKUP_CHARS = '-<with>some<xml-markup/></with>'
-
-    // TODO:DAZ These are currently unsupported for filesystem repositories. Fix or prevent with validation.
-    private static final String UNSUPPORTED_CHARS = '/\\?%*:|"<>.'
 
     // Group and Artifact are restricted to [A-Za-z0-9_\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
     def groupId = 'a-valid.group'
@@ -40,15 +32,15 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
     @Unroll
     def "can publish with version and description containing #title characters"() {
         given:
-        def version = "version${suffix}"
-        def description = "description${suffix}"
+        def version = identifier.safeForFileName().decorate("version")
+        def description = identifier.decorate("description")
         settingsFile << "rootProject.name = '${artifactId}'"
         buildFile << """
             apply plugin: 'maven-publish'
             apply plugin: 'java'
 
             group = '${groupId}'
-            version = '${version}'
+            version = '${sq(version)}'
 
             publishing {
                 repositories {
@@ -58,7 +50,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
                     maven(MavenPublication) {
                         from components.java
                         pom.withXml {
-                            asNode().appendNode('description', '${description}')
+                            asNode().appendNode('description', '${sq(description)}')
                         }
                     }
                 }
@@ -76,21 +68,21 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         resolveArtifacts(module) == ["${artifactId}-${version}.jar"]
 
         where:
-        title        | suffix
-        "punctuation"| removeUnsupported(PUNCTUATION_CHARS)
-        "non-ascii"  | removeUnsupported(NON_ASCII_CHARS)
-        "whitespace" | " with spaces"
-        "filesystem" | removeUnsupported(FILESYSTEM_RESERVED_CHARS)
-        "xml markup" | removeUnsupported(XML_MARKUP_CHARS)
+        title        | identifier
+        "punctuation"| Identifier.punctuation
+        "non-ascii"  | Identifier.nonAscii
+        "whitespace" | Identifier.whiteSpace
+        "filesystem" | Identifier.fileSystemReserved
+        "xml markup" | Identifier.xmlMarkup
     }
 
     @Unroll
     def "can publish artifacts with version, extension and classifier containing #title characters"() {
         given:
         file("content-file") << "some content"
-        def version = "version${suffix}"
-        def extension = "extension${suffix}"
-        def classifier = "classifier${suffix}"
+        def version = identifier.safeForFileName().decorate("version")
+        def extension = identifier.safeForFileName().decorate("extension")
+        def classifier = identifier.safeForFileName().decorate("classifier")
 
         and:
         settingsFile << "rootProject.name = '${artifactId}'"
@@ -99,7 +91,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
             apply plugin: 'java'
 
             group = '${groupId}'
-            version = '${version}'
+            version = '${sq(version)}'
 
             publishing {
                 repositories {
@@ -108,7 +100,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
                 publications {
                     maven(MavenPublication) {
                         from components.java
-                        artifact source: 'content-file', extension: '${extension}', classifier: '${classifier}'
+                        artifact source: 'content-file', extension: '${sq(extension)}', classifier: '${sq(classifier)}'
                     }
                 }
             }
@@ -126,12 +118,12 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         resolveArtifact(module, extension, classifier) == ["${artifactId}-${version}-${classifier}.${extension}"]
 
         where:
-        title        | suffix
-        "punctuation"| removeUnsupported(PUNCTUATION_CHARS)
-        "non-ascii"  | removeUnsupported(NON_ASCII_CHARS)
-        "whitespace" | " with spaces"
-        "filesystem" | removeUnsupported(FILESYSTEM_RESERVED_CHARS)
-        "xml markup" | removeUnsupported(XML_MARKUP_CHARS)
+        title        | identifier
+        "punctuation"| Identifier.punctuation
+        "non-ascii"  | Identifier.nonAscii
+        "whitespace" | Identifier.whiteSpace
+        "filesystem" | Identifier.fileSystemReserved
+        "xml markup" | Identifier.xmlMarkup
     }
 
     def "fails with reasonable error message for invalid identifier value"() {
@@ -158,13 +150,5 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         failure.assertHasDescription "Execution failed for task ':publishMavenPublicationToMavenRepository'"
         failure.assertHasCause "Failed to publish publication 'maven' to repository 'maven'"
         failure.assertHasCause "Invalid publication 'maven': groupId cannot be empty"
-    }
-
-    def removeUnsupported(String characterList) {
-        String output = characterList
-        for (char unsupportedChar  : UNSUPPORTED_CHARS.chars) {
-            output = output.replace(String.valueOf(unsupportedChar), '')
-        }
-        return output
     }
 }

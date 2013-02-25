@@ -19,7 +19,9 @@ package org.gradle.api.publish.ivy.internal.publisher;
 import groovy.util.Node;
 import groovy.util.XmlParser;
 import groovy.xml.QName;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
+import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.internal.UncheckedException;
@@ -45,12 +47,15 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
         field(publication, "organisation", identity.getOrganisation())
                 .notEmpty()
+                .validInFileName()
                 .matches((String) infoNode.attribute("organisation"));
         field(publication, "module name", identity.getModule())
                 .notEmpty()
+                .validInFileName()
                 .matches((String) infoNode.attribute("module"));
         field(publication, "revision", identity.getRevision())
                 .notEmpty()
+                .validInFileName()
                 .matches((String) infoNode.attribute("revision"));
     }
 
@@ -69,13 +74,13 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     public void validateArtifacts(IvyNormalizedPublication publication) {
         for (IvyArtifact artifact : publication.getArtifacts()) {
             field(publication, "artifact name", artifact.getName())
-                    .notEmpty();
+                    .notEmpty().validInFileName();
             field(publication, "artifact type", artifact.getType())
-                    .notEmpty();
+                    .notEmpty().validInFileName();
             field(publication, "artifact extension", artifact.getExtension())
-                    .notNull();
+                    .notNull().validInFileName();
             field(publication, "artifact classifier", artifact.getClassifier())
-                    .optionalNotEmpty();
+                    .optionalNotEmpty().validInFileName();
 
             checkCanPublish(publication.getName(), artifact);
         }
@@ -91,50 +96,27 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         }
     }
 
-    private FieldValidator field(IvyNormalizedPublication publication, String name, String value) {
-        return new FieldValidator(publication.getName(), name, value);
+    private IvyFieldValidator field(IvyNormalizedPublication publication, String name, String value) {
+        return new IvyFieldValidator(publication.getName(), name, value);
     }
 
-    private static class FieldValidator {
-        private final String publicationName;
-        private final String name;
-        private final String value;
-
-        private FieldValidator(String publicationName, String name, String value) {
-            this.publicationName = publicationName;
-            this.name = name;
-            this.value = value;
+    private static class IvyFieldValidator extends PublicationFieldValidator<IvyFieldValidator> {
+        private IvyFieldValidator(String publicationName, String name, String value) {
+            super(IvyFieldValidator.class, publicationName, name, value);
         }
 
-        public FieldValidator notNull() {
-            if (value == null) {
-                throw new InvalidIvyPublicationException(publicationName, String.format("%s cannot be null.", name));
-            }
-            return this;
-        }
-
-        public FieldValidator notEmpty() {
-            notNull();
-            if (value.length() == 0) {
-                throw new InvalidIvyPublicationException(publicationName, String.format("%s cannot be empty.", name));
-            }
-            return this;
-        }
-
-        public FieldValidator optionalNotEmpty() {
-            if (value != null && value.length() == 0) {
-                throw new InvalidIvyPublicationException(publicationName, String.format("%s cannot be an empty string. Use null instead.", name));
-            }
-            return this;
-        }
-
-        public FieldValidator matches(String expectedValue) {
+        public IvyFieldValidator matches(String expectedValue) {
             if (!value.equals(expectedValue)) {
                 throw new InvalidIvyPublicationException(publicationName,
                         String.format("supplied %s does not match ivy descriptor (cannot edit %1$s directly in the ivy descriptor file).", name)
                 );
             }
             return this;
+        }
+
+        @Override
+        protected InvalidUserDataException failure(String message) {
+            throw new InvalidIvyPublicationException(publicationName, message);
         }
     }
 }

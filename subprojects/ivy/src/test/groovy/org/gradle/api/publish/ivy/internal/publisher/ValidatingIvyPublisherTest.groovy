@@ -2,7 +2,7 @@
  * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * you cannot use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -60,13 +60,16 @@ public class ValidatingIvyPublisherTest extends Specification {
         e.message == "Invalid publication 'pub-name': $message."
 
         where:
-        group          | name     | version   | message
-        ""             | "module" | "version" | "organisation cannot be empty"
-        "organisation" | ""       | "version" | "module name cannot be empty"
-        "organisation" | "module" | ""        | "revision cannot be empty"
-        null           | "module" | "version" | "organisation cannot be null"
-        "organisation" | null     | "version" | "module name cannot be null"
-        "organisation" | "module" | null      | "revision cannot be null"
+        group          | name       | version     | message
+        ""             | "module"   | "version"   | "organisation cannot be empty"
+        "organisation" | ""         | "version"   | "module name cannot be empty"
+        "organisation" | "module"   | ""          | "revision cannot be empty"
+        null           | "module"   | "version"   | "organisation cannot be null"
+        "organisation" | null       | "version"   | "module name cannot be null"
+        "organisation" | "module"   | null        | "revision cannot be null"
+        "org\t"        | "module"   | "version"   | "organisation cannot contain an ISO control character"
+        "organisation" | "module\t" | "version"   | "module name cannot contain an ISO control character"
+        "organisation" | "module"   | "version\t" | "revision cannot contain an ISO control character"
     }
 
     def "project coordinates must match ivy descriptor file"() {
@@ -108,13 +111,17 @@ public class ValidatingIvyPublisherTest extends Specification {
         t.message == "Invalid publication 'pub-name': artifact ${message}."
 
         where:
-        name   | type   | extension | classifier   | message
-        null   | "type" | "ext"     | "classifier" | "name cannot be null"
-        ""     | "type" | "ext"     | "classifier" | "name cannot be empty"
-        "name" | null   | "ext"     | "classifier" | "type cannot be null"
-        "name" | ""     | "ext"     | "classifier" | "type cannot be empty"
-        "name" | "type" | null      | "classifier" | "extension cannot be null"
-        "name" | "type" | "ext"     | ""           | "classifier cannot be an empty string. Use null instead"
+        name    | type    | extension | classifier   | message
+        null    | "type"  | "ext"     | "classifier" | "name cannot be null"
+        ""      | "type"  | "ext"     | "classifier" | "name cannot be empty"
+        "na/me" | "type"  | "ext"     | null         | "name cannot contain '\\' or '/'"
+        "name"  | null    | "ext"     | "classifier" | "type cannot be null"
+        "name"  | ""      | "ext"     | "classifier" | "type cannot be empty"
+        "name"  | "ty/pe" | "ext"     | null         | "type cannot contain '\\' or '/'"
+        "name"  | "type"  | null      | "classifier" | "extension cannot be null"
+        "name"  | "type"  | "ex/t"    | null         | "extension cannot contain '\\' or '/'"
+        "name"  | "type"  | "ext"     | ""           | "classifier cannot be an empty string. Use null instead"
+        "name"  | "type"  | "ext"     | "class\\y"   | "classifier cannot contain '\\' or '/'"
     }
 
     @Unroll

@@ -25,14 +25,14 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     protected def resolveArtifact(MavenFileModule module, def extension) {
         doResolveArtifacts("""
     dependencies {
-        resolve group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}', ext: '${extension}'
+        resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}', ext: '${sq(extension)}'
     }
 """)
     }
     protected def resolveArtifact(MavenFileModule module, def extension, def classifier) {
         doResolveArtifacts("""
     dependencies {
-        resolve group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}', classifier: '${classifier}', ext: '${extension}'
+        resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}', classifier: '${sq(classifier)}', ext: '${sq(extension)}'
     }
 """)
     }
@@ -40,7 +40,7 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     protected def resolveArtifacts(MavenFileModule module) {
         doResolveArtifacts("""
     dependencies {
-        resolve group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}'
+        resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
     }
 """)
     }
@@ -48,15 +48,15 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
     protected def resolveArtifacts(MavenFileModule module, Map... additionalArtifacts) {
         def dependencies = """
     dependencies {
-        resolve group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}'
-        resolve(group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}') {
+        resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}'
+        resolve(group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}') {
 """
         additionalArtifacts.each {
             // TODO:DAZ Docs say type defaults to 'jar', but seems it must be set explicitly
             def type = it.type == null ? 'jar' : it.type
             dependencies += """
             artifact {
-                name = '${module.artifactId}' // TODO:DAZ Get NPE if name isn't set
+                name = '${sq(module.artifactId)}' // TODO:DAZ Get NPE if name isn't set
                 classifier = '${it.classifier}'
                 type = '${type}'
             }
@@ -96,4 +96,12 @@ class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
         return artifactsList.sort()
     }
 
+
+    String sq(String input) {
+        return escapeForSingleQuoting(input)
+    }
+
+    String escapeForSingleQuoting(String input) {
+        return input.replace('\\', '\\\\').replace('\'', '\\\'')
+    }
 }

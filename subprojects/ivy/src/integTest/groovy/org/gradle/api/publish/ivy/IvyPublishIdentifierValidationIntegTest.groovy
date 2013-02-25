@@ -15,35 +15,30 @@
  */
 
 package org.gradle.api.publish.ivy
-
+import org.gradle.test.fixtures.publish.Identifier
 import spock.lang.Unroll
 
 class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTest {
-    private static final String PUNCTUATION_CHARS = '-!@#$%^&*()_+=,.?{}[]<>'
-    private static final String NON_ASCII_CHARS = '-√æず∫ʙぴ₦ガき∆ç√∫'
-    private static final String FILESYSTEM_RESERVED_CHARS = '-/\\?%*:|"<>.'
-    private static final String XML_MARKUP_CHARS = '-<with>some<xml-markup/></with>'
-
-    // TODO:DAZ These are currently unsupported for filesystem repositories. Fix or prevent with validation.
-    private static final String UNSUPPORTED_CHARS = '/\\?%*:|"<>.'
 
     @Unroll
     def "can publish with project coordinates containing #title characters"() {
         given:
         file("content-file") << "some content"
-        def organisation = "organisation${suffix}"
-        def moduleName = "module${suffix}"
-        def version = "revision${suffix}"
-        def description = "description${suffix}"
+        def organisation = identifier.safeForFileName().decorate("org")
+        def moduleName = identifier.safeForFileName().decorate("module")
+        def version = identifier.safeForFileName().decorate("revision")
+        def description = identifier.decorate("description")
         def module = ivyRepo.module(organisation, moduleName, version)
 
-        settingsFile.text = "rootProject.name = '${moduleName}'"
+        settingsFile.text = "rootProject.name = '${sq(moduleName)}'"
         buildFile.text = """
             apply plugin: 'ivy-publish'
             apply plugin: 'java'
 
-            group = '${organisation}'
-            version = '${version}'
+            group = '${sq(organisation)}'
+            version = '${sq(version)}'
+
+            println project.version
 
             publishing {
                 repositories {
@@ -53,7 +48,7 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
                     ivy(IvyPublication) {
                         from components.java
                         descriptor.withXml {
-                            asNode().info[0].appendNode('description', '${description}')
+                            asNode().info[0].appendNode('description', '${sq(description)}')
                         }
                     }
                 }
@@ -64,18 +59,18 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
 
         then:
         module.assertPublished()
-        module.ivy.description == description
+        module.ivy.description == description.toString()
 
         and:
-        resolveArtifacts(module) == ["${moduleName}-${version}.jar"]
+        resolveArtifacts(module) == [moduleName + '-' + version + '.jar']
 
         where:
-        title        | suffix
-        "punctuation"| removeUnsupported(PUNCTUATION_CHARS)
-        "non-ascii"  | removeUnsupported(NON_ASCII_CHARS)
-        "whitespace" | " with spaces"
-        "filesystem" | removeUnsupported(FILESYSTEM_RESERVED_CHARS)
-        "xml markup" | removeUnsupported(XML_MARKUP_CHARS)
+        title        | identifier
+        "punctuation"| Identifier.punctuation
+        "non-ascii"  | Identifier.nonAscii
+        "whitespace" | Identifier.whiteSpace
+        "filesystem" | Identifier.fileSystemReserved
+        "xml markup" | Identifier.xmlMarkup
     }
 
     @Unroll
@@ -83,23 +78,23 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
         given:
         file("content-file") << "some content"
 
-        def organisation = "organisation${nameSuffix}"
-        def moduleName = "module${nameSuffix}"
-        def version = "revision${nameSuffix}"
+        def organisation = identifier.safeForFileName().decorate("org")
+        def moduleName = identifier.safeForFileName().decorate("module")
+        def version = identifier.safeForFileName().decorate("revision")
         def module = ivyRepo.module(organisation, moduleName, version)
 
-        def artifact = "artifact${nameSuffix}"
-        def extension = "extension${nameSuffix}"
-        def type = "type${nameSuffix}"
-        def conf = "conf${nameSuffix}".replace(",", "") // conf uses ',' as a delimiter
-        def classifier = "classifier${nameSuffix}"
+        def artifact = identifier.safeForFileName().decorate("artifact")
+        def extension = identifier.safeForFileName().decorate("extension")
+        def type = identifier.safeForFileName().decorate("type")
+        def conf = identifier.safeForFileName().decorate("conf").replace(",", "")
+        def classifier = identifier.safeForFileName().decorate("classifier")
 
-        settingsFile.text = "rootProject.name = '${moduleName}'"
+        settingsFile.text = "rootProject.name = '${sq(moduleName)}'"
         buildFile.text = """
             apply plugin: 'ivy-publish'
 
-            group = '${organisation}'
-            version = '${version}'
+            group = '${sq(organisation)}'
+            version = '${sq(version)}'
 
             publishing {
                 repositories {
@@ -107,8 +102,8 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
                 }
                 publications {
                     ivy(IvyPublication) {
-                        configurations.create('${conf}')
-                        artifact source: 'content-file', name: '${artifact}', extension: '${extension}', type: '${type}', conf: '${conf}', classifier: '${classifier}'
+                        configurations.create('${sq(conf)}')
+                        artifact source: 'content-file', name: '${sq(artifact)}', extension: '${sq(extension)}', type: '${sq(type)}', conf: '${sq(conf)}', classifier: '${sq(classifier)}'
                     }
                 }
             }
@@ -124,12 +119,12 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
         resolveArtifacts(module, conf) == ["${artifact}-${version}-${classifier}.${extension}"]
 
         where:
-        title        | nameSuffix
-        "punctuation"| removeUnsupported(PUNCTUATION_CHARS)
-        "non-ascii"  | removeUnsupported(NON_ASCII_CHARS)
-        "whitespace" | " with spaces"
-        "filesystem" | removeUnsupported(FILESYSTEM_RESERVED_CHARS)
-        "xml markup" | removeUnsupported(XML_MARKUP_CHARS)
+        title        | identifier
+        "punctuation"| Identifier.punctuation
+        "non-ascii"  | Identifier.nonAscii
+        "whitespace" | Identifier.whiteSpace
+        "filesystem" | Identifier.fileSystemReserved
+        "xml markup" | Identifier.xmlMarkup
     }
 
     def "fails with reasonable error message for invalid identifier value"() {
@@ -155,14 +150,6 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
         failure.assertHasDescription "Execution failed for task ':publishIvyPublicationToIvyRepository'"
         failure.assertHasCause "Failed to publish publication 'ivy' to repository 'ivy'"
         failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
-    }
-
-    def removeUnsupported(String characterList) {
-        String output = characterList
-        for (char unsupportedChar  : UNSUPPORTED_CHARS.chars) {
-            output = output.replace(String.valueOf(unsupportedChar), '')
-        }
-        return output
     }
 
 }
