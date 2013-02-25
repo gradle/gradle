@@ -44,7 +44,6 @@ import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
@@ -61,7 +60,7 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, DependencyResolver, ArtifactRepositoryInternal {
+public abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, DependencyResolver {
     
     private ArtifactPomContainer artifactPomContainer;
 

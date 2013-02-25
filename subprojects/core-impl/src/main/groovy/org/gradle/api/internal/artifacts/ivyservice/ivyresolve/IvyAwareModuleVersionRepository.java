@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.plugins.resolver.ResolverSettings;
+import org.apache.ivy.core.settings.IvySettings;
 
 public interface IvyAwareModuleVersionRepository extends ModuleVersionRepository {
-    void setSettings(ResolverSettings settings);
+    void setSettings(IvySettings settings);
 
     boolean isLocal();
 }

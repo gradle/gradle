@@ -55,7 +55,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
         LOGGER.debug("Resolving {}", configuration);
 
-        IvyAdapter ivyAdapter = ivyFactory.create(configuration);
+        IvyAdapter ivyAdapter = ivyFactory.create(configuration, repositories);
 
         DependencyToModuleResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
         dependencyResolver = new ClientModuleResolver(dependencyResolver);

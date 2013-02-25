@@ -54,7 +54,7 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
 
     @Override
     public void setSettings(ResolverSettings settings) {
-        userResolverChain.setSettings(settings);
+        // don't care
     }
 
     @Override

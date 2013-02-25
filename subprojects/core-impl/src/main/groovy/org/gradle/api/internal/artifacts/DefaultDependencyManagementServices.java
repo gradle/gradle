@@ -253,6 +253,39 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
 
+    protected ResolveIvyFactory createResolveIvyFactory() {
+        StartParameter startParameter = get(StartParameter.class);
+        StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
+        return new ResolveIvyFactory(
+                get(IvyFactory.class),
+                get(SettingsConverter.class),
+                get(ModuleResolutionCache.class),
+                get(ModuleDescriptorCache.class),
+                get(ArtifactAtRepositoryCachedArtifactIndex.class),
+                get(CacheLockingManager.class),
+                startParameterResolutionOverride,
+                get(BuildCommencedTimeProvider.class));
+    }
+
+    protected ArtifactDependencyResolver createArtifactDependencyResolver() {
+        ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
+                get(ResolveIvyFactory.class),
+                get(PublishModuleDescriptorConverter.class),
+                new ResolvedArtifactFactory(
+                        get(CacheLockingManager.class)
+                ),
+                new DefaultProjectModuleRegistry(
+                        get(PublishModuleDescriptorConverter.class)),
+                get(ProjectAccessListener.class)
+        );
+        return new ErrorHandlingArtifactDependencyResolver(
+                new ShortcircuitEmptyConfigsArtifactDependencyResolver(
+                        new SelfResolvingDependencyResolver(
+                                new CacheLockingArtifactDependencyResolver(
+                                        get(CacheLockingManager.class),
+                                        resolver))));
+    }
+
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
         private final ServiceRegistry parent;
         private final FileResolver fileResolver;
@@ -335,40 +368,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         }
 
         ConfigurationResolver createDependencyResolver(DefaultRepositoryHandler repositories) {
-            StartParameter startParameter = get(StartParameter.class);
-            StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
-            ResolveIvyFactory ivyFactory = new ResolveIvyFactory(
-                    get(IvyFactory.class),
-                    repositories,
-                    get(SettingsConverter.class),
-                    get(ModuleResolutionCache.class),
-                    get(ModuleDescriptorCache.class),
-                    get(ArtifactAtRepositoryCachedArtifactIndex.class),
-                    get(CacheLockingManager.class),
-                    startParameterResolutionOverride,
-                    get(BuildCommencedTimeProvider.class));
-
-            ResolvedArtifactFactory resolvedArtifactFactory = new ResolvedArtifactFactory(
-                    get(CacheLockingManager.class)
-            );
-
-            ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
-                    ivyFactory,
-                    get(PublishModuleDescriptorConverter.class),
-                    resolvedArtifactFactory,
-                    new DefaultProjectModuleRegistry(
-                            get(PublishModuleDescriptorConverter.class)),
-                    get(ProjectAccessListener.class)
-            );
             return new DefaultConfigurationResolver(
-                    new ErrorHandlingArtifactDependencyResolver(
-                            new ShortcircuitEmptyConfigsArtifactDependencyResolver(
-                                    new SelfResolvingDependencyResolver(
-                                            new CacheLockingArtifactDependencyResolver(
-                                                    get(CacheLockingManager.class),
-                                                    resolver)))),
-                        repositories
-                    );
+                    get(ArtifactDependencyResolver.class),
+                    repositories);
         }
 
         ArtifactPublisher createArtifactPublisher() {

@@ -16,11 +16,20 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyDependencyResolverAdapter;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 
 public abstract class IvyResolverBackedArtifactRepository extends AbstractArtifactRepository implements ResolutionAwareRepository {
     public IvyAwareModuleVersionRepository createResolveRepository() {
-        return new IvyDependencyResolverAdapter(createResolver());
+        DependencyResolver resolver = createResolver();
+        if (resolver instanceof ExternalResourceResolver) {
+            ExternalResourceResolver externalResourceResolver = (ExternalResourceResolver) resolver;
+            return new ExternalResourceResolverAdapter(externalResourceResolver);
+        } else {
+            return new IvyDependencyResolverAdapter(resolver);
+        }
     }
 }

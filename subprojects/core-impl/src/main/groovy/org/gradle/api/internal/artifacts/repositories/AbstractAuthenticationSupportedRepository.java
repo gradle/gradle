@@ -18,12 +18,9 @@ package org.gradle.api.internal.artifacts.repositories;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
-import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.util.ConfigureUtil;
 
-public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupported, ResolutionAwareRepository {
+public abstract class AbstractAuthenticationSupportedRepository extends IvyResolverBackedArtifactRepository implements AuthenticationSupported {
     private final PasswordCredentials passwordCredentials;
 
     AbstractAuthenticationSupportedRepository(PasswordCredentials credentials) {
@@ -36,11 +33,5 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     public void credentials(Closure closure) {
         ConfigureUtil.configure(closure, passwordCredentials);
-    }
-
-    public abstract ExternalResourceResolver createResolver();
-
-    public IvyAwareModuleVersionRepository createResolveRepository() {
-        return new ExternalResourceResolverAdapter(createResolver());
     }
 }
