@@ -22,18 +22,18 @@ import org.gradle.logging.TestAppender
 import org.junit.Rule
 import spock.lang.Specification
 
-class DeprecationLoggerTest extends Specification {
+class SingleMessageLoggerTest extends Specification {
     final TestAppender appender = new TestAppender()
     @Rule final ConfigureLogging logging = new ConfigureLogging(appender)
 
     public void cleanup() {
-        DeprecationLogger.reset()
+        SingleMessageLogger.reset()
     }
 
     def "logs deprecation warning once"() {
         when:
-        DeprecationLogger.nagUserWith("nag")
-        DeprecationLogger.nagUserWith("nag")
+        SingleMessageLogger.nagUserWith("nag")
+        SingleMessageLogger.nagUserWith("nag")
 
         then:
         appender.toString() == '[WARN nag]'
@@ -43,14 +43,14 @@ class DeprecationLoggerTest extends Specification {
         Factory<String> factory = Mock()
 
         when:
-        def result = DeprecationLogger.whileDisabled(factory)
+        def result = SingleMessageLogger.whileDisabled(factory)
 
         then:
         result == 'result'
 
         and:
         1 * factory.create() >> {
-            DeprecationLogger.nagUserWith("nag")
+            SingleMessageLogger.nagUserWith("nag")
             return "result"
         }
         0 * _._
@@ -60,7 +60,7 @@ class DeprecationLoggerTest extends Specification {
         Runnable action = Mock()
 
         when:
-        DeprecationLogger.whileDisabled(action)
+        SingleMessageLogger.whileDisabled(action)
 
         then:
         1 * action.run()
@@ -75,7 +75,7 @@ class DeprecationLoggerTest extends Specification {
         major != -1
 
         when:
-        DeprecationLogger.nagUserOfDeprecated("foo", "bar")
+        SingleMessageLogger.nagUserOfDeprecated("foo", "bar")
 
         then:
         appender.toString() == "[WARN foo has been deprecated and is scheduled to be removed in Gradle ${major + 1}.0. bar.]"
