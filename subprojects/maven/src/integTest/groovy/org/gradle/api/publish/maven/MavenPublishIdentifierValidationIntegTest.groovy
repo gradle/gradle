@@ -16,13 +16,8 @@
 
 package org.gradle.api.publish.maven
 import org.gradle.test.fixtures.publish.Identifier
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-// Maven resolution with 'unusual' characters is currently broken on Java 1.6 CI (Ivy PomReader).
-// TODO:DAZ Fix this. Seems to be an issue with URI encoding deep down in Xerces. Might need to replace the PomReader with our own implementation.
-@Requires(TestPrecondition.CAN_RESOLVE_UNICODE_POM)
 class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishIntegTest {
 
     // Group and Artifact are restricted to [A-Za-z0-9_\-.]+ by org.apache.maven.project.validation.DefaultModelValidator
