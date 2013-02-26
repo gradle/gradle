@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.maven.M2Installation
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 /**
@@ -65,9 +66,10 @@ class MavenPublishIssuesIntegTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2681")
     def "gradle ignores maven mirror configuration for uploading archives"() {
         given:
-
         TestFile m2Home = temporaryFolder.createDir("m2_home");
-        m2Home.file("conf/settings.xml") << """
+        M2Installation m2Installation = new M2Installation(m2Home)
+
+        m2Installation.globalSettingsFile << """
 <settings>
   <mirrors>
     <mirror>
@@ -100,7 +102,7 @@ publishing {
 }
    """
         when:
-        executer.withEnvironmentVars(M2_HOME: m2Home.absolutePath)
+        using m2Installation
 
         then:
         succeeds "publish"
