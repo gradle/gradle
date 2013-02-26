@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.Ivy;
 import org.apache.ivy.core.IvyContext;
-import org.apache.ivy.core.cache.ResolutionCacheManager;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
@@ -372,26 +370,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                         + parentOrganisation + "#" + parentModule + ";" + parentRevision, 0);
             }
 
-            ResolutionCacheManager cacheManager = settings.getResolutionCacheManager();
-
-            File ivyFileInCache = cacheManager.getResolvedIvyFileInCache(parent
-                    .getResolvedModuleRevisionId());
-            //Generate the parent cache file if necessary
-            if (parent.getResource() != null
-                    && !parent.getResource().getName().equals(ivyFileInCache.toURI().toString())) {
-                try {
-                    parent.toIvyFile(ivyFileInCache);
-                } catch (ParseException e) {
-                    throw new ParseException("Unable to create cache file for "
-                            + parentOrganisation + "#" + parentModule + ";" + parentRevision
-                            + " Reason:" + e.getLocalizedMessage(), 0);
-                } catch (IOException e) {
-                    throw new ParseException("Unable to create cache file for "
-                            + parentOrganisation + "#" + parentModule + ";" + parentRevision
-                            + " Reason :" + e.getLocalizedMessage(), 0);
-                }
-            }
-
             DefaultExtendsDescriptor ed = new DefaultExtendsDescriptor(
                     parent.getModuleRevisionId(),
                     parent.getResolvedModuleRevisionId(),
@@ -516,22 +494,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String parentModule, String parentRevision) throws ParseException {
             ModuleId parentModuleId = new ModuleId(parentOrganisation, parentModule);
             ModuleRevisionId parentMrid = new ModuleRevisionId(parentModuleId, parentRevision);
-
-            // try to load parent module in cache
-            File cacheFile = settings.getResolutionCacheManager().getResolvedIvyFileInCache(
-                ModuleRevisionId.newInstance(parentMrid, Ivy.getWorkingRevision()));
-            if (cacheFile.exists() && cacheFile.length() > 0) {
-                ModuleDescriptor md;
-                try {
-                    Message.debug("Trying to load included ivy file from cache");
-                    URL parentUrl = cacheFile.toURI().toURL();
-                    md = parseOtherIvyFileOnFileSystem(parentUrl.toString());
-                    return md;
-                } catch (IOException e) {
-                    // do nothing
-                    Message.error(e.getLocalizedMessage());
-                }
-            }
 
             DependencyDescriptor dd = new DefaultDependencyDescriptor(parentMrid, true);
             ResolveData data = IvyContext.getContext().getResolveData();
