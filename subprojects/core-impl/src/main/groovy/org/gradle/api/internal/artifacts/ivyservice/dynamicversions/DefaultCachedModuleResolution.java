@@ -17,15 +17,16 @@ package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.TimeProvider;
 
 class DefaultCachedModuleResolution implements ModuleResolutionCache.CachedModuleResolution {
-    private final ModuleRevisionId requestedVersion;
+    private final ModuleVersionIdentifier requestedVersion;
     private final ModuleVersionIdentifier resolvedVersion;
     private final long ageMillis;
 
     public DefaultCachedModuleResolution(ModuleRevisionId requestedVersion, ModuleResolutionCacheEntry entry, TimeProvider timeProvider) {
-        this.requestedVersion = requestedVersion;
+        this.requestedVersion = new DefaultModuleVersionIdentifier(requestedVersion.getOrganisation(), requestedVersion.getName(), requestedVersion.getRevision());
         this.resolvedVersion = entry.moduleVersionIdentifier;
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
     }
