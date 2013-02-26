@@ -42,7 +42,6 @@ public class DefaultIvyModuleDescriptor implements IvyModuleDescriptorInternal {
     }
 
     public void setStatus(String status) {
-        // TODO:DAZ Validate status: limit to the set of statuses that we handle? (Validate here and allow custom status setting via withXml)
         this.status = status;
     }
 

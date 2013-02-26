@@ -161,6 +161,10 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
         createBuildScripts("""
             publications {
                 ivy(IvyPublication) {
+                    configurations {
+                        mod_conf {}
+                        other {}
+                    }
                     artifact source: "customFile.txt", name: "customFile"
                     artifact source: customDocsTask.outputFile, name: "docs", builtBy: customDocsTask
                     artifact source: customJar
@@ -169,7 +173,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
 """, """
             publishing.publications.ivy.artifacts.each {
                 it.extension = "mod"
-                it.conf = "mod-conf"
+                it.conf = "mod_conf"
             }
 """)
         when:

@@ -102,7 +102,6 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     DefaultIvyPublication.class,
                     name, instantiator, publicationIdentity, notationParser
             );
-            // TODO:DAZ Not sure if status is a property of the descriptor, or a property of the publication itself.
             ivyPublication.getDescriptor().setStatus(module.getStatus());
             return ivyPublication;
         }
