@@ -356,6 +356,31 @@ Validate the following prior to publication:
 * Check that an Ant build that uses Ivy can resolve a Java library published to an Maven repository.
 * Check that a Maven build can resolve a Java library published to a Maven repository.
 
+## Report on failures to publish
+
+There are many cases where a repository may fail to publish the requested artifacts successfully.
+One example is publishing to a Windows FileRepository an artifact with version containing ":", which is illegal in a windows file name.
+The Maven Ant tasks (and possibly the Ivy DependencyResolver) will silently fail in these cases.
+
+This story will address this issue, by ensuring that failure to publish is detected by the supported repository implementations, and that this failure is reported to the user.
+
+1. Replace DependencyResolverIvyPublisher with an implementation built directly on top of ExternalResourceRepository.
+   - No ivy concepts should be in this implementation if possible
+   - Reuse code from resolver for mapping artifact attributes -> primary URL
+2. Replace AntTaskBackedMavenPublisher with an implementation built directly on top of ExternalResourceRepository.
+   - Reuse Maven code for creating maven-metadata.xml if possible
+   - No ivy concepts should be introduced to this implementation
+   - Reuse code from resolver for mapping artifact attributes -> primary URL
+3. Update ExternalResourceRepository.put() so that it reports on any failure to publish, and ensure that these failures are reported in the publishing output.
+
+### Test cases
+
+* Create Ivy publication with version = "1:3" and publish to FileSystem repository on Windows. Assert that failure is reported.
+* Publish 2 Ivy publications with versions that only differ by case to a FileSystem repository on Windows. Assert that the second publication does not overwrite the first.
+* Publish an Ivy publication with extension ending in '.' to FileSystem repository on Windows. Assert that failure is reported.
+* Publish an Ivy publication to an HTTP repository that returns a 500. Assert that failure is reported.
+* Similar tests for Maven publications.
+
 ## Customising the Maven and Ivy publication identifier
 
 This step will allow some basic customisation of the meta data model for each publication:
