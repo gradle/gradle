@@ -30,6 +30,10 @@ public class InvalidIvyPublicationException extends InvalidUserDataException {
         super(formatMessage(publicationName, error));
     }
 
+    public InvalidIvyPublicationException(String publicationName, String error, Throwable cause) {
+        super(formatMessage(publicationName, error), cause);
+    }
+
     private static String formatMessage(String publicationName, String error) {
         return String.format("Invalid publication '%s': %s", publicationName, error);
     }

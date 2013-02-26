@@ -15,10 +15,12 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publisher
-
+import org.gradle.api.Action
+import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
 import org.gradle.api.publish.ivy.IvyArtifact
+import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared
@@ -37,6 +39,25 @@ public class ValidatingIvyPublisherTest extends Specification {
         when:
         def projectIdentity = this.projectIdentity("the-group", "the-artifact", "the-version")
         def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("the-group", "the-artifact", "the-version"), emptySet())
+        def repository = Mock(PublicationAwareRepository)
+
+        and:
+        publisher.publish(publication, repository)
+
+        then:
+        delegate.publish(publication, repository)
+    }
+
+    def "does not attempt to resolve extended ivy descriptor when validating"() {
+        when:
+        def ivyFile = ivyFile("the-group", "the-artifact", "the-version", new Action<XmlProvider>() {
+            void execute(XmlProvider t) {
+                t.asNode().info[0].appendNode("extends", ["organisation": "parent-org", "module": "parent-module", "revision": "parent-revision"])
+            }
+        })
+
+        and:
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity("the-group", "the-artifact", "the-version"), ivyFile, emptySet())
         def repository = Mock(PublicationAwareRepository)
 
         and:
@@ -90,6 +111,29 @@ public class ValidatingIvyPublisherTest extends Specification {
         "org-mod"    | "module"     | "version"     | "supplied organisation does not match ivy descriptor (cannot edit organisation directly in the ivy descriptor file)."
         "org"        | "module-mod" | "version"     | "supplied module name does not match ivy descriptor (cannot edit module name directly in the ivy descriptor file)."
         "org"        | "module"     | "version-mod" | "supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file)."
+    }
+
+    def "reports and fails with invalid descriptor file"() {
+        given:
+        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity("the-group", "the-artifact", "the-version"))
+        final artifact = new DefaultIvyArtifact(null, "name", "ext", "type", "classifier")
+        artifact.setConf("unknown")
+        ivyFileGenerator.addArtifact(artifact)
+
+        def ivyFile = testDir.file("ivy")
+        ivyFileGenerator.writeTo(ivyFile)
+
+        and:
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity("the-group", "the-artifact", "the-version"), ivyFile, emptySet())
+        def repository = Mock(PublicationAwareRepository)
+
+        when:
+        publisher.publish(publication, repository)
+
+        then:
+        def e = thrown InvalidIvyPublicationException
+        e.message.startsWith "Invalid publication 'pub-name': Problem occurred while parsing ivy file: " +
+                "Cannot add artifact 'name.ext(type)' to configuration 'unknown' of module the-group#the-artifact;the-version because this configuration doesn't exist!"
     }
 
     def "validates artifact attributes"() {
@@ -156,9 +200,12 @@ public class ValidatingIvyPublisherTest extends Specification {
         }
     }
 
-    private def ivyFile(def group, def moduleName, def version) {
+    private def ivyFile(def group, def moduleName, def version, Action<XmlProvider> action = null) {
         def ivyXmlFile = testDir.file("ivy")
         IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity(group, moduleName, version))
+        if (action != null) {
+            ivyFileGenerator.withXml(action)
+        }
         ivyFileGenerator.writeTo(ivyXmlFile)
         return ivyXmlFile
     }

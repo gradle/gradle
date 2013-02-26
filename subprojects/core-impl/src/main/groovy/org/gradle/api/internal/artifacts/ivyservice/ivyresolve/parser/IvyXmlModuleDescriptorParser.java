@@ -70,13 +70,16 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
 
-    public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL xmlURL, Resource res,
-            boolean validate) throws ParseException, IOException {
+    public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL xmlURL, Resource res, boolean validate) throws ParseException, IOException {
         Parser parser = new Parser(this, ivySettings, res);
         parser.setValidate(validate);
         parser.setInput(xmlURL);
         parser.parse();
         return (DefaultModuleDescriptor) parser.getModuleDescriptor();
+    }
+
+    public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL descriptorURL, boolean validate) throws ParseException, IOException {
+        return parseDescriptor(ivySettings, descriptorURL, new URLResource(descriptorURL), validate);
     }
 
     public boolean accept(Resource res) {
@@ -266,15 +269,11 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             }
         }
 
-        private String getDefaultParentLocation() {
-            return "../ivy.xml";
-        }
-
         private void extendsStarted(Attributes attributes) throws ParseException {
             String parentOrganisation = attributes.getValue("organisation");
             String parentModule = attributes.getValue("module");
             String parentRevision = attributes.getValue("revision");
-            String location = elvis(attributes.getValue("location"), getDefaultParentLocation());
+            String location = elvis(attributes.getValue("location"), "../ivy.xml");
 
             String extendType = elvis(attributes.getValue("extendType"), "all").toLowerCase();
             List<String> extendTypes = Arrays.asList(extendType.split(","));
@@ -293,9 +292,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 }
 
             } catch (ParseException e) {
-                LOGGER.warn("Unable to parse included ivy file " + location + ": " + e.getMessage());
+                LOGGER.debug("Unable to parse included ivy file " + location + ": " + e.getMessage());
             } catch (IOException e) {
-                LOGGER.warn("Unable to parse included ivy file " + location + ": " + e.getMessage());
+                LOGGER.debug("Unable to parse included ivy file " + location + ": " + e.getMessage());
             }
 
             // if the included ivy file is not found on file system, tries to resolve using
@@ -818,13 +817,11 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return matcher;
         }
 
-
         public void characters(char[] ch, int start, int length) throws SAXException {
             if (buffer != null) {
                 buffer.append(ch, start, length);
             }
         }
-
 
         public void endElement(String uri, String localName, String qName) throws SAXException {
             if (state == State.PUB && "artifact".equals(qName) && artifact.getConfigurations().length == 0) {

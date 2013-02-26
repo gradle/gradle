@@ -21,7 +21,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-abstract class RestrictedDependencyResolver extends DelegatingDependencyResolver {
+public abstract class RestrictedDependencyResolver extends DelegatingDependencyResolver {
     protected RestrictedDependencyResolver() {
         super(createAngryDelegate());
     }

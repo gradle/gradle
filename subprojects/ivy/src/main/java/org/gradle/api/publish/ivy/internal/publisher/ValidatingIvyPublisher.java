@@ -16,10 +16,11 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import groovy.util.Node;
-import groovy.util.XmlParser;
-import groovy.xml.QName;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.plugins.parser.ParserSettings;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedParserSettings;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
@@ -27,8 +28,11 @@ import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
+import java.net.URL;
+import java.text.ParseException;
 
 public class ValidatingIvyPublisher implements IvyPublisher {
+    private final ParserSettings parserSettings = new DisconnectedParserSettings();
     private final IvyPublisher delegate;
 
     public ValidatingIvyPublisher(IvyPublisher delegate) {
@@ -43,32 +47,33 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private void validateIdentity(IvyNormalizedPublication publication) {
         IvyPublicationIdentity identity = publication.getProjectIdentity();
-        Node infoNode = getIvyFileInfoNode(publication.getDescriptorFile());
 
-        field(publication, "organisation", identity.getOrganisation())
+        IvyFieldValidator organisation = field(publication, "organisation", identity.getOrganisation())
                 .notEmpty()
-                .validInFileName()
-                .matches((String) infoNode.attribute("organisation"));
-        field(publication, "module name", identity.getModule())
+                .validInFileName();
+        IvyFieldValidator moduleName = field(publication, "module name", identity.getModule())
                 .notEmpty()
-                .validInFileName()
-                .matches((String) infoNode.attribute("module"));
-        field(publication, "revision", identity.getRevision())
+                .validInFileName();
+        IvyFieldValidator revision = field(publication, "revision", identity.getRevision())
                 .notEmpty()
-                .validInFileName()
-                .matches((String) infoNode.attribute("revision"));
+                .validInFileName();
+
+        ModuleRevisionId moduleId = parseIvyFile(publication);
+        organisation.matches(moduleId.getOrganisation());
+        moduleName.matches(moduleId.getName());
+        revision.matches(moduleId.getRevision());
     }
 
-    private Node getIvyFileInfoNode(File ivyFile) {
-        Node rootNode;
+    private ModuleRevisionId parseIvyFile(IvyNormalizedPublication publication) {
+
         try {
-            // TODO:DAZ Turn on XML validation, and add a schema to the generated ivy file
-            rootNode = new XmlParser().parse(ivyFile);
+            URL ivyFileLocation = publication.getDescriptorFile().toURI().toURL();
+            return new IvyXmlModuleDescriptorParser().parseDescriptor(parserSettings, ivyFileLocation, true).getModuleRevisionId();
+        } catch (ParseException pe) {
+            throw new InvalidIvyPublicationException(publication.getName(), pe.getLocalizedMessage(), pe);
         } catch (Exception ex) {
             throw UncheckedException.throwAsUncheckedException(ex);
         }
-
-        return (Node) rootNode.getAt(new QName("info")).get(0);
     }
 
     public void validateArtifacts(IvyNormalizedPublication publication) {
