@@ -388,7 +388,7 @@ This step will allow some basic customisation of the meta data model for each pu
 1. Add `groupId`, `artifactId`, `version` properties to `MavenPublication` and `MavenPom`. Add `packaging` property to `MavenPom`.
 2. Change `pom.xml` generation to use these properties.
 3. Add `organisation`, `module`, `revision` properties to `IvyPublication` and `IvyModuleDescriptor`. Add `status` property to `IvyModuleDescriptor`.
-4. Change `ivy.xml` generation to use these properties.
+4. Change `ivy.xml` generation to use these properties. Do not default `status` to `project.status` (this value should have not effect on ivy publication).
 5. Change the `ivy.xml` generation to prefer the (organisation, module, revision) identifier of the `IvyPublication` instance from the target project
    for a project dependencies, over the existing candidate identifiers.
 6. Change the `pom.xml` generation to prefer the (groupId, artifactId, version) identifier of the `MavenPublication` instance from the target project
