@@ -71,8 +71,9 @@ public class ValidatingMavenPublisherTest extends Specification {
         "group-₦ガき∆"        | "artifact"            | "version"   | "groupId is not a valid Maven identifier ([A-Za-z0-9_\\-.]+)"
         "group"             | "artifact with spaces" | "version"   | "artifactId is not a valid Maven identifier ([A-Za-z0-9_\\-.]+)"
         "group"             | "artifact-₦ガき∆"       | "version"   | "artifactId is not a valid Maven identifier ([A-Za-z0-9_\\-.]+)"
-        "group"             | "artifact"             | "vers/ion"  | "version cannot contain '\\' or '/'"
-        "group"             | "artifact"             | "version\t" | "version cannot contain an ISO control character"
+        "group"             | "artifact"             | "vers/ion"  | "version cannot contain '/'"
+        "group"             | "artifact"             | "vers\\ion"  | "version cannot contain '\\'"
+        "group"             | "artifact"             | "version\t" | "version cannot contain ISO control character '\\u0009'"
     }
 
     def "project coordinates must match POM file"() {
@@ -117,10 +118,10 @@ public class ValidatingMavenPublisherTest extends Specification {
         extension | classifier     | message
         null      | "classifier"   | "extension cannot be null"
         "ext"     | ""             | "classifier cannot be an empty string. Use null instead"
-        "ex\t"    | "classifier"   | "extension cannot contain an ISO control character"
-        "ex/"     | "classifier"   | "extension cannot contain '\\' or '/'"
-        "ext"     | "classi\tfier" | "classifier cannot contain an ISO control character"
-        "ext"     | "class\\ifier" | "classifier cannot contain '\\' or '/'"
+        "ex\r"    | "classifier"   | "extension cannot contain ISO control character '\\u000d'"
+        "ex/"     | "classifier"   | "extension cannot contain '/'"
+        "ext"     | "classi\u0090fier" | "classifier cannot contain ISO control character '\\u0090'"
+        "ext"     | "class\\ifier" | "classifier cannot contain '\\'"
     }
 
     @Unroll

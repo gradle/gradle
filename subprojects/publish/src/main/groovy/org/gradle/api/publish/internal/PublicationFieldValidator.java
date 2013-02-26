@@ -56,10 +56,10 @@ public abstract class PublicationFieldValidator<T extends PublicationFieldValida
         while (offset < value.length()) {
             final int unicodeChar = value.codePointAt(offset);
             if (Character.isISOControl(unicodeChar)) {
-                throw failure(String.format("%s cannot contain an ISO control character.", name));
+                throw failure(String.format("%s cannot contain ISO control character '\\u%04x'.", name, unicodeChar));
             }
             if ('\\' == unicodeChar || '/' == unicodeChar) {
-                throw failure(String.format("%s cannot contain '\\' or '/'.", name));
+                throw failure(String.format("%s cannot contain '%c'.", name, (char) unicodeChar));
             }
             offset += Character.charCount(unicodeChar);
         }
