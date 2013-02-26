@@ -19,11 +19,13 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
+import org.gradle.util.SingleMessageLogger;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -61,11 +63,8 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
         @Override
         public String getOutput() {
             String output = super.getOutput();
-            String parallelWarningPrefix = "Parallel project execution is an \"incubating\" feature";
-            if (output.startsWith(parallelWarningPrefix)) {
-                return output.replaceFirst(String.format("(?m)%s.+$\n", parallelWarningPrefix), "");
-            }
-            return output;
+            String parallelWarningPrefix = String.format(SingleMessageLogger.INCUBATION_MESSAGE, ".*");
+            return output.replaceFirst(format("(?m)%s.*$\n", parallelWarningPrefix), "");
         }
 
         @Override

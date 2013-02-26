@@ -57,6 +57,7 @@ public class SingleMessageLogger {
 
     private static String deprecationMessage;
     private static Lock deprecationMessageLock = new ReentrantLock();
+    public static final String INCUBATION_MESSAGE = "%s is an incubating feature. Enjoy it and let us know how it works for you.";
 
     private static String getDeprecationMessage() {
         if (deprecationMessage == null) {
@@ -243,6 +244,6 @@ public class SingleMessageLogger {
     }
 
     public static void informAboutIncubating(String incubatingFeature) {
-        inform(LogLevel.LIFECYCLE, String.format("%s is an incubating feature. Enjoy it and let us know how it works for you.", incubatingFeature));
+        inform(LogLevel.LIFECYCLE, String.format(INCUBATION_MESSAGE, incubatingFeature));
     }
 }
