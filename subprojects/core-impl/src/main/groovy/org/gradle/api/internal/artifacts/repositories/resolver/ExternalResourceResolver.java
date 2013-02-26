@@ -817,7 +817,7 @@ public class ExternalResourceResolver implements DependencyResolver {
         this.changingMatcherName = changingMatcherName;
     }
 
-    protected String getChangingMatcherName() {
+    public String getChangingMatcherName() {
         return changingMatcherName;
     }
 
@@ -825,7 +825,7 @@ public class ExternalResourceResolver implements DependencyResolver {
         this.changingPattern = changingPattern;
     }
 
-    protected String getChangingPattern() {
+    public String getChangingPattern() {
         return changingPattern;
     }
 

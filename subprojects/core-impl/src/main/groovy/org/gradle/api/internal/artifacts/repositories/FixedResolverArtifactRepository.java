@@ -16,8 +16,10 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyDependencyResolverAdapter;
 
-public class FixedResolverArtifactRepository extends IvyResolverBackedArtifactRepository {
+public class FixedResolverArtifactRepository extends AbstractArtifactRepository {
     protected final DependencyResolver resolver;
 
     public FixedResolverArtifactRepository(DependencyResolver resolver) {
@@ -36,8 +38,20 @@ public class FixedResolverArtifactRepository extends IvyResolverBackedArtifactRe
         super.setName(name);
     }
 
-    public DependencyResolver createResolver() {
+    public DependencyResolver createPublisher() {
         return resolver;
     }
 
+    public IvyAwareModuleVersionRepository createResolveRepository() {
+        // Handle a repository wrapped in a resolver for backwards compatibility
+        if (resolver instanceof ResolutionAwareRepository) {
+            ResolutionAwareRepository resolutionAwareRepository = (ResolutionAwareRepository) resolver;
+            return resolutionAwareRepository.createResolveRepository();
+        }
+        return new IvyDependencyResolverAdapter(resolver);
+    }
+
+    public DependencyResolver createResolver() {
+        return resolver;
+    }
 }

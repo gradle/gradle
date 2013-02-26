@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.util.ConfigureUtil;
 
-public abstract class AbstractAuthenticationSupportedRepository extends IvyResolverBackedArtifactRepository implements AuthenticationSupported {
+public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupported {
     private final PasswordCredentials passwordCredentials;
 
     AbstractAuthenticationSupportedRepository(PasswordCredentials credentials) {

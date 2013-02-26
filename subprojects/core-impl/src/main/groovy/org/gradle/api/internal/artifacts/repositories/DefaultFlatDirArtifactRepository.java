@@ -21,6 +21,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyDependencyResolverAdapter;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
@@ -29,7 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultFlatDirArtifactRepository extends IvyResolverBackedArtifactRepository implements FlatDirectoryArtifactRepository {
+public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository {
     private final FileResolver fileResolver;
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryCacheManager localCacheManager;
@@ -53,6 +55,14 @@ public class DefaultFlatDirArtifactRepository extends IvyResolverBackedArtifactR
 
     public void dirs(Object... dirs) {
         this.dirs.addAll(Arrays.asList(dirs));
+    }
+
+    public DependencyResolver createPublisher() {
+        return createResolver();
+    }
+
+    public IvyAwareModuleVersionRepository createResolveRepository() {
+        return new IvyDependencyResolverAdapter(createResolver());
     }
 
     public DependencyResolver createResolver() {

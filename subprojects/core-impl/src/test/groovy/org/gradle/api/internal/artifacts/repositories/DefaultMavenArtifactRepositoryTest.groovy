@@ -53,7 +53,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createRealResolver()
 
         then:
         repo instanceof MavenResolver
@@ -75,11 +75,30 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createRealResolver()
 
         then:
         repo instanceof MavenResolver
         repo.root == "${uri}/"
+    }
+
+    def "creates a DSL wrapper for the repository"() {
+        given:
+        def file = new File('repo')
+        def uri = file.toURI()
+        _ * resolver.resolveUri('repo-dir') >> uri
+        transportFactory.createFileTransport('repo') >> new FileTransport('repo', cacheManager, Mock(TemporaryFileProvider))
+
+        and:
+        repository.name = 'repo'
+        repository.url = 'repo-dir'
+
+        when:
+        def repo = repository.createResolver()
+
+        then:
+        repo instanceof LegacyMavenResolver
+        repo.resolver instanceof MavenResolver
     }
 
     def "creates repository with additional artifact URLs"() {
@@ -98,7 +117,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.artifactUrls('repo1', 'repo2')
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createRealResolver()
 
         then:
         repo instanceof MavenResolver

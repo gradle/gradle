@@ -17,11 +17,14 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.ArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyMetaDataProvider;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
@@ -58,7 +61,19 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.instantiator = instantiator;
     }
 
-    public IvyResolver createResolver() {
+    public DependencyResolver createResolver() {
+        return new LegacyDependencyResolver(createRealResolver());
+    }
+
+    public DependencyResolver createPublisher() {
+        return createRealResolver();
+    }
+
+    public IvyAwareModuleVersionRepository createResolveRepository() {
+        return new ExternalResourceResolverAdapter(createRealResolver());
+    }
+
+    protected IvyResolver createRealResolver() {
         URI uri = getUrl();
 
         Set<String> schemes = new LinkedHashSet<String>();
