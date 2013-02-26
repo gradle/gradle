@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.IvyContext;
+import org.apache.ivy.core.NormalRelativeUrlResolver;
+import org.apache.ivy.core.RelativeUrlResolver;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
@@ -25,8 +27,6 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveEngine;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.conflict.ConflictManager;
-import org.apache.ivy.plugins.conflict.FixedConflictManager;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.namespace.NameSpaceHelper;
 import org.apache.ivy.plugins.namespace.Namespace;
@@ -36,9 +36,12 @@ import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.url.URLResource;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.util.Message;
 import org.apache.ivy.util.XMLHelper;
+import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.apache.ivy.util.extendable.ExtendableItemHelper;
+import org.gradle.util.DeprecationLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -64,6 +67,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             new String[] {"org", "name", "branch", "branchConstraint", "rev", "revConstraint", "force", "transitive", "changing", "conf"};
 
     public static final String IVY_DATE_FORMAT_PATTERN = "yyyyMMddHHmmss";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
 
     public DefaultModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL xmlURL, Resource res,
             boolean validate) throws ParseException, IOException {
@@ -118,7 +123,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private static final List ALLOWED_VERSIONS = Arrays.asList("1.0", "1.1", "1.2", "1.3", "1.4", "2.0", "2.1", "2.2");
 
         /* how and what do we have to parse */
-        private ParserSettings settings;
+        private ParserSettings parserSettings;
+        private final RelativeUrlResolver relativeUrlResolver = new NormalRelativeUrlResolver();
         private boolean validate = true;
         private URL descriptorURL;
         private InputStream descriptorInput;
@@ -138,12 +144,12 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         public Parser(ModuleDescriptorParser moduleDescriptorParser, ParserSettings ivySettings, Resource res) {
             super(moduleDescriptorParser);
-            settings = ivySettings;
+            parserSettings = ivySettings;
             setResource(res);
         }
         
         public Parser newParser(Resource res) {
-            Parser parser = new Parser(getModuleDescriptorParser(), settings, res);
+            Parser parser = new Parser(getModuleDescriptorParser(), parserSettings, res);
             parser.setValidate(validate);
             return parser;
         }
@@ -180,8 +186,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 }
                 getMd().check();
             } catch (ParserConfigurationException ex) {
-                IllegalStateException ise = new IllegalStateException(ex.getMessage() + " in "
-                        + descriptorURL);
+                IllegalStateException ise = new IllegalStateException(ex.getMessage() + " in " + descriptorURL);
                 ise.initCause(ex);
                 throw ise;
             } catch (Exception ex) {
@@ -221,8 +226,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     dependenciesStarted(attributes);
                 } else if ("conflicts".equals(qName)) {
                     if (!descriptorVersion.startsWith("1.")) {
-                        Message.deprecated("using conflicts section is deprecated: "
-                                + "please use hints section instead. Ivy file URL: " + descriptorURL);
+                        DeprecationLogger.nagUserWith("Using conflicts section in ivy.xml is deprecated: please use hints section instead. Ivy file URL: " + descriptorURL);
                     }
                     state = State.CONFLICT;
                     checkConfigurations();
@@ -243,9 +247,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 } else if ("mapped".equals(qName)) {
                     dd.addDependencyConfiguration(conf, substitute(attributes.getValue("name")));
                 } else if (("conflict".equals(qName) && state == State.DEPS) || "manager".equals(qName) && state == State.CONFLICT) {
-                    managerStarted(attributes, state == State.CONFLICT ? "name" : "manager");
+                    LOGGER.info("Ivy.xml conflict managers are not supported by Gradle. Ignoring conflict manager declared in %s", getResource().getName());
                 } else if ("override".equals(qName) && state == State.DEPS) {
-                    mediationOverrideStarted(attributes);
+                    LOGGER.info("Ivy.xml dependency overrides are not supported by Gradle. Ignoring override declared in %s", getResource().getName());
                 } else if ("include".equals(qName) && state == State.CONF) {
                     includeConfStarted(attributes);
                 } else if (validate && state != State.EXTRA_INFO && state != State.DESCRIPTION) {
@@ -277,37 +281,36 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
             ModuleDescriptor parent = null;
             try {
-                Message.debug("Trying to parse included ivy file :" + location);
+                LOGGER.debug("Trying to parse included ivy file :" + location);
                 parent = parseOtherIvyFileOnFileSystem(location);
 
                 //verify that the parsed descriptor is the correct parent module.
                 ModuleId expected = new ModuleId(parentOrganisation, parentModule);
                 ModuleId pid = parent.getModuleRevisionId().getModuleId();
                 if (!expected.equals(pid)) {
-                    Message.verbose("Ignoring parent Ivy file " + location + "; expected " + expected + " but found " + pid);
+                    LOGGER.warn("Ignoring parent Ivy file " + location + "; expected " + expected + " but found " + pid);
                     parent = null;
                 }
 
             } catch (ParseException e) {
-                Message.warn("Unable to parse included ivy file " + location + ": " + e.getMessage());
+                LOGGER.warn("Unable to parse included ivy file " + location + ": " + e.getMessage());
             } catch (IOException e) {
-                Message.warn("Unable to parse included ivy file " + location + ": " + e.getMessage());
+                LOGGER.warn("Unable to parse included ivy file " + location + ": " + e.getMessage());
             }
 
             // if the included ivy file is not found on file system, tries to resolve using
             // repositories
             if (parent == null) {
                 try {
-                    Message.debug(
-                        "Trying to parse included ivy file by asking repository for module :"
-                                    + parentOrganisation
-                                    + "#"
-                                    + parentModule
-                                    + ";"
-                                    + parentRevision);
+                    LOGGER.debug("Trying to parse included ivy file by asking repository for module :"
+                                            + parentOrganisation
+                                            + "#"
+                                            + parentModule
+                                            + ";"
+                                            + parentRevision);
                     parent = parseOtherIvyFile(parentOrganisation, parentModule, parentRevision);
                 } catch (ParseException e) {
-                    Message.warn("Unable to parse included ivy file for " + parentOrganisation + "#" + parentModule + ";" + parentRevision);
+                    LOGGER.warn("Unable to parse included ivy file for " + parentOrganisation + "#" + parentModule + ";" + parentRevision);
                 }
             }
 
@@ -395,7 +398,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private void mergeConfigurations(ModuleRevisionId sourceMrid, Configuration[] configurations) {
             DefaultModuleDescriptor md = getMd();
             for (Configuration configuration : configurations) {
-                Message.debug("Merging configuration with: " + configuration.getName());
+                LOGGER.debug("Merging configuration with: " + configuration.getName());
                 //copy configuration from parent descriptor
                 md.addConfiguration(new Configuration(configuration, sourceMrid));
             }
@@ -404,7 +407,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private void mergeDependencies(DependencyDescriptor[] dependencies) {
             DefaultModuleDescriptor md = getMd();
             for (DependencyDescriptor dependencyDescriptor : dependencies) {
-                Message.debug("Merging dependency with: " + dependencyDescriptor.getDependencyRevisionId().toString());
+                LOGGER.debug("Merging dependency with: " + dependencyDescriptor.getDependencyRevisionId().toString());
                 md.addDependency(dependencyDescriptor);
             }
         }
@@ -418,8 +421,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         private ModuleDescriptor parseOtherIvyFileOnFileSystem(String location)
                 throws ParseException, IOException {
-            URL url = settings.getRelativeUrlResolver().getURL(descriptorURL, location);
-            Message.debug("Trying to load included ivy file from " + url.toString());
+            URL url = relativeUrlResolver.getURL(descriptorURL, location);
+            LOGGER.debug("Trying to load included ivy file from " + url.toString());
             Parser parser = newParser(new URLResource(url));
             parser.parse();
             return parser.getModuleDescriptor();
@@ -439,12 +442,12 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 data = new ResolveData(engine, options);
             }
 
-            DependencyResolver resolver = settings.getResolver(parentMrid);
+            DependencyResolver resolver = parserSettings.getResolver(parentMrid);
             if (resolver == null) {
                 // TODO: Throw exception here?
                 return null;
             } else {
-                dd = NameSpaceHelper.toSystem(dd, settings.getContextNamespace());
+                dd = NameSpaceHelper.toSystem(dd, parserSettings.getContextNamespace());
                 ResolvedModuleRevision otherModule = resolver.getDependency(dd, data);
                 if (otherModule == null) {
                     throw new ParseException("Unable to find " + parentMrid.toString(), 0);
@@ -467,54 +470,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return qName.indexOf(':') != -1;
         }
 
-        private void managerStarted(Attributes attributes, String managerAtt) {
-            String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
-            String mod = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
-            String name = substitute(attributes.getValue(managerAtt));
-            String rev = substitute(attributes.getValue("rev"));
-            ConflictManager cm;
-            if (rev != null) {
-                String[] revs = rev.split(",");
-                for (int i = 0; i < revs.length; i++) {
-                    revs[i] = revs[i].trim();
-                }
-                cm = new FixedConflictManager(revs);
-            } else if (name != null) {
-                cm = settings.getConflictManager(name);
-                if (cm == null) {
-                    addError("unknown conflict manager: " + name);
-                    return;
-                }
-            } else {
-                addError("bad conflict manager: no manager nor rev");
-                return;
-            }
-            String matcherName = substitute(attributes.getValue("matcher"));
-            PatternMatcher matcher = matcherName == null ? defaultMatcher : settings.getMatcher(matcherName);
-            if (matcher == null) {
-                addError("unknown matcher: " + matcherName);
-                return;
-            }
-            getMd().addConflictManager(new ModuleId(org, mod), matcher, cm);
-        }
-
-        private void mediationOverrideStarted(Attributes attributes) {
-            String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
-            String mod = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
-            String rev = substitute(attributes.getValue("rev"));
-            String branch = substitute(attributes.getValue("branch"));
-            String matcherName = substitute(attributes.getValue("matcher"));
-            PatternMatcher matcher = matcherName == null ? defaultMatcher : settings.getMatcher(matcherName);
-            if (matcher == null) {
-                addError("unknown matcher: " + matcherName);
-                return;
-            }
-            getMd().addDependencyDescriptorMediator(new ModuleId(org, mod), matcher, new OverrideDependencyDescriptorMediator(branch, rev));
-        }
-
         private void includeConfStarted(Attributes attributes)
                 throws SAXException, IOException, ParserConfigurationException, ParseException {
-            URL url = settings.getRelativeUrlResolver().getURL(descriptorURL, substitute(attributes.getValue("file")), substitute(attributes.getValue("url")));
+            URL url = relativeUrlResolver.getURL(descriptorURL, substitute(attributes.getValue("file")), substitute(attributes.getValue("url")));
             if (url == null) {
                 throw new SAXException("include tag must have a file or an url attribute");
             }
@@ -531,15 +489,15 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 getMd().addConfiguration(config);
             }
             if (parser.getDefaultConfMapping() != null) {
-                Message.debug("setting default conf mapping from imported configurations file: " + parser.getDefaultConfMapping());
+                LOGGER.debug("setting default conf mapping from imported configurations file: " + parser.getDefaultConfMapping());
                 setDefaultConfMapping(parser.getDefaultConfMapping());
             }
             if (parser.getDefaultConf() != null) {
-                Message.debug("setting default conf from imported configurations file: " + parser.getDefaultConf());
+                LOGGER.debug("setting default conf from imported configurations file: " + parser.getDefaultConf());
                 setDefaultConf(parser.getDefaultConf());
             }
             if (parser.getMd().isMappingOverride()) {
-                Message.debug("enabling mapping-override from imported configurations file");
+                LOGGER.debug("enabling mapping-override from imported configurations file");
                 getMd().setMappingOverride(true);
             }
         }
@@ -555,7 +513,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     boolean transitive = (transitiveValue == null) || Boolean.valueOf(attributes.getValue("transitive"));
                     String deprecated = attributes.getValue("deprecated");
                     Configuration configuration = new Configuration(conf, visibility, description, extend, transitive, deprecated);
-                    ExtendableItemHelper.fillExtraAttributes(settings, configuration, attributes, 
+                    fillExtraAttributes(configuration, attributes,
                             new String[]{"name", "visibility", "extends", "transitive", "description", "deprecated"});
                     getMd().addConfiguration(configuration);
                     break;
@@ -612,7 +570,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String rev = substitute(attributes.getValue("rev"));
             String revConstraint = substitute(attributes.getValue("revConstraint"));
 
-            Map extraAttributes = ExtendableItemHelper.getExtraAttributes(settings, attributes, DEPENDENCY_REGULAR_ATTRIBUTES);
+            String[] ignoredAttributeNames = DEPENDENCY_REGULAR_ATTRIBUTES;
+            Map extraAttributes = getExtraAttributes(attributes, ignoredAttributeNames);
 
             ModuleRevisionId revId = ModuleRevisionId.newInstance(org, name, branch, rev, extraAttributes);
             ModuleRevisionId dynamicId;
@@ -646,7 +605,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String type = elvis(substitute(attributes.getValue("type")), "jar");
                 String ext = elvis(substitute(attributes.getValue("ext")), type);
                 String url = substitute(attributes.getValue("url"));
-                Map extraAttributes = ExtendableItemHelper.getExtraAttributes(settings, attributes, new String[]{"ext", "type", "name", "conf"});
+                Map extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
                 artifact = new MDArtifact(getMd(), artName, type, ext, url == null ? null : new URL(url), extraAttributes);
                 String confs = substitute(attributes.getValue("conf"));
                 
@@ -701,21 +660,20 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String module = substitute(attributes.getValue("module"));
             String revision = substitute(attributes.getValue("revision"));
             String branch = substitute(attributes.getValue("branch"));
-            Map extraAttributes = ExtendableItemHelper.getExtraAttributes(settings, attributes, 
-                    new String[]{"organisation", "module", "revision", "status", "publication", "branch", "namespace", "default", "resolver"});
+            Map extraAttributes = getExtraAttributes(attributes, new String[]{"organisation", "module", "revision", "status", "publication", "branch", "namespace", "default", "resolver"});
             getMd().setModuleRevisionId(ModuleRevisionId.newInstance(org, module, branch, revision, extraAttributes));
 
             String namespace = substitute(attributes.getValue("namespace"));
             if (namespace != null) {
-                Namespace ns = settings.getNamespace(namespace);
+                Namespace ns = parserSettings.getNamespace(namespace);
                 if (ns == null) {
-                    Message.warn("namespace not found for " + getMd().getModuleRevisionId() + ": " + namespace);
+                    LOGGER.warn("namespace not found for " + getMd().getModuleRevisionId() + ": " + namespace);
                 } else {
                     getMd().setNamespace(ns);
                 }
             }
 
-            getMd().setStatus(elvis(substitute(attributes.getValue("status")), settings.getStatusManager().getDefaultStatus()));
+            getMd().setStatus(elvis(substitute(attributes.getValue("status")), parserSettings.getStatusManager().getDefaultStatus()));
             getMd().setDefault(Boolean.valueOf(substitute(attributes.getValue("default"))));
             String pubDate = substitute(attributes.getValue("publication"));
             if (pubDate != null && pubDate.length() > 0) {
@@ -739,11 +697,11 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 throw new SAXException("invalid version " + descriptorVersion);
             }
             if (versionIndex >= ALLOWED_VERSIONS.indexOf("1.3")) {
-                Message.debug("post 1.3 ivy file: using " + PatternMatcher.EXACT + " as default matcher");
-                defaultMatcher = settings.getMatcher(PatternMatcher.EXACT);
+                LOGGER.debug("post 1.3 ivy file: using " + PatternMatcher.EXACT + " as default matcher");
+                defaultMatcher = getMatcher(PatternMatcher.EXACT);
             } else {
-                Message.debug("pre 1.3 ivy file: using " + PatternMatcher.EXACT_OR_REGEXP + " as default matcher");
-                defaultMatcher = settings.getMatcher(PatternMatcher.EXACT_OR_REGEXP);
+                LOGGER.debug("pre 1.3 ivy file: using " + PatternMatcher.EXACT_OR_REGEXP + " as default matcher");
+                defaultMatcher = getMatcher(PatternMatcher.EXACT_OR_REGEXP);
             }
 
             for (int i = 0; i < attributes.getLength(); i++) {
@@ -800,21 +758,21 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             ext = ext != null ? ext : type;
             if (state == State.DEP_ARTIFACT) {
                 String url = substitute(attributes.getValue("url"));
-                Map extraAttributes = ExtendableItemHelper.getExtraAttributes(settings, attributes, new String[]{"name", "type", "ext", "url", "conf"});
+                Map extraAttributes = getExtraAttributes(attributes, new String[]{"name", "type", "ext", "url", "conf"});
                 confAware = new DefaultDependencyArtifactDescriptor(dd, name, type, ext, url == null ? null : new URL(url), extraAttributes);
             } else if (state == State.ARTIFACT_INCLUDE) {
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
                 ArtifactId aid = new ArtifactId(new ModuleId(org, module), name, type, ext);
-                Map extraAttributes = ExtendableItemHelper.getExtraAttributes(settings, attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
+                Map extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultIncludeRule(aid, matcher, extraAttributes);
             } else { // _state == ARTIFACT_EXCLUDE || EXCLUDE
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatcher.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatcher.ANY_EXPRESSION);
                 ArtifactId aid = new ArtifactId(new ModuleId(org, module), name, type, ext);
-                Map extraAttributes = ExtendableItemHelper.getExtraAttributes(settings, attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
+                Map extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultExcludeRule(aid, matcher, extraAttributes);
             }
             String confs = substitute(attributes.getValue("conf"));
@@ -853,8 +811,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         private PatternMatcher getPatternMatcher(String m) {
             String matcherName = substitute(m);
-            PatternMatcher matcher = matcherName == null ? defaultMatcher : settings
-                    .getMatcher(matcherName);
+            PatternMatcher matcher = matcherName == null ? defaultMatcher : getMatcher(matcherName);
             if (matcher == null) {
                 throw new IllegalArgumentException("unknown matcher " + matcherName);
             }
@@ -947,7 +904,22 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         private String substitute(String name) {
-            return settings.substitute(name);
+            return parserSettings.substitute(name);
+        }
+
+        private Map getExtraAttributes(Attributes attributes, String[] ignoredAttributeNames) {
+            return ExtendableItemHelper.getExtraAttributes(parserSettings, attributes, ignoredAttributeNames);
+        }
+
+        private void fillExtraAttributes(DefaultExtendableItem item, Attributes attributes, String[] ignoredAttNames) {
+            Map extraAttributes = getExtraAttributes(attributes, ignoredAttNames);
+            for (Object name : extraAttributes.keySet()) {
+                item.setExtraAttribute((String) name, (String) extraAttributes.get(name));
+            }
+        }
+
+        private PatternMatcher getMatcher(String matcherName) {
+            return parserSettings.getMatcher(matcherName);
         }
 
     }
