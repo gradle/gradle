@@ -50,7 +50,7 @@ class M2Installation implements Action<GradleExecuter> {
     }
 
     M2Installation generateGlobalSettingsFile(MavenFileRepository globalRepository = mavenRepo()) {
-        globalSettingsFile.text = """
+        globalSettingsFile.createFile().text = """
 <settings>
     <localRepository>${globalRepository.rootDir.absolutePath}</localRepository>
 </settings>"""
