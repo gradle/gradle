@@ -22,8 +22,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.IvyDependency;
 import org.gradle.api.publish.ivy.IvyModuleDescriptor;
+import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator;
 import org.gradle.api.specs.Specs;
@@ -102,7 +102,7 @@ public class GenerateIvyDescriptor extends DefaultTask {
             ivyGenerator.addArtifact(ivyArtifact);
         }
 
-        for (IvyDependency ivyDependency : descriptorInternal.getDependencies()) {
+        for (IvyDependencyInternal ivyDependency : descriptorInternal.getDependencies()) {
             ivyGenerator.addDependency(ivyDependency);
         }
 

@@ -26,8 +26,7 @@ import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.IvyDependency;
-import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency;
+import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -48,7 +47,7 @@ public class IvyDescriptorFileGenerator {
     private XmlTransformer xmlTransformer = new XmlTransformer();
     private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
     private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
-    private List<DefaultIvyDependency> dependencies = new ArrayList<DefaultIvyDependency>();
+    private List<IvyDependencyInternal> dependencies = new ArrayList<IvyDependencyInternal>();
 
     public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity) {
         this.projectIdentity = projectIdentity;
@@ -68,8 +67,8 @@ public class IvyDescriptorFileGenerator {
         return this;
     }
 
-    public IvyDescriptorFileGenerator addDependency(IvyDependency ivyDependency) {
-        dependencies.add((DefaultIvyDependency) ivyDependency);
+    public IvyDescriptorFileGenerator addDependency(IvyDependencyInternal ivyDependency) {
+        dependencies.add(ivyDependency);
         return this;
     }
 
@@ -117,7 +116,7 @@ public class IvyDescriptorFileGenerator {
                 return true;
             }
         }
-        for (DefaultIvyDependency dependency : this.dependencies) {
+        for (IvyDependencyInternal dependency : this.dependencies) {
             for (DependencyArtifact dependencyArtifact : dependency.getModuleDependency().getArtifacts()) {
                 if (dependencyArtifact.getClassifier() != null) {
                     return true;
@@ -157,7 +156,7 @@ public class IvyDescriptorFileGenerator {
 
     private void writeDependencies(OptionalAttributeXmlWriter xmlWriter) throws IOException {
         xmlWriter.startElement("dependencies");
-        for (DefaultIvyDependency dependency : dependencies) {
+        for (IvyDependencyInternal dependency : dependencies) {
             ModuleDependency dep = dependency.getModuleDependency();
             xmlWriter.startElement("dependency")
                     .attribute("org", dep.getGroup())
