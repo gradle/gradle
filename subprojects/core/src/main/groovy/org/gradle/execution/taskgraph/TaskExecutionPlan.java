@@ -49,4 +49,7 @@ public interface TaskExecutionPlan {
      * @return The list of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
      */
     List<Task> getTasks();
+
+    //TODO SF this should replace completely getTaskToExecute(), inherit and expand existing unit test coverage
+    TaskInfo getTaskToExecute();
 }
