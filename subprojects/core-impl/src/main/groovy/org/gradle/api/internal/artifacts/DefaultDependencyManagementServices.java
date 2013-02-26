@@ -28,8 +28,8 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationCont
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -276,7 +276,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 ),
                 new DefaultProjectModuleRegistry(
                         get(PublishModuleDescriptorConverter.class)),
-                get(ProjectAccessListener.class)
+                get(ProjectAccessListener.class),
+                get(CacheLockingManager.class)
         );
         return new ErrorHandlingArtifactDependencyResolver(
                 new ShortcircuitEmptyConfigsArtifactDependencyResolver(

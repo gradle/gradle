@@ -42,14 +42,16 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final ResolveIvyFactory ivyFactory;
     private final ProjectModuleRegistry projectModuleRegistry;
     private final ProjectAccessListener projectAccessListener;
+    private final CacheLockingManager cacheLockingManager;
 
     public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory,
-                                     ProjectModuleRegistry projectModuleRegistry, ProjectAccessListener projectAccessListener) {
+                                     ProjectModuleRegistry projectModuleRegistry, ProjectAccessListener projectAccessListener, CacheLockingManager cacheLockingManager) {
         this.ivyFactory = ivyFactory;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.projectModuleRegistry = projectModuleRegistry;
         this.projectAccessListener = projectAccessListener;
+        this.cacheLockingManager = cacheLockingManager;
     }
 
     public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
@@ -74,6 +76,6 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, idResolver, actualResolver);
         ResolutionResultBuilder resultBuilder = new ResolutionResultBuilder();
         DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData(), resultBuilder);
-        return new ResolverResults(new DefaultResolvedConfiguration(result), resultBuilder.getResult());
+        return new ResolverResults(new DefaultResolvedConfiguration(result, cacheLockingManager), resultBuilder.getResult());
     }
 }

@@ -150,6 +150,10 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
         return artifacts;
     }
 
+    public Configuration getConfiguration() {
+        return configuration;
+    }
+
     private static class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
         public void getNodeValues(ResolvedDependency node, Collection<ResolvedArtifact> values,
                                   Collection<ResolvedDependency> connectedNodes) {

@@ -17,15 +17,20 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.Set;
 
+import static java.lang.String.format;
+
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     private final DefaultLenientConfiguration configuration;
+    private final CacheLockingManager cacheLockingManager;
 
-    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration) {
+    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration, CacheLockingManager cacheLockingManager) {
         this.configuration = configuration;
+        this.cacheLockingManager = cacheLockingManager;
     }
 
     public boolean hasError() {
@@ -40,9 +45,13 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         return configuration;
     }
 
-    public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
+    public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
-        return configuration.getFilesStrict(dependencySpec);
+        return cacheLockingManager.useCache(format("resolving files from %s", configuration.getConfiguration()), new Factory<Set<File>>() {
+            public Set<File> create() {
+                return configuration.getFilesStrict(dependencySpec);
+            }
+        });
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
