@@ -32,7 +32,6 @@ import org.apache.ivy.plugins.namespace.NameSpaceHelper;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.parser.AbstractModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
-import org.apache.ivy.plugins.parser.ModuleDescriptorParserRegistry;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.url.URLResource;
@@ -137,14 +136,16 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private String descriptorVersion;
         private String[] publicationsDefaultConf;
 
-        public Parser(ModuleDescriptorParser parser, ParserSettings ivySettings, Resource res) {
-            super(parser);
+        public Parser(ModuleDescriptorParser moduleDescriptorParser, ParserSettings ivySettings, Resource res) {
+            super(moduleDescriptorParser);
             settings = ivySettings;
             setResource(res);
         }
         
         public Parser newParser(Resource res) {
-            return new Parser(getModuleDescriptorParser(), settings, res);
+            Parser parser = new Parser(getModuleDescriptorParser(), settings, res);
+            parser.setValidate(validate);
+            return parser;
         }
 
         public void setInput(InputStream descriptorInput) {
@@ -419,10 +420,9 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 throws ParseException, IOException {
             URL url = settings.getRelativeUrlResolver().getURL(descriptorURL, location);
             Message.debug("Trying to load included ivy file from " + url.toString());
-            URLResource res = new URLResource(url);
-            ModuleDescriptorParser parser = ModuleDescriptorParserRegistry.getInstance().getParser(res);
-
-            return parser.parseDescriptor(settings, url, validate);
+            Parser parser = newParser(new URLResource(url));
+            parser.parse();
+            return parser.getModuleDescriptor();
         }
 
         private ModuleDescriptor parseOtherIvyFile(String parentOrganisation,
