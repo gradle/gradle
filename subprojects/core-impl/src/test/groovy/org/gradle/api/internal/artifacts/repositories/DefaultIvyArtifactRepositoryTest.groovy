@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
@@ -149,6 +150,13 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             it instanceof LegacyDependencyResolver
             resolver instanceof IvyResolver
         }
+
+        when:
+        def repo = wrapper.createResolveRepository()
+
+        then:
+        repo instanceof ExternalResourceResolverAdapter
+        repo.resolver.is(wrapper.resolver)
     }
 
     def "uses gradle patterns with specified url and default layout"() {

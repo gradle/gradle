@@ -83,8 +83,11 @@ public class ResolveIvyFactory {
                 localAwareRepository = new CachingModuleVersionRepository(wrapperRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
                         configuration.getResolutionStrategy().getCachePolicy(), timeProvider);
             }
-            LocalAwareModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(LocalAwareModuleVersionRepository.class, localAwareRepository);
-            userResolverChain.add(ivyContextualisedRepository);
+            if (moduleVersionRepository.isDynamicResolveMode()) {
+                localAwareRepository = new IvyDynamicResolveModuleVersionRepository(localAwareRepository);
+            }
+            localAwareRepository = contextualiser.contextualise(LocalAwareModuleVersionRepository.class, localAwareRepository);
+            userResolverChain.add(localAwareRepository);
         }
 
         return new DefaultIvyAdapter(resolveData, userResolverChain);

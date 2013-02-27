@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import spock.lang.Ignore
 
 class IvyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "dependency includes all artifacts and transitive dependencies of referenced configuration"() {
@@ -198,7 +197,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar', 'projectB-other-1.6.jar', 'projectD-1.0.jar')
     }
 
-    @Ignore
     def "prefers revConstraint over rev when dynamic resolve mode is used"() {
         given:
         buildFile << """
@@ -209,7 +207,7 @@ dependencies {
     repositories {
         ivy {
             url "${ivyRepo.uri}"
-            metaData.ivy.dynamicResolve = project.useDynamicResolve
+            metaData.ivy.dynamicResolve = project.hasProperty('useDynamicResolve')
         }
     }
     compile 'org:projectA:1.2'
@@ -241,7 +239,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar', 'projectC-alpha-12.jar')
 
         when:
-        executer.withArguments("-PuseDynamicResolve=false")
         run 'retrieve'
 
         then:

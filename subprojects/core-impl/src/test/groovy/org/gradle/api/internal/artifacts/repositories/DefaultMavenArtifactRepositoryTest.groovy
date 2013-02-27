@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.externalresource.transport.file.FileTransport
@@ -86,7 +87,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def file = new File('repo')
         def uri = file.toURI()
-        _ * resolver.resolveUri('repo-dir') >> uri
+        _ * this.resolver.resolveUri('repo-dir') >> uri
         transportFactory.createFileTransport('repo') >> new FileTransport('repo', cacheManager, Mock(TemporaryFileProvider))
 
         and:
@@ -94,11 +95,18 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createResolver()
+        def resolver = repository.createResolver()
 
         then:
-        repo instanceof LegacyMavenResolver
-        repo.resolver instanceof MavenResolver
+        resolver instanceof LegacyMavenResolver
+        resolver.resolver instanceof MavenResolver
+
+        when:
+        def repo = resolver.createResolveRepository()
+
+        then:
+        repo instanceof ExternalResourceResolverAdapter
+        repo.resolver.is(resolver.resolver)
     }
 
     def "creates repository with additional artifact URLs"() {

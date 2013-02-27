@@ -21,5 +21,8 @@ import org.apache.ivy.core.settings.IvySettings;
 public interface IvyAwareModuleVersionRepository extends ModuleVersionRepository {
     void setSettings(IvySettings settings);
 
+    // TODO - move this
+    boolean isDynamicResolveMode();
+
     boolean isLocal();
 }

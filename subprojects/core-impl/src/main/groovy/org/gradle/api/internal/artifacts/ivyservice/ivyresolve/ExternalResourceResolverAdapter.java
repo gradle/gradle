@@ -24,10 +24,17 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
  */
 public class ExternalResourceResolverAdapter extends AbstractDependencyResolverAdapter {
     private final ExternalResourceResolver resolver;
+    private final boolean dynamicResolve;
 
-    public ExternalResourceResolverAdapter(ExternalResourceResolver resolver) {
+    public ExternalResourceResolverAdapter(ExternalResourceResolver resolver, boolean dynamicResolve) {
         super(resolver);
         this.resolver = resolver;
+        this.dynamicResolve = dynamicResolve;
+    }
+
+    @Override
+    public boolean isDynamicResolveMode() {
+        return dynamicResolve;
     }
 
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {

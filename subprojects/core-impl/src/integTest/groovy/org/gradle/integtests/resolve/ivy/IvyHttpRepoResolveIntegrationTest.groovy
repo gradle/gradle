@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.junit.Rule
-import spock.lang.Ignore
 
 class IvyHttpRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -222,7 +221,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
-    @Ignore
     def "reuses cached details when switching ivy resolve mode"() {
         given:
         server.start()
@@ -234,7 +232,7 @@ dependencies {
     repositories {
         ivy {
             url "${ivyHttpRepo.uri}"
-            metaData.ivy.dynamicResolve = project.useDynamicResolve
+            metaData.ivy.dynamicResolve = project.hasProperty('useDynamicResolve')
         }
     }
     compile 'org:projectA:1.2'
@@ -245,7 +243,7 @@ task retrieve(type: Sync) {
 }
 """
         def moduleA = ivyHttpRepo.module('org', 'projectA', '1.2')
-                .dependsOn(organisation: 'org', module: 'projectB', revision: '1.5', revConstraint: '1.5+')
+                .dependsOn(organisation: 'org', module: 'projectB', revision: '1.5', revConstraint: 'latest.integration')
                 .publish()
 
         def moduleB15 = ivyHttpRepo.module('org', 'projectB', '1.5')
@@ -259,7 +257,6 @@ task retrieve(type: Sync) {
         moduleA.expectJarGet()
         moduleB15.expectIvyGet()
         moduleB15.expectJarGet()
-        executer.withArguments("-PuseDynamicResolve=false")
         run 'retrieve'
 
         then:
@@ -278,10 +275,17 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        executer.withArguments("-PuseDynamicResolve=false")
         run 'retrieve'
 
         then:
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.5.jar')
+
+        when:
+        server.resetExpectations()
+        executer.withArguments("-PuseDynamicResolve=true")
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar')
     }
 }

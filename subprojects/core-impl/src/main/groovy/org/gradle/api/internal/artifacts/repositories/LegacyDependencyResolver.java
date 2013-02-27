@@ -34,7 +34,6 @@ import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 
@@ -50,9 +49,11 @@ import java.util.Map;
  */
 public class LegacyDependencyResolver implements DependencyResolver, ResolutionAwareRepository {
     private final ExternalResourceResolver resolver;
+    private final IvyAwareModuleVersionRepository repository;
 
-    public LegacyDependencyResolver(ExternalResourceResolver resolver) {
+    public LegacyDependencyResolver(ExternalResourceResolver resolver, IvyAwareModuleVersionRepository repository) {
         this.resolver = resolver;
+        this.repository = repository;
     }
 
     public String getName() {
@@ -68,7 +69,7 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
     }
 
     public IvyAwareModuleVersionRepository createResolveRepository() {
-        return new ExternalResourceResolverAdapter(resolver);
+        return repository;
     }
 
     public void setSettings(ResolverSettings ivy) {

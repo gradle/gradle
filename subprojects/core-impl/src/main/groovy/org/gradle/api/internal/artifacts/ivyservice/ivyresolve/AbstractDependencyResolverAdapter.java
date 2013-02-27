@@ -45,6 +45,10 @@ public abstract class AbstractDependencyResolverAdapter implements IvyAwareModul
         settings.addResolver(resolver);
     }
 
+    public boolean isDynamicResolveMode() {
+        return false;
+    }
+
     public boolean isLocal() {
         return resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager;
     }
