@@ -232,7 +232,7 @@ dependencies {
     repositories {
         ivy {
             url "${ivyHttpRepo.uri}"
-            metaData.ivy.dynamicResolve = project.hasProperty('useDynamicResolve')
+            resolve.ivy.dynamicResolve = project.hasProperty('useDynamicResolve')
         }
     }
     compile 'org:projectA:1.2'

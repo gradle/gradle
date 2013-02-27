@@ -19,12 +19,19 @@ package org.gradle.api.artifacts.repositories;
 import org.gradle.api.Incubating;
 
 /**
- * A meta-data provider that uses the Ivy module descriptor ({@code ivy.xml}) to determine the meta-data for module versions
- * and artifacts.
+ * A meta-data provider that uses the Ivy module descriptor ({@code ivy.xml}) to determine the meta-data for module versions and artifacts.
  */
 @Incubating
 public interface IvyMetaDataProvider {
+    /**
+     * Returns true if dynamic resolve mode should be used for Ivy modules. When enabled, the {@code revConstraint} attribute for each dependency declaration
+     * is used in preference to the {@code rev} attributes. When disabled (the default), the {@code rev} attribute is always used.
+     */
     boolean isDynamicResolveMode();
 
+    /**
+     * Specifies whether dynamic resolve mode should be used for Ivy modules. When enabled, the {@code revConstraint} attribute for each dependency declaration
+     * is used in preference to the {@code rev} attributes. When disabled (the default), the {@code rev} attribute is always used.
+     */
     void setDynamicResolveMode(boolean mode);
 }

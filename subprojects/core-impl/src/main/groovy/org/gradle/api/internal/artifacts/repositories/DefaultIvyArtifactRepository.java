@@ -140,7 +140,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         ConfigureUtil.configure(config, layout);
     }
 
-    public ArtifactRepositoryMetaDataProvider getMetaData() {
+    public ArtifactRepositoryMetaDataProvider getResolve() {
         return metaDataProvider;
     }
 
