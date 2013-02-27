@@ -171,9 +171,12 @@
                 See <apilink class="org.gradle.api.publish.maven.MavenPom" method="withXml(org.gradle.api.Action)" /> for the relevant API reference documentation.
             </para>
             <para>
-                It is possible to modify any aspect of the created POM should you need to.
+                It is possible to modify virtually any aspect of the created POM should you need to.
                 This means that it is also possible to modify the POM in such a way that it is no longer a valid
                 Maven Pom, so care must be taken when using this feature.
+            </para>
+            <para>
+                The identifier (groupId, artifactId, version) of the published module is an exception; these values cannot be modified in the POM using the `withXML` hook.
             </para>
         </section>
     </section>

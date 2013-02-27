@@ -173,9 +173,12 @@
                 See <apilink class="org.gradle.api.publish.ivy.IvyModuleDescriptor" method="withXml(org.gradle.api.Action)" /> for the relevant API reference documentation.
             </para>
             <para>
-                It is possible to modify any aspect of the created descriptor should you need to.
+                It is possible to modify virtually any aspect of the created descriptor should you need to.
                 This means that it is also possible to modify the descriptor in such a way that it is no longer a valid
                 Ivy module descriptor, so care must be taken when using this feature.
+            </para>
+            <para>
+                The identifier (organisation, module, revision) of the published module is an exception; these values cannot be modified in the descriptor using the `withXML` hook.
             </para>
         </section>
     </section>
