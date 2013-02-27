@@ -108,6 +108,10 @@ For a multiproject build:
 
 Once the publishing extension has been configured, it will be an error to make further calls to `publishing { ... }`.
 
+## Allow the project version to be determined early in the build configuration
+
+As a replacement for calculating it based on the contents of the task graph.
+
 ## Warn when a domain object that is used as input for a publication is later changed
 
 This story introduces a lifecycle for domain objects, so that a domain object is first configured completely and

@@ -78,7 +78,7 @@ This story adds a second type of component and a DSL to define which components 
     - Default the publication's (groupId, artifactId, version) to (project.group, project.name, project.version).
 2. Allow zero or one components to be added to a Maven publication.
 3. Change the `maven-publish` plugin so that it does not create any publications by default.
-4. Change the `war` plugin to add a component called `web`. When this component is added to a publication, the WAR artifact is added to the publication.
+4. Change the `war` plugin to add a component called `web`. When this component is added to a publication, the WAR artifact (only) is added to the publication.
 5. Fix publishing a Maven publication with no artifacts.
 
 To publish a Java library
@@ -472,7 +472,7 @@ This step decouples the incoming and outgoing dependency declarations, to allow 
     * `scope` (optional, default to null and restrict values to [compile, provided, runtime, test, system])
 2. Add a `MavenDependencySet` concept. This is a collection of `MavenDependency` instances.
 3. Add a `MavenDependencySet` to `MavenPublication`.
-4. Add an `IvyDependency` interface, with the following properties:
+4. Extend the `IvyDependency` to add the following properties:
     * `organisation` (required)
     * `module` (required)
     * `revision` (required)
@@ -551,7 +551,7 @@ To replace dependencies in an Ivy publication:
     }
 
 The 'dependency' creation method will accept the following forms of input:
-* An ExternalModuleDependency, that will be adapted to IvyDependency/MavenDependency
+* An `ExternalModuleDependency`, that will be adapted to IvyDependency/MavenDependency
 * An string formatted as "groupId:artifactId:revision[:scope]" for Maven, or "organisation:module:version[:confMapping]" for Ivy
 * A configuration closure to specify values for created dependency
 * Either of the first 2, together with a configuration closure that permits further configuration (like adding scope/conf)

@@ -224,6 +224,7 @@ Allow the distributions defined by the `distribution` to be configured and remov
 5. Change the `Distribution` type to add a `contents` property of type `CopySpec`. This should default to: `from 'src/${dist.name}/dist'`
 6. Change the `distribution` plugin to configure the dist ZIP task to add `from $dist.contents`.
 7. Change the `java-library-distribution` plugin to configure the main distribution's `contents` property instead of the dist zip task.
+8. Change the `Distribution` plugin to apply the base plugin.
 
 ### DSL
 
@@ -282,6 +283,7 @@ To generate multiple distributions:
 * ZIP file includes files from `src/main/${dist.name}`.
 * ZIP file includes additional files specified in `dist.contents`.
 * ZIP file is produced for custom distribution.
+* ZIP file is produced in the appropriate subdirectory of `build`.
 
 ## Allow distributions to be installed
 
@@ -321,3 +323,7 @@ To generate multiple distributions:
 # Later steps
 
 See the use cases above.
+
+- Extract application definitions from the application plugin.
+- Allow java library, command-line application and web application components to be added to a distribution.
+- Include Java library API documentation in distribution.
