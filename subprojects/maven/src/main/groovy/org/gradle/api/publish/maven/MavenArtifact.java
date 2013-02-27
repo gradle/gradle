@@ -49,7 +49,7 @@ public interface MavenArtifact extends Buildable {
      * Sets the classifier used to publish the artifact file.
      * @param classifier The classifier.
      */
-    void setClassifier(String classifier);
+    void setClassifier(@Nullable String classifier);
 
     /**
      * The actual file contents to publish.
