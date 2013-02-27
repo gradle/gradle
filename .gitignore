@@ -33,3 +33,4 @@
 .textmate
 /incoming-distributions
 .idea
+*.sublime-*
