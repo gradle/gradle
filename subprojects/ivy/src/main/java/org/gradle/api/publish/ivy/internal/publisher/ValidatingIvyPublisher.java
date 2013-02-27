@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.gradle.api.InvalidUserDataException;
@@ -30,6 +31,8 @@ import org.gradle.internal.UncheckedException;
 import java.io.File;
 import java.net.URL;
 import java.text.ParseException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ValidatingIvyPublisher implements IvyPublisher {
     private final ParserSettings parserSettings = new DisconnectedParserSettings();
@@ -42,6 +45,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
         validateIdentity(publication);
         validateArtifacts(publication);
+        checkNoDuplicateArtifacts(publication);
         delegate.publish(publication, repository);
     }
 
@@ -76,8 +80,8 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         }
     }
 
-    public void validateArtifacts(IvyNormalizedPublication publication) {
-        for (IvyArtifact artifact : publication.getArtifacts()) {
+    private void validateArtifacts(IvyNormalizedPublication publication) {
+        for (final IvyArtifact artifact : publication.getArtifacts()) {
             field(publication, "artifact name", artifact.getName())
                     .notEmpty().validInFileName();
             field(publication, "artifact type", artifact.getType())
@@ -89,6 +93,37 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
             checkCanPublish(publication.getName(), artifact);
         }
+    }
+
+    private void checkNoDuplicateArtifacts(IvyNormalizedPublication publication) {
+        Set<IvyArtifact> verified = new HashSet<IvyArtifact>();
+
+        for (final IvyArtifact artifact : publication.getArtifacts()) {
+            checkNotDuplicate(publication, verified, artifact.getName(), artifact.getExtension(), artifact.getType(), artifact.getClassifier());
+            verified.add(artifact);
+        }
+
+        // Check that ivy.xml isn't duplicated
+        checkNotDuplicate(publication, verified, "ivy", "xml", "xml", null);
+    }
+
+    private void checkNotDuplicate(IvyNormalizedPublication publication, Set<IvyArtifact> verified, String name, String extension, String type, String classifier) {
+        for (IvyArtifact alreadyVerified : verified) {
+            if (hasCoordinates(alreadyVerified, name, extension, type, classifier)) {
+                String message = String.format(
+                        "multiple artifacts with the identical name, extension, type and classifier ('%s', %s', '%s', '%s').",
+                        name, extension, type, classifier
+                );
+                throw new InvalidIvyPublicationException(publication.getName(), message);
+            }
+        }
+    }
+
+    private boolean hasCoordinates(IvyArtifact one, String name, String extension, String type, String classifier) {
+        return ObjectUtils.equals(one.getName(), name)
+                && ObjectUtils.equals(one.getType(), type)
+                && ObjectUtils.equals(one.getExtension(), extension)
+                && ObjectUtils.equals(one.getClassifier(), classifier);
     }
 
     private void checkCanPublish(String name, IvyArtifact artifact) {

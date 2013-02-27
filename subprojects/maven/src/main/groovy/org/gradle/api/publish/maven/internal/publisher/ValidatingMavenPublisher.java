@@ -16,11 +16,11 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.publish.maven.internal.artifact.MavenArtifactKey;
 import org.gradle.internal.UncheckedException;
 import org.gradle.mvn3.org.apache.maven.model.Model;
 import org.gradle.mvn3.org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -42,6 +42,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         validateIdentity(publication);
         validateArtifacts(publication);
+        checkNoDuplicateArtifacts(publication);
 
         delegate.publish(publication, artifactRepository);
     }
@@ -77,7 +78,6 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private void validateArtifacts(MavenNormalizedPublication publication) {
-        Set<MavenArtifactKey> keys = new HashSet<MavenArtifactKey>();
         for (MavenArtifact artifact : publication.getArtifacts()) {
             field(publication, "artifact extension", artifact.getExtension())
                     .notNull()
@@ -87,16 +87,29 @@ public class ValidatingMavenPublisher implements MavenPublisher {
                     .validInFileName();
 
             checkCanPublish(publication.getName(), artifact);
+        }
+    }
 
-            MavenArtifactKey key = new MavenArtifactKey(artifact);
-            if (keys.contains(key)) {
-                throw new InvalidMavenPublicationException(publication.getName(),
-                        String.format(
-                                "multiple artifacts with the identical extension '%s' and classifier '%s'.",
-                                artifact.getExtension(), artifact.getClassifier()
-                        ));
+    private void checkNoDuplicateArtifacts(MavenNormalizedPublication publication) {
+        Set<MavenArtifact> verified = new HashSet<MavenArtifact>();
+
+        for (MavenArtifact artifact : publication.getArtifacts()) {
+            checkNotDuplicate(publication, verified, artifact.getExtension(), artifact.getClassifier());
+            verified.add(artifact);
+        }
+
+        // Check that the pom file isn't duplicated
+        checkNotDuplicate(publication, verified, "pom", null);
+    }
+
+    private void checkNotDuplicate(MavenNormalizedPublication publication, Set<MavenArtifact> artifacts, String extension, String classifier) {
+        for (MavenArtifact artifact : artifacts) {
+            if (ObjectUtils.equals(artifact.getExtension(), extension) && ObjectUtils.equals(artifact.getClassifier(), classifier)) {
+                String message = String.format(
+                        "multiple artifacts with the identical extension and classifier ('%s', '%s').", extension, classifier
+                );
+                throw new InvalidMavenPublicationException(publication.getName(), message);
             }
-            keys.add(key);
         }
     }
 

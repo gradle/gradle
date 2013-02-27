@@ -192,6 +192,53 @@ public class ValidatingIvyPublisherTest extends Specification {
         testDir.testDirectory.createDir('sub_directory')  | 'is a directory'
     }
 
+    def "cannot publish with duplicate artifacts"() {
+        given:
+        IvyArtifact artifact1 = Stub() {
+            getName() >> "name"
+            getExtension() >> "ext1"
+            getType() >> "type"
+            getClassifier() >> "classified"
+            getFile() >> testDir.createFile('artifact1')
+        }
+        IvyArtifact artifact2 = Stub() {
+            getName() >> "name"
+            getExtension() >> "ext1"
+            getType() >> "type"
+            getClassifier() >> "classified"
+            getFile() >> testDir.createFile('artifact2')
+        }
+        def projectIdentity = projectIdentity("org", "module", "revision")
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("org", "module", "revision"), toSet([artifact1, artifact2]))
+
+        when:
+        publisher.publish(publication, Mock(PublicationAwareRepository))
+
+        then:
+        def t = thrown InvalidIvyPublicationException
+        t.message == "Invalid publication 'pub-name': multiple artifacts with the identical name, extension, type and classifier ('name', ext1', 'type', 'classified')."
+    }
+
+    def "cannot publish artifact with same attributes as ivy.xml"() {
+        given:
+        IvyArtifact artifact1 = Stub() {
+            getName() >> "ivy"
+            getExtension() >> "xml"
+            getType() >> "xml"
+            getClassifier() >> null
+            getFile() >> testDir.createFile('artifact1')
+        }
+        def projectIdentity = projectIdentity("org", "module", "revision")
+        def publication = new IvyNormalizedPublication("pub-name", projectIdentity, ivyFile("org", "module", "revision"), toSet([artifact1]))
+
+        when:
+        publisher.publish(publication, Mock(PublicationAwareRepository))
+
+        then:
+        def t = thrown InvalidIvyPublicationException
+        t.message == "Invalid publication 'pub-name': multiple artifacts with the identical name, extension, type and classifier ('ivy', xml', 'xml', 'null')."
+    }
+
     private def projectIdentity(def groupId, def artifactId, def version) {
         return Stub(IvyPublicationIdentity) {
             getOrganisation() >> groupId

@@ -169,7 +169,26 @@ public class ValidatingMavenPublisherTest extends Specification {
 
         then:
         def t = thrown InvalidMavenPublicationException
-        t.message == "Invalid publication 'pub-name': multiple artifacts with the identical extension 'ext1' and classifier 'classified'."
+        t.message == "Invalid publication 'pub-name': multiple artifacts with the identical extension and classifier ('ext1', 'classified')."
+    }
+
+    def "cannot publish extra artifact with same attributes as POM"() {
+        given:
+        MavenArtifact artifact1 = Stub() {
+            getExtension() >> "pom"
+            getClassifier() >> null
+            getFile() >> testDir.createFile('artifact1')
+        }
+        def projectIdentity = projectIdentity("group", "artifact", "version")
+        def pomFile = createPomFile("group", "artifact", "version")
+        def publication = new MavenNormalizedPublication("pub-name", pomFile, projectIdentity, toSet([artifact1]))
+
+        when:
+        publisher.publish(publication, Mock(MavenArtifactRepository))
+
+        then:
+        def t = thrown InvalidMavenPublicationException
+        t.message == "Invalid publication 'pub-name': multiple artifacts with the identical extension and classifier ('pom', 'null')."
     }
 
     def "supplied POM file must be valid"() {
