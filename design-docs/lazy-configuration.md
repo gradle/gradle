@@ -25,13 +25,13 @@ Currently, the build logic execution is eager, and the domain objects are lazy s
 
 There are a number of problems with this approach:
 
-1. It is very difficult to implement lazy data structures. This has been observed in practise over the last few years of
+1. It is difficult to implement lazy data structures. This has been observed in practise over the last few years of
    writing plugins both within the Gradle distribution and in the community.
 2. It is not possible for a plugin to provide different task graphs based on the configuration of domain objects, as the
    tasks must be created before any organisation, build or project specific configuration has been applied.
 3. Eager execution means that all build logic must be executed for each build invocation, and it is not possible to skip
-   logic which is not required. This in turn means that all domain objects and tasks must be created for each build
-   invocation, and it is not possible to short-cicuit the creation of objects which are not required.
+   logic that is not required. This in turn means that all domain objects and tasks must be created for each build
+   invocation, and it is not possible to short-cicuit the creation of objects that are not required.
 4. Lazy data structures cannot be shared between threads for parallel execution. Lazy execution allows build logic to
    be synchronised based on its inputs and outputs.
 5. Lazy data structures must retain references to their inputs, which results in a large connected graph of objects
@@ -108,9 +108,58 @@ For a multiproject build:
 
 Once the publishing extension has been configured, it will be an error to make further calls to `publishing { ... }`.
 
+### Implementation plan
+
+1. Add a `ConfigurationAware<T>` interface. This interface should have the following methods:
+    - `configureLater(Action<? super T>)`. This adds an action for later execution when the target domain object is to be configured. It is
+      an error to call this method once the object has been configured.
+    - `T configureNow()`. Triggers the execution of the registered configuration actions, if the object has not already been configured.
+      Returns the configured object.
+2. Add a public `DefaultDomainObject` class which implements `ConfigurationAware`. The constructor should assert that the instance has been
+   created by a decorating instantiator, similar to `AbstractTask`.
+3. Change `DefaultPublishingExtension` to extend `DefaultDomainObject`.
+4. Change the extension container so that, when a given extension `e` implements `ConfigurationAware`:
+    - calling the dynamic configuration method `e { ... }` delegates to `configureLater()` with the given closure.
+    - accessing the dynamic property `e` calls `configureNow()` and then returns the result.
+    - `getByName()` and `findByName()` work as for accessing the dynamic property.
+    - `getByType()` and `findByType()` do something sensible (not sure what yet).
+
+### Test coverage
+
+- Update the publishing integration tests so that the publications are declared along with the other injected configuration in `allprojects`/`subprojects`
+- A custom plugin can use an extension implementation that extends `DefaultDomainObject` to implement lazy configuration.
+
 ## Allow the project version to be determined early in the build configuration
 
-As a replacement for calculating it based on the contents of the task graph.
+This story introduces a replacement for calculating the project version based on the contents of the task graph, so that the version is
+known as early as possible during project configuration, rather than at the end.
+
+A new concept, a _build type_, will be introduced:
+
+    version = '1.0-SNAPSHOT'
+    builds {
+        release {
+            version = '1.0'
+            run 'clean', 'build'
+        }
+    }
+
+Running `gradle release` is equivalent to running `gradle clean build` with the project version set to `1.0`.
+
+Conditional configuration based on build type:
+
+    apply plugin: 'java'
+    builds {
+        ci {
+            apply plugin: 'code-coverage'
+            tasks.check.dependsOn(tasks.converageReport)
+            run tasks.clean, tasks.build
+        }
+    }
+
+Running `gradle ci` performs a clean build and includes the code coverage report.
+
+Running `gradle tasks` includes a listing of the available build types.
 
 ## Warn when a domain object that is used as input for a publication is later changed
 
@@ -181,9 +230,9 @@ been created will be ignored. It will be implemented as a public mechanism that 
 - An artifact is added or changed.
 - A repository is added or changed.
 
-## Do not create publication tasks if not required for the current build
+## Do not create publication tasks when not required for the current build
 
-## Do not create publications if not required for the current build
+## Do not create publications when not required for the current build
 
 ## Warn when domain objects are changed after used as input for dependency resolution
 
