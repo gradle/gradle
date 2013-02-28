@@ -120,11 +120,7 @@ public class ExtensionsStorage {
     }
 
     private <T> boolean isDeferredConfigurable(T extension) {
-        if (extension.getClass().isAnnotationPresent(DeferredConfigurable.class)) {
-            return true;
-        }
-        // TODO:DAZ Fix it so that our class decoration doesn't hide annotations
-        return extension.getClass().getSuperclass() != null && extension.getClass().getSuperclass().isAnnotationPresent(DeferredConfigurable.class);
+        return extension.getClass().isAnnotationPresent(DeferredConfigurable.class);
     }
 
     private static class ExtensionHolder<T> {
