@@ -17,17 +17,13 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.plugins.DeferredConfigurable;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
-import org.gradle.listener.ActionBroadcast;
-import org.gradle.listener.ListenerNotificationException;
 
-public class DefaultPublishingExtension implements PublishingExtension, DeferredConfigurable<PublishingExtension> {
-    private ActionBroadcast<PublishingExtension> actions = new ActionBroadcast<PublishingExtension>();
-    private boolean configured;
+@DeferredConfigurable
+public class DefaultPublishingExtension implements PublishingExtension {
     private final RepositoryHandler repositories;
     private final PublicationContainer publications;
 
@@ -51,24 +47,4 @@ public class DefaultPublishingExtension implements PublishingExtension, Deferred
     public void publications(Action<? super PublicationContainer> configure) {
         configure.execute(publications);
     }
-
-    public void configureLater(Action<? super PublishingExtension> action) {
-        if (configured) {
-            throw new IllegalStateException("The 'publishing' extension is already configured");
-        }
-        actions.add(action);
-    }
-
-    public PublishingExtension configureNow() {
-        if (!configured) {
-            configured = true;
-            try {
-                actions.execute(this);
-            } catch (ListenerNotificationException e) {
-                throw new InvalidUserDataException("A problem occurred configuring the 'publishing' extension", e.getCause());
-            }
-        }
-        return this;
-    }
-
 }

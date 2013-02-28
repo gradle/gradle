@@ -105,37 +105,43 @@ class ExtensionsStorageTest extends Specification {
     }
 
     def "configures deferred configurable extension"() {
-        def extension = Mock(TestDeferredExtension)
-        def action = new Action<TestDeferredExtension>() {
-            void execute(TestDeferredExtension t) {
-            }
-        }
+
+        TestDeferredExtension extension = new TestDeferredExtension()
+        def delegate = Mock(TestExtension)
+        extension.delegate = delegate
+
+        when:
         storage.add("ext", extension)
-
-        when:
-        storage.configureExtension("ext", {})
+        storage.configureExtension("ext", {
+            it.call(1)
+        })
+        storage.configureExtension(TestDeferredExtension, new Action<TestDeferredExtension>() {
+            void execute(TestDeferredExtension t) {
+                t.call(2)
+            }
+        })
 
         then:
-        1 * extension.configureLater(_)
-
-        when:
-        storage.configureExtension(TestDeferredExtension, action)
-
-        then:
-        1 * extension.configureLater(action)
+        0 * _
 
         when:
         storage.getByName("ext")
 
         then:
-        1 * extension.configureNow()
+        1 * delegate.call(1)
+        1 * delegate.call(2)
     }
 
-    static interface TestExtension {
+    public static interface TestExtension {
         void call(def value);
     }
 
-    static interface TestDeferredExtension extends DeferredConfigurable {
-        void call(def value)
+    @DeferredConfigurable
+    public static class TestDeferredExtension {
+        TestExtension delegate
+
+        void call(def value) {
+            delegate.call(value)
+        }
     }
 }

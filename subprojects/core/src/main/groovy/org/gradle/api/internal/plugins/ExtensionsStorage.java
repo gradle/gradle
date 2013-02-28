@@ -18,9 +18,12 @@ package org.gradle.api.internal.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.plugins.DeferredConfigurable;
+import org.gradle.listener.ActionBroadcast;
+import org.gradle.listener.ListenerNotificationException;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -62,10 +65,11 @@ public class ExtensionsStorage {
         return extensions.containsKey(methodName) && arguments.length == 1 && arguments[0] instanceof Closure;
     }
 
-    public Object configureExtension(String methodName, Object ... arguments) {
+    public <T> T configureExtension(String methodName, Object ... arguments) {
         Closure closure = (Closure) arguments[0];
-        ClosureBackedAction action = new ClosureBackedAction(closure);
-        return extensions.get(methodName).configure(action);
+        ClosureBackedAction<T> action = new ClosureBackedAction<T>(closure);
+        ExtensionHolder<T> extensionHolder = extensions.get(methodName);
+        return extensionHolder.configure(action);
     }
 
     public <T> void configureExtension(Class<T> type, Action<? super T> action) {
@@ -87,7 +91,7 @@ public class ExtensionsStorage {
     private <T> ExtensionHolder<T> getHolderByType(Class<T> type) {
         List<String> types = new LinkedList<String>();
         for (ExtensionHolder extensionHolder : extensions.values()) {
-            Class clazz = extensionHolder.getType();
+            Class<?> clazz = extensionHolder.getType();
             types.add(clazz.getSimpleName());
             if (type.isAssignableFrom(clazz)) {
                 return extensionHolder;
@@ -109,20 +113,28 @@ public class ExtensionsStorage {
     }
 
     private <T> ExtensionHolder<T> wrap(T extension) {
-        if (extension instanceof DeferredConfigurable) {
-            return new ConfigurationAwareExtensionHolder<T>(extension, (DeferredConfigurable<T>) extension);
+        if (isDeferredConfigurable(extension)) {
+            return new DeferredConfigurableExtensionHolder<T>(extension);
         }
         return new ExtensionHolder<T>(extension);
     }
 
+    private <T> boolean isDeferredConfigurable(T extension) {
+        if (extension.getClass().isAnnotationPresent(DeferredConfigurable.class)) {
+            return true;
+        }
+        // TODO:DAZ Fix it so that our class decoration doesn't hide annotations
+        return extension.getClass().getSuperclass() != null && extension.getClass().getSuperclass().isAnnotationPresent(DeferredConfigurable.class);
+    }
+
     private static class ExtensionHolder<T> {
-        private final T extension;
+        protected final T extension;
 
         private ExtensionHolder(T extension) {
             this.extension = extension;
         }
 
-        public Class getType() {
+        public Class<?> getType() {
             return extension.getClass();
         }
 
@@ -140,23 +152,42 @@ public class ExtensionsStorage {
         }
     }
 
-    private static class ConfigurationAwareExtensionHolder<T> extends ExtensionHolder<T> {
-        private final DeferredConfigurable<T> configurationAware;
+    private static class DeferredConfigurableExtensionHolder<T> extends ExtensionHolder<T> {
+        private ActionBroadcast<T> actions = new ActionBroadcast<T>();
+        private boolean configured;
 
-        private ConfigurationAwareExtensionHolder(T extension, DeferredConfigurable<T> deferred) {
+        private DeferredConfigurableExtensionHolder(T extension) {
             super(extension);
-            this.configurationAware = deferred;
         }
 
         public T get() {
-            configurationAware.configureNow();
-            return super.get();
+            configureNow();
+            return extension;
         }
 
         @Override
         public T configure(Action<? super T> action) {
-            configurationAware.configureLater(action);
+            configureLater(action);
             return null;
         }
+
+        private void configureLater(Action<? super T> action) {
+            if (configured) {
+                throw new IllegalStateException("The 'publishing' extension is already configured");
+            }
+            actions.add(action);
+        }
+
+        private void configureNow() {
+            if (!configured) {
+                configured = true;
+                try {
+                    actions.execute(extension);
+                } catch (ListenerNotificationException e) {
+                    throw new InvalidUserDataException("A problem occurred configuring the 'publishing' extension", e.getCause());
+                }
+            }
+        }
+
     }
 }

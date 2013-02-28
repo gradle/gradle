@@ -49,11 +49,12 @@ public class PublishingPlugin implements Plugin<Project> {
     public void apply(Project project) {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(GroovyPublicationContainer.class, instantiator);
-        final DefaultPublishingExtension defaultPublishingExtension = project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
+        project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 
+        // Access the publishing extension to ensure that it is configured and tasks are created
         project.afterEvaluate(new Action<Project>() {
             public void execute(Project project) {
-                defaultPublishingExtension.configureNow();
+                project.getExtensions().getByType(PublishingExtension.class);
             }
         });
 

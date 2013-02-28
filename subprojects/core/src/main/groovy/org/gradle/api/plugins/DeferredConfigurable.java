@@ -16,26 +16,16 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+import java.lang.annotation.*;
+
+
 /**
- * A Domain Object that accumulates configuration actions and executes them lazily at a later time.
- * @param <T> The Domain Object type
+ * Indicates that the annotated object is designed to be configured only once, and that changes to configuration inputs made after configuration should not be allowed.
  */
 @Incubating
-public interface DeferredConfigurable<T> {
-    /**
-     * Add a configuration action for later execution.
-     * @param action The configuration action
-     * @throws IllegalStateException if already configured by {@link #configureNow()}.
-     */
-    void configureLater(Action<? super T> action);
-
-    /**
-     * Evaluate all configuration actions if not already configured, and return the domain object.
-     * @return The configured domain object
-     * @throws org.gradle.api.InvalidUserDataException if any of the configuration actions fails.
-     */
-    T configureNow();
-}
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface DeferredConfigurable {}
