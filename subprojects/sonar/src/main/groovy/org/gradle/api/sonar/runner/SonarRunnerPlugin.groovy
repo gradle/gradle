@@ -143,9 +143,6 @@ class SonarRunnerPlugin implements Plugin<Project> {
     }
 
     private void addGradleDefaults(Project project, Map<String, Object> properties) {
-        // for some reason, sonar.sources must always be set (as of Sonar 3.4)
-        properties["sonar.sources"] = ""
-
         properties["sonar.projectKey"] = getProjectKey(project)
         properties["sonar.projectName"] = project.name
         properties["sonar.projectDescription"] = project.description
@@ -173,6 +170,11 @@ class SonarRunnerPlugin implements Plugin<Project> {
             properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory } ?: null
             properties["sonar.libraries"] = getLibraries(main)
             properties["sonar.surefire.reportsPath"] = project.test.testResultsDir.exists() ? project.test.testResultsDir : null
+        }
+
+        if (properties["sonar.sources"] == null) {
+            // for some reason, sonar.sources must always be set (as of Sonar 3.4)
+            properties["sonar.sources"] = ""
         }
     }
 

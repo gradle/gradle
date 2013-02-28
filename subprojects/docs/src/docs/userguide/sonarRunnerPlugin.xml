@@ -108,7 +108,7 @@
             </thead>
             <tr>
                 <td>sonar.projectKey</td>
-                <td>"$project.group:$project.path"</td>
+                <td>"$project.group:$project.rootProject.name$project.path"</td>
             </tr>
             <tr>
                 <td>sonar.projectName</td>
@@ -120,7 +120,7 @@
             </tr>
             <tr>
                 <td>sonar.projectVersion</td>
-                <td>sonar.version</td>
+                <td>project.version</td>
             </tr>
             <tr>
                 <td>sonar.projectBaseDir</td>
@@ -225,7 +225,7 @@
              project's <literal>test</literal> source set as test sources. This works regardless of the project's source directory layout.
              Additional source sets can be added as needed.
         </para>
-        <sample id="advanced" dir="sonar/advanced" title="Analyzing custom source sets">
+        <sample id="advanced" dir="sonarRunner/advanced" title="Analyzing custom source sets">
             <sourcefile file="build.gradle" snippet="source-sets"/>
         </sample>
     </section>
@@ -237,7 +237,7 @@
             <ulink url="http://www.sonarsource.com/products/plugins/languages/">Sonar plugin</ulink>, and set
             <literal>sonar.project.language</literal> accordingly:
         </para>
-        <sample id="advanced" dir="sonar/advanced" title="Analyzing languages other than Java">
+        <sample id="advanced" dir="sonarRunner/advanced" title="Analyzing languages other than Java">
             <sourcefile file="build.gradle" snippet="languages" />
         </sample>
         <para>

@@ -178,11 +178,23 @@ class SonarRunnerPluginTest extends Specification {
         def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
-        !properties.containsKey("sonar.sources")
         !properties.containsKey("sonar.tests")
         !properties.containsKey("sonar.binaries")
         properties.containsKey("sonar.libraries") == (Jvm.current().getRuntimeJar() != null)
         !properties.containsKey("sonar.surefire.reportsPath")
+    }
+
+    def "adds empty 'sonar.sources' property if no sources exist (because Sonar Runner always expects this property to be set)"() {
+        childProject2.plugins.apply(JavaPlugin)
+
+        when:
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
+
+        then:
+        properties["sonar.sources"] == ""
+        properties["child.sonar.sources"] == ""
+        properties["child2.sonar.sources"] == ""
+        properties["child.leaf.sonar.sources"] == ""
     }
 
     def "allows to configure Sonar properties via 'sonarRunner' extension"() {
