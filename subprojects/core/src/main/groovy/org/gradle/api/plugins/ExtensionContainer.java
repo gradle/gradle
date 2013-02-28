@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.UnknownDomainObjectException;
 
 /**
@@ -91,6 +93,15 @@ public interface ExtensionContainer {
      * @return extension or null
      */
     Object findByName(String name);
+
+    /**
+     * Looks for the extension of the specified type and configures it with the supplied action.
+     * @param type extension type
+     * @param action the configure action
+     * @throws UnknownDomainObjectException if no exception is found.
+     */
+    @Incubating
+    <T> void configure(Class<T> type, Action<? super T> action);
 
     /**
      * The extra properties extension in this extension container.
