@@ -518,6 +518,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setMustRunAfter(Iterable<?> mustRunAfterTasks) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("Task.setMustRunAfter(Iterable)");
         mustRunAfter.setValues(mustRunAfterTasks);
     }
 
