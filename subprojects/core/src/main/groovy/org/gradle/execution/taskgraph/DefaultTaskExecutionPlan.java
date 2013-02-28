@@ -105,7 +105,12 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         Set<TaskInfo> visitingNodes = new HashSet<TaskInfo>();
         while (!nodeQueue.isEmpty()) {
             TaskInfo taskNode = nodeQueue.get(0);
-            if (!filter.isSatisfiedBy(taskNode.getTask()) || executionPlan.containsKey(taskNode.getTask()) || !taskNode.getRequired()) {
+            boolean filtered = !filter.isSatisfiedBy(taskNode.getTask());
+            if (filtered) {
+                taskNode.setRequired(false);
+            }
+
+            if (!taskNode.getRequired() || executionPlan.containsKey(taskNode.getTask())) {
                 nodeQueue.remove(0);
                 continue;
             }
@@ -127,15 +132,6 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // Have visited this task's dependencies - add it to the end of the plan
                 nodeQueue.remove(0);
                 visitingNodes.remove(taskNode);
-                Set<TaskInfo> dependencies = new HashSet<TaskInfo>();
-                for (TaskInfo dependency : taskNode.getHardSuccessors()) {
-                    TaskInfo dependencyInfo = executionPlan.get(dependency.getTask());
-                    if (dependencyInfo != null) {
-                        dependencies.add(dependencyInfo);
-                    }
-                    // else - the dependency has been filtered, so ignore it
-                }
-                taskNode.setExecutionDependencies(dependencies);
                 executionPlan.put(taskNode.getTask(), taskNode);
             }
         }

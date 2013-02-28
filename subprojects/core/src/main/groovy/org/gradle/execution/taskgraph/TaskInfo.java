@@ -16,40 +16,30 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.internal.TaskInternal;
 
-import java.util.Set;
 import java.util.TreeSet;
 
 class TaskInfo implements Comparable<TaskInfo> {
 
     private enum TaskExecutionState {
-        READY, EXECUTING, EXECUTED, SKIPPED
+        NOT_REQUIRED, READY, EXECUTING, EXECUTED, SKIPPED
     }
 
     private final TaskInternal task;
-    private Set<TaskInfo> executionDependencies;
     private TaskExecutionState state;
     private Throwable executionFailure;
     private final TreeSet<TaskInfo> hardSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> softSuccessors = new TreeSet<TaskInfo>();
-    private boolean required;
 
     public TaskInfo(TaskInternal task) {
         this.task = task;
-        this.state = TaskExecutionState.READY;
+        this.state = TaskExecutionState.NOT_REQUIRED;
     }
 
     public TaskInternal getTask() {
         return task;
-    }
-
-    public void setExecutionDependencies(Set<TaskInfo> executionDependencies) {
-        this.executionDependencies = executionDependencies;
-    }
-
-    public Set<TaskInfo> getExecutionDependencies() {
-        return executionDependencies;
     }
 
     public boolean isReady() {
@@ -57,11 +47,11 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public boolean isComplete() {
-        return state == TaskExecutionState.EXECUTED || state == TaskExecutionState.SKIPPED;
+        return state == TaskExecutionState.EXECUTED || state == TaskExecutionState.SKIPPED || state == TaskExecutionState.NOT_REQUIRED;
     }
 
     public boolean isSuccessful() {
-        return state == TaskExecutionState.EXECUTED && !isFailed();
+        return (state == TaskExecutionState.EXECUTED && !isFailed()) || state == TaskExecutionState.NOT_REQUIRED;
     }
 
     public boolean isFailed() {
@@ -97,7 +87,7 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public boolean allDependenciesComplete() {
-        for (TaskInfo dependency : getExecutionDependencies()) {
+        for (TaskInfo dependency : Iterables.concat(softSuccessors, hardSuccessors)) {
             if (!dependency.isComplete()) {
                 return false;
             }
@@ -106,7 +96,7 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public boolean allDependenciesSuccessful() {
-        for (TaskInfo dependency : getExecutionDependencies()) {
+        for (TaskInfo dependency : hardSuccessors) {
             if (!dependency.isSuccessful()) {
                 return false;
             }
@@ -123,11 +113,11 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public boolean getRequired() {
-        return required;
+        return state != TaskExecutionState.NOT_REQUIRED;
     }
 
     public void setRequired(boolean required) {
-        this.required = required;
+        state = required ? TaskExecutionState.READY : TaskExecutionState.NOT_REQUIRED;
     }
 
     public void addHardSuccessor(TaskInfo toNode) {
