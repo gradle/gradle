@@ -86,8 +86,10 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
         given:
         def moduleName = module.module
         buildFile << """
-            generateIvyModuleDescriptor {
-                destination = 'generated-ivy.xml'
+            publishing {
+                generateIvyModuleDescriptor {
+                    destination = 'generated-ivy.xml'
+                }
             }
         """
 

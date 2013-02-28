@@ -124,6 +124,14 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             apply plugin: 'ivy-publish'
             apply plugin: 'java'
 
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+            }
+
+$append
+
             group = 'org.gradle.test'
             version = '1.9'
 
@@ -136,14 +144,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 runtime "commons-io:commons-io:1.4"
                 testCompile "junit:junit:4.11"
             }
-
-            publishing {
-                repositories {
-                    ivy { url "${ivyRepo.uri}" }
-                }
-            }
-
-$append
 """
 
     }

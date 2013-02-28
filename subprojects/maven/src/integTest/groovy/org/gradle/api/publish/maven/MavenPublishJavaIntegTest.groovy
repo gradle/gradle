@@ -82,10 +82,10 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                         from components.java
                     }
                 }
-            }
-            publishing.publications.maven.artifacts.each {
-                if (it.extension == 'jar') {
-                    it.classifier = 'classified'
+                publications.maven.artifacts.each {
+                    if (it.extension == 'jar') {
+                        it.classifier = 'classified'
+                    }
                 }
             }
 """)
@@ -109,6 +109,14 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
             apply plugin: 'maven-publish'
             apply plugin: 'java'
 
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+$append
+
             group = 'org.gradle.test'
             version = '1.9'
 
@@ -121,14 +129,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 runtime "commons-io:commons-io:1.4"
                 testCompile "junit:junit:4.11"
             }
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-            }
-
-$append
 """
 
     }

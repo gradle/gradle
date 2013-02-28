@@ -33,7 +33,9 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
                 }
             }
 """, """
+        publishing {
             publishIvyPublicationToIvyRepository.dependsOn(customDocsTask)
+        }
 """)
 
         when:
@@ -145,7 +147,9 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
                 }
             }
 """, """
-            publishIvyPublicationToIvyRepository.dependsOn(customDocsTask)
+            publishing {
+                publishIvyPublicationToIvyRepository.dependsOn(customDocsTask)
+            }
 """)
         when:
         succeeds 'publish'

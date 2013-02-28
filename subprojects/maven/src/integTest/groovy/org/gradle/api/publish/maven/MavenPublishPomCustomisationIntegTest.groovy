@@ -17,9 +17,11 @@
 
 
 package org.gradle.api.publish.maven
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+
 /**
  * Tests maven POM customisation
  */
@@ -84,9 +86,9 @@ class MavenPublishPomCustomisationIntegTest extends AbstractIntegrationSpec {
                         }
                     }
                 }
-            }
-            generatePomFileForEmptyMavenPublication {
-                destination = 'build/generated-pom.xml'
+                generatePomFileForEmptyMavenPublication {
+                    destination = 'build/generated-pom.xml'
+                }
             }
         """
 
