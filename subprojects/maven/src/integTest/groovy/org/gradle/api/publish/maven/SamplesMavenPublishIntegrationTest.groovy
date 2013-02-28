@@ -18,6 +18,7 @@
 package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.maven.M2Installation
 import org.junit.Rule
 
 public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
@@ -25,7 +26,7 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
     @Rule public final Sample javaProject = new Sample(temporaryFolder, "maven-publish/javaProject")
     @Rule public final Sample pomCustomization = new Sample(temporaryFolder, "maven-publish/pomCustomization")
 
-    def quickstart() {
+    def quickstartPublish() {
         given:
         sample quickstart
 
@@ -40,6 +41,27 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
         def pom = module.parsedPom
         module.assertPublishedAsJavaModule()
         pom.scopes.isEmpty()
+    }
+
+    def quickstartPublishLocal() {
+        given:
+        def m2Installation = new M2Installation(testDirectory)
+        executer.beforeExecute m2Installation
+        def localModule = m2Installation.mavenRepo().module("org.gradle.sample", "quickstart", "1.0")
+
+        and:
+        sample quickstart
+
+        and:
+        def fileRepo = maven(quickstart.dir.file("build/repo"))
+        def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0")
+
+        when:
+        succeeds 'publishToMavenLocal'
+
+        then: "jar is published to maven local repository"
+        module.assertNotPublished()
+        localModule.assertPublishedAsJavaModule()
     }
 
     def javaProject() {
