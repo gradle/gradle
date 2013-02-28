@@ -63,26 +63,26 @@ public class MavenPublishPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPlugins().apply(PublishingPlugin.class);
 
+        final TaskContainer tasks = project.getTasks();
+        final Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
+        final Task publishLocalLifecycleTask = tasks.add(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
+        publishLocalLifecycleTask.setDescription("Publishes all Maven publications produced by this project to the local Maven cache.");
+        publishLocalLifecycleTask.setGroup("publishing");
+
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             public void execute(PublishingExtension extension) {
                 final PublicationContainerInternal publicationContainer = (PublicationContainerInternal) extension.getPublications();
                 publicationContainer.registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
-
-                TaskContainer tasks = project.getTasks();
 
                 // Create generatePom tasks for any Maven publication
                 GeneratePomTaskCreator descriptorGenerationTaskCreator = new GeneratePomTaskCreator(project);
                 descriptorGenerationTaskCreator.monitor(extension.getPublications());
 
                 // Create publish tasks automatically for any Maven publication and repository combinations
-                Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
                 MavenPublishDynamicTaskCreator publishTaskCreator = new MavenPublishDynamicTaskCreator(tasks, publishLifecycleTask);
                 publishTaskCreator.monitor(extension.getPublications(), extension.getRepositories());
 
                 // Create install tasks automatically for any Maven publication
-                Task publishLocalLifecycleTask = tasks.add(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
-                publishLocalLifecycleTask.setDescription("Publishes all Maven publications produced by this project to the local Maven cache.");
-                publishLocalLifecycleTask.setGroup("publishing");
                 MavenPublishLocalDynamicTaskCreator publishLocalTaskCreator = new MavenPublishLocalDynamicTaskCreator(tasks, publishLocalLifecycleTask);
                 publishLocalTaskCreator.monitor(extension.getPublications());
             }
