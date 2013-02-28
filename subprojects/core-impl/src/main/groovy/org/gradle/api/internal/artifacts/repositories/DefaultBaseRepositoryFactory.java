@@ -120,7 +120,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public DependencyResolver toResolver(ArtifactRepository repository) {
-        return ((ArtifactRepositoryInternal) repository).createResolver();
+        return ((ArtifactRepositoryInternal) repository).createLegacyDslObject();
     }
 
     public FixedResolverArtifactRepository createResolverBackedRepository(DependencyResolver resolver) {

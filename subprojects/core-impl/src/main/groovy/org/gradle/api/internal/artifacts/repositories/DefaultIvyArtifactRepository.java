@@ -61,7 +61,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.instantiator = instantiator;
     }
 
-    public DependencyResolver createResolver() {
+    public DependencyResolver createLegacyDslObject() {
         IvyResolver resolver = createRealResolver();
         return new LegacyDependencyResolver(resolver, wrapResolver(resolver));
     }
@@ -70,7 +70,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return createRealResolver();
     }
 
-    public IvyAwareModuleVersionRepository createResolveRepository() {
+    public IvyAwareModuleVersionRepository createResolver() {
         return wrapResolver(createRealResolver());
     }
 

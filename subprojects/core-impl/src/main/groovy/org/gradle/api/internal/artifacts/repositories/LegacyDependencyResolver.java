@@ -68,7 +68,7 @@ public class LegacyDependencyResolver implements DependencyResolver, ResolutionA
         return resolver.toString();
     }
 
-    public IvyAwareModuleVersionRepository createResolveRepository() {
+    public IvyAwareModuleVersionRepository createResolver() {
         return repository;
     }
 

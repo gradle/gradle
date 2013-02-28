@@ -143,7 +143,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createFileTransport('name') >> new FileTransport('name', cacheManager, Mock(TemporaryFileProvider))
 
         when:
-        def wrapper = repository.createResolver()
+        def wrapper = repository.createLegacyDslObject()
 
         then:
         with(wrapper) {
@@ -152,7 +152,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         }
 
         when:
-        def repo = wrapper.createResolveRepository()
+        def repo = wrapper.createResolver()
 
         then:
         repo instanceof ExternalResourceResolverAdapter

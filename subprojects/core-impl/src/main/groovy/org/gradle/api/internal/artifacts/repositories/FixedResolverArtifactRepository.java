@@ -42,16 +42,16 @@ public class FixedResolverArtifactRepository extends AbstractArtifactRepository 
         return resolver;
     }
 
-    public IvyAwareModuleVersionRepository createResolveRepository() {
+    public IvyAwareModuleVersionRepository createResolver() {
         // Handle a repository wrapped in a resolver for backwards compatibility
         if (resolver instanceof ResolutionAwareRepository) {
             ResolutionAwareRepository resolutionAwareRepository = (ResolutionAwareRepository) resolver;
-            return resolutionAwareRepository.createResolveRepository();
+            return resolutionAwareRepository.createResolver();
         }
         return new IvyDependencyResolverAdapter(resolver);
     }
 
-    public DependencyResolver createResolver() {
+    public DependencyResolver createLegacyDslObject() {
         return resolver;
     }
 }

@@ -95,14 +95,14 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def resolver = repository.createResolver()
+        def resolver = repository.createLegacyDslObject()
 
         then:
         resolver instanceof LegacyMavenResolver
         resolver.resolver instanceof MavenResolver
 
         when:
-        def repo = resolver.createResolveRepository()
+        def repo = resolver.createResolver()
 
         then:
         repo instanceof ExternalResourceResolverAdapter
@@ -142,7 +142,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "fails when no root url specified"() {
         when:
-        repository.createResolver()
+        repository.createLegacyDslObject()
 
         then:
         InvalidUserDataException e = thrown()

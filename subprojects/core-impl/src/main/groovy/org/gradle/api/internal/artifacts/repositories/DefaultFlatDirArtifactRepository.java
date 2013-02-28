@@ -58,14 +58,14 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     }
 
     public DependencyResolver createPublisher() {
-        return createResolver();
+        return createLegacyDslObject();
     }
 
-    public IvyAwareModuleVersionRepository createResolveRepository() {
-        return new IvyDependencyResolverAdapter(createResolver());
+    public IvyAwareModuleVersionRepository createResolver() {
+        return new IvyDependencyResolverAdapter(createLegacyDslObject());
     }
 
-    public DependencyResolver createResolver() {
+    public DependencyResolver createLegacyDslObject() {
         Set<File> dirs = getDirs();
         if (dirs.isEmpty()) {
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");

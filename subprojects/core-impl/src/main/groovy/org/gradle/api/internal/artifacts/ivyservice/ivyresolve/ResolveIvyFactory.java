@@ -71,7 +71,7 @@ public class ResolveIvyFactory {
         IvyContextualiser contextualiser = new IvyContextualiser(ivy, resolveData);
 
         for (ResolutionAwareRepository repository : repositories) {
-            IvyAwareModuleVersionRepository moduleVersionRepository = repository.createResolveRepository();
+            IvyAwareModuleVersionRepository moduleVersionRepository = repository.createResolver();
             moduleVersionRepository.setSettings(ivySettings);
 
             LocalAwareModuleVersionRepository localAwareRepository;

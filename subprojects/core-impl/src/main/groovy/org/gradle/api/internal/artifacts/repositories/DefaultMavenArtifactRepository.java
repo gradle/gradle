@@ -78,12 +78,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return createRealResolver();
     }
 
-    public DependencyResolver createResolver() {
+    public DependencyResolver createLegacyDslObject() {
         MavenResolver resolver = createRealResolver();
         return new LegacyMavenResolver(resolver, wrapResolver(resolver));
     }
 
-    public IvyAwareModuleVersionRepository createResolveRepository() {
+    public IvyAwareModuleVersionRepository createResolver() {
         return wrapResolver(createRealResolver());
     }
 
