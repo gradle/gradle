@@ -280,6 +280,9 @@ Breaking changes have been made to the incubating 'maven-publish' plugin, which 
   these identifiers may not contain '/', '\' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so we now prevent this
   at the time of publication.
    - `groupId` and `artifactId` are further restricted to "[A-Za-z0-9_\-.]+": this is a Maven restriction, so we enforce it at the time of publication.
+- The `GenerateMavenPom` task for a publication is not created until the publishing extension is first accessed. Any attempt to configure a `GenerateMavenPom` task
+  should be enclosed within a `publishing` block.
+- Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
 
 ### Changes to incubating Ivy publishing support
 
@@ -296,6 +299,9 @@ Breaking changes have been made to the incubating 'ivy-publish' plugin, which pr
   these identifiers may not contain '/', '\' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so we now prevent this
   at the time of publication.
 - Removed `GenerateIvyDescriptor.xmlAction` property. The `ivy.descriptor.withXml()` method provides a way to customise the generated module descriptor.
+- The `GenerateIvyDescriptor` task for a publication is not created until the publishing extension is first accessed. Any attempt to configure a `GenerateIvyDescriptor`
+  should be enclosed within a `publishing` block.
+- Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
 
 ### Changes to new PMD support
 
