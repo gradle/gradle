@@ -249,12 +249,25 @@
             "<literal>mavenJava</literal>",
             the task will be named "<literal>generatePomFileForMavenJavaPublication</literal>".
         </para>
-        <sample dir="maven-publish/quickstart" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
+        <sample dir="maven-publish/pomCustomization" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
+            <sourcefile file="build.gradle" snippet="generate" />
             <output args="generatePomFileForMavenJavaPublication"/>
         </sample>
         <para>
             All details of the publishing model are still considered in POM generation, including <literal>components</literal>`, custom <literal>artifacts</literal>,
             and any modifications made via <literal>pom.withXml</literal>.
         </para>
+        <note>
+            <para>
+                The “<literal>maven-publish</literal>” plugin leverages some experimental support for late plugin configuration,
+                and any <literal>GenerateMavenPom</literal> tasks will not be constructed until the publishing extension is configured.
+                The simplest way to ensure that the publishing plugin is configured when you attempt to access the <literal>GenerateMavenPom</literal> task
+                is to place the access inside a <literal>publishing</literal> block, as the above example demonstrates.
+            </para>
+            <para>
+                The same applies to any attempt to access publication-specific tasks like <apilink class="org.gradle.api.publish.maven.tasks.PublishToMavenRepository"/>.
+                These tasks should be referenced from within a <literal>publishing</literal> block.
+            </para>
+        </note>
     </section>
 </chapter>
