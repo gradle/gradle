@@ -16,10 +16,7 @@
 
 package org.gradle.api.publish.ivy.plugins;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
@@ -30,12 +27,12 @@ import org.gradle.api.publish.internal.PublicationContainerInternal;
 import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
-import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity;
-import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication;
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactNotationParserFactory;
 import org.gradle.api.publish.ivy.internal.plugins.IvyPublicationDynamicDescriptorGenerationTaskCreator;
 import org.gradle.api.publish.ivy.internal.plugins.IvyPublishDynamicTaskCreator;
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication;
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -65,21 +62,25 @@ public class IvyPublishPlugin implements Plugin<Project> {
         project.getPlugins().apply(PublishingPlugin.class);
 
         // Create the default publication
-        final PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
+        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
+            public void execute(PublishingExtension publishingExtension) {
+                final PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
 
-        final PublicationContainerInternal publicationContainer = (PublicationContainerInternal) extension.getPublications();
-        publicationContainer.registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
+                final PublicationContainerInternal publicationContainer = (PublicationContainerInternal) extension.getPublications();
+                publicationContainer.registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
 
-        TaskContainer tasks = project.getTasks();
+                TaskContainer tasks = project.getTasks();
 
-        // Create generate descriptor tasks
-        IvyPublicationDynamicDescriptorGenerationTaskCreator descriptorGenerationTaskCreator = new IvyPublicationDynamicDescriptorGenerationTaskCreator(project);
-        descriptorGenerationTaskCreator.monitor(extension.getPublications());
+                // Create generate descriptor tasks
+                IvyPublicationDynamicDescriptorGenerationTaskCreator descriptorGenerationTaskCreator = new IvyPublicationDynamicDescriptorGenerationTaskCreator(project);
+                descriptorGenerationTaskCreator.monitor(extension.getPublications());
 
-        // Create publish tasks automatically for any Ivy publication and repository combinations
-        Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
-        IvyPublishDynamicTaskCreator publishTaskCreator = new IvyPublishDynamicTaskCreator(tasks, publishLifecycleTask);
-        publishTaskCreator.monitor(extension.getPublications(), extension.getRepositories());
+                // Create publish tasks automatically for any Ivy publication and repository combinations
+                Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
+                IvyPublishDynamicTaskCreator publishTaskCreator = new IvyPublishDynamicTaskCreator(tasks, publishLifecycleTask);
+                publishTaskCreator.monitor(extension.getPublications(), extension.getRepositories());
+            }
+        });
     }
 
 

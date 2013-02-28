@@ -57,7 +57,6 @@ public class JavaLibrary implements SoftwareComponentInternal {
         }
 
         public Set<ModuleDependency> getDependencies() {
-            // TODO:DAZ Remove this laziness
             return runtimeDependencies.withType(ModuleDependency.class);
         }
     }
