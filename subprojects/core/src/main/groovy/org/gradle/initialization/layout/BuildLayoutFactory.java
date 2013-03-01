@@ -42,6 +42,7 @@ public class BuildLayoutFactory {
     }
 
     BuildLayout getLayoutFor(File currentDir, File stopAt) {
+    	String masterDirName = System.getProperty("org.gradle.masterdir.name", "master");
         File settingsFile = new File(currentDir, "settings.gradle");
         if (settingsFile.isFile()) {
             return layout(currentDir, currentDir, settingsFile);
@@ -51,7 +52,7 @@ public class BuildLayoutFactory {
             if (settingsFile.isFile()) {
                 return layout(candidate, candidate, settingsFile);
             }
-            settingsFile = new File(candidate, "master/settings.gradle");
+            settingsFile = new File(candidate, masterDirName + "/settings.gradle");
             if (settingsFile.isFile()) {
                 return layout(candidate, settingsFile.getParentFile(), settingsFile);
             }
