@@ -32,7 +32,8 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
     }
 
     public void evaluate(ProjectInternal project, ProjectStateInternal state) {
-        if (state.getExecuted()) {
+        //TODO this is one of the places to look into thread safety when we implement parallel configuration
+        if (state.getExecuted() || state.getExecuting()) {
             return;
         }
 

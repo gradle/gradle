@@ -43,6 +43,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
+    private final List<String> runningProjects = new ArrayList<String>();
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
         List<Task> queue = new ArrayList<Task>(tasks);
@@ -98,6 +99,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         try {
             executionPlan.clear();
             failures.clear();
+            runningProjects.clear();
         } finally {
             lock.unlock();
         }
@@ -148,7 +150,44 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         } finally {
             lock.unlock();
         }
+    }
 
+    public TaskInfo getTaskToExecute() {
+        lock.lock();
+        try {
+            while(true) {
+                TaskInfo nextMatching = null;
+                boolean allTasksComplete = true;
+                for (TaskInfo taskInfo : executionPlan.values()) {
+                    allTasksComplete = allTasksComplete && taskInfo.isComplete();
+                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && !runningProjects.contains(taskInfo.getTask().getProject().getPath())) {
+                        nextMatching = taskInfo;
+                        break;
+                    }
+                }
+                if (allTasksComplete) {
+                    return null;
+                }
+                if (nextMatching == null) {
+                    try {
+                        condition.await();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    if (nextMatching.allDependenciesSuccessful()) {
+                        nextMatching.startExecution();
+                        runningProjects.add(nextMatching.getTask().getProject().getPath());
+                        return nextMatching;
+                    } else {
+                        nextMatching.skipExecution();
+                        condition.signalAll();
+                    }
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     private TaskInfo getNextReadyAndMatching(Spec<TaskInfo> criteria) {
@@ -168,6 +207,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
 
             taskInfo.finishExecution();
+            runningProjects.remove(taskInfo.getTask().getProject().getPath());
             condition.signalAll();
         } finally {
             lock.unlock();

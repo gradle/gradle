@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
@@ -33,14 +34,15 @@ public class ErrorHandlingArtifactDependencyResolverTest extends Specification {
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private resolutionResult = Mock(ResolutionResult)
     private configuration = Mock(ConfigurationInternal.class, name: 'coolConf')
+    private repositories = [Mock(ResolutionAwareRepository)]
     private resolver = new ErrorHandlingArtifactDependencyResolver(delegate);
 
     void "delegates to backing service"() {
         given:
-        delegate.resolve(configuration) >> new ResolverResults(resolvedConfiguration, resolutionResult)
+        delegate.resolve(configuration, repositories) >> new ResolverResults(resolvedConfiguration, resolutionResult)
 
         when:
-        ResolverResults outerResults = resolver.resolve(configuration);
+        ResolverResults outerResults = resolver.resolve(configuration, repositories);
         outerResults.resolvedConfiguration.hasError()
         outerResults.resolvedConfiguration.rethrowFailure()
         outerResults.resolvedConfiguration.getFiles(Specs.satisfyAll())
@@ -55,10 +57,10 @@ public class ErrorHandlingArtifactDependencyResolverTest extends Specification {
     void "wraps operations with the failure"() {
         given:
         def failure = new RuntimeException()
-        delegate.resolve(configuration) >> { throw failure }
+        delegate.resolve(configuration, repositories) >> { throw failure }
 
         when:
-        ResolverResults results = resolver.resolve(configuration);
+        ResolverResults results = resolver.resolve(configuration, repositories);
 
         then:
         results.resolvedConfiguration.hasError()
@@ -79,10 +81,10 @@ public class ErrorHandlingArtifactDependencyResolverTest extends Specification {
         resolvedConfiguration.getFirstLevelModuleDependencies() >> { throw failure }
         resolvedConfiguration.getResolvedArtifacts() >> { throw failure }
 
-        delegate.resolve(configuration) >> { new ResolverResults(resolvedConfiguration, resolutionResult) }
+        delegate.resolve(configuration, repositories) >> { new ResolverResults(resolvedConfiguration, resolutionResult) }
 
         when:
-        ResolverResults results = resolver.resolve(configuration);
+        ResolverResults results = resolver.resolve(configuration, repositories);
 
         then:
         failsWith(failure)

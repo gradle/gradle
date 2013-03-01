@@ -18,21 +18,30 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.apache.commons.lang.StringUtils
+
 class MavenScope {
-    final dependencies = []
+    Map<String, MavenDependency> dependencies = [:]
 
-    void addDependency(String groupId, String artifactId, String version) {
-        dependencies << [groupId: groupId, artifactId: artifactId, version: version]
-    }
+    void assertDependsOn(String[] expected) {
+        assert dependencies.size() == expected.length
+        expected.each {
+            String key = StringUtils.substringBefore(it, "@")
+            def dependency = expectDependency(key)
 
-    void assertDependsOnArtifacts(String... artifactIds) {
-        assert dependencies.collect { it.artifactId} as Set == artifactIds as Set
-    }
-
-    void assertDependsOn(String groupId, String artifactId, String version) {
-        def dep = [groupId: groupId, artifactId: artifactId, version: version]
-        if (!dependencies.find { it == dep }) {
-            throw new AssertionError("Could not find expected dependency $dep. Actual: $dependencies")
+            String type = null
+            if (it != key) {
+                type = StringUtils.substringAfter(it, "@")
+            }
+            assert dependency.hasType(type)
         }
+    }
+
+    MavenDependency expectDependency(String key) {
+        final dependency = dependencies[key]
+        if (dependency == null) {
+            throw new AssertionError("Could not find expected dependency $dep. Actual: ${dependencies.values()}")
+        }
+        return dependency
     }
 }

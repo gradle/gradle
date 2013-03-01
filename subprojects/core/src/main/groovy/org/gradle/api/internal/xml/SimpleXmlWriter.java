@@ -22,9 +22,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 /**
- * <p>A streaming XML writer. Encodes characters and CDATA. Provides only basic state validation, and some simple indentation.</p>
- *
- * <p>This class also is-a Writer, and any characters written to this writer will be encoded as appropriate.</p>
+ * <p>A streaming XML writer.</p>
  *
  * by Szczepan Faber, created at: 12/3/12
  */

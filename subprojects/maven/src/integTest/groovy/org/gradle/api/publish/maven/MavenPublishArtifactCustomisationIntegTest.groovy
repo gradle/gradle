@@ -16,9 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec {
+class MavenPublishArtifactCustomisationIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can attach custom artifacts"() {
         given:
@@ -26,12 +24,9 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
             publications {
                 mavenCustom(MavenPublication) {
                     artifact "customFile.txt"
-                    artifact customFileTask.outputFile
                     artifact customJar
                 }
             }
-""", """
-            publishMavenCustomPublicationToMavenRepository.dependsOn(customFileTask)
 """)
         when:
         succeeds 'publish'
@@ -40,7 +35,10 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar")
+
+        and:
+        resolveArtifacts(module, [classifier: 'customjar']) == ["projectText-1.0-customjar.jar", "projectText-1.0.txt"]
     }
 
     def "can set custom artifacts to override component artifacts"() {
@@ -49,12 +47,10 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
             publications {
                 mavenCustom(MavenPublication) {
                     from components.java
-                    artifacts = ["customFile.txt", customFileTask.outputFile, customJar]
+                    artifacts = ["customFile.txt", customJar]
                 }
             }
 
-""", """
-            publishMavenCustomPublicationToMavenRepository.dependsOn(customFileTask)
 """)
         when:
         succeeds 'publish'
@@ -63,7 +59,10 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar")
+
+        and:
+        resolveArtifacts(module, [classifier: 'customjar']) == ["projectText-1.0-customjar.jar", "projectText-1.0.txt"]
     }
 
     def "can configure custom artifacts when creating"() {
@@ -80,7 +79,7 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
                         builtBy customFileTask
                     }
                     artifact customJar {
-                        classifier ""
+                        classifier null
                         extension "war"
                     }
                 }
@@ -94,6 +93,9 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         module.assertPublished()
         module.parsedPom.packaging == "war"
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt")
+
+        and:
+        resolveArtifacts(module, [classifier: 'documentation', type: 'htm'], [classifier: 'output', type: 'txt']) == ["projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0.war"]
     }
 
     def "can attach custom file artifacts with map notation"() {
@@ -101,9 +103,9 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         createBuildScripts("""
             publications {
                 mavenCustom(MavenPublication) {
-                    artifact file: "customFile.txt", classifier: "output"
-                    artifact file: customFileTask.outputFile, extension: "htm", classifier: "documentation", builtBy: customFileTask
-                    artifact source: customJar, extension: "war", classifier: ""
+                    artifact source: "customFile.txt", classifier: "output"
+                    artifact source: customFileTask.outputFile, extension: "htm", classifier: "documentation", builtBy: customFileTask
+                    artifact source: customJar, extension: "war", classifier: null
                 }
             }
 """)
@@ -115,6 +117,9 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         module.assertPublished()
         module.parsedPom.packaging == "war"
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt")
+
+        and:
+        resolveArtifacts(module, [classifier: 'documentation', type: 'htm'], [classifier: 'output', type: 'txt']) == ["projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0.war"]
     }
 
     def "can configure custom artifacts post creation"() {
@@ -129,28 +134,9 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
             }
 """, """
             publishing.publications.mavenCustom.artifacts.each {
-                it.extension = "mod"
-            }
-            publishMavenCustomPublicationToMavenRepository.dependsOn(customFileTask)
-""")
-        when:
-        succeeds 'publish'
-
-        then:
-        def module = mavenRepo.module("group", "projectText", "1.0")
-        module.assertPublished()
-        module.parsedPom.packaging == "mod"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.mod", "projectText-1.0-docs.mod", "projectText-1.0-customjar.mod")
-    }
-
-    def "can attach artifact with no extension"() {
-        given:
-        file("no-extension-1.0-classifier") << "some content"
-        createBuildScripts("""
-            publications {
-                mavenCustom(MavenPublication) {
-                    artifact "customFile.txt"
-                    artifact "no-extension-1.0-classifier"
+                if (it.extension == "html") {
+                    it.classifier = "docs"
+                    it.builtBy customFileTask
                 }
             }
 """)
@@ -160,18 +146,40 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         then:
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
-        module.parsedPom.packaging == "txt"
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-classifier")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-docs.html", "projectText-1.0-customjar.jar")
+    }
+
+    def "can attach artifact with no extension"() {
+        given:
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    from components.java
+                    artifact source: "customFile.txt", extension: "", classifier: "classified"
+                }
+            }
+""")
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module("group", "projectText", "1.0")
+        module.assertPublished()
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.jar", "projectText-1.0-classified")
+
+        // TODO:DAZ Find a way to resolve Maven artifact with no extension
+//        and:
+//        resolveArtifact(module, '', 'classified') == ["projectText-1.0-classifier"]
     }
 
     def "reports failure publishing when validation fails"() {
         given:
-        file("a-directory").createDir()
+        file("a-directory.dir").createDir()
 
         createBuildScripts("""
             publications {
                 mavenCustom(MavenPublication) {
-                    artifact "a-directory"
+                    artifact "a-directory.dir"
                 }
             }
 """)
@@ -181,7 +189,7 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':publishMavenCustomPublicationToMavenRepository'.")
         failure.assertHasCause("Failed to publish publication 'mavenCustom' to repository 'maven'")
-        failure.assertHasCause("Cannot publish maven publication 'mavenCustom': artifact file is a directory")
+        failure.assertHasCause("Invalid publication 'mavenCustom': artifact file is a directory")
     }
 
     private createBuildScripts(def publications, def append = "") {

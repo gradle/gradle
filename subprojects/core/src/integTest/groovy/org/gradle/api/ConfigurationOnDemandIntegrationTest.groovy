@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-import org.gradle.configuration.DefaultBuildConfigurer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
@@ -38,7 +37,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         run("foo")
         then:
         fixture.assertProjectsConfigured(":")
-        assert output.contains(DefaultBuildConfigurer.CONFIGURATION_ON_DEMAND_MESSAGE)
+        assert output.contains("Configuration on demand is an incubating feature")
     }
 
     def "evaluates only project referenced in the task list"() {
@@ -50,7 +49,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.assertProjectsConfigured(":", ":util:impl")
-        assert output.contains(DefaultBuildConfigurer.CONFIGURATION_ON_DEMAND_MESSAGE)
+        assert output.contains("Configuration on demand is an incubating feature")
     }
 
     def "does not show configuration on demand message in a regular mode"() {
@@ -58,7 +57,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         when:
         run()
         then:
-        assert !output.contains(DefaultBuildConfigurer.CONFIGURATION_ON_DEMAND_MESSAGE)
+        assert !output.contains("Configuration on demand is an incubating feature")
     }
 
     def "follows java project dependencies"() {
@@ -242,5 +241,25 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.assertProjectsConfigured(":", ":impl", ":api")
         result.assertTasksExecuted(":api:foo", ":impl:bar")
+    }
+
+    def "supports buildSrc"() {
+        file("buildSrc/src/main/java/FooTask.java") << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+
+            public class FooTask extends DefaultTask {
+                @TaskAction public void logStuff(){
+                    System.out.println(String.format("Horray!!! '%s' executed.", getName()));
+                }
+            }
+        """
+
+        buildFile << "task foo(type: FooTask)"
+
+        when:
+        run("foo")
+        then:
+        output.contains "Horray!!!"
     }
 }

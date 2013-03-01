@@ -15,11 +15,11 @@
  */
 
 package org.gradle.api.publish.maven
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.maven.M2Installation
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
-
 /**
  * Tests for bugfixes to maven publishing scenarios
  */
@@ -62,4 +62,50 @@ class MavenPublishIssuesIntegTest extends AbstractIntegrationSpec {
         shaOneFile.exists()
         shaOneFile.text == "00e14c6ef59816760e2c9b5a57157e8ac9de4012"
     }
+
+    @Issue("GRADLE-2681")
+    def "gradle ignores maven mirror configuration for uploading archives"() {
+        given:
+        TestFile m2Home = temporaryFolder.createDir("m2_home");
+        M2Installation m2Installation = new M2Installation(m2Home)
+
+        m2Installation.globalSettingsFile << """
+<settings>
+  <mirrors>
+    <mirror>
+      <id>ACME</id>
+      <name>ACME Central</name>
+      <url>http://acme.maven.org/maven2</url>
+      <mirrorOf>*</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
+"""
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+group = 'group'
+version = '1.0'
+
+publishing {
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
+   """
+        when:
+        using m2Installation
+
+        then:
+        succeeds "publish"
+    }
+
 }

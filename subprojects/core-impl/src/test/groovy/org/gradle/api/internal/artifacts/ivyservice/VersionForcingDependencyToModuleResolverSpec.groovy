@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import spock.lang.Specification
-
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory
 
 class VersionForcingDependencyToModuleResolverSpec extends Specification {
     final target = Mock(DependencyToModuleVersionIdResolver)
@@ -47,13 +46,12 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
     }
 
     def "replaces dependency by rule"() {
-        def factory = Mock(ReflectiveDependencyDescriptorFactory)
         def dep = dependency('org', 'module', '0.5')
         def modified = dependency('org', 'module', '1.0')
 
         def force = { it.useVersion("1.0") } as Action
 
-        def resolver = new VersionForcingDependencyToModuleResolver(target, force, factory)
+        def resolver = new VersionForcingDependencyToModuleResolver(target, force)
 
         when:
         SubstitutedModuleVersionIdResolveResult result = resolver.resolve(dep)
@@ -63,7 +61,7 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         result.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
 
         and:
-        1 * factory.create(dep, ModuleRevisionId.newInstance("org", "module", "1.0")) >> modified
+        1 * dep.withRequestedVersion(DefaultModuleVersionSelector.newInstance("org", "module", "1.0")) >> modified
         1 * target.resolve(modified) >> resolvedVersion
         0 * target._
     }
@@ -102,6 +100,8 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
     }
 
     def dependency(String group, String module, String version) {
-        Mock(DependencyDescriptor) { getDependencyRevisionId() >> new ModuleRevisionId(new ModuleId(group, module), version) }
+        Mock(DependencyMetaData) {
+            getRequested() >> new DefaultModuleVersionSelector(group, module, version)
+        }
     }
 }

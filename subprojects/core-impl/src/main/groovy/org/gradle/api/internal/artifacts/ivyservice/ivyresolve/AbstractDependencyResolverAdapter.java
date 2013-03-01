@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
 
-public abstract class AbstractDependencyResolverAdapter implements ModuleVersionRepository {
+public abstract class AbstractDependencyResolverAdapter implements IvyAwareModuleVersionRepository {
     private final DependencyResolverIdentifier identifier;
     protected final DependencyResolver resolver;
 
@@ -38,6 +39,14 @@ public abstract class AbstractDependencyResolverAdapter implements ModuleVersion
     @Override
     public String toString() {
         return String.format("Repository '%s'", resolver.getName());
+    }
+
+    public void setSettings(IvySettings settings) {
+        settings.addResolver(resolver);
+    }
+
+    public boolean isDynamicResolveMode() {
+        return false;
     }
 
     public boolean isLocal() {

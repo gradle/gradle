@@ -48,6 +48,15 @@ class AbstractNamedDomainObjectContainerTest {
     }
 
     @Test
+    public void canUseMaybeCreateToFindOrCreateObjectWithName() {
+        def created = container.maybeCreate('obj')
+        assertThat(container.getByName('obj'), equalTo(['obj']))
+
+        def fetched = container.maybeCreate('obj')
+        assertThat(fetched, sameInstance(created))
+    }
+
+    @Test
     public void failsToAddObjectWhenObjectWithSameNameAlreadyInContainer() {
         container.create('obj')
 

@@ -171,9 +171,12 @@
                 See <apilink class="org.gradle.api.publish.maven.MavenPom" method="withXml(org.gradle.api.Action)" /> for the relevant API reference documentation.
             </para>
             <para>
-                It is possible to modify any aspect of the created POM should you need to.
+                It is possible to modify virtually any aspect of the created POM should you need to.
                 This means that it is also possible to modify the POM in such a way that it is no longer a valid
                 Maven Pom, so care must be taken when using this feature.
+            </para>
+            <para>
+                The identifier (groupId, artifactId, version) of the published module is an exception; these values cannot be modified in the POM using the `withXML` hook.
             </para>
         </section>
     </section>
@@ -242,16 +245,29 @@
         </para>
         <para>
             The task for generating the POM file is of type <apilink class="org.gradle.api.publish.maven.tasks.GenerateMavenPom"/>, and it is given a name based on the name
-            of the publication: "<literal>generatePomFileFor«<emphasis>NAME OF PUBLICATION</emphasis>»Publication</literal>". So in the above example where the publication is named
-            "<literal>mavenJava</literal>",
-            the task will be named "<literal>generatePomFileForMavenJavaPublication</literal>".
+            of the publication: "<literal>generatePomFileFor«<emphasis>NAME OF PUBLICATION</emphasis>»Publication</literal>". So in the below example where the publication is named
+            "<literal>mavenCustom</literal>",
+            the task will be named "<literal>generatePomFileForMavenCustomPublication</literal>".
         </para>
-        <sample dir="maven-publish/quickstart" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
-            <output args="generatePomFileForMavenJavaPublication"/>
+        <sample dir="maven-publish/pomCustomization" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
+            <sourcefile file="build.gradle" snippet="generate" />
+            <output args="generatePomFileForMavenCustomPublication"/>
         </sample>
         <para>
             All details of the publishing model are still considered in POM generation, including <literal>components</literal>`, custom <literal>artifacts</literal>,
             and any modifications made via <literal>pom.withXml</literal>.
         </para>
+        <note>
+            <para>
+                The “<literal>maven-publish</literal>” plugin leverages some experimental support for late plugin configuration,
+                and any <literal>GenerateMavenPom</literal> tasks will not be constructed until the publishing extension is configured.
+                The simplest way to ensure that the publishing plugin is configured when you attempt to access the <literal>GenerateMavenPom</literal> task
+                is to place the access inside a <literal>publishing</literal> block, as the above example demonstrates.
+            </para>
+            <para>
+                The same applies to any attempt to access publication-specific tasks like <apilink class="org.gradle.api.publish.maven.tasks.PublishToMavenRepository"/>.
+                These tasks should be referenced from within a <literal>publishing</literal> block.
+            </para>
+        </note>
     </section>
 </chapter>

@@ -42,7 +42,16 @@ class MavenPom {
                     scope = new MavenScope()
                     scopes[scopeName] = scope
                 }
-                scope.addDependency(dep.groupId.text(), dep.artifactId.text(), dep.version.text())
+                MavenDependency mavenDependency = new MavenDependency(
+                        groupId: dep.groupId.text(),
+                        artifactId: dep.artifactId.text(),
+                        version: dep.version.text(),
+                        classifier: dep.classifier ? dep.classifier.text() : null,
+                        type: dep.type ? dep.type.text() : null
+                )
+                def key = "${mavenDependency.groupId}:${mavenDependency.artifactId}:${mavenDependency.version}"
+                key += mavenDependency.classifier ? ":${mavenDependency.classifier}" : ""
+                scope.dependencies[key] = mavenDependency
             }
         }
     }

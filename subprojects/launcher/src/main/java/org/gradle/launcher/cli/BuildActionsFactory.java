@@ -25,6 +25,7 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
@@ -40,7 +41,6 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter;
 
-import java.io.File;
 import java.lang.management.ManagementFactory;
 
 class BuildActionsFactory implements CommandLineAction {
@@ -141,15 +141,11 @@ class BuildActionsFactory implements CommandLineAction {
 
     private Action<? super ExecutionListener> daemonBuildAction(StartParameter startParameter, DaemonParameters daemonParameters, GradleLauncherActionExecuter<BuildActionParameters> executer) {
         return Actions.toAction(
-                new RunBuildAction(executer, startParameter, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
+                new RunBuildAction(executer, startParameter, SystemProperties.getCurrentDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
     }
 
     private long getBuildStartTime() {
         return ManagementFactory.getRuntimeMXBean().getStartTime();
-    }
-
-    private File getWorkingDir() {
-        return new File(System.getProperty("user.dir"));
     }
 
     private GradleLauncherMetaData clientMetaData() {

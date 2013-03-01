@@ -112,6 +112,10 @@ happen for both the legacy and new configuration models.
     - Verify that when the configuration is resolved in project A's build script, project B and the external
       dependency are present.
 
+## `buildSrc` project is correctly built in configure-on-demand mode
+
+## Fix profile report configuration times in configure-on-demand mode
+
 ## Support tasks that are declared on a given project but work on multiple projects
 
 For example, 'tasks' task provides task info for given project but also for all child projects, recursively.
@@ -161,6 +165,11 @@ the root project so that this will be possible.
 - Possibly offer 'legacy', 'transitional' and 'strict' modes, where legacy ignores coupling, transitional warns and strict fails.
 - Use transitional as the default when configure on demand is enabled, otherwise use legacy.
 
+Need to detect:
+
+- Tasks.getByPath()
+- More TBD, see also [project-configuration-model.md](project-configuration-model.md)
+
 ## Build author uses artifacts produced by another project without direct coupling between projects
 
 ## Build author uses model objects configured in another project without direct coupling between projects
@@ -187,6 +196,10 @@ There's a forum request from Attila (NetBeans) to improve that.
 
 The tooling API project model also allows navigation from one project to all others in the hierarchy, which means that all projects must be configured.
 
-## Configure on demand fully respects `--no-rebuild`
+## Configure on demand respects `--no-rebuild`
 
 When running with `--no-rebuild`, the target project of any project dependency should not be configured, or we should remove `--no-rebuild`.
+
+## Allow build and project and task lifecycle events to be received in decoupled mode
+
+- Deprecate `BuildListener` and others.

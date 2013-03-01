@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor;
 
 /**
@@ -32,16 +33,17 @@ public class ClientModuleResolver implements DependencyToModuleResolver {
         this.resolver = resolver;
     }
 
-    public void resolve(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionResolveResult result) {
-        resolver.resolve(dependencyDescriptor, result);
+    public void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result) {
+        resolver.resolve(dependency, result);
 
-        if (result.getFailure() != null || !(dependencyDescriptor instanceof ClientModuleDependencyDescriptor)) {
+        DependencyDescriptor descriptor = dependency.getDescriptor();
+        if (result.getFailure() != null || !(descriptor instanceof ClientModuleDependencyDescriptor)) {
             return;
         }
 
-        ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) dependencyDescriptor;
+        ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) descriptor;
         ModuleDescriptor moduleDescriptor = clientModuleDependencyDescriptor.getTargetModule();
 
-        result.setMetaData(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
+        result.setMetaData(moduleDescriptor);
     }
 }

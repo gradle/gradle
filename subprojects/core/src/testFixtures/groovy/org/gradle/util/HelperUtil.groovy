@@ -16,20 +16,10 @@
 package org.gradle.util
 
 import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.id.ArtifactId
-import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher
-import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.codehaus.groovy.control.CompilerConfiguration
-import org.gradle.BuildResult
 import org.gradle.api.Task
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
@@ -73,6 +63,10 @@ class HelperUtil {
          return project.services.get(ITaskFactory).createTask([name: name, type: type])
      }
 
+    static ProjectBuilder builder() {
+        return ProjectBuilder.builder().withProjectDir(TestNameTestDirectoryProvider.newInstance().testDirectory)
+    }
+
      static DefaultProject createRootProject() {
          createRootProject(TestNameTestDirectoryProvider.newInstance().testDirectory)
      }
@@ -93,34 +87,10 @@ class HelperUtil {
                  .build();
      }
 
-     static DefaultExcludeRule getTestExcludeRule(def module = 'module') {
-         new DefaultExcludeRule(new ArtifactId(
-                 new ModuleId('org', module), PatternMatcher.ANY_EXPRESSION,
-                 PatternMatcher.ANY_EXPRESSION,
-                 PatternMatcher.ANY_EXPRESSION),
-                 ExactPatternMatcher.INSTANCE, null)
-     }
-
-     static DefaultDependencyDescriptor getTestDescriptor() {
-         new DefaultDependencyDescriptor(ModuleRevisionId.newInstance('org', 'name', 'rev'), false)
-     }
-
      static DefaultModuleDescriptor createModuleDescriptor(Set confs) {
          DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance('org', 'name', 'rev'), "status", null)
          confs.each { moduleDescriptor.addConfiguration(new Configuration(it)) }
          return moduleDescriptor;
-     }
-
-     static BuildResult createBuildResult(Throwable t) {
-         return new BuildResult(null, t);
-     }
-
-     static ModuleDependency createDependency(String group, String name, String version) {
-       new DefaultExternalModuleDependency(group, name, version)
-     }
-
-     static DefaultPublishArtifact createPublishArtifact(String name, String extension, String type, String classifier) {
-       new DefaultPublishArtifact(name, extension, type, classifier, new Date(), new File(""))
      }
 
      static groovy.lang.Script createScript(String code) {

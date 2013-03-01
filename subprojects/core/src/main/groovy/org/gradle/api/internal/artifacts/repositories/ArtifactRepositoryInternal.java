@@ -21,7 +21,10 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
 public interface ArtifactRepositoryInternal extends ArtifactRepository {
 
-    DependencyResolver createResolver();
+    /**
+     * Create a DependencyResolver implementation to use to expose this repository via the old DSL.
+     */
+    DependencyResolver createLegacyDslObject();
 
     void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container);
 

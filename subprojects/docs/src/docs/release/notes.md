@@ -15,6 +15,15 @@ a Scala compiler library that matches the Scala version used on the project's cl
 ### Improved test report generation
 
 The test report generation was refactored and is now slightly faster than in previous Gradle releases.
+
+### Improved usability of project dependencies
+
+Improvements in Gradle's configuration model continue.
+Project dependencies at configuration time are now fully supported.
+Prior to this change, any resolution of a project dependency at configuration time may have led to confusing behavior because the target project may not have been configured yet.
+Now the resolution of the project dependency implies configuration of the target project.
+It means that the configuration of the projects might have a different order now (e.g. more correct order).
+This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
  
 ## Promoted features
 
@@ -197,10 +206,10 @@ the task will be named `generatePomFileForMavenCustomPublication`.
 
 ### Distribution Plugin
 
-The distribution plugin extends the language plugins with common distribution related tasks.
-It allows bundling a project including binaries, sources and documentation.
+Thanks to a contribution from Sébastien Cogneau, a new `distribution` plugin has been added. This plugin adds general-purpose for support bundling and installing distributions.
 
-This plugin adds a main default distribution. The plugin adds one `main` distribution. The `distZip` task can be used to create a ZIP containing the main distribution.
+This plugin adds a `main` distribution, and you can add additional distributions. For each distribution, tasks are added to create a ZIP or TAR file for the distribution and
+to install the distribution.
 
 You can define multiple distributions:
 
@@ -213,7 +222,9 @@ To build the additional distributions you can run the generated Zip tasks enterp
 
 ### Java Library Distribution Plugin
 
-The java library distribution plugin now extends the new introduced distribution plugin. The `distribution` extension was removed. The `main` distribution is now accessible using the distributions extension:
+The Java library distribution plugin now extends the new introduced distribution plugin. Thanks to this, you can now create TAR files and install Java library distributions.
+
+The `distribution` extension was removed. The `main` distribution is now accessible using the distributions extension:
 
     distributions {
         main {
@@ -223,8 +234,9 @@ The java library distribution plugin now extends the new introduced distribution
 
 ### Build Dashboard Plugin
 
-The Build Dashboard plugin adds a task to projects to generate a build dashboard html report which contains references to all reports that were generated during the build. In the following example,
-the `build-dashboard` plugin is added to a project which has also the `groovy` and the `codenarc` plugin applied:
+Thanks to a contribution from Marcin Erdmann, a new `build-dashboard` plugin has been added. This plugin adds a task to projects to generate a build dashboard HTML report which contains
+references to all reports that were generated during the build. In the following example, the `build-dashboard` plugin is added to a project which has also the `groovy` and
+the `codenarc` plugin applied:
 
 	apply plugin: 'groovy'
     apply plugin: 'build-dashboard'
@@ -257,23 +269,53 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 Breaking changes have been made to the incubating 'maven-publish' plugin, which provides an alternative means to publish to Maven repositories.
 
-Previously the 'maven-publish' plugin added a MavenPublication for any java component on the project, which meant that with the 'java' plugin applied no addition configuration
-was required to publish the jar file. It is now necessary to explicitly add a MavenPublication to the 'publishing.publications' container. The added publication can include
-a software component ['java', 'web'], custom artifacts or both. If no MavenPublication is added when using the 'maven-publish' plugin, then nothing will be published.
+- A MavenPublication must be explicitly added to the `publications` container; no publication is added implicitly by the `maven-publish` plugin.
+    - If no MavenPublication is configured then nothing will be published to Maven.
+- A MavenPublication does not include any artifacts or dependencies by default; these must be added directly or via a SoftwareComponent.
+    - If no artifacts are configured, a Maven POM file will be published with no artifacts or dependencies declared.
+- The `groupId`, `artifactId` and `version` in the published pom cannot be changed via MavenPom.withXml():
+   it was previously possible change these values, but any interproject dependency would not pick up these changes.
+    - In the future Gradle will provide a robust mechanism for modifying publication coordinates prior to publication.
+- Identifiers used in Maven POM (`groupId`, `artifactId, `version`) and artifacts (`ext`, `classifier`) have new character restrictions:
+  these identifiers may not contain '/', '\' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so we now prevent this
+  at the time of publication.
+   - `groupId` and `artifactId` are further restricted to "[A-Za-z0-9_\-.]+": this is a Maven restriction, so we enforce it at the time of publication.
+- The `GenerateMavenPom` task for a publication is not created until the publishing extension is first accessed. Any attempt to configure a `GenerateMavenPom` task
+  should be enclosed within a `publishing` block.
+- Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
 
 ### Changes to incubating Ivy publishing support
 
 Breaking changes have been made to the incubating 'ivy-publish' plugin, which provides an alternative means to publish to Ivy repositories.
 
-- An IvyPublication must be explicitly added to the `publications` container; no publication is added implicitly.
-    - If no IvyPublication is configured, nothing will be published to Ivy.
+- An IvyPublication must be explicitly added to the `publications` container; no publication is added implicitly by the `ivy-publish` plugin.
+    - If no IvyPublication is configured then nothing will be published to Ivy.
 - An IvyPublication does not include any artifacts or dependencies by default; these must be added directly or via a SoftwareComponent.
     - If no artifacts are configured, an ivy.xml file will be published with no artifacts or dependencies declared.
+- The `organisation`, `name` and `revision` cannot be changed via IvyDescriptor.withXml():
+   it was previously possible to do this, although it did not change the actual coordinates of the published module.
+    - In the future Gradle will provide a robust mechanism for modifying publication coordinates prior to publication.
+- Identifiers in ivy modules (`organisation`, `module, `revision`) and artifacts (`name`, `ext`, `type`, `classifier`) have new character restrictions:
+  these identifiers may not contain '/', '\' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so we now prevent this
+  at the time of publication.
 - Removed `GenerateIvyDescriptor.xmlAction` property. The `ivy.descriptor.withXml()` method provides a way to customise the generated module descriptor.
+- The `GenerateIvyDescriptor` task for a publication is not created until the publishing extension is first accessed. Any attempt to configure a `GenerateIvyDescriptor`
+  should be enclosed within a `publishing` block.
+- Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
 
 ### Changes to new PMD support
 
 The default value for ruleset extension has changed from ["basic"] to []. We moved the default to the `Pmd` task, so everything should just work as it did before.
+
+### Order in which projects are configured
+
+Improving the usability of project dependencies (see the section above)
+might change the order in which projects are configured.
+This change should not cause any trouble in existing builds.
+
+### `ArtifactRepositoryContainer.getResolvers()`
+
+This method has been deprecated and will be removed in Gradle 2.0.
 
 ## External contributions
 
@@ -283,7 +325,7 @@ We would like to thank the following community members for making contributions 
 * David M. Carr
     * When JUnit tests have assumption failures, treat them as "skipped" (GRADLE-2454)
     * Documentation cleanups.
-* Sébastien Cogneau - Introduce a basic distribution plugin
+* Sébastien Cogneau - Introduce the distribution plugin
 * Kenny Stridh
 	* Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
 	* Add support for PMD version 5.0.+

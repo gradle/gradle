@@ -27,6 +27,20 @@ class IvyDescriptorArtifact {
         assert this.ext == ext
         assert this.type == type
         assert this.conf == conf
-        assert this.mavenAttributes.get("classifier") == classifier
+        assert this.classifier == classifier
+    }
+
+    IvyDescriptorArtifact hasConf(def conf) {
+        assert this.conf == conf
+        return this
+    }
+
+    IvyDescriptorArtifact hasType(def type) {
+        assert this.type == type
+        return this
+    }
+
+    String getClassifier() {
+        this.mavenAttributes.get("classifier")
     }
 }

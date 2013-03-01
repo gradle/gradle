@@ -20,6 +20,7 @@ import org.gradle.BuildAdapter;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheBuilder;
@@ -98,7 +99,7 @@ public class BuildSourceBuilder {
         return BuildSourceBuilder.class.getResource(DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE);
     }
 
-    private static class BuildSrcBuildListener extends BuildAdapter {
+    private static class BuildSrcBuildListener extends BuildAdapter implements ModelConfigurationListener {
         private EmbeddableJavaProject projectInfo;
         private Set<File> classpath;
         private final boolean rebuild;
@@ -112,15 +113,14 @@ public class BuildSourceBuilder {
             gradle.getRootProject().apply(WrapUtil.toMap("from", getDefaultScript()));
         }
 
-        @Override
-        public void projectsEvaluated(Gradle gradle) {
+        public Collection<File> getRuntimeClasspath() {
+            return classpath;
+        }
+
+        public void onConfigure(GradleInternal gradle) {
             projectInfo = gradle.getRootProject().getConvention().getPlugin(EmbeddableJavaProject.class);
             gradle.getStartParameter().setTaskNames(rebuild ? projectInfo.getRebuildTasks() : projectInfo.getBuildTasks());
             classpath = projectInfo.getRuntimeClasspath().getFiles();
-        }
-
-        public Collection<File> getRuntimeClasspath() {
-            return classpath;
         }
     }
 

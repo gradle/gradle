@@ -20,8 +20,10 @@ publishing {
     }
 }
 // START SNIPPET generate
-generateIvyCustomIvyModuleDescriptor {
-    destination = file("$buildDir/generated-ivy.xml")
+publishing {
+    generateIvyCustomIvyModuleDescriptor {
+        destination = file("$buildDir/generated-ivy.xml")
+    }
 }
 // END SNIPPET generate
 

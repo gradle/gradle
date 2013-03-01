@@ -17,10 +17,13 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 public interface ArtifactDependencyResolver {
-    ResolverResults resolve(ConfigurationInternal configuration) throws ResolveException;
+    ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException;
 }

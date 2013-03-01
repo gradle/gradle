@@ -19,7 +19,10 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.internal.Factory;
+
+import java.util.List;
 
 public class CacheLockingArtifactDependencyResolver implements ArtifactDependencyResolver {
     private final CacheLockingManager lockingManager;
@@ -30,10 +33,10 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
         this.resolver = resolver;
     }
 
-    public ResolverResults resolve(final ConfigurationInternal configuration) throws ResolveException {
+    public ResolverResults resolve(final ConfigurationInternal configuration, final List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
         return lockingManager.useCache(String.format("resolve %s", configuration), new Factory<ResolverResults>() {
             public ResolverResults create() {
-                return resolver.resolve(configuration);
+                return resolver.resolve(configuration, repositories);
             }
         });
     }

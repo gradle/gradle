@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.Incubating
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
 
@@ -47,7 +48,7 @@ import org.gradle.util.ConfigureUtil
  *     outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
  *
  *     //you can add project-level libraries
- *     projectLibraries << new ProjectLibrary(name: "my-library", classes: [new Path("path/to/library")])
+ *     projectLibraries &lt;&lt; new ProjectLibrary(name: "my-library", classes: [new Path("path/to/library")])
  *   }
  * }
  * </pre>
@@ -136,6 +137,7 @@ class IdeaProject {
     /**
      * The project-level libraries to be added to the IDEA project.
      */
+    @Incubating
     Set<ProjectLibrary> projectLibraries = [] as LinkedHashSet
 
     /**

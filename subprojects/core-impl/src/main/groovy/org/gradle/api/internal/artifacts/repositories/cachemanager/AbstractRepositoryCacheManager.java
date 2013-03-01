@@ -37,6 +37,7 @@ import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.text.ParseException;
 
 abstract class AbstractRepositoryCacheManager implements RepositoryCacheManager {
@@ -77,7 +78,7 @@ abstract class AbstractRepositoryCacheManager implements RepositoryCacheManager 
             IvySettings ivySettings = IvyContextualiser.getIvyContext().getSettings();
             ParserSettings parserSettings = new ModuleScopedParserSettings(ivySettings, resolver, moduleRevisionId);
             ModuleDescriptorParser parser = parserRegistry.forResource(resource);
-            return parser.parseDescriptor(parserSettings, artifactFile.toURI().toURL(), resource, options.isValidate());
+            return parser.parseDescriptor(parserSettings, new URL(artifactFile.toURI().toASCIIString()), resource, options.isValidate());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

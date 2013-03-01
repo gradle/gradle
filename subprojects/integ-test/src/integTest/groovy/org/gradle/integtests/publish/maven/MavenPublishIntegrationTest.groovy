@@ -200,7 +200,7 @@ uploadArchives {
 
         then:
         def module = mavenRepo.module('org.gradle', 'test', '1.0-SNAPSHOT')
-        module.assertArtifactsPublished('test-1.0-SNAPSHOT.jar', 'test-1.0-SNAPSHOT.pom')
+        module.assertArtifactsPublished("test-${module.publishArtifactVersion}.jar", "test-${module.publishArtifactVersion}.pom")
     }
 
     def "can publish multiple deployments with attached artifacts"() {

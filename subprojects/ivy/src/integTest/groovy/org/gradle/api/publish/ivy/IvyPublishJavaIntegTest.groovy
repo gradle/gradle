@@ -17,9 +17,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
+class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
 
     public void "can publish jar and descriptor to ivy repository"() {
@@ -45,11 +43,13 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
             configurations["default"].extend == ["runtime"] as Set
             configurations["runtime"].extend == null
 
-            artifacts["publishTest"].hasAttributes("jar", "jar", ["runtime"])
-
-            dependencies["runtime"].assertDependsOn("commons-collections", "commons-collections", "3.2.1")
-            dependencies["runtime"].assertDependsOn("commons-io", "commons-io", "1.4")
+            expectArtifact("publishTest").hasAttributes("jar", "jar", ["runtime"])
         }
+        // TODO:DAZ For some reason this doesn't work inside the with block. Investigate.
+        ivyModule.ivy.assertDependsOn("commons-collections:commons-collections:3.2.1@runtime", "commons-io:commons-io:1.4@runtime")
+
+        and:
+        resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
     }
 
     public void "ignores extra artifacts added to configurations"() {
@@ -95,7 +95,8 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
                     ivy(IvyPublication) {
                         from components.java
                         artifact(sourceJar) {
-                            type "source"
+                            classifier "source"
+                            type "sources"
                             conf "runtime"
                         }
                     }
@@ -108,9 +109,12 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
 
         then:
         ivyModule.assertPublished()
-        ivyModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-source-1.9.jar", "ivy-1.9.xml")
+        ivyModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9-source.jar", "ivy-1.9.xml")
 
-        ivyModule.ivy.artifacts["publishTest-source"].hasAttributes("jar", "source", ["runtime"])
+        ivyModule.ivy.expectArtifact("publishTest", "jar", "source").hasAttributes("jar", "sources", ["runtime"], "source")
+
+        and:
+        resolveArtifacts(ivyModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]
     }
 
     def createBuildScripts(def append) {
@@ -119,6 +123,14 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'ivy-publish'
             apply plugin: 'java'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+            }
+
+$append
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -132,14 +144,6 @@ class IvyPublishJavaIntegTest extends AbstractIntegrationSpec {
                 runtime "commons-io:commons-io:1.4"
                 testCompile "junit:junit:4.11"
             }
-
-            publishing {
-                repositories {
-                    ivy { url "${ivyRepo.uri}" }
-                }
-            }
-
-$append
 """
 
     }

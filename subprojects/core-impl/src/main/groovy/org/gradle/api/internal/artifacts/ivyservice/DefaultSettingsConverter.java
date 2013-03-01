@@ -48,7 +48,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return publishSettings;
     }
 
-    public IvySettings convertForResolve(DependencyResolver defaultResolver, List<DependencyResolver> resolvers) {
+    public IvySettings convertForResolve(DependencyResolver defaultResolver) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
         } else {
@@ -58,9 +58,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
         resolveSettings.addResolver(defaultResolver);
         resolveSettings.setDefaultResolver(defaultResolver.getName());
         
-        for (DependencyResolver resolver : resolvers) {
-            resolveSettings.addResolver(resolver);
-        }
         return resolveSettings;
     }
 

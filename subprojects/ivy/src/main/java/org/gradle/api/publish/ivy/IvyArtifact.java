@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 import java.io.File;
 
@@ -28,18 +29,18 @@ import java.io.File;
 public interface IvyArtifact extends Buildable {
     /**
      * The name used to publish the artifact file, never <code>null</code>.
+     * Defaults to the name of the module that this artifact belongs to.
      */
     String getName();
 
     /**
      * Sets the name used to publish the artifact file.
      * @param name The name.
-     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setName(String name);
 
     /**
-     * The type used to publish the artifact file.
+     * The type used to publish the artifact file, never <code>null</code>.
      */
     String getType();
 
@@ -50,7 +51,8 @@ public interface IvyArtifact extends Buildable {
     void setType(String type);
 
     /**
-     * The extension used to publish the artifact file.
+     * The extension used to publish the artifact file, never <code>null</code>.
+     * For an artifact without an extension, this value will be an empty String.
      */
     String getExtension();
 
@@ -62,20 +64,24 @@ public interface IvyArtifact extends Buildable {
 
     /**
      * The classifier used to publish the artifact file.
+     * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
      */
+    @Nullable
     String getClassifier();
 
     /**
      * Sets the classifier used to publish the artifact file.
      * @param classifier The classifier.
      */
-    void setClassifier(String classifier);
+    void setClassifier(@Nullable String classifier);
 
     /**
      * A comma separated list of public configurations in which this artifact is published.
      * The '*' wildcard is used to designate that the artifact is published in all public configurations.
+     * A <code>null</code> value (the default) indicates that this artifact will be published without a conf attribute.
      * @return The value of 'conf' for this artifact.
      */
+    @Nullable
     String getConf();
 
     /**
@@ -83,7 +89,7 @@ public interface IvyArtifact extends Buildable {
      * The '*' wildcard can be used to designate that the artifact is published in all public configurations.
      * @param conf The value of 'conf' for this artifact.
      */
-    void setConf(String conf);
+    void setConf(@Nullable String conf);
 
     /**
      * The actual file contents to publish.

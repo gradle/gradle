@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.idea.internal
 
-import org.gradle.api.Nullable
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.plugins.scala.ScalaBasePlugin
@@ -58,7 +57,7 @@ class IdeaScalaConfigurer {
             def scalaPlugin = scalaProject.plugins.getPlugin(ScalaBasePlugin)
             IdeaModule ideaModule = scalaProject.idea.module
 
-            // TODO: should we make resolveDependencies() cache its result for later use by GenerateIdeaModule?
+            // could make resolveDependencies() cache its result for later use by GenerateIdeaModule
             def dependencies = ideaModule.resolveDependencies()
             def moduleLibraries = dependencies.findAll { it instanceof ModuleLibrary }
             def filePaths = moduleLibraries.collectMany { it.classes.findAll { it instanceof FilePath } }
@@ -67,7 +66,7 @@ class IdeaScalaConfigurer {
             def scalaClasspath = scalaPlugin.inferScalaCompilerClasspath(files)
             def compilerJar = scalaPlugin.findScalaJar(scalaClasspath, "compiler")
             def version = compilerJar == null ? "?" : scalaPlugin.getScalaVersion(compilerJar)
-            def library = createProjectLibrary(rootProject, "scala-compiler-$version", scalaClasspath)
+            def library = createProjectLibrary("scala-compiler-$version", scalaClasspath)
             def duplicate = scalaCompilerLibraries.values().find { it.classes == library.classes }
             scalaCompilerLibraries[scalaProject.path] = duplicate ?: library
         }
@@ -88,7 +87,7 @@ class IdeaScalaConfigurer {
         }
     }
 
-    private void declareScalaFacet(@Nullable ProjectLibrary scalaCompilerLibrary, Node iml) {
+    private void declareScalaFacet(ProjectLibrary scalaCompilerLibrary, Node iml) {
         def facetManager = iml.component.find { it.@name == "FacetManager" }
         if (!facetManager) {
             facetManager = iml.appendNode("component", [name: "FacetManager"])
@@ -115,7 +114,7 @@ class IdeaScalaConfigurer {
             libraryName = configuration.appendNode("option", [name: "compilerLibraryName"])
         }
 
-        libraryName.@value = scalaCompilerLibrary == null ? "" : scalaCompilerLibrary.name
+        libraryName.@value = scalaCompilerLibrary.name
     }
 
     private Collection<Project> findProjectsApplyingIdeaAndScalaPlugins() {
@@ -124,7 +123,7 @@ class IdeaScalaConfigurer {
         }
     }
 
-    private ProjectLibrary createProjectLibrary(Project rootProject, String name, Iterable<File> jars) {
-        new ProjectLibrary(name: name, classes: jars.collect { rootProject.idea.project.pathFactory.path(it) })
+    private ProjectLibrary createProjectLibrary(String name, Iterable<File> jars) {
+        new ProjectLibrary(name: name, classes: jars as Set)
     }
 }

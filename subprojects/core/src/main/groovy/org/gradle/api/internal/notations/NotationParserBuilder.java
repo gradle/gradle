@@ -17,7 +17,10 @@
 package org.gradle.api.internal.notations;
 
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.parsers.*;
+import org.gradle.api.internal.notations.parsers.CompositeNotationParser;
+import org.gradle.api.internal.notations.parsers.ErrorHandlingNotationParser;
+import org.gradle.api.internal.notations.parsers.FlatteningNotationParser;
+import org.gradle.api.internal.notations.parsers.JustReturningParser;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
@@ -32,7 +35,6 @@ public class NotationParserBuilder<T> {
     private TypeInfo<T> resultingType;
     private String invalidNotationMessage;
     private Collection<NotationParser<? extends T>> notationParsers = new LinkedList<NotationParser<? extends T>>();
-    private boolean nullUnsupported;
 
     public NotationParserBuilder<T> resultingType(Class<T> resultingType) {
         return resultingType(new TypeInfo<T>(resultingType));
@@ -67,7 +69,7 @@ public class NotationParserBuilder<T> {
     }
 
     private <S> NotationParser<S> wrapInErrorHandling(NotationParser<S> parser) {
-        return new ErrorHandlingNotationParser<S>(resultingType.getTargetType().getSimpleName(), invalidNotationMessage, parser, nullUnsupported);
+        return new ErrorHandlingNotationParser<S>(resultingType.getTargetType().getSimpleName(), invalidNotationMessage, parser);
     }
 
     private CompositeNotationParser<T> create() {
@@ -78,10 +80,5 @@ public class NotationParserBuilder<T> {
         composites.addAll(this.notationParsers);
 
         return new CompositeNotationParser<T>(composites);
-    }
-
-    public NotationParserBuilder<T> nullUnsupported() {
-        this.nullUnsupported = true;
-        return this;
     }
 }

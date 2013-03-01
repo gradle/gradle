@@ -18,6 +18,7 @@ package org.gradle.api.publish;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
@@ -50,8 +51,9 @@ public interface PublicationContainer extends NamedDomainObjectSet<Publication> 
      * @param name The publication name.
      * @param type The publication type.
      * @return The added publication
+     * @throws InvalidUserDataException If type is not a valid publication type, or if a publication named "name" already exists.
      */
-    <T extends Publication> T add(String name, Class<T> type);
+    <T extends Publication> T add(String name, Class<T> type) throws InvalidUserDataException;
 
     /**
      * Creates a publication with the specified name and type, adding it to the container and configuring it with the supplied action.
@@ -69,6 +71,7 @@ public interface PublicationContainer extends NamedDomainObjectSet<Publication> 
      * @param type The publication type.
      * @param configuration The action or closure to configure the publication with.
      * @return The added publication
+     * @throws InvalidUserDataException If type is not a valid publication type, or if a publication named "name" already exists.
      */
-    <T extends Publication> T add(String name, Class<T> type, Action<? super T> configuration);
+    <T extends Publication> T add(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException;
 }

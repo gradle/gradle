@@ -58,7 +58,6 @@ public class DefaultCommandLineConverterTest {
     private boolean expectedSearchUpwards = true;
     private boolean expectedDryRun;
     private ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
-    private String expectedEmbeddedScript = "somescript";
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     private boolean expectedColorOutput = true;
     private StartParameter actualStartParameter;

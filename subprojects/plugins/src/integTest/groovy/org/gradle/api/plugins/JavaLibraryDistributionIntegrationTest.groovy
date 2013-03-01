@@ -27,119 +27,119 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         "java-library-distribution"
     }
 
-    def canCreateADistributionWithSrcDistRuntime() {
-        given:
-        createDir('libs') {
-            file 'a.jar'
-        }
-        createDir('src/dist') {
-            file 'file1.txt'
-            dir2 {
-                file 'file2.txt'
-            }
-        }
-        and:
-        settingsFile << "rootProject.name='canCreateADistributionWithSrcDistRuntime'"
-        and:
-        buildFile << """
-		apply plugin:'java-library-distribution'
-            distributions{
-                main{
-				    baseName ='SuperApp'
-			    }
-            }
-			dependencies {
-				runtime files('libs/a.jar')
-			}
-        """
-        when:
-        run 'distZip'
-        then:
-        def expandDir = file('expanded')
-        file('build/distributions/SuperApp.zip').unzipTo(expandDir)
-        expandDir.assertHasDescendants('lib/a.jar', 'file1.txt', 'dir2/file2.txt', 'canCreateADistributionWithSrcDistRuntime.jar')
+    @Override
+    String getMainTask() {
+        return "distZip"
     }
 
-    def canCreateADistributionWithReasonableDefaults() {
+    def "distribution includes project jar and runtime dependencies"() {
         given:
-        createDir('libs') {
-            file 'a.jar'
-        }
         settingsFile << "rootProject.name = 'DefaultJavaDistribution'"
+
         and:
         buildFile << """
-        apply plugin:'java-library-distribution'
+        apply plugin: 'java-library-distribution'
+
+        repositories {
+            mavenCentral()
+        }
         dependencies {
-            runtime files('libs/a.jar')
+            compile 'commons-collections:commons-collections:3.1'
+            runtime 'commons-lang:commons-lang:2.6'
         }
         """
+
         when:
         run 'distZip'
 
         then:
         def expandDir = file('expanded')
         file('build/distributions/DefaultJavaDistribution.zip').unzipTo(expandDir)
-        expandDir.assertHasDescendants('lib/a.jar', 'DefaultJavaDistribution.jar')
+        expandDir.assertHasDescendants(
+                'DefaultJavaDistribution/lib/commons-collections-3.1.jar',
+                'DefaultJavaDistribution/lib/commons-lang-2.6.jar',
+                'DefaultJavaDistribution/DefaultJavaDistribution.jar')
+        expandDir.file('DefaultJavaDistribution/DefaultJavaDistribution.jar').assertIsCopyOf(file('build/libs/DefaultJavaDistribution.jar'))
     }
 
-    def failWithNullConfiguredDistributionName() {
-        when:
-        buildFile << """
-            apply plugin:'java-library-distribution'
-            distributions {
-                main {
-                    baseName = null
-                }
-            }
-            """
-        then:
-        runAndFail 'distZip'
-        failure.assertThatDescription(containsString("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."))
-    }
-
-    def canCreateADistributionIncludingOtherFile() {
+    def "can include additional source files in distribution"() {
         given:
-        createDir('libs') {
-            file 'a.jar'
-        }
-        createDir('src/dist') {
+        createDir('src/main/dist') {
             file 'file1.txt'
             dir2 {
                 file 'file2.txt'
             }
         }
-        createDir('other') {
-            file 'file3.txt'
+        createDir('src/dist') {
+            file 'dist1.txt'
+            dir2 {
+                file 'dist2.txt'
+            }
         }
-        createDir('other2') {
-            file 'file4.txt'
+        createDir('others/dist') {
+            file 'other1.txt'
+            dir2 {
+                file 'other2.txt'
+            }
         }
+
         and:
-        settingsFile << "rootProject.name='canCreateADistributionIncludingOtherFile'"
+        settingsFile << "rootProject.name='canCreateADistributionWithSrcDistRuntime'"
+
         and:
         buildFile << """
 		apply plugin:'java-library-distribution'
-            distributions{
-                main{
-    				baseName ='SuperApp'
-	    		}
-            }
-			dependencies {
-				runtime files('libs/a.jar')
-			}
 
-			distZip{
-				from('other')
-				from('other2'){
-					into('other2')
-				}
-			}
+        version = 1.2
+
+        distributions {
+            main {
+                baseName 'SuperApp'
+                contents {
+                    from 'others/dist'
+                }
+            }
+        }
+
+        repositories {
+            mavenCentral()
+        }
+        dependencies {
+            runtime 'commons-lang:commons-lang:2.6'
+        }
         """
+
         when:
         run 'distZip'
+
         then:
         def expandDir = file('expanded')
-        file('build/distributions/SuperApp.zip').unzipTo(expandDir)
-        expandDir.assertHasDescendants('lib/a.jar', 'file1.txt', 'dir2/file2.txt', 'canCreateADistributionIncludingOtherFile.jar', 'file3.txt', 'other2/file4.txt')
+        file('build/distributions/SuperApp-1.2.zip').unzipTo(expandDir)
+        expandDir.assertHasDescendants(
+                'SuperApp-1.2/lib/commons-lang-2.6.jar',
+                'SuperApp-1.2/file1.txt',
+                'SuperApp-1.2/dist1.txt',
+                'SuperApp-1.2/other1.txt',
+                'SuperApp-1.2/dir2/file2.txt',
+                'SuperApp-1.2/dir2/dist2.txt',
+                'SuperApp-1.2/dir2/other2.txt',
+                'SuperApp-1.2/canCreateADistributionWithSrcDistRuntime-1.2.jar')
+    }
+
+    def "fails when distribution baseName is null"() {
+        given:
+        buildFile << """
+            apply plugin:'java-library-distribution'
+
+            distributions{
+                main{
+                    baseName = null
+                }
+            }
+            """
+
+        expect:
+        runAndFail 'distZip'
+        failure.assertThatDescription(containsString("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."))
     }
 }

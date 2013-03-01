@@ -220,4 +220,72 @@ task retrieve(type: Sync) {
         then:
         file('libs').assertHasDescendants('projectA-1.2.jar')
     }
+
+    def "reuses cached details when switching ivy resolve mode"() {
+        given:
+        server.start()
+        buildFile << """
+configurations {
+    compile
+}
+dependencies {
+    repositories {
+        ivy {
+            url "${ivyHttpRepo.uri}"
+            resolve.ivy.dynamicResolve = project.hasProperty('useDynamicResolve')
+        }
+    }
+    compile 'org:projectA:1.2'
+}
+task retrieve(type: Sync) {
+  from configurations.compile
+  into 'libs'
+}
+"""
+        def moduleA = ivyHttpRepo.module('org', 'projectA', '1.2')
+                .dependsOn(organisation: 'org', module: 'projectB', revision: '1.5', revConstraint: 'latest.integration')
+                .publish()
+
+        def moduleB15 = ivyHttpRepo.module('org', 'projectB', '1.5')
+                .publish()
+
+        def moduleB16 = ivyHttpRepo.module('org', 'projectB', '1.6')
+                .publish()
+
+        when:
+        moduleA.expectIvyGet()
+        moduleA.expectJarGet()
+        moduleB15.expectIvyGet()
+        moduleB15.expectJarGet()
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.5.jar')
+
+        when:
+        server.resetExpectations()
+        ivyHttpRepo.expectDirectoryListGet('org', 'projectB')
+        moduleB16.expectIvyGet()
+        moduleB16.expectJarGet()
+        executer.withArguments("-PuseDynamicResolve=true")
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar')
+
+        when:
+        server.resetExpectations()
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.5.jar')
+
+        when:
+        server.resetExpectations()
+        executer.withArguments("-PuseDynamicResolve=true")
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-1.6.jar')
+    }
 }

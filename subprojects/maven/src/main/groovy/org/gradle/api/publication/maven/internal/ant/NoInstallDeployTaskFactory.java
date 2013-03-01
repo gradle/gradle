@@ -16,6 +16,7 @@
 
 package org.gradle.api.publication.maven.internal.ant;
 
+import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.DefaultArtifactRepository;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
@@ -45,6 +46,11 @@ public class NoInstallDeployTaskFactory implements Factory<CustomDeployTask> {
         protected ArtifactRepository createLocalArtifactRepository() {
             ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, getLocalRepository().getLayout());
             return new DefaultArtifactRepository("local", tmpDirFactory.create().toURI().toString(), repositoryLayout);
+        }
+
+        @Override
+        protected void updateRepositoryWithSettings(RemoteRepository repository) {
+            // Do nothing
         }
     }
 }

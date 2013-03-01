@@ -22,6 +22,7 @@ import org.gradle.util.hash.HashUtil
 import java.text.SimpleDateFormat
 
 class MavenFileModule implements MavenModule {
+    private static final String MAVEN_METADATA_FILE = "maven-metadata.xml"
     final TestFile moduleDir
     final String groupId
     final String artifactId
@@ -106,25 +107,25 @@ class MavenFileModule implements MavenModule {
 
     void assertPublishedAsPomModule() {
         assertPublished()
-        assertArtifactsPublished("${artifactId}-${version}.pom")
+        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.pom")
         assert parsedPom.packaging == "pom"
     }
 
     void assertPublishedAsJavaModule() {
         assertPublished()
-        assertArtifactsPublished("${artifactId}-${version}.jar", "${artifactId}-${version}.pom")
+        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.jar", "${artifactId}-${publishArtifactVersion}.pom")
         assert parsedPom.packaging == null
     }
 
     void assertPublishedAsWebModule() {
         assertPublished()
-        assertArtifactsPublished("${artifactId}-${version}.war", "${artifactId}-${version}.pom")
+        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.war", "${artifactId}-${publishArtifactVersion}.pom")
         assert parsedPom.packaging == 'war'
     }
 
     void assertPublishedAsEarModule() {
         assertPublished()
-        assertArtifactsPublished("${artifactId}-${version}.ear", "${artifactId}-${version}.pom")
+        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.ear", "${artifactId}-${publishArtifactVersion}.pom")
         assert parsedPom.packaging == 'ear'
     }
 
@@ -132,13 +133,9 @@ class MavenFileModule implements MavenModule {
      * Asserts that exactly the given artifacts have been deployed, along with their checksum files
      */
     void assertArtifactsPublished(String... names) {
-        def artifactNames = names
+        def artifactNames = names as Set
         if (uniqueSnapshots && version.endsWith('-SNAPSHOT')) {
-            def metaData = new XmlParser().parse(moduleDir.file('maven-metadata.xml'))
-            def timestamp = metaData.versioning.snapshot.timestamp[0].text().trim()
-            def build = metaData.versioning.snapshot.buildNumber[0].text().trim()
-            artifactNames = names.collect { it.replace('-SNAPSHOT', "-${timestamp}-${build}")}
-            artifactNames.add("maven-metadata.xml")
+            artifactNames.add(MAVEN_METADATA_FILE)
         }
         assert moduleDir.isDirectory()
         Set actual = moduleDir.list() as Set
@@ -163,11 +160,11 @@ class MavenFileModule implements MavenModule {
     }
 
     TestFile getMetaDataFile() {
-        moduleDir.file("maven-metadata.xml")
+        moduleDir.file(MAVEN_METADATA_FILE)
     }
 
     TestFile getRootMetaDataFile() {
-        moduleDir.parentFile.file("maven-metadata.xml")
+        moduleDir.parentFile.file(MAVEN_METADATA_FILE)
     }
 
     TestFile getArtifactFile(Map options = [:]) {
@@ -202,9 +199,20 @@ class MavenFileModule implements MavenModule {
 
     String getPublishArtifactVersion() {
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-            return "${version.replaceFirst('-SNAPSHOT$', '')}-${timestampFormat.format(publishTimestamp)}-${publishCount}"
+            return "${version.replaceFirst('-SNAPSHOT$', '')}-${uniqueSnapshotVersion}"
         }
         return version
+    }
+
+    private String getUniqueSnapshotVersion() {
+        assert uniqueSnapshots && version.endsWith('-SNAPSHOT')
+        if (metaDataFile.isFile()) {
+            def metaData = new XmlParser().parse(metaDataFile.assertIsFile())
+            def timestamp = metaData.versioning.snapshot.timestamp[0].text().trim()
+            def build = metaData.versioning.snapshot.buildNumber[0].text().trim()
+            return "${timestamp}-${build}"
+        }
+        return "${timestampFormat.format(publishTimestamp)}-${publishCount}"
     }
 
     Date getPublishTimestamp() {
@@ -217,7 +225,6 @@ class MavenFileModule implements MavenModule {
 
         updateRootMavenMetaData(rootMavenMetaData)
         if (uniqueSnapshots && version.endsWith("-SNAPSHOT")) {
-            def metaDataFile = moduleDir.file('maven-metadata.xml')
             publish(metaDataFile) {
                 metaDataFile.text = """
 <metadata>

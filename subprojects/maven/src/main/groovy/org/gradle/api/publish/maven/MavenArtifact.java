@@ -17,6 +17,7 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 import java.io.File;
 
@@ -27,27 +28,28 @@ import java.io.File;
 public interface MavenArtifact extends Buildable {
     /**
      * The extension used to publish the artifact file, never <code>null</code>.
+     * For an artifact without an extension, this value will be an empty String.
      */
     String getExtension();
 
     /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
-     * @throws IllegalArgumentException on <code>null</code> input.
      */
     void setExtension(String extension);
 
     /**
-     * The classifier used to publish the artifact file, never <code>null</code>.
+     * The classifier used to publish the artifact file.
+     * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
      */
+    @Nullable
     String getClassifier();
 
     /**
      * Sets the classifier used to publish the artifact file.
      * @param classifier The classifier.
-     * @throws IllegalArgumentException on <code>null</code> input.
      */
-    void setClassifier(String classifier);
+    void setClassifier(@Nullable String classifier);
 
     /**
      * The actual file contents to publish.

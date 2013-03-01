@@ -21,6 +21,9 @@ import org.gradle.api.internal.xml.SimpleMarkupWriter;
 import java.io.IOException;
 import java.io.Writer;
 
+/**
+ * <p>A streaming HTML writer.</p>
+ */
 public class SimpleHtmlWriter extends SimpleMarkupWriter {
 
     public SimpleHtmlWriter(Writer writer) throws IOException {

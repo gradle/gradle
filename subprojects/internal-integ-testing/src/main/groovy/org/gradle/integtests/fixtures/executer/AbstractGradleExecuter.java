@@ -73,7 +73,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean stackTraceChecksOn = true;
 
     private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
-    private final ActionBroadcast<GradleExecuter> afterExecute = new ActionBroadcast<GradleExecuter>();
+    private final Set<Action> afterExecute = new LinkedHashSet<Action>();
 
     private final TestDirectoryProvider testDirectoryProvider;
     private final GradleDistribution distribution;
@@ -512,6 +512,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public final GradleHandle start() {
+        assert afterExecute.isEmpty() : "afterExecute actions are not implemented for async execution";
         fireBeforeExecute();
         assertCanExecute();
         try {
@@ -533,7 +534,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private void finished() {
         try {
-            afterExecute.execute(this);
+            new ActionBroadcast<GradleExecuter>(afterExecute).execute(this);
         } finally {
             reset();
         }

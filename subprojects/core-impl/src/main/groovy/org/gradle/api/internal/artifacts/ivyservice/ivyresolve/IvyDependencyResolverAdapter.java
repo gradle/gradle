@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
@@ -43,15 +42,15 @@ public class IvyDependencyResolverAdapter extends AbstractDependencyResolverAdap
         super(resolver);
     }
 
-    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
         ResolveData resolveData = IvyContextualiser.getIvyContext().getResolveData();
         try {
-            ResolvedModuleRevision revision = resolver.getDependency(dependencyDescriptor, resolveData);
+            ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);
             if (revision == null) {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dependencyDescriptor.getDependencyRevisionId(), getName());
+                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dependency.getRequested(), getName());
                 result.missing();
             } else {
-                LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependencyDescriptor.getDependencyRevisionId(), getName());
+                LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependency.getRequested(), getName());
                 result.resolved(revision.getDescriptor(), isChanging(revision), null);
             }
         } catch (ParseException e) {

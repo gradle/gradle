@@ -16,9 +16,9 @@
 package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
-import net.rubygrapefruit.platform.NativeException;
+import net.rubygrapefruit.platform.*;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
-import net.rubygrapefruit.platform.Terminals;
+import net.rubygrapefruit.platform.Process;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.*;
@@ -29,6 +29,7 @@ import org.gradle.internal.nativeplatform.console.WindowsConsoleDetector;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.nativeplatform.jna.*;
+import org.gradle.internal.nativeplatform.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class NativeServices extends DefaultServiceRegistry {
 
     /**
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
-     * of a native service. Also initializes the Native-Platform library using the passed user home directory.
+     * of a native service. Also initializes the Native-Platform library using the given user home directory.
      */
     public static void initialize(File userHomeDir) {
         File nativeDir = new File(userHomeDir, "native");
@@ -87,14 +88,31 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected ProcessEnvironment createProcessEnvironment() {
-        ProcessEnvironment environment;
-
         OperatingSystem operatingSystem = get(OperatingSystem.class);
+        if (USE_NATIVE_PLATFORM) {
+            try {
+                net.rubygrapefruit.platform.Process process = net.rubygrapefruit.platform.Native.get(Process.class);
+                return new NativePlatformBackedProcessEnvironment(process);
+            } catch (NativeIntegrationUnavailableException ex) {
+                if (operatingSystem.isWindows()) {
+                    LOGGER.warn("Native-platform process integration is not available. Continuing with fallback.");
+                } else {
+                    LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
+                }
+            } catch (NativeException ex) {
+                if (operatingSystem.isWindows()) {
+                    LOGGER.warn("Unable to load from native-platform backed ProcessEnvironment. Continuing with fallback. Failure: {}", format(ex));
+                } else {
+                    LOGGER.debug("Unable to load from native-platform backed ProcessEnvironment. Continuing with fallback. Failure: {}", format(ex));
+                }
+            }
+        }
+
         try {
             if (operatingSystem.isUnix()) {
-                environment = new LibCBackedProcessEnvironment(get(LibC.class));
+                return new LibCBackedProcessEnvironment(get(LibC.class));
             } else if (operatingSystem.isWindows()) {
-                environment = new WindowsProcessEnvironment();
+                return new WindowsProcessEnvironment();
             } else {
                 return new UnsupportedEnvironment();
             }
@@ -103,22 +121,21 @@ public class NativeServices extends DefaultServiceRegistry {
             LOGGER.debug("Unable to load native library. Continuing with fallback. Failure: {}", format(e));
             return new UnsupportedEnvironment();
         }
-
-        return environment;
     }
 
     protected ConsoleDetector createConsoleDetector() {
-        OperatingSystem operatingSystem = get(OperatingSystem.class);
         if (USE_NATIVE_PLATFORM) {
             try {
                 Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
                 return new NativePlatformConsoleDetector(terminals);
             } catch (NativeIntegrationUnavailableException ex) {
-                LOGGER.debug("Native-platform terminal is not available. Continuing with fallback.");
+                LOGGER.debug("Native-platform terminal integration is not available. Continuing with fallback.");
             } catch (NativeException ex) {
                 LOGGER.debug("Unable to load from native-platform backed ConsoleDetector. Continuing with fallback. Failure: {}", format(ex));
             }
         }
+
+        OperatingSystem operatingSystem = get(OperatingSystem.class);
         try {
             if (operatingSystem.isWindows()) {
                 return new WindowsConsoleDetector();
@@ -145,4 +162,5 @@ public class NativeServices extends DefaultServiceRegistry {
         }
         return builder.toString();
     }
+
 }

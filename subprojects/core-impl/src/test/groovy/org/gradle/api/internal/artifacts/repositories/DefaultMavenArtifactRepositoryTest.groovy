@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.externalresource.transport.file.FileTransport
@@ -53,7 +54,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createRealResolver()
 
         then:
         repo instanceof MavenResolver
@@ -75,11 +76,37 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createRealResolver()
 
         then:
         repo instanceof MavenResolver
         repo.root == "${uri}/"
+    }
+
+    def "creates a DSL wrapper for the repository"() {
+        given:
+        def file = new File('repo')
+        def uri = file.toURI()
+        _ * this.resolver.resolveUri('repo-dir') >> uri
+        transportFactory.createFileTransport('repo') >> new FileTransport('repo', cacheManager, Mock(TemporaryFileProvider))
+
+        and:
+        repository.name = 'repo'
+        repository.url = 'repo-dir'
+
+        when:
+        def resolver = repository.createLegacyDslObject()
+
+        then:
+        resolver instanceof LegacyMavenResolver
+        resolver.resolver instanceof MavenResolver
+
+        when:
+        def repo = resolver.createResolver()
+
+        then:
+        repo instanceof ExternalResourceResolverAdapter
+        repo.resolver.is(resolver.resolver)
     }
 
     def "creates repository with additional artifact URLs"() {
@@ -98,7 +125,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.artifactUrls('repo1', 'repo2')
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createRealResolver()
 
         then:
         repo instanceof MavenResolver
@@ -115,7 +142,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "fails when no root url specified"() {
         when:
-        repository.createResolver()
+        repository.createLegacyDslObject()
 
         then:
         InvalidUserDataException e = thrown()

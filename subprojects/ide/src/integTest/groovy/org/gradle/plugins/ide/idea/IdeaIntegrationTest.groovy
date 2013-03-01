@@ -18,11 +18,11 @@ package org.gradle.plugins.ide.idea
 
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
-import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -93,6 +93,17 @@ apply plugin: 'idea'
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.iml')
+    }
+
+    @Ignore
+    @Test
+    void addsScalaFacetAndCompilerLibraries() {
+        executer.withTasks('idea').run()
+
+        assertHasExpectedContents('root.ipr')
+        assertHasExpectedContents('project1/project1.iml')
+        assertHasExpectedContents('project2/project2.iml')
+        assertHasExpectedContents('project3/project3.iml')
     }
 
     @Test
@@ -348,7 +359,7 @@ apply plugin: "idea"
         Diff diff = new Diff(expectedXml, actualXml)
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
         try {
-            XMLAssert.assertXMLEqual(diff, true)
+            assert diff.similar()
         } catch (AssertionError e) {
             if (OperatingSystem.current().unix) {
                 def process = ["diff", expectedFile.absolutePath, file.absolutePath].execute()

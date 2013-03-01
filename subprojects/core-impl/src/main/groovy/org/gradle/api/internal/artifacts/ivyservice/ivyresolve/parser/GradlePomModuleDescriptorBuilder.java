@@ -164,8 +164,6 @@ public class GradlePomModuleDescriptorBuilder {
 
     private ModuleRevisionId mrid;
 
-    private DefaultArtifact mainArtifact;
-
     private ParserSettings parserSettings;
 
     private static final String WRONG_NUMBER_OF_PARTS_MSG = "what seemed to be a dependency "
@@ -222,8 +220,7 @@ public class GradlePomModuleDescriptorBuilder {
                 DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, "jar", "jar");
 
                 if (!ArtifactOrigin.isUnknown(resolver.locate(artifact))) {
-                    mainArtifact = artifact;
-                    ivyModuleDescriptor.addArtifact("master", mainArtifact);
+                    ivyModuleDescriptor.addArtifact("master", artifact);
                 }
             }
 
@@ -238,8 +235,7 @@ public class GradlePomModuleDescriptorBuilder {
                 DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, packaging);
 
                 if (!ArtifactOrigin.isUnknown(resolver.locate(artifact))) {
-                    mainArtifact = artifact;
-                    ivyModuleDescriptor.addArtifact("master", mainArtifact);
+                    ivyModuleDescriptor.addArtifact("master", artifact);
 
                     DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
 
@@ -248,8 +244,7 @@ public class GradlePomModuleDescriptorBuilder {
             }
         }
 
-        mainArtifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, "jar");
-        ivyModuleDescriptor.addArtifact("master", mainArtifact);
+        ivyModuleDescriptor.addArtifact("master", new DefaultArtifact(mrid, new Date(), artifactId, packaging, "jar"));
     }
 
     private boolean isKnownJarPackaging(String packaging) {
@@ -302,8 +297,7 @@ public class GradlePomModuleDescriptorBuilder {
             if (dep.getClassifier() != null) {
                 extraAtt.put("m:classifier", dep.getClassifier());
             }
-            DefaultDependencyArtifactDescriptor depArtifact =
-                    new DefaultDependencyArtifactDescriptor(dd, dd.getDependencyId().getName(), type, ext, null, extraAtt);
+            DefaultDependencyArtifactDescriptor depArtifact = new DefaultDependencyArtifactDescriptor(dd, dd.getDependencyId().getName(), type, ext, null, extraAtt);
             // here we have to assume a type and ext for the artifact, so this is a limitation
             // compared to how m2 behave with classifiers
             String optionalizedScope = dep.isOptional() ? "optional" : scope;
@@ -548,9 +542,5 @@ public class GradlePomModuleDescriptorBuilder {
 
     public void addProperty(String propertyName, String value) {
         addExtraInfo(getPropertyExtraInfoKey(propertyName), value);
-    }
-
-    public Artifact getMainArtifact() {
-        return mainArtifact;
     }
 }

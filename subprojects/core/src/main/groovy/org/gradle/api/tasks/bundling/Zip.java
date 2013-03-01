@@ -41,10 +41,11 @@ public class Zip extends AbstractArchiveTask {
         setExtension(ZIP_EXTENSION);
         action = new ZipCopyActionImpl(getServices().get(FileResolver.class));
     }
-    
+
     /**
-     * Returns the compression level of the contents of the archive.
-     * 
+     * Returns the compression level of the entries of the archive. If set to {@link ZipEntryCompression#DEFLATED} (the default), each entry is
+     * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
+     *
      * @return the compression level of the archive contents.
      */
     public ZipEntryCompression getEntryCompression() {
@@ -52,11 +53,9 @@ public class Zip extends AbstractArchiveTask {
     }
     
     /**
-     * Sets the compression level of th the contents of the archive. 
-     * If set to {@code STORED} (the default), all contents of the archive 
-     * is left uncompressed. If set to {@code DEFLATED}, the contents are
-     * compressed using the DEFLATE algorithm.
-     * 
+     * Sets the compression level of the entries of the archive. If set to {@link ZipEntryCompression#DEFLATED} (the default), each entry is
+     * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
+     *
      * @param entryCompression {@code STORED} or {@code DEFLATED}
      */
     public void setEntryCompression(ZipEntryCompression entryCompression) {

@@ -16,34 +16,24 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
 import org.gradle.internal.Factory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.util.SingleMessageLogger;
 
 public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskPlanExecutorFactory.class);
-
     private final TaskArtifactStateCacheAccess taskArtifactStateCacheAccess;
     private final int parallelThreads;
-    private final DocumentationRegistry documentationRegistry;
 
-    public TaskPlanExecutorFactory(TaskArtifactStateCacheAccess taskArtifactStateCacheAccess, int parallelThreads, DocumentationRegistry documentationRegistry) {
+    public TaskPlanExecutorFactory(TaskArtifactStateCacheAccess taskArtifactStateCacheAccess, int parallelThreads) {
         this.taskArtifactStateCacheAccess = taskArtifactStateCacheAccess;
         this.parallelThreads = parallelThreads;
-        this.documentationRegistry = documentationRegistry;
     }
 
     public TaskPlanExecutor create() {
         ExecutionOptions options = new ExecutionOptions(parallelThreads);
         if (options.executeProjectsInParallel()) {
-            String parallelWarningMessage = String.format(
-                    "Parallel project execution is an \"incubating\" feature (%s). Many builds will not run correctly with this option.",
-                    documentationRegistry.getFeatureLifecycle()
-            );
-            LOGGER.warn(parallelWarningMessage);
+            SingleMessageLogger.informAboutIncubating("Parallel project execution");
             return new ParallelTaskPlanExecutor(taskArtifactStateCacheAccess, options.numberOfParallelThreads());
         }
         return new DefaultTaskPlanExecutor();

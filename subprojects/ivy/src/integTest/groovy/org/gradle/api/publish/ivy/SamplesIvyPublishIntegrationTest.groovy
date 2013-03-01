@@ -55,26 +55,17 @@ public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         project1module.assertPublished()
         project1module.assertArtifactsPublished("project1-1.0.jar", "project1-1.0-source.jar", "ivy-1.0.xml")
 
-        with (project1module.ivy) {
-            configurations.keySet() == ['default', 'runtime'] as Set
-
-            dependencies.runtime.assertDependsOn('junit', 'junit', '4.11')
-            dependencies.runtime.assertDependsOn('org.gradle.sample', 'project2', '1.0')
-
-            description == "The first project"
-        }
+        project1module.ivy.configurations.keySet() == ['default', 'runtime'] as Set
+        project1module.ivy.description == "The first project"
+        project1module.ivy.assertDependsOn("junit:junit:4.11@runtime", "org.gradle.sample:project2:1.0@runtime")
 
         and:
         project2module.assertPublished()
         project2module.assertArtifactsPublished("project2-1.0.jar", "project2-1.0-source.jar", "ivy-1.0.xml")
 
-        with (project2module.ivy) {
-            configurations.keySet() == ['default', 'runtime'] as Set
-
-            dependencies.runtime.assertDependsOn('commons-collections', 'commons-collections', '3.1')
-
-            description == "The second project"
-        }
+        project2module.ivy.configurations.keySet() == ['default', 'runtime'] as Set
+        project2module.ivy.description == "The second project"
+        project2module.ivy.assertDependsOn('commons-collections:commons-collections:3.1@runtime')
 
         def actualIvyXmlText = project1module.ivyFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
         actualIvyXmlText == getExpectedIvyOutput(javaProject.dir.file("output-ivy.xml"))

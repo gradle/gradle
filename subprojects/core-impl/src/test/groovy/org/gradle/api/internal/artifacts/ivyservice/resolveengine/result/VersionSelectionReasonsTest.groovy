@@ -17,7 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import spock.lang.Specification
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*;
+
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*
 
 /**
  * by Szczepan Faber, created at: 1/29/13
@@ -28,6 +29,8 @@ class VersionSelectionReasonsTest extends Specification {
         expect:
         withConflictResolution(REQUESTED) == CONFLICT_RESOLUTION
         withConflictResolution(SELECTED_BY_RULE) == CONFLICT_RESOLUTION_BY_RULE
+        withConflictResolution(CONFLICT_RESOLUTION) == CONFLICT_RESOLUTION
+        withConflictResolution(CONFLICT_RESOLUTION_BY_RULE) == CONFLICT_RESOLUTION_BY_RULE
     }
 
     def "does not decorate unsupported reasons"() {

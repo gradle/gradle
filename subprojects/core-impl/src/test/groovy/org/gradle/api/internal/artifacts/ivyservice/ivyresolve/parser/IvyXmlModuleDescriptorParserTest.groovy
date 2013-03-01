@@ -15,14 +15,8 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
-
 import org.apache.ivy.core.module.descriptor.*
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.settings.IvySettings
-import org.apache.ivy.plugins.conflict.ConflictManager
-import org.apache.ivy.plugins.conflict.FixedConflictManager
-import org.apache.ivy.plugins.conflict.NoConflictManager
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
@@ -130,12 +124,6 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assertEquals(13, dependencies.length)
 
         verifyFullDependencies(dependencies)
-        verifyConflictManagers(md)
-
-        assertEquals(ModuleRevisionId.parse("yourorg#yourmodule1#BRANCH;1.0"),
-                md.mediate(new DefaultDependencyDescriptor(
-                        ModuleRevisionId.parse("yourorg#yourmodule1;2.0"), false))
-                        .getDependencyRevisionId())
 
         ExcludeRule[] rules = md.getAllExcludeRules()
         assertNotNull(rules)
@@ -145,28 +133,6 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assertEquals(Arrays.asList("myconf1"), Arrays.asList(rules[0]
                 .getConfigurations()))
         assertEquals(Arrays.asList("myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"), Arrays.asList(rules[1].getConfigurations()))
-        true
-    }
-
-    def verifyConflictManagers(ModuleDescriptor md) {
-        ConflictManager cm = md.getConflictManager(new ModuleId("yourorg", "yourmodule1"))
-        assertNotNull(cm)
-        assertTrue(cm instanceof NoConflictManager)
-
-        cm = md.getConflictManager(new ModuleId("yourorg", "yourmodule2"))
-        assertNotNull(cm)
-        assertTrue(cm instanceof NoConflictManager)
-
-        cm = md.getConflictManager(new ModuleId("theirorg", "theirmodule1"))
-        assertNotNull(cm)
-        assertTrue(cm instanceof FixedConflictManager)
-        FixedConflictManager fcm = (FixedConflictManager) cm
-        assertEquals(2, fcm.getRevs().size())
-        assertTrue(fcm.getRevs().contains("1.0"))
-        assertTrue(fcm.getRevs().contains("1.1"))
-
-        cm = md.getConflictManager(new ModuleId("theirorg", "theirmodule2"))
-        assertNull(cm)
         true
     }
 

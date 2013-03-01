@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublicationContainer;
-import org.gradle.api.publish.maven.internal.MavenPublicationInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 
 import java.io.File;
@@ -50,8 +50,7 @@ public class GeneratePomTaskCreator {
 
         String descriptorTaskName = calculateDescriptorTaskName(publicationName);
         GenerateMavenPom generatePomTask = project.getTasks().add(descriptorTaskName, GenerateMavenPom.class);
-        generatePomTask.setGroup("publishing");
-        generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'", publication.getName()));
+        generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'.", publication.getName()));
         generatePomTask.setPom(publication.getPom());
 
         ConventionMapping descriptorTaskConventionMapping = new DslObject(generatePomTask).getConventionMapping();

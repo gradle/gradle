@@ -77,6 +77,6 @@ class MavenPublishRespectsPomConfigurationTest extends AbstractIntegrationSpec {
         project1Module.assertArtifactsPublished("custom_project1-0.1.pom", "custom_project1-0.1.jar")
         def project2Module = mavenRepo.module("org.gradle.test", "project2", "0.1")
         project2Module.assertArtifactsPublished("project2-0.1.pom", "project2-0.1.jar")
-        project2Module.pom.scopes.compile.assertDependsOn("org.gradle.test", "custom_project1", "0.1")
+        project2Module.parsedPom.scopes.compile.assertDependsOn("org.gradle.test:custom_project1:0.1")
     }
 }

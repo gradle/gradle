@@ -41,8 +41,8 @@
             </tr>
             <tr>
                 <td>projectLibraries</td>
-                <td/>
-                <td/>
+                <td><literal>[]</literal> (<literal>[scala-library]</literal> with <literal>scala-base</literal> plugin)</td>
+                <td><literal>[]</literal> (<literal>[scala-library]</literal> with <literal>scala-base</literal> plugin)</td>
             </tr>
         </table>
     </section>

@@ -24,9 +24,7 @@ import org.gradle.initialization.ProjectAccessListener;
 public class DefaultProjectAccessListener implements ProjectAccessListener {
 
     public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
-        if (!targetProject.getState().getExecuting()) {
-            targetProject.evaluate();
-        }
+        targetProject.evaluate();
     }
 
     public void beforeResolvingProjectDependency(ProjectInternal dependencyProject) {

@@ -26,8 +26,6 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -41,7 +39,7 @@ import static org.gradle.util.CollectionUtils.flattenToList;
 /**
  * @author Hans Dockter
  */
-public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler, ResolverProvider {
+public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandler {
 
     public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
     private static final String MAVEN_REPO_DEFAULT_NAME = "maven";
@@ -115,7 +113,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         ConfigureUtil.configureByMap(modifiedArgs, repository);
         DependencyResolver resolver = repositoryFactory.toResolver(repository);
         ConfigureUtil.configure(configClosure, resolver);
-        addRepository(new FixedResolverArtifactRepository(resolver), "mavenRepo");
+        addRepository(repositoryFactory.createResolverBackedRepository(resolver), "mavenRepo");
         return resolver;
     }
 

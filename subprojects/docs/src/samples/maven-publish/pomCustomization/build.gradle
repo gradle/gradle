@@ -19,4 +19,12 @@ publishing {
         }
     }
 }
+// START SNIPPET generate
+publishing {
+    generatePomFileForMavenCustomPublication {
+        destination = file("$buildDir/generated-pom.xml")
+    }
+}
+// END SNIPPET generate
+
 

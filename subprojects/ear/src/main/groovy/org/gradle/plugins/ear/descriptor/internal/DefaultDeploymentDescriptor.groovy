@@ -20,10 +20,8 @@ import org.gradle.api.Action
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.DomNode
-import org.gradle.api.internal.ErroringAction
-import org.gradle.api.internal.IoActions
-import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarModule
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
@@ -185,12 +183,7 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     public DefaultDeploymentDescriptor writeTo(Object path) {
-        IoActions.writeFile(fileResolver.resolve(path), new ErroringAction<Writer>() {
-            @Override
-            void doExecute(Writer writer) {
-                writeTo(writer);
-            }
-        })
+        transformer.transform(toXmlNode(), fileResolver.resolve(path))
         return this;
     }
 

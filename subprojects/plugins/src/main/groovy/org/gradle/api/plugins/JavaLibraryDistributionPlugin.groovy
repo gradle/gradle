@@ -22,10 +22,9 @@ import org.gradle.api.Project
 import org.gradle.api.distribution.plugins.DistributionPlugin
 
 /**
- * A {@link Plugin} which package a project as a distribution including
- * JAR,API documentation and source JAR for the project.
- * @author scogneau
+ * A {@link Plugin} which package a Java project as a distribution including the JAR and runtime dependencies.
  *
+ * @author scogneau
  */
 @Incubating
 class JavaLibraryDistributionPlugin implements Plugin<Project> {
@@ -35,18 +34,9 @@ class JavaLibraryDistributionPlugin implements Plugin<Project> {
         this.project = project
         project.plugins.apply(JavaPlugin)
         project.plugins.apply(DistributionPlugin)
-        addPluginExtension()
-        configureDistZipTask()
-    }
-
-    private void addPluginExtension() {
-        project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
-    }
-
-    private void configureDistZipTask() {
-        def distZipTask = project.tasks.getByName(DistributionPlugin.TASK_DIST_ZIP_NAME)
+        def contents = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME].contents
         def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]
-        distZipTask.with {
+        contents.with {
             from(jar)
             from(project.file("src/dist"))
             into("lib") {

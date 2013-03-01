@@ -15,7 +15,11 @@
  */
 package org.gradle.internal;
 
-import java.util.*;
+import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides access to frequently used system properties.
@@ -70,6 +74,10 @@ public class SystemProperties {
 
     public static String getJavaVersion() {
         return System.getProperty("java.version");
+    }
+
+    public static File getCurrentDir() {
+        return new File(System.getProperty("user.dir"));
     }
 
     /**

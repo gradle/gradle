@@ -22,6 +22,13 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedList;
 
+/**
+ * <p>A streaming markup writer. Encodes characters and CDATA. Provides only basic state validation, and some simple indentation.</p>
+ *
+ * <p>This class also is-a {@link Writer}, and any characters written to this writer will be encoded as appropriate. Note, however, that
+ * calling {@link #close()} on this object does not close the backing stream.
+ * </p>
+ */
 public class SimpleMarkupWriter extends Writer {
     private enum Context {
         Outside, Text, CData, StartTag, ElementContent
@@ -33,7 +40,7 @@ public class SimpleMarkupWriter extends Writer {
     private int squareBrackets;
     private final String indent;
 
-    public SimpleMarkupWriter(Writer writer, String indent) throws IOException {
+    protected SimpleMarkupWriter(Writer writer, String indent) throws IOException {
         this.indent = indent;
         this.output = writer;
     }
@@ -169,12 +176,18 @@ public class SimpleMarkupWriter extends Writer {
         } else if (!isLegalCharacter(ch)) {
             writeRaw('?');
         } else if (isRestrictedCharacter(ch)) {
-            writeRaw("]]>&#x");
-            writeRaw(Integer.toHexString(ch));
-            writeRaw(";<![CDATA[");
+            writeRaw("]]>");
+            writeCharacterReference(ch);
+            writeRaw("<![CDATA[");
         } else {
             writeRaw(ch);
         }
+    }
+
+    private void writeCharacterReference(char ch) throws IOException {
+        writeRaw("&#x");
+        writeRaw(Integer.toHexString(ch));
+        writeRaw(";");
     }
 
     private boolean needsCDATAEscaping(char ch) {
@@ -394,9 +407,7 @@ public class SimpleMarkupWriter extends Writer {
         } else if (!isLegalCharacter(ch)) {
             writeRaw('?');
         } else if (isRestrictedCharacter(ch)) {
-            writeRaw("&#x");
-            writeRaw(Integer.toHexString(ch));
-            writeRaw(";");
+            writeCharacterReference(ch);
         } else {
             writeRaw(ch);
         }

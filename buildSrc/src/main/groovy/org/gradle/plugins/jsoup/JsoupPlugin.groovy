@@ -18,16 +18,13 @@ package org.gradle.plugins.jsoup
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
-import java.nio.charset.Charset
+import org.gradle.api.tasks.Copy
 
 class JsoupPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.tasks.withType(Jsoup) { Jsoup task ->
-            task.conventionMapping.with {
-                inputEncoding = { Charset.defaultCharset().name() }
-                outputEncoding = { task.inputEncoding }
-            }
+        project.tasks.withType(Copy) { Copy task ->
+            task.extensions.create("jsoup", JsoupCopyExtension, task)
         }
     }
 }

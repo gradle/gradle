@@ -34,8 +34,8 @@ public abstract class IoActions {
      * @param encoding The character encoding to write with
      * @param action The action to write the actual content
      */
-    public static void writeFile(File output, String encoding, Action<? super BufferedWriter> action) {
-        createFileWriteAction(output, encoding).execute(action);
+    public static void writeTextFile(File output, String encoding, Action<? super BufferedWriter> action) {
+        createTextFileWriteAction(output, encoding).execute(action);
     }
 
     /**
@@ -44,8 +44,8 @@ public abstract class IoActions {
      * @param output The file to write to
      * @param action The action to write the actual content
      */
-    public static void writeFile(File output, Action<? super BufferedWriter> action) {
-        writeFile(output, Charset.defaultCharset().name(), action);
+    public static void writeTextFile(File output, Action<? super BufferedWriter> action) {
+        writeTextFile(output, Charset.defaultCharset().name(), action);
     }
 
     /**
@@ -57,15 +57,15 @@ public abstract class IoActions {
      * @param encoding The character encoding to write with
      * @return An action that receives an action that performs the actual writing
      */
-    public static Action<Action<? super BufferedWriter>> createFileWriteAction(File output, String encoding) {
-        return new FileWriterIoAction(output, encoding);
+    public static Action<Action<? super BufferedWriter>> createTextFileWriteAction(File output, String encoding) {
+        return new TextFileWriterIoAction(output, encoding);
     }
 
-    private static class FileWriterIoAction implements Action<Action<? super BufferedWriter>> {
+    private static class TextFileWriterIoAction implements Action<Action<? super BufferedWriter>> {
         private final File file;
         private final String encoding;
 
-        private FileWriterIoAction(File file, String encoding) {
+        private TextFileWriterIoAction(File file, String encoding) {
             this.file = file;
             this.encoding = encoding;
         }

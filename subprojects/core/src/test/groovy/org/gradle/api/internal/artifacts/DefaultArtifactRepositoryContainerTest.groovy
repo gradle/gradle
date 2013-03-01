@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
-import org.gradle.api.internal.artifacts.repositories.FixedResolverArtifactRepository
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
@@ -45,18 +44,20 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
     }
 
     List setupNotation(int i, repositoryFactory = repositoryFactory) {
-        setupNotation("repoNotation$i", "repo$i", "resolver$i", repositoryFactory)
+        setupNotation("repoNotation$i", i == 1 ? "repository" : "repository${i-1}", "resolver$i", repositoryFactory)
     }
 
     List setupNotation(notation, repoName, resolverName, repositoryFactory = repositoryFactory) {
         def repo = Mock(ArtifactRepositoryInternal) { getName() >> repoName }
-        def resolver = new FileSystemResolver()
-        def resolverRepo = Spy(FixedResolverArtifactRepository, constructorArgs: [resolver])
+        def resolver = Mock(DependencyResolver)
+        def resolverRepo = Mock(ArtifactRepositoryInternal)
 
         interaction {
             1 * repositoryFactory.createRepository(notation) >> repo
             1 * repositoryFactory.toResolver(repo) >> resolver
             1 * repositoryFactory.createResolverBackedRepository(resolver) >> resolverRepo
+            1 * resolverRepo.setName(repoName)
+            _ * resolverRepo.getName() >> repoName
             1 * resolverRepo.onAddToContainer(container)
         }
 
@@ -70,7 +71,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
 
         expect:
         container.addLast(repo1Notation).is resolver1
-        assert container.findByName(resolver1.name) != null
+        assert container.findByName("repository") != null
         container.addLast(repo2Notation)
         container == [resolverRepo1, resolverRepo2]
     }
@@ -85,31 +86,30 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         container.addLast(repo2Notation)
 
         then:
-        container*.name == ["repository", "repository2"]
+        container*.name == ["repository", "repository1"]
     }
 
     def testAddResolverWithClosure() {
         given:
         def repo = Mock(ArtifactRepositoryInternal) { getName() >> "name" }
-        def resolver = new FileSystemResolver()
-        def resolverRepo = Spy(FixedResolverArtifactRepository, constructorArgs: [resolver])
+        def resolver = Mock(DependencyResolver)
+        def resolverRepo = Mock(ArtifactRepositoryInternal)
 
         interaction {
             1 * repositoryFactory.createRepository(resolver) >> repo
             1 * repositoryFactory.toResolver(repo) >> resolver
             1 * repositoryFactory.createResolverBackedRepository(resolver) >> resolverRepo
+            _ * resolverRepo.name >> "bar"
             1 * resolverRepo.onAddToContainer(container)
         }
 
         when:
         container.add(resolver) {
-            transactional = "foo"
             name = "bar"
         }
 
         then:
-        resolver.transactional == "foo"
-        resolverRepo.name == "bar"
+        1 * resolver.setName("bar")
     }
 
     def testAddBefore() {
@@ -210,18 +210,6 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
 
         then:
         container == [resolverRepo1, resolverRepo2]
-    }
-
-    public void testAddWithUnnamedResolver() {
-        given:
-        def (repo1Notation, repo1, resolver1, resolverRepo1) = setupNotation(1)
-        resolver1.name = null
-
-        when:
-        container.addLast(repo1Notation)
-
-        then:
-        resolver1.name == 'repository'
     }
 
     def testGetThrowsExceptionForUnknownResolver() {

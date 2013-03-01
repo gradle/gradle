@@ -17,14 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,29 +43,28 @@ public class UserResolverChain implements DependencyToModuleResolver {
         moduleVersionRepositoryNames.add(repository.getName());
     }
 
-    public void resolve(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionResolveResult result) {
-        final ModuleRevisionId dependencyRevisionId = dependencyDescriptor.getDependencyRevisionId();
-        LOGGER.debug("Attempting to resolve module '{}' using repositories {}", dependencyRevisionId, moduleVersionRepositoryNames);
+    public void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result) {
+        ModuleVersionSelector requested = dependency.getRequested();
+        LOGGER.debug("Attempting to resolve module '{}' using repositories {}", requested, moduleVersionRepositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
-        final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
+        final ModuleResolution latestResolved = findLatestModule(dependency, errors);
         if (latestResolved != null) {
-            final ModuleVersionDescriptor downloadedModule = latestResolved.module;
+            final ModuleVersionMetaData downloadedModule = latestResolved.module;
             LOGGER.debug("Using module '{}' from repository '{}'", downloadedModule.getId(), latestResolved.repository.getName());
             for (Throwable error : errors) {
                 LOGGER.debug("Discarding resolve failure.", error);
             }
-            result.resolved(latestResolved.getId(), latestResolved.getDescriptor(), new ModuleVersionRepositoryArtifactResolverAdapter(latestResolved.repository, latestResolved.moduleSource));
+            result.resolved(latestResolved.module, new ModuleVersionRepositoryArtifactResolverAdapter(latestResolved.repository, latestResolved.moduleSource));
             return;
         }
         if (!errors.isEmpty()) {
-            result.failed(new ModuleVersionResolveException(dependencyRevisionId, errors));
+            result.failed(new ModuleVersionResolveException(requested, errors));
         } else {
-            final DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(dependencyRevisionId.getOrganisation(), dependencyRevisionId.getName(), dependencyRevisionId.getRevision());
-            result.notFound(moduleVersionIdentifier);
+            result.notFound(requested);
         }
     }
 
-    private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor, Collection<Throwable> failures) {
+    private ModuleResolution findLatestModule(DependencyMetaData dependency, Collection<Throwable> failures) {
         LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
         for (LocalAwareModuleVersionRepository repository : moduleVersionRepositories) {
             queue.add(new RepositoryResolveState(repository));
@@ -77,7 +72,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         LinkedList<RepositoryResolveState> missing = new LinkedList<RepositoryResolveState>();
 
         // A first pass to do local resolves only
-        ModuleResolution best = findLatestModule(dependencyDescriptor, queue, failures, missing);
+        ModuleResolution best = findLatestModule(dependency, queue, failures, missing);
         if (best != null) {
             return best;
         }
@@ -85,16 +80,16 @@ public class UserResolverChain implements DependencyToModuleResolver {
         // Nothing found - do a second pass
         queue.addAll(missing);
         missing.clear();
-        return findLatestModule(dependencyDescriptor, queue, failures, missing);
+        return findLatestModule(dependency, queue, failures, missing);
     }
 
-    private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
-        boolean isStaticVersion = !settings.getVersionMatcher().isDynamic(dependencyDescriptor.getDependencyRevisionId());
+    private ModuleResolution findLatestModule(DependencyMetaData dependency, LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
+        boolean isStaticVersion = !settings.getVersionMatcher().isDynamic(dependency.getDescriptor().getDependencyRevisionId());
         ModuleResolution best = null;
         while (!queue.isEmpty()) {
             RepositoryResolveState request = queue.removeFirst();
             try {
-                request.resolve(dependencyDescriptor);
+                request.resolve(dependency);
             } catch (Throwable t) {
                 failures.add(t);
                 continue;
@@ -167,7 +162,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
 
     private static class RepositoryResolveState {
         final LocalAwareModuleVersionRepository repository;
-        final DefaultBuildableModuleVersionDescriptor descriptor = new DefaultBuildableModuleVersionDescriptor();
+        final DefaultBuildableModuleVersionMetaData descriptor = new DefaultBuildableModuleVersionMetaData();
 
         boolean searchedLocally;
         boolean searchedRemotely;
@@ -176,15 +171,15 @@ public class UserResolverChain implements DependencyToModuleResolver {
             this.repository = repository;
         }
 
-        void resolve(DependencyDescriptor dependencyDescriptor) {
+        void resolve(DependencyMetaData dependency) {
             if (!searchedLocally) {
                 searchedLocally = true;
-                repository.getLocalDependency(dependencyDescriptor, descriptor);
+                repository.getLocalDependency(dependency, descriptor);
             } else {
                 searchedRemotely = true;
-                repository.getDependency(dependencyDescriptor, descriptor);
+                repository.getDependency(dependency, descriptor);
             }
-            if (descriptor.getState() == BuildableModuleVersionDescriptor.State.Failed) {
+            if (descriptor.getState() == BuildableModuleVersionMetaData.State.Failed) {
                 throw descriptor.getFailure();
             }
         }
@@ -196,21 +191,13 @@ public class UserResolverChain implements DependencyToModuleResolver {
 
     private static class ModuleResolution implements ArtifactInfo {
         public final ModuleVersionRepository repository;
-        public final ModuleVersionDescriptor module;
+        public final ModuleVersionMetaData module;
         public final ModuleSource moduleSource;
 
-        public ModuleResolution(ModuleVersionRepository repository, ModuleVersionDescriptor module, ModuleSource moduleSource) {
+        public ModuleResolution(ModuleVersionRepository repository, ModuleVersionMetaData module, ModuleSource moduleSource) {
             this.repository = repository;
             this.module = module;
             this.moduleSource = moduleSource;
-        }
-
-        public ModuleVersionIdentifier getId() throws ModuleVersionResolveException {
-            return module.getId();
-        }
-
-        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-            return module.getDescriptor();
         }
 
         public boolean isGeneratedModuleDescriptor() {

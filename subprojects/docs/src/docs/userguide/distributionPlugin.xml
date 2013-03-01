@@ -31,12 +31,12 @@
         <sample id="useDistributionPlugin" dir="userguide/distribution" title="Using the distribution plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
-        <para>To define the name for the distribution you have to set the <literal>name</literal> property as shown below</para>
+        <para>To define the name for the distribution you have to set the <literal>baseName</literal> property as shown below</para>
         <sample id="configureDistributionName" dir="userguide/distribution" title="Configure the distribution name">
             <sourcefile file="build.gradle" snippet="name-conf"/>
         </sample>
         <para>The plugin build a distribution for your project. You can run <userinput>gradle distZip</userinput> to create a
-            ZIP containing the distribution.
+            ZIP containing the distribution.  Given that the project name is myproject and version is 1.2, then running gradle customDistZip will produce a ZIP file called myproject-1.2.zip
         </para>
     </section>
 
@@ -65,16 +65,53 @@
             </td>
                 <td>Creates a full distribution ZIP archive.</td>
             </tr>
+        <tr>
+            <td>
+               <literal>distTar</literal>
+            </td>
+            <td>
+               <literal>-</literal>
+            </td>
+            <td>
+                <apilink class="org.gradle.api.tasks.bundling.Tar"/>
+            </td>
+                <td>Creates a full distribution TAR archive.</td>
+            </tr>
+        <tr>
+            <td>
+                <literal>installDist</literal>
+            </td>
+            <td>
+                <literal>-</literal>
+            </td>
+            <td>
+                <apilink class="org.gradle.api.tasks.Sync"/>
+            </td>
+            <td>Install distribution contents.</td>
+            </tr>
+
         </table>
+    </section>
+
+    <section>
+        <title>Configure distributions</title>
+        <para>The distribution plugin allow to configure distributions to include custom files and to change distribution baseName.
+        </para>
+        <sample id="customDistribution" dir="userguide/distribution" title="Declare multiple distributions">
+            <sourcefile file="build.gradle" snippet="custom-distribution"/>
+        </sample>
     </section>
 
     <section>
         <title>Multiple distributions</title>
         <para>The distribution plugin allow to generate multiple distributions.
+
         </para>
         <sample id="multipleDistribution" dir="userguide/distribution" title="Declare multiple distributions">
-            <sourcefile file="build.gradle" snippet="custom-distZip"/>
+            <sourcefile file="build.gradle" snippet="declare-distribution"/>
         </sample>
+        <para>This will following tasks to the project : customDistZip, customDistTar, installcustomDist. Given that the project name is myproject, then running gradle customDistZip will produce a ZIP file called myproject-custom-1.2.zip
+            and running customDistTar will produce myproject-custom-1.2.tar. Running installcustomDist will install distribution contents into buildDir/install/custom.</para>
     </section>
 
     <section>

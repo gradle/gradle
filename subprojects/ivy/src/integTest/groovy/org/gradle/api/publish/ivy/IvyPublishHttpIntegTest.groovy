@@ -201,7 +201,8 @@ credentials {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'ivy-publish'
-
+            version = '2'
+            group = 'org.gradle'
             publishing {
                 repositories {
                     ivy {

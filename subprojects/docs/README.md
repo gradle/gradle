@@ -114,6 +114,10 @@ The sample source files can contain snippets which can be included in the docume
 
 ### Useful docbook tags:
 
+See the [docbook reference](http://docbook.org/tdg/en/html/part2.html) for a list of all available tags.
+
+Here are some useful ones:
+
 #### `<programlisting>`
 
 For code snippets

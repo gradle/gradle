@@ -122,7 +122,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         if (startParameter.isProfile()) {
             listenerManager.addListener(new ReportGeneratingProfileListener());
         }
-        listenerManager.addListener(new DefaultDependencyResolutionListener(serviceRegistry.get(ProjectAccessListener.class)));
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry);
         return new DefaultGradleLauncher(

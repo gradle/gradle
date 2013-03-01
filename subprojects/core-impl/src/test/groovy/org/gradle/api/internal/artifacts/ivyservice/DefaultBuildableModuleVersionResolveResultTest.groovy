@@ -18,11 +18,45 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
 import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DefaultBuildableModuleVersionResolveResultTest extends Specification {
     def result = new DefaultBuildableModuleVersionResolveResult()
+
+    def "can query id and meta-data when resolved"() {
+        ModuleVersionIdentifier id = Stub()
+        ModuleVersionMetaData metaData = Stub() {
+            getId() >> id
+        }
+        ArtifactResolver resolver = Stub()
+
+        when:
+        result.resolved(metaData, resolver)
+
+        then:
+        result.id == id
+        result.artifactResolver == resolver
+        result.metaData == metaData
+    }
+
+    def "can resolve using id and ivy descriptor"() {
+        ModuleVersionIdentifier id = Mock()
+        ModuleDescriptor descriptor = Mock()
+        ArtifactResolver resolver = Mock()
+
+        when:
+        result.resolved(id, descriptor, resolver)
+
+        then:
+        result.id == id
+        result.artifactResolver == resolver
+        result.metaData.id == id
+        result.metaData.descriptor == descriptor
+        !result.metaData.changing
+    }
 
     def "cannot get id when no result has been specified"() {
         when:
@@ -33,9 +67,9 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
         e.message == 'No result has been specified.'
     }
 
-    def "cannot get descriptor when no result has been specified"() {
+    def "cannot get meta-data when no result has been specified"() {
         when:
-        result.descriptor
+        result.metaData
 
         then:
         IllegalStateException e = thrown()
@@ -72,12 +106,12 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
         e == failure
     }
 
-    def "cannot get descriptor when resolve failed"() {
+    def "cannot get meta-data when resolve failed"() {
         def failure = new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
 
         when:
         result.failed(failure)
-        result.descriptor
+        result.metaData
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -106,7 +140,7 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
 
     def "fails with a not found exception when not found"() {
         when:
-        result.notFound(Mock(ModuleVersionIdentifier))
+        result.notFound(Mock(ModuleVersionSelector))
 
         then:
         result.failure instanceof ModuleVersionNotFoundException

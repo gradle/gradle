@@ -20,9 +20,13 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.internal.DomNode
 import org.gradle.util.TextUtil
 import spock.lang.Specification
+import org.junit.Rule
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import javax.xml.parsers.DocumentBuilderFactory
 
 class XmlTransformerTest extends Specification {
     final XmlTransformer transformer = new XmlTransformer()
+    @Rule TestNameTestDirectoryProvider tmpDir
 
     def "returns original string when no actions are provided"() {
         expect:
@@ -88,6 +92,21 @@ class XmlTransformerTest extends Specification {
         looksLike '<root>\n  <child1/>\n</root>\n', writer.toString()
     }
 
+    def "can transform String to an OutputStream"() {
+        Action<XmlProvider> action = Mock()
+        transformer.addAction(action)
+        def outputStream = new ByteArrayOutputStream()
+
+        when:
+        transformer.transform('<root/>', outputStream)
+
+        then:
+        action.execute(_) >> { XmlProvider provider ->
+            provider.asNode().appendNode('child\u03b1')
+        }
+        looksLike '<root>\n  <child\u03b1/>\n</root>\n', outputStream.toByteArray()
+    }
+
     def "can transform Node to a Writer"() {
         Action<XmlProvider> action = Mock()
         transformer.addAction(action)
@@ -102,6 +121,38 @@ class XmlTransformerTest extends Specification {
             provider.asNode().appendNode('child1')
         }
         looksLike '<root>\n  <child1/>\n</root>\n', writer.toString()
+    }
+
+    def "can transform Node to an OutputStream"() {
+        Action<XmlProvider> action = Mock()
+        transformer.addAction(action)
+        def outputStream = new ByteArrayOutputStream()
+        Node node = new XmlParser().parseText('<root/>')
+
+        when:
+        transformer.transform(node, outputStream)
+
+        then:
+        action.execute(_) >> { XmlProvider provider ->
+            provider.asNode().appendNode('child\u03b1')
+        }
+        looksLike '<root>\n  <child\u03b1/>\n</root>\n', outputStream.toByteArray()
+    }
+
+    def "can transform Node to a File"() {
+        Action<XmlProvider> action = Mock()
+        transformer.addAction(action)
+        File file = tmpDir.file("out.xml")
+        Node node = new XmlParser().parseText('<root/>')
+
+        when:
+        transformer.transform(node, file)
+
+        then:
+        action.execute(_) >> { XmlProvider provider ->
+            provider.asNode().appendNode('child\u03b1')
+        }
+        looksLike '<root>\n  <child\u03b1/>\n</root>\n', file.bytes
     }
 
     def "can use a closure as an action"() {
@@ -293,14 +344,15 @@ class XmlTransformerTest extends Specification {
     }
 
     private void looksLike(String expected, String actual) {
-        assert removeTrailingWhitespace(actual) == removeTrailingWhitespace(TextUtil.toPlatformLineSeparators(addXmlDeclaration(expected)))
+        assert removeTrailingWhitespace(actual) == removeTrailingWhitespace(TextUtil.toPlatformLineSeparators("<?xml version=\"1.0\"?>\n" + expected))
+    }
+
+    private void looksLike(String expected, byte[] actual) {
+        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(actual))
+        assert removeTrailingWhitespace(new String(actual, "utf-8")) == removeTrailingWhitespace(TextUtil.toPlatformLineSeparators("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + expected))
     }
 
     private String removeTrailingWhitespace(String value) {
         return value.replaceFirst('(?s)\\s+$', "")
-    }
-
-    private String addXmlDeclaration(String value) {
-        "<?xml version=\"1.0\"?>\n" + value
     }
 }

@@ -18,8 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 /**
@@ -29,15 +27,26 @@ class ResolutionStrategySamplesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder, 'userguide/artifacts/resolutionStrategy')
 
-    @Requires(TestPrecondition.NOT_JDK5)
-    //because some of the api of the samples does not work with JDK5, see GRADLE-1949
     void "can resolve dependencies"()
     {
         mavenRepo.module("org", "foo").publish()
+        mavenRepo.module("org", "bar").publish()
+        mavenRepo.module("org.gradle", "gradle-core", "1.4").publish()
+        mavenRepo.module("org.software", "some-library", "1.2.1").publish()
+        mavenRepo.module("org.codehaus", "groovy", "1.7").publish()
+        mavenRepo.module("org.slf4j", "log4j-over-slf4j", "1.7.2").publish()
+
         sample.dir.file("build.gradle") << """
             configurations { conf }
             repositories { maven { url "${mavenRepo.uri}" } }
-            dependencies { conf "org:foo:1.0" }
+            dependencies {
+                conf "org:foo:1.0"
+                conf "org.gradle:gradle-core:1.0"
+                conf "org:bar:default"
+                conf "org.software:some-library:1.2"
+                conf "org.codehaus:groovy-all:1.7"
+                conf "log4j:log4j:1.2"
+            }
             task resolveConf << { configurations.conf.files }
         """
 

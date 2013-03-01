@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 
@@ -40,14 +39,10 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         return repository.getName();
     }
 
-    public boolean isLocal() {
-        return repository.isLocal();
-    }
-
-    public void getDependency(final DependencyDescriptor dependencyDescriptor, final BuildableModuleVersionDescriptor result) {
-        cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependencyDescriptor, getId()), new Runnable() {
+    public void getDependency(final DependencyMetaData dependency, final BuildableModuleVersionMetaData result) {
+        cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, getId()), new Runnable() {
             public void run() {
-                repository.getDependency(dependencyDescriptor, result);
+                repository.getDependency(dependency, result);
             }
         });
     }

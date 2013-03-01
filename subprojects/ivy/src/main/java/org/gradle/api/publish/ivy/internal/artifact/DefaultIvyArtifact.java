@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy.internal.artifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -33,12 +34,12 @@ public class DefaultIvyArtifact implements IvyArtifact {
 
     public DefaultIvyArtifact(File file, String name, String extension, String type, String classifier) {
         this.file = file;
-        // TODO:DAZ Validate the name later when actually publishing (validation story)
         this.name = name;
 
         this.extension = extension;
         this.type = type;
-        this.classifier = classifier;
+        // Handle empty classifiers that come from PublishArtifact and AbstractArchiveTask
+        this.classifier = GUtil.elvis(classifier, null);
     }
 
     public File getFile() {

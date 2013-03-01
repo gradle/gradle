@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 
 /**
  * Resolves a dependency to the id for a module.
@@ -24,5 +24,5 @@ public interface DependencyToModuleVersionIdResolver {
     /**
      * Resolves the given dependency to a module version id. Note that failures are packaged up into the result.
      */
-    ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor);
+    ModuleVersionIdResolveResult resolve(DependencyMetaData dependencyDescriptor);
 }

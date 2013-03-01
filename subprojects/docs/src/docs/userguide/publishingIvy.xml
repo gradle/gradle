@@ -127,8 +127,8 @@
                 <apilink class="org.gradle.api.tasks.bundling.AbstractArchiveTask"/> (e.g. Jar, Zip).
             </para>
             <para>
-                For each custom artifact, it is possible to specify the <literal>extension</literal> and <literal>classifier</literal> values to use for publication. Note that
-                only one of the published artifacts can have an empty classifier, and all other artifacts must have a unique classifier/extension combination.
+                For each custom artifact, it is possible to specify the <literal>name</literal>, <literal>extension</literal>, <literal>type</literal>, <literal>classifier</literal>
+                and <literal>conf</literal> values to use for publication. Note that each artifacts must have a unique name/classifier/extension combination.
             </para>
             <para>
                 Configure custom artifacts as follows:
@@ -166,16 +166,19 @@
                 <sourcefile file="build.gradle" snippet="customize-descriptor" />
             </sample>
             <para>
-                In this example we are adding a 'description' element for the generated POM. With this hook, you can modify any aspect of the POM.
-                For example, you could replace the version range for a dependency with the actual version used to produce the build.
+                In this example we are adding a 'description' element to the generated Ivy dependency descriptor, but this this hook, allows you to modify any aspect
+                of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
             </para>
             <para>
                 See <apilink class="org.gradle.api.publish.ivy.IvyModuleDescriptor" method="withXml(org.gradle.api.Action)" /> for the relevant API reference documentation.
             </para>
             <para>
-                It is possible to modify any aspect of the created descriptor should you need to.
+                It is possible to modify virtually any aspect of the created descriptor should you need to.
                 This means that it is also possible to modify the descriptor in such a way that it is no longer a valid
                 Ivy module descriptor, so care must be taken when using this feature.
+            </para>
+            <para>
+                The identifier (organisation, module, revision) of the published module is an exception; these values cannot be modified in the descriptor using the `withXML` hook.
             </para>
         </section>
     </section>
@@ -240,9 +243,22 @@
             You can specify where the generated Ivy file will be located by setting the <literal>destination</literal> property on the generate task.
             By default this file is generated to <literal>build/publications/«<emphasis>NAME OF PUBLICATION</emphasis>»/ivy.xml</literal>.
         </para>
-        <sample dir="ivy-publish/descriptor-customization" id="generateIvyModuleDescriptor" title="Generating the Ivy module descriptor file">
+        <sample dir="ivy-publish/descriptor-customization" id="publishingIvyGenerateDescriptor" title="Generating the Ivy module descriptor file">
             <sourcefile file="build.gradle" snippet="generate" />
+            <output args="generateIvyCustomIvyModuleDescriptor"/>
         </sample>
+        <note>
+            <para>
+                The “<literal>ivy-publish</literal>” plugin leverages some experimental support for late plugin configuration,
+                and the <literal>GenerateIvyDescriptor</literal> task will not be constructed until the publishing extension is configured.
+                The simplest way to ensure that the publishing plugin is configured when you attempt to access the <literal>GenerateIvyDescriptor</literal> task
+                is to place the access inside a <literal>publishing</literal> block, as the above example demonstrates.
+            </para>
+            <para>
+                The same applies to any attempt to access publication-specific tasks like <apilink class="org.gradle.api.publish.ivy.tasks.PublishToIvyRepository" />.
+                These tasks should be referenced from within a <literal>publishing</literal> block.
+            </para>
+        </note>
     </section>
     <section id="publishing_ivy:example">
         <title>Complete example</title>

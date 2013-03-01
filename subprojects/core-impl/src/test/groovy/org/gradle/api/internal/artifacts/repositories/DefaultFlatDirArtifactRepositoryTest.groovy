@@ -37,7 +37,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         repository.dirs('a', 'b')
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createLegacyDslObject()
 
         then:
         repo instanceof FileSystemResolver
@@ -57,7 +57,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         _ * fileResolver.resolveFiles(_) >> new SimpleFileCollection()
 
         when:
-        repository.createResolver()
+        repository.createLegacyDslObject()
 
         then:
         InvalidUserDataException e = thrown()

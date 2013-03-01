@@ -15,9 +15,7 @@
  */
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class IvyPublishWarIntegTest extends AbstractIntegrationSpec {
+class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
 
     public void "can publish WAR only for mixed java and WAR project"() {
         given:
@@ -67,11 +65,14 @@ class IvyPublishWarIntegTest extends AbstractIntegrationSpec {
 
         and: "correct configurations and depdendencies declared"
         with (ivyModule.ivy) {
-            configurations.keySet() == ["default", "runtime"] as Set
-            configurations.runtime.extend == null
-            configurations.default.extend == ["runtime"] as Set
+            configurations.keySet() == ["default", "master"] as Set
+            configurations.default.extend == ["master"] as Set
+            configurations.master.extend == null
 
             dependencies.isEmpty()
         }
+
+        and: "can resolve warfile"
+        resolveArtifacts(ivyModule) == ["publishTest-1.9.war"]
     }
 }

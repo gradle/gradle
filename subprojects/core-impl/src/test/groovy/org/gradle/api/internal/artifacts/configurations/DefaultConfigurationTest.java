@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
@@ -52,7 +53,7 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class DefaultConfigurationTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
-    private ArtifactDependencyResolver dependencyResolver = context.mock(ArtifactDependencyResolver.class);
+    private ConfigurationResolver dependencyResolver = context.mock(ConfigurationResolver.class);
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
@@ -239,8 +240,8 @@ public class DefaultConfigurationTest {
 
     @Test
     public void fileCollectionWithDependencies() {
-        Dependency dependency1 = HelperUtil.createDependency("group1", "name", "version");
-        Dependency dependency2 = HelperUtil.createDependency("group2", "name", "version");
+        Dependency dependency1 = createDependency("group1", "name", "version");
+        Dependency dependency2 = createDependency("group2", "name", "version");
         DefaultConfiguration.ConfigurationFileCollection fileCollection = (DefaultConfiguration.ConfigurationFileCollection)
                 configuration.fileCollection(dependency1);
         assertThat(fileCollection.getDependencySpec().isSatisfiedBy(dependency1),
@@ -257,7 +258,6 @@ public class DefaultConfigurationTest {
         assertThat(configuration.files(context.mock(Spec.class)), equalTo(fileSet));
         assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
     }
-
 
     @Test
     public void fileCollectionWithSpec() {
@@ -282,9 +282,9 @@ public class DefaultConfigurationTest {
         Closure closure = HelperUtil.toClosure("{ dep -> dep.group == 'group1' }");
         DefaultConfiguration.ConfigurationFileCollection fileCollection = (DefaultConfiguration.ConfigurationFileCollection)
                 configuration.fileCollection(closure);
-        assertThat(fileCollection.getDependencySpec().isSatisfiedBy(HelperUtil.createDependency("group1", "name", "version")),
+        assertThat(fileCollection.getDependencySpec().isSatisfiedBy(createDependency("group1", "name", "version")),
                 equalTo(true));
-        assertThat(fileCollection.getDependencySpec().isSatisfiedBy(HelperUtil.createDependency("group2", "name", "version")),
+        assertThat(fileCollection.getDependencySpec().isSatisfiedBy(createDependency("group2", "name", "version")),
                 equalTo(false));
     }
 
@@ -369,7 +369,7 @@ public class DefaultConfigurationTest {
         final TaskDependency otherArtifactTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
         final PublishArtifact otherArtifact = context.mock(PublishArtifact.class, "otherArtifact");
         final PublishArtifactSet inheritedArtifacts = new DefaultPublishArtifactSet("artifacts", toDomainObjectSet(PublishArtifact.class, otherArtifact));
-        DefaultPublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
+        DefaultPublishArtifact artifact = createPublishArtifact("name1", "ext1", "type1", "classifier1");
         artifact.builtBy(artifactTaskMock);
         configuration.getArtifacts().add(artifact);
 
@@ -623,8 +623,8 @@ public class DefaultConfigurationTest {
 
     @Test
     public void getAllDependencies() {
-        Dependency dependencyConf = HelperUtil.createDependency("group1", "name1", "version1");
-        Dependency dependencyOtherConf1 = HelperUtil.createDependency("group1", "name1", "version1");
+        Dependency dependencyConf = createDependency("group1", "name1", "version1");
+        Dependency dependencyOtherConf1 = createDependency("group1", "name1", "version1");
         Dependency dependencyOtherConf2 = context.mock(Dependency.class, "dep2");
         Configuration otherConf = createNamedConfiguration("otherConf");
         configuration.getDependencies().add(dependencyConf);
@@ -662,8 +662,8 @@ public class DefaultConfigurationTest {
 
     @Test
     public void getAllArtifacts() {
-        PublishArtifact artifactConf = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
-        PublishArtifact artifactOtherConf2 = HelperUtil.createPublishArtifact("name2", "ext2", "type2", "classifier2");
+        PublishArtifact artifactConf = createPublishArtifact("name1", "ext1", "type1", "classifier1");
+        PublishArtifact artifactOtherConf2 = createPublishArtifact("name2", "ext2", "type2", "classifier2");
         Configuration otherConf = createNamedConfiguration("otherConf");
         configuration.getArtifacts().add(artifactConf);
         configuration.extendsFrom(otherConf);
@@ -674,7 +674,7 @@ public class DefaultConfigurationTest {
     @Test
     public void artifactAddedAction() {
         final TestClosure closure = context.mock(TestClosure.class);
-        final PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
+        final PublishArtifact artifact = createPublishArtifact("name1", "ext1", "type1", "classifier1");
 
         context.checking(new Expectations() {{
             one(closure).call(artifact);
@@ -687,7 +687,7 @@ public class DefaultConfigurationTest {
     @Test
     public void artifactRemovedAction() {
         final TestClosure closure = context.mock(TestClosure.class);
-        final PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
+        final PublishArtifact artifact = createPublishArtifact("name1", "ext1", "type1", "classifier1");
 
         configuration.getArtifacts().add(artifact);
 
@@ -702,7 +702,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void removeArtifact() {
-        PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
+        PublishArtifact artifact = createPublishArtifact("name1", "ext1", "type1", "classifier1");
         configuration.getArtifacts().add(artifact);
         configuration.getArtifacts().remove(artifact);
         assertThat(configuration.getAllArtifacts(), Matchers.isEmpty());
@@ -710,9 +710,9 @@ public class DefaultConfigurationTest {
 
     @Test
     public void removeArtifactWithUnknownArtifact() {
-        PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
+        PublishArtifact artifact = createPublishArtifact("name1", "ext1", "type1", "classifier1");
         configuration.getArtifacts().add(artifact);
-        configuration.getArtifacts().remove(HelperUtil.createPublishArtifact("name2", "ext1", "type1", "classifier1"));
+        configuration.getArtifacts().remove(createPublishArtifact("name2", "ext1", "type1", "classifier1"));
         assertThat(configuration.getAllArtifacts(), hasSameItems(toSet(artifact)));
     }
 
@@ -738,7 +738,7 @@ public class DefaultConfigurationTest {
     public void copyWithSpec() {
         prepareConfigurationForCopyTest();
         Set<Dependency> expectedDependenciesToCopy = new HashSet<Dependency>(configuration.getDependencies());
-        configuration.getDependencies().add(HelperUtil.createDependency("group3", "name3", "version3"));
+        configuration.getDependencies().add(createDependency("group3", "name3", "version3"));
 
         Configuration copiedConfiguration = configuration.copy(new Spec<Dependency>() {
             public boolean isSatisfiedBy(Dependency element) {
@@ -753,7 +753,7 @@ public class DefaultConfigurationTest {
     public void copyWithClosure() {
         prepareConfigurationForCopyTest();
         Set<Dependency> expectedDependenciesToCopy = new HashSet<Dependency>(configuration.getDependencies());
-        configuration.getDependencies().add(HelperUtil.createDependency("group3", "name3", "version3"));
+        configuration.getDependencies().add(createDependency("group3", "name3", "version3"));
 
         Closure specClosure = HelperUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
         Configuration copiedConfiguration = configuration.copy(specClosure);
@@ -767,10 +767,10 @@ public class DefaultConfigurationTest {
         configuration.setDescription("descript");
         configuration.exclude(toMap("group", "value"));
         configuration.exclude(toMap("group", "value2"));
-        configuration.getArtifacts().add(HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1"));
-        configuration.getArtifacts().add(HelperUtil.createPublishArtifact("name2", "ext2", "type2", "classifier2"));
-        configuration.getDependencies().add(HelperUtil.createDependency("group1", "name1", "version1"));
-        configuration.getDependencies().add(HelperUtil.createDependency("group2", "name2", "version2"));
+        configuration.getArtifacts().add(createPublishArtifact("name1", "ext1", "type1", "classifier1"));
+        configuration.getArtifacts().add(createPublishArtifact("name2", "ext2", "type2", "classifier2"));
+        configuration.getDependencies().add(createDependency("group1", "name1", "version1"));
+        configuration.getDependencies().add(createDependency("group2", "name2", "version2"));
     }
 
     private void assertThatCopiedConfigurationHasElementsAndName(Configuration copiedConfiguration, Set<Dependency> expectedDependencies) {
@@ -798,7 +798,7 @@ public class DefaultConfigurationTest {
     public void copyRecursiveWithSpec() {
         prepareConfigurationForCopyRecursiveTest();
         Set<Dependency> expectedDependenciesToCopy = new HashSet<Dependency>(configuration.getAllDependencies());
-        configuration.getDependencies().add(HelperUtil.createDependency("group3", "name3", "version3"));
+        configuration.getDependencies().add(createDependency("group3", "name3", "version3"));
 
         Closure specClosure = HelperUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
         Configuration copiedConfiguration = configuration.copyRecursive(specClosure);
@@ -810,7 +810,7 @@ public class DefaultConfigurationTest {
     public void copyRecursiveWithClosure() {
         prepareConfigurationForCopyRecursiveTest();
         Set<Dependency> expectedDependenciesToCopy = new HashSet<Dependency>(configuration.getAllDependencies());
-        configuration.getDependencies().add(HelperUtil.createDependency("group3", "name3", "version3"));
+        configuration.getDependencies().add(createDependency("group3", "name3", "version3"));
 
         Configuration copiedConfiguration = configuration.copyRecursive(new Spec<Dependency>() {
             public boolean isSatisfiedBy(Dependency element) {
@@ -823,8 +823,8 @@ public class DefaultConfigurationTest {
 
     private void prepareConfigurationForCopyRecursiveTest() {
         prepareConfigurationForCopyTest();
-        Dependency similarDependency2InOtherConf = HelperUtil.createDependency("group2", "name2", "version2");
-        Dependency otherConfDependency = HelperUtil.createDependency("group4", "name4", "version4");
+        Dependency similarDependency2InOtherConf = createDependency("group2", "name2", "version2");
+        Dependency otherConfDependency = createDependency("group4", "name4", "version4");
         Configuration otherConf = createNamedConfiguration("otherConf");
         otherConf.getDependencies().add(similarDependency2InOtherConf);
         otherConf.getDependencies().add(otherConfDependency);
@@ -914,9 +914,9 @@ public class DefaultConfigurationTest {
     
     @Test
     public void dumpString() {
-        Dependency configurationDependency = HelperUtil.createDependency("dumpgroup1", "dumpname1", "dumpversion1");
-        Dependency otherConfSimilarDependency = HelperUtil.createDependency("dumpgroup1", "dumpname1", "dumpversion1");
-        Dependency otherConfDependency = HelperUtil.createDependency("dumpgroup2", "dumpname2", "dumpversion2");
+        Dependency configurationDependency = createDependency("dumpgroup1", "dumpname1", "dumpversion1");
+        Dependency otherConfSimilarDependency = createDependency("dumpgroup1", "dumpname1", "dumpversion1");
+        Dependency otherConfDependency = createDependency("dumpgroup2", "dumpname2", "dumpversion2");
         Configuration otherConf = createNamedConfiguration("dumpConf");
         configuration.extendsFrom(otherConf);
         otherConf.getDependencies().add(otherConfDependency);
@@ -938,6 +938,14 @@ public class DefaultConfigurationTest {
                 + "\n   DefaultExternalModuleDependency{group='dumpgroup2', name='dumpname2', version='dumpversion2', configuration='default'}"
                 + "\nAll Artifacts:"
                 + "\n   none"));
+    }
+
+    ModuleDependency createDependency(String group, String name, String version) {
+        return new DefaultExternalModuleDependency(group, name, version);
+    }
+
+    DefaultPublishArtifact createPublishArtifact(String name, String extension, String type, String classifier) {
+        return new DefaultPublishArtifact(name, extension, type, classifier, new Date(), new File(""));
     }
 
     private void assertInvalidUserDataException(Executer executer) {

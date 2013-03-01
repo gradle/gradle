@@ -58,8 +58,8 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
         initCause(cause);
     }
 
-    public ModuleVersionResolveException(ModuleRevisionId id, Iterable<? extends Throwable> causes) {
-        this(id, "Could not resolve %s.");
+    public ModuleVersionResolveException(ModuleVersionSelector selector, Iterable<? extends Throwable> causes) {
+        this(selector, "Could not resolve %s.");
         initCauses(causes);
     }
 

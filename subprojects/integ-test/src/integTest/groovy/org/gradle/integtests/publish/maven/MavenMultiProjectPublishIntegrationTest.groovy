@@ -36,7 +36,7 @@ project(":project1") {
 
         then:
         def pom = mavenModule.parsedPom
-        pom.scopes.compile.assertDependsOn("org.gradle.test", "project2", "1.9")
+        pom.scopes.compile.assertDependsOn("org.gradle.test:project2:1.9")
     }
 
     @Issue("GRADLE-443")
@@ -58,7 +58,7 @@ project(":project2") {
 
         then:
         def pom = mavenModule.parsedPom
-        pom.scopes.compile.assertDependsOn("org.gradle.test", "changed", "1.9")
+        pom.scopes.compile.assertDependsOn("org.gradle.test:changed:1.9")
     }
 
     @Issue("GRADLE-443")
@@ -84,7 +84,7 @@ project(":project2") {
 
         then:
         def pom = mavenModule.parsedPom
-        pom.scopes.compile.assertDependsOn("org.gradle.test", "changed", "1.9")
+        pom.scopes.compile.assertDependsOn("org.gradle.test:changed:1.9")
     }
 
     def "project dependency correctly reflected in POM if second artifact is published which differs in classifier"() {
@@ -111,7 +111,7 @@ project(":project2") {
 
         then:
         def pom = mavenModule.parsedPom
-        pom.scopes.compile.assertDependsOn("org.gradle.test", "project2", "1.9")
+        pom.scopes.compile.assertDependsOn("org.gradle.test:project2:1.9")
     }
 
     private void createBuildScripts(String append = "") {

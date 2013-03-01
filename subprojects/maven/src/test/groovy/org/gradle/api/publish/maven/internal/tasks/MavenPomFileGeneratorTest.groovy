@@ -15,20 +15,27 @@
  */
 
 package org.gradle.api.publish.maven.internal.tasks
+
+import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class MavenPomFileGeneratorTest extends Specification {
+    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     MavenPomFileGenerator generator = new MavenPomFileGenerator()
 
     def "writes correct prologue and schema declarations"() {
         expect:
-        pomContent.startsWith(TextUtil.toPlatformLineSeparators(
+        pomFile.text.startsWith(TextUtil.toPlatformLineSeparators(
 """<?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -59,6 +66,20 @@ class MavenPomFileGeneratorTest extends Specification {
             artifactId == "artifact-id"
             version == "1.0"
             packaging == "pom"
+        }
+    }
+
+    def "encodes coordinates for XML and unicode"() {
+        when:
+        generator.groupId = 'group-ぴ₦ガき∆ç√∫'
+        generator.artifactId = 'artifact-<tag attrib="value"/>-markup'
+        generator.version = 'version-&"'
+
+        then:
+        with (pom) {
+            groupId == 'group-ぴ₦ガき∆ç√∫'
+            artifactId == 'artifact-<tag attrib="value"/>-markup'
+            version == 'version-&"'
         }
     }
 
@@ -151,14 +172,33 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
-    private def getPom() {
-        String pomContent = getPomContent()
-        return new XmlSlurper().parse(new StringReader(pomContent));
+    def "applies withXml actions"() {
+        when:
+        generator.withXml(new Action<XmlProvider>() {
+            void execute(XmlProvider t) {
+                t.asNode().groupId[0].value = "new-group"
+            }
+        })
+        generator.withXml(new Action<XmlProvider>() {
+            void execute(XmlProvider t) {
+                t.asNode().appendNode("description", "custom-description-ぴ₦ガき∆ç√∫")
+            }
+        })
+
+        then:
+        with (pom) {
+            groupId == "new-group"
+            description == "custom-description-ぴ₦ガき∆ç√∫"
+        }
     }
 
-    private String getPomContent() {
-        def writer = new StringWriter()
-        generator.write(writer)
-        return writer.toString()
+    private def getPom() {
+        return new XmlSlurper().parse(pomFile);
+    }
+
+    private TestFile getPomFile() {
+        def pomFile = testDirectoryProvider.testDirectory.file("pom.xml")
+        generator.writeTo(pomFile)
+        return pomFile
     }
 }

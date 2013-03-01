@@ -21,6 +21,7 @@ import org.gradle.gradleplugin.foundation.settings.DOM4JSettingsNode;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 import org.gradle.gradleplugin.userinterface.swing.common.PreferencesAssistant;
 import org.gradle.gradleplugin.userinterface.swing.generic.SinglePaneUIInstance;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 
 import javax.swing.*;
@@ -307,7 +308,7 @@ public class Application implements AlternateUIInteraction {
      * @return the file that we save our settings to.
      */
     private File getSettingsFile() {
-        return new File(System.getProperty("user.dir"), "gradle-app" + SETTINGS_EXTENSION);
+        return new File(SystemProperties.getCurrentDir(), "gradle-app" + SETTINGS_EXTENSION);
     }
 
     private class SettingsImportInteraction implements DOM4JSerializer.ImportInteraction {

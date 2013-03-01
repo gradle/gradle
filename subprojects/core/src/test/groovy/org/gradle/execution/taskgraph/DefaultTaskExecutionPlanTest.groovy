@@ -168,7 +168,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.addToTaskGraph([a, b])
 
         when:
-        def taskInfoA = executionPlan.getTaskToExecute(anyTask)
+        def taskInfoA = taskToExecute
         taskInfoA.executionFailure = failure
         executionPlan.taskComplete(taskInfoA)
 
@@ -181,6 +181,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
+    }
+
+    protected TaskInfo getTaskToExecute() {
+        executionPlan.getTaskToExecute(anyTask)
     }
 
     def "stops returning tasks on first task failure when no failure handler provided"() {
@@ -295,7 +299,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     def getExecutedTasks() {
         def tasks = []
         def taskInfo
-        while ((taskInfo = executionPlan.getTaskToExecute(anyTask)) != null) {
+        while ((taskInfo = taskToExecute) != null) {
             tasks << taskInfo.task
             executionPlan.taskComplete(taskInfo)
         }

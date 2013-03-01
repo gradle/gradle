@@ -26,7 +26,7 @@ import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ErroringAction;
-import org.gradle.api.internal.xml.XmlTransformer;
+import org.gradle.api.internal.IoActions;
 import org.gradle.util.TextUtil;
 
 import java.io.File;
@@ -72,15 +72,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     public void write(ModuleDescriptor md, File output) {
-        write(md, output, null);
-    }
-
-    public void write(ModuleDescriptor md, File output, XmlTransformer descriptorTransformer) {
-        if (descriptorTransformer == null) {
-            descriptorTransformer = new XmlTransformer();
-        }
-
-        descriptorTransformer.transform(output, "UTF-8", createWriterAction(md));
+        IoActions.writeTextFile(output, "UTF-8", createWriterAction(md));
     }
 
     private static void printDependencies(ModuleDescriptor md, Writer writer) throws IOException {

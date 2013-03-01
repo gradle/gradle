@@ -31,7 +31,7 @@ public abstract class TextReportRenderer<T> {
      * Renders the report for the given model to a file.
      */
     public void writeTo(final T model, File file) {
-        IoActions.writeFile(file, "utf-8", new ErroringAction<Writer>() {
+        IoActions.writeTextFile(file, "utf-8", new ErroringAction<Writer>() {
             @Override
             protected void doExecute(Writer writer) throws Exception {
                 writeTo(model, writer);

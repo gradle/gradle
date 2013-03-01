@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.ClassDirectoryBinary
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -28,6 +29,7 @@ import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.sameCollection
@@ -48,8 +50,9 @@ class JavaBasePluginTest extends Specification {
         javaBasePlugin.apply(project)
 
         then:
-        project.getPlugins().hasPlugin(ReportingBasePlugin)
-        project.getPlugins().hasPlugin(BasePlugin)
+        project.plugins.hasPlugin(ReportingBasePlugin)
+        project.plugins.hasPlugin(BasePlugin)
+        project.plugins.hasPlugin(JavaLanguagePlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
     }
 
@@ -74,7 +77,7 @@ class JavaBasePluginTest extends Specification {
         resources sameCollection(project.sourceSets.custom.resources)
 
         def compileJava = project.tasks['compileCustomJava']
-        compileJava.description == 'Compiles the custom Java source.'
+        compileJava.description == 'Compiles the custom/java source set.'
         compileJava instanceof JavaCompile
         Matchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
@@ -85,7 +88,8 @@ class JavaBasePluginTest extends Specification {
         classes.description == 'Assembles the custom classes.'
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
-        classes.dependsOn.contains project.sourceSets.custom.output.dirs
+        // TODO: translate to new source set/packaging model
+        //classes.dependsOn.contains project.sourceSets.custom.output.dirs
     }
     
     void tasksReflectChangesToSourceSetConfiguration() {
@@ -220,4 +224,54 @@ class JavaBasePluginTest extends Specification {
         task.includes == ['**/pattern*.class'] as Set
     }
 
+    def "adds functional and language source sets for each source set added to the 'sourceSets' container"() {
+        javaBasePlugin.apply(project)
+
+        when:
+        project.sourceSets {
+            custom {
+                java {
+                    srcDirs = [project.file("src1"), project.file("src2")]
+                }
+                resources {
+                    srcDirs = [project.file("resrc1"), project.file("resrc2")]
+                }
+                compileClasspath = project.files("jar1.jar", "jar2.jar")
+            }
+        }
+
+        then:
+        def functional = project.sources.findByName("custom")
+        functional != null
+
+        and:
+        def java = functional.findByName("java")
+        java != null
+        java.source.srcDirs as Set == [project.file("src1"), project.file("src2")] as Set
+        java.compileClasspath.files as Set == project.files("jar1.jar", "jar2.jar") as Set
+
+        and:
+        def resources = functional.findByName("resources")
+        resources != null
+        resources.source.srcDirs as Set == [project.file("resrc1"), project.file("resrc2")] as Set
+    }
+
+    def "adds a class directory binary for each source set added to the 'sourceSets' container"() {
+        javaBasePlugin.apply(project)
+
+        when:
+        project.sourceSets {
+            custom {
+                output.classesDir = project.file("classes")
+                output.resourcesDir = project.file("resources")
+            }
+        }
+
+        then:
+        def binary = project.binaries.jvm.findByName("custom")
+        binary instanceof ClassDirectoryBinary
+        binary.classesDir == project.file("classes")
+        binary.resourcesDir == project.file("resources")
+        binary.source as Set == [project.sources.custom.java, project.sources.custom.resources] as Set
+    }
 }

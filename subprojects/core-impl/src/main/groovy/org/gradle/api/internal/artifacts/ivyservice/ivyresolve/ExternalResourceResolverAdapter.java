@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 
@@ -25,14 +24,21 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
  */
 public class ExternalResourceResolverAdapter extends AbstractDependencyResolverAdapter {
     private final ExternalResourceResolver resolver;
+    private final boolean dynamicResolve;
 
-    public ExternalResourceResolverAdapter(ExternalResourceResolver resolver) {
+    public ExternalResourceResolverAdapter(ExternalResourceResolver resolver, boolean dynamicResolve) {
         super(resolver);
         this.resolver = resolver;
+        this.dynamicResolve = dynamicResolve;
     }
 
-    public void getDependency(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionDescriptor result) {
-        resolver.getDependency(dependencyDescriptor, result);
+    @Override
+    public boolean isDynamicResolveMode() {
+        return dynamicResolve;
+    }
+
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+        resolver.getDependency(dependency.getDescriptor(), result);
     }
 
     public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {

@@ -19,7 +19,7 @@ package org.gradle.plugins.signing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.test.fixtures.maven.MavenRepository
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Rule
 
 class SigningSamplesSpec extends AbstractIntegrationSpec {
@@ -49,10 +49,11 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
         ":signArchives" in skippedTasks
 
         and:
-        repo.module('gradle', 'conditional', '1.0-SNAPSHOT').assertArtifactsPublished('conditional-1.0-SNAPSHOT.pom', 'conditional-1.0-SNAPSHOT.jar')
+        final module = repo.module('gradle', 'conditional', '1.0-SNAPSHOT')
+        module.assertArtifactsPublished("conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.jar")
     }
 
-    MavenRepository getRepo() {
+    MavenFileRepository getRepo() {
         return maven(mavenSample.dir.file("build/repo"))
     }
 }

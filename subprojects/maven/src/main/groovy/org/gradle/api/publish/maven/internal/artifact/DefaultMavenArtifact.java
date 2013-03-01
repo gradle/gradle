@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven.internal.artifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -30,10 +31,9 @@ public class DefaultMavenArtifact implements MavenArtifact {
 
     public DefaultMavenArtifact(File file, String extension, String classifier) {
         this.file = file;
-
-        // TODO:DAZ Handle null values in publisher, don't convert here (part of validation story)
-        this.extension = nullToEmpty(extension);
-        this.classifier = nullToEmpty(classifier);
+        this.extension = extension;
+        // Handle empty classifiers that come from PublishArtifact and AbstractArchiveTask
+        this.classifier = GUtil.elvis(classifier, null);
     }
 
     public File getFile() {
@@ -45,7 +45,7 @@ public class DefaultMavenArtifact implements MavenArtifact {
     }
 
     public void setExtension(String extension) {
-        this.extension = notNull(extension);
+        this.extension = extension;
     }
 
     public String getClassifier() {
@@ -53,18 +53,7 @@ public class DefaultMavenArtifact implements MavenArtifact {
     }
 
     public void setClassifier(String classifier) {
-        this.classifier = notNull(classifier);
-    }
-
-    private String nullToEmpty(String input) {
-        return input == null ? "" : input;
-    }
-
-    private String notNull(String input) {
-        if (input == null) {
-            throw new IllegalArgumentException();
-        }
-        return input;
+        this.classifier = classifier;
     }
 
     public void builtBy(Object... tasks) {

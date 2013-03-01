@@ -58,7 +58,6 @@ public class DaemonClientConnection implements Connection<Object> {
     public Object receive() {
         try {
             Object result = connection.receive();
-            LOG.debug("thread {}: received {}", Thread.currentThread().getId(), result == null ? "null" : result.getClass());
             return result;
         } catch (Exception e) {
             LOG.debug("Problem receiving message to the daemon. Performing 'on failure' operation...");

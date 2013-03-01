@@ -89,4 +89,9 @@ public interface GradleDistribution {
      * See http://issues.gradle.org/browse/GRADLE-1730
      */
     boolean isSupportsSpacesInGradleAndJavaOpts();
+
+    /**
+     * The 'ivy' repository was introduced in Milestone-3, but early versions didn't work with spaces in the artifact pattern.
+     */
+    boolean isFullySupportsIvyRepository();
 }

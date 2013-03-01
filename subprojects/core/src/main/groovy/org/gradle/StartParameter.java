@@ -116,35 +116,25 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return the new parameters.
      */
     public StartParameter newInstance() {
-        StartParameter parameter = new StartParameter();
-        parameter.buildFile = buildFile;
-        parameter.projectDir = projectDir;
-        parameter.settingsFile = settingsFile;
-        parameter.useEmptySettings = useEmptySettings;
-        parameter.taskNames = new ArrayList<String>(taskNames);
-        parameter.buildProjectDependencies = buildProjectDependencies;
-        parameter.currentDir = currentDir;
-        parameter.searchUpwards = searchUpwards;
-        parameter.projectProperties = new HashMap<String, String>(projectProperties);
-        parameter.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
-        parameter.gradleUserHomeDir = gradleUserHomeDir;
-        parameter.gradleHomeDir = gradleHomeDir;
-        parameter.cacheUsage = cacheUsage;
-        parameter.initScripts = new ArrayList<File>(initScripts);
-        parameter.setLogLevel(getLogLevel());
-        parameter.setColorOutput(isColorOutput());
-        parameter.setShowStacktrace(getShowStacktrace());
-        parameter.dryRun = dryRun;
-        parameter.rerunTasks = rerunTasks;
-        parameter.recompileScripts = recompileScripts;
-        parameter.profile = profile;
-        parameter.projectCacheDir = projectCacheDir;
-        parameter.continueOnFailure = continueOnFailure;
-        parameter.offline = offline;
-        parameter.refreshDependencies = refreshDependencies;
-        parameter.parallelThreadCount = parallelThreadCount;
+        StartParameter p = newBuild();
 
-        return parameter;
+        p.buildFile = buildFile;
+        p.projectDir = projectDir;
+        p.settingsFile = settingsFile;
+        p.useEmptySettings = useEmptySettings;
+        p.taskNames = new ArrayList<String>(taskNames);
+        p.excludedTaskNames = new HashSet<String>(excludedTaskNames);
+        p.buildProjectDependencies = buildProjectDependencies;
+        p.currentDir = currentDir;
+        p.searchUpwards = searchUpwards;
+        p.projectProperties = new HashMap<String, String>(projectProperties);
+        p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
+        p.gradleHomeDir = gradleHomeDir;
+        p.initScripts = new ArrayList<File>(initScripts);
+        p.dryRun = dryRun;
+        p.projectCacheDir = projectCacheDir;
+
+        return p;
     }
 
     /**
@@ -154,20 +144,23 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @return The new parameters.
      */
     public StartParameter newBuild() {
-        StartParameter startParameter = new StartParameter();
-        startParameter.gradleUserHomeDir = gradleUserHomeDir;
-        startParameter.cacheUsage = cacheUsage;
-        startParameter.setLogLevel(getLogLevel());
-        startParameter.setColorOutput(isColorOutput());
-        startParameter.setShowStacktrace(getShowStacktrace());
-        startParameter.profile = profile;
-        startParameter.continueOnFailure = continueOnFailure;
-        startParameter.offline = offline;
-        startParameter.rerunTasks = rerunTasks;
-        startParameter.recompileScripts = recompileScripts;
-        startParameter.refreshDependencies = refreshDependencies;
-        startParameter.parallelThreadCount = parallelThreadCount;
-        return startParameter;
+        StartParameter p = new StartParameter();
+
+        p.gradleUserHomeDir = gradleUserHomeDir;
+        p.cacheUsage = cacheUsage;
+        p.setLogLevel(getLogLevel());
+        p.setColorOutput(isColorOutput());
+        p.setShowStacktrace(getShowStacktrace());
+        p.profile = profile;
+        p.continueOnFailure = continueOnFailure;
+        p.offline = offline;
+        p.rerunTasks = rerunTasks;
+        p.recompileScripts = recompileScripts;
+        p.refreshDependencies = refreshDependencies;
+        p.parallelThreadCount = parallelThreadCount;
+        p.configureOnDemand = configureOnDemand;
+
+        return p;
     }
 
     public boolean equals(Object obj) {
@@ -286,13 +279,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Sets the directory to use to select the default project, and to search for the settings file. Set to null to use the default current directory.
      *
-     * @param currentDir The directory. Should not be null.
+     * @param currentDir The directory. Set to null to use the default.
      */
     public void setCurrentDir(File currentDir) {
         if (currentDir != null) {
             this.currentDir = GFileUtils.canonicalise(currentDir);
         } else {
-            this.currentDir = GFileUtils.canonicalise(new File(System.getProperty("user.dir")));
+            this.currentDir = GFileUtils.canonicalise(SystemProperties.getCurrentDir());
         }
     }
 
@@ -321,7 +314,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedency overy JVM system properties.
+     * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedence over JVM system properties.
      *
      * @return The merged system properties
      */
@@ -647,7 +640,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     @Incubating
     public boolean isParallelThreadCountConfigured() {
-        //This is not beautiful. As the number of gradle properies grows we may something like:
+        //This is not beautiful. As the number of gradle properties grows we may something like:
         //1. Make StartParameter an interface
         //2. StartParameter (StartParameterInternal) needs to inform if certain property was configured or not
         return parallelThreadCountConfigured;

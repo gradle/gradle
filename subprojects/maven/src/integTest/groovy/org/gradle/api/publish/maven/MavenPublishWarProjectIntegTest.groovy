@@ -15,9 +15,7 @@
  */
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
+class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
     public void "publishes war and meta-data for web component with external dependencies"() {
         def webModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
 
@@ -66,6 +64,9 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
         then:
         webModule.assertPublishedAsWebModule()
         webModule.parsedPom.scopes.isEmpty()
+
+        and:
+        resolveArtifacts(webModule) == ["project1-1.9.war"]
     }
 
     public void "publishes war and meta-data for web component with project dependencies"() {
@@ -135,6 +136,9 @@ class MavenPublishWarProjectIntegTest extends AbstractIntegrationSpec {
         webModule.assertPublishedAsWebModule()
 
         webModule.parsedPom.scopes.isEmpty()
+
+        and:
+        resolveArtifacts(webModule) == ["projectWeb-1.9.war"]
     }
 
 }

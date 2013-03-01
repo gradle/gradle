@@ -22,19 +22,18 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.IoActions.createFileWriteAction
-import static org.gradle.api.internal.IoActions.writeFile
+import static org.gradle.api.internal.IoActions.*
 
 class IoActionsTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmp
 
-    def "can use file action to write to file"() {
+    def "can use file action to write to text file"() {
         given:
         def file = tmp.file("foo.txt")
 
         when:
-        createFileWriteAction(file, "UTF-8").execute(new Action<Writer>() {
+        createTextFileWriteAction(file, "UTF-8").execute(new Action<Writer>() {
             void execute(Writer writer) {
                 writer.write("bar")
             }
@@ -44,14 +43,14 @@ class IoActionsTest extends Specification {
         file.text == "bar"
     }
 
-    def "fails to write to file when can't create parent dir"() {
+    def "fails to write to text file when can't create parent dir"() {
         given:
         tmp.createFile("base")
         def file = tmp.file("base/foo.txt")
         def action = Mock(Action)
 
         when:
-        createFileWriteAction(file, "UTF-8").execute(action)
+        writeTextFile(file, "UTF-8", action)
 
         then:
         0 * action.execute(_)
@@ -60,13 +59,13 @@ class IoActionsTest extends Specification {
         e.cause.message.startsWith("Unable to create directory")
     }
 
-    def "can write file"() {
+    def "can write text file using specified encoding"() {
         given:
         def file = tmp.file("foo.txt")
         def enc = "utf-8"
 
         when:
-        writeFile(file, enc, new Action() {
+        writeTextFile(file, enc, new Action() {
             void execute(writer) {
                 writer.append("bar⌘")
             }
@@ -76,12 +75,12 @@ class IoActionsTest extends Specification {
         file.getText(enc) == "bar⌘"
     }
 
-    def "can write file with default encoding"() {
+    def "can write text file with default encoding"() {
         given:
         def file = tmp.file("foo.txt")
 
         when:
-        writeFile(file, new Action() {
+        writeTextFile(file, new Action() {
             void execute(writer) {
                 writer.append("bar⌘")
             }
@@ -90,5 +89,4 @@ class IoActionsTest extends Specification {
         then:
         file.text == "bar⌘"
     }
-
 }

@@ -33,6 +33,7 @@ import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
+import org.gradle.internal.SystemProperties;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.util.GUtil;
 
@@ -143,7 +144,7 @@ public class GradlePluginLord {
         //create the queue that executes the commands. The contents of this interaction are where we actually launch gradle.
         executionQueue = new ExecutionQueue<Request>(new ExecutionQueueInteraction());
 
-        currentDirectory = new File(System.getProperty("user.dir"));
+        currentDirectory = SystemProperties.getCurrentDir();
 
         String gradleHomeProperty = System.getProperty("gradle.home");
         if (gradleHomeProperty != null) {
