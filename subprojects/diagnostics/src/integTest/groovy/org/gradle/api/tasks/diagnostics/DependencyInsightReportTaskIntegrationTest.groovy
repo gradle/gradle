@@ -589,7 +589,7 @@ org:middle:1.0 -> 2.0+ FAILED
 
     def "shows multiple failed outgoing dependencies"() {
         given:
-        mavenRepo.module("org", "leaf", "1.0")
+        mavenRepo.module("org", "leaf", "1.0").publish()
         mavenRepo.module("org", "top", "1.0")
                 .dependsOn("org", "leaf", "1.0")
                 .dependsOn("org", "leaf", "[1.5,2.0]")
@@ -618,7 +618,7 @@ org:middle:1.0 -> 2.0+ FAILED
         then:
         // TODO - need to use a fixed ordering for dynamic requested versions
         output.contains(toPlatformLineSeparators("""
-org:leaf:1.0 FAILED
+org:leaf:1.0
 \\--- org:top:1.0
      \\--- conf
 """))
