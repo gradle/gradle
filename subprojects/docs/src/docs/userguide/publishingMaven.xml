@@ -245,13 +245,13 @@
         </para>
         <para>
             The task for generating the POM file is of type <apilink class="org.gradle.api.publish.maven.tasks.GenerateMavenPom"/>, and it is given a name based on the name
-            of the publication: "<literal>generatePomFileFor«<emphasis>NAME OF PUBLICATION</emphasis>»Publication</literal>". So in the above example where the publication is named
-            "<literal>mavenJava</literal>",
-            the task will be named "<literal>generatePomFileForMavenJavaPublication</literal>".
+            of the publication: "<literal>generatePomFileFor«<emphasis>NAME OF PUBLICATION</emphasis>»Publication</literal>". So in the below example where the publication is named
+            "<literal>mavenCustom</literal>",
+            the task will be named "<literal>generatePomFileForMavenCustomPublication</literal>".
         </para>
         <sample dir="maven-publish/pomCustomization" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
             <sourcefile file="build.gradle" snippet="generate" />
-            <output args="generatePomFileForMavenJavaPublication"/>
+            <output args="generatePomFileForMavenCustomPublication"/>
         </sample>
         <para>
             All details of the publishing model are still considered in POM generation, including <literal>components</literal>`, custom <literal>artifacts</literal>,
