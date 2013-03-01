@@ -265,7 +265,7 @@ ${globalExclusions(this.effectivePom)}
 
   private String getArtifactData(project) {
     return """group = '$project.groupId'
-  version = '$project.version'
+version = '$project.version'
   """;
   }
 
@@ -342,14 +342,16 @@ ${globalExclusions(this.effectivePom)}
       if (projectDep) {
         createProjectDependency(projectDep, sb, scope, allProjects)
       } else {
-        def dependencyProperties = null;
+        def providedMessage = "";
         if (!war && scope == 'providedCompile') {
           scope = 'compile'
-          dependencyProperties = [provided: true]
+          providedMessage =  "    /* This dependency was originally in the maven provided scope, but the project was not of type war.\n"
+		  providedMessage += "    This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.\n"
+		  providedMessage += "    Please review and delete this closure when resolved. */\n"
         }
         def exclusions = mavenDependency.exclusions.exclusion
-        if (exclusions.size() > 0 || dependencyProperties) {
-          createComplexDependency(mavenDependency, sb, scope, dependencyProperties)
+        if (exclusions.size() > 0 || providedMessage!="") {
+          createComplexDependency(mavenDependency, sb, scope, providedMessage)
         } else {
           createBasicDependency(mavenDependency, sb, scope)
         }
@@ -503,15 +505,13 @@ project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as
  * iterate over each <exclusion> node and print out the artifact id.
  * It also tackles the properties attached to dependencies
  */
-  private def createComplexDependency(it, build, scope, Map dependencyProperties) {
+  private def createComplexDependency(it, build, scope, providedMessage) {
     build.append("    ${scope}(${contructSignature(it)}) {\n")
     it.exclusions.exclusion.each() {
       build.append("exclude(module: '${it.artifactId}')\n")
     }
-    if (dependencyProperties) {
-      dependencyProperties.keySet().each { key ->
-        build.append("$key : ${dependencyProperties.get(key)}\n")
-      }
+    if (providedMessage) {
+        build.append(providedMessage)
     }
     build.append("}\n")
   }

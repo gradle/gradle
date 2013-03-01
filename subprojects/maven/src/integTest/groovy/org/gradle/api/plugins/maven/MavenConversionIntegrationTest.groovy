@@ -158,4 +158,21 @@ it.exclude group: '*', module: 'badArtifact'
         then:
         file("build/libs/enforcerExample-1.0.jar").exists()
     }
+	
+	def "providedNotWar"() {
+		given:
+		file("build.gradle") << "apply plugin: 'maven2Gradle'"
+
+		when:
+		run 'maven2Gradle'
+
+		then:
+		noExceptionThrown()
+
+		when:
+		run 'clean', 'build'
+
+		then:
+		file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
+	}
 }
