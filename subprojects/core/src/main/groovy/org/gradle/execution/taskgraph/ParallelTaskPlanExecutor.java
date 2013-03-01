@@ -99,7 +99,7 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
                 executeTaskWithCacheLock(task);
             }
             long total = System.currentTimeMillis() - start;
-            LOGGER.info("Parallel worker [{}] stopped, busy: {}, idle: {}, waited for cache: {}", Thread.currentThread(), prettyTime(busyMs), prettyTime(total - busyMs), waitedForCacheMs);
+            LOGGER.info("Parallel worker [{}] stopped, busy: {}, idle: {}, waited for cache: {}", Thread.currentThread(), prettyTime(busyMs), prettyTime(total - busyMs), prettyTime(waitedForCacheMs));
         }
 
         private void executeTaskWithCacheLock(final TaskInfo taskInfo) {
