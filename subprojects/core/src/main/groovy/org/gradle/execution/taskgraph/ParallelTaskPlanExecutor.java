@@ -61,6 +61,7 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
     private void doProcess(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
         List<Project> projects = getAllProjects(taskExecutionPlan);
         int numExecutors = Math.min(executorCount, projects.size());
+        numExecutors = Math.min(numExecutors, 4);
 
         for (int i = 0; i < numExecutors; i++) {
             TaskExecutorWorker worker = new TaskExecutorWorker(taskExecutionPlan, taskListener);
