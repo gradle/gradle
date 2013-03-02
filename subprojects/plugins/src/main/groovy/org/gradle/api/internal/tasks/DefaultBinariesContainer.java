@@ -15,17 +15,13 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.BinaryContainer;
-import org.gradle.api.tasks.JvmBinaryContainer;
+import org.gradle.api.Named;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.tasks.BinariesContainer;
+import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultBinariesContainer implements BinaryContainer {
-    private final JvmBinaryContainer container;
-
-    public DefaultBinariesContainer(JvmBinaryContainer container) {
-        this.container = container;
-    }
-
-    public JvmBinaryContainer getJvm() {
-        return container;
+public class DefaultBinariesContainer extends DefaultNamedDomainObjectSet<Named> implements BinariesContainer {
+    public DefaultBinariesContainer(Instantiator instantiator) {
+        super(Named.class, instantiator);
     }
 }
