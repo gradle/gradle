@@ -21,17 +21,17 @@ import org.gradle.internal.reflect.Instantiator;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultPolymorphicNamedDomainObjectContainer<T> extends AbstractPolymorphicNamedDomainObjectContainer<T> {
+public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T> {
     private final Map<Class<?>, NamedDomainObjectFactory<?>> factories =
             new HashMap<Class<?>, NamedDomainObjectFactory<?>>();
 
     private NamedDomainObjectFactory<? extends T> defaultFactory;
 
-    public DefaultPolymorphicNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
     }
 
-    public DefaultPolymorphicNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         this(type, instantiator, Named.Namer.forType(type));
     }
 

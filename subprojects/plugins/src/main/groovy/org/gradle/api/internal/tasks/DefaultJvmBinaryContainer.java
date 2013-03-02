@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.tasks.ClassDirectoryBinary;
 import org.gradle.api.tasks.JvmBinaryContainer;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultJvmBinaryContainer extends AbstractNamedDomainObjectContainer<ClassDirectoryBinary> implements JvmBinaryContainer {
+public class DefaultJvmBinaryContainer extends DefaultPolymorphicDomainObjectContainer<ClassDirectoryBinary> implements JvmBinaryContainer {
     public DefaultJvmBinaryContainer(Instantiator instantiator) {
         super(ClassDirectoryBinary.class, instantiator);
     }

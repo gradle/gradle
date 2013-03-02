@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.PolymorphicNamedDomainObjectContainer;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 
 import groovy.lang.Closure;
 
-public class PolymorphicNamedDomainObjectContainerConfigureDelegate extends NamedDomainObjectContainerConfigureDelegate {
-    private final PolymorphicNamedDomainObjectContainer container;
+public class PolymorphicDomainObjectContainerConfigureDelegate extends NamedDomainObjectContainerConfigureDelegate {
+    private final PolymorphicDomainObjectContainer container;
 
-    public PolymorphicNamedDomainObjectContainerConfigureDelegate(Object owner, PolymorphicNamedDomainObjectContainer container) {
+    public PolymorphicDomainObjectContainerConfigureDelegate(Object owner, PolymorphicDomainObjectContainer container) {
         super(owner, container);
         this.container = container;
     }

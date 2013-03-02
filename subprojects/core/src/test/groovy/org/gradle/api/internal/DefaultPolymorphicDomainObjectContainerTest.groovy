@@ -15,26 +15,20 @@
  */
 package org.gradle.api.internal
 
+import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.HelperUtil
+import org.gradle.internal.reflect.DirectInstantiator
 
 import spock.lang.Specification
 
-class DefaultPolymorphicNamedDomainObjectContainerDslTest extends Specification {
-    def fred = new DefaultPerson(name: "Fred")
-    def barney = new DefaultPerson(name: "Barney")
-    def agedFred = new DefaultAgeAwarePerson(name: "Fred", age: 42)
-    def agedBarney = new DefaultAgeAwarePerson(name: "Barney", age: 42)
+class DefaultPolymorphicDomainObjectContainerTest extends Specification {
+    def fred = new DefaultPerson(name: "fred")
+    def barney = new DefaultPerson(name: "barney")
+    def agedFred = new DefaultAgeAwarePerson(name: "fred", age: 42)
+    def agedBarney = new DefaultAgeAwarePerson(name: "barney", age: 42)
 
-    def project = HelperUtil.createRootProject()
-    def instantiator = project.services.get(Instantiator)
-    def container = instantiator.newInstance(DefaultPolymorphicNamedDomainObjectContainer, Person, instantiator)
-
-    def setup() {
-        project.extensions.add("container", container)
-    }
+    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, new DirectInstantiator())
 
     interface Person extends Named {}
 
@@ -68,25 +62,28 @@ class DefaultPolymorphicNamedDomainObjectContainerDslTest extends Specification 
         }
     }
 
+    def "add elements"() {
+        when:
+        container.add(fred)
+        container.add(barney)
+
+        then:
+        container == [fred, barney] as Set
+    }
+
     def "create elements with default type"() {
         container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
 
         when:
-        project.container {
-            Fred
-            Barney {}
-        }
+        container.create("fred")
+        container.create("barney")
 
         then:
         container.size() == 2
-        container.findByName("Fred") == fred
-        container.findByName("Barney") == barney
-        container.asDynamicObject.getProperty("Fred") == fred
-        container.asDynamicObject.getProperty("Barney") == barney
-    }
-
-    def "configure elements with default type"() {
-
+        container.findByName("fred") == fred
+        container.findByName("barney") == barney
+        container.asDynamicObject.getProperty("fred") == fred
+        container.asDynamicObject.getProperty("barney") == barney
     }
 
     def "create elements with specified type"() {
@@ -94,17 +91,37 @@ class DefaultPolymorphicNamedDomainObjectContainerDslTest extends Specification 
         container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
 
         when:
-        project.container {
-            Fred(Person) {}
-            Barney(AgeAwarePerson) {}
-        }
+        container.create("fred", Person)
+        container.create("barney", AgeAwarePerson)
 
         then:
         container.size() == 2
-        container.findByName("Fred") == fred
-        container.findByName("Barney") == agedBarney
-        container.asDynamicObject.getProperty("Fred") == fred
-        container.asDynamicObject.getProperty("Barney") == agedBarney
+        container.findByName("fred") == fred
+        container.findByName("barney") == agedBarney
+        container.asDynamicObject.getProperty("fred") == fred
+        container.asDynamicObject.getProperty("barney") == agedBarney
+    }
 
+    def "fires events when elements are added"() {
+        Action<Person> action = Mock()
+
+        given:
+        container.all(action)
+
+        when:
+        container.addAll([fred, barney])
+
+        then:
+        1 * action.execute(fred)
+        1 * action.execute(barney)
+        0 * action._
+    }
+
+    def "can find all elements that match closure"() {
+        given:
+        container.addAll([fred, barney])
+
+        expect:
+        container.findAll { it != fred } == [barney] as Set
     }
 }

@@ -21,7 +21,7 @@ package org.gradle.api;
  * @param <T> the (base) container element type
  */
 @Incubating
-public interface PolymorphicNamedDomainObjectContainer<T> extends NamedDomainObjectContainer<T> {
+public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectContainer<T> {
     <U extends T> U create(String name, Class<U> type) throws InvalidUserDataException;
 
     <U extends T> U create(String name, Class<U> type, Action<? super U> configuration) throws InvalidUserDataException;

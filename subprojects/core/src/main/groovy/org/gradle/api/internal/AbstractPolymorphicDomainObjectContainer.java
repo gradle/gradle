@@ -26,20 +26,20 @@ import groovy.lang.MissingPropertyException;
 
 import java.util.Map;
 
-public abstract class AbstractPolymorphicNamedDomainObjectContainer<T>
-        extends AbstractNamedDomainObjectContainer<T> implements PolymorphicNamedDomainObjectContainer<T> {
+public abstract class AbstractPolymorphicDomainObjectContainer<T>
+        extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainer<T> {
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
     private final Convention convention;
     private final DynamicObject dynamicObject;
 
-    protected AbstractPolymorphicNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
+    protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
         this.convention = new DefaultConvention(instantiator);
         this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), convention);
     }
 
-    protected AbstractPolymorphicNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
+    protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         this(type, instantiator, Named.Namer.forType(type));
     }
 
@@ -76,24 +76,24 @@ public abstract class AbstractPolymorphicNamedDomainObjectContainer<T>
 
     @Override
     protected Object createConfigureDelegate(Closure configureClosure) {
-        return new PolymorphicNamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
+        return new PolymorphicDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
     }
 
     private class ContainerDynamicObject extends CompositeDynamicObject {
         private ContainerDynamicObject(ContainerElementsDynamicObject elementsDynamicObject) {
-            setObjects(new BeanDynamicObject(AbstractPolymorphicNamedDomainObjectContainer.this), elementsDynamicObject, getConvention().getExtensionsAsDynamicObject());
+            setObjects(new BeanDynamicObject(AbstractPolymorphicDomainObjectContainer.this), elementsDynamicObject, getConvention().getExtensionsAsDynamicObject());
         }
 
         @Override
         protected String getDisplayName() {
-            return AbstractPolymorphicNamedDomainObjectContainer.this.getDisplayName();
+            return AbstractPolymorphicDomainObjectContainer.this.getDisplayName();
         }
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
         @Override
         protected String getDisplayName() {
-            return AbstractPolymorphicNamedDomainObjectContainer.this.getDisplayName();
+            return AbstractPolymorphicDomainObjectContainer.this.getDisplayName();
         }
 
         @Override
