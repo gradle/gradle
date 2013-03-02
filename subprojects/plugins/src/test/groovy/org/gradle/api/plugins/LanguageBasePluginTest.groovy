@@ -16,7 +16,9 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.tasks.BinariesContainer
 import org.gradle.api.tasks.ProjectSourceSet
+import org.gradle.api.tasks.ResourceSet
 import org.gradle.util.HelperUtil
 
 import spock.lang.Specification
@@ -28,8 +30,22 @@ class LanguageBasePluginTest extends Specification {
         project.plugins.apply(LanguageBasePlugin)
     }
 
+    def "adds a 'binaries' container to the project"() {
+        expect:
+        project.extensions.findByName("binaries") instanceof BinariesContainer
+    }
+
     def "adds a 'sources' container to the project"() {
         expect:
         project.extensions.findByName("sources") instanceof ProjectSourceSet
+    }
+
+    def "registers the 'ResourceSet' type for each functional source set added to the 'sources' container"() {
+        when:
+        project.sources.create("custom")
+        project.sources.custom.create("resources", ResourceSet)
+
+        then:
+        project.sources.custom.resources instanceof ResourceSet
     }
 }

@@ -15,19 +15,17 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
-import org.gradle.api.internal.tasks.DefaultClassDirectoryBinary
+import org.gradle.api.internal.plugins.ProcessResources
+import org.gradle.api.tasks.ClassDirectoryBinary
 import org.gradle.api.tasks.JvmBinaryContainer
-import org.gradle.internal.reflect.Instantiator
+import org.gradle.api.tasks.ResourceSet
 import org.gradle.util.HelperUtil
+
 import spock.lang.Specification
 
 class JvmLanguagePluginTest extends Specification {
-    Project project = HelperUtil.createRootProject()
-
-    def setup() {
-        project.plugins.apply(JvmLanguagePlugin)
-    }
+    def project = HelperUtil.createRootProject()
+    def jvmLanguagePlugin = project.plugins.apply(JvmLanguagePlugin)
 
     def "adds a 'binaries.jvm' container to the project"() {
         def binaries = project.extensions.findByName("binaries")
@@ -37,17 +35,29 @@ class JvmLanguagePluginTest extends Specification {
         binaries.jvm instanceof JvmBinaryContainer
     }
 
-    def "adds a 'classes' task for every ClassDirectoryBinary added to the container"() {
-        def binary = project.services.get(Instantiator).newInstance(DefaultClassDirectoryBinary, "prod")
+    def "allows the JvmBinaryContainer to be looked up on the plugin"() {
+        expect:
+        jvmLanguagePlugin.jvmBinaryContainer instanceof JvmBinaryContainer
+    }
 
+    def "adds a 'classes' task for every ClassDirectoryBinary added to the container"() {
         when:
-        project.binaries.jvm.add(binary)
+        def binary = project.binaries.jvm.create("prod", ClassDirectoryBinary)
 
         then:
         binary.classesDir == new File("$project.buildDir/classes/prod")
         project.tasks.findByName("prodClasses") != null
     }
 
-    // TODO once we have a DSL for adding binary/resource set
-    def "adds a 'processResources' task for every ResourceSet added to a ClassDirectoryBinary"() {}
+    def "adds a 'processResources' task for every ResourceSet added to a ClassDirectoryBinary"() {
+        ClassDirectoryBinary binary = project.binaries.jvm.create("prod", ClassDirectoryBinary)
+        ResourceSet resources = project.sources.create("main").create("resources", ResourceSet)
+
+        when:
+        binary.source.add(resources)
+
+        then:
+        project.tasks.size() == old(project.tasks.size()) + 1
+        project.tasks.findByName("processProdResources") instanceof ProcessResources
+    }
 }
