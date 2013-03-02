@@ -58,9 +58,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
         jvmBinaryContainer.registerFactory(ClassDirectoryBinary.class, new NamedDomainObjectFactory<ClassDirectoryBinary>() {
             public ClassDirectoryBinary create(String name) {
                 return instantiator.newInstance(DefaultClassDirectoryBinary.class, name);
-            }
-
-            ;
+            };
         });
 
         jvmBinaryContainer.all(new Action<ClassDirectoryBinary>() {
