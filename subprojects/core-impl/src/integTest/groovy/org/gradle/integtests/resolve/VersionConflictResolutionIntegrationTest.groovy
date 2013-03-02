@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.containsString
 
 /**
@@ -458,5 +459,75 @@ task checkDeps << {
 
         expect:
         run("checkDeps")
+    }
+
+    @Issue("GRADLE-2555")
+    void "batched up conflicts with conflicted parent and child"() {
+        /*
+        Dependency tree:
+
+        a->c1
+        b->c2->x1
+        d->x1
+        f->x2
+
+        Everything is resolvable but not x2
+
+        Scenario:
+         - We have batched up conflicts
+         - parent of one conflicted version is also conflicted
+         - conflicted parent is positioned on the conflicts queue after the conflicted child (the order of declaring dependencies matters)
+         - winning parent depends on a child that previously was evicted
+         - finally, the winning child is an unresolved dependency
+        */
+        mavenRepo.module("org", "c", '1.0').publish()
+        mavenRepo.module("org", "x", '1.0').publish()
+        mavenRepo.module("org", "c", '2.0').dependsOn("org", "x", '1.0').publish()
+        mavenRepo.module("org", "a").dependsOn("org", "c", "1.0").publish()
+        mavenRepo.module("org", "b").dependsOn("org", "c", "2.0").publish()
+        mavenRepo.module("org", "d").dependsOn("org", "x", "1.0").publish()
+        mavenRepo.module("org", "f").dependsOn("org", "x", "2.0").publish()
+
+        buildFile << """
+            repositories { maven { url "${mavenRepo.uri}" } }
+            configurations {
+                childFirst
+                parentFirst
+            }
+            dependencies {
+                //conflicted child is resolved first
+                childFirst 'org:d:1.0', 'org:f:1.0', 'org:a:1.0', 'org:b:1.0'
+                //conflicted parent is resolved first
+                parentFirst 'org:a:1.0', 'org:b:1.0', 'org:d:1.0', 'org:f:1.0'
+            }
+        """
+
+        when:
+        run("dependencies")
+
+        then:
+        //TODO SF proper assertions
+        output.contains(toPlatformLineSeparators("""
+childFirst
++--- org:d:1.0
+|    \\--- org:x:1.0 -> 2.0 FAILED
++--- org:f:1.0
+|    \\--- org:x:2.0 FAILED
++--- org:a:1.0
+|    \\--- org:c:1.0 -> 2.0
+|         \\--- org:x:1.0 -> 2.0 FAILED
+\\--- org:b:1.0
+     \\--- org:c:2.0 (*)
+
+parentFirst
++--- org:a:1.0
+|    \\--- org:c:1.0 -> 2.0
+|         \\--- org:x:1.0 -> 2.0 FAILED
++--- org:b:1.0
+|    \\--- org:c:2.0 (*)
++--- org:d:1.0
+|    \\--- org:x:1.0 -> 2.0 FAILED
+\\--- org:f:1.0
+     \\--- org:x:2.0 FAILED"""))
     }
 }

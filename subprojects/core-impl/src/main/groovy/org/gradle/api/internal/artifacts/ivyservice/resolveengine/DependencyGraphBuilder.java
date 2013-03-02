@@ -410,12 +410,14 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleVersionResolveException getFailure() {
-            return selector.failure;
+            //see also getSelected(). For evicted targetModuleRevisions, we need to reach out to the failure of selected module
+            //covered in VersionConflictResolutionIntegrationTest
+            return selector.failure != null ? selector.failure : getSelected().resolver.failure;
         }
 
         public DefaultModuleRevisionResolveState getSelected() {
             //we cannot use the targetModuleRevision field because it may have been evicted
-            //it is covered in VersionConflictResolutionIntegrationTest
+            //covered in VersionConflictResolutionIntegrationTest
             return selector.module.selected;
         }
 
@@ -425,7 +427,7 @@ public class DependencyGraphBuilder {
 
         public void collectFailures(FailureState failureState) {
             if (isFailed()) {
-                failureState.addUnresolvedDependency(this, selector.dependencyMetaData.getRequested(), getFailure());
+                failureState.addUnresolvedDependency(this, selector.dependencyMetaData.getRequested(), selector.failure);
             }
         }
 
