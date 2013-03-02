@@ -15,15 +15,13 @@
  */
 package org.gradle.api.tasks;
 
-// TODO: should probably be a NamedDomainObjectContainer or so, which should be applied by language-base plugin (like for source sets)
-
-import org.gradle.api.Incubating;
+import org.gradle.api.*;
 
 /**
- * A container for binaries produced by the build. Added to a project
- * by the {@link org.gradle.api.plugins.LanguageBasePlugin}.
+ * A container for binaries that in turn contains more specialized containers.
+ * Added to a project by the {@link org.gradle.api.plugins.LanguageBasePlugin}.
  */
+// TODO: ideally this would be a container where each element type is only allowed once and elements can be looked up by type
+// for now I solved the lookup (usability) problem with a JvmLanguagePlugin.getJvmBinariesContainer() method; maybe that's good enough
 @Incubating
-public interface BinaryContainer {
-    JvmBinaryContainer getJvm();
-}
+public interface BinariesContainer extends NamedDomainObjectSet<Named> {}

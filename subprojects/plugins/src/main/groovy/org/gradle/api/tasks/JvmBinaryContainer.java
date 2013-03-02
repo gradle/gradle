@@ -15,12 +15,13 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Named;
 
 /**
  * A container for JVM binaries.
  */
 @Incubating
-public interface JvmBinaryContainer extends NamedDomainObjectContainer<ClassDirectoryBinary> {
+public interface JvmBinaryContainer extends ExtensiblePolymorphicDomainObjectContainer<ClassDirectoryBinary>, Named {
 }

@@ -20,6 +20,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.ProcessResources;
 import org.gradle.api.internal.tasks.DefaultBinariesContainer;
+import org.gradle.api.internal.tasks.DefaultClassDirectoryBinary;
 import org.gradle.api.internal.tasks.DefaultJvmBinaryContainer;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -30,13 +31,17 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
- * Base plugin for JVM language support. Applies the {@link LanguageBasePlugin}. Adds a {@code classes} task for each
- * {@link ClassDirectoryBinary}, and a {@code processResources} task for each {@link ResourceSet} added to a
- * {@link ClassDirectoryBinary}.
+ * Base plugin for JVM language support. Applies the {@link LanguageBasePlugin}.
+ * Adds a {@link JvmBinaryContainer} named {@code jvm} to the project's {@link BinariesContainer}.
+ * Registers the {@link ClassDirectoryBinary} element type for that container.
+ * Adds a lifecycle task named {@code classes} for each {@link ClassDirectoryBinary}.
+ * Adds a {@link Copy} task named {@code processXYZResources} for each {@link ResourceSet} added to a {@link ClassDirectoryBinary}.
  */
 @Incubating
 public class JvmLanguagePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
+
+    private JvmBinaryContainer jvmBinaryContainer;
 
     @Inject
     public JvmLanguagePlugin(Instantiator instantiator) {
@@ -45,10 +50,20 @@ public class JvmLanguagePlugin implements Plugin<Project> {
 
     public void apply(final Project target) {
         target.getPlugins().apply(LanguageBasePlugin.class);
-        JvmBinaryContainer container = instantiator.newInstance(DefaultJvmBinaryContainer.class, instantiator);
-        BinaryContainer extension = instantiator.newInstance(DefaultBinariesContainer.class, container);
-        target.getExtensions().add("binaries", extension);
-        container.all(new Action<ClassDirectoryBinary>() {
+
+        BinariesContainer binariesContainer = target.getExtensions().getByType(DefaultBinariesContainer.class);
+        jvmBinaryContainer = instantiator.newInstance(DefaultJvmBinaryContainer.class, instantiator);
+        binariesContainer.add(jvmBinaryContainer);
+
+        jvmBinaryContainer.registerFactory(ClassDirectoryBinary.class, new NamedDomainObjectFactory<ClassDirectoryBinary>() {
+            public ClassDirectoryBinary create(String name) {
+                return instantiator.newInstance(DefaultClassDirectoryBinary.class, name);
+            }
+
+            ;
+        });
+
+        jvmBinaryContainer.all(new Action<ClassDirectoryBinary>() {
             public void execute(final ClassDirectoryBinary binary) {
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
@@ -61,25 +76,41 @@ public class JvmLanguagePlugin implements Plugin<Project> {
                 binary.setClassesTask(classesTask);
                 binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
                     public void execute(ResourceSet resourceSet) {
-                            Copy resourcesTask = binary.getResourcesTask();
-                            if (resourcesTask == null) {
-                                resourcesTask = target.getTasks().add(binary.getTaskName("process", "resources"), ProcessResources.class);
-                                resourcesTask.setDescription(String.format("Processes the %s resources.", binary.getName()));
-                                new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
-                                    public File call() throws Exception {
-                                        return binary.getResourcesDir();
-                                    }
-                                });
-                                binary.setResourcesTask(resourcesTask);
-                                classesTask.dependsOn(resourcesTask);
-                            }
-                            resourcesTask.from(resourceSet.getSource());
+                        Copy resourcesTask = binary.getResourcesTask();
+                        if (resourcesTask == null) {
+                            resourcesTask = target.getTasks().add(binary.getTaskName("process", "resources"), ProcessResources.class);
+                            resourcesTask.setDescription(String.format("Processes the %s resources.", binary.getName()));
+                            new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
+                                public File call() throws Exception {
+                                    return binary.getResourcesDir();
+                                }
+                            });
+                            binary.setResourcesTask(resourcesTask);
+                            classesTask.dependsOn(resourcesTask);
                         }
+                        resourcesTask.from(resourceSet.getSource());
+                    }
                 });
             }
         });
     }
 
+    /**
+     * Returns the {@code binaries.jvm} container that was added by this plugin to the project.
+     *
+     * @return the {@code binaries.jvm} container that was added by this plugin to the project
+     */
+    public JvmBinaryContainer getJvmBinaryContainer() {
+        return jvmBinaryContainer;
+    }
+
+    /**
+     * Preconfigures the specified compile task based on the specified source set and class directory binary.
+     *
+     * @param compile the compile task to be preconfigured
+     * @param sourceSet the source set for the compile task
+     * @param binary the binary for the compile task
+     */
     public void configureCompileTask(AbstractCompile compile, final JvmLanguageSourceSet sourceSet, final ClassDirectoryBinary binary) {
         compile.setDescription(String.format("Compiles the %s.", sourceSet));
         compile.setSource(sourceSet.getSource());

@@ -23,7 +23,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultClassDirectoryBinary;
 import org.gradle.api.internal.tasks.DefaultJavaSourceSet;
 import org.gradle.api.internal.tasks.DefaultResourceSet;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
@@ -138,9 +137,8 @@ public class JavaBasePlugin implements Plugin<Project> {
                 ResourceSet resourceSet = instantiator.newInstance(DefaultResourceSet.class, "resources", sourceSet.getResources(), functionalSourceSet);
                 functionalSourceSet.add(resourceSet);
 
-                BinaryContainer extension = project.getExtensions().getByType(BinaryContainer.class);
-                ClassDirectoryBinary binary = instantiator.newInstance(DefaultClassDirectoryBinary.class, sourceSet.getName());
-                extension.getJvm().add(binary);
+                JvmBinaryContainer jvmBinaryContainer = project.getPlugins().getPlugin(JvmLanguagePlugin.class).getJvmBinaryContainer();
+                ClassDirectoryBinary binary = jvmBinaryContainer.create(sourceSet.getName(), ClassDirectoryBinary.class);
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {

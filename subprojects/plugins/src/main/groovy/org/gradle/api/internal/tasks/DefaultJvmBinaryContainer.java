@@ -25,6 +25,10 @@ public class DefaultJvmBinaryContainer extends DefaultPolymorphicDomainObjectCon
         super(ClassDirectoryBinary.class, instantiator);
     }
 
+    public String getName() {
+        return "jvm";
+    }
+
     @Override
     protected ClassDirectoryBinary doCreate(String name) {
         return getInstantiator().newInstance(DefaultClassDirectoryBinary.class, name);

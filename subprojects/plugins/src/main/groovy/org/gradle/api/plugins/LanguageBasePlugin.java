@@ -15,17 +15,17 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.DefaultProjectSourceSet;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.*;
+import org.gradle.api.internal.tasks.*;
+import org.gradle.api.tasks.*;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 
 /**
- * Base plugin for language support. Adds a {@code sources} source set container to the project.
- * Part of the new source set and packaging model.
+ * Base plugin for language support.
+ * Adds a {@link BinariesContainer} named {@code binaries} to the project.
+ * Adds a {@link ProjectSourceSet} named {@code sources} to the project.
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
@@ -36,7 +36,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
         this.instantiator = instantiator;
     }
 
-    public void apply(Project project) {
-        project.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
+    public void apply(Project target) {
+        target.getExtensions().create("binaries", DefaultBinariesContainer.class, instantiator);
+        target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
     }
 }
