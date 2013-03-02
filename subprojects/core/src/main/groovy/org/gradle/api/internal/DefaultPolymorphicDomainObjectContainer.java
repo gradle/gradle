@@ -22,10 +22,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T> {
+    @Nullable
+    private NamedDomainObjectFactory<? extends T> defaultFactory;
+
     private final Map<Class<?>, NamedDomainObjectFactory<?>> factories =
             new HashMap<Class<?>, NamedDomainObjectFactory<?>>();
-
-    private NamedDomainObjectFactory<? extends T> defaultFactory;
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
         super(type, instantiator, namer);
@@ -36,11 +37,21 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     }
 
     protected T doCreate(String name) {
+        if (defaultFactory == null) {
+            throw new InvalidUserDataException("This container does not support "
+                    + "creating domain objects without specifying a type.");
+        }
         return defaultFactory.create(name);
     }
 
-    protected  <U extends T> U doCreate(String name, Class<U> type) {
-        return getFactory(type).create(name);
+    protected <U extends T> U doCreate(String name, Class<U> type) {
+        @SuppressWarnings("unchecked")
+        NamedDomainObjectFactory<U> factory = (NamedDomainObjectFactory<U>) factories.get(type);
+        if (factory == null) {
+            throw new InvalidUserDataException(String.format("This container does not support "
+                    + "creating domain objects of type '%s'.", type.getName()));
+        }
+        return factory.create(name);
     }
 
     public void registerDefaultFactory(NamedDomainObjectFactory<? extends T> factory) {
@@ -48,11 +59,10 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     }
 
     public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
+        if (!getType().isAssignableFrom(type)) {
+            throw new IllegalArgumentException(String.format("Factory element type '%s' is not a subtype of "
+                    + "container element type '%s'", type.getName(), getType().getName()));
+        }
         factories.put(type, factory);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <U extends T> NamedDomainObjectFactory<U> getFactory(Class<U> type) {
-        return (NamedDomainObjectFactory<U>) factories.get(type);
     }
 }

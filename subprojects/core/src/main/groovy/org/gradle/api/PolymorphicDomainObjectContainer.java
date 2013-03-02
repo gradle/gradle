@@ -16,13 +16,44 @@
 package org.gradle.api;
 
 /**
- * A {@link NamedDomainObjectContainer} that allows to create elements of different types.
+ * A {@link NamedDomainObjectContainer} that allows to create domain objects with different types.
  *
- * @param <T> the (base) container element type
+ * @param <T> the (base) type of domain objects in the container
  */
 @Incubating
 public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectContainer<T> {
+    /**
+     * Creates a domain object with the specified name and type, and adds it to the container.
+     *
+     * @param name the name of the domain object to be created
+     *
+     * @param type the type of the domain object to be created
+     *
+     * @param <U> the type of the domain object to be created
+     *
+     * @return the created domain object
+     *
+     * @throws InvalidUserDataException if a domain object with the specified name already exists
+     * or the container does not support creating a domain object with the specified type
+     */
     <U extends T> U create(String name, Class<U> type) throws InvalidUserDataException;
 
+    /**
+     * Creates a domain object with the specified name and type, adds it to the container, and configures
+     * it with the specified action.
+     *
+     * @param name the name of the domain object to be created
+     *
+     * @param type the type of the domain object to be created
+     *
+     * @param configuration an action for configuring the domain object
+     *
+     * @param <U> the type of the domain object to be created
+     *
+     * @return the created domain object
+     *
+     * @throws InvalidUserDataException if a domain object with the specified name already exists
+     * or the container does not support creating a domain object with the specified type
+     */
     <U extends T> U create(String name, Class<U> type, Action<? super U> configuration) throws InvalidUserDataException;
 }
