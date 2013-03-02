@@ -22,7 +22,7 @@ package org.gradle.api;
  * @param <T> the (base) container element type
  */
 @Incubating
-public interface ExtensiblePolymorphicDomainObjectContainer<T> extends NamedDomainObjectContainer<T> {
+public interface ExtensiblePolymorphicDomainObjectContainer<T> extends PolymorphicDomainObjectContainer<T> {
     /**
      * Registers a factory for creating elements of the specified type. Typically, the specified type
      * is an interface type.
