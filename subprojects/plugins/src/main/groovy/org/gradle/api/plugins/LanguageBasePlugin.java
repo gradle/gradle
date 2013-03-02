@@ -16,6 +16,8 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.*;
 import org.gradle.api.tasks.*;
 import org.gradle.internal.reflect.Instantiator;
@@ -26,18 +28,33 @@ import javax.inject.Inject;
  * Base plugin for language support.
  * Adds a {@link BinariesContainer} named {@code binaries} to the project.
  * Adds a {@link ProjectSourceSet} named {@code sources} to the project.
+ * Registers the {@link ResourceSet} element type for each {@link FunctionalSourceSet} added to {@link ProjectSourceSet}.
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
+    private final FileResolver fileResolver;
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator) {
+    public LanguageBasePlugin(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
+        this.fileResolver = fileResolver;
     }
 
     public void apply(Project target) {
         target.getExtensions().create("binaries", DefaultBinariesContainer.class, instantiator);
-        target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
+        ProjectSourceSet projectSourceSet = target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
+
+        // TODO: move to JvmLanguagePlugin?
+        projectSourceSet.all(new Action<FunctionalSourceSet>() {
+            public void execute(final FunctionalSourceSet functionalSourceSet) {
+                functionalSourceSet.registerFactory(ResourceSet.class, new NamedDomainObjectFactory<ResourceSet>() {
+                    public ResourceSet create(String name) {
+                        return instantiator.newInstance(DefaultResourceSet.class, name,
+                                instantiator.newInstance(DefaultSourceDirectorySet.class, name, fileResolver), functionalSourceSet);
+                    }
+                });
+            }
+        });
     }
 }

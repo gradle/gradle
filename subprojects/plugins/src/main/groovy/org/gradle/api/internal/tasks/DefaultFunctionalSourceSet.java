@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Named;
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.tasks.FunctionalSourceSet;
 import org.gradle.api.tasks.LanguageSourceSet;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultFunctionalSourceSet extends AbstractNamedDomainObjectContainer<LanguageSourceSet> implements FunctionalSourceSet, Named {
+public class DefaultFunctionalSourceSet extends DefaultPolymorphicDomainObjectContainer<LanguageSourceSet> implements FunctionalSourceSet {
     private final String name;
 
     public DefaultFunctionalSourceSet(String name, Instantiator instantiator) {
@@ -31,10 +30,5 @@ public class DefaultFunctionalSourceSet extends AbstractNamedDomainObjectContain
 
     public String getName() {
         return name;
-    }
-
-    @Override
-    protected LanguageSourceSet doCreate(String name) {
-        return null; // TODO
     }
 }

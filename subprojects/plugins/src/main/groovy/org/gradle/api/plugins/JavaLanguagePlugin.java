@@ -16,21 +16,35 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.tasks.BinaryContainer;
-import org.gradle.api.tasks.ClassDirectoryBinary;
-import org.gradle.api.tasks.JavaSourceSet;
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.tasks.DefaultClasspath;
+import org.gradle.api.internal.tasks.DefaultJavaSourceSet;
+import org.gradle.api.internal.tasks.DefaultProjectSourceSet;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.internal.reflect.Instantiator;
+
+import javax.inject.Inject;
 
 /**
  * Plugin for compiling Java code. Applies the {@link JvmLanguagePlugin}.
  * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link ClassDirectoryBinary}.
+ * Registers the {@link JavaSourceSet} element type for each {@link FunctionalSourceSet} added to {@link ProjectSourceSet}.
  */
 @Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {
+    private final Instantiator instantiator;
+
+    @Inject
+    public JavaLanguagePlugin(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
+
     public void apply(final Project target) {
         final JvmLanguagePlugin jvmLanguagePlugin = target.getPlugins().apply(JvmLanguagePlugin.class);
-        BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
-        binaryContainer.getJvm().all(new Action<ClassDirectoryBinary>() {
+
+        JvmBinaryContainer jvmBinaryContainer = jvmLanguagePlugin.getJvmBinaryContainer();
+        jvmBinaryContainer.all(new Action<ClassDirectoryBinary>() {
             public void execute(final ClassDirectoryBinary binary) {
                 binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
                     public void execute(JavaSourceSet javaSourceSet) {
@@ -41,6 +55,19 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                             binary.setCompileTask(compileTask);
                             binary.getClassesTask().dependsOn(compileTask);
                         }
+                    }
+                });
+            }
+        });
+
+        ProjectSourceSet projectSourceSet = target.getExtensions().getByType(DefaultProjectSourceSet.class);
+        projectSourceSet.all(new Action<FunctionalSourceSet>() {
+            public void execute(final FunctionalSourceSet functionalSourceSet) {
+                functionalSourceSet.registerFactory(JavaSourceSet.class, new NamedDomainObjectFactory<JavaSourceSet>() {
+                    public JavaSourceSet create(String name) {
+                        return instantiator.newInstance(DefaultJavaSourceSet.class, name,
+                                instantiator.newInstance(DefaultSourceDirectorySet.class),
+                                instantiator.newInstance(DefaultClasspath.class), functionalSourceSet);
                     }
                 });
             }

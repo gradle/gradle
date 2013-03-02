@@ -15,13 +15,13 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * A container holding {@link LanguageSourceSet}s with a similar function
  * (production code, test code, etc.).
  */
 @Incubating
-public interface FunctionalSourceSet extends NamedDomainObjectContainer<LanguageSourceSet>, Named {}
+public interface FunctionalSourceSet extends ExtensiblePolymorphicDomainObjectContainer<LanguageSourceSet>, Named {}
