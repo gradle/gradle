@@ -21,7 +21,8 @@ import org.gradle.internal.reflect.Instantiator;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T> {
+public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T>
+        implements ExtensiblePolymorphicDomainObjectContainer<T> {
     @Nullable
     private NamedDomainObjectFactory<? extends T> defaultFactory;
 
