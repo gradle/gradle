@@ -17,6 +17,7 @@
 package org.gradle.api.internal.plugins
 
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.DeferredConfigurable
 import spock.lang.Specification
@@ -130,6 +131,30 @@ class ExtensionsStorageTest extends Specification {
         then:
         1 * delegate.call(1)
         1 * delegate.call(2)
+    }
+
+    def "cannot configure deferred configurable extension after access"() {
+
+        TestDeferredExtension extension = new TestDeferredExtension()
+        def delegate = Mock(TestExtension)
+        extension.delegate = delegate
+
+        given:
+        storage.add("ext", extension)
+        storage.configureExtension("ext", {
+            it.call(1)
+        })
+
+        and:
+        storage.getByName("ext")
+
+        when:
+        storage.configureExtension("ext", {
+            it.call(2)
+        })
+
+        then:
+        thrown InvalidUserDataException
     }
 
     public static interface TestExtension {

@@ -40,7 +40,7 @@ public class ExtensionsStorage {
         if (extensions.containsKey(name)) {
             throw new IllegalArgumentException(String.format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
         }
-        extensions.put(name, wrap(extension));
+        extensions.put(name, wrap(name, extension));
     }
 
     public boolean hasExtension(String name) {
@@ -112,9 +112,9 @@ public class ExtensionsStorage {
         return extensionHolder == null ? null : extensionHolder.get();
     }
 
-    private <T> ExtensionHolder<T> wrap(T extension) {
+    private <T> ExtensionHolder<T> wrap(String name, T extension) {
         if (isDeferredConfigurable(extension)) {
-            return new DeferredConfigurableExtensionHolder<T>(extension);
+            return new DeferredConfigurableExtensionHolder<T>(name, extension);
         }
         return new ExtensionHolder<T>(extension);
     }
@@ -149,11 +149,13 @@ public class ExtensionsStorage {
     }
 
     private static class DeferredConfigurableExtensionHolder<T> extends ExtensionHolder<T> {
+        private final String name;
         private ActionBroadcast<T> actions = new ActionBroadcast<T>();
         private boolean configured;
 
-        private DeferredConfigurableExtensionHolder(T extension) {
+        public DeferredConfigurableExtensionHolder(String name, T extension) {
             super(extension);
+            this.name = name;
         }
 
         public T get() {
@@ -169,7 +171,7 @@ public class ExtensionsStorage {
 
         private void configureLater(Action<? super T> action) {
             if (configured) {
-                throw new IllegalStateException("The 'publishing' extension is already configured");
+                throw new InvalidUserDataException(String.format("Cannot configure the '%s' extension after it has been accessed.", name));
             }
             actions.add(action);
         }
@@ -180,7 +182,7 @@ public class ExtensionsStorage {
                 try {
                     actions.execute(extension);
                 } catch (ListenerNotificationException e) {
-                    throw new InvalidUserDataException("A problem occurred configuring the 'publishing' extension", e.getCause());
+                    throw new InvalidUserDataException(String.format("A problem occurred configuring the '%s' extension", name), e.getCause());
                 }
             }
         }
