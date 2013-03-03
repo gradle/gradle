@@ -110,24 +110,18 @@ Once the publishing extension has been configured, it will be an error to make f
 
 ### Implementation plan
 
-1. Add a `ConfigurationAware<T>` interface. This interface should have the following methods:
-    - `configureLater(Action<? super T>)`. This adds an action for later execution when the target domain object is to be configured. It is
-      an error to call this method once the object has been configured.
-    - `T configureNow()`. Triggers the execution of the registered configuration actions, if the object has not already been configured.
-      Returns the configured object.
-2. Add a public `DefaultDomainObject` class which implements `ConfigurationAware`. The constructor should assert that the instance has been
-   created by a decorating instantiator, similar to `AbstractTask`.
-3. Change `DefaultPublishingExtension` to extend `DefaultDomainObject`.
-4. Change the extension container so that, when a given extension `e` implements `ConfigurationAware`:
-    - calling the dynamic configuration method `e { ... }` delegates to `configureLater()` with the given closure.
-    - accessing the dynamic property `e` calls `configureNow()` and then returns the result.
-    - `getByName()` and `findByName()` work as for accessing the dynamic property.
-    - `getByType()` and `findByType()` do something sensible (not sure what yet).
+1. Add a `DeferredConfigurable` annotation. This annotation marks an extension as requiring a single, deferred configuration event, rather than progressive configuration.
+2. Update the ExtensionContainer so that for any added extension that is annotated with DeferredConfigurable:
+    - `configure` will add an action for later execution when the target extension object is to be configured.
+       It is an error to attempt to configure a DeferredConfigurable extension after it has been configured.
+    - Accessing the extension triggers the execution of the registered configuration actions, if the extension has not already been configured.
+3. Add `DeferredConfigurable` to `DefaultPublishingExtension`.
 
 ### Test coverage
 
 - Update the publishing integration tests so that the publications are declared along with the other injected configuration in `allprojects`/`subprojects`
-- A custom plugin can use an extension implementation that extends `DefaultDomainObject` to implement lazy configuration.
+- A custom plugin can use a `DeferredConfigurable` extension to implement lazy configuration.
+- Attempting to configure a `DeferredConfigurable` extension after access provides reasonable failure message
 
 ## Allow the project version to be determined early in the build configuration
 
