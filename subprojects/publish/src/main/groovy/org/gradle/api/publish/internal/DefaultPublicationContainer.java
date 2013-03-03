@@ -16,16 +16,13 @@
 
 package org.gradle.api.publish.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.publish.Publication;
+import org.gradle.api.publish.PublicationContainer;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Publication> implements PublicationContainerInternal {
-
-    private final CompositePublicationFactory publicationFactories = new CompositePublicationFactory();
-
+public class DefaultPublicationContainer extends DefaultPolymorphicDomainObjectContainer<Publication> implements PublicationContainer {
     public DefaultPublicationContainer(Instantiator instantiator) {
         super(Publication.class, instantiator);
     }
@@ -33,21 +30,5 @@ public class DefaultPublicationContainer extends DefaultNamedDomainObjectSet<Pub
     @Override
     protected void handleAttemptToAddItemWithNonUniqueName(Publication o) {
         throw new InvalidUserDataException(String.format("Publication with name '%s' added multiple times", o.getName()));
-    }
-
-    public <T extends Publication> T add(String name, Class<T> type) {
-        T publication = publicationFactories.create(type, name);
-        add(publication);
-        return publication;
-    }
-
-    public <T extends Publication> T add(String name, Class<T> type, Action<? super T> action) {
-        T publication = add(name, type);
-        action.execute(publication);
-        return publication;
-    }
-
-    public void registerFactory(Class<? extends Publication> type, PublicationFactory publicationFactory) {
-        publicationFactories.register(type, publicationFactory);
     }
 }

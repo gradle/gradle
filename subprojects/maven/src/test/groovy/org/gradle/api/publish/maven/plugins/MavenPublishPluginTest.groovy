@@ -55,7 +55,7 @@ class MavenPublishPluginTest extends Specification {
 
     def "publication can be added"() {
         when:
-        publishing.publications.add("test", MavenPublication)
+        publishing.publications.create("test", MavenPublication)
 
         then:
         publishing.publications.size() == 1
@@ -64,7 +64,7 @@ class MavenPublishPluginTest extends Specification {
 
     def "creates publish tasks for publication and repository"() {
         when:
-        publishing.publications.add("test", MavenPublication)
+        publishing.publications.create("test", MavenPublication)
         publishing.repositories { maven { url = "http://foo.com" } }
 
         then:
@@ -75,7 +75,7 @@ class MavenPublishPluginTest extends Specification {
 
     def "task is created for publishing to mavenLocal"() {
         given:
-        publishing.publications.add("test", MavenPublication)
+        publishing.publications.create("test", MavenPublication)
 
         expect:
         publishLocalTasks.size() == 1
@@ -86,7 +86,7 @@ class MavenPublishPluginTest extends Specification {
 
     def "can explicitly add mavenLocal as a publishing repository"() {
         given:
-        publishing.publications.add("test", MavenPublication)
+        publishing.publications.create("test", MavenPublication)
 
         when:
         def mavenLocal = publishing.repositories.mavenLocal()
@@ -101,7 +101,7 @@ class MavenPublishPluginTest extends Specification {
 
     def "tasks are created for compatible publication / repo"() {
         given:
-        publishing.publications.add("test", MavenPublication)
+        publishing.publications.create("test", MavenPublication)
 
         expect:
         publishTasks.size() == 0
@@ -145,7 +145,7 @@ class MavenPublishPluginTest extends Specification {
         project.version = "version"
 
         and:
-        publishing.publications.add("test", MavenPublication)
+        publishing.publications.create("test", MavenPublication)
 
         then:
         with(publishing.publications.test.mavenProjectIdentity) {
@@ -166,7 +166,7 @@ class MavenPublishPluginTest extends Specification {
 
     def "pom dir moves with build dir"() {
         when:
-        publishing.publications.add("test", MavenPublication)
+        publishing.publications.create("test", MavenPublication)
 
         then:
         project.tasks["generatePomFileForTestPublication"].destination == new File(project.buildDir, "publications/test/pom-default.xml")

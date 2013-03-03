@@ -27,7 +27,7 @@ import org.gradle.api.Incubating;
  * <pre autoTested="true">
  * apply plugin: 'maven-publish'
  *
- * def publication = publishing.publications.add("name", MavenPublication)
+ * def publication = publishing.publications.create("name", MavenPublication)
  * def artifacts = publication.artifacts
  *
  * artifacts.matching({

@@ -29,7 +29,9 @@ import org.gradle.api.publish.Publication;
  * <pre>
  * publishing {
  *   publications {
- *     myPublicationName(MavenPublication)
+ *     myPublicationName(MavenPublication) {
+ *       // Configure the publication here
+ *     }
  *   }
  * }
  * </pre>

@@ -22,8 +22,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.publish.PublishingExtension;
-import org.gradle.api.publish.internal.PublicationContainerInternal;
-import org.gradle.api.publish.internal.PublicationFactory;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
@@ -71,8 +69,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             public void execute(PublishingExtension extension) {
-                final PublicationContainerInternal publicationContainer = (PublicationContainerInternal) extension.getPublications();
-                publicationContainer.registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
+                // Register factory for MavenPublication
+                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
 
                 // Create generatePom tasks for any Maven publication
                 GeneratePomTaskCreator descriptorGenerationTaskCreator = new GeneratePomTaskCreator(project);
@@ -89,7 +87,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private class MavenPublicationFactory implements PublicationFactory {
+    private class MavenPublicationFactory implements NamedDomainObjectFactory<MavenPublication> {
         private final Instantiator instantiator;
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final FileResolver fileResolver;
