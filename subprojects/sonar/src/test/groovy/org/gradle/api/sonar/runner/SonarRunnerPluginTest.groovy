@@ -88,7 +88,6 @@ class SonarRunnerPluginTest extends Specification {
 
         then:
         properties["sonar.sources"] == ""
-        properties["sonar.projectKey"] == "group%3Aroot%3Aparent"
         properties["sonar.projectName"] == "parent"
         properties["sonar.projectDescription"] == "description"
         properties["sonar.projectVersion"] == "1.3"
@@ -98,7 +97,6 @@ class SonarRunnerPluginTest extends Specification {
 
         and:
         properties["child.sonar.sources"] == ""
-        properties["child.sonar.projectKey"] == "group%3Aroot%3Aparent%3Achild"
         properties["child.sonar.projectName"] == "child"
         properties["child.sonar.projectDescription"] == "description"
         properties["child.sonar.projectVersion"] == "1.3"
@@ -111,14 +109,26 @@ class SonarRunnerPluginTest extends Specification {
         def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
+        properties["sonar.projectKey"] == "group:parent"
         properties["sonar.environment.information.key"] == "Gradle"
         properties["sonar.environment.information.version"] == parentProject.gradle.gradleVersion
         properties["sonar.working.directory"] == new File(parentProject.buildDir, "sonar") as String
 
         and:
+        !properties.containsKey("child.sonar.projectKey") // default left to Sonar
         !properties.containsKey("child.sonar.environment.information.key")
         !properties.containsKey("child.sonar.environment.information.version")
         !properties.containsKey('child.sonar.working.directory')
+    }
+
+    def "defaults projectKey to project.name if project.group isn't set"() {
+        parentProject.group = "" // or null, but only rootProject.group can effectively be set to null
+
+        when:
+        def properties = parentProject.tasks.sonarRunner.sonarProperties
+
+        then:
+        properties["sonar.projectKey"] == "parent"
     }
 
     def "adds additional default properties for 'java-base' projects"() {
@@ -184,7 +194,7 @@ class SonarRunnerPluginTest extends Specification {
         !properties.containsKey("sonar.surefire.reportsPath")
     }
 
-    def "adds empty 'sonar.sources' property if no sources exist (because Sonar Runner always expects this property to be set)"() {
+    def "adds empty 'sonar.sources' property if no sources exist (because Sonar Runner 2.0 always expects this property to be set)"() {
         childProject2.plugins.apply(JavaPlugin)
 
         when:

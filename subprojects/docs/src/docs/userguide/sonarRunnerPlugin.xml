@@ -108,7 +108,7 @@
             </thead>
             <tr>
                 <td>sonar.projectKey</td>
-                <td>"$project.group:$project.rootProject.name$project.path"</td>
+                <td>"$project.group:$project.name" (for root project of analysed hierarchy; left to Sonar Runner otherwise)</td>
             </tr>
             <tr>
                 <td>sonar.projectName</td>
