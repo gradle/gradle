@@ -143,7 +143,6 @@ class SonarRunnerPlugin implements Plugin<Project> {
     }
 
     private void addGradleDefaults(Project project, Map<String, Object> properties) {
-        properties["sonar.projectKey"] = getProjectKey(project)
         properties["sonar.projectName"] = project.name
         properties["sonar.projectDescription"] = project.description
         properties["sonar.projectVersion"] = project.version
@@ -151,6 +150,10 @@ class SonarRunnerPlugin implements Plugin<Project> {
         properties["sonar.dynamicAnalysis"] = "reuseReports"
 
         if (project == targetProject) {
+            // We only set project key for root project because Sonar Runner 2.0 will automatically
+            // prefix subproject keys with parent key, even if subproject keys are set explicitly.
+            // Therefore it's better to rely on Sonar's defaults.
+            properties["sonar.projectKey"] = getProjectKey(project)
             properties["sonar.environment.information.key"] = "Gradle"
             properties["sonar.environment.information.version"] = project.gradle.gradleVersion
             properties["sonar.working.directory"] = new File(project.buildDir, "sonar")
@@ -173,22 +176,19 @@ class SonarRunnerPlugin implements Plugin<Project> {
         }
 
         if (properties["sonar.sources"] == null) {
-            // for some reason, sonar.sources must always be set (as of Sonar 3.4)
+            // Should be able to remove this after upgrading to Sonar Runner 2.1 (issue is already marked as fixed),
+            // if we can live with the fact that leaf projects w/o source dirs will still cause a failure.
             properties["sonar.sources"] = ""
         }
     }
 
     private String getProjectKey(Project project) {
-        String result
-        if (project.parent) {
-            result = "$project.group:$project.rootProject.name$project.path"
-        } else {
-            result = "$project.group:$project.name"
-        }
-
-        // project key gets used in URL parameter
-        // example: http://localhost:63450/batch_bootstrap/properties?project=org.gradle.test.sonar:Sonar+Test+Build
-        URLEncoder.encode(result, "utf-8")
+        // Sonar uses project keys in URL parameters without internally URL-encoding them.
+        // According to my manual tests with sonar-runner plugin based on Sonar Runner 2.0 and Sonar 3.4.1,
+        // the current defaults will only cause a problem if project.group or project.name of
+        // the Gradle project to which the plugin is applied contains special characters.
+        // (':' works, ' ' doesn't.) In such a case, sonar.projectKey can be overridden manually.
+        project.group ? "$project.group:$project.name" : project.name
     }
 
     private void addSystemProperties(Map<String, Object> properties) {
