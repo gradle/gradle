@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -33,8 +34,9 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
     }
 
     public EnhancedDependencyDescriptor createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
+        ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
+        projectDependency.beforeResolved();
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
-        ProjectDependency projectDependency = (ProjectDependency) dependency;
         ProjectDependencyDescriptor dependencyDescriptor = new ProjectDependencyDescriptor(projectDependency, parent, moduleRevisionId, false, false, dependency.isTransitive());
         addExcludesArtifactsAndDependencies(configuration, dependency, dependencyDescriptor);
         return dependencyDescriptor;

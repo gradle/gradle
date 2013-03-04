@@ -15,17 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ExternalModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
-import org.gradle.api.internal.project.AbstractProject;
-import org.gradle.util.HelperUtil;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Test;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
+import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
+import org.gradle.api.internal.project.AbstractProject
+import org.gradle.initialization.ProjectAccessListener
+import org.gradle.util.HelperUtil
+import org.jmock.integration.junit4.JUnit4Mockery
+import org.junit.Test
+
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -60,6 +62,6 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         AbstractProject dependencyProject = HelperUtil.createRootProject();
         dependencyProject.setGroup("someGroup");
         dependencyProject.setVersion("someVersion");
-        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, null, true);
+        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, {} as ProjectAccessListener, true);
     }
 }

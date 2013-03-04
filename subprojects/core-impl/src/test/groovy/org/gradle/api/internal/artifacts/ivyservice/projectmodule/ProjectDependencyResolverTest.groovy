@@ -24,15 +24,13 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.initialization.ProjectAccessListener
 import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
     final ProjectModuleRegistry registry = Mock()
     final ModuleRevisionId moduleRevisionId = Mock()
     final DependencyToModuleResolver target = Mock()
-    final ProjectAccessListener projectAccessListener = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target, projectAccessListener)
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target)
 
     def "resolves project dependency"() {
         setup:
@@ -62,7 +60,6 @@ class ProjectDependencyResolverTest extends Specification {
             moduleVersionIdentifier.name == "project"
             moduleVersionIdentifier.version == "1.0"
         }
-        1 * projectAccessListener.beforeResolvingProjectDependency(dependencyProject)
         0 * result._
     }
 

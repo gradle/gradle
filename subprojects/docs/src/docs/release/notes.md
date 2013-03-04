@@ -44,9 +44,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### org.gradle.api.artifacts.ProjectDependency now has an internal protocol
+
+This means that the users should not create own implementations of org.gradle.api.artifacts.ProjectDependency.
+This change should not affect any builds because there are no use cases supporting custom instances of ProjectDependency.
 
 ## External contributions
 

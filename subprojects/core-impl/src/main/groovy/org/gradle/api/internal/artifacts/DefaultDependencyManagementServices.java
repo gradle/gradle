@@ -276,7 +276,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 ),
                 new DefaultProjectModuleRegistry(
                         get(PublishModuleDescriptorConverter.class)),
-                get(ProjectAccessListener.class),
                 get(CacheLockingManager.class)
         );
         return new ErrorHandlingArtifactDependencyResolver(
