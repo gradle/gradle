@@ -188,10 +188,24 @@ class JavaPluginTest {
         assertThat(task.classifier, equalTo("javadoc"))
         assertThat(task.copyAction.mainSpec.sourcePaths, equalTo([project.tasks[JavaPlugin.JAVADOC_TASK_NAME].outputs] as Set))
 
+        task = project.tasks[JavaPlugin.JAVADOC_JAR_TASK_NAME]
+        assertThat(task, instanceOf(Jar))
+        assertThat(task, dependsOn(JavaPlugin.JAVADOC_TASK_NAME))
+        assertThat(task.destinationDir, equalTo(project.libsDir))
+        assertThat(task.classifier, equalTo("javadoc"))
+        assertThat(task.copyAction.mainSpec.sourcePaths, equalTo([project.tasks[JavaPlugin.JAVADOC_TASK_NAME].outputs] as Set))
+
         task = project.tasks[JavaPlugin.SOURCE_ZIP_TASK_NAME]
         assertThat(task, instanceOf(Zip))
         assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.distsDir))
+        assertThat(task.classifier, equalTo("source"))
+        assertThat(task.copyAction.mainSpec.sourcePaths, equalTo([project.sourceSets.main.allJava] as Set))
+
+        task = project.tasks[JavaPlugin.SOURCE_JAR_TASK_NAME]
+        assertThat(task, instanceOf(Jar))
+        assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME))
+        assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.classifier, equalTo("source"))
         assertThat(task.copyAction.mainSpec.sourcePaths, equalTo([project.sourceSets.main.allJava] as Set))
 
