@@ -100,7 +100,18 @@ This mode is still incubating but should work very well with builds that have
 (e.g. avoiding having a subproject accessing the model of another project).
 The best place to start configuring on demand is diving into [this section in the user guide](userguide/multi_project_builds.html#sec:configuration_on_demand).
 
-### New gradle property 'org.gradle.parallel'
+### Parallel execution improvements
+
+* Faster parallel builds due to better scheduling of parallel jobs
+
+Gradle 1.2 introduced an incubating [parallel execution](userguide/multi_project_builds.html#sec:parallel_execution) mode for multi-project builds.
+In this release we significantly improved utilisation of the parallel workers.
+Previously, workers where statically assigned to projects and often waited for the upstream dependencies to be built.
+This caused workers to stay idle when they could grab a task from different project and execute it.
+Currently, workers are not assigned statically to projects and poll projects/tasks actively.
+This means that highly parallelizable builds are now up to 30% faster.
+
+* Easier configuration via new gradle property 'org.gradle.parallel'
 
 New Gradle property can be used to configure your [build environment](userguide/build_environment.html#sec:gradle_configuration_properties).
 The incubating parallel build execution can now be configured in a persistent fashion:
@@ -316,6 +327,12 @@ This change should not cause any trouble in existing builds.
 ### `ArtifactRepositoryContainer.getResolvers()`
 
 This method has been deprecated and will be removed in Gradle 2.0.
+
+### Optimised order of task execution in parallel execution mode
+
+Parallel builds are now much faster due to better utilisation of parallel workers.
+However, this means that tasks may be executed in different order in parallel builds.
+Make sure you declare the task dependencies well and keep sing the incubating parallel execution mode.
 
 ## External contributions
 
