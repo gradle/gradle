@@ -28,7 +28,7 @@ import org.gradle.api.NamedDomainObjectContainer;
  * <pre autoTested="true">
  * apply plugin: 'ivy-publish'
  *
- * def publication = publishing.publications.add("my-pub", IvyPublication)
+ * def publication = publishing.publications.create("my-pub", IvyPublication)
  * def configurations = publication.configurations
  *
  * configurations.create("extended", { extend "default"})

@@ -150,7 +150,7 @@ public interface IvyPublication extends Publication {
      *   publications {
      *     ivy(IvyPublication) {
      *       configurations {
-     *           testCompile
+     *           testCompile {}
      *           testRuntime {
      *               extend "testCompile"
      *           }
