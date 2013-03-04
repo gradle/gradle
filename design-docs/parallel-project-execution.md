@@ -279,7 +279,8 @@ Sad-day:
 - When using the parallel executer, give each project a copy of the model. This will prevent things sporadically failing due to timing issues.
 - Buffer all output for a task and only flush to console when it is complete. No special handling for large amounts of console output.
 - Provide basic summary status bar for parallel project execution
-- Determine a sensible default for number of parallel threads of execution when none is specified
+- Determine a sensible default for number of parallel threads of execution when none is specified.
+    Currently, it's based on available CPUs but capped to 4. We should remove the cap or make further tests when we implement various cache access performance tweaks.
 - Add a command-line option to specify that projects are decoupled: both warning and failing modes should be supported.
 - More sophisticated task logging: interleaved project output with some buffering and pretty-printing
 - Display multiple status bars, one for each build executor and one summary (up to a certain threshold).
