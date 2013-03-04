@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.List;
 
+//TODO SF add coverage
 public class ProfileReportRenderer {
     public void writeTo(BuildProfile buildProfile, File file) {
         HtmlReportRenderer renderer = new HtmlReportRenderer();
@@ -172,12 +173,7 @@ public class ProfileReportRenderer {
                                         .startElement("th").characters("Result").endElement()
                                     .endElement()
                                 .endElement();
-                                htmlWriter.startElement("tr")
-                                    .startElement("td").characters("All dependencies").endElement()
-                                    .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getDependencySets().getElapsedTime())).endElement()
-                                .endElement();
-                                final List<ProjectProfile> projects = model.getProjects();
-                                CollectionUtils.sort(projects, new Comparator<ProjectProfile>() {
+                                final List<ProjectProfile> projects = CollectionUtils.sort(model.getProjects(), new Comparator<ProjectProfile>() {
                                         public int compare(ProjectProfile p1, ProjectProfile p2) {
                                         return Long.valueOf(p2.getTasks().getElapsedTime()).compareTo(p1.getTasks().getElapsedTime());
                                     }
@@ -188,15 +184,14 @@ public class ProfileReportRenderer {
                                         .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(project.getTasks().getElapsedTime())).endElement()
                                         .startElement("td").characters("(total)").endElement()
                                     .endElement();
-                                    final List<TaskExecution> taskExecutions  = project.getTasks().getOperations();
-                                    CollectionUtils.sort(taskExecutions, new Comparator<TaskExecution>() {
-                                               public int compare(TaskExecution p1, TaskExecution p2) {
+                                    final List<TaskExecution> taskExecutions = CollectionUtils.sort(project.getTasks().getOperations(), new Comparator<TaskExecution>() {
+                                        public int compare(TaskExecution p1, TaskExecution p2) {
                                             return Long.valueOf(p2.getElapsedTime()).compareTo(Long.valueOf(p1.getElapsedTime()));
                                         }
-                                           });
+                                    });
                                     for (TaskExecution taskExecution : taskExecutions) {
                                         htmlWriter.startElement("tr")
-                                            .startElement("td").attribute("class", "identPath").characters(taskExecution.getPath()).endElement()
+                                            .startElement("td").attribute("class", "indentPath").characters(taskExecution.getPath()).endElement()
                                             .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(taskExecution.getElapsedTime())).endElement()
                                             .startElement("td").characters(taskExecution.getState().getSkipped() ? taskExecution.getState().getSkipMessage() : (taskExecution.getState().getDidWork()) ? "" : "Did No Work").endElement()
                                         .endElement();
