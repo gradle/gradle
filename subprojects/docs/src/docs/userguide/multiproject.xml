@@ -597,6 +597,45 @@
             </para>
         </section>
     </section>
+    <section id="sec:parallel_execution">
+        <title>Parallel project execution</title>
+        <para>With more and more CPU cores available on developer desktops and CI servers,
+            it is important that Gradle is able to fully utilise these processing resources.
+            More specifically, the parallel execution attempts to:
+            <itemizedlist>
+                <listitem>Reduce total build time for a multi-project build where execution is IO bound or otherwise does not consume all available CPU resources.</listitem>
+                <listitem>Provide faster feedback for execution of small projects without awaiting completion of other projects.</listitem>
+            </itemizedlist>
+            Although Gradle already offers parallel test execution via <apilink class="org.gradle.api.tasks.testing.Test" method="setMaxParallelForks"/>
+            the feature described in this section is parallel execution at a project level.
+            Parallel execution is an incubating feature. Please use it and let us know how it works for you.
+        </para>
+        <para>
+            Parallel project execution allows the separate projects in a decoupled multi-project build to be executed in parallel
+            (see also: <xref linkend="sec:decoupled_projects"/>).
+            While parallel execution does not strictly require decoupling at configuration time,
+            the long-term goal is to provide a powerful set of features that will be available for fully decoupled projects.
+            Such features include:
+            <itemizedlist>
+                <listitem><xref linkend="sec:configuration_on_demand"/>.</listitem>
+                <listitem>Configuration of projects in parallel.</listitem>
+                <listitem>Re-use of configuration for unchanged projects.</listitem>
+                <listitem>Project-level up-to-date checks.</listitem>
+                <listitem>Using pre-built artifacts in the place of building dependent projects.</listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            How does the parallel execution work? First, you need to tell Gradle to use the parallel mode.
+            You can use the command line argument (<xref linkend='gradle_command_line'/>) or configure your build environment (<xref linkend="sec:gradle_configuration_properties"/>).
+            Unless you provide specific number of parallel threads Gradle attempts to choose the right number based on available CPU cores.
+            Every parallel worker exclusively owns a given project while executing a task.
+            This means that 2 tasks from the same project are never executed in parallel.
+            Therefore only multi-project builds can take advantage of parallel execution.
+            Task dependencies are fully supported and parallel workers will start executing upstream tasks first.
+            Bear in mind that the alphabetical scheduling of decoupled tasks, known from the sequential execution, does not really work in parallel mode.
+            You need to make sure the task dependencies are declared correctly to avoid ordering issues.
+        </para>
+    </section>
     <section id="sec:decoupled_projects">
         <title>Decoupled Projects</title>
         <para>Gradle allows any project to access any other project during both the configuration and execution phases. While this provides a great deal of power
