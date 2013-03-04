@@ -87,6 +87,7 @@ If you already enjoy configuration on demand please note the following improveme
 
 * Tooling API deals nicely with configure-on-demand.
  Building model configures all projects but running tasks via the Tooling API takes full advantage of the feature.
+* buildSrc is now fully supported with configure-on-demand.
 * New gradle property "org.gradle.configureondemand" should be used enable the feature for all builds of the given project.
  This way it is configurable consistently with other [build settings](userguide/build_environment.html#sec:gradle_configuration_properties).
  Note that the property has changed - see the example below how to configure your gradle.properties.
