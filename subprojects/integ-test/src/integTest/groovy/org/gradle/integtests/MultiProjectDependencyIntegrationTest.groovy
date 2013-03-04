@@ -247,15 +247,12 @@ project(':$from') {
     }
 
     def failingBuild(def project) {
+        file("$project/src/main/java/Foo.java") << "class Foo {}"
         buildFile << """
 project(':$project') {
-    //fail needs to have a dependendency on compileJava
-    //this way all the java project dependencies are built first in paralle mode
-    //if 'fail 'does not have any dependencies it will be scheduled to execute very early in parallel mode
-    task fail(dependsOn: compileJava) << {
+    compileJava.doFirst {
         throw new RuntimeException('failure in $project')
     }
-    jar.dependsOn fail
 }
 """
     }
