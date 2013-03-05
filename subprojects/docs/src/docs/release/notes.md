@@ -132,9 +132,13 @@ The incubating parallel build execution can now be configured in a persistent fa
 
 ### Easy publication of software components with the 'maven-publish' or 'ivy-publish' plugins
 
-Gradle 1.5 includes the concept of a Software Component, which defines something that can be produced by a Gradle project, like a Java Library or a Web Application.
-Both the 'ivy-publish' and 'maven-publish' plugins are component-aware, simplifying the process of publishing a module. The component defines the set of artifacts and dependencies for publishing.
-Presently, the set of components available for publishing is limited to 'java' and 'web', added by the 'java' and 'war' plugins respectively.
+Gradle 1.5 includes the concept of a `Software Component`, which defines something that can be produced by a Gradle project, like a `Java Library` or a `Web Application`.
+Both the 'ivy-publish' and 'maven-publish' plugins are component-aware, simplifying the process of publishing a module.
+
+The component defines the set of artifacts and dependencies for publishing.
+
+Presently, the set of components available for publishing is limited to 'java' and 'web', added by the 'java' and 'war' plugins respectively. In the future we will make
+`SoftwareComponent` more powerful and user-extensible.
 
 Publishing the 'web' component will result in the war file being published with no runtime dependencies (dependencies are bundled in the war):
 
@@ -165,7 +169,7 @@ Publishing the 'web' component will result in the war file being published with 
 
 This release introduces an API/DSL for customising the set of artifacts to publish to a Maven repository or an Ivy repository.
 Due to differences in the capabilities of Ivy vs Maven repositories, the DSL is slightly different between IvyPublication and MavenPublication.
-This DSL allows gives a Gradle build complete control over which artifacts are published, and the classifier/extension used to publish them.
+This DSL gives a Gradle build complete control over which artifacts are published, and the classifier/extension used to publish them.
 
     apply plugin: 'java'
     apply plugin: 'maven-publish'
@@ -217,7 +221,7 @@ This DSL allows gives a Gradle build complete control over which artifacts are p
 Be sure to check out the DSL reference for [MavenPublication](dsl/org.gradle.api.publish.maven.MavenPublication.html) and [IvyPublication](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
 for complete details on how the set of artifacts can be customised.
 
-### Generate POM file without publishing with the 'maven-publish' plugin
+### Generate POM file without publishing using the 'maven-publish' plugin
 
 Pom file generation has been moved into a separate task, so that it is now possible to generate the Maven Pom file without actually publishing your project. All details of
 the publishing model are still considered in Pom generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
@@ -225,6 +229,16 @@ the publishing model are still considered in Pom generation, including `componen
 The task for generating the Pom file is of type [`GenerateMavenPom`](dsl/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html), and it is given a name based on the name
 of the publication: `generatePomFileFor<publication-name>Publication`. So in the above example where the publication is named 'mavenCustom',
 the task will be named `generatePomFileForMavenCustomPublication`.
+
+### Full support for Unicode in publication identifiers
+
+Where supported by the underlying metadata format, Gradle will now handle any valid Unicode character in module group, name and version as well as artifact name, extension and classifier.
+
+The only values that are explicitly prohibited are '\\', '/' and any ISO control character. Supplied values are validated early in publication. A couple of caveats to the Unicode support:
+
+- Maven restricts 'groupId' and 'artifactId' to a limited character set (`[A-Za-z0-9_\\-.]+`) and Gradle enforces this restriction.
+- Certain repositories will not be able to handle all supported characters. For example, the '`:`' character cannot be used
+  as an identifier when publishing to a filesystem-backed repository on Windows.
 
 ### Distribution Plugin
 
@@ -237,7 +251,7 @@ You can define multiple distributions:
 
     distributions {
         enterprise
-		community
+        community
     }
 
 To build the additional distributions you can run the generated Zip tasks enterpriseDistZip and communityDistZip.
@@ -260,10 +274,10 @@ Thanks to a contribution from Marcin Erdmann, a new `build-dashboard` plugin has
 references to all reports that were generated during the build. In the following example, the `build-dashboard` plugin is added to a project which has also the `groovy` and
 the `codenarc` plugin applied:
 
-	apply plugin: 'groovy'
+    apply plugin: 'groovy'
     apply plugin: 'build-dashboard'
-	apply plugin: 'codenarc'
-	
+    apply plugin: 'codenarc'
+
 By running the `buildDashboard` task after other tasks that generate reports (e.g. by running `gradle check buildDashboard`), the generated build dashboard contains links to the `test` and the `codenarc` reports.
  
 ### New Sonar Runner plugin
@@ -306,6 +320,9 @@ Breaking changes have been made to the incubating 'maven-publish' plugin, which 
   should be enclosed within a `publishing` block.
 - Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
 
+Be sure to check out the [Maven Publishing User Guide Chapter] (userguide/publishing_maven.html) and the [MavenPublication DSL reference](dsl/org.gradle.api.publish.maven.MavenPublication.html)
+for complete description and examples of the new Maven Publishing support.
+
 ### Changes to incubating Ivy publishing support
 
 Breaking changes have been made to the incubating 'ivy-publish' plugin, which provides an alternative means to publish to Ivy repositories.
@@ -324,6 +341,9 @@ Breaking changes have been made to the incubating 'ivy-publish' plugin, which pr
 - The `GenerateIvyDescriptor` task for a publication is not created until the publishing extension is first accessed. Any attempt to configure a `GenerateIvyDescriptor`
   should be enclosed within a `publishing` block.
 - Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
+
+Be sure to check out the [Ivy Publishing User Guide Chapter] (userguide/publishing_ivy.html) and the [IvyPublication DSL reference](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
+for complete description and examples of the new Ivy Publishing support.
 
 ### Changes to new PMD support
 
@@ -355,14 +375,14 @@ We would like to thank the following community members for making contributions 
     * Documentation cleanups.
 * Sébastien Cogneau - Introduce the distribution plugin
 * Kenny Stridh
-	* Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
-	* Add support for PMD version 5.0.+
+    * Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
+    * Add support for PMD version 5.0.+
 * Marcin Erdmann
-	* Add `build-dashboard` plugin
-	* Make notify-send notifications transient in Gnome Shell
+    * Add `build-dashboard` plugin
+    * Make notify-send notifications transient in Gnome Shell
 * Michael R. Maletich
-	* Add `maxHeapSize` property to `FindBugs` task to allow setting the max heap size for spawned FindBugs java process
-	* Add `contentsCompression` property to the `Zip` task type to specify the compression level of the archive
+    * Add `maxHeapSize` property to `FindBugs` task to allow setting the max heap size for spawned FindBugs java process
+    * Add `contentsCompression` property to the `Zip` task type to specify the compression level of the archive
 * Barry Pitman - Fixed Maven conversion problem (GRADLE-2645)
 * Kallin Nagelberg - Fixed grammar in the `SourceSetOutput` documentation
 * Klaus Illusioni - Fixed Eclipse wtp component generation issue (GRADLE-2653)

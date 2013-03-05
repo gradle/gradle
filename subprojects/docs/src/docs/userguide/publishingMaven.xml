@@ -141,7 +141,7 @@
         </section>
 
         <section>
-            <title>Default identity values in the generated POM</title>
+            <title>Identity values in the generated POM</title>
             <para>
                 The attributes of the generated <literal>POM</literal> file will contain identity values derived from the following project properties:
             </para>
@@ -150,8 +150,20 @@
                 <listitem><literal>artifactId</literal> - <apilink class="org.gradle.api.Project" method="getName()" /></listitem>
                 <listitem><literal>version</literal> - <apilink class="org.gradle.api.Project" method="getVersion()" /></listitem>
             </itemizedlist>
+            <tip>
+                Certain repositories will not be able to handle all supported characters.
+                For example, the ':' character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
+            </tip>
             <para>
                 Note that you can set the value of these project properties in your build script, with the exception of <literal>name</literal>.
+            </para>
+            <para>
+                Maven restricts 'groupId' and 'artifactId' to a limited character set (<literal>[A-Za-z0-9_\\-.]+</literal>) and Gradle enforces this restriction.
+                For 'version' (as well as artifact 'extension' and 'classifier'), Gradle will handle any valid Unicode character.
+            </para>
+            <para>
+                The only Unicode values that are explicitly prohibited are '<literal>\</literal>', '<literal>/</literal>' and any ISO control character.
+                Supplied values are validated early in publication.
             </para>
         </section>
         <section>
