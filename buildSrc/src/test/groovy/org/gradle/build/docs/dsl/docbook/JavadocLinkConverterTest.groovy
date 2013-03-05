@@ -150,6 +150,21 @@ class JavadocLinkConverterTest extends XmlSpecification {
         format(link) == '<someLinkElement/>'
     }
 
+    def convertsEnumConstantLinkToLiteralValue() {
+        ClassMetaData otherClass = Mock()
+
+        when:
+        def link = converter.resolve('SomeName#SOME_ENUM_VALUE', classMetaData, listener)
+
+        then:
+        format(link) == '<literal>TargetName.SOME_ENUM_VALUE</literal>'
+        _ * nameResolver.resolve('SomeName', classMetaData) >> 'org.gradle.SomeName'
+        _ * repository.find('org.gradle.SomeName') >> otherClass
+        _ * otherClass.enum >> true
+        _ * otherClass.declaredEnumConstants >> ["SOME_ENUM_VALUE", "OTHER_ENUM"]
+        _ * otherClass.simpleName >> "TargetName"
+    }
+
     def convertsValueLinkToLiteralValue() {
         ClassMetaData otherClass = Mock()
 

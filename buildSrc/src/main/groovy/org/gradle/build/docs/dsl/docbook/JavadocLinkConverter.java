@@ -113,12 +113,20 @@ public class JavadocLinkConverter {
             methodSignature = signature.toString();
         }
 
+        if (targetClass.isEnum() && targetClass.getDeclaredEnumConstants().contains(methodSignature)) {
+            return renderEnumConstant(methodSignature, targetClass);
+        }
+
         MethodMetaData method = findMethod(methodSignature, targetClass);
         if (method == null) {
             return null;
         }
 
         return linkRenderer.link(method, listener);
+    }
+
+    private Node renderEnumConstant(String methodSignature, ClassMetaData targetClass) {
+        return createLiteralNode(targetClass.getSimpleName() + "." + methodSignature);
     }
 
     private MethodMetaData findMethod(String name, ClassMetaData targetClass) {
@@ -165,6 +173,10 @@ public class JavadocLinkConverter {
             return element;
         }
 
+        return createLiteralNode(value);
+    }
+
+    private Node createLiteralNode(String value) {
         Element element = document.createElement("literal");
         element.appendChild(document.createTextNode(value));
         return element;
