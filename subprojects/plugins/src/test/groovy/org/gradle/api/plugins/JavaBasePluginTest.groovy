@@ -88,8 +88,7 @@ class JavaBasePluginTest extends Specification {
         classes.description == 'Assembles the custom classes.'
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
-        // TODO: translate to new source set/packaging model
-        //classes.dependsOn.contains project.sourceSets.custom.output.dirs
+        classes.dependsOn.contains project.sourceSets.custom.output.dirs
     }
     
     void tasksReflectChangesToSourceSetConfiguration() {

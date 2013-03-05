@@ -124,10 +124,6 @@ public class JavaBasePlugin implements Plugin<Project> {
 
                 sourceSet.getJava().srcDir(String.format("src/%s/java", sourceSet.getName()));
                 sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
-
-                // TODO: bring this across to new source set model
-                // classes.dependsOn(sourceSet.getOutput().getDirs());
-
                 sourceSet.compiledBy(sourceSet.getClassesTaskName());
 
                 FunctionalSourceSet functionalSourceSet = projectSourceSet.create(sourceSet.getName());
@@ -153,6 +149,9 @@ public class JavaBasePlugin implements Plugin<Project> {
 
                 binary.getSource().add(javaSourceSet);
                 binary.getSource().add(resourceSet);
+
+                // TODO:DAZ review this
+                binary.getClassesTask().dependsOn(sourceSet.getOutput().getDirs());
             }
         });
     }
