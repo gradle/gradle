@@ -42,7 +42,7 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     private String outerClassName;
     private transient ClassMetaDataRepository<ClassMetaData> metaDataRepository;
     public final HashMap<String, String> constants = new HashMap<String, String>();
-    private final List<String> enumConstantNames = new ArrayList<String>();
+    private final List<EnumConstantMetaData> enumConstants = new ArrayList<EnumConstantMetaData>();
 
     public ClassMetaData(String className, String packageName, MetaType metaType, boolean isGroovy, String rawClassComment) {
         super(rawClassComment);
@@ -249,8 +249,21 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
         return constants;
     }
 
-    public List<String> getDeclaredEnumConstants() {
-        return enumConstantNames;
+    public void addEnumConstant(String name) {
+        enumConstants.add(new EnumConstantMetaData(name, this));
+    }
+
+    public List<EnumConstantMetaData> getEnumConstants() {
+        return enumConstants;
+    }
+
+    public EnumConstantMetaData getEnumConstant(String name) {
+        for (EnumConstantMetaData enumConstant : enumConstants) {
+            if (enumConstant.getName().equals(name)) {
+                return enumConstant;
+            }
+        }
+        return null;
     }
 
     public void attach(ClassMetaDataRepository<ClassMetaData> metaDataRepository) {

@@ -444,7 +444,9 @@ class ExtractDslMetaDataTaskTest extends Specification {
         groovyEnum.enum
 
         and:
-        groovyEnum.declaredEnumConstants == ["A", "B"]
+        groovyEnum.getEnumConstant("A") != null
+        groovyEnum.getEnumConstant("B") != null
+        groovyEnum.getEnumConstant("C") == null
     }
 
     def handlesEnumTypesInJavaSource() {
@@ -461,7 +463,9 @@ class ExtractDslMetaDataTaskTest extends Specification {
         javaEnum.enum
 
         and:
-        javaEnum.declaredEnumConstants == ["A", "B"]
+        javaEnum.getEnumConstant("A") != null
+        javaEnum.getEnumConstant("B") != null
+        javaEnum.getEnumConstant("C") == null
     }
 
     def handlesAnnotationTypesInGroovySource() {

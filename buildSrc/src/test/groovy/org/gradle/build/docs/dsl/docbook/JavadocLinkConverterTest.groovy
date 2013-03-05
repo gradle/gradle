@@ -15,11 +15,12 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
-import org.gradle.build.docs.dsl.source.TypeNameResolver
 import org.gradle.build.docs.XmlSpecification
+import org.gradle.build.docs.dsl.source.TypeNameResolver
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
-import org.gradle.build.docs.model.ClassMetaDataRepository
+import org.gradle.build.docs.dsl.source.model.EnumConstantMetaData
 import org.gradle.build.docs.dsl.source.model.MethodMetaData
+import org.gradle.build.docs.model.ClassMetaDataRepository
 
 class JavadocLinkConverterTest extends XmlSpecification {
     final LinkRenderer linkRenderer = Mock()
@@ -151,18 +152,19 @@ class JavadocLinkConverterTest extends XmlSpecification {
     }
 
     def convertsEnumConstantLinkToLiteralValue() {
-        ClassMetaData otherClass = Mock()
+        ClassMetaData enumClass = Mock()
+        EnumConstantMetaData enumConstant = new EnumConstantMetaData("SOME_ENUM_VALUE", enumClass)
 
         when:
         def link = converter.resolve('SomeName#SOME_ENUM_VALUE', classMetaData, listener)
 
         then:
-        format(link) == '<literal>TargetName.SOME_ENUM_VALUE</literal>'
+        format(link) == '<someLinkElement/>'
         _ * nameResolver.resolve('SomeName', classMetaData) >> 'org.gradle.SomeName'
-        _ * repository.find('org.gradle.SomeName') >> otherClass
-        _ * otherClass.enum >> true
-        _ * otherClass.declaredEnumConstants >> ["SOME_ENUM_VALUE", "OTHER_ENUM"]
-        _ * otherClass.simpleName >> "TargetName"
+        _ * repository.find('org.gradle.SomeName') >> enumClass
+        _ * enumClass.enum >> true
+        _ * enumClass.getEnumConstant("SOME_ENUM_VALUE") >> enumConstant
+        _ * linkRenderer.link(enumConstant, listener) >> parse('<someLinkElement/>')
     }
 
     def convertsValueLinkToLiteralValue() {

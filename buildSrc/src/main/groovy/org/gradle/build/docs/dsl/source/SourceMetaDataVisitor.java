@@ -153,7 +153,7 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
     public void visitEnumConstantDef(GroovySourceAST t, int visit) {
         if (visit == OPENING_VISIT) {
             String name = extractName(t);
-            getCurrentClass().getDeclaredEnumConstants().add(name);
+            getCurrentClass().addEnumConstant(name);
             skipJavaDocComment(t);
         }
     }
