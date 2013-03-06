@@ -191,7 +191,7 @@ for complete details on how the set of artifacts can be customized.
 POM file generation has been moved into a separate task, so that it is now possible to generate the POM file without actually publishing your project. All details of
 the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
 
-The task for generating the POM file is of type [`GenerateMavenPom`](dsl/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html), and it is given a name based on the name
+The task for generating the POM file is of type [`GenerateMavenPom`](dsl/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html), and is given a name based on the name
 of the publication: `generatePomFileFor<publication-name>Publication`. So in the above example where the publication is named 'mavenCustom',
 the task will be named `generatePomFileForMavenCustomPublication`.
 
