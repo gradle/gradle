@@ -318,11 +318,10 @@ for complete description and examples of the new Ivy Publishing support.
 
 The default value for ruleset extension has changed from `["basic"]` to `[]`. The default was moved to the `Pmd` task, so everything should just work as it did before.
 
-### Order in which projects are configured
+### Project configuration order
 
-Improving the usability of project dependencies (see the section above)
-might change the order in which projects are configured.
-This change should not cause any trouble in existing builds.
+Improving the usability of project dependencies (see the section above) might change the order in which projects are configured.
+This is not expected to cause problems in existing builds, but is mentioned for completeness.
 
 ### `ArtifactRepositoryContainer.getResolvers()`
 
