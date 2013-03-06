@@ -88,7 +88,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter() {
         return new ResolveModuleDescriptorConverter(
                 get(ModuleDescriptorFactory.class),
-                get(DependencyDescriptorFactory.class),
                 get(ConfigurationsToModuleDescriptorConverter.class),
                 new DefaultDependenciesToModuleDescriptorConverter(
                         get(DependencyDescriptorFactory.class),
