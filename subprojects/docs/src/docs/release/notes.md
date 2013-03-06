@@ -101,7 +101,7 @@ For example, by adding a `gradle.properties` file to root of the project with th
 Gradle 1.5 introduces the concept of a “Software Component”, which defines something that can be produced by a Gradle project such as a Java library or a web application.
 Both the '`ivy-publish`' and '`maven-publish`' plugins are component-aware, simplifying the process of publishing a module. The component defines the set of artifacts and dependencies for publishing.
 
-Presently, the set of components available for publishing is limited to 'java' and 'web', added by the 'java' and 'war' plugins respectively. In the future it will be possible to
+Presently, the set of components available for publishing is limited to '`java`' and '`web`', added by the '`java`' and '`war`' plugins respectively. In the future it will be possible to
 create new components and new component types.
 
 Publishing the '`web`' component will result in the war file being published with no runtime dependencies (dependencies are bundled in the war):
