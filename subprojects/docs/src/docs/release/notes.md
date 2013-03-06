@@ -199,7 +199,9 @@ the task will be named `generatePomFileForMavenCustomPublication`.
 
 Where supported by the underlying metadata format, Gradle will now handle any valid Unicode character in module group, name and version as well as artifact name, extension and classifier.
 
-The only values that are explicitly prohibited are '\\', '/' and any ISO control character. Supplied values are validated early in publication. A couple of caveats to the Unicode support:
+The only values that are explicitly prohibited are '\\', '/' and any ISO control character. Supplied values are validated early in publication. 
+
+A couple of caveats to the Unicode support:
 
 - Maven restricts 'groupId' and 'artifactId' to a limited character set (`[A-Za-z0-9_\\-.]+`) and Gradle enforces this restriction.
 - Certain repositories will not be able to handle all supported characters. For example, the '`:`' character cannot be used
