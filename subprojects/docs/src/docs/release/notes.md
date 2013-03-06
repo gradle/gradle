@@ -56,7 +56,7 @@ Dependency resolve rules can now be used to solve some interesting dependency re
 
 - Substituting an alternative implementation for some module. For example, replace all usages of `log4j` with a compatible version of `log4j-over-slf4j`.
 - Dealing with conflicting implementations of some module. For example, replace all usages of the various `slf4j` bindings with `slf4j-simple`.
-- Dealing with conflicting packaging of some module. For example, replace all usages of `groovy` and `groovy-all` with `groovy`.
+- Dealing with conflicting packaging of some module. For example, replace all usages of `groovy-all` with `groovy`.
 - Dealing with modules that have changed their (group, module) identifier. For example, replace `ant:ant:*` with `org.apache.ant:ant:1.7.0` and let conflict resolution take care of the rest.
 - Substituting different implementations at different stages. For example, substitute all servlet API dependencies with `'javax.servlet:servlet-api:2.4'` at compile time and the jetty implementation at test runtime.
 
