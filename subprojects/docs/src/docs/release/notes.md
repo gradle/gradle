@@ -43,11 +43,11 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the new incubating features or changes to existing incubating features in this Gradle release.
 
-### More robust dependency resolve rules
+### Substituting dependencies via dependency resolve rules
 
-The dependency resolve rules introduced in Gradle 1.4 are getting more robust.
-It is now possible to change group, name and/or version of a requested dependency when it is resolved.
-Previously, only the version could be updated via a dependency resolve rule.
+Gradle 1.4 introduced the ability to dynamically change the version of a dependency to be resolved via dependency resolve rules.
+It is now possible to change the group, name and/or version of a requested dependency, allowing a dependency to be substituted with a completely
+different dependency during resolution.
 
     configurations.all {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
@@ -57,7 +57,7 @@ Previously, only the version could be updated via a dependency resolve rule.
         }
     }
 
-With this change, dependency resolve rules can now be used to solve some interesting dependency resolution problems:
+Dependency resolve rules can now be used to solve some interesting dependency resolution problems:
 
 - Substituting an alternative implementation for some module. For example, replace all usages of `log4j` with a compatible version of `log4j-over-slf4j`.
 - Dealing with conflicting implementations of some module. For example, replace all usages of the various `slf4j` bindings with `slf4j-simple`.
@@ -65,8 +65,7 @@ With this change, dependency resolve rules can now be used to solve some interes
 - Dealing with modules that have changed their (group, module) identifier. For example, replace `ant:ant:*` with `org.apache.ant:ant:1.7.0` and let conflict resolution take care of the rest.
 - Substituting different implementations at different stages. For example, substitute all servlet API dependencies with `'javax.servlet:servlet-api:2.4'` at compile time and the jetty implementation at test runtime.
 
-For more information, including more code samples, please refer to
-[this user guide section](userguide/userguide_single.html#module_substitution).
+For more information, including more code samples, please refer to [the user guide](userguide/dependency_management.html#sec:dependency_resolve_rules).
 
 ### Improved scalability with configuration on demand
 
