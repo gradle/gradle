@@ -88,19 +88,15 @@ For more information on configure-on-demand please consult [the user guide](user
 
 ### Parallel execution improvements
 
-* Faster parallel builds due to better scheduling of parallel jobs
+Gradle 1.2 introduced a [parallel execution](userguide/multi_project_builds.html#sec:parallel_execution) mode for multi-project builds.
+This release brings significantly improved utilisation of the parallel workers.
 
-Gradle 1.2 introduced an incubating [parallel execution](userguide/multi_project_builds.html#sec:parallel_execution) mode for multi-project builds.
-In this release we significantly improved utilisation of the parallel workers.
 Previously, workers where statically assigned to projects and often waited for the upstream dependencies to be built.
-This caused workers to stay idle when they could grab a task from different project and execute it.
-Currently, workers are not assigned statically to projects and poll projects/tasks actively.
-This means that highly parallelizable builds are now up to 30% faster.
+This caused workers to stay idle when there was work they could be doing. The distribution of work is now more dynamic which has resulted in highly parallelizable builds 
+building up to 30% faster.
 
-* Easier configuration via new gradle property 'org.gradle.parallel'
-
-New Gradle property can be used to configure your [build environment](userguide/build_environment.html#sec:gradle_configuration_properties).
-The incubating parallel build execution can now be configured in a persistent fashion:
+It is also now possible to enable parallel building via a [build setting](userguide/build_environment.html#sec:gradle_configuration_properties).
+For example, by adding a `gradle.properties` file to root of the project with the following content Gradle will always build the project in parallel.
 
     //gradle.properties file
     org.gradle.parallel=true
