@@ -15,9 +15,9 @@ The test report generation was optimized and is now slightly faster than in prev
 ### Improved usability of project dependencies
 
 Project dependencies at configuration time are now fully supported.
-Prior to this change, any resolution of a project dependency at configuration time may have led to confusing behavior because the target project may not have been configured yet.
+Prior to this change, any resolution of a project dependency at configuration time may have led to confusing behavior as the target project may not have been configured yet.
 Now the resolution of the project dependency implies configuration of the target project.
-It means that the configuration of the projects might have a different order now (i.e. more correct order).
+This means that the order in which projects are configured may now be different (i.e. it will be correct).
 This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
 
 ### Improved dependency resolution performance
