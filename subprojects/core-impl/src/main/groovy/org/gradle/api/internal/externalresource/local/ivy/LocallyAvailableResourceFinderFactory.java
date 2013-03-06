@@ -55,6 +55,9 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         // The current filestore
         finders.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<ArtifactRevisionId>(fileStore));
 
+        // 1.4
+        addForPattern(finders, "artifacts-23", "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+
         // 1.3
         addForPattern(finders, "artifacts-15", "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
