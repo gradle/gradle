@@ -132,7 +132,7 @@ Publishing the '`web`' component will result in the war file being published wit
 ### Customise artifacts published with the '`maven-publish`' or '`ivy-publish`' plugins
 
 This release introduces the ability to customize the set of artifacts to publish to a Maven repository or an Ivy repository.
-This gives a Gradle build complete control over which artifacts are published, and the classifier/extension used to publish them.
+This gives complete control over which artifacts are published, and the classifier/extension used to publish them.
 Due to differences in the capabilities of Ivy vs Maven repositories, the DSL is slightly different for each repository format.
 
     apply plugin: 'java'
