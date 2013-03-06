@@ -133,5 +133,5 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      * @return The meta-data provider for this repository.
      */
     @Incubating
-    ArtifactRepositoryMetaDataProvider getResolve();
+    IvyMetaDataProvider getResolve();
 }

@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.repositories.ArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyMetaDataProvider;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -140,7 +139,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         ConfigureUtil.configure(config, layout);
     }
 
-    public ArtifactRepositoryMetaDataProvider getResolve() {
+    public IvyMetaDataProvider getResolve() {
         return metaDataProvider;
     }
 
@@ -180,12 +179,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
     }
 
-    private static class DefaultArtifactRepositoryMetaDataProvider implements ArtifactRepositoryMetaDataProvider, IvyMetaDataProvider {
+    private static class DefaultArtifactRepositoryMetaDataProvider implements IvyMetaDataProvider {
         boolean dynamicResolve;
-
-        public IvyMetaDataProvider getIvy() {
-            return this;
-        }
 
         public boolean isDynamicResolveMode() {
             return dynamicResolve;

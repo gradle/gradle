@@ -48,7 +48,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     def "default values"() {
         expect:
         repository.url == null
-        !repository.resolve.ivy.dynamicResolveMode
+        !repository.resolve.dynamicResolveMode
     }
 
     def "cannot create a resolver for url with unknown scheme"() {
