@@ -192,7 +192,7 @@ POM file generation has been moved into a separate task, so that it is now possi
 the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
 
 The task for generating the POM file is of type [`GenerateMavenPom`](dsl/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html), and is given a name based on the name
-of the publication: `generatePomFileFor<publication-name>Publication`. So in the above example where the publication is named 'mavenCustom',
+of the publication: `generatePomFileFor<publication-name>Publication`. So in the above example where the publication is named '`mavenCustom`',
 the task will be named `generatePomFileForMavenCustomPublication`.
 
 ### Full support for Unicode in publication identifiers
