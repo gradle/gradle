@@ -316,7 +316,7 @@ for complete description and examples of the new Ivy Publishing support.
 
 ### Changes to new PMD support
 
-The default value for ruleset extension has changed from ["basic"] to []. We moved the default to the `Pmd` task, so everything should just work as it did before.
+The default value for ruleset extension has changed from `["basic"]` to `[]`. The default was moved to the `Pmd` task, so everything should just work as it did before.
 
 ### Order in which projects are configured
 
