@@ -25,15 +25,13 @@ Now the resolution of the project dependency implies configuration of the target
 It means that the configuration of the projects might have a different order now (i.e. more correct order).
 This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
 
-### Faster builds
+### Improved dependency resolution performance
 
-This release contains some interesting performance tweaks.
-Smarter use of the multi-process safe caches allowed Gradle 1.5 to improve the dependency resolution speed by up to 30%
+Gradle's [dependency cache](userguide/dependency_management.html#sec:dependency_cache) is multi process safe, which requires the use of locking mechanisms.
+Improvements to the way the locks are utilised in this release have increased the dependency resolution speed by up to 30%
 for builds that use local repositories or maven local.
-Builds that don't use local repositories should also exhibit slightly faster dependency resolution
-because artifact cache lock is now toggled with better granularity.
-Faster dependency resolution has very direct influence on the duration of an incremental build.
-Gradle team continues to work on performance and scalability - expect even more improvements in Gradle 1.6.
+Builds that don't use local repositories should also exhibit slightly faster dependency resolution.
+Every build that resolves dependencies benefits from this improvement.
  
 ## Promoted features
 
