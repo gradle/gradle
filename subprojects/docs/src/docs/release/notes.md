@@ -188,7 +188,7 @@ for complete details on how the set of artifacts can be customized.
 
 ### Generate POM file without publishing using the '`maven-publish`' plugin
 
-POM file generation has been moved into a separate task, so that it is now possible to generate the Maven Pom file without actually publishing your project. All details of
+POM file generation has been moved into a separate task, so that it is now possible to generate the POM file without actually publishing your project. All details of
 the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
 
 The task for generating the POM file is of type [`GenerateMavenPom`](dsl/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html), and it is given a name based on the name
