@@ -291,7 +291,7 @@ Breaking changes have been made to the incubating '`maven-publish`' plugin, whic
 - Identifiers used in Maven publications (`groupId`, `artifactId`, `version`, `ext`, `classifier`) have new character restrictions:
   these identifiers may not contain '`/`', '`\`' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so this is now prevented
   at the time of publication.
-   - `groupId` and `artifactId` are further restricted to "`[A-Za-z0-9_\-.]+`": this is a Maven restriction, so we enforce it at the time of publication.
+   - `groupId` and `artifactId` are further restricted to "`[A-Za-z0-9_\-.]+`": this is a Maven restriction, so it is enforced at the time of publication.
 - The `GenerateMavenPom` task for a publication is not created until the publishing extension is first accessed. Any attempt to configure a `GenerateMavenPom` task
   should be enclosed within a `publishing` block.
 - Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
