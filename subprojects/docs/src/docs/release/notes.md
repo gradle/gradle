@@ -206,6 +206,8 @@ Due to differences in the capabilities of Ivy vs Maven repositories, the DSL is 
 Be sure to check out the DSL reference for [MavenPublication](dsl/org.gradle.api.publish.maven.MavenPublication.html) and [IvyPublication](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
 for complete details on how the set of artifacts can be customized.
 
+For more information about using the new '`maven-publish`' and '`ivy-publish`' plugins in general, please consult the user guide ([maven](userguide/publishing_maven.html)) ([ivy](userguide/publishing_ivy.html)).
+
 ### Generate POM file without publishing using the '`maven-publish`' plugin
 
 POM file generation has been moved into a separate task, so that it is now possible to generate the POM file without actually publishing your project. All details of
