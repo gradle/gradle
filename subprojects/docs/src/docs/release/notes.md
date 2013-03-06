@@ -98,7 +98,7 @@ For example, by adding a `gradle.properties` file to root of the project with th
 
 ### Easy publication of software components with the 'maven-publish' or 'ivy-publish' plugins
 
-Gradle 1.5 includes the concept of a `Software Component`, which defines something that can be produced by a Gradle project, like a `Java Library` or a `Web Application`.
+Gradle 1.5 introduces the concept of a `Software Component`, which defines something that can be produced by a Gradle project, like a `Java Library` or a `Web Application`.
 Both the '`ivy-publish`' and '`maven-publish`' plugins are component-aware, simplifying the process of publishing a module.
 
 The component defines the set of artifacts and dependencies for publishing.
