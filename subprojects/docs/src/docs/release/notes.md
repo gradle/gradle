@@ -67,35 +67,24 @@ Dependency resolve rules can now be used to solve some interesting dependency re
 
 For more information, including more code samples, please refer to [the user guide](userguide/dependency_management.html#sec:dependency_resolve_rules).
 
-### Improved scalability with configuration on demand
+### Configure-on-demand improvements
 
-If you already enjoy configuration on demand please note the following improvements and changes:
+Gradle 1.4 introduced a [new configuration option called “configure-on-demand”](http://www.gradle.org/docs/1.4/release-notes#improved-scalability-via-configuration-on-demand) designed
+to improve Gradle performance on large projects.  This release brings the following improvements to this new feature:
 
-* Tooling API deals nicely with configure-on-demand.
- Building model configures all projects but running tasks via the Tooling API takes full advantage of the feature.
-* buildSrc is now fully supported with configure-on-demand.
-* New gradle property "org.gradle.configureondemand" should be used enable the feature for all builds of the given project.
- This way it is configurable consistently with other [build settings](userguide/build_environment.html#sec:gradle_configuration_properties).
- Note that the property has changed - see the example below how to configure your gradle.properties.
+* [Tooling API](userguide/embedding.html) compatibility.
+* [buildSrc](userguide/organizing_build_logic.html#sec:build_sources) is now fully supported.
+* Task dependencies declared via task path are now supported.
 
+Enabling this new mode is now more convenient. It can be enabled at invocation time via the new `--configure-on-demand` flag, or via the `org.gradle.configureondemand` project property.
+The project property can be set permanently for a project, or permanently for a user just like other [build settings](userguide/build_environment.html#sec:gradle_configuration_properties).
+
+For example, by adding a `gradle.properties` file to root of the project with the following content Gradle will always use configure-on-demand mode for the project.
 
     #gradle.properties file
     org.gradle.configureondemand=true
 
-* New handy command line option "--configure-on-demand" enables the feature per build.
-* The task dependencies declared via task path are supported and cause relevant projects configured:
-
-    //depending on task from a different project:
-    someTask.dependsOn(":someProject:someOtherProject:someOtherTask")
-
-If you didn't know that you can configure on demand let's dive into this feature really quickly.
-In Gradle, all projects are configured before any task gets executed (see [the build lifecycle](userguide/build_lifecycle.html#sec:build_phases)).
-In "configuration on demand" mode only those projects required by the build are configured.
-This should speed up the configuration time of huge multi-project builds.
-This mode is still incubating but should work very well with builds that have
-[decoupled projects](userguide/multi_project_builds.html#sec:decoupled_projects)
-(e.g. avoiding having a subproject accessing the model of another project).
-The best place to start configuring on demand is diving into [this section in the user guide](userguide/multi_project_builds.html#sec:configuration_on_demand).
+For more information on configure-on-demand please consult [the user guide](userguide/multi_project_builds.html#sec:configuration_on_demand).
 
 ### Parallel execution improvements
 
