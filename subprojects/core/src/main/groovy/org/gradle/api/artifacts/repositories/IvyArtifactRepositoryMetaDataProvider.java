@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  * The meta-data provider for an Ivy repository. Uses the Ivy module descriptor ({@code ivy.xml}) to determine the meta-data for module versions and artifacts.
  */
 @Incubating
-public interface IvyMetaDataProvider {
+public interface IvyArtifactRepositoryMetaDataProvider {
     /**
      * Returns true if dynamic resolve mode should be used for Ivy modules. When enabled, the {@code revConstraint} attribute for each dependency declaration
      * is used in preference to the {@code rev} attributes. When disabled (the default), the {@code rev} attribute is always used.
