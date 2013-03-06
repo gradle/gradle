@@ -203,7 +203,7 @@ The only values that are explicitly prohibited are '\\', '/' and any ISO control
 
 A couple of caveats to the Unicode support:
 
-- Maven restricts 'groupId' and 'artifactId' to a limited character set (`[A-Za-z0-9_\\-.]+`) and Gradle enforces this restriction.
+- Maven restricts '`groupId`' and '`artifactId`' to a limited character set (`[A-Za-z0-9_\\-.]+`) and Gradle enforces this restriction.
 - Certain repositories will not be able to handle all supported characters. For example, the '`:`' character cannot be used
   as an identifier when publishing to a filesystem-backed repository on Windows.
 
