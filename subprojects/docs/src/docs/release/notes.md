@@ -330,11 +330,10 @@ The default value for ruleset extension has changed from `["basic"]` to `[]`. Th
 Improving the usability of project dependencies (see the section above) might change the order in which projects are configured.
 This is not expected to cause problems in existing builds, but is mentioned for completeness.
 
-### Optimised order of task execution in parallel execution mode
+### Optimized order of task execution in parallel execution mode
 
-Parallel builds are now much faster due to better utilisation of parallel workers.
-However, this means that tasks may be executed in different order in parallel builds.
-Make sure you declare the task dependencies well and keep sing the incubating parallel execution mode.
+Parallel builds are now much faster due to better utilisation of parallel workers. However, this means that tasks may be executed in different order in parallel builds.
+This will not cause problems in a correctly [decoupled build](userguide/multi_project_builds.html#sec:decoupled_projects) but may bring problems to light in builds that are not properly decoupled.
 
 ## External contributions
 
