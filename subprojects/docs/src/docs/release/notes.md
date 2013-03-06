@@ -266,7 +266,14 @@ chapter in the Gradle user guide, and the `sonarRunner` samples in the full Grad
 
 ## Deprecations
 
-No features have been deprecated in Gradle 1.5.
+Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
+in the next major Gradle version (Gradle 2.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+
+The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
+
+### `ArtifactRepositoryContainer.getResolvers()`
+
+This method exposes internal implementation details that will be subject to change in the future. Its use should be avoided.
 
 ## Potential breaking changes
 
@@ -322,10 +329,6 @@ The default value for ruleset extension has changed from `["basic"]` to `[]`. Th
 
 Improving the usability of project dependencies (see the section above) might change the order in which projects are configured.
 This is not expected to cause problems in existing builds, but is mentioned for completeness.
-
-### `ArtifactRepositoryContainer.getResolvers()`
-
-This method has been deprecated and will be removed in Gradle 2.0.
 
 ### Optimised order of task execution in parallel execution mode
 
