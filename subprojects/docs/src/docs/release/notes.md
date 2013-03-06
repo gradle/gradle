@@ -10,7 +10,7 @@ a Scala compiler library that matches the Scala version used on the project's cl
 
 ### Improved test report generation
 
-The test report generation was refactored and is now slightly faster than in previous Gradle releases.
+The test report generation was optimized and is now slightly faster than in previous Gradle releases.
 
 ### Improved usability of project dependencies
 
