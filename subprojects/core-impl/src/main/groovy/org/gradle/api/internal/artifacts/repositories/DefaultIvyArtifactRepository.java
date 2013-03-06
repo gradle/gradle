@@ -182,11 +182,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private static class MetaDataProvider implements IvyArtifactRepositoryMetaDataProvider {
         boolean dynamicResolve;
 
-        public boolean isDynamicResolveMode() {
+        public boolean isDynamicMode() {
             return dynamicResolve;
         }
 
-        public void setDynamicResolveMode(boolean mode) {
+        public void setDynamicMode(boolean mode) {
             this.dynamicResolve = mode;
         }
     }
