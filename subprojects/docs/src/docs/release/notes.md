@@ -22,7 +22,7 @@ Improvements in Gradle's configuration model continue.
 Project dependencies at configuration time are now fully supported.
 Prior to this change, any resolution of a project dependency at configuration time may have led to confusing behavior because the target project may not have been configured yet.
 Now the resolution of the project dependency implies configuration of the target project.
-It means that the configuration of the projects might have a different order now (e.g. more correct order).
+It means that the configuration of the projects might have a different order now (i.e. more correct order).
 This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
 
 ### Faster builds
