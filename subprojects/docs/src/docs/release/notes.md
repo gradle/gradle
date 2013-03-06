@@ -252,8 +252,10 @@ the `codenarc` plugin applied:
     apply plugin: 'build-dashboard'
     apply plugin: 'codenarc'
 
-By running the `buildDashboard` task after other tasks that generate reports (e.g. by running `gradle check buildDashboard`), the generated build dashboard contains links to the `test` and the `codenarc` reports.
- 
+By running the `buildDashboard` task after other tasks that generate reports (e.g. by running `gradle check buildDashboard`), the generated build dashboard contains links to the `codenarc` reports. This version of the build dashboard does not include links to test reports. This will be added in a future Gradle version.
+
+More information on the `build-dashboard` plugin can be found in the [user guide](userguide/buildDashboard_plugin.html).
+  
 ### New Sonar Runner plugin
 
 Gradle 1.5 ships with a new *Sonar Runner* plugin that is set to replace the existing Sonar plugin. As its name indicates,
