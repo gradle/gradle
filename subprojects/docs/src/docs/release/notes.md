@@ -266,14 +266,7 @@ chapter in the Gradle user guide, and the `sonarRunner` samples in the full Grad
 
 ## Deprecations
 
-Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 2.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
-
-<!--
-### Example deprecation
--->
+No features have been deprecated in Gradle 1.5.
 
 ## Potential breaking changes
 
@@ -282,13 +275,13 @@ The following are the newly deprecated items in this Gradle release. If you have
 Breaking changes have been made to the incubating 'maven-publish' plugin, which provides an alternative means to publish to Maven repositories.
 
 - A MavenPublication must be explicitly added to the `publications` container; no publication is added implicitly by the `maven-publish` plugin.
-    - If no MavenPublication is configured then nothing will be published to Maven.
-- A MavenPublication does not include any artifacts or dependencies by default; these must be added directly or via a SoftwareComponent.
+    - If no `MavenPublication` is configured then nothing will be published.
+- A `MavenPublication` does not include any artifacts or dependencies by default; these must be added directly or via a SoftwareComponent.
     - If no artifacts are configured, a Maven POM file will be published with no artifacts or dependencies declared.
 - The `groupId`, `artifactId` and `version` in the published pom cannot be changed via MavenPom.withXml():
    it was previously possible change these values, but any interproject dependency would not pick up these changes.
-    - In the future Gradle will provide a robust mechanism for modifying publication coordinates prior to publication.
-- Identifiers used in Maven POM (`groupId`, `artifactId, `version`) and artifacts (`ext`, `classifier`) have new character restrictions:
+    - In the future Gradle will provide a robust mechanism for modifying publication identity prior to publication.
+- Identifiers used in Maven publications (`groupId`, `artifactId`, `version`, `ext`, `classifier`) have new character restrictions:
   these identifiers may not contain '/', '\' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so we now prevent this
   at the time of publication.
    - `groupId` and `artifactId` are further restricted to "[A-Za-z0-9_\-.]+": this is a Maven restriction, so we enforce it at the time of publication.
@@ -296,7 +289,7 @@ Breaking changes have been made to the incubating 'maven-publish' plugin, which 
   should be enclosed within a `publishing` block.
 - Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
 
-Be sure to check out the [Maven Publishing User Guide Chapter] (userguide/publishing_maven.html) and the [MavenPublication DSL reference](dsl/org.gradle.api.publish.maven.MavenPublication.html)
+Be sure to check out the [Maven Publishing User Guide Chapter](userguide/publishing_maven.html) and the [MavenPublication DSL reference](dsl/org.gradle.api.publish.maven.MavenPublication.html)
 for complete description and examples of the new Maven Publishing support.
 
 ### Changes to incubating Ivy publishing support
