@@ -254,7 +254,7 @@ More information on the `build-dashboard` plugin can be found in the [user guide
   
 ### New Sonar Runner plugin
 
-Gradle 1.5 ships with a new *Sonar Runner* plugin that is set to replace the existing Sonar plugin. As its name indicates,
+Gradle 1.5 ships with a new `sonar-runner` plugin that is set to replace the existing Sonar plugin. As its name indicates,
 the new plugin is based on the [Sonar Runner](http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner),
 the new and official way to integrate with Sonar. Unlike the old Sonar plugin, the new Sonar Runner plugin
 is compatible with the latest Sonar versions (3.4 and above). To learn more, check out the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html)
