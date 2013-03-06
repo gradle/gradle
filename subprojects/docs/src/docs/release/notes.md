@@ -230,7 +230,7 @@ To build the additional distributions you can run the generated `Zip` tasks `ent
 
 ### Java Library Distribution Plugin
 
-The Java library distribution plugin now extends the new introduced distribution plugin. Thanks to this, you can now create TAR files and install Java library distributions.
+The Java library distribution plugin now extends the newly introduced distribution plugin. Thanks to this, you can now create TAR files and install Java library distributions.
 
 The `distribution` extension was removed. The `main` distribution is now accessible using the distributions extension:
 
@@ -239,6 +239,8 @@ The `distribution` extension was removed. The `main` distribution is now accessi
             ...
         }
     }
+
+For more information, please consult the [user guide](userguide/javaLibraryDistribution_plugin.html).
 
 ### Build Dashboard Plugin
 
