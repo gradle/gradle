@@ -211,7 +211,7 @@ A couple of caveats to the Unicode support:
 
 Thanks to a contribution from [Sébastien Cogneau](https://github.com/scogneau), a new `distribution` plugin has been added. This plugin adds general-purpose for support bundling and installing distributions.
 
-This plugin adds a `main` distribution, and you can add additional distributions. For each distribution, tasks are added to create a ZIP or TAR file for the distribution and
+This plugin adds a `main` distribution, and you can add additional distributions. For each distribution, tasks are added to create a zip or tar file for the distribution and
 to install the distribution.
 
 You can define multiple distributions:
@@ -226,7 +226,7 @@ To build the additional distributions you can run the generated `Zip` tasks `ent
 
 ### Java Library Distribution Plugin
 
-The Java library distribution plugin now extends the newly introduced distribution plugin. Thanks to this, you can now create TAR files and install Java library distributions.
+The Java library distribution plugin now extends the newly introduced distribution plugin. Thanks to this, you can now create tar files and install Java library distributions.
 
 The `distribution` extension was removed. The `main` distribution is now accessible using the distributions extension:
 
