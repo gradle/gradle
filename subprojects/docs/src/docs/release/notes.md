@@ -225,7 +225,8 @@ You can define multiple distributions:
         community
     }
 
-To build the additional distributions you can run the generated Zip tasks enterpriseDistZip and communityDistZip.
+To build the additional distributions you can run the generated `Zip` tasks `enterpriseDistZip` and `communityDistZip`. For more information, please consult the 
+[user guide](userguide/distribution_plugin.html).
 
 ### Java Library Distribution Plugin
 
