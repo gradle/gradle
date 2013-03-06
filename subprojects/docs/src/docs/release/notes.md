@@ -209,7 +209,7 @@ A couple of caveats to the Unicode support:
 
 ### Distribution Plugin
 
-Thanks to a contribution from Sébastien Cogneau, a new `distribution` plugin has been added. This plugin adds general-purpose for support bundling and installing distributions.
+Thanks to a contribution from [Sébastien Cogneau](https://github.com/scogneau), a new `distribution` plugin has been added. This plugin adds general-purpose for support bundling and installing distributions.
 
 This plugin adds a `main` distribution, and you can add additional distributions. For each distribution, tasks are added to create a ZIP or TAR file for the distribution and
 to install the distribution.
@@ -240,7 +240,7 @@ For more information, please consult the [user guide](userguide/javaLibraryDistr
 
 ### Build Dashboard Plugin
 
-Thanks to a contribution from Marcin Erdmann, a new `build-dashboard` plugin has been added. This plugin adds a task to projects to generate a build dashboard HTML report which contains
+Thanks to a contribution from [Marcin Erdmann](https://github.com/erdi), a new `build-dashboard` plugin has been added. This plugin adds a task to projects to generate a build dashboard HTML report which contains
 references to all reports that were generated during the build. In the following example, the `build-dashboard` plugin is added to a project which has also the `groovy` and
 the `codenarc` plugin applied:
 
