@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.cachemanager;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.CacheMetadataOptions;
 import org.apache.ivy.core.cache.ModuleDescriptorWriter;
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -40,7 +39,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.ParseException;
 
-abstract class AbstractRepositoryCacheManager implements RepositoryCacheManager {
+abstract class AbstractRepositoryCacheManager implements RepositoryArtifactCache {
     protected final String name;
     private final ParserRegistry parserRegistry = new ParserRegistry();
 

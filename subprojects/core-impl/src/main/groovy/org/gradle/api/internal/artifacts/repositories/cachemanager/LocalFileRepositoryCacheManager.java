@@ -42,6 +42,10 @@ public class LocalFileRepositoryCacheManager extends AbstractRepositoryCacheMana
         super(name);
     }
 
+    public boolean isLocal() {
+        return true;
+    }
+
     public EnhancedArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver, ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
         long start = System.currentTimeMillis();
         EnhancedArtifactDownloadReport report = new EnhancedArtifactDownloadReport(artifact);

@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.transport.file.FileTransport;
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
@@ -24,15 +24,15 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.logging.ProgressLoggerFactory;
 
 public class RepositoryTransportFactory {
-    private final RepositoryCacheManager downloadingCacheManager;
+    private final RepositoryArtifactCache downloadingCacheManager;
     private final TemporaryFileProvider temporaryFileProvider;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
-    private final RepositoryCacheManager localCacheManager;
+    private final RepositoryArtifactCache localCacheManager;
     private final ProgressLoggerFactory progressLoggerFactory;
 
     public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
-                                      RepositoryCacheManager localCacheManager,
-                                      RepositoryCacheManager downloadingCacheManager,
+                                      RepositoryArtifactCache localCacheManager,
+                                      RepositoryArtifactCache downloadingCacheManager,
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
         this.progressLoggerFactory = progressLoggerFactory;

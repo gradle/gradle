@@ -21,9 +21,11 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.EnhancedArtifactDownloadReport;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,12 +36,40 @@ import java.text.ParseException;
 /**
  * A {@link ModuleVersionRepository} wrapper around an Ivy {@link DependencyResolver}.
  */
-public class IvyDependencyResolverAdapter extends AbstractDependencyResolverAdapter {
+public class IvyDependencyResolverAdapter implements IvyAwareModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyDependencyResolverAdapter.class);
     private final DownloadOptions downloadOptions = new DownloadOptions();
+    private final DependencyResolverIdentifier identifier;
+    private final DependencyResolver resolver;
 
     public IvyDependencyResolverAdapter(DependencyResolver resolver) {
-        super(resolver);
+        this.resolver = resolver;
+        identifier = new DependencyResolverIdentifier(resolver);
+    }
+
+    public String getId() {
+        return identifier.getUniqueId();
+    }
+
+    public String getName() {
+        return resolver.getName();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Repository '%s'", resolver.getName());
+    }
+
+    public boolean isLocal() {
+        return ((RepositoryArtifactCache) resolver.getRepositoryCacheManager()).isLocal();
+    }
+
+    public void setSettings(IvySettings settings) {
+        settings.addResolver(resolver);
+    }
+
+    public boolean isDynamicResolveMode() {
+        return false;
     }
 
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {

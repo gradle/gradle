@@ -16,23 +16,45 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 
 /**
  * A {@link ModuleVersionRepository} wrapper around an {@link ExternalResourceResolver}.
  */
-public class ExternalResourceResolverAdapter extends AbstractDependencyResolverAdapter {
+public class ExternalResourceResolverAdapter implements IvyAwareModuleVersionRepository {
     private final ExternalResourceResolver resolver;
     private final boolean dynamicResolve;
+    private final DependencyResolverIdentifier identifier;
 
     public ExternalResourceResolverAdapter(ExternalResourceResolver resolver, boolean dynamicResolve) {
-        super(resolver);
         this.resolver = resolver;
         this.dynamicResolve = dynamicResolve;
+        this.identifier = new DependencyResolverIdentifier(resolver);
+    }
+
+    public String getId() {
+        return identifier.getUniqueId();
+    }
+
+    public String getName() {
+        return resolver.getName();
     }
 
     @Override
+    public String toString() {
+        return resolver.toString();
+    }
+
+    public boolean isLocal() {
+        return resolver.getRepositoryCacheManager().isLocal();
+    }
+
+    public void setSettings(IvySettings settings) {
+        resolver.setSettings(settings);
+    }
+
     public boolean isDynamicResolveMode() {
         return dynamicResolve;
     }
