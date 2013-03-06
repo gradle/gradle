@@ -10,7 +10,7 @@ A very exciting trend is the increase in code and documentation contributions fr
 and "distributions" plugins added in this release, to name a few, came by way of contribution. If you'd like to get involved and contribute to Gradle, a great place to 
 start is [gradle.org/contribute](http://www.gradle.org/contribute).
 
-The Gradle team are also excited to announce the first ever [“Gradle Summit”](http://gradlesummit.com/) (Sponsored by [Gradleware](http://gradleware.com/)), 
+The Gradle team is also excited to announce the first ever [“Gradle Summit”](http://gradlesummit.com/) (Sponsored by [Gradleware](http://gradleware.com/)),
 held June 13th - 14th in Santa Clara, California. The summit will be two fully packed days of technical sessions given by Gradle core developers ranging from introductory 
 to deep dive as well as informational sessions by several large organizations on how they get the most out of Gradle. In between sessions there'll be plenty of opportunity 
 for talking to other Gradle users and the Gradle development team. This is an event not to miss. 
