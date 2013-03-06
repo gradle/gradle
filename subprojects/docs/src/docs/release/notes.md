@@ -64,7 +64,7 @@ For more information, including more code samples, please refer to [the user gui
 
 ### Configure-on-demand improvements
 
-Gradle 1.4 introduced a [new configuration option called “configure-on-demand”](http://www.gradle.org/docs/1.4/release-notes#improved-scalability-via-configuration-on-demand) designed
+Gradle 1.4 introduced a [new operational mode called “configure-on-demand”](http://www.gradle.org/docs/1.4/release-notes#improved-scalability-via-configuration-on-demand) designed
 to improve Gradle performance on large projects.  This release brings the following improvements to this new feature:
 
 * [Tooling API](userguide/embedding.html) compatibility.
