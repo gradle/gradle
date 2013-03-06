@@ -337,28 +337,28 @@ This will not cause problems in a correctly [decoupled build](userguide/multi_pr
 
 ## External contributions
 
-We would like to thank the following community members for making contributions to this release of Gradle.
+We would like to thank the following community members for making excellent contributions to this release of Gradle.
 
-* Joe Sortelli - Fixed incorrect handling of `ivy.xml` where dependency configuration contained wildcard values (GRADLE-2352)
-* David M. Carr
+* [Joe Sortelli](https://github.com/sortelli) - Fixed incorrect handling of `ivy.xml` where dependency configuration contained wildcard values (GRADLE-2352)
+* [David M. Carr](https://github.com/davidmc24)
     * When JUnit tests have assumption failures, treat them as "skipped" (GRADLE-2454)
     * Documentation cleanups.
-* Sébastien Cogneau - Introduce the distribution plugin
-* Kenny Stridh
+* [Sébastien Cogneau](https://github.com/scogneau) - Introduce the distribution plugin
+* [Kenny Stridh](https://github.com/kensi)
     * Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
-    * Add support for PMD version 5.0.+
-* Marcin Erdmann
-    * Add `build-dashboard` plugin
+    * Added support for PMD version 5.0.+
+* [Marcin Erdmann](https://github.com/erdi)
+    * Add`build-dashboard` plugin
     * Make notify-send notifications transient in Gnome Shell
-* Michael R. Maletich
+* [Michael R. Maletich](https://github.com/HawaiianSpork)
     * Add `maxHeapSize` property to `FindBugs` task to allow setting the max heap size for spawned FindBugs java process
     * Add `contentsCompression` property to the `Zip` task type to specify the compression level of the archive
-* Barry Pitman - Fixed Maven conversion problem (GRADLE-2645)
-* Kallin Nagelberg - Fixed grammar in the `SourceSetOutput` documentation
-* Klaus Illusioni - Fixed Eclipse wtp component generation issue (GRADLE-2653)
-* Alex Birmingham - Fixed PMD Javadoc
-* Matthieu Leclercq - Fixed the nested configuration resolution issue (GRADLE-2477)
-* Dan Stine - Userguide cleanups.
+* [Barry Pitman](https://github.com/barrypitman) - Fixed Maven conversion problem (GRADLE-2645)
+* [Kallin Nagelberg](https://github.com/Kallin) - Fixed grammar in the `SourceSetOutput` documentation
+* [Klaus Illusioni](https://github.com/illusioni) - Fixed Eclipse wtp component generation issue (GRADLE-2653)
+* [Alex Birmingham](https://github.com/abirmingham) - Fixed PMD Javadoc
+* [Matthieu Leclercq](https://github.com/mleclercq) - Fixed the nested configuration resolution issue (GRADLE-2477)
+* [Dan Stine](https://github.com/dstine) - Userguide cleanups.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
