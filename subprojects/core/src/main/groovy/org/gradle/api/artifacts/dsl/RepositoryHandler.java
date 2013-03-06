@@ -85,7 +85,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * always {@link org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The behavior of this resolver
+     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The behavior of this resolver
      * is otherwise the same as the ones added by {@link #mavenRepo(java.util.Map)}.
      *
      * The following parameter are accepted as keys for the map:
