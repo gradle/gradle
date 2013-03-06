@@ -14,7 +14,6 @@ The test report generation was optimized and is now slightly faster than in prev
 
 ### Improved usability of project dependencies
 
-Improvements in Gradle's configuration model continue.
 Project dependencies at configuration time are now fully supported.
 Prior to this change, any resolution of a project dependency at configuration time may have led to confusing behavior because the target project may not have been configured yet.
 Now the resolution of the project dependency implies configuration of the target project.
