@@ -2,10 +2,6 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
-
 ### IDEA plugin is now Scala aware
 
 When the IDEA plugin encounters a Scala project, it will now add additional configuration to make the
