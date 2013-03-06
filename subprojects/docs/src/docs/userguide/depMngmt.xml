@@ -1076,7 +1076,7 @@ someroot/[artifact]-[revision].[ext]
                     <sample id="releasable-unit" dir="userguide/artifacts/resolutionStrategy" title="Forcing consistent version for a group of libraries">
                         <sourcefile file="build.gradle" snippet="releasable-unit"/>
                     </sample>
-                    For more information and code samples see<apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
+                    For more information and code samples see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
                 </para>
             </section>
             <section id='sec:custom_versioning_scheme'>
