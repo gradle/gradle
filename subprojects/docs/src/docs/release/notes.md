@@ -40,7 +40,7 @@ The following are the new incubating features or changes to existing incubating 
 
 ### Substituting dependencies via dependency resolve rules
 
-Gradle 1.4 introduced the ability to dynamically change the version of a dependency to be resolved via dependency resolve rules.
+Gradle 1.4 [introduced the ability](http://www.gradle.org/docs/1.4/release-notes#dependency-resolve-rules) to dynamically change the version of a dependency to be resolved via dependency resolve rules.
 It is now possible to change the group, name and/or version of a requested dependency, allowing a dependency to be substituted with a completely
 different dependency during resolution.
 
