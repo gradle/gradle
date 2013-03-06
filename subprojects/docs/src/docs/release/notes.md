@@ -192,12 +192,12 @@ Due to differences in the capabilities of Ivy vs Maven repositories, the DSL is 
 Be sure to check out the DSL reference for [MavenPublication](dsl/org.gradle.api.publish.maven.MavenPublication.html) and [IvyPublication](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
 for complete details on how the set of artifacts can be customized.
 
-### Generate POM file without publishing using the 'maven-publish' plugin
+### Generate POM file without publishing using the '`maven-publish`' plugin
 
-Pom file generation has been moved into a separate task, so that it is now possible to generate the Maven Pom file without actually publishing your project. All details of
-the publishing model are still considered in Pom generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
+POM file generation has been moved into a separate task, so that it is now possible to generate the Maven Pom file without actually publishing your project. All details of
+the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
 
-The task for generating the Pom file is of type [`GenerateMavenPom`](dsl/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html), and it is given a name based on the name
+The task for generating the POM file is of type [`GenerateMavenPom`](dsl/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html), and it is given a name based on the name
 of the publication: `generatePomFileFor<publication-name>Publication`. So in the above example where the publication is named 'mavenCustom',
 the task will be named `generatePomFileForMavenCustomPublication`.
 
