@@ -272,19 +272,19 @@ No features have been deprecated in Gradle 1.5.
 
 ### Changes to incubating Maven publishing support
 
-Breaking changes have been made to the incubating 'maven-publish' plugin, which provides an alternative means to publish to Maven repositories.
+Breaking changes have been made to the incubating '`maven-publish`' plugin, which provides an alternative means to publish to Maven repositories.
 
 - A MavenPublication must be explicitly added to the `publications` container; no publication is added implicitly by the `maven-publish` plugin.
     - If no `MavenPublication` is configured then nothing will be published.
-- A `MavenPublication` does not include any artifacts or dependencies by default; these must be added directly or via a SoftwareComponent.
+- A `MavenPublication` does not include any artifacts or dependencies by default; these must be added directly or via a `SoftwareComponent`.
     - If no artifacts are configured, a Maven POM file will be published with no artifacts or dependencies declared.
-- The `groupId`, `artifactId` and `version` in the published pom cannot be changed via MavenPom.withXml():
+- The `groupId`, `artifactId` and `version` in the published pom cannot be changed via `MavenPom.withXml()`:
    it was previously possible change these values, but any interproject dependency would not pick up these changes.
     - In the future Gradle will provide a robust mechanism for modifying publication identity prior to publication.
 - Identifiers used in Maven publications (`groupId`, `artifactId`, `version`, `ext`, `classifier`) have new character restrictions:
-  these identifiers may not contain '/', '\' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so we now prevent this
+  these identifiers may not contain '`/`', '`\`' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so this is now prevented
   at the time of publication.
-   - `groupId` and `artifactId` are further restricted to "[A-Za-z0-9_\-.]+": this is a Maven restriction, so we enforce it at the time of publication.
+   - `groupId` and `artifactId` are further restricted to "`[A-Za-z0-9_\-.]+`": this is a Maven restriction, so we enforce it at the time of publication.
 - The `GenerateMavenPom` task for a publication is not created until the publishing extension is first accessed. Any attempt to configure a `GenerateMavenPom` task
   should be enclosed within a `publishing` block.
 - Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
@@ -294,24 +294,24 @@ for complete description and examples of the new Maven Publishing support.
 
 ### Changes to incubating Ivy publishing support
 
-Breaking changes have been made to the incubating 'ivy-publish' plugin, which provides an alternative means to publish to Ivy repositories.
+Breaking changes have been made to the incubating '`ivy-publish`' plugin, which provides an alternative means to publish to Ivy repositories.
 
-- An IvyPublication must be explicitly added to the `publications` container; no publication is added implicitly by the `ivy-publish` plugin.
-    - If no IvyPublication is configured then nothing will be published to Ivy.
-- An IvyPublication does not include any artifacts or dependencies by default; these must be added directly or via a SoftwareComponent.
-    - If no artifacts are configured, an ivy.xml file will be published with no artifacts or dependencies declared.
-- The `organisation`, `name` and `revision` cannot be changed via IvyDescriptor.withXml():
-   it was previously possible to do this, although it did not change the actual coordinates of the published module.
-    - In the future Gradle will provide a robust mechanism for modifying publication coordinates prior to publication.
-- Identifiers in ivy modules (`organisation`, `module, `revision`) and artifacts (`name`, `ext`, `type`, `classifier`) have new character restrictions:
-  these identifiers may not contain '/', '\' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so we now prevent this
+- An `IvyPublication` must be explicitly added to the `publications` container; no publication is added implicitly by the `ivy-publish` plugin.
+    - If no `IvyPublication` is configured then nothing will be published.
+- An `IvyPublication` does not include any artifacts or dependencies by default; these must be added directly or via a `SoftwareComponent`.
+    - If no artifacts are configured, an `ivy.xml` file will be published with no artifacts or dependencies declared.
+- The `organisation`, `name` and `revision` cannot be changed via `IvyDescriptor.withXml()`:
+   it was previously possible to do this, although it did not change the actual identity of the published module.
+    - In the future Gradle will provide a robust mechanism for modifying publication identity prior to publication.
+- Identifiers in ivy modules (`organisation`, `module`, `revision`) and artifacts (`name`, `ext`, `type`, `classifier`) have new character restrictions:
+  these identifiers may not contain '`/`', '`\`' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so this is now prevented
   at the time of publication.
 - Removed `GenerateIvyDescriptor.xmlAction` property. The `ivy.descriptor.withXml()` method provides a way to customise the generated module descriptor.
 - The `GenerateIvyDescriptor` task for a publication is not created until the publishing extension is first accessed. Any attempt to configure a `GenerateIvyDescriptor`
   should be enclosed within a `publishing` block.
 - Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
 
-Be sure to check out the [Ivy Publishing User Guide Chapter] (userguide/publishing_ivy.html) and the [IvyPublication DSL reference](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
+Be sure to check out the [Ivy Publishing User Guide Chapter](userguide/publishing_ivy.html) and the [IvyPublication DSL reference](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
 for complete description and examples of the new Ivy Publishing support.
 
 ### Changes to new PMD support
