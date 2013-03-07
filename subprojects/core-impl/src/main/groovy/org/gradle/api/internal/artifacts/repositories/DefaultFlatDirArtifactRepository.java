@@ -21,6 +21,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyDependencyResolverAdapter;
 import org.gradle.api.internal.file.FileResolver;
@@ -57,8 +59,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         this.dirs.addAll(Arrays.asList(dirs));
     }
 
-    public DependencyResolver createPublisher() {
-        return createLegacyDslObject();
+    public ModuleVersionPublisher createPublisher() {
+        return new IvyResolverBackedModuleVersionPublisher(createLegacyDslObject());
     }
 
     public IvyAwareModuleVersionRepository createResolver() {

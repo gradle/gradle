@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 
 public interface PublicationAwareRepository {
-    DependencyResolver createPublisher();
+    ModuleVersionPublisher createPublisher();
 }

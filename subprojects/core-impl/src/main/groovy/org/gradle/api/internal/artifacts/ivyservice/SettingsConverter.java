@@ -18,15 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 
-import java.util.List;
-
 /**
  * @author Hans Dockter
  */
 public interface SettingsConverter {
     String LOOPBACK_RESOLVER_NAME = "main";
 
-    IvySettings convertForPublish(List<DependencyResolver> publishResolvers);
+    IvySettings convertForPublish();
 
     IvySettings convertForResolve(DependencyResolver defaultResolver);
 

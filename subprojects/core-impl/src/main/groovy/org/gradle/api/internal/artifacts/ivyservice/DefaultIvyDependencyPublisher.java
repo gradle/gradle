@@ -15,11 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.event.EventManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.MDArtifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.ConfigurationUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
@@ -40,15 +38,14 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyPublisher.class);
 
     public void publish(Set<String> configurations,
-                        List<DependencyResolver> publishResolvers,
+                        List<ModuleVersionPublisher> publishResolvers,
                         ModuleDescriptor moduleDescriptor,
-                        File descriptorDestination,
-                        EventManager eventManager) {
+                        File descriptorDestination) {
         try {
             Publication publication = new Publication(moduleDescriptor, configurations, descriptorDestination);
-            for (DependencyResolver resolver : publishResolvers) {
-                logger.info("Publishing to repository {}", resolver);
-                publication.publishTo(new IvyResolverBackedModuleVersionPublisher(eventManager, resolver));
+            for (ModuleVersionPublisher publisher : publishResolvers) {
+                logger.info("Publishing to {}", publisher);
+                publication.publishTo(publisher);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -82,25 +79,28 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
 
         private void addPublishedDescriptor(Map<Artifact, File> artifactsFiles) {
             Artifact artifact = MDArtifact.newIvyArtifact(moduleDescriptor);
-            checkArtifactFileExists(artifact, descriptorFile);
-            artifactsFiles.put(artifact, descriptorFile);
+            if (checkArtifactFileExists(artifact, descriptorFile)) {
+                artifactsFiles.put(artifact, descriptorFile);
+            }
         }
 
         private void addPublishedArtifact(Artifact artifact, Map<Artifact, File> artifactsFiles) {
             File artifactFile = new File(artifact.getExtraAttribute(FILE_ABSOLUTE_PATH_EXTRA_ATTRIBUTE));
-            checkArtifactFileExists(artifact, artifactFile);
-            artifactsFiles.put(artifact, artifactFile);
+            if (checkArtifactFileExists(artifact, artifactFile)) {
+                artifactsFiles.put(artifact, artifactFile);
+            }
         }
 
-        private void checkArtifactFileExists(Artifact artifact, File artifactFile) {
-            if (!artifactFile.exists()) {
-                // TODO:DAZ This hack is required so that we don't log a warning when the Signing plugin is used. We need to allow conditional configurations so we can remove this.
-                if (isSigningArtifact(artifact)) {
-                    return;
-                }
+        private boolean checkArtifactFileExists(Artifact artifact, File artifactFile) {
+            if (artifactFile.exists()) {
+                return true;
+            }
+            // TODO:DAZ This hack is required so that we don't log a warning when the Signing plugin is used. We need to allow conditional configurations so we can remove this.
+            if (!isSigningArtifact(artifact)) {
                 String message = String.format("Attempted to publish an artifact '%s' that does not exist '%s'", artifact.getModuleRevisionId(), artifactFile);
                 DeprecationLogger.nagUserOfDeprecatedBehaviour(message);
             }
+            return false;
         }
 
         private boolean isSigningArtifact(Artifact artifact) {

@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.event.EventManager;
-import org.apache.ivy.core.event.publish.EndArtifactPublishEvent;
-import org.apache.ivy.core.event.publish.StartArtifactPublishEvent;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 
@@ -28,13 +26,20 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-class IvyResolverBackedModuleVersionPublisher implements ModuleVersionPublisher {
-    private final EventManager eventManager;
+public class IvyResolverBackedModuleVersionPublisher implements ModuleVersionPublisher {
     private final DependencyResolver resolver;
 
-    IvyResolverBackedModuleVersionPublisher(EventManager eventManager, DependencyResolver resolver) {
-        this.eventManager = eventManager;
+    public IvyResolverBackedModuleVersionPublisher(DependencyResolver resolver) {
         this.resolver = resolver;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("repository '%s'", resolver.getName());
+    }
+
+    public void setSettings(IvySettings settings) {
+        settings.addResolver(resolver);
     }
 
     public void publish(ModuleRevisionId id, Map<Artifact, File> artifacts) throws IOException {
@@ -45,7 +50,7 @@ class IvyResolverBackedModuleVersionPublisher implements ModuleVersionPublisher 
             for (Map.Entry<Artifact, File> entry : artifacts.entrySet()) {
                 Artifact artifact = entry.getKey();
                 File artifactFile = entry.getValue();
-                publish(artifact, artifactFile);
+                resolver.publish(artifact, artifactFile, true);
             }
             resolver.commitPublishTransaction();
             successfullyPublished = true;
@@ -53,21 +58,6 @@ class IvyResolverBackedModuleVersionPublisher implements ModuleVersionPublisher 
             if (!successfullyPublished) {
                 resolver.abortPublishTransaction();
             }
-        }
-    }
-
-    private void publish(Artifact artifact, File src) throws IOException {
-        //notify triggers that an artifact is about to be published
-        eventManager.fireIvyEvent(new StartArtifactPublishEvent(resolver, artifact, src, true));
-        boolean successful = false; //set to true once the publish succeeds
-        try {
-            if (src.exists()) {
-                resolver.publish(artifact, src, true);
-                successful = true;
-            }
-        } finally {
-            //notify triggers that the publish is finished, successfully or not.
-            eventManager.fireIvyEvent(new EndArtifactPublishEvent(resolver, artifact, src, true, successful));
         }
     }
 }

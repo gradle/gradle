@@ -19,36 +19,40 @@ package org.gradle.api.publish.ivy.internal.publisher;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.util.GUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DependencyResolverIvyPublisher implements IvyPublisher {
 
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
-        DependencyResolver dependencyResolver = repository.createPublisher();
+        ModuleVersionPublisher publisher = repository.createPublisher();
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
         Map<String, String> extraAttributes = Collections.emptyMap();
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision(), extraAttributes);
 
         try {
-
+            Map<Artifact, File> artifactFiles = new LinkedHashMap<Artifact, File>();
             for (IvyArtifact publishArtifact : publication.getArtifacts()) {
                 Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleRevisionId);
-                dependencyResolver.publish(ivyArtifact, publishArtifact.getFile(), true);
+                artifactFiles.put(ivyArtifact, publishArtifact.getFile());
             }
 
             Artifact artifact = DefaultArtifact.newIvyArtifact(moduleRevisionId, null);
-            dependencyResolver.publish(artifact, publication.getDescriptorFile(), true);
+            artifactFiles.put(artifact, publication.getDescriptorFile());
+
+            publisher.publish(moduleRevisionId, artifactFiles);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

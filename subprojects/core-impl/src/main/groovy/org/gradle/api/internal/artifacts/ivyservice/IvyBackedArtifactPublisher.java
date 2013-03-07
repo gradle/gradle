@@ -16,11 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
@@ -48,23 +49,22 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         this.dependencyPublisher = dependencyPublisher;
     }
 
-    private Ivy ivyForPublish(List<DependencyResolver> publishResolvers) {
-        return ivyFactory.createIvy(settingsConverter.convertForPublish(publishResolvers));
-    }
-
     public void publish(Iterable<? extends PublicationAwareRepository> repositories, Module module, Set<? extends Configuration> configurations, File descriptor) throws PublishException {
-        List<DependencyResolver> publishResolvers = new ArrayList<DependencyResolver>();
+        IvySettings settings = settingsConverter.convertForPublish();
+        Ivy ivy = ivyFactory.createIvy(settings);
+        List<ModuleVersionPublisher> publishResolvers = new ArrayList<ModuleVersionPublisher>();
         for (PublicationAwareRepository repository : repositories) {
-            publishResolvers.add(repository.createPublisher());
+            ModuleVersionPublisher publisher = repository.createPublisher();
+            publisher.setSettings(ivy.getSettings());
+            publishResolvers.add(publisher);
         }
-        Ivy ivy = ivyForPublish(publishResolvers);
+
         Set<String> confs = Configurations.getNames(configurations, false);
         dependencyPublisher.publish(
                 confs,
                 publishResolvers,
                 publishModuleDescriptorConverter.convert(configurations, module),
-                descriptor,
-                ivy.getEventManager());
+                descriptor);
     }
 
 }

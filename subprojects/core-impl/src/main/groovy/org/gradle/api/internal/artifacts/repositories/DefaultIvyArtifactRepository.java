@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.repositories.ArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyMetaDataProvider;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalResourceResolverAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
@@ -66,8 +68,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new LegacyDependencyResolver(resolver, wrapResolver(resolver));
     }
 
-    public DependencyResolver createPublisher() {
-        return createRealResolver();
+    public ModuleVersionPublisher createPublisher() {
+        return new IvyResolverBackedModuleVersionPublisher(createRealResolver());
     }
 
     public IvyAwareModuleVersionRepository createResolver() {
