@@ -212,6 +212,9 @@ class IvyFileModule extends AbstractIvyModule {
             allFileNames.addAll([name, "${name}.sha1"])
         }
         assert moduleDir.list() as Set == allFileNames
+        for (name in names) {
+            assertChecksumPublishedFor(moduleDir.file(name))
+        }
     }
 
     void assertChecksumPublishedFor(TestFile testFile) {
@@ -228,8 +231,13 @@ class IvyFileModule extends AbstractIvyModule {
         ivyFile.assertDoesNotExist()
     }
 
+    void assertIvyAndJarFilePublished() {
+        assertArtifactsPublished(ivyFile.name, jarFile.name)
+        assertPublished()
+    }
+
     void assertPublished() {
-        assert ivyFile.assertExists()
+        assert ivyFile.assertIsFile()
         assert ivy.organisation == organisation
         assert ivy.module == module
         assert ivy.revision == revision

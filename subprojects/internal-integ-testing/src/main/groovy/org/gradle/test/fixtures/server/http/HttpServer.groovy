@@ -486,6 +486,7 @@ class HttpServer extends ExternalResource {
                     response.sendError(500, "unexpected username '${request.remoteUser}'")
                     return
                 }
+                destFile.parentFile.mkdirs()
                 destFile.bytes = request.inputStream.bytes
             }
         }))
