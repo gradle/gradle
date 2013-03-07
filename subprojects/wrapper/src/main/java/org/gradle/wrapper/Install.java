@@ -141,7 +141,7 @@ public class Install {
         return dir.delete();
     }
 
-    public void unzip(File zip, File dest) throws IOException {
+    private void unzip(File zip, File dest) throws IOException {
         Enumeration entries;
         ZipFile zipFile;
 
@@ -163,7 +163,7 @@ public class Install {
         zipFile.close();
     }
 
-    public void copyInputStream(InputStream in, OutputStream out) throws IOException {
+    private void copyInputStream(InputStream in, OutputStream out) throws IOException {
         byte[] buffer = new byte[1024];
         int len;
 
