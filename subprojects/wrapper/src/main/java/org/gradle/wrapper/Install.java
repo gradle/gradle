@@ -45,12 +45,18 @@ public class Install {
         File localZipFile = localDistribution.getZipFile();
         boolean downloaded = false;
         if (alwaysDownload || !localZipFile.exists()) {
-            File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
+            String downloadId = UUID.randomUUID().toString();
+
+            File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + "-" + downloadId + ".part");
             tmpZipFile.delete();
             System.out.println("Downloading " + distributionUrl);
             download.download(distributionUrl, tmpZipFile);
-            tmpZipFile.renameTo(localZipFile);
-            downloaded = true;
+
+            if (!localZipFile.exists() || alwaysDownload) {
+                tmpZipFile.renameTo(localZipFile);
+                downloaded = true;
+            }
+
         }
 
         File distDir = localDistribution.getDistributionDir();
