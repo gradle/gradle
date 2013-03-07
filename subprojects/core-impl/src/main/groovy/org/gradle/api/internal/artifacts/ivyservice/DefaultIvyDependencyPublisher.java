@@ -15,16 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.event.EventManager;
-import org.apache.ivy.core.event.publish.EndArtifactPublishEvent;
-import org.apache.ivy.core.event.publish.StartArtifactPublishEvent;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.MDArtifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.ConfigurationUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,11 +45,10 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                         File descriptorDestination,
                         EventManager eventManager) {
         try {
-            Publication publication = new Publication(moduleDescriptor, eventManager, configurations, descriptorDestination);
-
+            Publication publication = new Publication(moduleDescriptor, configurations, descriptorDestination);
             for (DependencyResolver resolver : publishResolvers) {
                 logger.info("Publishing to repository {}", resolver);
-                publication.publishTo(resolver);
+                publication.publishTo(new IvyResolverBackedModuleVersionPublisher(eventManager, resolver));
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -63,16 +60,13 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
         private final Set<String> configurations;
         private final File descriptorFile;
 
-        private final EventManager eventManager;
-
-        private Publication(ModuleDescriptor moduleDescriptor, EventManager eventManager, Set<String> configurations, File descriptorFile) {
+        private Publication(ModuleDescriptor moduleDescriptor, Set<String> configurations, File descriptorFile) {
             this.moduleDescriptor = moduleDescriptor;
-            this.eventManager = eventManager;
             this.configurations = configurations;
             this.descriptorFile = descriptorFile;
         }
 
-        public void publishTo(DependencyResolver resolver) throws IOException {
+        public void publishTo(ModuleVersionPublisher publisher) throws IOException {
             Set<Artifact> allArtifacts = getAllArtifacts(moduleDescriptor);
 
             Map<Artifact, File> artifactsFiles = new LinkedHashMap<Artifact, File>();
@@ -83,22 +77,7 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                 addPublishedDescriptor(artifactsFiles);
             }
 
-            boolean successfullyPublished = false;
-            try {
-                resolver.beginPublishTransaction(moduleDescriptor.getModuleRevisionId(), true);
-                // for each declared published artifact in this descriptor, do:
-                for (Map.Entry<Artifact, File> entry : artifactsFiles.entrySet()) {
-                    Artifact artifact = entry.getKey();
-                    File artifactFile = entry.getValue();
-                    publish(artifact, artifactFile, resolver, true);
-                }
-                resolver.commitPublishTransaction();
-                successfullyPublished = true;
-            } finally {
-                if (!successfullyPublished) {
-                    resolver.abortPublishTransaction();
-                }
-            }
+            publisher.publish(moduleDescriptor.getModuleRevisionId(), artifactsFiles);
         }
 
         private void addPublishedDescriptor(Map<Artifact, File> artifactsFiles) {
@@ -135,25 +114,6 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                 Collections.addAll(allArtifacts, moduleDescriptor.getArtifacts(configuration));
             }
             return allArtifacts;
-        }
-
-        private void publish(Artifact artifact, File src,
-                             DependencyResolver resolver, boolean overwrite) throws IOException {
-            IvyContext.getContext().checkInterrupted();
-            //notify triggers that an artifact is about to be published
-            eventManager.fireIvyEvent(
-                    new StartArtifactPublishEvent(resolver, artifact, src, overwrite));
-            boolean successful = false; //set to true once the publish succeeds
-            try {
-                if (src.exists()) {
-                    resolver.publish(artifact, src, overwrite);
-                    successful = true;
-                }
-            } finally {
-                //notify triggers that the publish is finished, successfully or not.
-                eventManager.fireIvyEvent(
-                        new EndArtifactPublishEvent(resolver, artifact, src, overwrite, successful));
-            }
         }
     }
 
