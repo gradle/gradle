@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.resolutioncache
+package org.gradle.api.internal.externalresource.cached
 
 import org.gradle.CacheUsage
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
-import org.gradle.api.internal.externalresource.cached.DefaultCachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
