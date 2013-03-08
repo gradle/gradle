@@ -22,33 +22,29 @@ Read on for more details on why you should upgrade to Gradle 1.5. As always, ple
 
 Here are the new features introduced in this Gradle release.
 
-### IDEA plugin is now Scala aware
+### Performance improvements 
 
-When the IDEA plugin encounters a Scala project, it will now add additional configuration to make the
-project compile in IntelliJ IDEA out of the box. In particular, the plugin adds a Scala facet and
-a Scala compiler library that matches the Scala version used on the project's class path.
+This release brings performance improvements for JUnit and TestNG test execution as well as dependency resolution improvements for all builds that use dependency resolution.
 
-### Improved test execution performance
+#### Test execution performance
 
 Test execution has been further optimized in this release, continuing on the work in Gradle 1.4. The test report is now generated more efficiently, so that it take less
 time and heap space to generate the HTML report. In addition, for those projects that use the TestNG framework, the test JVM now starts more quickly, meaning that test
 execution starts earlier than it did in previous Gradle releases.
 
-### Improved usability of project dependencies
-
-Project dependencies at configuration time are now fully supported.
-Prior to this change, any resolution of a project dependency at configuration time may have led to confusing behavior as the target project may not have been configured yet.
-Now the resolution of the project dependency implies configuration of the target project.
-This means that the order in which projects are configured may now be different (i.e. it will be correct).
-This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
-
-### Improved dependency resolution performance
+#### Dependency resolution performance
 
 Gradle's [dependency cache](userguide/dependency_management.html#sec:dependency_cache) is multi process safe, which requires the use of locking mechanisms.
 Improvements to the way the locks are utilised in this release have increased the dependency resolution speed by up to 30%
 for builds that use local repositories or maven local.
 Builds that don't use local repositories should also exhibit slightly faster dependency resolution.
 Every build that resolves dependencies benefits from this improvement.
+
+### IDEA plugin is now Scala aware
+
+When the IDEA plugin encounters a Scala project, it will now add additional configuration to make the
+project compile in IntelliJ IDEA out of the box. In particular, the plugin adds a Scala facet and
+a Scala compiler library that matches the Scala version used on the project's class path.
 
 ### Substituting dependencies via dependency resolve rules (i)
 
@@ -73,6 +69,14 @@ Dependency resolve rules can now be used to solve some interesting dependency re
 - Substituting different implementations at different stages. For example, substitute all servlet API dependencies with `'javax.servlet:servlet-api:2.4'` at compile time and the jetty implementation at test runtime.
 
 For more information, including more code samples, please refer to [the user guide](userguide/dependency_management.html#sec:dependency_resolve_rules).
+
+### New Sonar Runner plugin (i)
+
+Gradle 1.5 ships with a new `sonar-runner` plugin that is set to replace the existing Sonar plugin. As its name indicates,
+the new plugin is based on the [Sonar Runner](http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner),
+the new and official way to integrate with Sonar. Unlike the old Sonar plugin, the new Sonar Runner plugin
+is compatible with the latest Sonar versions (3.4 and above). To learn more, check out the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html)
+chapter in the Gradle user guide, and the `sonarRunner` samples in the full Gradle distribution.
 
 ### Configure-on-demand improvements (i)
 
@@ -108,7 +112,19 @@ For example, by adding a `gradle.properties` file to root of the project with th
     //gradle.properties file
     org.gradle.parallel=true
 
-### Easy publication of software components with the 'maven-publish' or 'ivy-publish' plugins (i)
+### Improved usability of project dependencies
+
+Project dependencies at configuration time are now fully supported.
+Prior to this change, any resolution of a project dependency at configuration time may have led to confusing behavior as the target project may not have been configured yet.
+Now the resolution of the project dependency implies configuration of the target project.
+This means that the order in which projects are configured may now be different (i.e. it will be correct).
+This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
+
+### Improvements to '`maven-publish`' and '`ivy-publish`' plugins (i)
+
+The '`maven-publish`' and '`ivy-publish`' plugins gain new features and capabilities in this Gradle release.
+
+#### Easy publication of software components
 
 Gradle 1.5 introduces the concept of a “Software Component”, which defines something that can be produced by a Gradle project such as a Java library or a web application.
 Both the '`ivy-publish`' and '`maven-publish`' plugins are component-aware, simplifying the process of publishing a module. The component defines the set of artifacts and dependencies for publishing.
@@ -141,7 +157,7 @@ Publishing the '`web`' component will result in the war file being published wit
         }
     }
 
-### Customise artifacts published with the '`maven-publish`' or '`ivy-publish`' plugins (i)
+#### Publishing custom artifacts
 
 This release introduces the ability to customize the set of artifacts to publish to a Maven repository or an Ivy repository.
 This gives complete control over which artifacts are published, and the classifier/extension used to publish them.
@@ -200,7 +216,7 @@ for complete details on how the set of artifacts can be customized.
 
 For more information about using the new '`maven-publish`' and '`ivy-publish`' plugins in general, please consult the user guide ([maven](userguide/publishing_maven.html)) ([ivy](userguide/publishing_ivy.html)).
 
-### Generate POM file without publishing using the '`maven-publish`' plugin (i)
+#### Generate POM file without publishing
 
 POM file generation has been moved into a separate task, so that it is now possible to generate the POM file without actually publishing your project. All details of
 the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
@@ -209,7 +225,7 @@ The task for generating the POM file is of type [`GenerateMavenPom`](dsl/org.gra
 of the publication: `generatePomFileFor<publication-name>Publication`. So in the above example where the publication is named '`mavenCustom`',
 the task will be named `generatePomFileForMavenCustomPublication`.
 
-### Full support for Unicode in publication identifiers (i)
+#### Full support for Unicode in publication identifiers
 
 Where supported by the underlying metadata format, Gradle will now handle any valid Unicode character in module group, name and version as well as artifact name, extension and classifier.
 
@@ -255,18 +271,10 @@ the `codenarc` plugin applied:
     apply plugin: 'codenarc'
 
 By running the `buildDashboard` task after other tasks that generate reports (e.g. by running `gradle check buildDashboard`), the generated build dashboard contains links to the 
-`codenarc` reports. This version of the build dashboard does not include links to test reports. This will be added in a future Gradle version.
+`codenarc` reports. This version of the build dashboard does not include links to test reports. This plugin is in the early stages of development and will be significantly improved in future Gradle releases.
 
 More information on the `build-dashboard` plugin can be found in the [user guide](userguide/buildDashboard_plugin.html).
   
-### New Sonar Runner plugin (i)
-
-Gradle 1.5 ships with a new `sonar-runner` plugin that is set to replace the existing Sonar plugin. As its name indicates,
-the new plugin is based on the [Sonar Runner](http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner),
-the new and official way to integrate with Sonar. Unlike the old Sonar plugin, the new Sonar Runner plugin
-is compatible with the latest Sonar versions (3.4 and above). To learn more, check out the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html)
-chapter in the Gradle user guide, and the `sonarRunner` samples in the full Gradle distribution.
-
 ## Fixed issues
 
 ### Support for Ivy dynamic resolve mode (i)
