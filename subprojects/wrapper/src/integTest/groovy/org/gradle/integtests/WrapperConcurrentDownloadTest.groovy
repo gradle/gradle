@@ -51,6 +51,7 @@ class WrapperConcurrentDownloadTest extends ConcurrentSpec {
         wrapperConfig.distribution = contentZip.toURI()
 
         def pathAssembler = new PathAssembler(userHome)
+        def distribution = pathAssembler.getDistribution(wrapperConfig)
 
         def zipBytes = contentZip.bytes
         def numZipBytes = zipBytes.size()
@@ -88,9 +89,12 @@ class WrapperConcurrentDownloadTest extends ConcurrentSpec {
         thread.blockUntil.done
 
         then:
-        def unzipped = pathAssembler.getDistribution(wrapperConfig).distributionDir
+        def unzipped = distribution.distributionDir
         unzipped.directory
         def unzippedFile = new File(unzipped, gradleFilePath)
         unzippedFile.text == gradleFileContent
+
+        and: "no temp files left lying around"
+        distribution.zipFile.parentFile.listFiles().findAll { it.name.endsWith(".part") }.empty
     }
 }

@@ -57,6 +57,7 @@ public class Install {
                 downloaded = true;
             }
 
+            tmpZipFile.delete();
         }
 
         File distDir = localDistribution.getDistributionDir();
