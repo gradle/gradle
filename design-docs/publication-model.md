@@ -511,7 +511,6 @@ To replace dependencies in a Maven publication:
         }
     }
 
-
 To add dependencies to an Ivy publication:
 
     apply plugin: 'ivy-publish'
@@ -575,6 +574,10 @@ The 'dependency' creation method will accept the following forms of input:
 * wildcard excludes.
 
 ## Warn when no repository of the appropriate type has been specified
+
+TBD
+
+## Customise the output file for the generated descriptor
 
 TBD
 

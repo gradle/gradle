@@ -121,7 +121,9 @@ Once the publishing extension has been configured, it will be an error to make f
 
 - Update the publishing integration tests so that the publications are declared along with the other injected configuration in `allprojects`/`subprojects`
 - A custom plugin can use a `DeferredConfigurable` extension to implement lazy configuration.
-- Attempting to configure a `DeferredConfigurable` extension after access provides reasonable failure message
+- Attempting to configure a `DeferredConfigurable` extension after access provides reasonable failure message.
+- A reasonable error message is given when the configuration of an extension fails.
+- A reasonable error message is given when attempting to access an extension whose configuration has previously failed.
 
 ## Allow the project version to be determined early in the build configuration
 
@@ -154,6 +156,8 @@ Conditional configuration based on build type:
 Running `gradle ci` performs a clean build and includes the code coverage report.
 
 Running `gradle tasks` includes a listing of the available build types.
+
+TBD - need to figure out how this should interact with camel-case task name matching on the command-line.
 
 ## Warn when a domain object that is used as input for a publication is later changed
 
@@ -191,6 +195,10 @@ The following changes should be detected:
 - The project group or version.
 - The elements of a collection used to define artifacts.
 - The runtime dependencies or artifacts of a component.
+
+## Allow arbitrary deferred configuration logic
+
+This story allows arbitrary logic to be deferred until required. This will allow configuration logic to be sequenced naturally based on its dependencies.
 
 ## Defer the creation of publication tasks until after the publications have been configured
 
@@ -246,4 +254,4 @@ Reuse the domain object lifecycle mechanism to warn when:
 
 # Open issues
 
-Plenty.
+- Fire events before and after configuration of domain objects.

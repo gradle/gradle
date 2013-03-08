@@ -101,4 +101,4 @@ The smoke test will involve installing Gradle from an available distribution, an
 
 # Open issues
 
-This stuff is never done. This section is to keep track of assumptions and things we haven't figured out yet.
+None yet.
