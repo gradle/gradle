@@ -769,7 +769,7 @@
             <section>
                 <title>Ivy repository with Maven compatible layout</title>
                 <para>Optionally, a repository with pattern layout can have its 'organisation' part laid out in Maven style, with
-                    forward slashes replacing dots as separators. For example, the organisation <literal>my.company</literal> would then be represented as<literal>my/company</literal>.
+                    forward slashes replacing dots as separators. For example, the organisation <literal>my.company</literal> would then be represented as <literal>my/company</literal>.
                 </para>
                 <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with Maven compatible layout">
                     <sourcefile file="build.gradle" snippet="ivy-repo-with-m2compatible-layout"/>
@@ -777,16 +777,15 @@
             </section>
             <section>
                 <title>Defining different artifact and Ivy file locations for an Ivy repository</title>
-                <para>To define an Ivy repository which fetches Ivy files and artifacts from different locations, you can explicitly define complete URL patterns
-                    for artifacts and Ivy files:
+                <para>To define an Ivy repository which fetches Ivy files and artifacts from different locations, you can use the pattern layout with separate patterns to use to locate
+                    the Ivy files and artifacts:
                 </para>
                 <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with custom patterns">
                     <sourcefile file="build.gradle" snippet="ivy-repo-with-custom-pattern"/>
                 </sample>
                 <para>
-                    Each <literal>ivyPattern</literal> or <literal>artifactPattern</literal> specified for a repository adds an <emphasis>additional</emphasis> pattern, on top of any
-                    url/layout based patterns defined. Values supplied as <literal>ivyPattern</literal> or <literal>artifactPattern</literal> should be fully qualified URLs as they are not resolved
-                    relative to the <literal>url</literal> parameter for the repository. Any unqualified patterns will be resolved as a file path, relative to the project base directory.
+                    Each <literal>artifact</literal> or <literal>ivy</literal> specified for a repository adds an <emphasis>additional</emphasis> pattern to use. The patterns are used in the order
+                    that they are defined.
                 </para>
             </section>
             <section>

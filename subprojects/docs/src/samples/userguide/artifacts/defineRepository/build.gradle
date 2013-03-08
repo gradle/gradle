@@ -94,9 +94,8 @@ repositories {
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
-        layout 'pattern', {
-            artifact "[module]/[revision]/[artifact].[ext]"
-            ivy "[module]/[revision]/ivy.xml"
+        layout "pattern", {
+            artifact "[module]/[revision]/[type]/[artifact].[ext]"
         }
     }
 }
@@ -106,9 +105,8 @@ repositories {
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
-        layout 'pattern', {
-            artifact "[organisation]/[module]/[revision]/[artifact].[ext]"
-            ivy "[organisation]/[module]/[revision]/ivy.xml"
+        layout "pattern", {
+            artifact "[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
             m2compatible = true
         }
     }
@@ -118,9 +116,12 @@ repositories {
 //START SNIPPET ivy-repo-with-custom-pattern
 repositories {
     ivy {
-        artifactPattern "http://repo.mycompany.com/3rd-party-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
-        artifactPattern "http://repo.mycompany.com/company-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
-        ivyPattern "http://repo.mycompany.com/ivy-files/[organisation]/[module]/[revision]/ivy.xml"
+        url "http://repo.mycompany.com/repo"
+        layout "pattern", {
+            artifact "3rd-party-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+            artifact "company-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+            ivy "ivy-files/[organisation]/[module]/[revision]/ivy.xml"
+        }
     }
 }
 //END SNIPPET ivy-repo-with-custom-pattern
@@ -128,11 +129,11 @@ repositories {
 //START SNIPPET authenticated-ivy-repo
 repositories {
     ivy {
+        url 'http://repo.mycompany.com'
         credentials {
             username 'user'
             password 'password'
         }
-        artifactPattern "http://repo.mycompany.com/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }
 //END SNIPPET authenticated-ivy-repo
