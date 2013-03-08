@@ -828,9 +828,7 @@
                 path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern that defines
                 what the path will look like. Here are some examples:
                 <footnote>
-                    <para>At
-                        <ulink url='http://ant.apache.org/ivy/history/latest-milestone/concept.html'/>
-                        you can learn more about ivy patterns.
+                    <para>At <ulink url='http://ant.apache.org/ivy/history/latest-milestone/concept.html'/> you can learn more about ivy patterns.
                     </para>
                 </footnote>
             </para>
@@ -898,13 +896,21 @@ someroot/[artifact]-[revision].[ext]
             </listitem>
         </itemizedlist>
     </section>
-    <section id='sec:dependency_metadata_manipulation'>
-        <title>Manipulating the dependency metadata during the resolution process</title>
-        <para>Gradle's dependency resolution engine will eventually offer a complete access to the
-            dependency tree during the resolution, allowing any kind of manipulation.
-            We want to get there incrementally, by solving one by one all the important use cases raised by our users.
-            Currently, it is possible to manipulate the dependency metadata in following ways:
-        </para>
+    <section>
+        <title>Changing the dependency resolution process</title>
+        <para>There are a number of ways that you can influence how Gradle resolves dependencies.</para>
+
+        <section>
+            <title>Ivy dynamic resolve mode</title>
+            <para>
+                When you use Ivy repositories, you can enable Ivy's dynamic resolve mode. In this mode, Gradle will prefer the <literal>revConstraint</literal> attribute over the
+                <literal>rev</literal> for each dependency definition.
+            </para>
+            <sample id="dynamicResolveMode" dir="userguide/artifacts/defineRepository" title="Enabling dynamic resolve mode">
+                <sourcefile file="build.gradle" snippet="ivy-repo-dynamic-mode"/>
+            </sample>
+        </section>
+
         <section id='sec:forcing_modules'>
             <title>Forcing certain module versions</title>
             <para>It is possible to configure dependency resolution to use a specific version for given dependency (transitive or not).

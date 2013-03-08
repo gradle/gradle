@@ -1,3 +1,5 @@
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+
 //START SNIPPET maven-central
 repositories {
     mavenCentral()
@@ -137,6 +139,20 @@ repositories {
     }
 }
 //END SNIPPET authenticated-ivy-repo
+
+//START SNIPPET ivy-repo-dynamic-mode
+repositories {
+    ivy {
+        url "http://repo.mycompany.com/repo"
+        resolve.dynamicMode = true
+    }
+}
+
+// Can use a rule instead
+repositories.withType(IvyArtifactRepository) {
+    resolve.dynamicMode = true
+}
+//END SNIPPET ivy-repo-dynamic-mode
 
 task lookup << {
     //START SNIPPET lookup-resolver
