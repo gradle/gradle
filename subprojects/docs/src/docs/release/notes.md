@@ -230,11 +230,11 @@ A couple of caveats to the Unicode support:
 - Certain repositories will not be able to handle all supported characters. For example, the '`:`' character cannot be used
   as an identifier when publishing to a filesystem-backed repository on Windows.
 
-### Distribution Plugin
+### New distribution plugin
 
 Thanks to a contribution from [Sébastien Cogneau](https://github.com/scogneau), a new `distribution` plugin has been added. This plugin adds general-purpose for support bundling and installing distributions.
 
-This plugin adds a `main` distribution, and you can add additional distributions. For each distribution, tasks are added to create a zip or tar file for the distribution and
+This plugin adds a `main` distribution, and you can add additional distributions. For each distribution, tasks are added to create a ZIP or TAR file for the distribution and
 to install the distribution.
 
 You can define multiple distributions:
@@ -247,24 +247,16 @@ You can define multiple distributions:
 To build the additional distributions you can run the generated `Zip` tasks `enterpriseDistZip` and `communityDistZip`. For more information, please consult the 
 [user guide](userguide/distribution_plugin.html).
 
-### Java Library Distribution Plugin
+### Improved Java library distribution plugin
 
 The Java library distribution plugin now extends the newly introduced distribution plugin. Thanks to this, you can now create tar files and install Java library distributions.
 
-The `distribution` extension was removed. The `main` distribution is now accessible using the distributions extension:
-
-    distributions {
-        main {
-            ...
-        }
-    }
-
 For more information, please consult the [user guide](userguide/javaLibraryDistribution_plugin.html).
 
-### Build Dashboard Plugin
+### New build dashboard plugin
 
-Thanks to a contribution from [Marcin Erdmann](https://github.com/erdi), a new `build-dashboard` plugin has been added. This plugin adds a task to projects to generate a build dashboard HTML report which contains
-references to all reports that were generated during the build. In the following example, the `build-dashboard` plugin is added to a project which has also the `groovy` and
+Thanks to a contribution from [Marcin Erdmann](https://github.com/erdi), a new `build-dashboard` plugin has been added. This plugin adds a task to projects to generate a build dashboard HTML report
+which contains references to all reports that were generated during the build. In the following example, the `build-dashboard` plugin is added to a project which has also the `groovy` and
 the `codenarc` plugin applied:
 
     apply plugin: 'groovy'
@@ -347,7 +339,7 @@ Breaking changes have been made to the incubating '`ivy-publish`' plugin, which 
 Be sure to check out the [Ivy Publishing User Guide Chapter](userguide/publishing_ivy.html) and the [IvyPublication DSL reference](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
 for complete description and examples of the new Ivy Publishing support.
 
-### Changes to new PMD support
+### Changes to default PMD ruleset
 
 The default value for ruleset extension has changed from `["basic"]` to `[]`. The default was moved to the `Pmd` task, so everything should just work as it did before.
 
@@ -360,6 +352,16 @@ This is not expected to cause problems in existing builds, but is mentioned for 
 
 Parallel builds are now much faster due to better utilisation of parallel workers. However, this means that tasks may be executed in different order in parallel builds.
 This will not cause problems in a correctly [decoupled build](userguide/multi_project_builds.html#sec:decoupled_projects) but may bring problems to light in builds that are not properly decoupled.
+
+### Changes to the incubating Java library distribution plugin
+
+The `distribution` extension that is added by the `java-library-distribution` plugin was removed. The `main` distribution is now accessible using the `distributions` extension:
+
+    distributions {
+        main {
+            ...
+        }
+    }
 
 ## External contributions
 
