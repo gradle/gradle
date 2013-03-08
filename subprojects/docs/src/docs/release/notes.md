@@ -28,13 +28,6 @@ When the IDEA plugin encounters a Scala project, it will now add additional conf
 project compile in IntelliJ IDEA out of the box. In particular, the plugin adds a Scala facet and
 a Scala compiler library that matches the Scala version used on the project's class path.
 
-### Improved dependency resolution performance
-
-Gradle's [dependency cache](userguide/dependency_management.html#sec:dependency_cache) is multi process safe, which requires the use of locking mechanisms.
-Improvements to the way the locks are utilised in this release have increased the dependency resolution speed by up to 30% for builds that use local
-repositories or maven local. Builds that don't use local repositories should also exhibit slightly faster dependency resolution.
-Every build that resolves dependencies benefits from this improvement.
-
 ### Improved test execution performance
 
 Test execution has been further optimized in this release, continuing on the work in Gradle 1.4. The test report is now generated more efficiently, so that it take less
@@ -49,17 +42,15 @@ Now the resolution of the project dependency implies configuration of the target
 This means that the order in which projects are configured may now be different (i.e. it will be correct).
 This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
 
-## Fixed issues
+### Improved dependency resolution performance
 
-## Incubating features
+Gradle's [dependency cache](userguide/dependency_management.html#sec:dependency_cache) is multi process safe, which requires the use of locking mechanisms.
+Improvements to the way the locks are utilised in this release have increased the dependency resolution speed by up to 30%
+for builds that use local repositories or maven local.
+Builds that don't use local repositories should also exhibit slightly faster dependency resolution.
+Every build that resolves dependencies benefits from this improvement.
 
-Incubating features are intended to be used, but not yet guaranteed to be backwards compatible.
-By giving early access to new features, real world feedback can be incorporated into their design.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the new incubating features or changes to existing incubating features in this Gradle release.
-
-### Substituting dependencies via dependency resolve rules
+### Substituting dependencies via dependency resolve rules (i)
 
 Gradle 1.4 [introduced the ability](http://www.gradle.org/docs/1.4/release-notes#dependency-resolve-rules) to dynamically change the version of a dependency to be resolved via dependency resolve rules.
 It is now possible to change the group, name and/or version of a requested dependency, allowing a dependency to be substituted with a completely
@@ -83,7 +74,7 @@ Dependency resolve rules can now be used to solve some interesting dependency re
 
 For more information, including more code samples, please refer to [the user guide](userguide/dependency_management.html#sec:dependency_resolve_rules).
 
-### Configure-on-demand improvements
+### Configure-on-demand improvements (i)
 
 Gradle 1.4 introduced a [new operational mode called “configure-on-demand”](http://www.gradle.org/docs/1.4/release-notes#improved-scalability-via-configuration-on-demand) designed
 to improve Gradle performance on large projects.  This release brings the following improvements to this new feature:
@@ -102,7 +93,7 @@ For example, by adding a `gradle.properties` file to root of the project with th
 
 For more information on configure-on-demand please consult [the user guide](userguide/multi_project_builds.html#sec:configuration_on_demand).
 
-### Parallel execution improvements
+### Parallel execution improvements (i)
 
 Gradle 1.2 introduced a [parallel execution](userguide/multi_project_builds.html#sec:parallel_execution) mode for multi-project builds.
 This release brings significantly improved utilisation of the parallel workers.
@@ -117,7 +108,7 @@ For example, by adding a `gradle.properties` file to root of the project with th
     //gradle.properties file
     org.gradle.parallel=true
 
-### Easy publication of software components with the 'maven-publish' or 'ivy-publish' plugins
+### Easy publication of software components with the 'maven-publish' or 'ivy-publish' plugins (i)
 
 Gradle 1.5 introduces the concept of a “Software Component”, which defines something that can be produced by a Gradle project such as a Java library or a web application.
 Both the '`ivy-publish`' and '`maven-publish`' plugins are component-aware, simplifying the process of publishing a module. The component defines the set of artifacts and dependencies for publishing.
@@ -150,7 +141,7 @@ Publishing the '`web`' component will result in the war file being published wit
         }
     }
 
-### Customise artifacts published with the '`maven-publish`' or '`ivy-publish`' plugins
+### Customise artifacts published with the '`maven-publish`' or '`ivy-publish`' plugins (i)
 
 This release introduces the ability to customize the set of artifacts to publish to a Maven repository or an Ivy repository.
 This gives complete control over which artifacts are published, and the classifier/extension used to publish them.
@@ -209,7 +200,7 @@ for complete details on how the set of artifacts can be customized.
 
 For more information about using the new '`maven-publish`' and '`ivy-publish`' plugins in general, please consult the user guide ([maven](userguide/publishing_maven.html)) ([ivy](userguide/publishing_ivy.html)).
 
-### Generate POM file without publishing using the '`maven-publish`' plugin
+### Generate POM file without publishing using the '`maven-publish`' plugin (i)
 
 POM file generation has been moved into a separate task, so that it is now possible to generate the POM file without actually publishing your project. All details of
 the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
@@ -218,7 +209,7 @@ The task for generating the POM file is of type [`GenerateMavenPom`](dsl/org.gra
 of the publication: `generatePomFileFor<publication-name>Publication`. So in the above example where the publication is named '`mavenCustom`',
 the task will be named `generatePomFileForMavenCustomPublication`.
 
-### Full support for Unicode in publication identifiers
+### Full support for Unicode in publication identifiers (i)
 
 Where supported by the underlying metadata format, Gradle will now handle any valid Unicode character in module group, name and version as well as artifact name, extension and classifier.
 
@@ -230,7 +221,7 @@ A couple of caveats to the Unicode support:
 - Certain repositories will not be able to handle all supported characters. For example, the '`:`' character cannot be used
   as an identifier when publishing to a filesystem-backed repository on Windows.
 
-### New distribution plugin
+### New distribution plugin (i)
 
 Thanks to a contribution from [Sébastien Cogneau](https://github.com/scogneau), a new `distribution` plugin has been added. This plugin adds general-purpose for support bundling and installing distributions.
 
@@ -247,16 +238,16 @@ You can define multiple distributions:
 To build the additional distributions you can run the generated `Zip` tasks `enterpriseDistZip` and `communityDistZip`. For more information, please consult the 
 [user guide](userguide/distribution_plugin.html).
 
-### Improved Java library distribution plugin
+### Improved Java library distribution plugin (i)
 
 The Java library distribution plugin now extends the newly introduced distribution plugin. Thanks to this, you can now create tar files and install Java library distributions.
 
 For more information, please consult the [user guide](userguide/javaLibraryDistribution_plugin.html).
 
-### New build dashboard plugin
+### New build dashboard Plugin (i)
 
-Thanks to a contribution from [Marcin Erdmann](https://github.com/erdi), a new `build-dashboard` plugin has been added. This plugin adds a task to projects to generate a build dashboard HTML report
-which contains references to all reports that were generated during the build. In the following example, the `build-dashboard` plugin is added to a project which has also the `groovy` and
+Thanks to a contribution from [Marcin Erdmann](https://github.com/erdi), a new `build-dashboard` plugin has been added. This plugin adds a task to projects to generate a build dashboard HTML report which contains
+references to all reports that were generated during the build. In the following example, the `build-dashboard` plugin is added to a project which has also the `groovy` and
 the `codenarc` plugin applied:
 
     apply plugin: 'groovy'
@@ -268,7 +259,7 @@ By running the `buildDashboard` task after other tasks that generate reports (e.
 
 More information on the `build-dashboard` plugin can be found in the [user guide](userguide/buildDashboard_plugin.html).
   
-### New Sonar Runner plugin
+### New Sonar Runner plugin (i)
 
 Gradle 1.5 ships with a new `sonar-runner` plugin that is set to replace the existing Sonar plugin. As its name indicates,
 the new plugin is based on the [Sonar Runner](http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner),
@@ -276,7 +267,9 @@ the new and official way to integrate with Sonar. Unlike the old Sonar plugin, t
 is compatible with the latest Sonar versions (3.4 and above). To learn more, check out the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html)
 chapter in the Gradle user guide, and the `sonarRunner` samples in the full Gradle distribution.
 
-### Support for Ivy dynamic resolve mode
+## Fixed issues
+
+### Support for Ivy dynamic resolve mode (i)
 
 It is now possible to enable the equivalent of Ivy's _dynamic resolve_ mode when resolving dependencies. This is only supported for Ivy repositories.
 

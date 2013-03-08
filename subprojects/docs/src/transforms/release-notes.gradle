@@ -62,6 +62,16 @@ transformDocument {
     }
 }
 
+transformDocument {
+    def incubatingMarker = " (i)"
+    for (heading in body().select(".topic").select("h3")) {
+        if (heading.text().endsWith(incubatingMarker)) {
+            heading.text(heading.text() - incubatingMarker).addClass("incubating")
+            heading.after("<a class='incubating-marker' href='userguide/feature_lifecycle.html' title='“incubating” features are not yet guaranteed to be backwards compatible<br />(click for more information)'>(incubating feature)</a>")
+        }
+    }
+}
+
 // wrap all content after the first element after a h3 (up to the next same level heading)
 // in a section.major-detail block
 transformDocument {
