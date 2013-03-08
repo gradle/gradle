@@ -18,10 +18,7 @@ package org.gradle.integtests
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.wrapper.IDownload
-import org.gradle.wrapper.Install
-import org.gradle.wrapper.PathAssembler
-import org.gradle.wrapper.WrapperConfiguration
+import org.gradle.wrapper.*
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -77,16 +74,18 @@ class WrapperConcurrentDownloadTest extends ConcurrentSpec {
             }
         }
 
-        def install = { waitFor, afterFirstHalf, haltFor, afterDone ->
-            new Install(downloader(waitFor, afterFirstHalf, haltFor, afterDone), pathAssembler).createDist(wrapperConfig)
+        def install = { waitFor, afterFirstHalf, haltFor, afterDownload, afterInstalled ->
+            new Install(downloader(waitFor, afterFirstHalf, haltFor, afterDownload), pathAssembler).createDist(wrapperConfig)
+            instant.now(afterInstalled)
         }
 
         when:
-        start { install('start', 'firstHalf1', 'firstHalf2', 'done1') }
-        start { install('firstHalf1', 'firstHalf2', 'done1', 'done') }
+        start { install('start', 'firstHalf1', 'firstHalf2', 'downloaded1', "done1") }
+        start { install('firstHalf1', 'firstHalf2', 'downloaded1', 'downloaded2', "done2") }
 
         instant.now('start')
-        thread.blockUntil.done
+        thread.blockUntil.done1
+        thread.blockUntil.done2
 
         then:
         def unzipped = distribution.distributionDir
@@ -96,5 +95,9 @@ class WrapperConcurrentDownloadTest extends ConcurrentSpec {
 
         and: "no temp files left lying around"
         distribution.zipFile.parentFile.listFiles().findAll { it.name.endsWith(".part") }.empty
+
+        testDirectoryProvider.testDirectory.eachFileRecurse {
+            assert !it.name.endsWith(ExclusiveFileAccessManager.LOCK_FILE_SUFFIX)
+        }
     }
 }
