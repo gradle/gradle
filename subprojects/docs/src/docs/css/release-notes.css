@@ -116,10 +116,10 @@ section.footer {
     font-size: 13px;
     color: #8B8B8B;
     padding: 6px 10px;
-    border: 1px solid #8B8B8B;
+    border: 2px solid #8B8B8B;
     background-color: #FFF;
     border-radius: 8px;
-    box-shadow: 0 0 4px #808080;
+    box-shadow: 0 0 4px #acacac;
     text-align: center;
 }
 
