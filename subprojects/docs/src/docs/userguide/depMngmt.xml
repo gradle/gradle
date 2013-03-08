@@ -201,7 +201,7 @@
                 (e.g. <literal>latest.integration</literal>).
             </para>
             <para>Alternatively, sometimes the module you request can change over time, even for the same version. An example of this type of <emphasis>changing module</emphasis>
-                is a maven <literal>SNAPSHOT</literal> module, which always points at the latest artifact published. In other words, a standard Maven snapshot is a module that never stands still
+                is a Maven <literal>SNAPSHOT</literal> module, which always points at the latest artifact published. In other words, a standard Maven snapshot is a module that never stands still
                 so to speak, it is a "changing module".
             </para>
             <para>The main difference between a <emphasis>dynamic version</emphasis> and a <emphasis>changing module</emphasis> is that when you resolve a <emphasis>dynamic version</emphasis>, you'll
@@ -328,7 +328,7 @@
             </para>
             <section id='ssub:multi_artifact_dependencies'>
                 <title>Depending on modules with multiple artifacts</title>
-                As mentioned earlier, a maven module has only one artifact. So, when your project depends on a maven module it's obvious what artifact is the actual dependency.
+                As mentioned earlier, a Maven module has only one artifact. So, when your project depends on a Maven module it's obvious what artifact is the actual dependency.
                 With Gradle or Ivy the case is different. Ivy model of dependencies (<filename>ivy.xml</filename>) can declare multiple artifacts.
                 For more information, see Ivy reference for<filename>ivy.xml</filename>.
                 In Gradle, when you declare a dependency on an ivy module you actually declare dependency on the '<literal>default</literal>' configuration of that module.
@@ -372,7 +372,7 @@
                             <ulink url='http://www.sonatype.com/books/maven-book/reference/pom-relationships-sect-project-relationships.html'/>
                         </para>
                     </footnote>
-                    Gradle supports this. To retrieve classified dependencies from a maven repository you can write:
+                    Gradle supports this. To retrieve classified dependencies from a Maven repository you can write:
                 </para>
                 <sample id="classifier" dir="userguide/artifacts/excludesAndClassifiers" title="Dependency with classifier">
                     <sourcefile file="build.gradle" snippet="classifier"/>
@@ -699,7 +699,7 @@
             <sample id="mavenLocalRepo" dir="userguide/artifacts/defineRepository" title="Adding the local Maven cache as a repository">
                 <sourcefile file="build.gradle" snippet="maven-local"/>
             </sample>
-            <para>Gradle uses the same logic as maven to identify the location of your local maven cache. If a local repository location is defined in a <filename>settings.xml</filename>, this location
+            <para>Gradle uses the same logic as Maven to identify the location of your local Maven cache. If a local repository location is defined in a <filename>settings.xml</filename>, this location
                 will be used. The <filename>settings.xml</filename> in <filename><replaceable>USER_HOME</replaceable>/.m2</filename> takes precedence over the <filename>settings.xml</filename>
                 in <filename><replaceable>M2_HOME</replaceable>/conf</filename>. If no <filename>settings.xml</filename> is available, Gradle uses the default location
                 <filename><replaceable>USER_HOME</replaceable>/.m2/repository</filename>.
@@ -871,13 +871,12 @@ someroot/[artifact]-[revision].[ext]
                 <itemizedlist>
                     <listitem>
                         <para>If the dependency is declared as a dynamic version (like <literal>1.+</literal>), Gradle will resolve this to the newest available static version (like
-                            <literal>1.2</literal>) in the repository. For maven repositories, this is done using the <literal>maven-metadata.xml</literal>
+                            <literal>1.2</literal>) in the repository. For Maven repositories, this is done using the <literal>maven-metadata.xml</literal>
                             file, while for Ivy repositories this is done by directory listing.
                         </para>
                     </listitem>
                     <listitem>
-                        <para>If the module descriptor is a <literal>pom</literal> file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the
-                            POM.
+                        <para>If the module descriptor is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
                         </para>
                     </listitem>
                 </itemizedlist>
@@ -1127,12 +1126,12 @@ someroot/[artifact]-[revision].[ext]
                 </para>
             </listitem>
             <listitem>
-                <para>The <literal>pom.xml</literal>'s of many projects have wrong information (as one example, the POM of <literal>commons-httpclient-3.0</literal>
+                <para>The POM files of many projects have wrong information (as one example, the POM of <literal>commons-httpclient-3.0</literal>
                     declares JUnit as a runtime dependency).
                 </para>
             </listitem>
             <listitem>
-                <para>For many projects there is not one right set of dependencies (as more or less imposed by the <literal>pom</literal> format).
+                <para>For many projects there is not one right set of dependencies (as more or less imposed by the POM format).
                 </para>
             </listitem>
         </itemizedlist>
@@ -1145,7 +1144,7 @@ someroot/[artifact]-[revision].[ext]
                 </para>
             </listitem>
             <listitem>
-                <para>You want to deal properly with wrong metadata in a Maven Central <literal>pom.xml</literal>.
+                <para>You want to deal properly with wrong metadata in a Maven Central POM file.
                 </para>
             </listitem>
             <listitem>
@@ -1178,7 +1177,7 @@ someroot/[artifact]-[revision].[ext]
             of Gradle can make your life easier. For example you can use a shared flat directory without XML descriptors and
             yet you can have full transitive dependency management as described above.
         </para>
-        <para>You could also have a mixed strategy. If your main concern is bad metadata in the <literal>pom.xml</literal> and maintaining custom XML descriptors,
+        <para>You could also have a mixed strategy. If your main concern is bad metadata in the POM file and maintaining custom XML descriptors,
             <emphasis>Client Modules</emphasis> offer an alternative. But you can of course still use Maven2 repo and your custom repository as a repository for
             <emphasis>jars only</emphasis> and still enjoy <emphasis>transitive</emphasis> dependency management. Or you can only provide client modules for POMs with bad metadata. For the
             jars and the correct POMs you still use the remote repository.

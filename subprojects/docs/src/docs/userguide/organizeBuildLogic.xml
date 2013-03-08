@@ -197,7 +197,7 @@
         <sample id="buildLogic" dir="userguide/organizeBuildLogic" title="Ant optional dependencies">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>This is also nice example for the usage of client modules. The <filename>pom.xml</filename> in maven central for the
+        <para>This is also nice example for the usage of client modules. The POM file in Maven Central for the
         ant-commons-net task does not provide the right information for this use case.</para>
     </section>
     <section id='sec:philosophy'>
