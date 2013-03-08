@@ -275,13 +275,13 @@ By running the `buildDashboard` task after other tasks that generate reports (e.
 
 More information on the `build-dashboard` plugin can be found in the [user guide](userguide/buildDashboard_plugin.html).
   
-## Fixed issues
-
 ### Support for Ivy dynamic resolve mode (i)
 
 It is now possible to enable the equivalent of Ivy's _dynamic resolve_ mode when resolving dependencies. This is only supported for Ivy repositories.
 
 See the [user guide](userguide/dependency_management.html#ivy_dynamic_resolve_mode) for examples and further details.
+
+## Fixed issues
 
 ## Deprecations
 
