@@ -1,6 +1,6 @@
 Continuing on with the performance improvements delivered in recent Gradle versions, 1.5 brings wide reaching optimizations to dependency resolution as well as important 
 improvements to two recent features; configure-on-demand and parallel execution. 
-Gradle continues to embrace the challenges of large scale build automation. Along with the performance improvements comes the usual mix of bug fixes, usability improvements and refinements. 
+Gradle continues to embrace the challenges of large scale build automation. Along with the performance improvements comes the usual mix of new features, bug fixes, usability improvements and refinements. 
 
 The dependency resolve rule feature introduced in 1.4 gains new capabilities in 1.5. Trouble dependencies can now be completely substituted at resolution time which enables solving 
 some very tricky issues with complex dependency graphs. On the publication side, the new (incubating) Maven and Ivy publishing plugins gain new capabilities making them able 
@@ -40,12 +40,6 @@ for builds that use local repositories or maven local.
 Builds that don't use local repositories should also exhibit slightly faster dependency resolution.
 Every build that resolves dependencies benefits from this improvement.
 
-### IDEA plugin is now Scala aware
-
-When the IDEA plugin encounters a Scala project, it will now add additional configuration to make the
-project compile in IntelliJ IDEA out of the box. In particular, the plugin adds a Scala facet and
-a Scala compiler library that matches the Scala version used on the project's class path.
-
 ### Substituting dependencies via dependency resolve rules (i)
 
 Gradle 1.4 [introduced the ability](http://www.gradle.org/docs/1.4/release-notes#dependency-resolve-rules) to dynamically change the version of a dependency to be resolved via dependency resolve rules.
@@ -54,7 +48,7 @@ different dependency during resolution.
 
     configurations.all {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group == 'groovy-all') {
+            if (details.requested.name == 'groovy-all') {
                 details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
             }
         }
@@ -77,6 +71,12 @@ the new plugin is based on the [Sonar Runner](http://docs.codehaus.org/display/S
 the new and official way to integrate with Sonar. Unlike the old Sonar plugin, the new Sonar Runner plugin
 is compatible with the latest Sonar versions (3.4 and above). To learn more, check out the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html)
 chapter in the Gradle user guide, and the `sonarRunner` samples in the full Gradle distribution.
+
+### IDEA plugin is now Scala aware
+
+When the IDEA plugin encounters a Scala project, it will now add additional configuration to make the
+project compile in IntelliJ IDEA out of the box. In particular, the plugin adds a Scala facet and
+a Scala compiler library that matches the Scala version used on the project's class path.
 
 ### Configure-on-demand improvements (i)
 
@@ -103,14 +103,36 @@ Gradle 1.2 introduced a [parallel execution](userguide/multi_project_builds.html
 This release brings significantly improved utilisation of the parallel workers.
 
 Previously, workers where statically assigned to projects and often waited for the upstream dependencies to be built.
-This caused workers to stay idle when there was work they could be doing. The distribution of work is now more dynamic which has resulted in highly parallelizable builds 
-building up to 30% faster.
+This caused workers to stay idle when there was work they could be doing. The distribution of work is now more dynamic which has resulted in highly parallelizable builds building up to 30% faster.
 
 It is also now possible to enable parallel building via a [build setting](userguide/build_environment.html#sec:gradle_configuration_properties).
 For example, by adding a `gradle.properties` file to root of the project with the following content Gradle will always build the project in parallel.
 
     //gradle.properties file
     org.gradle.parallel=true
+
+### New distribution plugin (i)
+
+Thanks to a contribution from [Sébastien Cogneau](https://github.com/scogneau), a new `distribution` plugin has been added. This plugin adds general-purpose for support bundling and installing distributions.
+
+This plugin adds a `main` distribution, and you can add additional distributions. For each distribution, tasks are added to create a ZIP or TAR file for the distribution and
+to install the distribution.
+
+You can define multiple distributions:
+
+    distributions {
+        enterprise
+        community
+    }
+
+To build the additional distributions you can run the generated `Zip` tasks `enterpriseDistZip` and `communityDistZip`. For more information, please consult the 
+[user guide](userguide/distribution_plugin.html).
+
+### Improved Java library distribution plugin (i)
+
+The Java library distribution plugin now extends the newly introduced distribution plugin. Thanks to this, you can now create tar files and install Java library distributions.
+
+For more information, please consult the [user guide](userguide/javaLibraryDistribution_plugin.html).
 
 ### Improved usability of project dependencies
 
@@ -120,7 +142,7 @@ Now the resolution of the project dependency implies configuration of the target
 This means that the order in which projects are configured may now be different (i.e. it will be correct).
 This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
 
-### Improvements to '`maven-publish`' and '`ivy-publish`' plugins (i)
+### Improvements to the new '`maven-publish`' and '`ivy-publish`' plugins (i)
 
 The '`maven-publish`' and '`ivy-publish`' plugins gain new features and capabilities in this Gradle release.
 
@@ -237,28 +259,11 @@ A couple of caveats to the Unicode support:
 - Certain repositories will not be able to handle all supported characters. For example, the '`:`' character cannot be used
   as an identifier when publishing to a filesystem-backed repository on Windows.
 
-### New distribution plugin (i)
+### Support for Ivy dynamic resolve mode (i)
 
-Thanks to a contribution from [Sébastien Cogneau](https://github.com/scogneau), a new `distribution` plugin has been added. This plugin adds general-purpose for support bundling and installing distributions.
+It is now possible to enable the equivalent of Ivy's _dynamic resolve_ mode when resolving dependencies. This is only supported for Ivy repositories.
 
-This plugin adds a `main` distribution, and you can add additional distributions. For each distribution, tasks are added to create a ZIP or TAR file for the distribution and
-to install the distribution.
-
-You can define multiple distributions:
-
-    distributions {
-        enterprise
-        community
-    }
-
-To build the additional distributions you can run the generated `Zip` tasks `enterpriseDistZip` and `communityDistZip`. For more information, please consult the 
-[user guide](userguide/distribution_plugin.html).
-
-### Improved Java library distribution plugin (i)
-
-The Java library distribution plugin now extends the newly introduced distribution plugin. Thanks to this, you can now create tar files and install Java library distributions.
-
-For more information, please consult the [user guide](userguide/javaLibraryDistribution_plugin.html).
+See the [user guide](userguide/dependency_management.html#ivy_dynamic_resolve_mode) for examples and further details.
 
 ### New build dashboard Plugin (i)
 
@@ -275,12 +280,6 @@ By running the `buildDashboard` task after other tasks that generate reports (e.
 
 More information on the `build-dashboard` plugin can be found in the [user guide](userguide/buildDashboard_plugin.html).
   
-### Support for Ivy dynamic resolve mode (i)
-
-It is now possible to enable the equivalent of Ivy's _dynamic resolve_ mode when resolving dependencies. This is only supported for Ivy repositories.
-
-See the [user guide](userguide/dependency_management.html#ivy_dynamic_resolve_mode) for examples and further details.
-
 ## Fixed issues
 
 ## Deprecations
