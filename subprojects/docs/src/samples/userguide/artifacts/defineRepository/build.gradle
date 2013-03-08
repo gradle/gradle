@@ -141,6 +141,7 @@ repositories {
 //END SNIPPET authenticated-ivy-repo
 
 //START SNIPPET ivy-repo-dynamic-mode
+// Can enable dynamic resolve mode when you define the repository
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
@@ -148,7 +149,7 @@ repositories {
     }
 }
 
-// Can use a rule instead
+// Can use a rule instead to enable (or disable) dynamic resolve mode for all repositories
 repositories.withType(IvyArtifactRepository) {
     resolve.dynamicMode = true
 }

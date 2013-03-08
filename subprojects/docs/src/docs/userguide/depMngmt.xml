@@ -900,12 +900,16 @@ someroot/[artifact]-[revision].[ext]
         <title>Changing the dependency resolution process</title>
         <para>There are a number of ways that you can influence how Gradle resolves dependencies.</para>
 
-        <section>
+        <section id="ivy_dynamic_resolve_mode">
             <title>Ivy dynamic resolve mode</title>
             <para>
-                When you use Ivy repositories, you can enable Ivy's dynamic resolve mode. In this mode, Gradle will prefer the <literal>revConstraint</literal> attribute over the
-                <literal>rev</literal> for each dependency definition.
+                Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic resolve mode. Normally, Gradle will use the <literal>rev</literal> attribute for each dependency
+                definition included in an <filename>ivy.xml</filename> file. In dynamic resolve mode, Gradle will instead prefer the <literal>revConstraint</literal> attribute over the
+                <literal>rev</literal> attribute for a given dependency definition. If the <literal>revConstraint</literal> attribute is not present, the <literal>rev</literal> attribute is used
+                instead.
             </para>
+            <para>To enable dynamic resolve mode, you need to set the appropriate option on the repository definition. A couple of examples are shown below. Note that dynamic resolve mode is only
+                available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy <classname>DependencyResolver</classname> implementations.</para>
             <sample id="dynamicResolveMode" dir="userguide/artifacts/defineRepository" title="Enabling dynamic resolve mode">
                 <sourcefile file="build.gradle" snippet="ivy-repo-dynamic-mode"/>
             </sample>

@@ -28,9 +28,18 @@ When the IDEA plugin encounters a Scala project, it will now add additional conf
 project compile in IntelliJ IDEA out of the box. In particular, the plugin adds a Scala facet and
 a Scala compiler library that matches the Scala version used on the project's class path.
 
-### Improved test report generation
+### Improved dependency resolution performance
 
-The test report generation was optimized and is now slightly faster than in previous Gradle releases.
+Gradle's [dependency cache](userguide/dependency_management.html#sec:dependency_cache) is multi process safe, which requires the use of locking mechanisms.
+Improvements to the way the locks are utilised in this release have increased the dependency resolution speed by up to 30% for builds that use local
+repositories or maven local. Builds that don't use local repositories should also exhibit slightly faster dependency resolution.
+Every build that resolves dependencies benefits from this improvement.
+
+### Improved test execution performance
+
+Test execution has been further optimized in this release, continuing on the work in Gradle 1.4. The test report is now generated more efficiently, so that it take less
+time and heap space to generate the HTML report. In addition, for those projects that use the TestNG framework, the test JVM now starts more quickly, meaning that test
+execution starts earlier than it did in previous Gradle releases.
 
 ### Improved usability of project dependencies
 
@@ -39,14 +48,6 @@ Prior to this change, any resolution of a project dependency at configuration ti
 Now the resolution of the project dependency implies configuration of the target project.
 This means that the order in which projects are configured may now be different (i.e. it will be correct).
 This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
-
-### Improved dependency resolution performance
-
-Gradle's [dependency cache](userguide/dependency_management.html#sec:dependency_cache) is multi process safe, which requires the use of locking mechanisms.
-Improvements to the way the locks are utilised in this release have increased the dependency resolution speed by up to 30%
-for builds that use local repositories or maven local.
-Builds that don't use local repositories should also exhibit slightly faster dependency resolution.
-Every build that resolves dependencies benefits from this improvement.
 
 ## Fixed issues
 
@@ -282,6 +283,12 @@ the new plugin is based on the [Sonar Runner](http://docs.codehaus.org/display/S
 the new and official way to integrate with Sonar. Unlike the old Sonar plugin, the new Sonar Runner plugin
 is compatible with the latest Sonar versions (3.4 and above). To learn more, check out the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html)
 chapter in the Gradle user guide, and the `sonarRunner` samples in the full Gradle distribution.
+
+### Support for Ivy dynamic resolve mode
+
+It is now possible to enable the equivalent of Ivy's _dynamic resolve_ mode when resolving dependencies. This is only supported for Ivy repositories.
+
+See the [user guide](userguide/dependency_management.html#ivy_dynamic_resolve_mode) for examples and further details.
 
 ## Deprecations
 
