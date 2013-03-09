@@ -29,4 +29,14 @@ public interface BuildController {
      * Returns the launcher to use to run the build.
      */
     GradleLauncher getLauncher();
+
+    /**
+     * Runs the build.
+     */
+    void run();
+
+    /**
+     * Configures the build but does not run any tasks.
+     */
+    void configure();
 }

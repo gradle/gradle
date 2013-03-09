@@ -31,12 +31,8 @@ public class InProcessGradleLauncherActionExecuter implements GradleLauncherActi
     }
 
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters actionParameters) {
-        BuildResult buildResult = action.run(new DefaultBuildController(gradleLauncherFactory, actionParameters));
-        Throwable failure = buildResult.getFailure();
-        if (failure != null) {
-            throw new ReportedException(failure);
-        }
-        return action.getResult();
+        DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, actionParameters);
+        return action.run(buildController);
     }
 
     private static class DefaultBuildController implements BuildController {
@@ -62,6 +58,20 @@ public class InProcessGradleLauncherActionExecuter implements GradleLauncherActi
                 gradleLauncher = gradleLauncherFactory.newInstance(startParameter, actionParameters.getBuildRequestMetaData());
             }
             return gradleLauncher;
+        }
+
+        public void run() {
+            check(getLauncher().run());
+        }
+
+        public void configure() {
+            check(getLauncher().getBuildAnalysis());
+        }
+
+        private void check(BuildResult buildResult) {
+            if (buildResult.getFailure() != null) {
+                throw new ReportedException(buildResult.getFailure());
+            }
         }
     }
 }

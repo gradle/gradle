@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.server
 
-import org.gradle.BuildResult
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.initialization.BuildController
@@ -46,8 +45,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
 
     static class DummyLauncherAction implements GradleLauncherAction, Serializable {
         Object someState
-        Object getResult() { null }
-        BuildResult run(BuildController buildController) { null }
+        Object run(BuildController buildController) { null }
     }
 
     def "sends back failure when the daemon cannot receive the first command"() {

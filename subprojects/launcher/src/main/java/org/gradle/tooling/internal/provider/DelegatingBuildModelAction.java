@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.BuildResult;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultGradleLauncher;
@@ -35,11 +34,7 @@ class DelegatingBuildModelAction<T> implements GradleLauncherAction<T>, Serializ
         this.runTasks = runTasks;
     }
 
-    public T getResult() {
-        return action.getResult();
-    }
-
-    public BuildResult run(BuildController buildController) {
+    public T run(BuildController buildController) {
         loadAction((DefaultGradleLauncher) buildController.getLauncher());
         return action.run(buildController);
     }

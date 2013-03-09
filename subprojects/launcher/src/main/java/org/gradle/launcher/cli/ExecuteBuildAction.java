@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.cli;
 
-import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.GradleLauncherAction;
@@ -29,12 +28,9 @@ public class ExecuteBuildAction implements GradleLauncherAction<Void>, Serializa
         this.startParameter = startParameter;
     }
 
-    public BuildResult run(BuildController buildController) {
+    public Void run(BuildController buildController) {
         buildController.setStartParameter(startParameter);
-        return buildController.getLauncher().run();
-    }
-
-    public Void getResult() {
+        buildController.run();
         return null;
     }
 }

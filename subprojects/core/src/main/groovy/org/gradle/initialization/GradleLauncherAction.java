@@ -15,8 +15,6 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.BuildResult;
-
 /**
  * An object that performs some action with a {@link BuildController}, and optionally produces a “result” object (e.g. the output).
  * <p>
@@ -24,17 +22,11 @@ import org.gradle.BuildResult;
  * <p>
  */
 public interface GradleLauncherAction<T> {
-    
-    /**
-     * Something produced by the action, the meaning of which is entirely up to the implementation to define.
-     */
-    T getResult();
-
     /**
      * Executes the action with the given launcher.
      * <p>
      * The state of the launcher is not defined as part of this contract, it is highly context specific. For example,
      * it is not guaranteed that the start parameter for the launcher has been configured.
      */
-    BuildResult run(BuildController buildController);
+    T run(BuildController buildController);
 }

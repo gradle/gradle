@@ -15,23 +15,21 @@
  */
 package org.gradle.tooling.internal.provider
 
-import org.gradle.BuildResult
-import org.gradle.GradleLauncher
+import org.gradle.initialization.BuildController
 import spock.lang.Specification
 
 class ExecuteBuildActionTest extends Specification {
     final ExecuteBuildAction action = new ExecuteBuildAction()
 
     def runsBuild() {
-        GradleLauncher launcher = Mock()
-        BuildResult buildResult = Mock()
+        BuildController buildController = Mock()
 
         when:
-        def result = action.run(launcher)
+        def result = action.run(buildController)
 
         then:
-        result == buildResult
-        1 * launcher.run() >> buildResult
+        result == null
+        1 * buildController.run()
         0 * _._
     }
 }

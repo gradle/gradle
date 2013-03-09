@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
@@ -98,12 +97,8 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Serializable
         return startParameter;
     }
 
-    public BuildResult run(BuildController buildController) {
+    public T run(BuildController buildController) {
         buildController.setStartParameter(configureStartParameter());
         return action.run(buildController);
-    }
-
-    public T getResult() {
-        return action.getResult();
     }
 }

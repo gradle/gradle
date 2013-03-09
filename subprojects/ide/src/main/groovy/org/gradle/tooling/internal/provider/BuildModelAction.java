@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
@@ -54,7 +53,7 @@ public class BuildModelAction implements GradleLauncherAction<Object> {
         throw new UnsupportedOperationException(String.format("I don't know how to build a model of type '%s'.", type.getSimpleName()));
     }
 
-    public BuildResult run(BuildController buildController) {
+    public Object run(BuildController buildController) {
         GradleLauncher launcher = buildController.getLauncher();
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
@@ -62,7 +61,7 @@ public class BuildModelAction implements GradleLauncherAction<Object> {
                     model = builder.buildAll(gradle);
                 }
             });
-            return launcher.run();
+            buildController.run();
         } else {
             launcher.addListener(new ModelConfigurationListener() {
                 public void onConfigure(GradleInternal gradle) {
@@ -70,8 +69,9 @@ public class BuildModelAction implements GradleLauncherAction<Object> {
                     model = builder.buildAll(gradle);
                 }
             });
-            return launcher.getBuildAnalysis();
+            buildController.configure();
         }
+        return model;
     }
 
     private void ensureAllProjectsEvaluated(GradleInternal gradle) {
@@ -80,9 +80,5 @@ public class BuildModelAction implements GradleLauncherAction<Object> {
                 projectInternal.evaluate();
             }
         });
-    }
-
-    public Object getResult() {
-        return model;
     }
 }
