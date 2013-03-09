@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.outcomes;
 
 import com.google.common.collect.Lists;
-import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome;
@@ -27,7 +26,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class DefaultProjectOutcomes implements InternalProjectOutcomes, ProjectOutcomes, Serializable {
+public class DefaultProjectOutcomes implements ProjectOutcomes, Serializable {
     private final String name;
     private final String projectPath;
     private final String description;
