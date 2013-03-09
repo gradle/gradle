@@ -23,7 +23,6 @@ import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.idea.*;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
@@ -42,7 +41,7 @@ public class IdeaModelBuilder implements BuildsModel {
     private final GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
     private boolean offlineDependencyResolution;
 
-    public ProjectVersion3 buildAll(GradleInternal gradle) {
+    public DefaultIdeaProject buildAll(GradleInternal gradle) {
         Project root = gradle.getRootProject();
         applyIdeaPlugin(root);
         GradleProject rootGradleProject = gradleProjectBuilder.buildAll(gradle);
@@ -57,7 +56,7 @@ public class IdeaModelBuilder implements BuildsModel {
         root.getPlugins().getPlugin(IdeaPlugin.class).makeSureModuleNamesAreUnique();
     }
 
-    private ProjectVersion3 build(Project project, GradleProject rootGradleProject) {
+    private DefaultIdeaProject build(Project project, GradleProject rootGradleProject) {
         IdeaModel ideaModel = project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
         IdeaProject projectModel = ideaModel.getProject();
 

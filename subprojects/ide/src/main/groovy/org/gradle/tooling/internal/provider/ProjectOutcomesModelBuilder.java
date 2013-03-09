@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.tooling.internal.outcomes.DefaultProjectOutcomes;
 import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
@@ -39,7 +38,7 @@ public class ProjectOutcomesModelBuilder implements BuildsModel {
         return type == InternalProjectOutcomes.class;
     }
 
-    public ProjectVersion3 buildAll(GradleInternal gradle) {
+    public DefaultProjectOutcomes buildAll(GradleInternal gradle) {
         return buildProjectOutput(gradle.getRootProject(), null);
     }
 

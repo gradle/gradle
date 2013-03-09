@@ -23,16 +23,15 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.TasksCompletionListener;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
 
 import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
+public class BuildModelAction implements GradleLauncherAction<Object> {
     private final BuildsModel builder;
     private final boolean runTasks;
-    private ProjectVersion3 model;
+    private Object model;
 
     public BuildModelAction(Class<?> type, boolean runTasks) {
         this.runTasks = runTasks;
@@ -55,7 +54,6 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
     }
 
     public BuildResult run(GradleLauncher launcher) {
-
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
                 public void onTasksFinished(GradleInternal gradle) {
@@ -82,7 +80,7 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
         });
     }
 
-    public ProjectVersion3 getResult() {
+    public Object getResult() {
         return model;
     }
 }

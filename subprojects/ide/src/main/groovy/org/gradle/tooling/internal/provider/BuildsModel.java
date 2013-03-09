@@ -17,12 +17,11 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
 
 /**
 * @author: Szczepan Faber, created at: 7/23/11
 */
 public interface BuildsModel {
     boolean canBuild(Class<?> type);
-    ProjectVersion3 buildAll(GradleInternal gradle);
+    Object buildAll(GradleInternal gradle);
 }
