@@ -19,7 +19,14 @@ package org.gradle.tooling.internal.protocol;
 /**
  * by Szczepan Faber, created at: 1/1/12
  *
- * @deprecated Use {@link BuildActionRunner} instead.
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
+ *
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 1.0-milestone-8 to 1.1. It is also used by later consumers when the
+ * provider does not implement {@link BuildActionRunner}.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 1.0-milestone-8.</p>
+ *
+ * @since 1.0-milestone-8
+ * @deprecated 1.2-rc-1. Use {@link BuildActionRunner} instead.
  */
 @Deprecated
 public interface InternalConnection extends ConnectionVersion4, InternalProtocolInterface {
@@ -29,9 +36,14 @@ public interface InternalConnection extends ConnectionVersion4, InternalProtocol
      * <p>
      * The other method on the interface, e.g. {@link #getModel(Class, BuildOperationParametersVersion1)} should be considered deprecated
      *
+     * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-8 to 1.1. It is also used by later consumers when the
+     * provider does not implement {@link BuildActionRunner}.</p>
+     * <p>Provider compatibility: This interface is implemented by all provider versions from 1.0-milestone-8.</p>
+     *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
-     * @deprecated Use {@link BuildActionRunner#run(Class, BuildOperationParametersVersion1)} instead.
+     * @since 1.0-milestone-8
+     * @deprecated 1.2-rc-1 Use {@link BuildActionRunner#run(Class, BuildParameters)} instead.
      */
     @Deprecated
     <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
