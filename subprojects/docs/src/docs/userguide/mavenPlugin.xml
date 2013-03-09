@@ -212,7 +212,7 @@
                 </tr>
                 <tr>
                     <td>webdav</td>
-                    <td>org.apache.maven.wagon:wagon-webdav-jackrabbit:2.2</td>
+                    <td>org.apache.maven.wagon:wagon-webdav:1.0-beta-2</td>
                 </tr>
                 <tr>
                     <td>file</td>

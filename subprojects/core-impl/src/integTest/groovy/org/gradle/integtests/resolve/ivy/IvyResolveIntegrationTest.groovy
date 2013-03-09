@@ -207,7 +207,7 @@ dependencies {
     repositories {
         ivy {
             url "${ivyRepo.uri}"
-            resolve.ivy.dynamicResolve = project.hasProperty('useDynamicResolve')
+            resolve.dynamicMode = project.hasProperty('useDynamicResolve')
         }
     }
     compile 'org:projectA:1.2'

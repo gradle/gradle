@@ -19,9 +19,8 @@ import groovy.lang.Closure;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.repositories.ArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.artifacts.repositories.IvyMetaDataProvider;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
@@ -48,7 +47,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
-    private final DefaultArtifactRepositoryMetaDataProvider metaDataProvider;
+    private final MetaDataProvider metaDataProvider;
     private final Instantiator instantiator;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
@@ -59,7 +58,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.layout = new GradleRepositoryLayout();
-        this.metaDataProvider = new DefaultArtifactRepositoryMetaDataProvider();
+        this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiator;
     }
 
@@ -142,7 +141,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         ConfigureUtil.configure(config, layout);
     }
 
-    public ArtifactRepositoryMetaDataProvider getResolve() {
+    public IvyArtifactRepositoryMetaDataProvider getResolve() {
         return metaDataProvider;
     }
 
@@ -182,18 +181,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
     }
 
-    private static class DefaultArtifactRepositoryMetaDataProvider implements ArtifactRepositoryMetaDataProvider, IvyMetaDataProvider {
+    private static class MetaDataProvider implements IvyArtifactRepositoryMetaDataProvider {
         boolean dynamicResolve;
 
-        public IvyMetaDataProvider getIvy() {
-            return this;
-        }
-
-        public boolean isDynamicResolveMode() {
+        public boolean isDynamicMode() {
             return dynamicResolve;
         }
 
-        public void setDynamicResolveMode(boolean mode) {
+        public void setDynamicMode(boolean mode) {
             this.dynamicResolve = mode;
         }
     }

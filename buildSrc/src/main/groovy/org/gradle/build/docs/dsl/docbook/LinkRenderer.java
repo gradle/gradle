@@ -16,6 +16,7 @@
 package org.gradle.build.docs.dsl.docbook;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.build.docs.dsl.source.model.EnumConstantMetaData;
 import org.gradle.build.docs.dsl.source.model.MethodMetaData;
 import org.gradle.build.docs.dsl.source.model.TypeMetaData;
 import org.w3c.dom.Document;
@@ -117,6 +118,20 @@ public class LinkRenderer {
             Element element = document.createElement("UNKNOWN-METHOD");
             element.appendChild(document.createTextNode(String.format("%s.%s()", method.getOwnerClass().getClassName(),
                     method.getName())));
+            return element;
+        }
+    }
+
+    public Node link(EnumConstantMetaData enumConstant, GenerationListener listener) {
+        if (model.isKnownType(enumConstant.getOwnerClass().getClassName())) {
+            Element apilink = document.createElement("apilink");
+            apilink.setAttribute("class", enumConstant.getOwnerClass().getClassName());
+            apilink.setAttribute("method", enumConstant.getName());
+            return apilink;
+        } else {
+            listener.warning(String.format("Could not generate link for enum constant %s", enumConstant));
+            Element element = document.createElement("UNKNOWN-ENUM");
+            element.appendChild(document.createTextNode(enumConstant.toString()));
             return element;
         }
     }

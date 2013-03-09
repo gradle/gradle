@@ -22,6 +22,7 @@ import org.codehaus.groovy.antlr.LineColumn;
 import org.codehaus.groovy.antlr.SourceBuffer;
 import org.codehaus.groovy.antlr.treewalker.VisitorAdapter;
 import org.gradle.build.docs.dsl.source.model.*;
+import org.gradle.build.docs.dsl.source.model.ClassMetaData.MetaType;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 
 import java.lang.reflect.Modifier;
@@ -78,32 +79,32 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
 
     @Override
     public void visitClassDef(GroovySourceAST t, int visit) {
-        visitTypeDef(t, visit, false);
+        visitTypeDef(t, visit, MetaType.CLASS);
     }
 
     @Override
     public void visitInterfaceDef(GroovySourceAST t, int visit) {
-        visitTypeDef(t, visit, true);
+        visitTypeDef(t, visit, MetaType.INTERFACE);
     }
 
     @Override
     public void visitEnumDef(GroovySourceAST t, int visit) {
-        visitTypeDef(t, visit, false);
+        visitTypeDef(t, visit, MetaType.ENUM);
     }
 
     @Override
     public void visitAnnotationDef(GroovySourceAST t, int visit) {
-        visitTypeDef(t, visit, false);
+        visitTypeDef(t, visit, MetaType.ANNOTATION);
     }
 
-    private void visitTypeDef(GroovySourceAST t, int visit, boolean isInterface) {
+    private void visitTypeDef(GroovySourceAST t, int visit, ClassMetaData.MetaType metaType) {
         if (visit == OPENING_VISIT) {
             ClassMetaData outerClass = getCurrentClass();
             String baseName = extractIdent(t);
             String className = outerClass != null ? outerClass.getClassName() + '.' + baseName
                     : packageName + '.' + baseName;
             String comment = getJavaDocCommentsBeforeNode(t);
-            ClassMetaData currentClass = new ClassMetaData(className, packageName, isInterface, groovy, comment);
+            ClassMetaData currentClass = new ClassMetaData(className, packageName, metaType, groovy, comment);
             if (outerClass != null) {
                 outerClass.addInnerClassName(className);
                 currentClass.setOuterClassName(outerClass.getClassName());
@@ -145,6 +146,15 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
                     child = (GroovySourceAST) child.getNextSibling()) {
                 currentClass.addInterfaceName(extractName(child));
             }
+        }
+    }
+
+    @Override
+    public void visitEnumConstantDef(GroovySourceAST t, int visit) {
+        if (visit == OPENING_VISIT) {
+            String name = extractName(t);
+            getCurrentClass().addEnumConstant(name);
+            skipJavaDocComment(t);
         }
     }
 

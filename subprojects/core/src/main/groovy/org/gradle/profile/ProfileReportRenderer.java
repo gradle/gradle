@@ -16,7 +16,10 @@
 package org.gradle.profile;
 
 import org.gradle.api.internal.html.SimpleHtmlWriter;
-import org.gradle.reporting.*;
+import org.gradle.reporting.DurationFormatter;
+import org.gradle.reporting.HtmlReportRenderer;
+import org.gradle.reporting.ReportRenderer;
+import org.gradle.reporting.TabbedPageRenderer;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -119,9 +122,7 @@ public class ProfileReportRenderer {
                                     htmlWriter.startElement("td").characters("All projects").endElement();
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getProjectConfiguration().getElapsedTime())).endElement();
                                 htmlWriter.endElement();
-                                final List<Operation> operations = model.getProjectConfiguration().getOperations();
-                                //sort in reverse order
-                                CollectionUtils.sort(operations, new Comparator<Operation>() {
+                                final List<Operation> operations = CollectionUtils.sort(model.getProjectConfiguration().getOperations(), new Comparator<Operation>() {
                                     public int compare(Operation o1, Operation o2) {
                                         return Long.valueOf(o2.getElapsedTime()).compareTo(Long.valueOf(o1.getElapsedTime()));
                                     }
@@ -149,8 +150,7 @@ public class ProfileReportRenderer {
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getDependencySets().getElapsedTime())).endElement();
                                 htmlWriter.endElement();
 
-                                final List<DependencyResolveProfile> dependencyResolveProfiles = model.getDependencySets().getOperations();
-                                CollectionUtils.sort(dependencyResolveProfiles, new Comparator<DependencyResolveProfile>() {
+                                final List<DependencyResolveProfile> dependencyResolveProfiles = CollectionUtils.sort(model.getDependencySets().getOperations(), new Comparator<DependencyResolveProfile>() {
                                         public int compare(DependencyResolveProfile p1, DependencyResolveProfile p2) {
                                         return Long.valueOf(p2.getElapsedTime()).compareTo(Long.valueOf(p1.getElapsedTime()));
                                     }

@@ -29,13 +29,25 @@ public interface MavenRepositoryHandlerConvention {
     String DEFAULT_MAVEN_DEPLOYER_NAME = "mavenDeployer";
     String DEFAULT_MAVEN_INSTALLER_NAME = "mavenInstaller";
 
+    /**
+     * Adds a repository for publishing to a Maven repository. This repository can not be used for resolving dependencies.
+     *
+     * @return The added repository
+     * @see #mavenDeployer(java.util.Map, groovy.lang.Closure)
+     */
     GroovyMavenDeployer mavenDeployer();
 
+    /**
+     * Adds a repository for publishing to a Maven repository. This repository can not be used for resolving dependencies.
+     *
+     * @param configureClosure A closure to use to configure the repository.
+     * @return The added repository
+     * @see #mavenDeployer(java.util.Map, groovy.lang.Closure)
+     */
     GroovyMavenDeployer mavenDeployer(Closure configureClosure);
 
     /**
-     * Adds a repository for publishing to a Maven repository. This repository can not be used for reading from a Maven
-     * repository.
+     * Adds a repository for publishing to a Maven repository. This repository can not be used for resolving dependencies.
      *
      * The following parameter are accepted as keys for the map:
      *
@@ -56,21 +68,33 @@ public interface MavenRepositoryHandlerConvention {
     GroovyMavenDeployer mavenDeployer(Map<String, ?> args);
 
     /**
-     * Behaves the same way as {@link #mavenDeployer(java.util.Map)}. Additionally a closure can be passed to
-     * further configure the added repository.
+     * Adds a repository for publishing to a Maven repository. This repository can not be used for resolving dependencies.
      *
      * @param args The argument to create the repository
-     * @param configureClosure
+     * @param configureClosure A closure to use to configure the repository.
      * @return The added repository
      */
     GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Closure configureClosure);
 
+    /**
+     * Adds a repository for installing to a local Maven cache. This repository can not be used for resolving dependencies.
+     *
+     * @return The added repository
+     * @see #mavenInstaller(java.util.Map, groovy.lang.Closure) (java.util.Map, groovy.lang.Closure)
+     */
     MavenResolver mavenInstaller();
 
+    /**
+     * Adds a repository for installing to a local Maven cache. This repository can not be used for resolving dependencies.
+     *
+     * @param configureClosure A closure to use to configure the repository.
+     * @return The added repository
+     * @see #mavenInstaller(java.util.Map, groovy.lang.Closure) (java.util.Map, groovy.lang.Closure)
+     */
     MavenResolver mavenInstaller(Closure configureClosure);
 
     /**
-     * Adds a repository for installing to a local Maven cache. This repository can not be used for reading.
+     * Adds a repository for installing to a local Maven cache. This repository can not be used for resolving dependencies.
      *
      * The following parameter are accepted as keys for the map:
      *
@@ -91,9 +115,10 @@ public interface MavenRepositoryHandlerConvention {
     MavenResolver mavenInstaller(Map<String, ?> args);
 
     /**
-     * Behaves the same way as {@link #mavenInstaller(java.util.Map)}. Additionally a closure can be passed to further configure the added repository.
+     * Adds a repository for installing to a local Maven cache. This repository can not be used for resolving dependencies.
      *
      * @param args The argument to create the repository
+     * @param configureClosure A closure to use to configure the repository.
      * @return The added repository
      */
     MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure);

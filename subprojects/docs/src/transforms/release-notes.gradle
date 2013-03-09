@@ -36,19 +36,6 @@ transformDocument {
     head().append("<script type='text/javascript'>1;</script>").children().last().childNode(0).attr("data", scriptFile.text)
 }
 
-// Add the extra doc links
-transformDocument {
-    body().append("""
-            <h2>Gradle @version@ documentation links</h2>
-            <ul>
-                <li><a href='dsl/index.html'>DSL Reference</a></li>
-                <li><a href='userguide/userguide.html'>User Guide</a></li>
-                <li><a href='javadoc/index.html'>Javadoc</a></li>
-                <li><a href='groovydoc/index.html'>Groovdoc</a></li>
-            </ul>
-        """)
-}
-
 // wrap each h2 section in section.topic
 transformDocument {
     def heading = body().select("h2").first()
@@ -72,6 +59,16 @@ transformDocument {
         }
 
         next = next.nextElementSibling()
+    }
+}
+
+transformDocument {
+    def incubatingMarker = " (i)"
+    for (heading in body().select(".topic").select("h3")) {
+        if (heading.text().endsWith(incubatingMarker)) {
+            heading.text(heading.text() - incubatingMarker).addClass("incubating")
+            heading.after("<a class='incubating-marker' href='userguide/feature_lifecycle.html' title='“incubating” features are not yet guaranteed to be backwards compatible<br />(click for more information)'>incubating feature</a>")
+        }
     }
 }
 

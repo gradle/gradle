@@ -202,6 +202,9 @@
                 <td>org.gradle.api.artifacts.ConfigurationContainer</td>
             </tr>
             <tr>
+                <td>org.gradle.api.artifacts.dsl.RepositoryHandler</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.dsl.DependencyHandler</td>
             </tr>
             <tr>

@@ -141,10 +141,10 @@
             </para>
         </section>
         <section>
-            <title>Default identity values for the published project</title>
+            <title>Identity values for the published project</title>
             <para>
                 The generated Ivy module descriptor file contains an<literal>&lt;info&gt;</literal> tag that identifies the module.
-                The identity values are derived from the following project properties:
+                The default identity values are derived from the following project properties:
             </para>
             <itemizedlist>
                 <listitem><literal>organisation</literal> - <apilink class="org.gradle.api.Project" method="getGroup()" /></listitem>
@@ -152,8 +152,16 @@
                 <listitem><literal>revision</literal> - <apilink class="org.gradle.api.Project" method="getVersion()" /></listitem>
                 <listitem><literal>status</literal> - <apilink class="org.gradle.api.Project" method="getStatus()" /></listitem>
             </itemizedlist>
+            <tip>
+                Certain repositories are not able to handle all supported characters.
+                For example, the ':' character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
+            </tip>
             <para>
                 Note that you can set the value of these project properties in your build script, with the exception of <literal>name</literal>.
+            </para>
+            <para>
+                Gradle will handle any valid Unicode character for organisation, module and revision (as well as artifact name, extension and classifier).
+                The only values that are explicitly prohibited are '<literal>\</literal>', '<literal>/</literal>' and any ISO control character. The supplied values are validated early in publication.
             </para>
         </section>
         <section>

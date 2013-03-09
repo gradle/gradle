@@ -97,7 +97,7 @@
         <para>If an upload repository is defined with multiple patterns, Gradle must choose a pattern to use for uploading each file.
             By default, Gradle will upload to the pattern defined by the <literal>url</literal> parameter, combined with the optional <literal>layout</literal> parameter.
             If no <literal>url</literal> parameter is supplied, then Gradle will use the first defined <literal>artifactPattern</literal> for uploading,
-            or the first defined <literal>ivyPattern</literal> for uploading ivy files, if this is set.
+            or the first defined <literal>ivyPattern</literal> for uploading Ivy files, if this is set.
         </para>
         <para>Uploading to a Maven repository is described in <xref linkend="uploading_to_maven_repositories"/>.</para>
     </section>
