@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
+import org.gradle.tooling.internal.protocol.InternalGradleProject;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * @author: Szczepan Faber, created at: 7/27/11
  */
-public class DefaultGradleProject implements ProjectVersion3, GradleProject, Serializable {
+public class DefaultGradleProject implements InternalGradleProject, GradleProject, Serializable {
 
     private String name;
     private String description;
