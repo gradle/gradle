@@ -37,16 +37,13 @@ public class TargetTypeProvider {
     }
 
     /**
-     * Occasionally we want to use preconfigured target type instead of passed target type.
-     *
-     * @param initialTargetType
-     * @param protocolObject
+     * Determines the model type to use for the given protocol object.
      */
-    public <T, S> Class<T> getTargetType(Class<T> initialTargetType, S protocolObject) {
+    public <T, S> Class<? extends T> getTargetType(Class<T> initialTargetType, S protocolObject) {
         Class<?>[] interfaces = protocolObject.getClass().getInterfaces();
         for (Class<?> i : interfaces) {
             if (configuredTargetTypes.containsKey(i.getName())) {
-                return (Class<T>) configuredTargetTypes.get(i.getName());
+                return configuredTargetTypes.get(i.getName()).asSubclass(initialTargetType);
             }
         }
 
