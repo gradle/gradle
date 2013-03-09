@@ -27,13 +27,13 @@ import org.gradle.BuildResult
 
 import org.gradle.StartParameter
 
-class InProcessGradleLauncherActionExecuterTest extends Specification {
+class InProcessBuildActionExecuterTest extends Specification {
     final GradleLauncherFactory factory = Mock()
     final GradleLauncher launcher = Mock()
     final BuildActionParameters param = Mock()
     final BuildRequestMetaData metaData = Mock()
     final BuildResult buildResult = Mock()
-    final InProcessGradleLauncherActionExecuter executer = new InProcessGradleLauncherActionExecuter(factory)
+    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(factory)
 
     def setup() {
         _ * param.buildRequestMetaData >> metaData

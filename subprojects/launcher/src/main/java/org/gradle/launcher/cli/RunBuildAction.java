@@ -19,7 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.GradleLauncherActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RunBuildAction implements Runnable {
-    private final GradleLauncherActionExecuter<BuildActionParameters> executer;
+    private final BuildActionExecuter<BuildActionParameters> executer;
     private final StartParameter startParameter;
     private final File currentDir;
     private final BuildClientMetaData clientMetaData;
@@ -35,7 +35,7 @@ public class RunBuildAction implements Runnable {
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
 
-    public RunBuildAction(GradleLauncherActionExecuter<BuildActionParameters> executer, StartParameter startParameter, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
+    public RunBuildAction(BuildActionExecuter<BuildActionParameters> executer, StartParameter startParameter, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
         this.executer = executer;
         this.startParameter = startParameter;
         this.currentDir = currentDir;

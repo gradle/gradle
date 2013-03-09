@@ -24,8 +24,8 @@ import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.launcher.daemon.configuration.GradlePropertiesConfigurer;
+import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
@@ -137,15 +137,15 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     }
 
     private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, GradleProperties gradleProperties) {
-        GradleLauncherActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
+        BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
         ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters, action, gradleProperties);
         return executer.execute(configuringAction, operationParameters);
     }
 
-    private GradleLauncherActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters) {
+    private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters) {
         LoggingServiceRegistry loggingServices;
         DaemonParameters daemonParams = init(operationParameters, initGradleProperties(operationParameters));
-        GradleLauncherActionExecuter<BuildActionParameters> executer;
+        BuildActionExecuter<BuildActionParameters> executer;
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingServices = embeddedExecuterSupport.getLoggingServices();
             executer = embeddedExecuterSupport.getExecuter();
@@ -156,7 +156,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
             executer = clientServices.get(DaemonClient.class);
         }
         Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
-        return new LoggingBridgingGradleLauncherActionExecuter(new DaemonGradleLauncherActionExecuter(executer, daemonParams), loggingManagerFactory);
+        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer, daemonParams), loggingManagerFactory);
     }
 
     private DaemonParameters init(ProviderOperationParameters operationParameters, GradleProperties gradleProperties) {

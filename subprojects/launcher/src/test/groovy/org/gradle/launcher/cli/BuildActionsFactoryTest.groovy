@@ -25,7 +25,7 @@ import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.configuration.GradlePropertiesConfigurer
-import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter
+import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -149,7 +149,7 @@ class BuildActionsFactoryTest extends Specification {
     void isInProcess(def action) {
         // Relying on impl of Actions.toAction(Runnable)
         assert action.runnable instanceof RunBuildAction
-        assert action.runnable.executer instanceof InProcessGradleLauncherActionExecuter
+        assert action.runnable.executer instanceof InProcessBuildActionExecuter
     }
 
     void isSingleUseDaemon(def action) {

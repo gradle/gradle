@@ -18,12 +18,12 @@ package org.gradle.launcher.cli
 import org.gradle.StartParameter
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.launcher.exec.BuildActionParameters
-import org.gradle.launcher.exec.GradleLauncherActionExecuter
+import org.gradle.launcher.exec.BuildActionExecuter
 import spock.lang.Specification
 import org.gradle.api.logging.LogLevel
 
 class RunBuildActionTest extends Specification {
-    final GradleLauncherActionExecuter<BuildActionParameters> client = Mock()
+    final BuildActionExecuter<BuildActionParameters> client = Mock()
     final StartParameter startParameter = Mock()
     final BuildClientMetaData clientMetaData = Mock()
     final File currentDir = new File('current-dir')

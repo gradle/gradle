@@ -23,12 +23,12 @@ import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import spock.lang.Specification
 
-class DaemonGradleLauncherActionExecuterTest extends Specification {
+class DaemonBuildActionExecuterTest extends Specification {
     final DaemonClient client = Mock()
     final BuildAction<String> action = Mock()
     final ProviderOperationParameters parameters = Mock()
     final DaemonParameters daemonParameters = Mock()
-    final DaemonGradleLauncherActionExecuter executer = new DaemonGradleLauncherActionExecuter(client, daemonParameters)
+    final DaemonBuildActionExecuter executer = new DaemonBuildActionExecuter(client, daemonParameters)
 
     def unpacksReportedException() {
         def failure = new RuntimeException()

@@ -19,18 +19,18 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildAction;
 import org.gradle.internal.SystemProperties;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.exec.ReportedException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-public class DaemonGradleLauncherActionExecuter implements GradleLauncherActionExecuter<ProviderOperationParameters> {
-    private final GradleLauncherActionExecuter<BuildActionParameters> executer;
+public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
+    private final BuildActionExecuter<BuildActionParameters> executer;
     private final DaemonParameters parameters;
 
-    public DaemonGradleLauncherActionExecuter(GradleLauncherActionExecuter<BuildActionParameters> executer, DaemonParameters parameters) {
+    public DaemonBuildActionExecuter(BuildActionExecuter<BuildActionParameters> executer, DaemonParameters parameters) {
         this.executer = executer;
         this.parameters = parameters;
     }

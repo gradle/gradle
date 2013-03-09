@@ -23,10 +23,10 @@ import org.gradle.initialization.BuildController;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.GradleLauncherFactory;
 
-public class InProcessGradleLauncherActionExecuter implements GradleLauncherActionExecuter<BuildActionParameters> {
+public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
 
-    public InProcessGradleLauncherActionExecuter(GradleLauncherFactory gradleLauncherFactory) {
+    public InProcessBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory) {
         this.gradleLauncherFactory = gradleLauncherFactory;
     }
 

@@ -17,7 +17,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.initialization.BuildAction;
 
-public interface GradleLauncherActionExecuter<P> {
+public interface BuildActionExecuter<P> {
     /**
      * Executes the given action, and returns the result.
      *

@@ -17,21 +17,21 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildAction;
 import org.gradle.internal.Factory;
-import org.gradle.launcher.exec.GradleLauncherActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.*;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 /**
- * A {@link org.gradle.launcher.exec.GradleLauncherActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build
+ * A {@link org.gradle.launcher.exec.BuildActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build
  * request.
  */
-public class LoggingBridgingGradleLauncherActionExecuter implements GradleLauncherActionExecuter<ProviderOperationParameters> {
+public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
-    private final GradleLauncherActionExecuter<ProviderOperationParameters> executer;
+    private final BuildActionExecuter<ProviderOperationParameters> executer;
 
-    public LoggingBridgingGradleLauncherActionExecuter(GradleLauncherActionExecuter<ProviderOperationParameters> executer, Factory<LoggingManagerInternal> loggingManagerFactory) {
+    public LoggingBridgingBuildActionExecuter(BuildActionExecuter<ProviderOperationParameters> executer, Factory<LoggingManagerInternal> loggingManagerFactory) {
         this.executer = executer;
         this.loggingManagerFactory = loggingManagerFactory;
     }
