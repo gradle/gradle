@@ -19,6 +19,8 @@ import java.io.File;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 1.0-milestone-3
  */
 public interface ProjectVersion3 {
     String getPath();
