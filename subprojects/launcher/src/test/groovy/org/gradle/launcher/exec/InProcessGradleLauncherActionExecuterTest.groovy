@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec
 
+import org.gradle.initialization.BuildController
 import spock.lang.Specification
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.GradleLauncherAction
@@ -53,15 +54,17 @@ class InProcessGradleLauncherActionExecuterTest extends Specification {
 
         and:
         1 * factory.newInstance(!null, metaData) >> launcher
-        1 * action.run(launcher) >> buildResult
+        1 * action.run(!null) >> { BuildController controller ->
+            assert controller.launcher == launcher
+            return buildResult
+        }
     }
 
     def "executes the provided action using the provided StartParameter"() {
-        TestAction action = Mock()
+        GradleLauncherAction<String> action = Mock()
         def startParam = new StartParameter()
 
         given:
-        action.configureStartParameter() >> startParam
         buildResult.failure >> null
         action.result >> '<result>'
 
@@ -73,7 +76,30 @@ class InProcessGradleLauncherActionExecuterTest extends Specification {
 
         and:
         1 * factory.newInstance(startParam, metaData) >> launcher
-        1 * action.run(launcher) >> buildResult
+        1 * action.run(!null) >> { BuildController controller ->
+            controller.startParameter = startParam
+            assert controller.launcher == launcher
+            return buildResult
+        }
+    }
+
+    def "cannot set start parameters after launcher created"() {
+        GradleLauncherAction<String> action = Mock()
+        def startParam = new StartParameter()
+
+        given:
+        _ * action.run(!null) >> { BuildController controller ->
+            controller.launcher
+            controller.startParameter = startParam
+        }
+        _ * factory.newInstance(!null, metaData) >> launcher
+
+        when:
+        executer.execute(action, param)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot change start parameter after launcher has been created.'
     }
 
     def "wraps build failure"() {
@@ -91,10 +117,6 @@ class InProcessGradleLauncherActionExecuterTest extends Specification {
         e.cause == failure
 
         and:
-        1 * factory.newInstance(!null, metaData) >> launcher
-        1 * action.run(launcher) >> buildResult
+        1 * action.run(!null) >> buildResult
     }
-}
-
-interface TestAction extends GradleLauncherAction<String>, InitializationAware {
 }

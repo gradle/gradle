@@ -16,14 +16,13 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
-import org.gradle.launcher.exec.InitializationAware;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -33,7 +32,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, InitializationAware, Serializable {
+class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Serializable {
     private LogLevel buildLogLevel;
     private List<String> arguments;
     private List<String> tasks;
@@ -59,7 +58,7 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
         this.action = action;
     }
 
-    public StartParameter configureStartParameter() {
+    StartParameter configureStartParameter() {
         StartParameter startParameter = startParameterTemplate.newInstance();
         startParameter.setProjectDir(projectDirectory);
         if (gradleUserHomeDir != null) {
@@ -99,8 +98,9 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
         return startParameter;
     }
 
-    public BuildResult run(GradleLauncher launcher) {
-        return action.run(launcher);
+    public BuildResult run(BuildController buildController) {
+        buildController.setStartParameter(configureStartParameter());
+        return action.run(buildController);
     }
 
     public T getResult() {

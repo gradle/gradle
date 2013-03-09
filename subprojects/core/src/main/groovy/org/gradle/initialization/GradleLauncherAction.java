@@ -16,15 +16,12 @@
 package org.gradle.initialization;
 
 import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
 
 /**
- * An object that performs some action with a {@link GradleLauncher}, and optionally produces a “result” object (e.g. the output).
+ * An object that performs some action with a {@link BuildController}, and optionally produces a “result” object (e.g. the output).
  * <p>
  * Implementations of this are typically composed to bootstrap a build in a certain environment.
  * <p>
- * @see org.gradle.launcher.cli.ExecuteBuildAction
- * @see org.gradle.tooling.internal.provider.BuildModelAction
  */
 public interface GradleLauncherAction<T> {
     
@@ -39,5 +36,5 @@ public interface GradleLauncherAction<T> {
      * The state of the launcher is not defined as part of this contract, it is highly context specific. For example,
      * it is not guaranteed that the start parameter for the launcher has been configured.
      */
-    BuildResult run(GradleLauncher launcher);
+    BuildResult run(BuildController buildController);
 }

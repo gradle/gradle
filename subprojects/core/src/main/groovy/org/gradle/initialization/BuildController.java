@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.exec;
 
+package org.gradle.initialization;
+
+import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 
-public interface InitializationAware {
-    StartParameter configureStartParameter();
+public interface BuildController {
+    /**
+     * Specifies the start parameter to use to run the build. Cannot be used after the launcher has been created.
+     */
+    void setStartParameter(StartParameter startParameter);
+
+    /**
+     * Returns the launcher to use to run the build.
+     */
+    GradleLauncher getLauncher();
 }

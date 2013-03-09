@@ -19,7 +19,7 @@ import org.gradle.initialization.GradleLauncherAction;
 
 public interface GradleLauncherActionExecuter<P> {
     /**
-     * Executes the given action, and returns the result. The given action may also implement {@link InitializationAware <T>}.
+     * Executes the given action, and returns the result.
      *
      * @param action The action
      * @param <T> The result type

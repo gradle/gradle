@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
+import org.gradle.initialization.BuildController;
 import org.gradle.initialization.GradleLauncherAction;
 
 import java.io.Serializable;
@@ -27,7 +27,7 @@ public class ExecuteBuildAction implements GradleLauncherAction<Void>, Serializa
         return null;
     }
 
-    public BuildResult run(GradleLauncher gradleLauncher) {
-        return gradleLauncher.run();
+    public BuildResult run(BuildController buildController) {
+        return buildController.getLauncher().run();
     }
 }

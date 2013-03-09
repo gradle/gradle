@@ -19,6 +19,7 @@ package org.gradle.launcher.exec;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
+import org.gradle.initialization.BuildController;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.initialization.GradleLauncherFactory;
 
@@ -30,17 +31,37 @@ public class InProcessGradleLauncherActionExecuter implements GradleLauncherActi
     }
 
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters actionParameters) {
-        StartParameter startParameter = new StartParameter();
-        if (action instanceof InitializationAware) {
-            InitializationAware initializationAware = (InitializationAware) action;
-            startParameter = initializationAware.configureStartParameter();
-        }
-        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameter, actionParameters.getBuildRequestMetaData());
-        BuildResult buildResult = action.run(gradleLauncher);
+        BuildResult buildResult = action.run(new DefaultBuildController(gradleLauncherFactory, actionParameters));
         Throwable failure = buildResult.getFailure();
         if (failure != null) {
             throw new ReportedException(failure);
         }
         return action.getResult();
+    }
+
+    private static class DefaultBuildController implements BuildController {
+        private final BuildActionParameters actionParameters;
+        private final GradleLauncherFactory gradleLauncherFactory;
+        private GradleLauncher gradleLauncher;
+        private StartParameter startParameter = new StartParameter();
+
+        private DefaultBuildController(GradleLauncherFactory gradleLauncherFactory, BuildActionParameters actionParameters) {
+            this.gradleLauncherFactory = gradleLauncherFactory;
+            this.actionParameters = actionParameters;
+        }
+
+        public void setStartParameter(StartParameter startParameter) {
+            if (gradleLauncher != null) {
+                throw new IllegalStateException("Cannot change start parameter after launcher has been created.");
+            }
+            this.startParameter = startParameter;
+        }
+
+        public GradleLauncher getLauncher() {
+            if (gradleLauncher == null) {
+                gradleLauncher = gradleLauncherFactory.newInstance(startParameter, actionParameters.getBuildRequestMetaData());
+            }
+            return gradleLauncher;
+        }
     }
 }

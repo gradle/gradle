@@ -20,6 +20,7 @@ import org.gradle.GradleLauncher;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.initialization.BuildController;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.TasksCompletionListener;
@@ -53,7 +54,8 @@ public class BuildModelAction implements GradleLauncherAction<Object> {
         throw new UnsupportedOperationException(String.format("I don't know how to build a model of type '%s'.", type.getSimpleName()));
     }
 
-    public BuildResult run(GradleLauncher launcher) {
+    public BuildResult run(BuildController buildController) {
+        GradleLauncher launcher = buildController.getLauncher();
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
                 public void onTasksFinished(GradleInternal gradle) {
