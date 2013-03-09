@@ -23,15 +23,14 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.tooling.internal.eclipse.*;
+import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
-import org.gradle.tooling.model.GradleProject;
 import org.gradle.util.GUtil;
-import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
 import java.util.*;
@@ -41,12 +40,12 @@ import java.util.*;
 */
 public class EclipseModelBuilder implements BuildsModel {
     private boolean projectDependenciesOnly;
-    private EclipseProjectVersion3 currentProject;
-    private final Map<String, EclipseProjectVersion3> projectMapping = new HashMap<String, EclipseProjectVersion3>();
+    private DefaultEclipseProject currentProject;
+    private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
     private GradleInternal gradle;
     private TasksFactory tasksFactory;
     private GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
-    private GradleProject rootGradleProject;
+    private DefaultGradleProject rootGradleProject;
 
     public boolean canBuild(Class<?> type) {
         if (type.isAssignableFrom(EclipseProjectVersion3.class)) {
@@ -59,7 +58,7 @@ public class EclipseModelBuilder implements BuildsModel {
         return false;
     }
 
-    public EclipseProjectVersion3 buildAll(GradleInternal gradle) {
+    public DefaultEclipseProject buildAll(GradleInternal gradle) {
         this.gradle = gradle;
         rootGradleProject = gradleProjectBuilder.buildAll(gradle);
         Project root = gradle.getRootProject();
@@ -78,7 +77,7 @@ public class EclipseModelBuilder implements BuildsModel {
         root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
     }
 
-    private void addProject(Project project, EclipseProjectVersion3 eclipseProject) {
+    private void addProject(Project project, DefaultEclipseProject eclipseProject) {
         if (project == gradle.getDefaultProject()) {
             currentProject = eclipseProject;
         }
@@ -115,32 +114,30 @@ public class EclipseModelBuilder implements BuildsModel {
             }
         }
 
-        final EclipseProjectVersion3 eclipseProject = projectMapping.get(project.getPath());
-        ReflectionUtil.setProperty(eclipseProject, "classpath", externalDependencies);
-        ReflectionUtil.setProperty(eclipseProject, "projectDependencies", projectDependencies);
-        ReflectionUtil.setProperty(eclipseProject, "sourceDirectories", sourceDirectories);
+        DefaultEclipseProject eclipseProject = projectMapping.get(project.getPath());
+        eclipseProject.setClasspath(externalDependencies);
+        eclipseProject.setProjectDependencies(projectDependencies);
+        eclipseProject.setSourceDirectories(sourceDirectories);
 
-        if (ReflectionUtil.hasProperty(eclipseProject, "linkedResources")) {
-            List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<DefaultEclipseLinkedResource>();
-            for(Link r: eclipseModel.getProject().getLinkedResources()) {
-                linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
-            }
-            ReflectionUtil.setProperty(eclipseProject, "linkedResources", linkedResources);
+        List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<DefaultEclipseLinkedResource>();
+        for(Link r: eclipseModel.getProject().getLinkedResources()) {
+            linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
         }
+        eclipseProject.setLinkedResources(linkedResources);
 
-        List<EclipseTaskVersion1> out = new ArrayList<EclipseTaskVersion1>();
+        List<EclipseTaskVersion1> tasks = new ArrayList<EclipseTaskVersion1>();
         for (final Task t : tasksFactory.getTasks(project)) {
-            out.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
+            tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
         }
-        ReflectionUtil.setProperty(eclipseProject, "tasks", out);
+        eclipseProject.setTasks(tasks);
 
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
         }
     }
 
-    private EclipseProjectVersion3 buildHierarchy(Project project) {
-        List<EclipseProjectVersion3> children = new ArrayList<EclipseProjectVersion3>();
+    private DefaultEclipseProject buildHierarchy(Project project) {
+        List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
         for (Project child : project.getChildProjects().values()) {
             children.add(buildHierarchy(child));
         }
@@ -149,12 +146,12 @@ public class EclipseModelBuilder implements BuildsModel {
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
-        EclipseProjectVersion3 eclipseProject =
+        DefaultEclipseProject eclipseProject =
                 new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children)
                 .setGradleProject(rootGradleProject.findByPath(project.getPath()));
 
-        for (Object child : children) {
-            ReflectionUtil.setProperty(child, "parent", eclipseProject);
+        for (DefaultEclipseProject child : children) {
+            child.setParent(eclipseProject);
         }
         addProject(project, eclipseProject);
         return eclipseProject;
