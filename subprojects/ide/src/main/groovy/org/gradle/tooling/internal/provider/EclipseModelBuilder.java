@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.tooling.internal.eclipse.*;
@@ -40,12 +40,12 @@ import java.util.*;
 */
 public class EclipseModelBuilder implements BuildsModel {
     private boolean projectDependenciesOnly;
-    private DefaultEclipseProject currentProject;
+    private DefaultEclipseProject result;
     private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
-    private GradleInternal gradle;
     private TasksFactory tasksFactory;
     private GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
     private DefaultGradleProject rootGradleProject;
+    private ProjectInternal currentProject;
 
     public boolean canBuild(Class<?> type) {
         if (type.isAssignableFrom(EclipseProjectVersion3.class)) {
@@ -58,15 +58,15 @@ public class EclipseModelBuilder implements BuildsModel {
         return false;
     }
 
-    public DefaultEclipseProject buildAll(GradleInternal gradle) {
-        this.gradle = gradle;
-        rootGradleProject = gradleProjectBuilder.buildAll(gradle);
-        Project root = gradle.getRootProject();
+    public DefaultEclipseProject buildAll(ProjectInternal project) {
+        currentProject = project;
+        ProjectInternal root = project.getRootProject();
+        rootGradleProject = gradleProjectBuilder.buildAll(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root);
         buildHierarchy(root);
         populate(root);
-        return currentProject;
+        return result;
     }
 
     private void applyEclipsePlugin(Project root) {
@@ -78,8 +78,8 @@ public class EclipseModelBuilder implements BuildsModel {
     }
 
     private void addProject(Project project, DefaultEclipseProject eclipseProject) {
-        if (project == gradle.getDefaultProject()) {
-            currentProject = eclipseProject;
+        if (project == currentProject) {
+            result = eclipseProject;
         }
         projectMapping.put(project.getPath(), eclipseProject);
     }

@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleTask;
@@ -39,8 +39,8 @@ public class GradleProjectBuilder implements BuildsModel {
         return type == InternalGradleProject.class;
     }
 
-    public DefaultGradleProject buildAll(GradleInternal gradle) {
-        return buildHierarchy(gradle.getRootProject());
+    public DefaultGradleProject buildAll(ProjectInternal project) {
+        return buildHierarchy(project.getRootProject());
     }
 
     private DefaultGradleProject buildHierarchy(Project project) {

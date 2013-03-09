@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.tooling.internal.idea.DefaultIdeaProject;
 import org.gradle.tooling.internal.protocol.InternalBasicIdeaProject;
 
@@ -28,9 +28,9 @@ public class BasicIdeaModelBuilder implements BuildsModel {
         return type == InternalBasicIdeaProject.class;
     }
 
-    public DefaultIdeaProject buildAll(GradleInternal gradle) {
+    public DefaultIdeaProject buildAll(ProjectInternal project) {
         return new IdeaModelBuilder()
                 .setOfflineDependencyResolution(true)
-                .buildAll(gradle);
+                .buildAll(project);
     }
 }

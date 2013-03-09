@@ -19,46 +19,28 @@ import org.gradle.GradleLauncher;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.initialization.BuildController;
 import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildController;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.TasksCompletionListener;
 
-import java.util.List;
-
-import static java.util.Arrays.asList;
-
 public class BuildModelAction implements BuildAction<Object> {
-    private final BuildsModel builder;
+    private final Class<?> type;
     private final boolean runTasks;
     private Object model;
 
     public BuildModelAction(Class<?> type, boolean runTasks) {
+        this.type = type;
         this.runTasks = runTasks;
-        List<? extends BuildsModel> modelBuilders = asList(
-                new NullResultBuilder(),
-                new EclipseModelBuilder(),
-                new IdeaModelBuilder(),
-                new GradleProjectBuilder(),
-                new BasicIdeaModelBuilder(),
-                new ProjectOutcomesModelBuilder());
-
-        for (BuildsModel builder : modelBuilders) {
-            if (builder.canBuild(type)) {
-                this.builder = builder;
-                return;
-            }
-        }
-
-        throw new UnsupportedOperationException(String.format("I don't know how to build a model of type '%s'.", type.getSimpleName()));
     }
 
     public Object run(BuildController buildController) {
         GradleLauncher launcher = buildController.getLauncher();
+        final BuildsModel builder = new DefaultToolingModelBuilderRegistry().getBuilder(type);
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
                 public void onTasksFinished(GradleInternal gradle) {
-                    model = builder.buildAll(gradle);
+                    model = builder.buildAll(gradle.getDefaultProject());
                 }
             });
             buildController.run();
@@ -66,7 +48,7 @@ public class BuildModelAction implements BuildAction<Object> {
             launcher.addListener(new ModelConfigurationListener() {
                 public void onConfigure(GradleInternal gradle) {
                     ensureAllProjectsEvaluated(gradle);
-                    model = builder.buildAll(gradle);
+                    model = builder.buildAll(gradle.getDefaultProject());
                 }
             });
             buildController.configure();

@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
@@ -41,10 +41,10 @@ public class IdeaModelBuilder implements BuildsModel {
     private final GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
     private boolean offlineDependencyResolution;
 
-    public DefaultIdeaProject buildAll(GradleInternal gradle) {
-        Project root = gradle.getRootProject();
+    public DefaultIdeaProject buildAll(ProjectInternal project) {
+        ProjectInternal root = project.getRootProject();
         applyIdeaPlugin(root);
-        GradleProject rootGradleProject = gradleProjectBuilder.buildAll(gradle);
+        GradleProject rootGradleProject = gradleProjectBuilder.buildAll(project);
         return build(root, rootGradleProject);
     }
 

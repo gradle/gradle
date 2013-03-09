@@ -16,14 +16,14 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 
 public class NullResultBuilder implements BuildsModel {
     public boolean canBuild(Class<?> type) {
         return type.equals(Void.class);
     }
 
-    public Object buildAll(GradleInternal gradle) {
+    public Object buildAll(ProjectInternal project) {
         return null;
     }
 }

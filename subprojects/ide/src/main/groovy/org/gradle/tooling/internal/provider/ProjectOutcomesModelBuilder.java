@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.tooling.internal.outcomes.DefaultProjectOutcomes;
 import org.gradle.tooling.internal.protocol.InternalProjectOutcomes;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -38,8 +38,8 @@ public class ProjectOutcomesModelBuilder implements BuildsModel {
         return type == InternalProjectOutcomes.class;
     }
 
-    public DefaultProjectOutcomes buildAll(GradleInternal gradle) {
-        return buildProjectOutput(gradle.getRootProject(), null);
+    public DefaultProjectOutcomes buildAll(ProjectInternal project) {
+        return buildProjectOutput(project.getRootProject(), null);
     }
 
     private DefaultProjectOutcomes buildProjectOutput(Project project, ProjectOutcomes parent) {
