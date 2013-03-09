@@ -50,6 +50,7 @@ include 'reporting'
 include 'diagnostics'
 include 'publish'
 include 'ivy'
+include 'jacoco'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
