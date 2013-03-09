@@ -24,7 +24,6 @@ import org.gradle.logging.internal.ProgressStartEvent;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 /**
@@ -59,7 +58,7 @@ public class ProgressLoggingConnection implements ConsumerConnection {
         });
     }
 
-    private <T> T run(String description, BuildOperationParametersVersion1 parameters, BuildAction<T> action) {
+    private <T> T run(String description, ConsumerOperationParameters parameters, BuildAction<T> action) {
         ProgressListenerAdapter listener = new ProgressListenerAdapter(parameters.getProgressListener());
         ListenerManager listenerManager = loggingProvider.getListenerManager();
         listenerManager.addListener(listener);
