@@ -16,17 +16,16 @@
 package org.gradle.initialization;
 
 /**
- * An object that performs some action with a {@link BuildController}, and optionally produces a “result” object (e.g. the output).
+ * An object that performs some action with a {@link BuildController} and produces a “result” object (e.g. the output).
  * <p>
  * Implementations of this are typically composed to bootstrap a build in a certain environment.
  * <p>
  */
 public interface BuildAction<T> {
     /**
-     * Executes the action with the given launcher.
+     * Executes the action with the given controller.
      * <p>
-     * The state of the launcher is not defined as part of this contract, it is highly context specific. For example,
-     * it is not guaranteed that the start parameter for the launcher has been configured.
+     * The state of the build is not defined as part of this contract, it is highly context specific.
      */
     T run(BuildController buildController);
 }
