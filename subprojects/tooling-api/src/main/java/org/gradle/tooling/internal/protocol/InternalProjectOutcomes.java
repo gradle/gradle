@@ -17,7 +17,9 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
+ * <p>Consumer compatibility: This interface used to extend {@link ProjectVersion3} until 1.6-rc-1.</p>
+ *
  * @since 1.2-rc-1
  */
-public interface InternalProjectOutcomes extends ProjectVersion3, InternalProtocolInterface {
+public interface InternalProjectOutcomes extends InternalProtocolInterface {
 }
