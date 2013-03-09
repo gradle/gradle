@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.provider
 
-import org.gradle.initialization.GradleLauncherAction
+import org.gradle.initialization.BuildAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.ReportedException
@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class DaemonGradleLauncherActionExecuterTest extends Specification {
     final DaemonClient client = Mock()
-    final GradleLauncherAction<String> action = Mock()
+    final BuildAction<String> action = Mock()
     final ProviderOperationParameters parameters = Mock()
     final DaemonParameters daemonParameters = Mock()
     final DaemonGradleLauncherActionExecuter executer = new DaemonGradleLauncherActionExecuter(client, daemonParameters)

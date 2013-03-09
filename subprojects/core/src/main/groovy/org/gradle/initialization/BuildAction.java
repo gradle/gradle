@@ -21,7 +21,7 @@ package org.gradle.initialization;
  * Implementations of this are typically composed to bootstrap a build in a certain environment.
  * <p>
  */
-public interface GradleLauncherAction<T> {
+public interface BuildAction<T> {
     /**
      * Executes the action with the given launcher.
      * <p>

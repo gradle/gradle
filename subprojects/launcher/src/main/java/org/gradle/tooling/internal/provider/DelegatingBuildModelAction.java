@@ -18,14 +18,14 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultGradleLauncher;
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.BuildAction;
 import org.gradle.internal.UncheckedException;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 
-class DelegatingBuildModelAction<T> implements GradleLauncherAction<T>, Serializable {
-    private transient GradleLauncherAction<T> action;
+class DelegatingBuildModelAction<T> implements BuildAction<T>, Serializable {
+    private transient BuildAction<T> action;
     private final Class<? extends T> type;
     private final boolean runTasks;
 
@@ -43,7 +43,7 @@ class DelegatingBuildModelAction<T> implements GradleLauncherAction<T>, Serializ
     private void loadAction(DefaultGradleLauncher launcher) {
         ClassLoaderRegistry classLoaderRegistry = launcher.getGradle().getServices().get(ClassLoaderRegistry.class);
         try {
-            action = (GradleLauncherAction<T>) classLoaderRegistry.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class, Boolean.TYPE).newInstance(type, runTasks);
+            action = (BuildAction<T>) classLoaderRegistry.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class, Boolean.TYPE).newInstance(type, runTasks);
         } catch (InvocationTargetException e) {
             throw UncheckedException.unwrapAndRethrow(e);
         } catch (Exception e) {

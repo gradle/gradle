@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.initialization.BuildController
 import org.gradle.initialization.DefaultGradleLauncherFactory
-import org.gradle.initialization.GradleLauncherAction
+import org.gradle.initialization.BuildAction
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
@@ -43,7 +43,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR)
 
-    static class DummyLauncherAction implements GradleLauncherAction, Serializable {
+    static class DummyLauncherAction implements BuildAction, Serializable {
         Object someState
         Object run(BuildController buildController) { null }
     }

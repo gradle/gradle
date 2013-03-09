@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.BuildAction;
 import org.gradle.internal.Factory;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
@@ -136,7 +136,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         LOGGER.info("Tooling API uses target gradle version:" + " {}.", GradleVersion.current().getVersion());
     }
 
-    private <T> T run(GradleLauncherAction<T> action, ProviderOperationParameters operationParameters, GradleProperties gradleProperties) {
+    private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, GradleProperties gradleProperties) {
         GradleLauncherActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
         ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters, action, gradleProperties);
         return executer.execute(configuringAction, operationParameters);

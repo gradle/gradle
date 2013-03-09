@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.initialization.GradleLauncherAction
+import org.gradle.initialization.BuildAction
 import org.gradle.internal.Factory
 import org.gradle.launcher.exec.GradleLauncherActionExecuter
 import org.gradle.logging.LoggingManagerInternal
@@ -27,7 +27,7 @@ class LoggingBridgingGradleLauncherActionExecuterTest extends Specification {
     final GradleLauncherActionExecuter<ProviderOperationParameters> target = Mock()
     final Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
     final LoggingManagerInternal loggingManager = Mock()
-    final GradleLauncherAction<String> action = Mock()
+    final BuildAction<String> action = Mock()
     final ProviderOperationParameters parameters = Mock()
 
     //declared type-lessly to work around groovy eclipse plugin bug

@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.internal.specs.ExplainingSpecs;
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.BuildAction;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -43,7 +43,7 @@ public class SingleUseDaemonClient extends DaemonClient {
     }
 
     @Override
-    public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
+    public <T> T execute(BuildAction<T> action, BuildActionParameters parameters) {
         LOGGER.warn("Note: in order to honour the org.gradle.jvmargs and/or org.gradle.java.home values specified for this build, it is necessary to fork a new JVM.");
         LOGGER.warn("To avoid the slowdown associated with this extra process, you might want to consider running Gradle with the daemon enabled.");
         LOGGER.warn("Please see the user guide chapter on the daemon at {}.", documentationRegistry.getDocumentationFor("gradle_daemon"));

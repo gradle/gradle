@@ -20,7 +20,7 @@ import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildController;
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.GradleLauncherFactory;
 
 public class InProcessGradleLauncherActionExecuter implements GradleLauncherActionExecuter<BuildActionParameters> {
@@ -30,7 +30,7 @@ public class InProcessGradleLauncherActionExecuter implements GradleLauncherActi
         this.gradleLauncherFactory = gradleLauncherFactory;
     }
 
-    public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters actionParameters) {
+    public <T> T execute(BuildAction<T> action, BuildActionParameters actionParameters) {
         DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, actionParameters);
         return action.run(buildController);
     }

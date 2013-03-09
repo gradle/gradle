@@ -16,12 +16,12 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
+import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
-import org.gradle.initialization.GradleLauncherAction;
 
 import java.io.Serializable;
 
-public class ExecuteBuildAction implements GradleLauncherAction<Void>, Serializable {
+public class ExecuteBuildAction implements BuildAction<Void>, Serializable {
     private final StartParameter startParameter;
 
     public ExecuteBuildAction(StartParameter startParameter) {

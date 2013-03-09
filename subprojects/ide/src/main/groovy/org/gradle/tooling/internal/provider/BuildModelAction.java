@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildController;
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.TasksCompletionListener;
 
@@ -28,7 +28,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class BuildModelAction implements GradleLauncherAction<Object> {
+public class BuildModelAction implements BuildAction<Object> {
     private final BuildsModel builder;
     private final boolean runTasks;
     private Object model;

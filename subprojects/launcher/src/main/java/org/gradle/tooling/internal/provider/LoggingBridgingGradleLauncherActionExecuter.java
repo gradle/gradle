@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.BuildAction;
 import org.gradle.internal.Factory;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
@@ -36,7 +36,7 @@ public class LoggingBridgingGradleLauncherActionExecuter implements GradleLaunch
         this.loggingManagerFactory = loggingManagerFactory;
     }
 
-    public <T> T execute(GradleLauncherAction<T> action, ProviderOperationParameters actionParameters) {
+    public <T> T execute(BuildAction<T> action, ProviderOperationParameters actionParameters) {
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();
         if (actionParameters.getStandardOutput() != null) {
             loggingManager.addStandardOutputListener(new StreamBackedStandardOutputListener(actionParameters.getStandardOutput()));

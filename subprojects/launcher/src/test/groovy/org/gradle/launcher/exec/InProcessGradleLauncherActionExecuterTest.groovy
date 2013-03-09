@@ -19,7 +19,7 @@ package org.gradle.launcher.exec
 import org.gradle.initialization.BuildController
 import spock.lang.Specification
 import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.initialization.GradleLauncherAction
+import org.gradle.initialization.BuildAction
 
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.GradleLauncher
@@ -40,7 +40,7 @@ class InProcessGradleLauncherActionExecuterTest extends Specification {
     }
 
     def "creates a launcher using a default StartParameter when the action does not specify any"() {
-        GradleLauncherAction<String> action = Mock()
+        BuildAction<String> action = Mock()
 
         when:
         def result = executer.execute(action, param)
@@ -57,7 +57,7 @@ class InProcessGradleLauncherActionExecuterTest extends Specification {
     }
 
     def "creates a launcher using StartParameter specified by the action"() {
-        GradleLauncherAction<String> action = Mock()
+        BuildAction<String> action = Mock()
         def startParam = new StartParameter()
 
         when:
@@ -76,7 +76,7 @@ class InProcessGradleLauncherActionExecuterTest extends Specification {
     }
 
     def "cannot set start parameters after launcher created"() {
-        GradleLauncherAction<String> action = Mock()
+        BuildAction<String> action = Mock()
         def startParam = new StartParameter()
 
         given:
@@ -95,7 +95,7 @@ class InProcessGradleLauncherActionExecuterTest extends Specification {
     }
 
     def "runs build when requested by action"() {
-        GradleLauncherAction<String> action = Mock()
+        BuildAction<String> action = Mock()
 
         when:
         def result = executer.execute(action, param)
@@ -114,7 +114,7 @@ class InProcessGradleLauncherActionExecuterTest extends Specification {
     }
 
     def "configures build when requested by action"() {
-        GradleLauncherAction<String> action = Mock()
+        BuildAction<String> action = Mock()
 
         when:
         def result = executer.execute(action, param)
@@ -134,7 +134,7 @@ class InProcessGradleLauncherActionExecuterTest extends Specification {
 
     def "wraps build failure"() {
         def failure = new RuntimeException()
-        GradleLauncherAction<String> action = Mock()
+        BuildAction<String> action = Mock()
 
         given:
         buildResult.failure >> failure

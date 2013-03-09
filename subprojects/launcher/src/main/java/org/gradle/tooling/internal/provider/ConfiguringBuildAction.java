@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.BuildAction;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
@@ -31,11 +31,11 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Serializable {
+class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
     private LogLevel buildLogLevel;
     private List<String> arguments;
     private List<String> tasks;
-    private GradleLauncherAction<T> action;
+    private BuildAction<T> action;
     private File projectDirectory;
     private File gradleUserHomeDir;
     private Boolean searchUpwards;
@@ -46,7 +46,7 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Serializable
 
     public ConfiguringBuildAction() {}
 
-    public ConfiguringBuildAction(ProviderOperationParameters parameters, GradleLauncherAction<T> action, GradleProperties gradleProperties) {
+    public ConfiguringBuildAction(ProviderOperationParameters parameters, BuildAction<T> action, GradleProperties gradleProperties) {
         this.configureOnDemand = gradleProperties.isConfigureOnDemand();
         this.gradleUserHomeDir = parameters.getGradleUserHomeDir();
         this.projectDirectory = parameters.getProjectDir();

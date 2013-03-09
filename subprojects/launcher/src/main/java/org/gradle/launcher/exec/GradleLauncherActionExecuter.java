@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.exec;
 
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.BuildAction;
 
 public interface GradleLauncherActionExecuter<P> {
     /**
@@ -25,5 +25,5 @@ public interface GradleLauncherActionExecuter<P> {
      * @param <T> The result type
      * @return The result.
      */
-    <T> T execute(GradleLauncherAction<T> action, P actionParameters);
+    <T> T execute(BuildAction<T> action, P actionParameters);
 }
