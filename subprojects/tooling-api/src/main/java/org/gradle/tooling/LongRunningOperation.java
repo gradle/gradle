@@ -29,7 +29,7 @@ import java.io.OutputStream;
  * <p>
  * Allows providing standard input that can be consumed by the gradle operation (useful for interactive builds).
  * <p>
- * Enables configuring the build run / model request with options like the Java home or jvm arguments.
+ * Enables configuring the build run / model request with options like the Java home or JVM arguments.
  * Those settings might not be supported by the target Gradle version. Refer to Javadoc for those methods
  * to understand what kind of exception throw and when is it thrown.
  * @since 1.0-milestone-7
