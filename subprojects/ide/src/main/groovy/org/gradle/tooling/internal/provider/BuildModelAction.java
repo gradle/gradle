@@ -15,15 +15,12 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.GradleLauncher;
 import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildController;
-import org.gradle.initialization.ModelConfigurationListener;
-import org.gradle.initialization.TasksCompletionListener;
+import org.gradle.initialization.*;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 public class BuildModelAction implements BuildAction<Object> {
     private final Class<?> type;
@@ -36,11 +33,11 @@ public class BuildModelAction implements BuildAction<Object> {
     }
 
     public Object run(BuildController buildController) {
-        GradleLauncher launcher = buildController.getLauncher();
-        final ToolingModelBuilder builder = new StandardToolingModelBuilderRegistry().getBuilder(type);
+        DefaultGradleLauncher launcher = (DefaultGradleLauncher) buildController.getLauncher();
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
                 public void onTasksFinished(GradleInternal gradle) {
+                    ToolingModelBuilder builder = getToolingModelBuilderRegistry(gradle).getBuilder(type);
                     model = builder.buildAll(type, gradle.getDefaultProject());
                 }
             });
@@ -49,12 +46,23 @@ public class BuildModelAction implements BuildAction<Object> {
             launcher.addListener(new ModelConfigurationListener() {
                 public void onConfigure(GradleInternal gradle) {
                     ensureAllProjectsEvaluated(gradle);
+                    ToolingModelBuilder builder = getToolingModelBuilderRegistry(gradle).getBuilder(type);
                     model = builder.buildAll(type, gradle.getDefaultProject());
                 }
             });
             buildController.configure();
         }
         return model;
+    }
+
+    private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
+        final ToolingModelBuilderRegistry modelBuilderRegistry = gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
+        modelBuilderRegistry.register(new EclipseModelBuilder());
+        modelBuilderRegistry.register(new IdeaModelBuilder());
+        modelBuilderRegistry.register(new GradleProjectBuilder());
+        modelBuilderRegistry.register(new BasicIdeaModelBuilder());
+        modelBuilderRegistry.register(new ProjectOutcomesModelBuilder());
+        return modelBuilderRegistry;
     }
 
     private void ensureAllProjectsEvaluated(GradleInternal gradle) {

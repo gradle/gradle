@@ -53,6 +53,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.io.File;
 
@@ -93,6 +95,10 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected Factory<AntBuilder> createAntBuilderFactory() {
         return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
+    }
+
+    protected ToolingModelBuilderRegistry createToolingModelRegistry() {
+        return new DefaultToolingModelBuilderRegistry();
     }
 
     protected PluginContainer createPluginContainer() {

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.provider.model.internal;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
@@ -25,17 +26,38 @@ import java.util.List;
 public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRegistry {
     private final List<ToolingModelBuilder> builders = new ArrayList<ToolingModelBuilder>();
 
+    public DefaultToolingModelBuilderRegistry() {
+        register(new VoidToolingModelBuilder());
+    }
+
     public void register(ToolingModelBuilder builder) {
         builders.add(builder);
     }
 
     public ToolingModelBuilder getBuilder(Class<?> modelType) {
+        ToolingModelBuilder match = null;
         for (ToolingModelBuilder builder : builders) {
             if (builder.canBuild(modelType)) {
-                return builder;
+                if (match != null) {
+                    throw new UnsupportedOperationException(String.format("Multiple builders are available to build a model of type '%s'.", modelType.getSimpleName()));
+                }
+                match = builder;
             }
         }
+        if (match != null) {
+            return match;
+        }
 
-        throw new UnsupportedOperationException(String.format("I don't know how to build a model of type '%s'.", modelType.getSimpleName()));
+        throw new UnsupportedOperationException(String.format("No builders are available to build a model of type '%s'.", modelType.getSimpleName()));
+    }
+
+    private static class VoidToolingModelBuilder implements ToolingModelBuilder {
+        public boolean canBuild(Class<?> type) {
+            return type.equals(Void.class);
+        }
+
+        public Object buildAll(Class<?> type, ProjectInternal project) {
+            return null;
+        }
     }
 }
