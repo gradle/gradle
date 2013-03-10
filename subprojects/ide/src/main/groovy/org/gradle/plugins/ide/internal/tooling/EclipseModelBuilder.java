@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.plugins.ide.internal.tooling;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;

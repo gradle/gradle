@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.api.plugins.buildcomparison.outcome.internal;
 
 /**
  * This should not be used as a type in the model. It's just a container for known

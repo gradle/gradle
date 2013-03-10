@@ -128,7 +128,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
             return type.cast(out);
         }
 
-        DelegatingBuildModelAction<T> action = new DelegatingBuildModelAction<T>(type, tasks != null);
+        BuildAction<T> action = new BuildModelAction<T>(type, tasks != null);
         return run(action, providerParameters, gradleProperties);
     }
 

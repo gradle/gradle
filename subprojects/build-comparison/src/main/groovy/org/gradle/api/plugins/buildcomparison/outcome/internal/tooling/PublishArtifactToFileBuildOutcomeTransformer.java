@@ -28,7 +28,7 @@ import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 import java.net.URI;
 import java.util.Set;
 
-import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*;
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.*;
 
 public class PublishArtifactToFileBuildOutcomeTransformer {
 

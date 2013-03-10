@@ -19,15 +19,15 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
+import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.plugins.ear.Ear
-import org.gradle.tooling.internal.provider.FileOutcomeIdentifier
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import spock.lang.Specification
 import spock.lang.Unroll
 import org.gradle.api.tasks.bundling.*
 
-import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.*
 import org.gradle.util.HelperUtil
 import org.gradle.api.Project
 

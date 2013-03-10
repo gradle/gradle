@@ -22,7 +22,7 @@ import org.gradle.api.internal.filestore.FileStoreEntry;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome;
-import org.gradle.tooling.internal.provider.FileOutcomeIdentifier;
+import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;

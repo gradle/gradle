@@ -31,7 +31,7 @@ import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.tooling.internal.provider.FileOutcomeIdentifier.*
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.*
 
 class GradleBuildOutcomeSetTransformerTest extends Specification {
 

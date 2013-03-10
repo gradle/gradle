@@ -22,17 +22,19 @@ import org.gradle.initialization.*;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
-public class BuildModelAction implements BuildAction<Object> {
-    private final Class<?> type;
+import java.io.Serializable;
+
+public class BuildModelAction<T> implements BuildAction<T>, Serializable {
+    private final Class<T> type;
     private final boolean runTasks;
     private Object model;
 
-    public BuildModelAction(Class<?> type, boolean runTasks) {
+    public BuildModelAction(Class<T> type, boolean runTasks) {
         this.type = type;
         this.runTasks = runTasks;
     }
 
-    public Object run(BuildController buildController) {
+    public T run(BuildController buildController) {
         DefaultGradleLauncher launcher = (DefaultGradleLauncher) buildController.getLauncher();
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
@@ -52,7 +54,7 @@ public class BuildModelAction implements BuildAction<Object> {
             });
             buildController.configure();
         }
-        return model;
+        return (T) model;
     }
 
     private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
