@@ -103,7 +103,7 @@
   <component name="ArtifactManager">
     <artifact type="exploded-war" name="project1:Web exploded">
       <output-path>file://$PROJECT_DIR$/out/project1_web_exploded</output-path>
-      <root>
+      <root id="root">
         <element id="javaee-facet-resources" facet="project1/web/Web" />
         <element id="directory" name="WEB-INF">
           <element id="directory" name="classes">
@@ -117,7 +117,7 @@
     </artifact>
     <artifact type="exploded-war" name="project2:Web exploded">
       <output-path>file://$PROJECT_DIR$/project2/build/project2_web_exploded</output-path>
-      <root>
+      <root id="root">
         <element id="javaee-facet-resources" facet="project2/web/Web" />
         <element id="directory" name="WEB-INF">
           <element id="directory" name="classes">

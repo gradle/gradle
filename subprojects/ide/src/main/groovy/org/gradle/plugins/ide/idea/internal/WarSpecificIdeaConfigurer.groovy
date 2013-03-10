@@ -69,7 +69,7 @@ class WarSpecificIdeaConfigurer extends AbstractPluginSpecificIdeaConfigurer {
             artifact.appendNode("output-path", getIdeaProjectPath(project, outputPath).url)
         }
 
-        Node rootNode = getOrCreateNode(artifact, "root")
+        Node rootNode = getOrCreateNode(artifact, "root", [id: "root"])
         getOrCreateNode(rootNode, "element", [id: "javaee-facet-resources", facet: "${project.name}/web/Web"])
 
         Node webInfDirectory = getOrCreateNode(rootNode, "element", [id: "directory", name: "WEB-INF"])
