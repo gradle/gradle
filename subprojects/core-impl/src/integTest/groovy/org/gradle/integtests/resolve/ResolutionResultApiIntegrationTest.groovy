@@ -16,17 +16,13 @@
 
 
 
-package org.gradle.api.tasks.diagnostics
+package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class ResolutionResultApiIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        executer.requireOwnGradleUserHomeDir()
-    }
+class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTest {
 
     /*
     The ResolutionResult API is also covered by the dependency report integration tests.
