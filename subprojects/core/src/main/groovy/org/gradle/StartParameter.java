@@ -22,6 +22,7 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
 import org.gradle.initialization.DistributionInitScriptFinder;
 import org.gradle.initialization.UserHomeInitScriptFinder;
@@ -54,7 +55,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean buildProjectDependencies = true;
     private File currentDir;
     private File projectDir;
-    private boolean searchUpwards = true;
+    private boolean searchUpwards;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
@@ -96,18 +97,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
      */
     public StartParameter() {
-        String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
-        if (gradleUserHome == null) {
-            gradleUserHome = System.getenv("GRADLE_USER_HOME");
-            if (gradleUserHome == null) {
-                gradleUserHome = DEFAULT_GRADLE_USER_HOME.getAbsolutePath();
-            }
-        }
-
-        gradleUserHomeDir = GFileUtils.canonicalise(new File(gradleUserHome));
         gradleHomeDir = new DefaultModuleRegistry().getGradleHome();
 
-        setCurrentDir(null);
+        BuildLayoutParameters layoutDefaults = new BuildLayoutParameters();
+        searchUpwards = layoutDefaults.getSearchUpwards();
+        currentDir = layoutDefaults.getProjectDir();
+        gradleUserHomeDir = layoutDefaults.getGradleUserHomeDir();
     }
 
     /**
@@ -285,7 +280,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         if (currentDir != null) {
             this.currentDir = GFileUtils.canonicalise(currentDir);
         } else {
-            this.currentDir = GFileUtils.canonicalise(SystemProperties.getCurrentDir());
+            this.currentDir = new BuildLayoutParameters().getProjectDir();
         }
     }
 

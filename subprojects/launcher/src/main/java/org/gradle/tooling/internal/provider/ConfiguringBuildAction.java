@@ -18,9 +18,9 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.BuildAction;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
@@ -63,14 +63,12 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
         if (gradleUserHomeDir != null) {
             startParameter.setGradleUserHomeDir(gradleUserHomeDir);
         }
-        if (searchUpwards != null) {
-            startParameter.setSearchUpwards(searchUpwards);
-        }
 
         if (tasks != null) {
             startParameter.setTaskNames(tasks);
         }
 
+        //TODO SF find out if we don't need the the null check as above
         startParameter.setConfigureOnDemand(configureOnDemand);
 
         if (arguments != null) {
@@ -87,6 +85,10 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
                     + "\nExamples of unsupported build options: '--daemon', '-?', '-v'."
                     + "\nPlease find more information in the javadoc for the BuildLauncher class.", e);
             }
+        }
+
+        if (searchUpwards != null) {
+            startParameter.setSearchUpwards(searchUpwards);
         }
 
         if (buildLogLevel != null) {

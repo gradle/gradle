@@ -103,17 +103,13 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         Map<String, String> projectProperties = projectPropertiesCommandLineConverter.convert(options);
         startParameter.getProjectProperties().putAll(projectProperties);
 
-        BuildLayoutParameters layout = new BuildLayoutParameters().setProjectDir(startParameter.getCurrentDir());
+        BuildLayoutParameters layout = new BuildLayoutParameters()
+                .setProjectDir(startParameter.getCurrentDir())
+                .maybeUpdateFromSystemProperty(systemProperties, resolver); //TODO SF not very nice. It should get cleaned up further down the refactoring
         layoutCommandLineConverter.convert(options, layout);
-        if (layout.getGradleUserHomeDir() != null) {
-            startParameter.setGradleUserHomeDir(layout.getGradleUserHomeDir());
-        }
-        if (layout.getProjectDir() != null) {
-            startParameter.setProjectDir(layout.getProjectDir());
-        }
-        if (layout.getSearchUpwards() != null) {
-            startParameter.setSearchUpwards(layout.getSearchUpwards());
-        }
+        startParameter.setGradleUserHomeDir(layout.getGradleUserHomeDir());
+        startParameter.setProjectDir(layout.getProjectDir());
+        startParameter.setSearchUpwards(layout.getSearchUpwards());
 
         if (options.hasOption(BUILD_FILE)) {
             startParameter.setBuildFile(resolver.resolve(options.option(BUILD_FILE).getValue()));
@@ -206,11 +202,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         return startParameter;
     }
 
-    void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, FileResolver resolver) {
+    private void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, FileResolver resolver) {
         startParameter.getSystemPropertiesArgs().putAll(systemProperties);
-        String gradleUserHomeProp = "gradle.user.home";
-        if (systemProperties.containsKey(gradleUserHomeProp)) {
-            startParameter.setGradleUserHomeDir(resolver.resolve(systemProperties.get(gradleUserHomeProp)));
-        }
     }
 }

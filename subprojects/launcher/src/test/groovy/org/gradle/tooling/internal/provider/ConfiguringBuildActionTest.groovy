@@ -70,7 +70,16 @@ class ConfiguringBuildActionTest extends Specification {
         def start = action.configureStartParameter()
 
         then:
-        !start.isSearchUpwards()
+        !start.searchUpwards
+    }
+
+    def "searchUpwards configured directly on the action wins over the command line setting"() {
+        when:
+        def action = new ConfiguringBuildAction(arguments: ['-u'], searchUpwards: true)
+        def start = action.configureStartParameter()
+
+        then:
+        start.searchUpwards
     }
 
     def "can overwrite configure on demand via build arguments"() {

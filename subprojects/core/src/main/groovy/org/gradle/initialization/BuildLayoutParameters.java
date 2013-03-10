@@ -16,16 +16,34 @@
 
 package org.gradle.initialization;
 
+import org.gradle.StartParameter;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.SystemProperties;
+
 import java.io.File;
+import java.util.Map;
+
+import static org.gradle.util.GFileUtils.canonicalise;
 
 /**
  * by Szczepan Faber, created at: 2/18/13
  */
 public class BuildLayoutParameters {
 
-    private Boolean searchUpwards;
-    private File projectDir;
+    private boolean searchUpwards = true;
+    private File projectDir = canonicalise(SystemProperties.getCurrentDir());
     private File gradleUserHomeDir;
+
+    public BuildLayoutParameters() {
+        String gradleUserHome = System.getProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY);
+        if (gradleUserHome == null) {
+            gradleUserHome = System.getenv("GRADLE_USER_HOME");
+            if (gradleUserHome == null) {
+                gradleUserHome = StartParameter.DEFAULT_GRADLE_USER_HOME.getAbsolutePath();
+            }
+        }
+        gradleUserHomeDir = canonicalise(new File(gradleUserHome));
+    }
 
     public BuildLayoutParameters setSearchUpwards(boolean searchUpwards) {
         this.searchUpwards = searchUpwards;
@@ -50,7 +68,15 @@ public class BuildLayoutParameters {
         return gradleUserHomeDir;
     }
 
-    public Boolean getSearchUpwards() {
+    public boolean getSearchUpwards() {
         return searchUpwards;
+    }
+
+    public BuildLayoutParameters maybeUpdateFromSystemProperty(Map<String, String> systemProperties, FileResolver resolver) {
+        String gradleUserHomeProp = "gradle.user.home";
+        if (systemProperties.containsKey(gradleUserHomeProp)) {
+            gradleUserHomeDir = resolver.resolve(systemProperties.get(gradleUserHomeProp));
+        }
+        return this;
     }
 }

@@ -23,9 +23,7 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
-import org.gradle.util.GFileUtils;
 
 /**
  * by Szczepan Faber, created at: 2/18/13
@@ -37,7 +35,7 @@ public class LayoutCommandLineConverter extends AbstractCommandLineConverter<Bui
     private static final String PROJECT_DIR = "p";
 
     protected BuildLayoutParameters newInstance() {
-        return new BuildLayoutParameters().setProjectDir(GFileUtils.canonicalise(SystemProperties.getCurrentDir()));
+        return new BuildLayoutParameters();
     }
 
     public BuildLayoutParameters convert(ParsedCommandLine options, BuildLayoutParameters target) throws CommandLineArgumentException {
