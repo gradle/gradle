@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.configuration;
 
-public class ImplicitTasksConfigurer {
-    public static final String HELP_GROUP = "help";
-    public static final String HELP_TASK = "help";
-    public static final String PROJECTS_TASK = "projects";
-    public static final String TASKS_TASK = "tasks";
-    public static final String PROPERTIES_TASK = "properties";
-    public static final String DEPENDENCIES_TASK = "dependencies";
-    public static final String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.ProjectInternal;
+
+/**
+ * Can be implemented by plugins to auto-configure each project. Implementations are discovered using the Jar service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
+ * Each action is invoked after the project has been configured.
+ */
+public interface ProjectConfigureAction extends Action<ProjectInternal> {
 }

@@ -25,21 +25,21 @@ class ServiceLocatorTest extends Specification {
         def serviceFile = stream('org.gradle.ImplClass')
 
         when:
-        def result = serviceLocator.findServiceImplementationClass(String.class)
+        def result = serviceLocator.findFactory(String.class).create()
 
         then:
-        result == String
-        1 * classLoader.getResource("META-INF/services/java.lang.String") >> serviceFile
+        result instanceof String
+        1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
         1 * classLoader.loadClass('org.gradle.ImplClass') >> String
     }
 
-    def "findServiceImplementationClass() returns null when no service meta data resource available"() {
+    def "findFactory() returns null when no service meta data resource available"() {
         when:
-        def result = serviceLocator.findServiceImplementationClass(String.class)
+        def result = serviceLocator.findFactory(String.class)
 
         then:
         result == null
-        1 * classLoader.getResource("META-INF/services/java.lang.String") >> null
+        1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([])
     }
 
     def "wraps implementation class load failure"() {
@@ -47,13 +47,13 @@ class ServiceLocatorTest extends Specification {
         def failure = new ClassNotFoundException()
 
         when:
-        serviceLocator.findServiceImplementationClass(String.class)
+        serviceLocator.findFactory(String.class)
 
         then:
         RuntimeException e = thrown()
-        e.message == "Could not load implementation class 'org.gradle.ImplClass' for service 'java.lang.String'."
+        e.message == "Could not load implementation class 'org.gradle.ImplClass' for service 'java.lang.String' specified in resource '${serviceFile}'."
         e.cause == failure
-        1 * classLoader.getResource("META-INF/services/java.lang.String") >> serviceFile
+        1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
         1 * classLoader.loadClass('org.gradle.ImplClass') >> { throw failure }
     }
 
@@ -64,37 +64,37 @@ class ServiceLocatorTest extends Specification {
 ''')
 
         when:
-        def result = serviceLocator.findServiceImplementationClass(String.class)
+        def result = serviceLocator.findFactory(String.class).create()
 
         then:
-        result == String
-        1 * classLoader.getResource("META-INF/services/java.lang.String") >> serviceFile
+        result instanceof String
+        1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
         1 * classLoader.loadClass('org.gradle.ImplClass') >> String
     }
 
-    def "findServiceImplementationClass() fails when no implementation class specified in service meta data resource"() {
+    def "findFactory() fails when no implementation class specified in service meta data resource"() {
         def serviceFile = stream('#empty!')
 
         when:
-        serviceLocator.findServiceImplementationClass(String.class)
+        serviceLocator.findFactory(String.class)
 
         then:
         RuntimeException e = thrown()
-        e.message == "Could not determine implementation class for service 'java.lang.String'."
-        e.cause.message == "No implementation class for service 'java.lang.String' specified in resource '${serviceFile}'."
-        1 * classLoader.getResource("META-INF/services/java.lang.String") >> serviceFile
+        e.message == "Could not determine implementation class for service 'java.lang.String' specified in resource '${serviceFile}'."
+        e.cause.message == "No implementation class for service 'java.lang.String' specified."
+        1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
     }
 
-    def "findServiceImplementationClass() fails when implementation class specified in service meta data resource is not assignable to service type"() {
+    def "findFactory() fails when implementation class specified in service meta data resource is not assignable to service type"() {
         given:
         implementationDeclared(String, Integer)
 
         when:
-        serviceLocator.findServiceImplementationClass(String)
+        serviceLocator.findFactory(String)
 
         then:
         RuntimeException e = thrown()
-        e.message == "Could not load implementation class 'java.lang.Integer' for service 'java.lang.String'."
+        e.message.startsWith("Could not load implementation class 'java.lang.Integer' for service 'java.lang.String' specified in resource '")
         e.cause.message == "Implementation class 'java.lang.Integer' is not assignable to service class 'java.lang.String'."
     }
 
@@ -128,6 +128,7 @@ class ServiceLocatorTest extends Specification {
         then:
         UnknownServiceException e = thrown()
         e.message == "Could not find meta-data resource 'META-INF/services/java.lang.CharSequence' for service 'java.lang.CharSequence'."
+        1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([])
     }
 
     def "getFactory() returns a factory which creates instances of implementation class"() {
@@ -152,15 +153,7 @@ class ServiceLocatorTest extends Specification {
         then:
         UnknownServiceException e = thrown()
         e.message == "Could not find meta-data resource 'META-INF/services/java.lang.CharSequence' for service 'java.lang.CharSequence'."
-    }
-
-    def stream(String contents) {
-        URLStreamHandler handler = Mock()
-        URLConnection connection = Mock()
-        URL url = new URL("custom", "host", 12, "file", handler)
-        _ * handler.openConnection(url) >> connection
-        _ * connection.getInputStream() >> new ByteArrayInputStream(contents.bytes)
-        return url
+        1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([])
     }
 
     def "newInstance() creates instances of implementation class"() {
@@ -173,10 +166,44 @@ class ServiceLocatorTest extends Specification {
         then:
         result instanceof String
     }
-    
+
+    def "getAll() returns an instance of each declared implementation"() {
+        def impl1 = stream("org.gradle.Impl1")
+        def impl2 = stream("org.gradle.Impl2")
+
+        when:
+        def result = serviceLocator.getAll(CharSequence)
+
+        then:
+        result.size() == 2
+        result[0] instanceof String
+        result[1] instanceof StringBuilder
+        1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([impl1, impl2])
+        1 * classLoader.loadClass("org.gradle.Impl1") >> String
+        1 * classLoader.loadClass("org.gradle.Impl2") >> StringBuilder
+    }
+
+    def "getAll() returns empty collection no meta-data file found for service type"() {
+        when:
+        def result = serviceLocator.getAll(CharSequence)
+
+        then:
+        result.empty
+        1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([])
+    }
+
+    def stream(String contents) {
+        URLStreamHandler handler = Mock()
+        URLConnection connection = Mock()
+        URL url = new URL("custom", "host", 12, "file", handler)
+        _ * handler.openConnection(url) >> connection
+        _ * connection.getInputStream() >> new ByteArrayInputStream(contents.bytes)
+        return url
+    }
+
     def implementationDeclared(Class<?> serviceType, Class<?> implementationType) {
         def serviceFile = stream(implementationType.name)
-        _ * classLoader.getResource("META-INF/services/${serviceType.name}") >> serviceFile
+        _ * classLoader.getResources("META-INF/services/${serviceType.name}") >> Collections.enumeration([serviceFile])
         _ * classLoader.loadClass(implementationType.name) >> implementationType
     }
 }

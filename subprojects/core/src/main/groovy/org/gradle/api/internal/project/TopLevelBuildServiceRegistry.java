@@ -135,8 +135,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected ProjectEvaluator createProjectEvaluator() {
         return new LifecycleProjectEvaluator(
-                new BuildScriptProcessor(
-                        get(ScriptPluginFactory.class)));
+                new PluginsProjectEvaluator(
+                        new BuildScriptProcessor(
+                                get(ScriptPluginFactory.class)),
+                        get(ClassLoaderRegistry.class).getPluginsClassLoader()));
     }
 
     protected ITaskFactory createITaskFactory() {

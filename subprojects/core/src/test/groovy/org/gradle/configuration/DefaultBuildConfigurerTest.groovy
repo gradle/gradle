@@ -32,16 +32,20 @@ class DefaultBuildConfigurerTest extends Specification {
     }
 
     def "configures build for standard mode"() {
+        def child1 = Mock(ProjectInternal)
+        def child2 = Mock(ProjectInternal)
+
+        given:
+        _ * rootProject.allprojects >> [rootProject, child1, child2]
+
         when:
         configurer.configure(gradle)
 
         then:
-        1 * gradle.addProjectEvaluationListener(_ as ImplicitTasksConfigurer);
         1 * gradle.addProjectEvaluationListener(_ as ProjectDependencies2TaskResolver);
-        1 * rootProject.allprojects(!null) >> { args ->
-            assert args[0] instanceof DefaultBuildConfigurer.ConfigureProject
-        }
-        0 * rootProject._
+        1 * rootProject.evaluate()
+        1 * child1.evaluate()
+        1 * child2.evaluate()
     }
 
     def "configures build for on demand mode"() {
@@ -54,7 +58,6 @@ class DefaultBuildConfigurerTest extends Specification {
         0 * rootProject._
 
         and:
-        1 * gradle.addProjectEvaluationListener(_ as ImplicitTasksConfigurer);
         1 * gradle.addProjectEvaluationListener(_ as ProjectDependencies2TaskResolver);
     }
 }
