@@ -19,18 +19,6 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
-## Incubating features
-
-Incubating features are intended to be used, but not yet guaranteed to be backwards compatible.
-By giving early access to new features, real world feedback can be incorporated into their design.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the new incubating features or changes to existing incubating features in this Gradle release.
-
-<!--
-### Example incubating feature
--->
-
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
