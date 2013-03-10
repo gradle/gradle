@@ -18,28 +18,21 @@ package org.gradle.plugins.ide.idea.internal
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.FilePath
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
 import org.gradle.plugins.ide.idea.model.ProjectLibrary
 
-class IdeaScalaConfigurer {
-    private final Project rootProject
-
-    IdeaScalaConfigurer(Project rootProject) {
-        this.rootProject = rootProject
-    }
-
-    void configure() {
+class ScalaSpecificIdeaConfigurer extends AbstractPluginSpecificIdeaConfigurer {
+    void configure(Project rootProject) {
         rootProject.gradle.projectsEvaluated {
-            def scalaProjects = findProjectsApplyingIdeaAndScalaPlugins()
+            def scalaProjects = findAffectedProjects(rootProject, ScalaBasePlugin)
             scalaProjects.tasks.ideaModule*.dependsOn(rootProject.tasks.ideaProject)
             Map<String, ProjectLibrary> scalaCompilerLibraries = [:]
 
             rootProject.ideaProject.doFirst {
-                scalaCompilerLibraries = resolveScalaCompilerLibraries(project, scalaProjects)
-                declareUniqueProjectLibraries(scalaCompilerLibraries.values() as Set)
+                scalaCompilerLibraries = resolveScalaCompilerLibraries(scalaProjects)
+                declareUniqueProjectLibraries(rootProject, scalaCompilerLibraries.values() as Set)
             }
 
             rootProject.configure(scalaProjects) { org.gradle.api.Project prj ->
@@ -50,7 +43,7 @@ class IdeaScalaConfigurer {
         }
     }
 
-    private Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Project rootProject, Collection<Project> scalaProjects) {
+    private Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects) {
         def scalaCompilerLibraries = [:]
 
         for (scalaProject in scalaProjects) {
@@ -74,7 +67,7 @@ class IdeaScalaConfigurer {
         return scalaCompilerLibraries
     }
 
-    private void declareUniqueProjectLibraries(Set<ProjectLibrary> projectLibraries) {
+    private void declareUniqueProjectLibraries(Project rootProject, Set<ProjectLibrary> projectLibraries) {
         def existingLibraries = rootProject.idea.project.projectLibraries
         def newLibraries = projectLibraries - existingLibraries
         for (newLibrary in newLibraries) {
@@ -88,20 +81,8 @@ class IdeaScalaConfigurer {
     }
 
     private void declareScalaFacet(ProjectLibrary scalaCompilerLibrary, Node iml) {
-        def facetManager = iml.component.find { it.@name == "FacetManager" }
-        if (!facetManager) {
-            facetManager = iml.appendNode("component", [name: "FacetManager"])
-        }
-
-        def scalaFacet = facetManager.facet.find { it.@type == "scala" }
-        if (!scalaFacet) {
-            scalaFacet = facetManager.appendNode("facet", [type: "scala", name: "Scala"])
-        }
-
-        def configuration = scalaFacet.configuration[0]
-        if (!configuration) {
-            configuration = scalaFacet.appendNode("configuration")
-        }
+        def scalaFacet = getOrCreateFacet(iml, "scala", "Scala")
+        def configuration = getOrCreateFacetConfiguration(scalaFacet)
 
         def libraryLevel = configuration.option.find { it.@name == "compilerLibraryLevel" }
         if (!libraryLevel) {
@@ -113,14 +94,7 @@ class IdeaScalaConfigurer {
         if (!libraryName) {
             libraryName = configuration.appendNode("option", [name: "compilerLibraryName"])
         }
-
         libraryName.@value = scalaCompilerLibrary.name
-    }
-
-    private Collection<Project> findProjectsApplyingIdeaAndScalaPlugins() {
-        rootProject.allprojects.findAll {
-            it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(ScalaBasePlugin)
-        }
     }
 
     private ProjectLibrary createProjectLibrary(String name, Iterable<File> jars) {

@@ -44,9 +44,10 @@
   </component>
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/root.iml" filepath="$PROJECT_DIR$/root.iml"/>
       <module fileurl="file://$PROJECT_DIR$/api/api.iml" filepath="$PROJECT_DIR$/api/api.iml"/>
-      <module fileurl="file://$PROJECT_DIR$/webservice/webservice.iml" filepath="$PROJECT_DIR$/webservice/webservice.iml"/>
+      <module fileurl="file://$PROJECT_DIR$/root.iml" filepath="$PROJECT_DIR$/root.iml"/>
+      <module fileurl="file://$PROJECT_DIR$/project1/project1.iml" filepath="$PROJECT_DIR$/project1/project1.iml"/>
+      <module fileurl="file://$PROJECT_DIR$/project2/project2.iml" filepath="$PROJECT_DIR$/project2/project2.iml"/>
     </modules>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-type="JavaSDK" assert-jdk-15="true" project-jdk-name="1.6">
@@ -100,19 +101,31 @@
     </states>
   </component>
   <component name="ArtifactManager">
-    <artifact type="exploded-war" name="webservice:Web exploded">
-      <output-path>file://$PROJECT_DIR$/out/webservice_web_exploded</output-path>
+    <artifact type="exploded-war" name="project1:Web exploded">
+      <output-path>file://$PROJECT_DIR$/out/project1_web_exploded</output-path>
       <root>
-        <element id="javaee-facet-resources" facet="webservice/web/Web" />
+        <element id="javaee-facet-resources" facet="project1/web/Web" />
         <element id="directory" name="WEB-INF">
           <element id="directory" name="classes">
-            <element id="module-output" name="webservice" />
+            <element id="module-output" name="project1" />
+          </element>
+          <element id="directory" name="lib">
+            <element id="file-copy" path="@CACHE_DIR@/commons-lang/commons-lang/2.4/jar/@SHA1@/commons-lang-2.4.jar"/>
+          </element>
+        </element>
+      </root>
+    </artifact>
+    <artifact type="exploded-war" name="project2:Web exploded">
+      <output-path>file://$PROJECT_DIR$/project2/build/project2_web_exploded</output-path>
+      <root>
+        <element id="javaee-facet-resources" facet="project2/web/Web" />
+        <element id="directory" name="WEB-INF">
+          <element id="directory" name="classes">
+            <element id="module-output" name="project2" />
             <element id="module-output" name="api" />
           </element>
           <element id="directory" name="lib">
             <element id="file-copy" path="@CACHE_DIR@/commons-lang/commons-lang/2.4/jar/@SHA1@/commons-lang-2.4.jar"/>
-            <element id="file-copy" path="@CACHE_DIR@/commons-io/commons-io/1.2/jar/@SHA1@/commons-io-1.2.jar"/>
-            <element id="file-copy" path="$PROJECT_DIR$/webservice/lib/compile-1.0.jar"/>
           </element>
         </element>
       </root>

@@ -21,7 +21,9 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
-import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer
+import org.gradle.plugins.ide.idea.internal.PluginSpecificIdeaConfigurer
+import org.gradle.plugins.ide.idea.internal.ScalaSpecificIdeaConfigurer
+import org.gradle.plugins.ide.idea.internal.WarSpecificIdeaConfigurer
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.plugins.ide.idea.model.*
 
@@ -34,6 +36,9 @@ import javax.inject.Inject
  *  @author Hans Dockter
  */
 class IdeaPlugin extends IdePlugin {
+    private final List<PluginSpecificIdeaConfigurer> pluginConfigurers = [
+            new ScalaSpecificIdeaConfigurer(), new WarSpecificIdeaConfigurer()
+    ]
     private final Instantiator instantiator
     IdeaModel model
 
@@ -56,7 +61,7 @@ class IdeaPlugin extends IdePlugin {
         configureIdeaProject(project)
         configureIdeaModule(project)
         configureForJavaPlugin(project)
-        configureForScalaPlugin()
+        configureForExtraPlugins()
 
         hookDeduplicationToTheRoot(project)
     }
@@ -172,9 +177,9 @@ class IdeaPlugin extends IdePlugin {
         }
     }
 
-    private void configureForScalaPlugin() {
+    private void configureForExtraPlugins() {
         if (isRoot(project)) {
-            new IdeaScalaConfigurer(project).configure()
+            pluginConfigurers*.configure(project)
         }
     }
 

@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -92,10 +91,10 @@ apply plugin: 'idea'
     void overwritesExistingDependencies() {
         executer.withTasks('idea').run()
 
+        assertHasExpectedContents('root.ipr')
         assertHasExpectedContents('root.iml')
     }
 
-    @Ignore
     @Test
     void addsScalaFacetAndCompilerLibraries() {
         executer.withTasks('idea').run()
@@ -104,6 +103,16 @@ apply plugin: 'idea'
         assertHasExpectedContents('project1/project1.iml')
         assertHasExpectedContents('project2/project2.iml')
         assertHasExpectedContents('project3/project3.iml')
+    }
+
+    @Test
+    void addsWebFacetAndExplodedWarArtifact() {
+        executer.withTasks('idea').run()
+
+        assertHasExpectedContents('root.ipr')
+        assertHasExpectedContents('project1/project1.iml')
+        assertHasExpectedContents('project2/project2.iml')
+        assertHasExpectedContents('api/api.iml')
     }
 
     @Test

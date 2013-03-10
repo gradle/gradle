@@ -1,15 +1,22 @@
-apply plugin: 'java'
-apply plugin: 'idea'
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
 
-repositories {
-    mavenCentral()
-}
+    repositories {
+        mavenCentral()
+    }
 
-dependencies {
-    runtime 'commons-collections:commons-collections:3.2@jar'
-    runtime 'junit:junit:4.7@jar'
+    dependencies {
+        runtime 'commons-collections:commons-collections:3.2@jar'
+        runtime 'junit:junit:4.7@jar'
+    }
 }
 
 idea {
+    project {
+        jdkName = '1.6'
+        languageLevel = '1.6'
+    }
     pathVariables CUSTOM_DIR: new File(gradle.gradleUserHomeDir, 'custom')
 }
+

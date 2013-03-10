@@ -11,27 +11,6 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/jar/@SHA1@/slf4j-api-1.5.8.jar!/"/>
-        </CLASSES>
-        <JAVADOC/>
-        <SOURCES>
-          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/source/@SHA1@/slf4j-api-1.5.8-sources.jar!/"/>
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/compile-1.0.jar!/"/>
-        </CLASSES>
-        <JAVADOC/>
-        <SOURCES/>
-      </library>
-    </orderEntry>
-    <orderEntry type="module" module-name="api" exported=""/>
-    <orderEntry type="module-library" exported="" scope="RUNTIME">
-      <library>
-        <CLASSES>
           <root url="jar://@CACHE_DIR@/commons-lang/commons-lang/2.4/jar/@SHA1@/commons-lang-2.4.jar!/"/>
         </CLASSES>
         <JAVADOC>
@@ -42,16 +21,14 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="" scope="RUNTIME">
+    <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="jar://@CACHE_DIR@/commons-io/commons-io/1.2/jar/@SHA1@/commons-io-1.2.jar!/"/>
+          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/jar/@SHA1@/slf4j-api-1.5.8.jar!/"/>
         </CLASSES>
-        <JAVADOC>
-          <root url="jar://@CACHE_DIR@/commons-io/commons-io/1.2/javadoc/@SHA1@/commons-io-1.2-javadoc.jar!/"/>
-        </JAVADOC>
+        <JAVADOC/>
         <SOURCES>
-          <root url="jar://@CACHE_DIR@/commons-io/commons-io/1.2/source/@SHA1@/commons-io-1.2-sources.jar!/"/>
+          <root url="jar://@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/source/@SHA1@/slf4j-api-1.5.8-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>
