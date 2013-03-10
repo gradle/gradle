@@ -56,13 +56,7 @@ public class BuildModelAction implements BuildAction<Object> {
     }
 
     private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
-        final ToolingModelBuilderRegistry modelBuilderRegistry = gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
-        modelBuilderRegistry.register(new EclipseModelBuilder());
-        modelBuilderRegistry.register(new IdeaModelBuilder());
-        modelBuilderRegistry.register(new GradleProjectBuilder());
-        modelBuilderRegistry.register(new BasicIdeaModelBuilder());
-        modelBuilderRegistry.register(new ProjectOutcomesModelBuilder());
-        return modelBuilderRegistry;
+        return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
     }
 
     private void ensureAllProjectsEvaluated(GradleInternal gradle) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
@@ -32,7 +32,6 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import java.util.List;
 
 public class ProjectOutcomesModelBuilder implements ToolingModelBuilder {
-
     private final PublishArtifactToFileBuildOutcomeTransformer artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
 
     public boolean canBuild(Class<?> type) {

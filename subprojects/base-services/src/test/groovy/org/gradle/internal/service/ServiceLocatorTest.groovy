@@ -183,6 +183,23 @@ class ServiceLocatorTest extends Specification {
         1 * classLoader.loadClass("org.gradle.Impl2") >> StringBuilder
     }
 
+    def "getAll() ignores duplicate implementation classes"() {
+        def impl1 = stream("org.gradle.Impl1")
+        def impl2 = stream("org.gradle.Impl2")
+        def impl3 = stream("org.gradle.Impl1")
+
+        when:
+        def result = serviceLocator.getAll(CharSequence)
+
+        then:
+        result.size() == 2
+        result[0] instanceof String
+        result[1] instanceof StringBuilder
+        1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([impl1, impl2, impl3])
+        1 * classLoader.loadClass("org.gradle.Impl1") >> String
+        1 * classLoader.loadClass("org.gradle.Impl2") >> StringBuilder
+    }
+
     def "getAll() returns empty collection no meta-data file found for service type"() {
         when:
         def result = serviceLocator.getAll(CharSequence)

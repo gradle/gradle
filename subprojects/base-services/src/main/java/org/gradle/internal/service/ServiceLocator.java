@@ -96,6 +96,7 @@ public class ServiceLocator extends AbstractServiceRegistry {
     private <T> List<Class<? extends T>> findServiceImplementations(Class<T> serviceType) throws IOException {
         String resourceName = "META-INF/services/" + serviceType.getName();
         Enumeration<URL> resources = classLoader.getResources(resourceName);
+        Set<String> implementationClassNames = new HashSet<String>();
         List<Class<? extends T>> implementations = new ArrayList<Class<? extends T>>();
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
@@ -107,6 +108,9 @@ public class ServiceLocator extends AbstractServiceRegistry {
                 }
             } catch (Exception e) {
                 throw new ServiceLookupException(String.format("Could not determine implementation class for service '%s' specified in resource '%s'.", serviceType.getName(), resource), e);
+            }
+            if (!implementationClassNames.add(implementationClassName)) {
+                continue;
             }
             try {
                 Class<?> implClass = classLoader.loadClass(implementationClassName);
