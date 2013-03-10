@@ -30,6 +30,7 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVers
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -38,7 +39,7 @@ import java.util.*;
 /**
 * @author Adam Murdoch, Szczepan Faber, @date: 17.03.11
 */
-public class EclipseModelBuilder implements BuildsModel {
+public class EclipseModelBuilder implements ToolingModelBuilder {
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject result;
     private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
@@ -48,17 +49,13 @@ public class EclipseModelBuilder implements BuildsModel {
     private ProjectInternal currentProject;
 
     public boolean canBuild(Class<?> type) {
-        if (type.isAssignableFrom(EclipseProjectVersion3.class)) {
-            //I don't like preparing the state in this method but for now lets leave it :/
-            boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
-            this.tasksFactory = new TasksFactory(includeTasks);
-            this.projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
-            return true;
-        }
-        return false;
+        return type.isAssignableFrom(EclipseProjectVersion3.class);
     }
 
-    public DefaultEclipseProject buildAll(ProjectInternal project) {
+    public DefaultEclipseProject buildAll(Class<?> type, ProjectInternal project) {
+        boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
+        tasksFactory = new TasksFactory(includeTasks);
+        projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
         currentProject = project;
         ProjectInternal root = project.getRootProject();
         rootGradleProject = gradleProjectBuilder.buildAll(project);

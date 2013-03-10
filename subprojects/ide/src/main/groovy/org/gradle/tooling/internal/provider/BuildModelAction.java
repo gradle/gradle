@@ -23,6 +23,7 @@ import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.TasksCompletionListener;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 public class BuildModelAction implements BuildAction<Object> {
     private final Class<?> type;
@@ -36,11 +37,11 @@ public class BuildModelAction implements BuildAction<Object> {
 
     public Object run(BuildController buildController) {
         GradleLauncher launcher = buildController.getLauncher();
-        final BuildsModel builder = new DefaultToolingModelBuilderRegistry().getBuilder(type);
+        final ToolingModelBuilder builder = new StandardToolingModelBuilderRegistry().getBuilder(type);
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
                 public void onTasksFinished(GradleInternal gradle) {
-                    model = builder.buildAll(gradle.getDefaultProject());
+                    model = builder.buildAll(type, gradle.getDefaultProject());
                 }
             });
             buildController.run();
@@ -48,7 +49,7 @@ public class BuildModelAction implements BuildAction<Object> {
             launcher.addListener(new ModelConfigurationListener() {
                 public void onConfigure(GradleInternal gradle) {
                     ensureAllProjectsEvaluated(gradle);
-                    model = builder.buildAll(gradle.getDefaultProject());
+                    model = builder.buildAll(type, gradle.getDefaultProject());
                 }
             });
             buildController.configure();

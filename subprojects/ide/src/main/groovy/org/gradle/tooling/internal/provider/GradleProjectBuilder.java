@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleTask;
 import org.gradle.tooling.internal.protocol.InternalGradleProject;
 import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -34,9 +35,13 @@ import java.util.List;
  *
  * @author: Szczepan Faber, created at: 7/27/11
  */
-public class GradleProjectBuilder implements BuildsModel {
+public class GradleProjectBuilder implements ToolingModelBuilder {
     public boolean canBuild(Class<?> type) {
         return type == InternalGradleProject.class;
+    }
+
+    public Object buildAll(Class<?> type, ProjectInternal project) {
+        return buildHierarchy(project.getRootProject());
     }
 
     public DefaultGradleProject buildAll(ProjectInternal project) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.internal.project.ProjectInternal;
-
-/**
-* @author: Szczepan Faber, created at: 7/23/11
-*/
-public interface BuildsModel {
-    boolean canBuild(Class<?> type);
-    Object buildAll(ProjectInternal project);
+public class StandardToolingModelBuilderRegistry extends DefaultToolingModelBuilderRegistry {
+    public StandardToolingModelBuilderRegistry() {
+        register(new NullResultBuilder());
+        register(new EclipseModelBuilder());
+        register(new IdeaModelBuilder());
+        register(new GradleProjectBuilder());
+        register(new BasicIdeaModelBuilder());
+        register(new ProjectOutcomesModelBuilder());
+    }
 }

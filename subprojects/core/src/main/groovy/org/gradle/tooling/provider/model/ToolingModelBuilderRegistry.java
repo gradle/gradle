@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.provider.model;
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.api.Incubating;
 
-public class NullResultBuilder implements ToolingModelBuilder {
-    public boolean canBuild(Class<?> type) {
-        return type.equals(Void.class);
-    }
+/**
+ * A registry of tooling model builders. Adding a builder to this registry makes a model (or models) available via the tooling API.
+ */
+@Incubating
+public interface ToolingModelBuilderRegistry {
+    void register(ToolingModelBuilder builder);
 
-    public Object buildAll(Class<?> type, ProjectInternal project) {
-        return null;
-    }
+    ToolingModelBuilder getBuilder(Class<?> modelType) throws UnsupportedOperationException;
 }

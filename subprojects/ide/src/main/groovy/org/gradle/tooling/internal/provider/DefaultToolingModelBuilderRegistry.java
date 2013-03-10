@@ -16,21 +16,21 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+
+import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Arrays.asList;
-
 public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRegistry {
-    public BuildsModel getBuilder(Class<?> modelType) {
-        List<? extends BuildsModel> modelBuilders = asList(
-                new NullResultBuilder(),
-                new EclipseModelBuilder(),
-                new IdeaModelBuilder(),
-                new GradleProjectBuilder(),
-                new BasicIdeaModelBuilder(),
-                new ProjectOutcomesModelBuilder());
+    private final List<ToolingModelBuilder> builders = new ArrayList<ToolingModelBuilder>();
 
-        for (BuildsModel builder : modelBuilders) {
+    public void register(ToolingModelBuilder builder) {
+        builders.add(builder);
+    }
+
+    public ToolingModelBuilder getBuilder(Class<?> modelType) {
+        for (ToolingModelBuilder builder : builders) {
             if (builder.canBuild(modelType)) {
                 return builder;
             }

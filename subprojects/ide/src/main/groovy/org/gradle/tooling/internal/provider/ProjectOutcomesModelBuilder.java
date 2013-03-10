@@ -27,10 +27,11 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.List;
 
-public class ProjectOutcomesModelBuilder implements BuildsModel {
+public class ProjectOutcomesModelBuilder implements ToolingModelBuilder {
 
     private final PublishArtifactToFileBuildOutcomeTransformer artifactTransformer = new PublishArtifactToFileBuildOutcomeTransformer();
 
@@ -38,7 +39,7 @@ public class ProjectOutcomesModelBuilder implements BuildsModel {
         return type == InternalProjectOutcomes.class;
     }
 
-    public DefaultProjectOutcomes buildAll(ProjectInternal project) {
+    public Object buildAll(Class<?> type, ProjectInternal project) {
         return buildProjectOutput(project.getRootProject(), null);
     }
 

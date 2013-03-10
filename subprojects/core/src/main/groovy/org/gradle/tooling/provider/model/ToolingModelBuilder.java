@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.provider.model;
 
-public interface ToolingModelBuilderRegistry {
-    /**
-     * @throws UnsupportedOperationException When no builder is available for the given type.
-     */
-    BuildsModel getBuilder(Class<?> modelType) throws UnsupportedOperationException;
+import org.gradle.api.Incubating;
+import org.gradle.api.internal.project.ProjectInternal;
+
+/**
+ * Responsible for building tooling models.
+ */
+@Incubating
+public interface ToolingModelBuilder {
+    boolean canBuild(Class<?> type);
+    Object buildAll(Class<?> type, ProjectInternal project);
 }
