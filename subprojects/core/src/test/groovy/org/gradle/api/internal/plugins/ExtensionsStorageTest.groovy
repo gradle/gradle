@@ -149,15 +149,15 @@ class ExtensionsStorageTest extends Specification {
         storage.getByName("ext")
 
         then:
-        def t = thrown RuntimeException
-        t.message == "bad"
+        def first = thrown RuntimeException
+        first.message == "bad"
 
         when:
         storage.getByName("ext")
 
         then:
-        t = thrown RuntimeException
-        t.message == "bad"
+        def second = thrown RuntimeException
+        second == first
     }
 
     def "rethrows unknown domain object exception thrown by deferred configurable extension config"() {
@@ -204,7 +204,8 @@ class ExtensionsStorageTest extends Specification {
         })
 
         then:
-        thrown InvalidUserDataException
+        def t = thrown InvalidUserDataException
+        t.message == "Cannot configure the 'ext' extension after it has been accessed."
     }
 
     public static interface TestExtension {

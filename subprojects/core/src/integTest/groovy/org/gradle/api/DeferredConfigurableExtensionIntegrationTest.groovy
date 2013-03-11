@@ -20,17 +20,14 @@ public class DeferredConfigurableExtensionIntegrationTest extends AbstractIntegr
 
     def "setup"() {
         settingsFile << "rootProject.name = 'customProject'"
-        file('buildSrc/src/main/java/CustomPlugin.java') << """
-import org.gradle.api.Project;
-import org.gradle.api.Plugin;
+
+        buildFile << """
 public class CustomPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getExtensions().create("custom", CustomExtension.class);
     }
 }
-        """
 
-        file('buildSrc/src/main/java/CustomExtension.java') << """
 @org.gradle.api.plugins.DeferredConfigurable
 public class CustomExtension {
     private final StringBuilder builder = new StringBuilder();
@@ -42,7 +39,7 @@ public class CustomExtension {
         return builder.toString();
     }
 }
-        """
+"""
     }
 
     def "configure actions on deferred configurable extension are deferred until access"() {
@@ -61,6 +58,26 @@ custom {
 }
 
 assert custom.string == "22"
+task test
+'''
+        then:
+        succeeds('test')
+    }
+
+    def "configure actions on deferred configurable extension are applied prior to project.afterEvaluate"() {
+        when:
+        buildFile << '''
+apply plugin: CustomPlugin
+
+version = "before"
+custom {
+    append project.version
+}
+
+project.afterEvaluate() {
+    project.version = "after"
+    assert project.custom.string == "before"
+}
 task test
 '''
         then:
