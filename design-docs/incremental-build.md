@@ -57,6 +57,16 @@ Gradle should invalidate a task's outputs when its implementation changes.
 
 ## Fix up-to-date issues on copy tasks
 
+## Don't compile a source file when the API of its compile dependencies has not changed
+
+Currently, changing the body of a method invalidates all class files that have been compiled against the method's class. Instead, only the method's class should be recompiled.
+Simiarly, changing a resource file invalidates all class files that included that resource file in the compile classpath. Instead, resource files should be ignored
+when compiling.
+
+We don't necessarily need a full incremental Java compilation to improve this. For example, the Java compilation task may consider the API of the compile classpath - if it has
+changed, then compile all source files, and if it has not, skip the task (assuming everything else is up to date). This means that a change to a method body does not propagate
+through the dependency graph.
+
 # Implementation plan
 
 ## Plugin author implements incremental task
