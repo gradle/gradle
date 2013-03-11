@@ -82,15 +82,31 @@ class JavaBasePluginTest extends Specification {
         Matchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
         compileJava.destinationDir == project.sourceSets.custom.output.classesDir
+
         def sources = compileJava.source
         sources sameCollection(project.sourceSets.custom.java)
+
         def classes = project.tasks['customClasses']
         classes.description == 'Assembles the custom classes.'
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         classes.dependsOn.contains project.sourceSets.custom.output.dirs
     }
-    
+
+    void "wires generated resources task into classes task for sourceset"() {
+        when:
+        javaBasePlugin.apply(project)
+        project.sourceSets.add('custom')
+
+        and:
+        final someTask = project.task("someTask")
+        project.sourceSets.custom.output.dir('some-dir', builtBy: someTask)
+
+        then:
+        def customClasses = project.tasks['customClasses']
+        Matchers.dependsOn('someTask', 'processCustomResources', 'compileCustomJava').matches(customClasses)
+    }
+
     void tasksReflectChangesToSourceSetConfiguration() {
         def classesDir = project.file('target/classes')
         def resourcesDir = project.file('target/resources')

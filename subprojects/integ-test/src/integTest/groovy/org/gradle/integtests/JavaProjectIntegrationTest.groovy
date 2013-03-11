@@ -15,11 +15,9 @@
  */
 
 package org.gradle.integtests
-
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Ignore
 import org.junit.Test
 
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
@@ -121,8 +119,6 @@ version = ''
         testFile("build/libs/empty.jar").assertIsFile();
     }
 
-    // TODO: translate to new source set/packaging model
-    @Ignore
     @Test
     public void "task registered as a builder of resources is executed"() {
         TestFile buildFile = testFile("build.gradle");
