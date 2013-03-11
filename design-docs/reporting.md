@@ -45,7 +45,7 @@ verifications and documentation will be supported.
 
 In addition, the task graph will be changed to make the dashboard report more usable and reliable in various cases.
 
-## Add a build dashboard report
+## Add a build dashboard report (DONE)
 
 Add a basic dashboard HTML report that links to the reports declared in the build.
 
@@ -92,7 +92,51 @@ Note that running `gradle buildDashboard check` will not do anything very useful
     * Adds a `buildDashboard` task of type `GenerateBuildDashboard`.
     * Configures `buildDashboard` to report on all enabled `Report` instances for all tasks of type `Reporting` in the current project and all subprojects.
 
-## Test task implements `Reporting`
+## Schedule dashboard report task to run after all reporting and verification tasks
+
+Run any reporting and verification tasks that are to be executed by the build before running the dashboard report task, so that the dashboard
+report includes results from the current build.
+
+Run the dashboard report task even if one of the reporting or verification tasks fail, so that the dashboard report shows the up-to-date results
+in the presence of failures.
+
+### User visible changes
+
+Running `gradle dashboardReport check` will run the reporting and verification tasks first, then the `dashboardReport` task, followed by the remaining
+check tasks.
+
+Running `gradle check dashboardReport` will generate the dashboard report on failures, provided at least one reporting or verification task has been
+executed.
+
+### Implementation approach
+
+1. Add a "always runs after" dependency type to the task graph.
+    * When "taskA always runs after taskB" and both are in the task graph, then taskA must not be executed until after taskB has been executed, and
+      must execute regardless of whether taskB succeeds or fails. Execution of taskA must honour the other dependencies of taskA.
+2. When `dashboardReport` task is added to the graph, add "always runs after" dependencies from `dashboardReport` to any task that generates one of its
+   input reports and that is also included in the task graph.
+
+### Test coverage
+
+- For a multi-project build where `rootProject.check.dependsOn(dashboardReport)` and that applies the code quality plugins:
+    - verify that running `gradle check` generates the report after each of the code quality tasks have completed.
+    - verify that running `gradle check --continue` generates the report when one of the code quality tasks fails.
+- When `a.mustRunAfter b`:
+    - running `gradle a` does not run b.
+    - running `gradle a b` runs b and all its dependencies run before a and all of its remaining dependencies.
+    - running `gradle a b --continue` runs a and its remaining dependencies when b fails.
+    - running `gradle a b --continue` runs a and its remaining dependencies when one of b's dependencies fails.
+    - running `gradle a b --continue` runs a and its remaining dependencies when one of b's dependencies fails.
+- In parallel mode:
+    - when `a.mustRunAfter b` and b depends on a slow task c in another project, verify that c runs before b runs before a.
+
+## Automatically add dashboard report task to task graph
+
+Running `gradle checkstyleMain` will also run `dashboardReport`. The `dashboardReport` will be run regardless of whether the `checkstyleMain` succeeds or fails.
+
+## Separate test report generation from test execution
+
+Configure a `TestReport` task to always run after the `Test` task, and change the `TestReport` type to implement `Reporting`. Remove the reporting from the `Test` task type.
 
 ## Include summary of all verification task results in the dashboard report
 
@@ -131,34 +175,6 @@ The report will show more information.
 4. Persist the verification result.
 5. Dashboard report includes test summary when verification result is an instanceof `TestSummary`.
 
-## Schedule dashboard report task to run after all reporting and verification tasks
-
-Run any reporting and verification tasks that are to be executed by the build before running the dashboard report task, so that the dashboard
-report includes results from the current build.
-
-Run the dashboard report task even if one of the reporting or verification tasks fail, so that the dashboard report shows the up-to-date results
-in the presence of failures.
-
-### User visible changes
-
-Running `gradle dashboardReport check` will run the reporting and verification tasks first, then the `dashboardReport` task, followed by the remaining
-check tasks.
-
-Running `gradle check dashboardReport` will generate the dashboard report on failures, provided at least one reporting or verification task has been
-executed.
-
-### Implementation approach
-
-1. Add a "always runs after" dependency type to the task graph.
-    * When "taskA always runs after taskB" and both are in the task graph, then taskA must not be executed until after taskB has been executed, and
-      must execute regardless of whether taskB succeeds or fails. Execution of taskA must honour the other dependencies of taskA.
-2. When `dashboardReport` task is added to the graph, add "always runs after" dependencies from `dashboardReport` to any task that generates one of its
-   input reports and that is also included in the task graph.
-
-## Automatically add dashboard report task to task graph
-
-Running `gradle test` will also run `dashboardReport`.
-
 ## Allow a custom verification task to be implemented
 
 ## Allow a custom reporting task to be implemented
@@ -169,10 +185,6 @@ Cobertura plugin adds instrument task and coverage report task. The test task de
 the test task.
 
 ## Include test coverage summary in the dashboard report
-
-## Separate test report generation from test execution
-
-Split a `TestReport` task out of the `Test` task. The test report task "always runs after" the test task.
 
 ## Link to the API documentation in the dashboard report
 
