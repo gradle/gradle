@@ -73,6 +73,10 @@ through the dependency graph.
 
 TBD
 
+## Java compile task specifies its output files
+
+TBD
+
 # Open issues
 
 None yet.
