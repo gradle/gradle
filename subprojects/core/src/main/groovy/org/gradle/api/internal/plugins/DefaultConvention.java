@@ -141,6 +141,10 @@ public class DefaultConvention implements Convention {
         extensionsStorage.configureExtension(type, action);
     }
 
+    public Map<String, Object> getAsMap() {
+        return extensionsStorage.getAsMap();
+    }
+
     public Object propertyMissing(String name) {
         return getByName(name);
     }

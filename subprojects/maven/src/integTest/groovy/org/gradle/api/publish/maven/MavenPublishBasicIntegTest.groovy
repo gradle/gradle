@@ -196,11 +196,8 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        // TODO:DAZ Better error reporting, including the project path
-//        failure.assertHasDescription("A problem occurred configuring the 'publishing' extension")
-//        failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
-
-        failure.assertHasDescription("Maven publication 'maven' cannot include multiple components")
+        failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
+        failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 
     @Ignore("Not yet implemented - currently the second publication will overwrite") // TODO:DAZ fix in validation story
@@ -232,10 +229,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        // TODO:DAZ Better error reporting, including the project path
-//        failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
-//        failure.assertHasCause("Publication with name 'mavenJava' already exists")
-
-        failure.assertHasDescription("Publication with name 'mavenJava' already exists")
+        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'")
+        failure.assertHasCause("Publication with name 'mavenJava' already exists")
     }
 }

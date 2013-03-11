@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.plugins.DeferredConfigurableProjectEvaluator;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -134,11 +135,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected ProjectEvaluator createProjectEvaluator() {
-        return new LifecycleProjectEvaluator(
-                new PluginsProjectEvaluator(
-                        new BuildScriptProcessor(
-                                get(ScriptPluginFactory.class)),
-                        get(ClassLoaderRegistry.class).getPluginsClassLoader()));
+        BuildScriptProcessor buildScriptProcessor = new BuildScriptProcessor(get(ScriptPluginFactory.class));
+        PluginsProjectEvaluator pluginsEvaluator = new PluginsProjectEvaluator(buildScriptProcessor, get(ClassLoaderRegistry.class).getPluginsClassLoader());
+        DeferredConfigurableProjectEvaluator deferredConfigurableEvaluator = new DeferredConfigurableProjectEvaluator(pluginsEvaluator);
+        return new LifecycleProjectEvaluator(deferredConfigurableEvaluator);
     }
 
     protected ITaskFactory createITaskFactory() {

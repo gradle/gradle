@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 public class DeferredConfigurableExtensionIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
+        settingsFile << "rootProject.name = 'customProject'"
         file('buildSrc/src/main/java/CustomPlugin.java') << """
 import org.gradle.api.Project;
 import org.gradle.api.Plugin;
@@ -66,9 +67,56 @@ task test
         succeeds('test')
     }
 
+    def "reports on failure in deferred configurable that is referenced in the build"() {
+        when:
+        buildFile << '''
+apply plugin: CustomPlugin
+custom {
+    throw new RuntimeException("deferred configuration failure")
+}
+assert custom.string == "22"
+task test
+'''
+        then:
+        fails 'test'
+        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'")
+        failure.assertHasCause("deferred configuration failure")
+    }
+
+    def "reports on failure in deferred configurable that is not referenced in the build"() {
+        when:
+        buildFile << '''
+apply plugin: CustomPlugin
+custom {
+    throw new RuntimeException("deferred configuration failure")
+}
+task test
+'''
+        then:
+        fails 'test'
+        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'")
+        failure.assertHasCause("deferred configuration failure")
+    }
+
+    def "does not report on deferred configuration failure in case of another configuration failure"() {
+        when:
+        buildFile << '''
+apply plugin: CustomPlugin
+custom {
+    throw new RuntimeException("deferred configuration failure")
+}
+task test {
+    throw new RuntimeException("task configuration failure")
+}
+'''
+        then:
+        fails 'test'
+        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'")
+        failure.assertHasCause("task configuration failure")
+    }
+
     def "cannot configure deferred configurable extension after access"() {
         when:
-        settingsFile << '''rootProject.name = "deferred"'''
         buildFile << '''
 apply plugin: CustomPlugin
 
@@ -86,7 +134,7 @@ task test
 '''
         then:
         fails('test')
-        failure.assertHasDescription "A problem occurred evaluating root project 'deferred'"
+        failure.assertHasDescription "A problem occurred evaluating root project 'customProject'"
         failure.assertHasCause "Cannot configure the 'custom' extension after it has been accessed."
     }
 }
