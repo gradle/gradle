@@ -2,9 +2,27 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
+### Installation via Gradle Wrapper is now multi process safe
+
+In previous versions of Gradle it was possible for a Gradle distribution installed implicitly via the [Gradle Wrapper](userguide/gradle_wrapper.html) to be corrupted, 
+or to fail to install, if more than one process was trying to do this at the same time. This was more likely to occur on a continuous build server than a developer workstation. 
+This no longer occurs as the installation performed by the wrapper is now multi process safe.
+
+**Important:** leveraging the new multi process safe wrapper requires updating the `gradle-wrapper.jar` that is checked in to your project. 
+This requires an extra step to the usual wrapper upgrade process. 
+
+First, update your wrapper as per usual by updating the `gradleVersion` property of the wrapper task in the build…
+
+    task wrapper(type: Wrapper) {
+        gradleVersion = "1.6"
+    }
+
+Then run `./gradlew wrapper` to update the wrapper definition. This will configure the wrapper to use and download Gradle 1.6 for future builds, 
+but it has not updated the `gradle-wrapper.jar` that is checked in to your project. To do this, simply run `./gradlew wrapper` again. This is necessary as the wrapper 
+jar is sourced from the Gradle environment that is running the build. 
+
+If you are seeding a new project using an installation of Gradle 1.6 or higher, you do not need to run the wrapper task twice. It is only necessary when upgrading the 
+wrapper from an older version.
 
 ## Promoted features
 
