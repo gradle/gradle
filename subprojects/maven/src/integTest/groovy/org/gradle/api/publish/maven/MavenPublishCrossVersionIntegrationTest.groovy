@@ -29,7 +29,7 @@ class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
         projectPublishedUsingMavenPublishPlugin('java')
 
         expect:
-        consumePublicationWithPreviousVersion('')
+        consumePublicationWithPreviousVersion()
 
         file('build/resolved').assertHasDescendants('published-1.9.jar', 'commons-collections-3.0.jar')
     }
@@ -39,7 +39,7 @@ class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
         projectPublishedUsingMavenPublishPlugin('web')
 
         expect:
-        consumePublicationWithPreviousVersion('@war')
+        consumePublicationWithPreviousVersion()
 
         file('build/resolved').assertHasDescendants('published-1.9.war')
     }
@@ -66,7 +66,7 @@ publishing {
     }
     publications {
         maven(MavenPublication) {
-            from components['${componentToPublish}']
+            from components.${componentToPublish}
         }
     }
 }
@@ -75,7 +75,7 @@ publishing {
         version current withTasks 'publish' run()
     }
 
-    def consumePublicationWithPreviousVersion(def artifact) {
+    def consumePublicationWithPreviousVersion() {
         settingsFile.text = "rootProject.name = 'consumer'"
 
         buildFile.text = """
@@ -87,7 +87,7 @@ repositories {
     mavenRepo(urls: ['${repo.uri}'])
 }
 dependencies {
-    lib 'org.gradle.crossversion:published:1.9$artifact'
+    lib 'org.gradle.crossversion:published:1.9'
 }
 task retrieve(type: Sync) {
     into 'build/resolved'

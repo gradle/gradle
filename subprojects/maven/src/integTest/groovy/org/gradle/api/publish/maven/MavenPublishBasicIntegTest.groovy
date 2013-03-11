@@ -80,7 +80,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         def module = mavenRepo.module('org.gradle.test', 'empty-project', '1.0')
-        module.assertPublished()
+        module.assertPublishedAsPomModule()
         module.parsedPom.scopes.isEmpty()
 
         and:
