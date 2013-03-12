@@ -154,7 +154,6 @@ public class DefaultTaskGraphExecuterTest {
         Task c = task("c", b, a);
         Task d = task("d", c);
         taskExecuter.addTasks(toList(d));
-        taskExecuter.populate();
 
         assertTrue(taskExecuter.hasTask(":a"));
         assertTrue(taskExecuter.hasTask(a));
@@ -174,7 +173,6 @@ public class DefaultTaskGraphExecuterTest {
         Task b = task("b", d, c);
         Task a = task("a", b);
         taskExecuter.addTasks(toList(a));
-        taskExecuter.populate();
 
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(c, d, b, a)));
     }
@@ -232,7 +230,6 @@ public class DefaultTaskGraphExecuterTest {
         executedTasks.clear();
 
         taskExecuter.addTasks(toList(c));
-        taskExecuter.populate();
 
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(c)));
 
@@ -423,7 +420,6 @@ public class DefaultTaskGraphExecuterTest {
 
         taskExecuter.useFilter(spec);
         taskExecuter.addTasks(toList(a, b));
-        taskExecuter.populate();
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(b)));
 
         taskExecuter.execute();
@@ -444,7 +440,6 @@ public class DefaultTaskGraphExecuterTest {
 
         taskExecuter.useFilter(spec);
         taskExecuter.addTasks(toList(c));
-        taskExecuter.populate();
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(b, c)));
         
         taskExecuter.execute();
