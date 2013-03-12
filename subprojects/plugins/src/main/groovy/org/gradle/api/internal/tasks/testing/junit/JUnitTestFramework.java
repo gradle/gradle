@@ -27,6 +27,8 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.Serializable;
@@ -47,7 +49,7 @@ public class JUnitTestFramework implements TestFramework {
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         final File testResultsDir = testTask.getTestResultsDir();
-        return new TestClassProcessorFactoryImpl(testResultsDir);
+        return new TestClassProcessorFactoryImpl(testResultsDir, new JUnitSpec(options));
     }
 
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
@@ -74,13 +76,15 @@ public class JUnitTestFramework implements TestFramework {
 
     private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
         private final File testResultsDir;
+        private final JUnitSpec options;
 
-        public TestClassProcessorFactoryImpl(File testResultsDir) {
+        public TestClassProcessorFactoryImpl(File testResultsDir, JUnitSpec options) {
             this.testResultsDir = testResultsDir;
+            this.options = options;
         }
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitTestClassProcessor(testResultsDir, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), new JULRedirector());
+            return new JUnitTestClassProcessor(testResultsDir, options, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), new JULRedirector());
         }
     }
 }
