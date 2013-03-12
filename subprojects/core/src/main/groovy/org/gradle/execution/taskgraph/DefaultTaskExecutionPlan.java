@@ -92,7 +92,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void addAllReversed(List list, TreeSet set) {
-         org.apache.commons.collections.CollectionUtils.addAll(list, set.descendingIterator());
+        org.apache.commons.collections.CollectionUtils.addAll(list, set.descendingIterator());
     }
 
     public void determineExecutionPlan() {
@@ -200,7 +200,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public TaskInfo getTaskToExecute() {
         lock.lock();
         try {
-            while(true) {
+            while (true) {
                 TaskInfo nextMatching = null;
                 boolean allTasksComplete = true;
                 for (TaskInfo taskInfo : executionPlan.values()) {
