@@ -27,6 +27,15 @@ class JvmLanguagePluginTest extends Specification {
     def project = HelperUtil.createRootProject()
     def jvmLanguagePlugin = project.plugins.apply(JvmLanguagePlugin)
 
+    def "registers the 'ResourceSet' type for each functional source set added to the 'sources' container"() {
+        when:
+        project.sources.create("custom")
+        project.sources.custom.create("resources", ResourceSet)
+
+        then:
+        project.sources.custom.resources instanceof ResourceSet
+    }
+
     def "adds a 'binaries.jvm' container to the project"() {
         def binaries = project.extensions.findByName("binaries")
 

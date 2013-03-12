@@ -17,11 +17,11 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.ProcessResources;
-import org.gradle.api.internal.tasks.DefaultBinariesContainer;
-import org.gradle.api.internal.tasks.DefaultClassDirectoryBinary;
-import org.gradle.api.internal.tasks.DefaultJvmBinaryContainer;
+import org.gradle.api.internal.tasks.*;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.internal.reflect.Instantiator;
@@ -40,16 +40,30 @@ import java.util.concurrent.Callable;
 @Incubating
 public class JvmLanguagePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
+    private final FileResolver fileResolver;
 
     private JvmBinaryContainer jvmBinaryContainer;
 
     @Inject
-    public JvmLanguagePlugin(Instantiator instantiator) {
+    public JvmLanguagePlugin(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
+        this.fileResolver = fileResolver;
     }
 
     public void apply(final Project target) {
         target.getPlugins().apply(LanguageBasePlugin.class);
+
+        ProjectSourceSet projectSourceSet = target.getExtensions().getByType(DefaultProjectSourceSet.class);
+        projectSourceSet.all(new Action<FunctionalSourceSet>() {
+            public void execute(final FunctionalSourceSet functionalSourceSet) {
+                functionalSourceSet.registerFactory(ResourceSet.class, new NamedDomainObjectFactory<ResourceSet>() {
+                    public ResourceSet create(String name) {
+                        return instantiator.newInstance(DefaultResourceSet.class, name,
+                                instantiator.newInstance(DefaultSourceDirectorySet.class, name, fileResolver), functionalSourceSet);
+                    }
+                });
+            }
+        });
 
         BinariesContainer binariesContainer = target.getExtensions().getByType(DefaultBinariesContainer.class);
         jvmBinaryContainer = instantiator.newInstance(DefaultJvmBinaryContainer.class, instantiator);

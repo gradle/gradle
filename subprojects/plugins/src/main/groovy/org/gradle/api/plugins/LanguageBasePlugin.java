@@ -16,8 +16,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.*;
 import org.gradle.api.tasks.*;
 import org.gradle.internal.reflect.Instantiator;
@@ -33,28 +31,15 @@ import javax.inject.Inject;
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
-    private final FileResolver fileResolver;
+
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator, FileResolver fileResolver) {
+    public LanguageBasePlugin(Instantiator instantiator) {
         this.instantiator = instantiator;
-        this.fileResolver = fileResolver;
     }
 
     public void apply(Project target) {
         target.getExtensions().create("binaries", DefaultBinariesContainer.class, instantiator);
-        ProjectSourceSet projectSourceSet = target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
-
-        // TODO: move to JvmLanguagePlugin?
-        projectSourceSet.all(new Action<FunctionalSourceSet>() {
-            public void execute(final FunctionalSourceSet functionalSourceSet) {
-                functionalSourceSet.registerFactory(ResourceSet.class, new NamedDomainObjectFactory<ResourceSet>() {
-                    public ResourceSet create(String name) {
-                        return instantiator.newInstance(DefaultResourceSet.class, name,
-                                instantiator.newInstance(DefaultSourceDirectorySet.class, name, fileResolver), functionalSourceSet);
-                    }
-                });
-            }
-        });
+        target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
     }
 }
