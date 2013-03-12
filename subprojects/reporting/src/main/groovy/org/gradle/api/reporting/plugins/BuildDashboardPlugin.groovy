@@ -40,7 +40,14 @@ public class BuildDashboardPlugin implements Plugin<ProjectInternal> {
 
         GenerateBuildDashboard buildDashboardTask = project.tasks.add(BUILD_DASHBOARD_TASK_NAME, GenerateBuildDashboard)
 
-        project.allprojects.each { aggregateReportings(it, buildDashboardTask) }
+        project.allprojects.each {
+            aggregateReportings(it, buildDashboardTask)
+            it.tasks.withType(Reporting).matching { task ->
+                task != buildDashboardTask
+            }.all { task ->
+                buildDashboardTask.mustRunAfter(task)
+            }
+        }
         addReportDestinationConventionMapping(project, buildDashboardTask.reports.html);
     }
 

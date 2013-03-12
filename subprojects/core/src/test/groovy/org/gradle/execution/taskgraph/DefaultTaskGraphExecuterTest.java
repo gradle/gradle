@@ -24,6 +24,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -153,6 +154,7 @@ public class DefaultTaskGraphExecuterTest {
         Task c = task("c", b, a);
         Task d = task("d", c);
         taskExecuter.addTasks(toList(d));
+        taskExecuter.populate();
 
         assertTrue(taskExecuter.hasTask(":a"));
         assertTrue(taskExecuter.hasTask(a));
@@ -172,6 +174,7 @@ public class DefaultTaskGraphExecuterTest {
         Task b = task("b", d, c);
         Task a = task("a", b);
         taskExecuter.addTasks(toList(a));
+        taskExecuter.populate();
 
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(c, d, b, a)));
     }
@@ -229,6 +232,7 @@ public class DefaultTaskGraphExecuterTest {
         executedTasks.clear();
 
         taskExecuter.addTasks(toList(c));
+        taskExecuter.populate();
 
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(c)));
 
@@ -419,6 +423,7 @@ public class DefaultTaskGraphExecuterTest {
 
         taskExecuter.useFilter(spec);
         taskExecuter.addTasks(toList(a, b));
+        taskExecuter.populate();
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(b)));
 
         taskExecuter.execute();
@@ -439,6 +444,7 @@ public class DefaultTaskGraphExecuterTest {
 
         taskExecuter.useFilter(spec);
         taskExecuter.addTasks(toList(c));
+        taskExecuter.populate();
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(b, c)));
         
         taskExecuter.execute();
@@ -524,6 +530,8 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(":" + name));
             allowing(task).getState();
             will(returnValue(state));
+            allowing(task).getMustRunAfter();
+            will(returnValue(new DefaultTaskDependency()));
             allowing(task).compareTo(with(notNullValue(TaskInternal.class)));
             will(new org.jmock.api.Action() {
                 public Object invoke(Invocation invocation) throws Throwable {

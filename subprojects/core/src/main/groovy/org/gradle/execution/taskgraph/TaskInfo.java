@@ -16,33 +16,30 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.internal.TaskInternal;
 
-import java.util.Set;
+import java.util.TreeSet;
 
-class TaskInfo {
+class TaskInfo implements Comparable<TaskInfo> {
 
     private enum TaskExecutionState {
-        READY, EXECUTING, EXECUTED, SKIPPED
+        NOT_REQUIRED, READY, EXECUTING, EXECUTED, SKIPPED
     }
 
     private final TaskInternal task;
-    private final Set<TaskInfo> dependencies;
     private TaskExecutionState state;
     private Throwable executionFailure;
+    private final TreeSet<TaskInfo> hardSuccessors = new TreeSet<TaskInfo>();
+    private final TreeSet<TaskInfo> softSuccessors = new TreeSet<TaskInfo>();
 
-    public TaskInfo(TaskInternal task, Set<TaskInfo> dependencies) {
+    public TaskInfo(TaskInternal task) {
         this.task = task;
-        this.dependencies = dependencies;
-        this.state = TaskExecutionState.READY;
+        this.state = TaskExecutionState.NOT_REQUIRED;
     }
 
     public TaskInternal getTask() {
         return task;
-    }
-
-    public Set<TaskInfo> getDependencies() {
-        return dependencies;
     }
 
     public boolean isReady() {
@@ -50,11 +47,11 @@ class TaskInfo {
     }
 
     public boolean isComplete() {
-        return state == TaskExecutionState.EXECUTED || state == TaskExecutionState.SKIPPED;
+        return state == TaskExecutionState.EXECUTED || state == TaskExecutionState.SKIPPED || state == TaskExecutionState.NOT_REQUIRED;
     }
 
     public boolean isSuccessful() {
-        return state == TaskExecutionState.EXECUTED && !isFailed();
+        return (state == TaskExecutionState.EXECUTED && !isFailed()) || state == TaskExecutionState.NOT_REQUIRED;
     }
 
     public boolean isFailed() {
@@ -90,7 +87,7 @@ class TaskInfo {
     }
 
     public boolean allDependenciesComplete() {
-        for (TaskInfo dependency : getDependencies()) {
+        for (TaskInfo dependency : Iterables.concat(softSuccessors, hardSuccessors)) {
             if (!dependency.isComplete()) {
                 return false;
             }
@@ -99,11 +96,39 @@ class TaskInfo {
     }
 
     public boolean allDependenciesSuccessful() {
-        for (TaskInfo dependency : getDependencies()) {
+        for (TaskInfo dependency : hardSuccessors) {
             if (!dependency.isSuccessful()) {
                 return false;
             }
         }
         return true;
+    }
+
+    public TreeSet<TaskInfo> getHardSuccessors() {
+        return hardSuccessors;
+    }
+
+    public TreeSet<TaskInfo> getSoftSuccessors() {
+        return softSuccessors;
+    }
+
+    public boolean getRequired() {
+        return state != TaskExecutionState.NOT_REQUIRED;
+    }
+
+    public void setRequired(boolean required) {
+        state = required ? TaskExecutionState.READY : TaskExecutionState.NOT_REQUIRED;
+    }
+
+    public void addHardSuccessor(TaskInfo toNode) {
+        hardSuccessors.add(toNode);
+    }
+
+    public void addSoftSuccessor(TaskInfo toNode) {
+        softSuccessors.add(toNode);
+    }
+
+    public int compareTo(TaskInfo otherInfo) {
+        return task.compareTo(otherInfo.getTask());
     }
 }
