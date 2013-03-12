@@ -55,6 +55,15 @@ The following are the newly deprecated items in this Gradle release. If you have
 This means that the users should not create own implementations of org.gradle.api.artifacts.ProjectDependency.
 This change should not affect any builds because there are no use cases supporting custom instances of ProjectDependency.
 
+### Renamed `add` method on PublicationContainer (incubating)
+
+The [org.gradle.api.publish.PublicationContainer](javadoc/org/gradle/api/publish/PublicationContainer.html) introduced by the incubating publish plugins leverages the new support for
+polymorphic DomainObject containers in Gradle. This change involved switching from the custom `add` methods to the standard `create`.
+The semantics of the replacement methods is identical to those replaced.
+
+This change does not effect publications added to the PublicationContainer using [a configuration block](javadoc/org/gradle/api/publish/PublishingExtension.html#publications),
+but will impact publications added directly using `add()`.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
