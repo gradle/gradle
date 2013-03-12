@@ -20,10 +20,12 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Ignore
 
 import java.nio.channels.FileChannel
 import java.nio.channels.FileLock
 
+@Ignore
 class ExclusiveFileAccessManagerTest extends ConcurrentSpec {
 
     @Rule TestNameTestDirectoryProvider testDirectoryProvider
