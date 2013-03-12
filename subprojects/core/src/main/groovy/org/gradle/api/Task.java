@@ -71,10 +71,12 @@ import java.util.Set;
  *
  * <a name="dependencies"/><h3>Dependencies</h3>
  *
- * <p>A task may have dependencies on other tasks. Gradle ensures that tasks are executed in dependency order, so that
- * the dependencies of a task are executed before the task is executed.  You can add dependencies to a task using {@link
- * #dependsOn(Object...)} or {@link #setDependsOn(Iterable)}.  You can add objects of any of the following types as a
- * dependency:</p>
+ * <p>A task may have dependencies on other tasks or might be scheduled to always run after another task. Gradle ensures
+ * that tasks are executed in dependency and "must run after" order, so that the dependencies of a task are executed before
+ * the task is executed.  You can add dependencies to a task using {@link #dependsOn(Object...)} or {@link #setDependsOn(Iterable)}
+ * and you can use {@link #mustRunAfter(Object...)} or {@link #setMustRunAfter(Iterable)} to specify ordering between tasks that
+ * that don't depend on each other but should be executed in a particular order if they are part of the task graph. You can use objects
+ * of any of the following types to specify dependencies and ordering:</p>
  *
  * <ul>
  *
@@ -538,5 +540,36 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return The directory. Never returns null. The directory will already exist.
      */
     File getTemporaryDir();
+
+    /**
+     * <p>Adds an ordering relationship between this task and tasks described by objects passed as parameters.
+     * See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * an ordering relationship.</p>
+     *
+     * @param paths The objects describing tasks this task must run after. See <a href="#dependencies">here</a> for description of
+     * the types that can be used as this parameter.
+     *
+     * @return the task object this method is applied to
+     */
+    @Incubating
+    Task mustRunAfter(Object... paths);
+
+    /**
+     * <p>Sets ordering relationship between this task and tasks described by objects passed as parameters.
+     * See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * an ordering relationship.</p>
+     *
+     * @param mustRunAfter The set of task paths this task must run after.
+     */
+    @Incubating
+    void setMustRunAfter(Iterable<?> mustRunAfter);
+
+    /**
+     * <p>Returns tasks that this task must run after.</p>
+     *
+     * @return The tasks that this task must run after. Returns an empty set if this task has no tasks it must run after.
+     */
+    @Incubating
+    TaskDependency getMustRunAfter();
 }
 

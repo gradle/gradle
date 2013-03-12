@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
-
+package org.gradle.execution.taskgraph
 
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
@@ -36,7 +35,6 @@ import spock.lang.Specification
 
 import static org.gradle.util.HelperUtil.createRootProject
 import static org.gradle.util.WrapUtil.toList
-import static org.gradle.util.WrapUtil.toSet
 
 public class DefaultTaskExecutionPlanTest extends Specification {
 
@@ -49,15 +47,20 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan = new DefaultTaskExecutionPlan()
     }
 
+    private void addToGraphAndPopulate(List tasks) {
+        executionPlan.addToTaskGraph(tasks)
+        executionPlan.determineExecutionPlan()
+    }
+
     def "returns tasks in dependency order"() {
         given:
         Task a = task("a");
-        Task b = task("b", a);
-        Task c = task("c", b, a);
-        Task d = task("d", c);
+        Task b = task("b", dependsOn: [a]);
+        Task c = task("c", dependsOn: [b, a]);
+        Task d = task("d", dependsOn: [c]);
 
         when:
-        executionPlan.addToTaskGraph(toList(d))
+        addToGraphAndPopulate([d])
 
         then:
         executedTasks == [a, b, c, d]
@@ -68,10 +71,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task a = task("a");
         Task b = task("b");
         Task c = task("c");
-        Task d = task("d", b, a, c);
+        Task d = task("d", dependsOn: [b, a, c]);
 
         when:
-        executionPlan.addToTaskGraph(toList(d));
+        addToGraphAndPopulate([d])
 
         then:
         executedTasks == [a, b, c, d]
@@ -84,7 +87,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task c = task("c");
 
         when:
-        executionPlan.addToTaskGraph(toList(b, c, a));
+        addToGraphAndPopulate(toList(b, c, a));
 
         then:
         executedTasks == [a, b, c]
@@ -99,22 +102,38 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         when:
         executionPlan.addToTaskGraph(toList(c, b));
-        executionPlan.addToTaskGraph(toList(d, a));
+        executionPlan.addToTaskGraph(toList(d, a))
+        executionPlan.determineExecutionPlan()
 
         then:
         executedTasks == [b, c, a, d];
     }
 
+    def "returns must run after task dependencies in name order"() {
+        given:
+        Task a = task("a");
+        Task b = task("b");
+        Task c = task("c", mustRunAfter: [b, a]);
+        Task d = task("d", dependsOn: [b, a]);
+
+        when:
+        addToGraphAndPopulate([c, d]);
+
+        then:
+        executedTasks == [a, b, c, d]
+    }
+
     def "common tasks in separate batches are returned only once"() {
         Task a = task("a");
         Task b = task("b");
-        Task c = task("c", a, b);
+        Task c = task("c", dependsOn: [a, b]);
         Task d = task("d");
-        Task e = task("e", b, d);
+        Task e = task("e", dependsOn: [b, d]);
 
         when:
         executionPlan.addToTaskGraph(toList(c));
         executionPlan.addToTaskGraph(toList(e));
+        executionPlan.determineExecutionPlan();
 
         then:
         executedTasks == [a, b, c, d, e];
@@ -122,26 +141,64 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     def "all dependencies added when adding tasks"() {
         Task a = task("a");
-        Task b = task("b", a);
-        Task c = task("c", b, a);
-        Task d = task("d", c);
+        Task b = task("b", dependsOn: [a]);
+        Task c = task("c", dependsOn: [b, a]);
+        Task d = task("d", dependsOn: [c]);
 
         when:
-        executionPlan.addToTaskGraph(toList(d));
+        addToGraphAndPopulate(toList(d));
 
         then:
         executionPlan.getTasks() == [a, b, c, d];
         executedTasks == [a, b, c, d]
     }
 
+    def "must run after ordering is honoured"() {
+        Task a = task("a")
+        Task b = task("b", dependsOn: [a])
+        Task c = task("c", mustRunAfter: [b])
+
+        when:
+        executionPlan.addToTaskGraph([c])
+        executionPlan.addToTaskGraph([b])
+        executionPlan.determineExecutionPlan()
+
+        then:
+        executedTasks == [a, b, c]
+    }
+
+    def "mustRunAfter dependencies are scheduled before regular dependencies"() {
+        Task a = task("a")
+        Task b = task("b")
+        Task c = task("c", dependsOn: [a], mustRunAfter: [b])
+        Task d = task("d", dependsOn: [b])
+
+        when:
+        addToGraphAndPopulate([c, d])
+
+        then:
+        executedTasks == [b, a, c, d]
+    }
+
+    def "must run after does not pull in tasks that are not in the graph"() {
+        Task a = task("a")
+        Task b = task("b", mustRunAfter: [a])
+
+        when:
+        addToGraphAndPopulate([b])
+
+        then:
+        executedTasks == [b]
+    }
+
     def "getAllTasks returns tasks in execution order"() {
         Task d = task("d");
         Task c = task("c");
-        Task b = task("b", d, c);
-        Task a = task("a", b);
+        Task b = task("b", dependsOn: [d, c]);
+        Task a = task("a", dependsOn: [b]);
 
         when:
-        executionPlan.addToTaskGraph(toList(a));
+        addToGraphAndPopulate(toList(a));
 
         then:
         executionPlan.getTasks() == [c, d, b, a]
@@ -150,12 +207,43 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     def "cannot add task with circular reference"() {
         Task a = createTask("a");
-        Task b = task("b", a);
-        Task c = task("c", b);
-        dependsOn(a, c);
+        Task b = task("b", dependsOn: [a]);
+        Task c = task("c", dependsOn: [b]);
+        dependsOn(a, [c]);
 
         when:
-        executionPlan.addToTaskGraph([c])
+        addToGraphAndPopulate([c])
+
+        then:
+        thrown CircularReferenceException
+    }
+
+    def "cannot add a task with must run after induced circular reference"() {
+        Task a = createTask("a")
+        Task b = task("b", mustRunAfter: [a])
+        Task c = task("c", dependsOn: [b])
+        dependsOn(a, [c])
+        mustRunAfter(a, [])
+
+        when:
+        addToGraphAndPopulate([a])
+
+        then:
+        thrown CircularReferenceException
+    }
+
+    def "cannot add a task with must run after induced circular reference that was previously in graph but not required"() {
+        Task a = createTask("a")
+        Task b = task("b", mustRunAfter: [a])
+        Task c = task("c", dependsOn: [b])
+        Task d = task("d", dependsOn: [c])
+        dependsOn(a, [c])
+        mustRunAfter(a, [])
+        executionPlan.addToTaskGraph([d])
+
+        when:
+        executionPlan.addToTaskGraph([a])
+        executionPlan.determineExecutionPlan()
 
         then:
         thrown CircularReferenceException
@@ -165,7 +253,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         RuntimeException failure = new RuntimeException("failure");
         Task a = task("a");
         Task b = task("b");
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
 
         when:
         def taskInfoA = taskToExecute
@@ -189,11 +277,11 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     def "stops returning tasks on first task failure when no failure handler provided"() {
         RuntimeException failure = new RuntimeException("failure");
-        Task a = brokenTask("a", failure);
+        Task a = task("a", failure: failure);
         Task b = task("b");
 
         when:
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
 
         then:
         executedTasks == [a]
@@ -208,10 +296,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     def "stops execution on task failure when failure handler indicates that execution should stop"() {
         RuntimeException failure = new RuntimeException("failure");
-        Task a = brokenTask("a", failure);
+        Task a = task("a", failure: failure);
         Task b = task("b");
 
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
 
         TaskFailureHandler handler = Mock()
         RuntimeException wrappedFailure = new RuntimeException("wrapped");
@@ -235,9 +323,33 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
         RuntimeException failure = new RuntimeException();
-        Task a = brokenTask("a", failure);
+        Task a = task("a", failure: failure);
         Task b = task("b");
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
+
+        TaskFailureHandler handler = Mock()
+        handler.onTaskFailure(a) >> {
+        }
+
+        when:
+        executionPlan.useFailureHandler(handler);
+
+        then:
+        executedTasks == [a, b]
+
+        when:
+        executionPlan.awaitCompletion()
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+    }
+
+    def "continues to return tasks when failure handler does not abort execution and task are mustRunAfter dependent"() {
+        RuntimeException failure = new RuntimeException();
+        Task a = task("a", failure: failure);
+        Task b = task("b", mustRunAfter: [a]);
+        addToGraphAndPopulate([a, b])
 
         TaskFailureHandler handler = Mock()
         handler.onTaskFailure(a) >> {
@@ -259,10 +371,10 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     def "does not attempt to execute tasks whose dependencies failed to execute"() {
         RuntimeException failure = new RuntimeException()
-        final Task a = brokenTask("a", failure)
-        final Task b = task("b", a)
+        final Task a = task("a", failure: failure)
+        final Task b = task("b", dependsOn: [a])
         final Task c = task("c")
-        executionPlan.addToTaskGraph([b, c])
+        addToGraphAndPopulate([b, c])
 
         TaskFailureHandler handler = Mock()
         handler.onTaskFailure(a) >> {
@@ -288,7 +400,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task a = task("a");
 
         when:
-        executionPlan.addToTaskGraph(toList(a));
+        addToGraphAndPopulate(toList(a));
         executionPlan.clear()
 
         then:
@@ -312,14 +424,14 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task b = task("b")
 
         when:
-        executionPlan.addToTaskGraph([a])
+        addToGraphAndPopulate([a])
 
         then:
         executedTasks == [a]
 
         when:
         executionPlan.clear()
-        executionPlan.addToTaskGraph([b])
+        addToGraphAndPopulate([b])
 
         then:
         executedTasks == [b]
@@ -327,12 +439,12 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     def "does not execute filtered tasks"() {
         given:
-        Task a = task("a", task("a-dep"))
+        Task a = task("a", dependsOn: [task("a-dep")])
         Task b = task("b")
 
         when:
         executionPlan.useFilter({ it != a } as Spec<Task>);
-        executionPlan.addToTaskGraph([a, b])
+        addToGraphAndPopulate([a, b])
 
         then:
         executionPlan.getTasks() == [b]
@@ -341,14 +453,14 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     def "does not execute filtered dependencies"() {
         given:
-        Task a = task("a", task("a-dep"))
+        Task a = task("a", dependsOn: [task("a-dep")])
         Task b = task("b")
-        Task c = task("c", a, b)
+        Task c = task("c", dependsOn: [a, b])
 
         when:
 
         executionPlan.useFilter({ it != a } as Spec<Task>)
-        executionPlan.addToTaskGraph([c])
+        addToGraphAndPopulate([c])
 
         then:
         executionPlan.tasks == [b, c]
@@ -358,35 +470,46 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     def "will execute a task whose dependencies have been filtered"() {
         given:
         Task b = task("b")
-        Task c = task("c", b)
+        Task c = task("c", dependsOn: [b])
 
         when:
         executionPlan.useFilter({ it != b } as Spec<Task>)
-        executionPlan.addToTaskGraph([c]);
+        addToGraphAndPopulate([c]);
 
         then:
         executedTasks == [c]
     }
 
-    private void dependsOn(TaskInternal task, final Task... dependsOnTasks) {
-        TaskDependency taskDependency = Mock()
-        task.getTaskDependencies() >> taskDependency
-        taskDependency.getDependencies(task) >> toSet(dependsOnTasks)
+    private TaskDependency taskDependencyResolvingTo(TaskInternal task, List<Task> tasks) {
+        Mock(TaskDependency) {
+            getDependencies(task) >> tasks
+        }
     }
-    
-    private Task brokenTask(String name, final RuntimeException failure, final Task... dependsOnTasks) {
-        final TaskInternal task = createTask(name);
-        dependsOn(task, dependsOnTasks);
 
+    private void dependsOn(TaskInternal task, List<Task> dependsOnTasks) {
+        task.getTaskDependencies() >> taskDependencyResolvingTo(task, dependsOnTasks)
+    }
+
+    private void mustRunAfter(TaskInternal task, List<Task> mustRunAfterTasks) {
+        task.getMustRunAfter() >> taskDependencyResolvingTo(task, mustRunAfterTasks)
+    }
+
+    private void failure(TaskInternal task, final RuntimeException failure) {
         task.state.getFailure() >> failure
         task.state.rethrowFailure() >> { throw failure }
-        return task;
     }
     
-    private TaskInternal task(final String name, final Task... dependsOnTasks) {
+    private TaskInternal task(final String name) {
+        task([:], name)
+    }
+
+    private TaskInternal task(Map options, final String name) {
         def task = createTask(name);
-        dependsOn(task, dependsOnTasks);
-        task.state.getFailure() >> null
+        dependsOn(task, options.dependsOn ?: []);
+        mustRunAfter(task, options.mustRunAfter ?: [])
+        if (options.failure) {
+            failure(task, options.failure)
+        }
         return task;
     }
     

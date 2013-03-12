@@ -70,14 +70,18 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             taskSet.add(task);
         }
         taskExecutionPlan.addToTaskGraph(taskSet);
-        populated = true;
 
         logger.debug("Timing: Creating the DAG took " + clock.getTime());
     }
 
+    public void populate() {
+        taskExecutionPlan.determineExecutionPlan();
+        populated = true;
+    }
+
     public void execute() {
-        assertPopulated();
         Clock clock = new Clock();
+        populate();
 
         graphListeners.getSource().graphPopulated(this);
         try {
