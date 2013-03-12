@@ -39,15 +39,22 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     private final ActorFactory actorFactory;
     private final StandardOutputRedirector outputRedirector;
     private final TimeProvider timeProvider = new TrueTimeProvider();
+    private final JUnitSpec options;
     private JUnitTestClassExecuter executer;
     private Actor resultProcessorActor;
 
-    public JUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator, ActorFactory actorFactory,
+    public JUnitTestClassProcessor(File testResultsDir, JUnitSpec options, IdGenerator<?> idGenerator, ActorFactory actorFactory,
                                    StandardOutputRedirector standardOutputRedirector) {
         this.testResultsDir = testResultsDir;
         this.idGenerator = idGenerator;
+        this.options = options;
         this.actorFactory = actorFactory;
         this.outputRedirector = standardOutputRedirector;
+    }
+
+    public JUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator, ActorFactory actorFactory,
+                                   StandardOutputRedirector standardOutputRedirector) {
+        this(testResultsDir, null, idGenerator, actorFactory, standardOutputRedirector);
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
@@ -63,7 +70,7 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
 
         // Build the JUnit adaptor stuff
         JUnitTestEventAdapter junitEventAdapter = new JUnitTestEventAdapter(threadSafeResultProcessor, timeProvider, idGenerator);
-        executer = new JUnitTestClassExecuter(applicationClassLoader, junitEventAdapter, threadSafeTestClassListener);
+        executer = new JUnitTestClassExecuter(applicationClassLoader, options, junitEventAdapter, threadSafeTestClassListener);
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
