@@ -91,7 +91,7 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends Specification {
 
         when:
         project.container {
-            Fred(Person)
+            Fred(Person) {}
             Barney(AgeAwarePerson) {}
         }
 
