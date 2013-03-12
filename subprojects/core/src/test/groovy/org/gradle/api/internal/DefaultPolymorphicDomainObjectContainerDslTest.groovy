@@ -165,4 +165,20 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends Specification {
         container.findByName("Fred").age == 33
         container.findByName("Barney").age == 44
     }
+
+    def "create elements without configuration"() {
+        container.registerDefaultFactory({ new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 43) } as NamedDomainObjectFactory)
+
+        when:
+        project.container {
+            Fred
+            Barney(AgeAwarePerson)
+        }
+
+        then:
+        container.size() == 2
+        container.findByName("Fred").age == 42
+        container.findByName("Barney").age == 43
+    }
 }
