@@ -29,6 +29,7 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
 import org.gradle.util.FilteringClassLoader;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.MutableURLClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +85,11 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
     private ClassLoader createImplementationClassLoader(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
         ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
         LOGGER.debug("Using tooling provider classpath: {}", implementationClasspath);
-        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader);
+        // On IBM JVM 5, ClassLoader.getResources() uses a combination of findResources() and getParent() and traverses the hierarchy rather than just calling getResources()
+        // Wrap our real classloader in one that hides the parent.
+        // TODO - move this into FilteringClassLoader
+        MultiParentClassLoader parentObfuscatingClassLoader = new MultiParentClassLoader(classLoader);
+        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(parentObfuscatingClassLoader);
         filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");
         return new MutableURLClassLoader(filteringClassLoader, implementationClasspath.getAsURLArray());
     }
