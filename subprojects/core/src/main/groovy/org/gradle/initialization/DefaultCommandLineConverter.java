@@ -104,6 +104,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         startParameter.getProjectProperties().putAll(projectProperties);
 
         BuildLayoutParameters layout = new BuildLayoutParameters()
+                .setGradleUserHomeDir(startParameter.getGradleUserHomeDir())
                 .setProjectDir(startParameter.getCurrentDir())
                 .maybeUpdateFromSystemProperty(systemProperties, resolver); //TODO SF not very nice. It should get cleaned up further down the refactoring
         layoutCommandLineConverter.convert(options, layout);
