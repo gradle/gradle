@@ -123,7 +123,12 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         @Override
         public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
             if (isConfigureMethod(name, arguments)) {
-                return ConfigureUtil.configure((Closure) arguments[arguments.length - 1], getByName(name));
+                T element = getByName(name);
+                Object lastArgument = arguments[arguments.length - 1];
+                if (lastArgument instanceof Closure) {
+                    ConfigureUtil.configure((Closure) lastArgument, element);
+                }
+                return element;
             } else {
                 return super.invokeMethod(name, arguments);
             }
@@ -131,6 +136,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
         private boolean isConfigureMethod(String name, Object... arguments) {
             return (arguments.length == 1 && arguments[0] instanceof Closure
+                    || arguments.length == 1 && arguments[0] instanceof Class
                     || arguments.length == 2 && arguments[0] instanceof Class && arguments[1] instanceof Closure)
                     && hasProperty(name);
         }

@@ -139,7 +139,7 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
                     ivy { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    ivy(IvyPublication) {}
+                    ivy(IvyPublication)
                 }
             }
         """

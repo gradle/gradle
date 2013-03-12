@@ -55,7 +55,7 @@ public class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
                     ivy { url "${ivyRepo.uri}" }
                 }
                 publications {
-                    ivy(IvyPublication) {}
+                    ivy(IvyPublication)
                 }
             }
         """

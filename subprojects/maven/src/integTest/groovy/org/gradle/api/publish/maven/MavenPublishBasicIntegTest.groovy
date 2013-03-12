@@ -71,7 +71,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    maven(MavenPublication) {}
+                    maven(MavenPublication)
                 }
             }
         """
