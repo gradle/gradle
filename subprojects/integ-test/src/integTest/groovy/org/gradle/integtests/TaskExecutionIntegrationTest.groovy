@@ -194,4 +194,48 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Task of type 'org.gradle.api.DefaultTask' has been instantiated directly which is not supported")
     }
+
+    def "sensible error message for circular task dependency"() {
+        buildFile << """
+    task a(dependsOn: 'b')
+    task b(dependsOn: 'a')
+"""
+        when:
+        fails 'b'
+
+        then:
+        failure.assertHasDescription "Circular dependency between tasks. Cycle includes [task ':a', task ':b']."
+    }
+
+    def "honours mustRunAfter task ordering"() {
+        buildFile << """
+    task a {
+        mustRunAfter 'b'
+    }
+    task b
+    task c(dependsOn: ['a', 'b'])
+    task d
+    c.mustRunAfter d
+
+"""
+        when:
+        succeeds 'c', 'd'
+
+        then:
+        result.assertTasksExecuted(':d', ':b', ':a', ':c')
+    }
+
+    def "sensible error message for circular task dependency due to mustRunAfter"() {
+        buildFile << """
+    task a {
+        mustRunAfter 'b'
+    }
+    task b(dependsOn: 'a')
+"""
+        when:
+        fails 'b'
+
+        then:
+        failure.assertHasDescription "Circular dependency between tasks. Cycle includes [task ':a', task ':b']."
+    }
 }

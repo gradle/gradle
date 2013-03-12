@@ -153,7 +153,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executedTasks == [a, b, c, d]
     }
 
-    def "must run after ordering is honoured"() {
+    def "must run after ordering is honoured for tasks added separately to graph"() {
         Task a = task("a")
         Task b = task("b", dependsOn: [a])
         Task c = task("c", mustRunAfter: [b])
@@ -165,6 +165,18 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         executedTasks == [a, b, c]
+    }
+
+    def "must run after ordering is honoured for dependencies"() {
+        Task b = task("b")
+        Task a = task("a", mustRunAfter: [b])
+        Task c = task("c", dependsOn: [a, b])
+
+        when:
+        addToGraphAndPopulate([c])
+
+        then:
+        executedTasks == [b, a, c]
     }
 
     def "mustRunAfter dependencies are scheduled before regular dependencies"() {
@@ -192,17 +204,18 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     def "getAllTasks returns tasks in execution order"() {
-        Task d = task("d");
+        Task e = task("e");
+        Task d = task("d", mustRunAfter: [e]);
         Task c = task("c");
-        Task b = task("b", dependsOn: [d, c]);
+        Task b = task("b", dependsOn: [d, c, e]);
         Task a = task("a", dependsOn: [b]);
 
         when:
         addToGraphAndPopulate(toList(a));
 
         then:
-        executionPlan.getTasks() == [c, d, b, a]
-        executedTasks == [c, d, b, a]
+        executionPlan.getTasks() == [c, e, d, b, a]
+        executedTasks == [c, e, d, b, a]
     }
 
     def "cannot add task with circular reference"() {
