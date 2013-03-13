@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -95,15 +94,48 @@ apply plugin: 'idea'
         assertHasExpectedContents('root.iml')
     }
 
-    @Ignore
     @Test
     void addsScalaFacetAndCompilerLibraries() {
         executer.withTasks('idea').run()
 
-        assertHasExpectedContents('root.ipr')
-        assertHasExpectedContents('project1/project1.iml')
-        assertHasExpectedContents('project2/project2.iml')
-        assertHasExpectedContents('project3/project3.iml')
+        hasScalaLibrary('root.ipr', 'scala-compiler-2.9.2', ['scala-compiler-2.9.2.jar', 'scala-library-2.9.2.jar'])
+        hasScalaLibrary('root.ipr', 'scala-compiler-2.10.0', ['scala-compiler-2.10.0.jar', 'scala-library-2.10.0.jar', 'scala-reflect-2.10.0.jar'])
+        hasScalaFacet('project1/project1.iml', 'scala-compiler-2.9.2')
+        hasScalaFacet('project2/project2.iml', 'scala-compiler-2.10.0')
+        hasScalaFacet('project3/project3.iml', 'scala-compiler-2.9.2')
+    }
+
+    private void hasScalaLibrary(String iprFileName, String libraryName, List<String> jarNames) {
+        def project = new XmlSlurper().parse(file(iprFileName))
+        def libraryTable = project.component.find { it.@name == "libraryTable" }
+        assert libraryTable
+
+        def library = libraryTable.library.find { it.@name == libraryName }
+        assert library
+
+        def roots = library.CLASSES.root
+        assert roots.size() == jarNames.size()
+        jarNames.each {
+            assert roots.@url.text().contains(it)
+        }
+    }
+
+    private void hasScalaFacet(String imlFileName, String libraryName) {
+        def module = new XmlSlurper().parse(file(imlFileName))
+        def facetManager = module.component.find { it.@name == "FacetManager" }
+        assert facetManager
+
+        def facet = facetManager.facet.find { it.@name == "Scala" }
+        assert facet
+        assert facet.@type == "scala"
+
+        def compilerLibraryLevel = facet.configuration.option.find { it.@name == "compilerLibraryLevel" }
+        assert compilerLibraryLevel
+        assert compilerLibraryLevel.@value == "Project"
+
+        def compilerLibraryName = facet.configuration.option.find { it.@name == "compilerLibraryName" }
+        assert compilerLibraryName
+        assert compilerLibraryName.@value == libraryName
     }
 
     @Test
