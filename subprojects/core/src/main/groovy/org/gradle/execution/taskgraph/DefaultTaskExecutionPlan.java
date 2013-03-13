@@ -91,8 +91,10 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void addAllReversed(List list, TreeSet set) {
-        org.apache.commons.collections.CollectionUtils.addAll(list, set.descendingIterator());
+    private <T> void addAllReversed(List<T> list, TreeSet<T> set) {
+        List<T> elements = CollectionUtils.toList(set);
+        Collections.reverse(elements);
+        list.addAll(elements);
     }
 
     public void determineExecutionPlan() {
