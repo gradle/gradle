@@ -14,7 +14,7 @@ This problem is also evident in non-JVM languages such as C++, where a given sou
 linked into more than one binaries.
 
 This spec defines a number of changes that aim to extend the JVM language models to expose the fact that a
-given set of source may end up in more than one output. It aims to do so in a way that works well with non-JVM
+given source file may end up in more than one output. It aims to do so in a way that works well with non-JVM
 languages.
 
 # Use cases
@@ -25,7 +25,30 @@ An Android application is assembled in to multiple _build types_, such as 'debug
 
 ## Build a library for multiple Scala or Groovy runtimes
 
-A library is compiled and published for multiple Scala or Groovy runtimes.
+A library is compiled and published for multiple Scala or Groovy runtimes, or for multiple JVM runtimes.
+
+# Build different variants of an application
+
+An application is tailored for various purposes, with each purpose represented as a separate variant. For
+each variant, some common source files and some variant specific source files are jointly compiled to
+produce the application.
+
+For example, when building against the Java 5 APIs do not include the Java 6 or Java 7 specific source files.
+
+# Compose a library from source files compiled in different ways
+
+For example, some source files are compiled using the aspectj compiler and some source files are
+compiled usign the javac compiler. The resulting class files are assembled into the library.
+
+# Implement a library using multiple languages
+
+A library is implemented using a mix of Java, Scala and Groovy and these source files are jointly compiled
+to produce the library.
+
+## package a library in multiple ways
+
+A library may be packaged as a classes directory, or a set of directories, or a single jar file, or a
+far jar, or an API jar and an implementation jar.
 
 # Implementation plan
 
