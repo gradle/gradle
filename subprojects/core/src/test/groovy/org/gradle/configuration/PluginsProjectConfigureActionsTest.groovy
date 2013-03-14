@@ -15,42 +15,23 @@
  */
 
 package org.gradle.configuration
-
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectStateInternal
 import spock.lang.Specification
 
-class PluginsProjectEvaluatorTest extends Specification {
-    final def target = Mock(ProjectEvaluator)
+class PluginsProjectConfigureActionsTest extends Specification {
     final def pluginsClassLoader = Mock(ClassLoader)
-    final def evaluator = new PluginsProjectEvaluator(target, pluginsClassLoader)
+    final def evaluator = new PluginsProjectConfigureActions(pluginsClassLoader)
 
     def "executes all implicit configuration actions"() {
         def project = Mock(ProjectInternal)
-        def state = Mock(ProjectStateInternal)
 
         when:
-        evaluator.evaluate(project, state)
+        evaluator.execute(project)
 
         then:
-        1 * target.evaluate(project, state)
-        _ * state.hasFailure() >> false
         1 * pluginsClassLoader.getResources('META-INF/services/org.gradle.configuration.ProjectConfigureAction') >> resources()
         1 * pluginsClassLoader.loadClass('ConfigureActionClass') >> TestConfigureAction
         1 * project.setVersion(12)
-        0 * _._
-    }
-
-    def "does not execution actions when project configuration has failed"() {
-        def project = Mock(ProjectInternal)
-        def state = Mock(ProjectStateInternal)
-
-        when:
-        evaluator.evaluate(project, state)
-
-        then:
-        1 * target.evaluate(project, state)
-        _ * state.hasFailure() >> true
         0 * _._
     }
 

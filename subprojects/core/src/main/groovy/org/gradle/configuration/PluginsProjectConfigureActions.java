@@ -17,25 +17,16 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.internal.service.ServiceLocator;
 
-public class PluginsProjectEvaluator implements ProjectEvaluator {
-    private final ProjectEvaluator evaluator;
+public class PluginsProjectConfigureActions implements ProjectConfigureAction {
     private final ServiceLocator serviceLocator;
 
-    public PluginsProjectEvaluator(ProjectEvaluator evaluator, ClassLoader pluginsClassLoader) {
-        this.evaluator = evaluator;
+    public PluginsProjectConfigureActions(ClassLoader pluginsClassLoader) {
         this.serviceLocator = new ServiceLocator(pluginsClassLoader);
     }
 
-    public void evaluate(ProjectInternal project, ProjectStateInternal state) {
-        evaluator.evaluate(project, state);
-
-        if (state.hasFailure()) {
-            return;
-        }
-
+    public void execute(ProjectInternal project) {
         for (ProjectConfigureAction configureAction : serviceLocator.getAll(ProjectConfigureAction.class)) {
             configureAction.execute(project);
         }

@@ -127,7 +127,6 @@ task test
         then:
         fails 'test'
         failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
-
                 .assertHasCause("deferred configuration failure")
                 .assertHasFileName("Build file '${buildFile.path}'")
                 .assertHasLineNumber(buildFileLine(3))

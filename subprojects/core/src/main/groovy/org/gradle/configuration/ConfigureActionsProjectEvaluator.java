@@ -14,39 +14,40 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.configuration;
 
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
-import org.gradle.configuration.ProjectEvaluator;
 
-/**
- * Ensures that all {@link org.gradle.api.plugins.DeferredConfigurable} extensions are configured as part of project evaluation.
- * In future (when we have true "configure on what's required") then this won't be necessary.
- */
-public class DeferredConfigurableProjectEvaluator implements ProjectEvaluator {
-    private final ProjectEvaluator delegate;
+import java.util.Arrays;
+import java.util.List;
 
-    public DeferredConfigurableProjectEvaluator(ProjectEvaluator delegate) {
-        this.delegate = delegate;
+public class ConfigureActionsProjectEvaluator implements ProjectEvaluator {
+    private final ProjectEvaluator evaluator;
+    private final List<ProjectConfigureAction> configureActions;
+
+    public ConfigureActionsProjectEvaluator(ProjectEvaluator evaluator, ProjectConfigureAction... configureActions) {
+        this.evaluator = evaluator;
+        this.configureActions = Arrays.asList(configureActions);
     }
 
     public void evaluate(ProjectInternal project, ProjectStateInternal state) {
-        delegate.evaluate(project, state);
+        evaluator.evaluate(project, state);
 
-        // Don't run deferred configuration in case of failure
         if (state.hasFailure()) {
             return;
         }
 
-        ExtensionContainerInternal extensions = project.getExtensions();
         try {
-            extensions.getAsMap();
+            for (ProjectConfigureAction configureAction : configureActions) {
+                configureAction.execute(project);
+            }
         } catch (Exception e) {
             // Ensure that we get the same exception as if the extension was configured by use in script itself.
-            GradleScriptException failure = new GradleScriptException(String.format("A problem occurred evaluating %s.", project), e);
+            GradleScriptException failure = new GradleScriptException(String.format("A problem occurred configuring %s.", project), e);
             state.executed(failure);
         }
+
     }
 }
