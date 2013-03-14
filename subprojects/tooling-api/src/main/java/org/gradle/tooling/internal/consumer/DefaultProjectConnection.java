@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.*;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
-import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.model.Model;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.reflect;
+package org.gradle.tooling.internal.adapter;
 
 import java.lang.reflect.Method;
 

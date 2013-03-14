@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.protocoladapter;
+package org.gradle.tooling.internal.consumer.converters;
 
-import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
+import org.gradle.tooling.internal.adapter.MethodInvocation;
+import org.gradle.tooling.internal.adapter.MethodInvoker;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 

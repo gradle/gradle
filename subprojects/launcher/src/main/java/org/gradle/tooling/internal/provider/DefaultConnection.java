@@ -31,7 +31,7 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
-import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.*;
 import org.gradle.util.GUtil;

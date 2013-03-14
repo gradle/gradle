@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.protocoladapter;
+package org.gradle.tooling.internal.consumer.converters;
 
+import org.gradle.tooling.internal.adapter.TargetTypeProvider;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;

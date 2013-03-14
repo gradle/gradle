@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.protocoladapter
+package org.gradle.tooling.internal.adapter
 
-import org.gradle.tooling.internal.consumer.*
+import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.util.Matchers
 import spock.lang.Specification
@@ -194,7 +194,7 @@ class ProtocolToModelAdapterTest extends Specification {
         TestProject project = Mock()
 
         given:
-        propertyHandler.invoke({it.name == 'getProject'}) >> { MethodInvocation method -> method.result = project }
+        propertyHandler.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
 
         when:
         def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
@@ -212,7 +212,7 @@ class ProtocolToModelAdapterTest extends Specification {
         TestProject project = Mock()
 
         given:
-        propertyHandler.invoke({it.name == 'getProject'}) >> { MethodInvocation method -> method.result = project }
+        propertyHandler.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
 
         when:
         def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
@@ -267,5 +267,55 @@ class ProtocolToModelAdapterTest extends Specification {
 
         then:
         result instanceof ByteChannel
+    }
+}
+
+interface TestModel {
+    String getName()
+
+    TestProject getProject()
+
+    boolean isConfigSupported()
+
+    String getConfig(String defaultValue)
+
+    DomainObjectSet<? extends TestProject> getChildren()
+}
+
+interface TestProject {
+    String getName()
+}
+
+interface TestProtocolModel {
+    String getName()
+
+    TestProtocolProject getProject()
+
+    Iterable<? extends TestProtocolProject> getChildren()
+
+    String getConfig();
+}
+
+interface PartialTestProtocolModel {
+    String getName()
+}
+
+interface TestProtocolProject {
+    String getName()
+}
+
+class ConfigMixin {
+    TestModel model
+
+    ConfigMixin(TestModel model) {
+        this.model = model
+    }
+
+    String getConfig(String value) {
+        return "[${model.getConfig(value)}]"
+    }
+
+    String getName() {
+        return "[${model.name}]"
     }
 }

@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.protocoladapter;
+package org.gradle.tooling.internal.adapter;
 
-public interface MethodInvoker {
-    void invoke(MethodInvocation invocation) throws Throwable;
+public interface TargetTypeProvider {
+    /**
+     * Determines the model type to use to wrap the given protocol object.
+     */
+    <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject);
 }

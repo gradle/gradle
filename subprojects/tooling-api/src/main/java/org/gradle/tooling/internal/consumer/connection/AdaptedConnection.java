@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
+import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 
 /**
  * An implementation that wraps a protocol instance that has rigid compatibility policy.
