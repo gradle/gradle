@@ -24,22 +24,35 @@ public class DeferredConfigurableExtensionIntegrationTest extends AbstractIntegr
         buildFile << """
 public class CustomPlugin implements Plugin<Project> {
     public void apply(Project project) {
-        project.getExtensions().create("custom", CustomExtension.class);
+        project.getExtensions().create("custom", CustomExtension.class)
+    }
+}
+
+public class BrokenCustomPlugin implements Plugin<Project> {
+    public void apply(Project project) {
+        project.getPlugins().apply(CustomPlugin)
+        project.getExtensions().configure(CustomExtension, {
+            throw new RuntimeException("broken configuration in plugin")
+        } as Action)
     }
 }
 
 @org.gradle.api.plugins.DeferredConfigurable
 public class CustomExtension {
-    private final StringBuilder builder = new StringBuilder();
+    private final StringBuilder builder = new StringBuilder()
     public void append(String value) {
-        builder.append(value);
+        builder.append(value)
     }
 
     public String getString() {
-        return builder.toString();
+        return builder.toString()
     }
 }
 """
+    }
+
+    private static def buildFileLine(int number) {
+        return number + 28 // Number of lines added to build script in setup
     }
 
     def "configure actions on deferred configurable extension are deferred until access"() {
@@ -97,7 +110,9 @@ task test
         then:
         fails 'test'
         failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
-        failure.assertHasCause("deferred configuration failure")
+                .assertHasCause("deferred configuration failure")
+                .assertHasFileName("Build file '${buildFile.path}'")
+                .assertHasLineNumber(buildFileLine(3))
     }
 
     def "reports on failure in deferred configurable that is not referenced in the build"() {
@@ -112,13 +127,45 @@ task test
         then:
         fails 'test'
         failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
-        failure.assertHasCause("deferred configuration failure")
+
+                .assertHasCause("deferred configuration failure")
+                .assertHasFileName("Build file '${buildFile.path}'")
+                .assertHasLineNumber(buildFileLine(3))
+    }
+
+    def "reports on failure in deferred configurable that is configured in plugin"() {
+        when:
+        buildFile << '''
+apply plugin: BrokenCustomPlugin
+print custom.string
+task test
+'''
+        then:
+        fails 'test'
+        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
+                .assertHasCause("broken configuration in plugin")
+                .assertHasFileName("Build file '${buildFile.path}'")
+                .assertHasLineNumber(12)
+    }
+
+    def "reports on failure in deferred configurable that is configured in plugin and not referenced"() {
+        when:
+        buildFile << '''
+apply plugin: BrokenCustomPlugin
+task test
+'''
+        then:
+        fails 'test'
+        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
+                .assertHasCause("broken configuration in plugin")
+                .assertHasFileName("Build file '${buildFile.path}'")
+                .assertHasLineNumber(12)
     }
 
     def "does not report on deferred configuration failure in case of another configuration failure"() {
         when:
         buildFile << '''
-apply plugin: CustomPlugin
+apply plugin: BrokenCustomPlugin
 custom {
     throw new RuntimeException("deferred configuration failure")
 }
@@ -129,7 +176,9 @@ task test {
         then:
         fails 'test'
         failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
-        failure.assertHasCause("task configuration failure")
+                .assertHasCause("task configuration failure")
+                .assertHasFileName("Build file '${buildFile.path}'")
+                .assertHasLineNumber(buildFileLine(6))
     }
 
     def "cannot configure deferred configurable extension after access"() {
@@ -151,7 +200,9 @@ task test
 '''
         then:
         fails('test')
-        failure.assertHasDescription "A problem occurred evaluating root project 'customProject'."
-        failure.assertHasCause "Cannot configure the 'custom' extension after it has been accessed."
+        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
+                .assertHasCause("Cannot configure the 'custom' extension after it has been accessed.")
+                .assertHasFileName("Build file '${buildFile.path}'")
+                .assertHasLineNumber(buildFileLine(10))
     }
 }
