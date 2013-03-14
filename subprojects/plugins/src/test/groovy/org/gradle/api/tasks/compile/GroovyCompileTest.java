@@ -98,7 +98,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
             testObj.compile();
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), containsString("'myTest.groovyClasspath' must not be empty."));
+            assertThat(e.getMessage(), containsString("'testTask.groovyClasspath' must not be empty."));
         }
     }
 

@@ -83,7 +83,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         }});
 
         thrown.expect(InvalidUserDataException.class);
-        thrown.expectMessage("foo");
+        thrown.expectMessage("'testTask.scalaClasspath' must not be empty");
 
         scalaCompile.compile();
     }
