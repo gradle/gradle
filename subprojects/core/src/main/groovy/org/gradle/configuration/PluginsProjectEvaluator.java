@@ -31,6 +31,11 @@ public class PluginsProjectEvaluator implements ProjectEvaluator {
 
     public void evaluate(ProjectInternal project, ProjectStateInternal state) {
         evaluator.evaluate(project, state);
+
+        if (state.hasFailure()) {
+            return;
+        }
+
         for (ProjectConfigureAction configureAction : serviceLocator.getAll(ProjectConfigureAction.class)) {
             configureAction.execute(project);
         }

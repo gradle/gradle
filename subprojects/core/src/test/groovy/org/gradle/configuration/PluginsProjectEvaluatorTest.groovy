@@ -34,9 +34,23 @@ class PluginsProjectEvaluatorTest extends Specification {
 
         then:
         1 * target.evaluate(project, state)
+        _ * state.hasFailure() >> false
         1 * pluginsClassLoader.getResources('META-INF/services/org.gradle.configuration.ProjectConfigureAction') >> resources()
         1 * pluginsClassLoader.loadClass('ConfigureActionClass') >> TestConfigureAction
         1 * project.setVersion(12)
+        0 * _._
+    }
+
+    def "does not execution actions when project configuration has failed"() {
+        def project = Mock(ProjectInternal)
+        def state = Mock(ProjectStateInternal)
+
+        when:
+        evaluator.evaluate(project, state)
+
+        then:
+        1 * target.evaluate(project, state)
+        _ * state.hasFailure() >> true
         0 * _._
     }
 
