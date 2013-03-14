@@ -50,11 +50,11 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public <T extends Model> ModelBuilder<T> model(Class<T> modelType) {
-        return new DefaultModelBuilder<T, Class>(modelType, mapToProtocol(modelType), connection, adapter, parameters);
+        return new DefaultModelBuilder<T>(modelType, mapToProtocol(modelType), connection, adapter, parameters);
     }
 
-    private Class mapToProtocol(Class<? extends Model> viewType) {
-        Class protocolViewType = modelMapping.getInternalType(viewType);
+    private Class<?> mapToProtocol(Class<? extends Model> viewType) {
+        Class<?> protocolViewType = modelMapping.getInternalType(viewType);
         if (protocolViewType == null) {
             throw new UnknownModelException(
                     "Unknown model: '" + viewType.getSimpleName() + "'.\n"

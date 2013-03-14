@@ -29,14 +29,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-public class DefaultModelBuilder<T extends Model, P> implements ModelBuilder<T> {
+public class DefaultModelBuilder<T extends Model> implements ModelBuilder<T> {
     private final Class<T> modelType;
-    private final Class<P> protocolType;
+    private final Class<?> protocolType;
     private final AsyncConnection connection;
     private final ProtocolToModelAdapter adapter;
     private ConsumerOperationParameters operationParameters;
 
-    public DefaultModelBuilder(Class<T> modelType, Class<P> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+    public DefaultModelBuilder(Class<T> modelType, Class<?> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
         operationParameters = new ConsumerOperationParameters(parameters);
         this.modelType = modelType;
         this.protocolType = protocolType;
@@ -51,8 +51,8 @@ public class DefaultModelBuilder<T extends Model, P> implements ModelBuilder<T> 
     }
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
-        ResultHandler<P> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
-        connection.run(protocolType, operationParameters, new ResultHandlerAdapter<P>(adaptingHandler) {
+        ResultHandler<Object> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
+        connection.run(protocolType, operationParameters, new ResultHandlerAdapter<Object>(adaptingHandler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
@@ -65,54 +65,54 @@ public class DefaultModelBuilder<T extends Model, P> implements ModelBuilder<T> 
         });
     }
 
-    public DefaultModelBuilder<T, P> withArguments(String... arguments) {
+    public DefaultModelBuilder<T> withArguments(String... arguments) {
         operationParameters.setArguments(arguments);
         return this;
     }
 
-    public DefaultModelBuilder<T, P> setStandardOutput(OutputStream outputStream) {
+    public DefaultModelBuilder<T> setStandardOutput(OutputStream outputStream) {
         operationParameters.setStandardOutput(outputStream);
         return this;
     }
 
-    public DefaultModelBuilder<T, P> setStandardError(OutputStream outputStream) {
+    public DefaultModelBuilder<T> setStandardError(OutputStream outputStream) {
         operationParameters.setStandardError(outputStream);
         return this;
     }
 
-    public DefaultModelBuilder<T, P> setStandardInput(InputStream inputStream) {
+    public DefaultModelBuilder<T> setStandardInput(InputStream inputStream) {
         operationParameters.setStandardInput(inputStream);
         return this;
     }
 
-    public DefaultModelBuilder<T, P> setJavaHome(File javaHome) {
+    public DefaultModelBuilder<T> setJavaHome(File javaHome) {
         operationParameters.setJavaHome(javaHome);
         return this;
     }
 
-    public DefaultModelBuilder<T, P> setJvmArguments(String... jvmArguments) {
+    public DefaultModelBuilder<T> setJvmArguments(String... jvmArguments) {
         operationParameters.setJvmArguments(jvmArguments);
         return this;
     }
 
-    public DefaultModelBuilder<T, P> addProgressListener(ProgressListener listener) {
+    public DefaultModelBuilder<T> addProgressListener(ProgressListener listener) {
         operationParameters.addProgressListener(listener);
         return this;
     }
 
-    public DefaultModelBuilder<T, P> forTasks(String... tasks) {
+    public DefaultModelBuilder<T> forTasks(String... tasks) {
         operationParameters.setTasks(Arrays.asList(tasks));
         return this;
     }
 
-    private class ProtocolToModelAdaptingHandler implements ResultHandler<P> {
+    private class ProtocolToModelAdaptingHandler implements ResultHandler<Object> {
         private final ResultHandler<? super T> handler;
 
         public ProtocolToModelAdaptingHandler(ResultHandler<? super T> handler) {
             this.handler = handler;
         }
 
-        public void onComplete(P result) {
+        public void onComplete(Object result) {
             handler.onComplete(adapter.adapt(modelType, result, new ConsumerPropertyHandler(connection.getVersionDetails())));
         }
 
