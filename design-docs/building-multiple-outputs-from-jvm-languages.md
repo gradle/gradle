@@ -45,7 +45,7 @@ compiled usign the javac compiler. The resulting class files are assembled into 
 A library is implemented using a mix of Java, Scala and Groovy and these source files are jointly compiled
 to produce the library.
 
-## package a library in multiple ways
+## Package a library in multiple ways
 
 A library may be packaged as a classes directory, or a set of directories, or a single jar file, or a
 far jar, or an API jar and an implementation jar.
@@ -85,17 +85,18 @@ source sets except via the existing `sourceSets` container.
 
 1. Add a `LanguageSourceSet` interface that extends `Buildable` and `Named`. This has the following properties:
     - `source` of type `SourceDirectorySet`.
-2. Add a `SourceSet` interface that is a container of `LanguageSourceSet` instances. Initially, this will be
-   publically read-only.
+2. Add a `FunctionalSourceSet` interface that is a container of `LanguageSourceSet` instances. Initially, this
+   will be publically read-only.
 3. Add a `JavaSourceSet` interface that extends `LanguageSourceSet`.
 4. Add a `ResourceSet` interface that extends `LanguageSourceSet`.
-5. Add a `language-base` plugin that adds a `SourceSet` instance as a project extension called `sources`.
+5. Add a `language-base` plugin that adds a container of `FunctionalSourceSet` instance as a project extension
+   called `sources`.
 6. Change the `java-base` plugin to apply the `language-base` plugin.
 7. Change the `java-base` plugin so that when a source set is added to the `sourceSets` container:
     1. A corresponding `SourceSet` instance is added to the `source` container.
-    2. A `JavaSourceSet` instance called `java` is added to this source set, and shares the same Java source
+    2. A `JavaSourceSet` instance named `java` is added to this source set, and shares the same Java source
        directory set as the old source set.
-    3. A `ResourceSet` instance called `resources` is added to this source set, and shares the same
+    3. A `ResourceSet` instance named `resources` is added to this source set, and shares the same
        resource source directory set as the old source set.
 
 To configure the `main` source set:
@@ -121,7 +122,7 @@ To configure the `main` source set:
 This story introduces the compile classpath for a Java source set, along with the general purpose concept of
 a classpath. Initially, a classpath will provide only a read-only view.
 
-1. Add a `Classpath` interface. Initially, this will be a query-only interface. It has the following properties:
+1. Add a `Classpath` interface. Initially, this will be a read-only interface. It has the following properties:
     - `files` of type `FileCollection`
 2. Add a `compileClasspath` to the `JavaSourceSet` interface.
 3. Change the `java-base` plugin so that the Java source set instance it adds has the same compile classpath.
@@ -135,30 +136,30 @@ binaries except via the existing `sourceSets` container.
 1. Add a `ClassDirectoryBinary` interface that extends `Named` and `Buildable`. This has the following
    properties:
     - `classesDir` of type `File`.
+    - `resourcesDir` of type `File`.
     - `source` of type `DomainObjectCollection<LanguageSourceSet>`.
 2. Add a `jvm-lang` plugin
-3. The `jvm-lang` plugin to add a container of JVM binaries called `jvm.binaries`.
+3. The `jvm-lang` plugin to add a container of JVM binaries called `binaries.jvm`.
 4. When a `ClassDirectoryBinary` is added to the container:
     - Default `classesDir` to `$buildDir/classes/$name`.
     - Add a lifecycle task, called `classes` for the `main` binary and `${name}Classes` for other binaries.
-5. The `jvm-lang` plugin adds a rule that when one or more `ResourceSet` instances are added as source for a
+5. The `jvm-lang` plugin adds a rule that for each `ResourceSet` instance added as source for a
    `ClassDirectoryBinary`, a task of type `ProcessResources` is added which copies the resources into the
     output directory. This task is called `processResources` for the `main` binary and `process${name}Resources`
-    for other binaries.
+    for other binaries. It should copy resources into the binary's `resourcesDir`. For this story, it is an error
+    to add more than one `ResourcesSet` to a binary.
 6. Add a `java-lang` plugin. This applies the `jvm-lang` plugin.
-7. The `java-lang` plugin adds a rule that when one or more `JavaSourceSet` instances are added as source for a
+7. The `java-lang` plugin adds a rule that for each `JavaSourceSet` instance added as source for a
    `ClassDirectoryBinary`, a task of type `JavaCompile` is added to compile the source into the output directory.
    This task is called `compileJava` for the `main` binary and `compile${name}Java` for the other binaries.
+   It should compile source files into the binary's `classesDir`. For this story, it is an error to add more
+   than one `JavaSourceSet` instance to a binary.
 8. Change the `java-base` plugin to apply the `java-lang` plugin.
 9. Change the `java-base` plugin so that when a source set is added to the `sourceSets` container:
     - Add a `ClassDirectoryBinary` for the source set.
     - No longer adds the lifecycle task, or process resources and Java compile tasks for the source set.
     - Synchronise the source set and binary's classes dir properties.
     - Attach the source set's resources and java source to the binary.
-
-TBD - need to separate the classes and resources directories
-TBD - other compile settings
-TBD - other language plugins need to keep working
 
 For this story, zero or one `JavaSourceSet` and zero or one `ResourceSet` instances will be supported.
 Support for multiple source sets of each language will be added by later stories.
@@ -167,8 +168,8 @@ To configure the output of the main Java source and resources:
 
     apply plugin: 'java'
 
-    jvm {
-        binaries {
+    binaries {
+        jvm {
             main {
                 classesDir 'build/main/classes'
             }
@@ -182,14 +183,12 @@ To configure the output of the main Java source and resources:
 
 This story introduces the ability to define arbitrary source sets and class directory binaries.
 
-TBD - implementation
-
 To build a binary from the main source set:
 
     apply plugin: 'java'
 
-    jvm {
-        binaries {
+    binaries {
+        jvm {
             release(ClassDirectoryBinary) {
                 source sources.main
             }
@@ -212,8 +211,8 @@ To build several binaries from source:
         }
     }
 
-    jvm {
-        binaries {
+    binaries {
+        jvm {
             api(ClassDirectoryBinary) {
                 source sources.api
             }
@@ -229,13 +228,22 @@ TBD - running `gradle assemble` does what?
 
 ## Story: Build binaries from multiple source sets
 
-## Story: Dependencies between source sets
+In this story, the ability to build a binary from multiple source sets that are jointly compiled is added.
+
+- Allow multiple resource and java source sets to be added to a binary.
+- Allow functional source sets to be added to a binary.
+- Allow source sets to be composed.
 
 ## Story: Apply conflict resolution to class paths
 
+- For composite source sets, define a `compile` configuration that contains the union of dependencies from the compile
+  classpaths of each origin source set.
+
+## Story: Dependencies between source sets
+
 ## Story: Java source set runtime classpath
 
-## Story: JAR packaging
+## Story: JAR binaries
 
 This story adds the ability to define JAR binaries and build them from Java source and resource files.
 
@@ -257,8 +265,8 @@ To assemble a JAR binary:
         }
     }
 
-    jvm {
-        binaries {
+    binaries {
+        jvm {
             classes(ClassDirectoryBinary) {
                 source source.main
             }
@@ -287,14 +295,14 @@ source sets.
 This story introduces the concept of a Groovy source set and moves the ability to build a jvm binary
 from a Groovy source set out of the `groovy-base` plugin.
 
-TBD - joint compilation.
+## Story: Joint compilation of Java and Groovy source sets
 
 ## Story: Scala source sets
 
 This story introduces the concept of a Scala source set and moves the ability to build a jvm binary
 from a Scala source set out of the `scala-base` plugin.
 
-TBD - joint compilation.
+## Story: Joint compilation of Java and Scala source sets
 
 ## Story: ANTLR source sets
 
@@ -304,6 +312,10 @@ to build a Java source set.
 ## Story: IDE plugins support generated source
 
 This story changes the IDE plugins to understand that some source is generated and some is not.
+
+## Story: Publish library varants for multiple Groovy or Scala runtimes
+
+## Story: Compile JVM languages against API of dependencies
 
 ## Story: C++ source sets
 
