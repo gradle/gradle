@@ -178,10 +178,12 @@ When a task a is a finaliser for task b, then:
 ### Test coverage
 
 For build with the `build-dashboard` plugin applied to the root project and the (say) `checkstyle` plugin applied:
-    - running `gradle check` will run the `buildDashboard` task.
-    - running `gradle check` will run the `buildDashboard` task when the checkstyle task fails.
-    - running `gradle check` will not run the `buildDashboard` task when the checkstyle task is not executed due to a failed dependency.
-    - running `gradle check --continue` will not run the `buildDashboard` task when the checkstyle task is not executed due to a failed dependency.
+
+- running `gradle check` will run the `buildDashboard` task.
+- running `gradle check` will run the `buildDashboard` task when the checkstyle task fails.
+- running `gradle check` will not run the `buildDashboard` task when the checkstyle task is not executed due to a failed dependency.
+- running `gradle check --continue` will not run the `buildDashboard` task when the checkstyle task is not executed due to a failed dependency.
+
 TBD - some general int tests
 
 ## Separate test report generation from test execution
