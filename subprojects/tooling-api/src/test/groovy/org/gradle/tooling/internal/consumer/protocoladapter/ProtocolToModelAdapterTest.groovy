@@ -16,15 +16,13 @@
 
 package org.gradle.tooling.internal.consumer.protocoladapter
 
-import org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency
-import org.gradle.tooling.internal.idea.DefaultIdeaSingleEntryLibraryDependency
+import org.gradle.tooling.internal.consumer.*
 import org.gradle.tooling.model.UnsupportedMethodException
-import org.gradle.tooling.model.idea.IdeaDependency
-import org.gradle.tooling.model.idea.IdeaModuleDependency
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.util.Matchers
 import spock.lang.Specification
-import org.gradle.tooling.internal.consumer.*
+
+import java.nio.channels.ByteChannel
+import java.nio.channels.Channel
 
 /**
  * by Szczepan Faber, created at: 4/2/12
@@ -256,16 +254,18 @@ class ProtocolToModelAdapterTest extends Specification {
         model.getConfig('default') == "[default]"
     }
 
-    def "adapts idea dependencies"() {
-        def libraryDep = new GroovyClassLoader().loadClass(DefaultIdeaSingleEntryLibraryDependency.class.getCanonicalName()).newInstance()
-        def moduleDep = new GroovyClassLoader().loadClass(DefaultIdeaModuleDependency.class.getCanonicalName()).newInstance()
+    def "delegates to type provider to determine type to wrap an object in"() {
+        def typeProvider = Mock(TargetTypeProvider)
+        def adapter = new ProtocolToModelAdapter(typeProvider)
+        def sourceObject = new Object()
+
+        given:
+        _ * typeProvider.getTargetType(Channel, sourceObject) >> ByteChannel
 
         when:
-        def library = adapter.adapt(IdeaDependency.class, libraryDep)
-        def module  = adapter.adapt(IdeaDependency.class, moduleDep)
+        def result = adapter.adapt(Channel.class, sourceObject)
 
         then:
-        library instanceof IdeaSingleEntryLibraryDependency
-        module instanceof IdeaModuleDependency
+        result instanceof ByteChannel
     }
 }

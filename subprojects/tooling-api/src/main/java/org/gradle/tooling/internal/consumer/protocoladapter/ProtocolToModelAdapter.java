@@ -34,11 +34,24 @@ public class ProtocolToModelAdapter {
         public void invoke(MethodInvocation invocation) throws Throwable {
         }
     };
+    public static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
+        public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
+            return initialTargetType;
+        }
+    };
     private static final Object[] EMPTY = new Object[0];
     private static final Pattern IS_SUPPORT_METHOD = Pattern.compile("is(\\w+)Supported");
     private static final Pattern GETTER_METHOD = Pattern.compile("get(\\w+)");
     private static final Pattern IS_METHOD = Pattern.compile("is(\\w+)");
-    private final TargetTypeProvider targetTypeProvider = new TargetTypeProvider();
+    private final TargetTypeProvider targetTypeProvider;
+
+    public ProtocolToModelAdapter() {
+        this(IDENTITY_TYPE_PROVIDER);
+    }
+
+    public ProtocolToModelAdapter(TargetTypeProvider targetTypeProvider) {
+        this.targetTypeProvider = targetTypeProvider;
+    }
 
     public <T, S> T adapt(Class<T> targetType, S protocolObject) {
         return adapt(targetType, protocolObject, NO_OP_HANDLER);

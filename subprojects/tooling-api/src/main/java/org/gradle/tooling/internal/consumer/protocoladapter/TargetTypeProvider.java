@@ -16,37 +16,9 @@
 
 package org.gradle.tooling.internal.consumer.protocoladapter;
 
-import org.gradle.tooling.model.idea.IdeaModuleDependency;
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
-import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
-
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * by Szczepan Faber, created at: 4/2/12
- */
-public class TargetTypeProvider {
-
-    Map<String, Class<?>> configuredTargetTypes = new HashMap<String, Class<?>>();
-
-    public TargetTypeProvider() {
-        configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
-        configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), IdeaModuleDependency.class);
-        configuredTargetTypes.put(GradleFileBuildOutcome.class.getCanonicalName(), GradleFileBuildOutcome.class);
-    }
-
+public interface TargetTypeProvider {
     /**
-     * Determines the model type to use for the given protocol object.
+     * Determines the model type to use to wrap the given protocol object.
      */
-    public <T, S> Class<? extends T> getTargetType(Class<T> initialTargetType, S protocolObject) {
-        Class<?>[] interfaces = protocolObject.getClass().getInterfaces();
-        for (Class<?> i : interfaces) {
-            if (configuredTargetTypes.containsKey(i.getName())) {
-                return configuredTargetTypes.get(i.getName()).asSubclass(initialTargetType);
-            }
-        }
-
-        return initialTargetType;
-    }
+    <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject);
 }
