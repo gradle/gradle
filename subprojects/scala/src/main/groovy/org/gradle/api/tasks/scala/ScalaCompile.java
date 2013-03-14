@@ -135,8 +135,8 @@ public class ScalaCompile extends AbstractCompile {
 
     private void checkScalaClasspathIsNonEmpty() {
         if (getScalaClasspath().isEmpty()) {
-            throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty. If a Scala compile dependency is provided, " +
-                    "the 'scala-base' plugin will attempt to configure 'scalaClasspath' automatically. Alternatively, you may configure 'scalaClasspath' explicitly.");
+            throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty. If a Scala compile dependency is provided, "
+                    + "the 'scala-base' plugin will attempt to configure 'scalaClasspath' automatically. Alternatively, you may configure 'scalaClasspath' explicitly.");
         }
     }
 
