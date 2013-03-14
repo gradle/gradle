@@ -69,7 +69,7 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test public void testHasUsefulToString() {
-        assertEquals('task \':taskname\'', task.toString())
+        assertEquals('task \':testTask\'', task.toString())
     }
 
     @Test public void testCanInjectValuesIntoTaskWhenUsingNoArgsConstructor() {
@@ -249,7 +249,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     @Test
     void canGetTemporaryDirectory() {
-        File tmpDir = new File(project.buildDir, "tmp/taskname")
+        File tmpDir = new File(project.buildDir, "tmp/testTask")
         assertFalse(tmpDir.exists())
 
         assertThat(defaultTask.temporaryDir, equalTo(tmpDir))

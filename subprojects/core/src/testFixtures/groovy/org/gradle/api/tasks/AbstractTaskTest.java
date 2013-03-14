@@ -53,7 +53,7 @@ import static org.junit.Assert.*;
  * @author Hans Dockter
  */
 public abstract class AbstractTaskTest {
-    public static final String TEST_TASK_NAME = "myTest";
+    public static final String TEST_TASK_NAME = "testTask";
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
