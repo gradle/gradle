@@ -17,14 +17,15 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
 
 public class InternalConnectionBackedConsumerConnection extends AdaptedConnection {
     private final InternalConnection connection;
 
-    public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate) {
-        super(delegate);
+    public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData) {
+        super(delegate, providerMetaData);
         connection = (InternalConnection) delegate;
     }
 

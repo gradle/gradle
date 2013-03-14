@@ -91,6 +91,16 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     }
 }
 
+class TestMetaData implements ConnectionMetaDataVersion1 {
+    String getVersion() {
+        return "1.1"
+    }
+
+    String getDisplayName() {
+        throw new UnsupportedOperationException()
+    }
+}
+
 class TestConnection implements ConnectionVersion4, BuildActionRunner, ConfigurableConnection {
     boolean configured
 
@@ -107,7 +117,7 @@ class TestConnection implements ConnectionVersion4, BuildActionRunner, Configura
     }
 
     ConnectionMetaDataVersion1 getMetaData() {
-        throw new UnsupportedOperationException()
+        return new TestMetaData()
     }
 
     ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
@@ -135,7 +145,7 @@ class TestOldConnection implements InternalConnection {
     }
 
     ConnectionMetaDataVersion1 getMetaData() {
-        throw new UnsupportedOperationException()
+        return new TestMetaData()
     }
 
     ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
@@ -159,7 +169,7 @@ class TestEvenOlderConnection implements ConnectionVersion4 {
     }
 
     ConnectionMetaDataVersion1 getMetaData() {
-        throw new UnsupportedOperationException()
+        return new TestMetaData()
     }
 
     ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {

@@ -22,9 +22,11 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 public abstract class AbstractConsumerConnection implements ConsumerConnection {
     private final ConnectionVersion4 delegate;
+    private final VersionDetails providerMetaData;
 
-    public AbstractConsumerConnection(ConnectionVersion4 delegate) {
+    public AbstractConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData) {
         this.delegate = delegate;
+        this.providerMetaData = providerMetaData;
     }
 
     public void stop() {
@@ -36,7 +38,7 @@ public abstract class AbstractConsumerConnection implements ConsumerConnection {
     }
 
     public VersionDetails getVersionDetails() {
-        return new VersionDetails(delegate.getMetaData().getVersion());
+        return providerMetaData;
     }
 
     public ConnectionVersion4 getDelegate() {

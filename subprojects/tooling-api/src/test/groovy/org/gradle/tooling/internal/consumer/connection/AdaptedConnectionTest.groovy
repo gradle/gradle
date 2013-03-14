@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import spock.lang.Specification
@@ -23,7 +24,7 @@ import spock.lang.Specification
 class AdaptedConnectionTest extends Specification {
     final ConnectionVersion4 target = Mock()
     final ConsumerOperationParameters parameters = Mock()
-    final AdaptedConnection connection = new AdaptedConnection(target)
+    final AdaptedConnection connection = new AdaptedConnection(target, Mock(VersionDetails))
 
     def "builds model using getModel() method"() {
         ProjectVersion3 model = Mock()

@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConfigurableConnection;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
@@ -25,8 +26,8 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 public class BuildActionRunnerBackedConsumerConnection extends AbstractConsumerConnection {
     private final BuildActionRunner buildActionRunner;
 
-    public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate) {
-        super(delegate);
+    public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData) {
+        super(delegate, providerMetaData);
         buildActionRunner = (BuildActionRunner) delegate;
     }
 

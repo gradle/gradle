@@ -24,6 +24,8 @@ import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.*;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
+import org.gradle.tooling.internal.consumer.versioning.ProviderMetaDataRegistry;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
@@ -65,13 +67,14 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             ConnectionVersion4 connection = factory.create();
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
+            VersionDetails providerMetaData = new ProviderMetaDataRegistry().getVersionDetails(connection.getMetaData().getVersion());
             AbstractConsumerConnection adaptedConnection;
             if (connection instanceof BuildActionRunner) {
-                adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection);
+                adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, providerMetaData);
             } else if (connection instanceof InternalConnection) {
-                adaptedConnection = new InternalConnectionBackedConsumerConnection(connection);
+                adaptedConnection = new InternalConnectionBackedConsumerConnection(connection, providerMetaData);
             } else {
-                adaptedConnection = new AdaptedConnection(connection);
+                adaptedConnection = new AdaptedConnection(connection, providerMetaData);
             }
             adaptedConnection.configure(connectionParameters);
             return adaptedConnection;
