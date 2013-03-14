@@ -22,7 +22,6 @@ import org.gradle.logging.ProgressLoggerFactory;
 
 import java.util.LinkedList;
 
-// TODO:DAZ Think about a better way to do thread-safety here, maybe
 public class DependencyResolutionLogger implements DependencyResolutionListener {
     private final ThreadLocal<LinkedList<ProgressLogger>> progressLoggers = new ThreadLocal<LinkedList<ProgressLogger>>() {
         protected LinkedList<ProgressLogger> initialValue() {

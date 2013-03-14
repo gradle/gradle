@@ -82,12 +82,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.component = (SoftwareComponentInternal) component;
 
         for (Usage usage : this.component.getUsages()) {
-            // TODO:DAZ Need a smarter way to map usage to artifact classifier
+            // TODO Need a smarter way to map usage to artifact classifier
             for (PublishArtifact publishArtifact : usage.getArtifacts()) {
                 artifact(publishArtifact);
             }
 
-            // TODO:DAZ Need a smarter way to map usage to scope
+            // TODO Need a smarter way to map usage to scope
             runtimeDependencies.addAll(usage.getDependencies());
         }
     }

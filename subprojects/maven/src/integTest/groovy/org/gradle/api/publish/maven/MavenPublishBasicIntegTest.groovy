@@ -200,7 +200,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 
-    @Ignore("Not yet implemented - currently the second publication will overwrite") // TODO:DAZ fix in validation story
+    @Ignore("Not yet implemented - currently the second publication will overwrite")
     def "cannot publish multiple maven publications with the same identity"() {
         given:
         settingsFile << "rootProject.name = 'bad-project'"

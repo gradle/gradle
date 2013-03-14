@@ -34,7 +34,6 @@ import java.util.Map;
 /**
  * @author Szczepan Faber, created at: 6/24/11
  */
-// TODO:DAZ Consider thread-safety?
 public class ExtensionsStorage {
     private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<String, ExtensionHolder>();
 

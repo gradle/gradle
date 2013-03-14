@@ -43,7 +43,7 @@ public class WebApplication implements SoftwareComponentInternal {
 
     private class WebArchiveUsage implements Usage {
         public String getName() {
-            return "master"; // TODO:DAZ Maybe come up with a better name
+            return "master";
         }
 
         public Set<PublishArtifact> getArtifacts() {

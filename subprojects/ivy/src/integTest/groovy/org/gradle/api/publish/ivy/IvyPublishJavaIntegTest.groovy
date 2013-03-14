@@ -45,7 +45,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             expectArtifact("publishTest").hasAttributes("jar", "jar", ["runtime"])
         }
-        // TODO:DAZ For some reason this doesn't work inside the with block. Investigate.
         ivyModule.ivy.assertDependsOn("commons-collections:commons-collections:3.2.1@runtime", "commons-io:commons-io:1.4@runtime")
 
         and:

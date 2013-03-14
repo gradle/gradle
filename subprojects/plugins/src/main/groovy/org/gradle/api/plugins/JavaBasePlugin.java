@@ -150,7 +150,6 @@ public class JavaBasePlugin implements Plugin<Project> {
                 binary.getSource().add(javaSourceSet);
                 binary.getSource().add(resourceSet);
 
-                // TODO:DAZ review this
                 binary.getClassesTask().dependsOn(sourceSet.getOutput().getDirs());
             }
         });
