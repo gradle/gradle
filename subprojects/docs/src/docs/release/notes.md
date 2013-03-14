@@ -50,10 +50,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### org.gradle.api.artifacts.ProjectDependency now has an internal protocol
+### org.gradle.api.artifacts.ProjectDependency and org.gradle.api.plugins.ExtensionContainer now have an internal protocol
 
-This means that the users should not create own implementations of org.gradle.api.artifacts.ProjectDependency.
-This change should not affect any builds because there are no use cases supporting custom instances of ProjectDependency.
+This means that the users should not create own implementations of org.gradle.api.artifacts.ProjectDependency or org.gradle.api.plugins.ExtensionContainer.
+This change should not affect any builds because there are no known use cases supporting custom instances of these API classes.
 
 ### Renamed `add` method on PublicationContainer (incubating)
 

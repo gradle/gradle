@@ -19,12 +19,12 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.UnknownDomainObjectException;
-
-import java.util.Map;
+import org.gradle.api.internal.HasInternalProtocol;
 
 /**
  * Allows adding 'namespaced' DSL extensions to a target object.
  */
+@HasInternalProtocol
 public interface ExtensionContainer {
 
     /**
@@ -104,13 +104,6 @@ public interface ExtensionContainer {
      */
     @Incubating
     <T> void configure(Class<T> type, Action<? super T> action);
-
-    /**
-     * Provides access to all known extensions.
-     * @return A map of extensions, keyed by name.
-     */
-    @Incubating
-    Map<String, Object> getAsMap();
 
     /**
      * The extra properties extension in this extension container.

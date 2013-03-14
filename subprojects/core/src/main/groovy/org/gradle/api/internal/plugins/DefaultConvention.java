@@ -32,7 +32,7 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public class DefaultConvention implements Convention {
+public class DefaultConvention implements Convention, ExtensionContainerInternal {
 
     private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();

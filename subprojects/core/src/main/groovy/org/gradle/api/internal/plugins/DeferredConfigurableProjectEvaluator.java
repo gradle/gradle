@@ -40,8 +40,9 @@ public class DeferredConfigurableProjectEvaluator implements ProjectEvaluator {
             return;
         }
 
+        ExtensionContainerInternal extensions = project.getExtensions();
         try {
-            project.getExtensions().getAsMap();
+            extensions.getAsMap();
         } catch (Exception e) {
             // Ensure that we get the same exception as if the extension was configured by use in script itself.
             GradleScriptException failure = new GradleScriptException(String.format("A problem occurred evaluating %s.", project), e);
