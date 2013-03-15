@@ -17,36 +17,46 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
-import org.junit.Test
+import org.hamcrest.Matcher
 
-@TargetVersions(['4.3', '5.0.0'])
+import static org.gradle.util.Matchers.containsLine
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
+
+@TargetVersions(['4.3', '5.0.2'])
 class PmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
-
-    @Test
-    public void canRunPmdWithDifferentToolVersions() {
+    def "can use different PMD versions"() {
         given:
+        badCode()
         buildFile << """
-        apply plugin: "java"
-        apply plugin: "pmd"
+            apply plugin: "java"
+            apply plugin: "pmd"
 
-        repositories {
-            mavenCentral()
-        }
-        pmd {
-            toolVersion = '$version'
-            ignoreFailures = true
-        }"""
-        createTestFiles();
-        when:
-        succeeds('pmdMain', 'pmdTest')
-        then:
-        output.contains("2 PMD rule violations were found. See the report at:")
+            repositories {
+                mavenCentral()
+            }
+
+            pmd {
+                toolVersion = '$version'
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':pmdTest'")
+        failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+        file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
-    private void createTestFiles() {
+    private badCode() {
         file("src/main/java/org/gradle/Class1.java") <<
                 "package org.gradle; class Class1 { public boolean isFoo(Object arg) { return true; } }"
         file("src/test/java/org/gradle/Class1Test.java") <<
                 "package org.gradle; class Class1Test { {} public boolean equals(Object arg) { return true; } }"
+    }
+
+    private static Matcher<String> containsClass(String className) {
+        containsLine(containsString(className.replace(".", File.separator)))
     }
 }

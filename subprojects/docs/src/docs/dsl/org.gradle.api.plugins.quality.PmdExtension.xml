@@ -18,7 +18,7 @@
             </tr>
             <tr>
                 <td>ruleSets</td>
-                <td><literal>[]</literal></td>
+                <td><literal>["basic"]</literal></td>
             </tr>
             <tr>
                 <td>ruleSetFiles</td>
