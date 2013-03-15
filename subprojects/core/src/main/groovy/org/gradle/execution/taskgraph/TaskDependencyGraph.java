@@ -37,19 +37,11 @@ public class TaskDependencyGraph {
     }
 
     public void addHardEdge(TaskInfo fromNode, Task toTask) {
-        TaskInfo toNode = getOrCreateNode(toTask);
-        toNode.setRequired(true);
-        fromNode.addHardSuccessor(toNode);
+        fromNode.addHardSuccessor(addNode(toTask));
     }
 
     public void addSoftEdge(TaskInfo fromNode, Task toTask) {
-        fromNode.addSoftSuccessor(getOrCreateNode(toTask));
-    }
-
-    public TaskInfo addRequiredNode(Task task) {
-        TaskInfo node = getOrCreateNode(task);
-        node.setRequired(true);
-        return node;
+        fromNode.addSoftSuccessor(addNode(toTask));
     }
 
     @Nullable
@@ -57,7 +49,7 @@ public class TaskDependencyGraph {
         return nodes.get(task);
     }
 
-    private TaskInfo getOrCreateNode(Task task) {
+    public TaskInfo addNode(Task task) {
         TaskInfo node = nodes.get(task);
         if (node == null) {
             node = new TaskInfo((TaskInternal) task);

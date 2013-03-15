@@ -35,22 +35,28 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'adding nodes'() {
         when:
-        graph.addRequiredNode(a)
-        graph.addRequiredNode(b)
+        def node = graph.addNode(a)
+
+        then:
+        graph.getNode(a).is(node)
+        graph.addNode(a).is(node)
+        !node.required
+        node.softSuccessors.empty
+        node.hardSuccessors.empty
+    }
+
+    void 'can add multiple nodes'() {
+        when:
+        graph.addNode(a)
+        graph.addNode(b)
 
         then:
         graph.tasks == [a, b] as Set
-
-        and:
-        [a, b].every {
-            def node = graph.getNode(it)
-            node.required && !node.softSuccessors && !node.hardSuccessors
-        }
     }
 
     void 'adding hard edges'() {
         when:
-        def nodeA = graph.addRequiredNode(a)
+        def nodeA = graph.addNode(a)
         graph.addHardEdge(nodeA, c)
         graph.addHardEdge(nodeA, b)
 
@@ -59,14 +65,13 @@ class TaskDependencyGraphTest extends Specification {
             tasks == [a, c, b] as Set
             getNode(a).hardSuccessors*.task == [b, c]
             [b, c].every { !getNode(it).hardSuccessors }
-            [a, b, c].every { getNode(it).required }
             [a, b, c].every { !getNode(it).softSuccessors }
         }
     }
 
     void 'adding soft edges'() {
         when:
-        def nodeA = graph.addRequiredNode(a)
+        def nodeA = graph.addNode(a)
         graph.addSoftEdge(nodeA, c)
         graph.addSoftEdge(nodeA, b)
 
@@ -75,52 +80,15 @@ class TaskDependencyGraphTest extends Specification {
             tasks == [a, c, b] as Set
             getNode(a).softSuccessors*.task == [b, c]
             [b, c].every { !getNode(it).softSuccessors }
-            getNode(a).required
-            [b, c].every { !getNode(it).required }
             [a, b, c].every { !getNode(it).hardSuccessors }
         }
     }
 
-    void 'adding edges to previously non required tasks'() {
-        when:
-        def nodeA = graph.addRequiredNode(a)
-        def nodeC = graph.addRequiredNode(c)
-        graph.addSoftEdge(nodeA, b)
-        graph.addHardEdge(nodeC, b)
-
-        then:
-        [a, b, c].every { graph.getNode(it).required }
-    }
-
-    void 'adding edges to previously required tasks'() {
-        when:
-        def nodeA = graph.addRequiredNode(a)
-        def nodeC = graph.addRequiredNode(c)
-        graph.addHardEdge(nodeA, b)
-        graph.addSoftEdge(nodeC, b)
-
-        then:
-        [a, b, c].every { graph.getNode(it).required }
-    }
-
-    void 'adding a previously non required task'() {
-        when:
-        def nodeA = graph.addRequiredNode(a)
-        def nodeB = graph.addRequiredNode(b)
-        graph.addSoftEdge(nodeA, b)
-        graph.addHardEdge(nodeB, c)
-        graph.addSoftEdge(nodeA, d)
-        graph.addRequiredNode(d)
-
-        then:
-        [a, b, c, d].every { graph.getNode(it).required }
-    }
-
     void 'clear'() {
         when:
-        def nodeA = graph.addRequiredNode(a)
+        def nodeA = graph.addNode(a)
         graph.addHardEdge(nodeA, b)
-        graph.addRequiredNode(c)
+        graph.addNode(c)
         graph.clear()
 
         then:
@@ -129,9 +97,9 @@ class TaskDependencyGraphTest extends Specification {
 
     void 'has task'() {
         when:
-        def nodeA = graph.addRequiredNode(a)
+        def nodeA = graph.addNode(a)
         graph.addHardEdge(nodeA, b)
-        graph.addRequiredNode(c)
+        graph.addNode(c)
 
         then:
         [a, b, c].every { graph.hasTask(it) }

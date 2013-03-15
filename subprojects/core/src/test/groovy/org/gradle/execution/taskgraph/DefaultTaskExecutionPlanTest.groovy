@@ -19,18 +19,12 @@ package org.gradle.execution.taskgraph
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskState
-import org.gradle.cache.PersistentIndexedCache
 import org.gradle.execution.TaskFailureHandler
-import org.gradle.internal.Factory
-import org.gradle.messaging.serialize.Serializer
-import org.hamcrest.Description
-import org.jmock.api.Invocation
 import spock.lang.Specification
 
 import static org.gradle.util.HelperUtil.createRootProject
@@ -450,13 +444,17 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executedTasks == [b]
     }
 
-    def "does not execute filtered tasks"() {
+    def "does not build graph for or execute filtered tasks"() {
         given:
-        Task a = task("a", dependsOn: [task("a-dep")])
+        Task a = filteredTask("a")
         Task b = task("b")
+        Spec<Task> filter = Mock()
+
+        and:
+        filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter({ it != a } as Spec<Task>);
+        executionPlan.useFilter(filter);
         addToGraphAndPopulate([a, b])
 
         then:
@@ -464,16 +462,38 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executedTasks == [b]
     }
 
-    def "does not execute filtered dependencies"() {
+    def "does not build graph for or execute filtered dependencies"() {
         given:
-        Task a = task("a", dependsOn: [task("a-dep")])
+        Task a = filteredTask("a")
         Task b = task("b")
         Task c = task("c", dependsOn: [a, b])
+        Spec<Task> filter = Mock()
+
+        and:
+        filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-
-        executionPlan.useFilter({ it != a } as Spec<Task>)
+        executionPlan.useFilter(filter)
         addToGraphAndPopulate([c])
+
+        then:
+        executionPlan.tasks == [b, c]
+        executedTasks == [b, c]
+    }
+
+    def "does not build graph for or execute filtered tasks reachable via task ordering"() {
+        given:
+        Task a = filteredTask("a")
+        Task b = task("b", mustRunAfter: [a])
+        Task c = task("c", dependsOn: [a])
+        Spec<Task> filter = Mock()
+
+        and:
+        filter.isSatisfiedBy(_) >> { Task t -> t != a }
+
+        when:
+        executionPlan.useFilter(filter)
+        addToGraphAndPopulate([b, c])
 
         then:
         executionPlan.tasks == [b, c]
@@ -482,11 +502,15 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     def "will execute a task whose dependencies have been filtered"() {
         given:
-        Task b = task("b")
+        Task b = filteredTask("b")
         Task c = task("c", dependsOn: [b])
+        Spec<Task> filter = Mock()
+
+        and:
+        filter.isSatisfiedBy(_) >> { Task t -> t != b }
 
         when:
-        executionPlan.useFilter({ it != b } as Spec<Task>)
+        executionPlan.useFilter(filter)
         addToGraphAndPopulate([c]);
 
         then:
@@ -496,6 +520,12 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     private TaskDependency taskDependencyResolvingTo(TaskInternal task, List<Task> tasks) {
         Mock(TaskDependency) {
             getDependencies(task) >> tasks
+        }
+    }
+
+    private TaskDependency brokenDependencies() {
+        Mock(TaskDependency) {
+            0 * getDependencies(_)
         }
     }
 
@@ -517,15 +547,22 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     private TaskInternal task(Map options, final String name) {
-        def task = createTask(name);
-        dependsOn(task, options.dependsOn ?: []);
+        def task = createTask(name)
+        dependsOn(task, options.dependsOn ?: [])
         mustRunAfter(task, options.mustRunAfter ?: [])
         if (options.failure) {
             failure(task, options.failure)
         }
-        return task;
+        return task
     }
-    
+
+    private TaskInternal filteredTask(final String name) {
+        def task = createTask(name);
+        task.getTaskDependencies() >> brokenDependencies()
+        task.getMustRunAfter() >> brokenDependencies()
+        return task
+    }
+
     private TaskInternal createTask(final String name) {
         TaskInternal task = Mock()
         TaskState state = Mock()
@@ -538,45 +575,6 @@ public class DefaultTaskExecutionPlanTest extends Specification {
             return name.compareTo(taskInternal.getName());
         }
         return task;
-    }
-
-    private class ExecuteTaskAction implements org.jmock.api.Action {
-        private final TaskInternal task;
-
-        public ExecuteTaskAction(TaskInternal task) {
-            this.task = task;
-        }
-
-        public Object invoke(Invocation invocation) throws Throwable {
-            executedTasks.add(task);
-            return null;
-        }
-
-        public void describeTo(Description description) {
-            description.appendText("execute task");
-        }
-    }
-
-    private static class DirectCacheAccess implements TaskArtifactStateCacheAccess {
-        public void useCache(String operationDisplayName, Runnable action) {
-            action.run();
-        }
-
-        public void longRunningOperation(String operationDisplayName, Runnable action) {
-            action.run();
-        }
-
-        public <K, V> PersistentIndexedCache createCache(String cacheName, Class<K> keyType, Class<V> valueType) {
-            throw new UnsupportedOperationException();
-        }
-
-        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-            throw new UnsupportedOperationException();
-        }
-
-        public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer) {
-            throw new UnsupportedOperationException();
-        }
     }
 }
 

@@ -18,7 +18,6 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -39,7 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
 class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private final Set<Task> entryTasks = new LinkedHashSet<Task>();
+    private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
@@ -51,14 +50,23 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void addToTaskGraph(Collection<? extends Task> tasks) {
         List<Task> queue = new ArrayList<Task>(tasks);
         Collections.sort(queue);
-        entryTasks.addAll(queue);
+        for (Task task : queue) {
+            entryTasks.add(graph.addNode(task));
+        }
         Set<Task> visiting = new HashSet<Task>();
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
         while (!queue.isEmpty()) {
             Task task = queue.get(0);
-
-            if (graph.hasTask(task) && graph.getNode(task).getRequired()) {
+            TaskInfo node = graph.addNode(task);
+            if (node.getRequired()) {
+                // Have already visited this task - skip it
+                queue.remove(0);
+                continue;
+            }
+            boolean filtered = !filter.isSatisfiedBy(task);
+            if (filtered) {
+                // Task is not required - skip it
                 queue.remove(0);
                 continue;
             }
@@ -78,7 +86,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // Have visited this task's dependencies - add it to the graph
                 queue.remove(0);
                 visiting.remove(task);
-                TaskInfo node = graph.addRequiredNode(task);
+                node.setRequired(true);
                 Set<? extends Task> dependencies = context.getDependencies(task);
                 for (Task dependency : dependencies) {
                     graph.addHardEdge(node, dependency);
@@ -97,19 +105,11 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     public void determineExecutionPlan() {
-        List<TaskInfo> nodeQueue = CollectionUtils.collect(new ArrayList<Task>(entryTasks), new Transformer<TaskInfo, Task>() {
-            public TaskInfo transform(Task original) {
-                return graph.getNode(original);
-            }
-        });
+        List<TaskInfo> nodeQueue = new ArrayList<TaskInfo>(entryTasks);
 
         Set<TaskInfo> visitingNodes = new HashSet<TaskInfo>();
         while (!nodeQueue.isEmpty()) {
             TaskInfo taskNode = nodeQueue.get(0);
-            boolean filtered = !filter.isSatisfiedBy(taskNode.getTask());
-            if (filtered) {
-                taskNode.setRequired(false);
-            }
 
             if (!taskNode.getRequired() || executionPlan.containsKey(taskNode.getTask())) {
                 nodeQueue.remove(0);
