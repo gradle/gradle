@@ -81,11 +81,11 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
 
     @TaskAction
     void run() {
-        def oldBranch = getPmdClasspath().any {
+        def prePmd5 = getPmdClasspath().any {
             it.name ==~ /pmd-([1-4]\.[0-9\.]+)\.jar/
         }
         def antPmdArgs = [failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount"]
-        if (oldBranch) {
+        if (prePmd5) {
             // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose
             // http://sourceforge.net/p/pmd/bugs/1004/
             // http://java-pmd.30631.n5.nabble.com/pmd-pmd-db05bc-pmd-AntTask-support-for-language-td5710041.html
@@ -110,7 +110,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
 
                     if (reports.html.enabled) {
                         assert reports.html.destination.parentFile.exists()
-                        formatter(type: oldBranch ? "betterhtml" : "html", toFile: reports.html.destination)
+                        formatter(type: prePmd5 ? "betterhtml" : "html", toFile: reports.html.destination)
                     }
                     if (reports.xml.enabled) {
                         formatter(type: 'xml', toFile: reports.xml.destination)
