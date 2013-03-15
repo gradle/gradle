@@ -66,8 +66,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (visiting.add(task)) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
-                Set<Task> dependsOnTasks = new TreeSet<Task>(Collections.reverseOrder());
-                dependsOnTasks.addAll(context.getDependencies(task));
+                Set<? extends Task> dependsOnTasks = context.getDependencies(task);
                 for (Task dependsOnTask : dependsOnTasks) {
                     if (visiting.contains(dependsOnTask)) {
                         throw new CircularReferenceException(String.format(
@@ -79,7 +78,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // Have visited this task's dependencies - add it to the graph
                 queue.remove(0);
                 visiting.remove(task);
-                TaskInfo node = graph.addNode(task);
+                TaskInfo node = graph.addRequiredNode(task);
                 Set<? extends Task> dependencies = context.getDependencies(task);
                 for (Task dependency : dependencies) {
                     graph.addHardEdge(node, dependency);

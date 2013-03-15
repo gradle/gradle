@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph;
 
 
+import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 
@@ -45,12 +46,13 @@ public class TaskDependencyGraph {
         fromNode.addSoftSuccessor(getOrCreateNode(toTask));
     }
 
-    public TaskInfo addNode(Task task) {
+    public TaskInfo addRequiredNode(Task task) {
         TaskInfo node = getOrCreateNode(task);
         node.setRequired(true);
         return node;
     }
 
+    @Nullable
     public TaskInfo getNode(Task task) {
         return nodes.get(task);
     }
