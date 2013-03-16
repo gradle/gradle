@@ -29,7 +29,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.ResolveDeferredConfigurableProjectAction;
+import org.gradle.api.internal.plugins.ResolveDeferredConfigurableAction;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -135,11 +135,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected ProjectEvaluator createProjectEvaluator() {
-        BuildScriptProcessor buildScriptProcessor = new BuildScriptProcessor(get(ScriptPluginFactory.class));
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
-                buildScriptProcessor,
+                new BuildScriptProcessor(get(ScriptPluginFactory.class)),
                 new PluginsProjectConfigureActions(get(ClassLoaderRegistry.class).getPluginsClassLoader()),
-                new ResolveDeferredConfigurableProjectAction()
+                new ResolveDeferredConfigurableAction()
         );
         return new LifecycleProjectEvaluator(withActionsEvaluator);
     }

@@ -16,12 +16,11 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BuildScriptProcessor implements ProjectEvaluator {
+public class BuildScriptProcessor implements ProjectConfigureAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptProcessor.class);
     private final ScriptPluginFactory configurerFactory;
 
@@ -29,17 +28,14 @@ public class BuildScriptProcessor implements ProjectEvaluator {
         this.configurerFactory = configurerFactory;
     }
 
-    public void evaluate(ProjectInternal project, ProjectStateInternal state) {
+    public void execute(ProjectInternal project) {
         LOGGER.info(String.format("Evaluating %s using %s.", project, project.getBuildScriptSource().getDisplayName()));
         Clock clock = new Clock();
-
         try {
             ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource());
             configurer.apply(project);
-        } catch (Exception e) {
-            state.executed(e);
+        } finally {
+            LOGGER.debug("Timing: Running the build script took " + clock.getTime());
         }
-
-        LOGGER.debug("Timing: Running the build script took " + clock.getTime());
     }
 }

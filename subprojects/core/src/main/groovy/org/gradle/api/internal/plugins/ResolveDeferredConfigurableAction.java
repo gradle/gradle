@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration;
+package org.gradle.api.internal.plugins;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateInternal;
+import org.gradle.configuration.ProjectConfigureAction;
 
-import java.util.Arrays;
-import java.util.List;
-
-public class ConfigureActionsProjectEvaluator implements ProjectEvaluator {
-    private final List<ProjectConfigureAction> configureActions;
-
-    public ConfigureActionsProjectEvaluator(ProjectConfigureAction... configureActions) {
-        this.configureActions = Arrays.asList(configureActions);
-    }
-
-    public void evaluate(ProjectInternal project, ProjectStateInternal state) {
-        for (ProjectConfigureAction configureAction : configureActions) {
-            configureAction.execute(project);
-        }
+/**
+ * Ensures that all {@link org.gradle.api.plugins.DeferredConfigurable} extensions are configured as part of project evaluation.
+ * In future (when we have true "configure on what's required") then this won't be necessary.
+ */
+public class ResolveDeferredConfigurableAction implements ProjectConfigureAction {
+    public void execute(ProjectInternal project) {
+        ExtensionContainerInternal extensions = project.getExtensions();
+        extensions.getAsMap();
     }
 }

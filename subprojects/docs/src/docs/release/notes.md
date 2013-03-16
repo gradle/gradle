@@ -64,6 +64,12 @@ The semantics of the replacement methods is identical to those replaced.
 This change does not effect publications added to the PublicationContainer using [a configuration block](javadoc/org/gradle/api/publish/PublishingExtension.html#publications),
 but will impact publications added directly using `add()`.
 
+### Task dependency graph changes
+ // TODO:DAZ
+
+### Changes to exceptions thrown on project evaluation
+ // TODO:DAZ
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

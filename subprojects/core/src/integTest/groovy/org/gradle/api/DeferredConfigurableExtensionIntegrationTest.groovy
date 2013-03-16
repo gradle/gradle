@@ -126,7 +126,7 @@ task test
 '''
         then:
         fails 'test'
-        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
+        failure.assertHasDescription("A problem occurred configuring root project 'customProject'.")
                 .assertHasCause("deferred configuration failure")
                 .assertHasFileName("Build file '${buildFile.path}'")
                 .assertHasLineNumber(buildFileLine(3))
@@ -155,7 +155,7 @@ task test
 '''
         then:
         fails 'test'
-        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
+        failure.assertHasDescription("A problem occurred configuring root project 'customProject'.")
                 .assertHasCause("broken configuration in plugin")
                 .assertHasFileName("Build file '${buildFile.path}'")
                 .assertHasLineNumber(12)

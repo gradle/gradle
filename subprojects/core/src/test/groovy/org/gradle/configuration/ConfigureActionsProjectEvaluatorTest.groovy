@@ -16,66 +16,44 @@
 
 package org.gradle.configuration
 
-import org.gradle.api.GradleScriptException
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
 import spock.lang.Specification
 
 class ConfigureActionsProjectEvaluatorTest extends Specification {
-    final def target = Mock(ProjectEvaluator)
+    final def project = Mock(ProjectInternal)
+    final def state = Mock(ProjectStateInternal)
     final def action1 = Mock(ProjectConfigureAction)
     final def action2 = Mock(ProjectConfigureAction)
-    final def evaluator = new ConfigureActionsProjectEvaluator(target, action1, action2)
+    final def evaluator = new ConfigureActionsProjectEvaluator(action1, action2)
 
-    def "delegates to evaluator before executing configuration actions"() {
+    def "executes all configuration actions"() {
         def project = Mock(ProjectInternal)
-        def state = Mock(ProjectStateInternal)
 
         when:
         evaluator.evaluate(project, state)
 
         then:
-        1 * target.evaluate(project, state)
-        _ * state.hasFailure() >> false
         1 * action1.execute(project)
         1 * action2.execute(project)
         0 * _._
     }
 
-    def "does not execution actions when delegate project evaluation fails"() {
+    def "does not continue executing actions when action fails"() {
         def project = Mock(ProjectInternal)
-        def state = Mock(ProjectStateInternal)
-
-        when:
-        evaluator.evaluate(project, state)
-
-        then:
-        1 * target.evaluate(project, state)
-        _ * state.hasFailure() >> true
-        0 * _._
-    }
-
-    def "marks state as failed and does not continue execute actions when action fails"() {
-        def project = Mock(ProjectInternal)
-        def state = Mock(ProjectStateInternal)
         def failure = new RuntimeException("Configure action failed")
 
         when:
         evaluator.evaluate(project, state)
 
         then:
-        1 * target.evaluate(project, state)
-        1 * state.hasFailure() >> false
         1 * action1.execute(project) >> {
             throw failure
         }
-        1 * project.toString() >> "project1"
-        1 * state.executed({
-            assert it instanceof GradleScriptException
-            assert it.message == "A problem occurred configuring project1."
-            assert it.cause == failure
-            true
-        })
         0 * _._
+
+        and:
+        def t = thrown(RuntimeException)
+        t == failure
     }
 }

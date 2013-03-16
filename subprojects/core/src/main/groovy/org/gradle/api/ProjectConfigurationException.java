@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api;
 
-package org.gradle.api.internal.plugins;
-
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.configuration.ProjectConfigureAction;
+import org.gradle.api.internal.Contextual;
 
 /**
- * Ensures that all {@link org.gradle.api.plugins.DeferredConfigurable} extensions are configured as part of project evaluation.
- * In future (when we have true "configure on what's required") then this won't be necessary.
+ * <p>A <code>GradleScriptException</code> is thrown when an exception occurs in the compilation or execution of a
+ * script.</p>
+ *
+ * @author Hans Dockter
  */
-public class ResolveDeferredConfigurableProjectAction implements ProjectConfigureAction {
-    public void execute(ProjectInternal project) {
-        ExtensionContainerInternal extensions = project.getExtensions();
-        extensions.getAsMap();
+@Contextual
+public class ProjectConfigurationException extends GradleException {
+    public ProjectConfigurationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
