@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.CachingDirectedGraphWalker;
-import org.gradle.api.internal.DirectedGraph;
+import org.gradle.internal.graph.CachingDirectedGraphWalker;
+import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.api.internal.file.UnionFileCollection;
 
 import java.util.ArrayList;

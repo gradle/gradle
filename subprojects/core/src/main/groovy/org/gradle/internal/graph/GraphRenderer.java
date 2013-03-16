@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.diagnostics.internal;
+package org.gradle.internal.graph;
 
 import org.gradle.api.Action;
 import org.gradle.logging.StyledTextOutput;

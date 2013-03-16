@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.tasks.diagnostics.internal.GraphRenderer;
+import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.initialization.BuildClientMetaData;
