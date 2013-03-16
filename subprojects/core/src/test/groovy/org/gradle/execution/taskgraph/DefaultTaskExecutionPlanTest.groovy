@@ -217,12 +217,14 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task b = task("b", dependsOn: [a]);
         Task c = task("c", dependsOn: [b]);
         dependsOn(a, [c]);
+        mustRunAfter(a, []);
 
         when:
         addToGraphAndPopulate([c])
 
         then:
-        thrown CircularReferenceException
+        def e = thrown CircularReferenceException
+        e.message == "Circular dependency between tasks. Cycle contains ':a', ':b', ':c'"
     }
 
     def "cannot add a task with must run after induced circular reference"() {
@@ -236,7 +238,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([a])
 
         then:
-        thrown CircularReferenceException
+        def e = thrown CircularReferenceException
+        e.message == "Circular dependency between tasks. Cycle contains ':a', ':b', ':c'"
     }
 
     def "cannot add a task with must run after induced circular reference that was previously in graph but not required"() {
@@ -253,7 +256,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executionPlan.determineExecutionPlan()
 
         then:
-        thrown CircularReferenceException
+        def e = thrown CircularReferenceException
+        e.message == "Circular dependency between tasks. Cycle contains ':a', ':b', ':c'"
     }
 
     def "stops returning tasks on task execution failure"() {

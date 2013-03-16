@@ -204,7 +204,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails 'b'
 
         then:
-        failure.assertHasDescription "Circular dependency between tasks. Cycle includes [task ':a', task ':b']."
+        failure.assertHasDescription "Circular dependency between tasks. Cycle contains ':a', ':b'"
     }
 
     def "honours mustRunAfter task ordering"() {
@@ -236,6 +236,6 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails 'b'
 
         then:
-        failure.assertHasDescription "Circular dependency between tasks. Cycle includes [task ':a', task ':b']."
+        failure.assertHasDescription "Circular dependency between tasks. Cycle contains ':a', ':b'"
     }
 }

@@ -18,6 +18,9 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.CachingDirectedGraphWalker;
+import org.gradle.api.internal.DirectedGraph;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -77,8 +80,8 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 Set<? extends Task> dependsOnTasks = context.getDependencies(task);
                 for (Task dependsOnTask : dependsOnTasks) {
                     if (visiting.contains(dependsOnTask)) {
-                        throw new CircularReferenceException(String.format(
-                                "Circular dependency between tasks. Cycle includes [%s, %s].", task, dependsOnTask));
+                        // A cycle - skip the task and keep building the graph. The cycle is reported later (with more detail)
+                        continue;
                     }
                     queue.add(0, dependsOnTask);
                 }
@@ -124,8 +127,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 addAllReversed(dependsOnTasks, taskNode.getSoftSuccessors());
                 for (TaskInfo dependsOnTask : dependsOnTasks) {
                     if (visitingNodes.contains(dependsOnTask)) {
-                        throw new CircularReferenceException(String.format(
-                                "Circular dependency between tasks. Cycle includes [%s, %s].", taskNode.getTask(), dependsOnTask.getTask()));
+                        onOrderingCycle();
                     }
                     nodeQueue.add(0, dependsOnTask);
                 }
@@ -136,6 +138,24 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 executionPlan.put(taskNode.getTask(), taskNode);
             }
         }
+    }
+
+    private void onOrderingCycle() {
+        CachingDirectedGraphWalker<TaskInfo, Void> graphWalker = new CachingDirectedGraphWalker<TaskInfo, Void>(new DirectedGraph<TaskInfo, Void>() {
+            public void getNodeValues(TaskInfo node, Collection<Void> values, Collection<TaskInfo> connectedNodes) {
+                connectedNodes.addAll(node.getHardSuccessors());
+                connectedNodes.addAll(node.getSoftSuccessors());
+            }
+        });
+        graphWalker.add(entryTasks);
+        List<TaskInfo> firstCycle = new ArrayList<TaskInfo>(graphWalker.findCycles().get(0));
+        Collections.sort(firstCycle);
+        String message = String.format("Circular dependency between tasks. Cycle contains %s", CollectionUtils.join(", ", CollectionUtils.collect(firstCycle, new Transformer<String, TaskInfo>() {
+            public String transform(TaskInfo original) {
+                return "'" + original.getTask().getPath() + "'";
+            }
+        })));
+        throw new CircularReferenceException(message);
     }
 
     public void clear() {

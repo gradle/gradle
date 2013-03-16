@@ -245,8 +245,9 @@ public class DefaultTaskGraphExecuterTest {
         Task c = task("c", b);
         dependsOn(a, c);
 
+        taskExecuter.addTasks(toList(c));
         try {
-            taskExecuter.addTasks(toList(c));
+            taskExecuter.execute();
             fail();
         } catch (CircularReferenceException e) {
             // Expected
