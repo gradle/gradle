@@ -29,6 +29,7 @@ import java.util.*;
 public class CachingDirectedGraphWalker<N, T> {
     private final DirectedGraphWithEdgeValues<N, T> graph;
     private List<N> startNodes = new LinkedList<N>();
+    private Set<NodeDetails<N, T>> strongComponents = new LinkedHashSet<NodeDetails<N, T>>();
     private final Map<N, Set<T>> cachedNodeValues = new HashMap<N, Set<T>>();
 
     public CachingDirectedGraphWalker(DirectedGraph<N, T> graph) {
@@ -66,6 +67,22 @@ public class CachingDirectedGraphWalker<N, T> {
         }
     }
 
+    /**
+     * Returns the set of cycles seen in the graph.
+     */
+    public List<Set<N>> findCycles() {
+        findValues();
+        List<Set<N>> result = new ArrayList<Set<N>>();
+        for (NodeDetails<N, T> nodeDetails : strongComponents) {
+            Set<N> componentMembers = new LinkedHashSet<N>();
+            for (NodeDetails<N, T> componentMember : nodeDetails.componentMembers) {
+                componentMembers.add(componentMember.node);
+            }
+            result.add(componentMembers);
+        }
+        return result;
+    }
+
     private Set<T> doSearch() {
         int componentCount = 0;
         Map<N, NodeDetails<N, T>> seenNodes = new HashMap<N, NodeDetails<N, T>>();
@@ -94,10 +111,15 @@ public class CachingDirectedGraphWalker<N, T> {
 
                 graph.getNodeValues(node, details.values, details.successors);
                 for (N connectedNode : details.successors) {
-                    if (!seenNodes.containsKey(connectedNode)) {
+                    NodeDetails<N, T> connectedNodeDetails = seenNodes.get(connectedNode);
+                    if (connectedNodeDetails == null) {
+                        // Have not visited the successor node, so add to the queue for visiting
                         queue.add(0, connectedNode);
+                    } else if (!connectedNodeDetails.finished) {
+                        // Currently visiting the successor node - we're in a cycle
+                        details.stronglyConnected = true;
                     }
-                    // Else, already visiting or have visited the successor node (we're in a cycle)
+                    // Else, already visited
                 }
             } else {
                 // Have visited all of this node's successors
@@ -112,6 +134,7 @@ public class CachingDirectedGraphWalker<N, T> {
                     if (!connectedNodeDetails.finished) {
                         // part of a cycle
                         details.minSeen = Math.min(details.minSeen, connectedNodeDetails.minSeen);
+                        details.stronglyConnected = true;
                     }
                     details.values.addAll(connectedNodeDetails.values);
                     graph.getEdgeValues(node, connectedNode, details.values);
@@ -123,13 +146,16 @@ public class CachingDirectedGraphWalker<N, T> {
                     NodeDetails<N, T> rootDetails = components.get(details.minSeen);
                     rootDetails.values.addAll(details.values);
                     details.values.clear();
-                    rootDetails.strongComponentMembers.addAll(details.strongComponentMembers);
+                    rootDetails.componentMembers.addAll(details.componentMembers);
                 } else {
                     // Not part of a strongly connected component or the root of a strongly connected component
-                    for (NodeDetails<N, T> componentMember : details.strongComponentMembers) {
+                    for (NodeDetails<N, T> componentMember : details.componentMembers) {
                         cachedNodeValues.put(componentMember.node, details.values);
                         componentMember.finished = true;
                         components.remove(componentMember.component);
+                    }
+                    if (details.stronglyConnected) {
+                        strongComponents.add(details);
                     }
                 }
             }
@@ -147,15 +173,16 @@ public class CachingDirectedGraphWalker<N, T> {
         private final N node;
         private Set<T> values = new LinkedHashSet<T>();
         private List<N> successors = new ArrayList<N>();
-        private Set<NodeDetails<N, T>> strongComponentMembers = new LinkedHashSet<NodeDetails<N, T>>();
+        private Set<NodeDetails<N, T>> componentMembers = new LinkedHashSet<NodeDetails<N, T>>();
         private int minSeen;
+        private boolean stronglyConnected;
         private boolean finished;
 
         public NodeDetails(N node, int component) {
             this.node = node;
             this.component = component;
             minSeen = component;
-            strongComponentMembers.add(this);
+            componentMembers.add(this);
         }
     }
 
