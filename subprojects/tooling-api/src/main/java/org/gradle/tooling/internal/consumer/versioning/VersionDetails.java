@@ -16,24 +16,18 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
-import org.gradle.util.GradleVersion;
-
 /**
  * by Szczepan Faber, created at: 1/13/12
  */
 public abstract class VersionDetails {
-
-    private final GradleVersion gradleVersion;
-    private static final GradleVersion M5 = GradleVersion.version("1.0-milestone-5");
-    private static final GradleVersion M7 = GradleVersion.version("1.0-milestone-7");
-    private static final GradleVersion V1_1 = GradleVersion.version("1.1");
+    private final String providerVersion;
 
     public VersionDetails(String version) {
-        gradleVersion = GradleVersion.version(version);
+        providerVersion = version;
     }
 
     public String getVersion() {
-        return gradleVersion.getVersion();
+        return providerVersion;
     }
 
     /**
@@ -45,22 +39,22 @@ public abstract class VersionDetails {
     }
 
     public boolean supportsConfiguringJavaHome() {
-        return gradleVersion.compareTo(M7) > 0;
+        return false;
     }
 
     public boolean supportsConfiguringJvmArguments() {
-        return gradleVersion.compareTo(M7) > 0;
+        return false;
     }
 
     public boolean supportsConfiguringStandardInput() {
-        return gradleVersion.compareTo(M7) > 0;
+        return false;
     }
 
     public boolean supportsRunningTasksWhenBuildingModel() {
-        return gradleVersion.compareTo(V1_1) > 0;
+        return false;
     }
 
     public boolean supportsGradleProjectModel() {
-        return gradleVersion.compareTo(M5) >= 0;
+        return false;
     }
 }

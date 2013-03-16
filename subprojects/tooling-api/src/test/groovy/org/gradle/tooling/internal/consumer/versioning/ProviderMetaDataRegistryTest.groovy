@@ -30,7 +30,7 @@ import spock.lang.Specification
 class ProviderMetaDataRegistryTest extends Specification {
     final registry = new ProviderMetaDataRegistry()
 
-    def "determines whether a model is supported for 1.0-m3 and 1.0-m4"() {
+    def "determines capabilities for provider version 1.0-m3 and 1.0-m4"() {
         def details = registry.getVersionDetails(version)
 
         expect:
@@ -46,11 +46,18 @@ class ProviderMetaDataRegistryTest extends Specification {
         !details.isModelSupported(Void)
         !details.isModelSupported(CustomModel)
 
+        and:
+        !details.supportsConfiguringJavaHome()
+        !details.supportsConfiguringJvmArguments()
+        !details.supportsConfiguringStandardInput()
+        !details.supportsRunningTasksWhenBuildingModel()
+        !details.supportsGradleProjectModel()
+
         where:
         version << ['1.0-milestone-3', '1.0-milestone-4']
     }
 
-    def "determines whether a model is supported for 1.0-m5 to 1.0-m7"() {
+    def "determines capabilities for provider version 1.0-m5 to 1.0-m7"() {
         def details = registry.getVersionDetails(version)
 
         expect:
@@ -65,6 +72,15 @@ class ProviderMetaDataRegistryTest extends Specification {
         !details.isModelSupported(InternalProjectOutcomes)
         !details.isModelSupported(Void)
         !details.isModelSupported(CustomModel)
+
+        and:
+        details.supportsGradleProjectModel()
+
+        and:
+        !details.supportsConfiguringJavaHome()
+        !details.supportsConfiguringJvmArguments()
+        !details.supportsConfiguringStandardInput()
+        !details.supportsRunningTasksWhenBuildingModel()
 
         where:
         version << ['1.0-milestone-5', '1.0-milestone-6', '1.0-milestone-7']
@@ -86,6 +102,15 @@ class ProviderMetaDataRegistryTest extends Specification {
         !details.isModelSupported(Void)
         !details.isModelSupported(CustomModel)
 
+        and:
+        details.supportsGradleProjectModel()
+        details.supportsConfiguringJavaHome()
+        details.supportsConfiguringJvmArguments()
+        details.supportsConfiguringStandardInput()
+
+        and:
+        !details.supportsRunningTasksWhenBuildingModel()
+
         where:
         version << ['1.0-milestone-8', '1.0', '1.1-rc-1', '1.1']
     }
@@ -106,6 +131,13 @@ class ProviderMetaDataRegistryTest extends Specification {
         and:
         !details.isModelSupported(CustomModel)
 
+        and:
+        details.supportsGradleProjectModel()
+        details.supportsConfiguringJavaHome()
+        details.supportsConfiguringJvmArguments()
+        details.supportsConfiguringStandardInput()
+        details.supportsRunningTasksWhenBuildingModel()
+
         where:
         version << ['1.2-rc-1', '1.4-rc-2', '1.5']
     }
@@ -123,6 +155,13 @@ class ProviderMetaDataRegistryTest extends Specification {
         details.isModelSupported(InternalProjectOutcomes)
         details.isModelSupported(Void)
         details.isModelSupported(CustomModel)
+
+        and:
+        details.supportsGradleProjectModel()
+        details.supportsConfiguringJavaHome()
+        details.supportsConfiguringJvmArguments()
+        details.supportsConfiguringStandardInput()
+        details.supportsRunningTasksWhenBuildingModel()
 
         where:
         version << ['1.6-rc-1', GradleVersion.current().version]

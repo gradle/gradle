@@ -83,6 +83,11 @@ public class ProviderMetaDataRegistry {
             }
             return super.isModelSupported(protocolModelType);
         }
+
+        @Override
+        public boolean supportsGradleProjectModel() {
+            return true;
+        }
     }
 
     private static class M8VersionDetails extends M5VersionDetails {
@@ -96,6 +101,21 @@ public class ProviderMetaDataRegistry {
                 return true;
             }
             return super.isModelSupported(protocolModelType);
+        }
+
+        @Override
+        public boolean supportsConfiguringJavaHome() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsConfiguringJvmArguments() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsConfiguringStandardInput() {
+            return true;
         }
     }
 
@@ -114,9 +134,14 @@ public class ProviderMetaDataRegistry {
             }
             return super.isModelSupported(protocolModelType);
         }
+
+        @Override
+        public boolean supportsRunningTasksWhenBuildingModel() {
+            return true;
+        }
     }
 
-    private static class R16VersionDetails extends VersionDetails {
+    private static class R16VersionDetails extends R12VersionDetails {
         public R16VersionDetails(String providerVersion) {
             super(providerVersion);
         }
