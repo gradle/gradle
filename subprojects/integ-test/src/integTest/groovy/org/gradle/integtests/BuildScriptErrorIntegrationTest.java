@@ -22,8 +22,6 @@ import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.gradle.util.Matchers.containsLine;
-
 public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsProjectEvaluationFailsWithGroovyException() {
