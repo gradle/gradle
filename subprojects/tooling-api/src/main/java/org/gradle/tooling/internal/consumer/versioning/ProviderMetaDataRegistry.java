@@ -61,6 +61,9 @@ public class ProviderMetaDataRegistry {
             if (protocolModelType.equals(EclipseProjectVersion3.class)) {
                 return true;
             }
+            if (protocolModelType.equals(Void.class)) {
+                return true;
+            }
             return super.isModelSupported(protocolModelType);
         }
     }

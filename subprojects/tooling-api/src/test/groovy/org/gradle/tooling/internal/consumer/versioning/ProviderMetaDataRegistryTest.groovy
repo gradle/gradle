@@ -36,6 +36,7 @@ class ProviderMetaDataRegistryTest extends Specification {
         expect:
         details.isModelSupported(HierarchicalEclipseProjectVersion1)
         details.isModelSupported(EclipseProjectVersion3)
+        details.isModelSupported(Void)
 
         and:
         !details.isModelSupported(InternalIdeaProject)
@@ -43,7 +44,6 @@ class ProviderMetaDataRegistryTest extends Specification {
         !details.isModelSupported(InternalGradleProject)
         !details.isModelSupported(InternalBuildEnvironment)
         !details.isModelSupported(InternalProjectOutcomes)
-        !details.isModelSupported(Void)
         !details.isModelSupported(CustomModel)
 
         and:
@@ -66,11 +66,11 @@ class ProviderMetaDataRegistryTest extends Specification {
         details.isModelSupported(InternalIdeaProject)
         details.isModelSupported(InternalBasicIdeaProject)
         details.isModelSupported(InternalGradleProject)
+        details.isModelSupported(Void)
 
         and:
         !details.isModelSupported(InternalBuildEnvironment)
         !details.isModelSupported(InternalProjectOutcomes)
-        !details.isModelSupported(Void)
         !details.isModelSupported(CustomModel)
 
         and:
@@ -96,10 +96,10 @@ class ProviderMetaDataRegistryTest extends Specification {
         details.isModelSupported(InternalBasicIdeaProject)
         details.isModelSupported(InternalGradleProject)
         details.isModelSupported(InternalBuildEnvironment)
+        details.isModelSupported(Void)
 
         and:
         !details.isModelSupported(InternalProjectOutcomes)
-        !details.isModelSupported(Void)
         !details.isModelSupported(CustomModel)
 
         and:
