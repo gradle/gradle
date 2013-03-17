@@ -17,6 +17,7 @@ package org.gradle.internal.graph
 
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.TestStyledTextOutput
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class DirectedGraphRendererTest extends Specification {
@@ -128,12 +129,12 @@ class DirectedGraphRendererTest extends Specification {
         renderer.renderTo("1", writer)
 
         then:
-        writer.toString() == """[1]
+        writer.toString() == TextUtil.toPlatformLineSeparators("""[1]
 +--- [2]
 |    \\--- [4]
 |         \\--- [5]
 \\--- [3]
-"""
+""")
     }
 
 }
