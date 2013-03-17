@@ -112,7 +112,7 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
 
         expect:
         fails("pmdMain")
-        failure.assertHasDescription("Execution failed for task ':pmdMain'")
+        failure.assertHasDescription("Execution failed for task ':pmdMain'.")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
