@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api;
 
 import org.gradle.api.internal.Contextual;
 
 /**
- * <p>A <code>GradleScriptException</code> is thrown when an exception occurs in the compilation or execution of a
- * script.</p>
- *
- * @author Hans Dockter
+ * Indicates a problem that occurs during project configuration (evaluation) phase.
  */
 @Contextual
 public class ProjectConfigurationException extends GradleException {
