@@ -196,7 +196,7 @@ public class CachingDirectedGraphWalker<N, T> {
         public void getEdgeValues(N from, N to, Collection<T> values) {
         }
 
-        public void getNodeValues(N node, Collection<T> values, Collection<N> connectedNodes) {
+        public void getNodeValues(N node, Collection<? super T> values, Collection<? super N> connectedNodes) {
             graph.getNodeValues(node, values, connectedNodes);
         }
     }

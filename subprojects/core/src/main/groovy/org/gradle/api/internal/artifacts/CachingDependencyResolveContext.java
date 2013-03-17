@@ -52,7 +52,7 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
     }
 
     private class DependencyGraph implements DirectedGraph<Object, FileCollection> {
-        public void getNodeValues(Object node, Collection<FileCollection> values, Collection<Object> connectedNodes) {
+        public void getNodeValues(Object node, Collection<? super FileCollection> values, Collection<? super Object> connectedNodes) {
             if (node instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) node;
                 values.add(fileCollection);

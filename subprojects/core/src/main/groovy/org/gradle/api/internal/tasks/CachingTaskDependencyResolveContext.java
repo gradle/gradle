@@ -79,7 +79,7 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
     }
 
     private class TaskGraphImpl implements DirectedGraph<Object, Task> {
-        public void getNodeValues(Object node, Collection<Task> values, Collection<Object> connectedNodes) {
+        public void getNodeValues(Object node, Collection<? super Task> values, Collection<? super Object> connectedNodes) {
             if (node instanceof TaskDependencyInternal) {
                 TaskDependencyInternal taskDependency = (TaskDependencyInternal) node;
                 queue.clear();

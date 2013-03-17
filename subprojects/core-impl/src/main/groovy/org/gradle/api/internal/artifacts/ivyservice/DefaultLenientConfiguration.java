@@ -155,8 +155,8 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
     }
 
     private static class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
-        public void getNodeValues(ResolvedDependency node, Collection<ResolvedArtifact> values,
-                                  Collection<ResolvedDependency> connectedNodes) {
+        public void getNodeValues(ResolvedDependency node, Collection<? super ResolvedArtifact> values,
+                                  Collection<? super ResolvedDependency> connectedNodes) {
             connectedNodes.addAll(node.getChildren());
         }
 
