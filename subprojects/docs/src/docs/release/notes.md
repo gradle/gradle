@@ -24,6 +24,33 @@ jar is sourced from the Gradle environment that is running the build.
 If you are seeding a new project using an installation of Gradle 1.6 or higher, you do not need to run the wrapper task twice. It is only necessary when upgrading the 
 wrapper from an older version.
 
+### Force a task to run after another task, without adding a dependency (i)
+
+In the past, the only way to ensure that Gradle ran one task after another was to add a dependency between those tasks. So if `Task A` must always run before `Task B`, you would
+ say that `B.dependsOn(A)`. This has the added effect of forcing `Task A` to always run if `Task B` is executed.
+
+In some cases, `dependsOn` is not the correct semantics. Let's say that you have a test-aggregation task that consumes the outputs of all of the test tasks. You want this aggregation
+task to run _after_ all test tasks, but you do not necessarily want to force all test tasks to run. For this purpose, Gradle is introducing "task ordering" rules, the first of which
+is `Task.mustRunAfter`. This rule does not change which tasks will be executed, but it does influence the order in which they will be executed.
+
+    task runUnitTests(type: Test) { ... }
+    task runIntegTests(type: Test) { ... }
+    task createTestReports { ... }
+
+    tasks.withType(Test) { testTask ->
+        createTestReports.mustRunAfter(testTask)
+    }
+
+    task allTest(dependsOn: [runUnitTests, runIntegTests, createTestReports]) // This will run unit+integ tests and create the aggregated report
+    task unitTest(dependsOn: [runUnitTests, createTestReports]) // This will run unit tests only and create the report
+    task integTest(dependsOn: [runIntegTests, createTestReports]) // This will run integ tests only and create the report
+
+Note that without 'mustRunAfter', `runUnitTests` task would run after the `createTestReport` task. But the using
+`createTestReport.dependsOn(runUnitTests)` is not great, since that would make it hard to execute only `runIntegTests` and `createTestReport`
+in the correct order. The `mustRunAfter` task ordering rule makes it easy to wire this logic into your build.
+
+<!-- TODO Add link to docs for this feature, once they are in place. -->
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
