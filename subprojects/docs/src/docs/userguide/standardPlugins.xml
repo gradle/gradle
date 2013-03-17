@@ -308,7 +308,7 @@
                     </link>
                 </td>
                 <td>-</td>
-                <td>-</td>
+                <td><literal>java</literal>, <literal>war</literal></td>
                 <td>
                     <para>This plugin provides a new DSL to support publishing artifacts to Ivy repositories, which improves on the existing DSL.
                     </para>
