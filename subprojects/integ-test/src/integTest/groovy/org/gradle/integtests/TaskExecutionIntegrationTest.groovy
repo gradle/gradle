@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TextUtil
 import org.junit.Test
 import spock.lang.Issue
 
@@ -204,7 +205,12 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails 'b'
 
         then:
-        failure.assertHasDescription "Circular dependency between tasks. Cycle contains ':a', ':b'"
+        failure.assertHasDescription TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
+:a
+\\--- :b
+     \\--- :a (*)
+
+(*) - details omitted (listed previously)""")
     }
 
     def "honours mustRunAfter task ordering"() {
@@ -236,6 +242,11 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails 'b'
 
         then:
-        failure.assertHasDescription "Circular dependency between tasks. Cycle contains ':a', ':b'"
+        failure.assertHasDescription TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
+:a
+\\--- :b
+     \\--- :a (*)
+
+(*) - details omitted (listed previously)""")
     }
 }

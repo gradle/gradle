@@ -25,6 +25,7 @@ import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskState
 import org.gradle.execution.TaskFailureHandler
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 import static org.gradle.util.HelperUtil.createRootProject
@@ -216,7 +217,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Task a = createTask("a");
         Task b = task("b", dependsOn: [a]);
         Task c = task("c", dependsOn: [b]);
-        dependsOn(a, [c]);
+        Task d = task("d");
+        dependsOn(a, [c, d]);
         mustRunAfter(a, []);
 
         when:
@@ -224,7 +226,14 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         def e = thrown CircularReferenceException
-        e.message == "Circular dependency between tasks. Cycle contains ':a', ':b', ':c'"
+        e.message == TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
+:a
+\\--- :c
+     \\--- :b
+          \\--- :a (*)
+
+(*) - details omitted (listed previously)
+""")
     }
 
     def "cannot add a task with must run after induced circular reference"() {
@@ -239,7 +248,14 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         def e = thrown CircularReferenceException
-        e.message == "Circular dependency between tasks. Cycle contains ':a', ':b', ':c'"
+        e.message == TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
+:a
+\\--- :c
+     \\--- :b
+          \\--- :a (*)
+
+(*) - details omitted (listed previously)
+""")
     }
 
     def "cannot add a task with must run after induced circular reference that was previously in graph but not required"() {
@@ -257,7 +273,14 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         def e = thrown CircularReferenceException
-        e.message == "Circular dependency between tasks. Cycle contains ':a', ':b', ':c'"
+        e.message == TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
+:a
+\\--- :c
+     \\--- :b
+          \\--- :a (*)
+
+(*) - details omitted (listed previously)
+""")
     }
 
     def "stops returning tasks on task execution failure"() {

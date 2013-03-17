@@ -18,6 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 
 public class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
@@ -157,7 +158,7 @@ project(':c') {
 
         then:
         failure.assertHasNoCause()
-        failure.assertHasDescription("Circular dependency between tasks. Cycle contains ':a:classes', ':a:compileJava', ':a:copyLibs', ':a:jar', ':b:classes', ':b:compileJava', ':b:copyLibs', ':b:jar', ':c:classes', ':c:compileJava', ':c:copyLibs', ':c:jar'")
+        failure.assertThatDescription(Matchers.startsWith("Circular dependency between the following tasks:"))
     }
 
     def "project dependency a->b->c->d and c fails"() {
