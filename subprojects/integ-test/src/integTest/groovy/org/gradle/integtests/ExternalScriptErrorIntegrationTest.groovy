@@ -18,6 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
+import org.hamcrest.Matchers
 import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
@@ -52,7 +53,7 @@ apply { from 'other.gradle' }
         ExecutionFailure failure = inTestDirectory().runWithFailure()
         failure.assertHasFileName("Script '${script}'");
         failure.assertHasLineNumber(1);
-        failure.assertHasDescription("Could not compile script '${script}'");
+        failure.assertHasDescription("Could not compile script '${script}'.");
         failure.assertThatCause(containsString("script '${script}': 1: unexpected token: ("))
     }
 
@@ -64,9 +65,9 @@ apply { from 'unknown.gradle' }
         TestFile script = testFile('unknown.gradle')
 
         ExecutionFailure failure = inTestDirectory().runWithFailure()
-        failure.assertHasFileName("Build file '${buildScript}");
+        failure.assertHasFileName("Build file '${buildScript}'");
         failure.assertHasLineNumber(2);
-        failure.assertHasDescription("A problem occurred evaluating root project");
+        failure.assertThatDescription(Matchers.startsWith("A problem occurred evaluating root project"));
         failure.assertHasCause("Could not read script '${script}' as it does not exist.");
     }
 
@@ -85,7 +86,7 @@ task doStuff << {
 
         failure.assertHasFileName("Script '${script}'");
         failure.assertHasLineNumber(3);
-        failure.assertHasDescription('Execution failed for task \':doStuff\'');
+        failure.assertHasDescription('Execution failed for task \':doStuff\'.');
         failure.assertHasCause('fail');
     }
 

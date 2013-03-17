@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
+import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -86,7 +87,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
         ExecutionFailure failure = wrapperExecuter.withTasks('unknown').runWithFailure()
 
         then:
-        failure.assertHasDescription("Task 'unknown' not found in root project")
+        failure.assertThatDescription(Matchers.startsWith("Task 'unknown' not found in root project"))
     }
 
     public void "runs sample target using wrapper"() {

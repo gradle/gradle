@@ -26,14 +26,14 @@ import java.io.IOException;
 public class SettingsScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsSettingsScriptEvaluationFailsWithRuntimeException() throws IOException {
-        TestFile settingsFile = testFile("some settings.gradle");
+        TestFile settingsFile = testFile("someDir/some settings.gradle");
         settingsFile.writelns("", "", "throw new RuntimeException('<failure message>')");
 
         ExecutionFailure failure = executer.usingSettingsFile(settingsFile).runWithFailure();
 
         failure.assertHasFileName(String.format("Settings file '%s'", settingsFile));
         failure.assertHasLineNumber(3);
-        failure.assertHasDescription("A problem occurred evaluating settings 'reportsSettingsScriptEvaluationFailsWithRuntimeException");
+        failure.assertHasDescription("A problem occurred evaluating settings 'someDir'.");
         failure.assertHasCause("<failure message>");
     }
 }

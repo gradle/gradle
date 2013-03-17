@@ -96,7 +96,7 @@ task test
 '''
         then:
         fails 'test'
-        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'")
+        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
         failure.assertHasCause("deferred configuration failure")
     }
 
@@ -111,7 +111,7 @@ task test
 '''
         then:
         fails 'test'
-        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'")
+        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
         failure.assertHasCause("deferred configuration failure")
     }
 
@@ -128,7 +128,7 @@ task test {
 '''
         then:
         fails 'test'
-        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'")
+        failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
         failure.assertHasCause("task configuration failure")
     }
 
@@ -151,7 +151,7 @@ task test
 '''
         then:
         fails('test')
-        failure.assertHasDescription "A problem occurred evaluating root project 'customProject'"
+        failure.assertHasDescription "A problem occurred evaluating root project 'customProject'."
         failure.assertHasCause "Cannot configure the 'custom' extension after it has been accessed."
     }
 }

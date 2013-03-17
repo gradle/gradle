@@ -147,7 +147,7 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
         fails 'publish'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':publishIvyPublicationToIvyRepository'"
+        failure.assertHasDescription "Execution failed for task ':publishIvyPublicationToIvyRepository'."
         failure.assertHasCause "Failed to publish publication 'ivy' to repository 'ivy'"
         failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
     }

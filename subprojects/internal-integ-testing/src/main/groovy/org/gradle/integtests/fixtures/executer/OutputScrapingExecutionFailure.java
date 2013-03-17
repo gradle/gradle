@@ -17,30 +17,71 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.hamcrest.Matcher;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.Matchers.not;
-import static org.gradle.util.Matchers.containsLine;
-import static org.gradle.util.Matchers.matchesRegexp;
-import static org.hamcrest.Matchers.containsString;
+import static org.gradle.util.Matchers.isEmpty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
-    private final Pattern causePattern = Pattern.compile("(?m)\\s*> ");
+    private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)^\\s*> ");
+    private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+)^\\* Try:$");
+    private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
+    private final String description;
+    private final String lineNumber;
+    private final String fileName;
+    private final List<String> causes = new ArrayList<String>();
 
     public OutputScrapingExecutionFailure(String output, String error) {
         super(output, error);
+
+        java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(error);
+        if (matcher.find()) {
+            fileName = matcher.group(1).trim();
+            lineNumber = matcher.group(3);
+        } else {
+            fileName = "";
+            lineNumber = "";
+        }
+
+        matcher = DESCRIPTION_PATTERN.matcher(error);
+        String problem;
+        if (matcher.find()) {
+            problem = matcher.group(1);
+        } else {
+            problem = "";
+        }
+
+        matcher = CAUSE_PATTERN.matcher(problem);
+        if (!matcher.find()) {
+            description = problem.trim();
+        } else {
+            description = problem.substring(0, matcher.start()).trim();
+            while (true) {
+                int pos = matcher.end();
+                if (matcher.find(pos)) {
+                    String cause = problem.substring(pos, matcher.start());
+                    causes.add(cause);
+                } else {
+                    String cause = problem.substring(pos);
+                    causes.add(cause);
+                    break;
+                }
+            }
+        }
     }
 
     public ExecutionFailure assertHasLineNumber(int lineNumber) {
-        assertThat(getError(), containsString(String.format(" line: %d", lineNumber)));
+        assertThat(this.lineNumber, equalTo(String.valueOf(lineNumber)));
         return this;
     }
 
     public ExecutionFailure assertHasFileName(String filename) {
-        assertThat(getError(), containsLine(startsWith(filename)));
+        assertThat(this.fileName, equalTo(filename));
         return this;
     }
 
@@ -50,42 +91,27 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     public ExecutionFailure assertThatCause(Matcher<String> matcher) {
-        String error = getError();
-        java.util.regex.Matcher regExpMatcher = causePattern.matcher(error);
-        int pos = 0;
-        while (pos < error.length()) {
-            if (!regExpMatcher.find(pos)) {
-                break;
-            }
-            int start = regExpMatcher.end();
-            String cause;
-            if (regExpMatcher.find(start)) {
-                cause = error.substring(start, regExpMatcher.start());
-                pos = regExpMatcher.start();
-            } else {
-                cause = error.substring(start);
-                pos = error.length();
-            }
+        for (String cause : causes) {
             if (matcher.matches(cause)) {
                 return this;
             }
         }
-        fail(String.format("No matching cause found in '%s'", error));
+        fail(String.format("No matching cause found in %s", causes));
         return this;
     }
 
     public ExecutionFailure assertHasNoCause() {
-        assertThat(getError(), not(matchesRegexp(causePattern)));
+        assertThat(causes, isEmpty());
         return this;
     }
 
     public ExecutionFailure assertHasDescription(String context) {
-        assertThatDescription(startsWith(context));
+        assertThatDescription(equalTo(context));
         return this;
     }
 
     public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
-        assertThat(getError(), containsLine(matcher));
+        assertThat(description, matcher);
         return this;
     }
 

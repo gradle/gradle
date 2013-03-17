@@ -611,7 +611,7 @@ task test << {
 
         failure
                 .assertHasFileName("Build file '" + buildFile.getPath() + "'")
-                .assertHasDescription("Execution failed for task ':listJars'");
+                .assertHasDescription("Execution failed for task ':listJars'.");
 
         failure.assertResolutionFailure(':compile')
                 .assertHasCause("Could not find test:unknownProjectA:1.2.")

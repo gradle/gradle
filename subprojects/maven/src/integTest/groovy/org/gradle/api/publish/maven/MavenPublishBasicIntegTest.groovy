@@ -196,7 +196,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
+        failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'.")
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 
@@ -229,7 +229,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'")
+        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'.")
         failure.assertHasCause("Publication with name 'mavenJava' already exists")
     }
 }
