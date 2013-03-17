@@ -82,10 +82,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
 
         and:
         1 * state.executed({
-            assert it instanceof ProjectConfigurationException
-            assert it.message == "A problem occurred configuring project1."
-            assert it.cause == failure
-            true
+            assertIsConfigurationFailure(it, failure)
         })
         1 * state.setExecuting(false)
         1 * listener.afterEvaluate(project, state)
@@ -100,10 +97,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         then:
         1 * listener.beforeEvaluate(project) >> { throw failure }
         1 * state.executed({
-            assert it instanceof ProjectConfigurationException
-            assert it.message == "An error occurred in a pre-configure action for project1."
-            assert it.cause == failure
-            true
+            assertIsConfigurationFailure(it, failure)
         })
         0 * delegate._
         0 * listener._
@@ -125,11 +119,15 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         then:
         1 * listener.afterEvaluate(project, state) >> { throw failure }
         1 * state.executed({
-            assert it instanceof ProjectConfigurationException
-            assert it.message == "An error occurred in a post-configure action for project1."
-            assert it.cause == failure
-            true
+            assertIsConfigurationFailure(it, failure)
         })
+    }
+
+    def assertIsConfigurationFailure(def it, def cause) {
+        assert it instanceof ProjectConfigurationException
+        assert it.message == "A problem occurred configuring project1."
+        assert it.cause == cause
+        true
     }
 
     void "notifies listeners and updates state on evaluation failure even if afterEvaluate fails"() {

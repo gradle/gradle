@@ -36,7 +36,7 @@ public class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrat
 """
         then:
         fails('test')
-        failure.assertHasDescription("An error occurred in a pre-configure action for root project 'projectConfigure'.")
+        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("beforeProject failure")
                 .assertHasFileName("Settings file '${settingsFile.path}'")
                 .assertHasLineNumber(3)
@@ -54,7 +54,7 @@ public class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrat
 """
         then:
         fails('test')
-        failure.assertHasDescription("An error occurred in a post-configure action for root project 'projectConfigure'.")
+        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("afterProject failure")
                 .assertHasFileName("Settings file '${settingsFile.path}'")
                 .assertHasLineNumber(3)
@@ -70,7 +70,7 @@ public class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrat
 """
         then:
         fails('test')
-        failure.assertHasDescription("An error occurred in a post-configure action for root project 'projectConfigure'.")
+        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("afterEvaluate failure")
                 .assertHasFileName("Build file '${buildFile.path}'")
                 .assertHasLineNumber(3)

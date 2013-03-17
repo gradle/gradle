@@ -46,8 +46,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         try {
             listener.beforeEvaluate(project);
         } catch (Exception e) {
-            ProjectConfigurationException failure = new ProjectConfigurationException(String.format("An error occurred in a pre-configure action for %s.", project), e);
-            state.executed(failure);
+            addConfigurationFailure(project, state, e);
             return;
         }
 
@@ -55,8 +54,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         try {
             delegate.evaluate(project, state);
         } catch (Exception e) {
-            ProjectConfigurationException failure = new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
-            state.executed(failure);
+            addConfigurationFailure(project, state, e);
         } finally {
             state.setExecuting(false);
             state.executed();
@@ -73,8 +71,12 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
                 LOGGER.error("Failed to notify ProjectEvaluationListener.afterEvaluate(), but primary configuration failure takes precedence.", e);
                 return;
             }
-            ProjectConfigurationException failure = new ProjectConfigurationException(String.format("An error occurred in a post-configure action for %s.", project), e);
-            state.executed(failure);
+            addConfigurationFailure(project, state, e);
         }
+    }
+
+    private void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e) {
+        ProjectConfigurationException failure = new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
+        state.executed(failure);
     }
 }
