@@ -16,6 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
@@ -38,6 +39,7 @@ class ApplicationPluginTest extends Specification {
 
         then:
         project.plugins.hasPlugin(JavaPlugin.class)
+        project.plugins.hasPlugin(DistributionPlugin.class)
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null

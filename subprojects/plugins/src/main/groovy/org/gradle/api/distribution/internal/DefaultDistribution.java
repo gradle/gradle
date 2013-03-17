@@ -15,6 +15,7 @@
  */
 package org.gradle.api.distribution.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.file.CopySpec;
@@ -30,6 +31,7 @@ public class DefaultDistribution implements Distribution {
     private final String name;
     private String baseName;
     private final CopySpec contents;
+    private Closure<String> baseNameClosure;
 
     public DefaultDistribution(String name, FileResolver fileResolver) {
         this.name = name;
@@ -41,7 +43,7 @@ public class DefaultDistribution implements Distribution {
     }
 
     public String getBaseName() {
-        return baseName;
+        return baseNameClosure != null ? baseNameClosure.call():baseName;
     }
 
     public void setBaseName(String baseName) {
@@ -55,5 +57,9 @@ public class DefaultDistribution implements Distribution {
     public CopySpec contents(Action<? super CopySpec> action) {
         action.execute(contents);
         return contents;
+    }
+
+    public void configureBaseName(Closure<String> closure){
+        this.baseNameClosure = closure;
     }
 }
