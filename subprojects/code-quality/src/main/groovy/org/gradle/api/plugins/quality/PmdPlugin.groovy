@@ -50,7 +50,10 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension = project.extensions.create("pmd", PmdExtension, project)
         extension.with {
             toolVersion = "4.3"
-            ruleSets = []
+            // NOTE: should change default rule set to java-basic once we bump default version to 5.0+
+            // this will also require a change to Pmd.run() (convert java-basic to basic for old versions,
+            // instead of basic to java-basic for new versions)
+            ruleSets = ["basic"]
             ruleSetFiles = project.files()
         }
         extension.getConventionMapping().with{
@@ -60,11 +63,11 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     TargetJdk getDefaultTargetJdk(JavaVersion javaVersion) {
-        try{
+        try {
             return TargetJdk.toVersion(javaVersion.toString())
-        }catch(IllegalArgumentException illegalArgumentException){
+        } catch(IllegalArgumentException ignored) {
             // TargetJDK does not include 1.1, 1.2 and 1.8;
-            // Use same fallback as Pmd
+            // Use same fallback as PMD
             return TargetJdk.VERSION_1_4
         }
     }
