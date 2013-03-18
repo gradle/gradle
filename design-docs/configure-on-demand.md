@@ -101,6 +101,19 @@ TBD
 - configure on demand with configuration decoupling is to eventually become the default Gradle model.
 - rename 'configure on demand' to something that reflects that this will be the new Gradle configuration model.
 
+## Configure target project when project dependency is resolved
+
+This is to fix common ordering issues where a dependency is resolved at configuration time. This should
+happen for both the legacy and new configuration models.
+
+### Coverage
+
+- Project A depends on project B, which depends on some external dependency.
+    - Verify that when the configuration is resolved in project A's build script, project B and the external
+      dependency are present.
+
+## `buildSrc` project is correctly built in configure-on-demand mode
+
 ## Fix profile report configuration times in configure-on-demand mode
 
 ## Support tasks that are declared on a given project but work on multiple projects
