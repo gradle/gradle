@@ -18,10 +18,6 @@ package org.gradle.api.tasks.testing.junit;
 
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * The JUnit specific test options.
  */
@@ -30,21 +26,21 @@ public class JUnitOptions extends TestFrameworkOptions {
     /**
      * The set of groups to run.
      */
-    Set<String> includeGroups = new HashSet<String>();
+    Set<String> includeCategories = new HashSet<String>();
 
     /**
      * The set of groups to exclude.
      */
-    Set<String> excludeGroups = new HashSet<String>();
+    Set<String> excludeCategories = new HashSet<String>();
 
 
-    JUnitOptions includeGroups(String... includeGroups) {
-        this.includeGroups.addAll(Arrays.asList(includeGroups));
+    JUnitOptions includeCategories(String... includeGroups) {
+        this.includeCategories.addAll(Arrays.asList(includeGroups));
         this;
     }
 
-    JUnitOptions excludeGroups(String... excludeGroups) {
-        this.excludeGroups.addAll(Arrays.asList(excludeGroups));
+    JUnitOptions excludeCategories(String... excludeGroups) {
+        this.excludeCategories.addAll(Arrays.asList(excludeGroups));
         this;
     }
 
