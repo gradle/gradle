@@ -339,10 +339,6 @@ Breaking changes have been made to the incubating '`ivy-publish`' plugin, which 
 Be sure to check out the [Ivy Publishing User Guide Chapter](userguide/publishing_ivy.html) and the [IvyPublication DSL reference](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
 for complete description and examples of the new Ivy Publishing support.
 
-### Changes to default PMD ruleset
-
-The default value for ruleset extension has changed from `["basic"]` to `[]`. The default was moved to the `Pmd` task, so everything should just work as it did before.
-
 ### Project configuration order
 
 Improving the usability of project dependencies (see the section above) might change the order in which projects are configured.
