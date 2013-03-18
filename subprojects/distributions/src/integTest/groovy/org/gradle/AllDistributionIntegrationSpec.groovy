@@ -37,7 +37,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
         // Source
         contentsDir.file('src/org/gradle/api/Project.java').assertIsFile()
-        contentsDir.file('src/org/gradle/initialization/defaultBuildSourceScript.txt').assertIsFile()
+        contentsDir.file('src/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt').assertIsFile()
         contentsDir.file('src/org/gradle/gradleplugin/userinterface/swing/standalone/BlockingApplication.java').assertIsFile()
         contentsDir.file('src/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
 
