@@ -51,12 +51,15 @@ public class DependencyGraphBuilder {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final DependencyToModuleVersionIdResolver dependencyResolver;
+    private CacheLockingManager cacheLockingManager;
     private final InternalConflictResolver conflictResolver;
 
-    public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory, DependencyToModuleVersionIdResolver dependencyResolver, ModuleConflictResolver conflictResolver) {
+    public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory, DependencyToModuleVersionIdResolver dependencyResolver,
+                                  ModuleConflictResolver conflictResolver, CacheLockingManager cacheLockingManager) {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.dependencyResolver = dependencyResolver;
+        this.cacheLockingManager = cacheLockingManager;
         this.conflictResolver = new InternalConflictResolver(conflictResolver);
     }
 
@@ -68,7 +71,7 @@ public class DependencyGraphBuilder {
         ResolveState resolveState = new ResolveState(rootMetaData, configuration.getName(), dependencyResolver, resolveData);
         traverseGraph(resolveState);
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult());
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult(), cacheLockingManager);
         assembleResult(resolveState, result, listener);
 
         return result;
