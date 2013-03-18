@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
@@ -40,7 +38,6 @@ import static org.gradle.util.CollectionUtils.*;
 public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestRunner {
 
     private static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
-    private final TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
     protected final GradleDistribution current = new UnderDevelopmentGradleDistribution();
     protected final List<GradleDistribution> previous;
 
