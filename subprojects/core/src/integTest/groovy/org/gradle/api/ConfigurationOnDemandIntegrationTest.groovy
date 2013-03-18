@@ -278,7 +278,7 @@ project(':api') {
         buildFile << "task foo(type: FooTask)"
 
         when:
-        run("foo")
+        run("foo", "-s")
         then:
         output.contains "Horray!!!"
     }

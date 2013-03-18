@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 
 import java.io.File;
 import java.net.URLClassLoader;
