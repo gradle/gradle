@@ -16,13 +16,13 @@
 package org.gradle.launcher.daemon.configuration
 
 import org.gradle.StartParameter
-import org.gradle.internal.jvm.Jvm
+import org.gradle.initialization.BuildLayoutParameters
 import spock.lang.Specification
 
 import static java.lang.Boolean.parseBoolean
 
 class DaemonParametersTest extends Specification {
-    final DaemonParameters parameters = new DaemonParameters()
+    final DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters())
 
     def "has reasonable default values"() {
         expect:
@@ -31,7 +31,6 @@ class DaemonParametersTest extends Specification {
 
     def "uses default values when no specific gradle properties provided"() {
         expect:
-        parameters.configureFrom(new GradleProperties()) //empty gradle properties
         assertDefaultValues()
     }
 
@@ -49,38 +48,13 @@ class DaemonParametersTest extends Specification {
 
     def "configuring jvmargs replaces the defaults"() {
         when:
-        parameters.configureFrom(Stub(GradleProperties) {
-            getJvmArgs() >> "-Xmx17m"
-        })
+        parameters.setJvmArgs(["-Xmx17m"])
 
         then:
         parameters.effectiveJvmArgs.each { assert !parameters.defaultJvmArgs.contains(it) }
     }
 
-    def "can configure jvm args combined with a system property"() {
-        when:
-        parameters.configureFrom(Stub(GradleProperties) {
-            getJvmArgs() >> '-Xmx1024m -Dprop=value'
-        })
-
-        then:
-        parameters.effectiveJvmArgs.contains('-Xmx1024m')
-        !parameters.effectiveJvmArgs.contains('-Dprop=value')
-
-        parameters.systemProperties == [prop: 'value']
-    }
-
-    def "supports 'empty' system properties"() {
-        when:
-        parameters.configureFrom(Stub(GradleProperties) {
-            getJvmArgs() >> "-Dfoo= -Dbar"
-        })
-
-        then:
-        parameters.getSystemProperties() == [foo: '', bar: '']
-    }
-
-    def "knows if not using default jvm args"() {
+    def "knows if uses default jvm args"() {
         given:
         assert parameters.usingDefaultJvmArgs
 
@@ -91,35 +65,9 @@ class DaemonParametersTest extends Specification {
         !parameters.usingDefaultJvmArgs
     }
 
-    def "knows if not using default jvm args when configured"() {
-        given:
-        assert parameters.usingDefaultJvmArgs
-
-        when:
-        parameters.configureFrom(Stub(GradleProperties) {
-            getJvmArgs() >> "-Dfoo= -Dbar"
-        })
-
-        then:
-        !parameters.usingDefaultJvmArgs
-    }
-
-    def "knows if using default jvm args"() {
-        when:
-        parameters.configureFrom(Stub(GradleProperties) {
-            getJavaHome() >> Jvm.current().getJavaHome()
-            getJvmArgs() >> null
-        })
-
-        then:
-        parameters.usingDefaultJvmArgs
-    }
-
     def "can configure debug mode"() {
         when:
-        parameters.configureFrom(Stub (GradleProperties) {
-            isDebugMode() >> parseBoolean(flag)
-        })
+        parameters.setDebug(parseBoolean(flag))
 
         then:
         parameters.effectiveJvmArgs.contains("-Xdebug") == parseBoolean(flag)
@@ -127,25 +75,5 @@ class DaemonParametersTest extends Specification {
 
         where:
         flag << ["true", "false"]
-    }
-
-    def "configures from gradle properties"() {
-        def props = Stub (GradleProperties) {
-            getJvmArgs() >> '-Xmx256m'
-            getJavaHome() >> new File("javaHome")
-            isDaemonEnabled() >> true
-            getDaemonBaseDir() >> new File("baseDir")
-            getIdleTimeout() >> 115
-        }
-
-        when:
-        parameters.configureFrom(props)
-
-        then:
-        parameters.effectiveJvmArgs.contains("-Xmx256m")
-        parameters.javaHome == new File("javaHome")
-        parameters.enabled
-        parameters.baseDir == new File("baseDir")
-        parameters.idleTimeout == 115
     }
 }

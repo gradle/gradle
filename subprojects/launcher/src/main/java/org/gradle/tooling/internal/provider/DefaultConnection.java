@@ -18,12 +18,13 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.Factory;
+import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
+import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.configuration.GradleProperties;
-import org.gradle.launcher.daemon.configuration.GradlePropertiesConfigurer;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
@@ -40,7 +41,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
@@ -113,38 +116,37 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         if (type.equals(Void.class) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
-        GradleProperties gradleProperties = initGradleProperties(providerParameters);
+        Parameters params = initParams(providerParameters);
         if (type == InternalBuildEnvironment.class) {
             //we don't really need to launch the daemon to acquire information needed for BuildEnvironment
             if (tasks != null) {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
-            DaemonParameters daemonParameters = init(providerParameters, gradleProperties);
             DefaultBuildEnvironment out = new DefaultBuildEnvironment(
                     GradleVersion.current().getVersion(),
-                    daemonParameters.getEffectiveJavaHome(),
-                    daemonParameters.getEffectiveJvmArgs());
+                    params.daemonParams.getEffectiveJavaHome(),
+                    params.daemonParams.getEffectiveJvmArgs());
 
             return type.cast(out);
         }
 
         BuildAction<T> action = new BuildModelAction<T>(type, tasks != null);
-        return run(action, providerParameters, gradleProperties);
+        return run(action, providerParameters, params.properties);
     }
 
     private void logTargetVersion() {
         LOGGER.info("Tooling API uses target gradle version:" + " {}.", GradleVersion.current().getVersion());
     }
 
-    private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, GradleProperties gradleProperties) {
+    private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {
         BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
-        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters, action, gradleProperties);
+        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters, action, properties);
         return executer.execute(configuringAction, operationParameters);
     }
 
     private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters) {
         LoggingServiceRegistry loggingServices;
-        DaemonParameters daemonParams = init(operationParameters, initGradleProperties(operationParameters));
+        Parameters params = initParams(operationParameters);
         BuildActionExecuter<BuildActionParameters> executer;
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingServices = embeddedExecuterSupport.getLoggingServices();
@@ -152,17 +154,24 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         } else {
             loggingServices = embeddedExecuterSupport.getLoggingServices().newLogging();
             loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
-            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, params.daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
             executer = clientServices.get(DaemonClient.class);
         }
         Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
-        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer, daemonParams), loggingManagerFactory);
+        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer, params.daemonParams), loggingManagerFactory);
     }
 
-    private DaemonParameters init(ProviderOperationParameters operationParameters, GradleProperties gradleProperties) {
-        DaemonParameters daemonParams = new DaemonParameters();
+    private Parameters initParams(ProviderOperationParameters operationParameters) {
+        BuildLayoutParameters layout = new BuildLayoutParameters()
+                .setGradleUserHomeDir(GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME))
+                .setSearchUpwards(operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true)
+                .setProjectDir(operationParameters.getProjectDir());
 
-        daemonParams.configureFrom(gradleProperties);
+        Map<String, String> properties = new HashMap<String, String>();
+        new LayoutToPropertiesConverter().convert(layout, properties);
+
+        DaemonParameters daemonParams = new DaemonParameters(layout);
+        new PropertiesToDaemonParametersConverter().convert(properties, daemonParams);
 
         //override the params with the explicit settings provided by the tooling api
         List<String> defaultJvmArgs = daemonParams.getAllJvmArgs();
@@ -174,14 +183,16 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
             daemonParams.setIdleTimeout(idleTimeout);
         }
-        return daemonParams;
+        return new Parameters(daemonParams, properties);
     }
 
-    private GradleProperties initGradleProperties(ProviderOperationParameters operationParameters) {
-        File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
-        boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
-        return new GradlePropertiesConfigurer()
-                .prepareProperties(operationParameters.getProjectDir(), searchUpwards, gradleUserHomeDir, System.getProperties());
-    }
+    private static class Parameters {
+        DaemonParameters daemonParams;
+        Map<String, String> properties;
 
+        public Parameters(DaemonParameters daemonParams, Map<String, String> properties) {
+            this.daemonParams = daemonParams;
+            this.properties = properties;
+        }
+    }
 }

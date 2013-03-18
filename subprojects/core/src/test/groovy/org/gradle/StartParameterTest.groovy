@@ -330,16 +330,4 @@ class StartParameterTest extends Specification {
         then:
         parameter.allInitScripts == [userMainInit, userInit1, userInit2, distroInit1, distroInit2]
     }
-
-    def "knows if parallel feature was configured"() {
-        def parameter = new StartParameter()
-        assert !parameter.parallelThreadCountConfigured
-
-        when:
-        parameter.setParallelThreadCount(15)
-
-        then:
-        parameter.parallelThreadCount == 15
-        parameter.parallelThreadCountConfigured
-    }
 }

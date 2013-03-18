@@ -36,6 +36,7 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.Factory;
@@ -43,7 +44,8 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.launcher.Main;
-import org.gradle.launcher.daemon.configuration.GradlePropertiesConfigurer;
+import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
+import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -153,10 +155,15 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
         converter.configure(parser);
         ParsedCommandLine parsedCommandLine = parser.parse(getAllArgs());
-        converter.convert(parsedCommandLine, parameter);
 
-        //I'm not sure if below is safe
-        new GradlePropertiesConfigurer().configureStartParameter(parameter);
+        BuildLayoutParameters layout = converter.getLayoutConverter().convert(parsedCommandLine);
+
+        Map<String, String> properties = new HashMap<String, String>();
+        new LayoutToPropertiesConverter().convert(layout, properties);
+        converter.getSystemPropertiesConverter().convert(parsedCommandLine, properties);
+
+        new PropertiesToStartParameterConverter().convert(properties, parameter);
+        converter.convert(parsedCommandLine, parameter);
 
         DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
         factory.addListener(listener);

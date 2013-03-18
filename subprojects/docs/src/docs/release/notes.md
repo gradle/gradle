@@ -71,9 +71,9 @@ in the next major Gradle version (Gradle 2.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-<!--
-### Example deprecation
--->
+### StartParameter.getMergedSystemProperties method is deprecated
+
+This method is no longer used internally so it does not make sense to keep it in the public API.
 
 ## Potential breaking changes
 
@@ -96,6 +96,10 @@ but will impact publications added directly using `add()`.
 
 ### Changes to exceptions thrown on project evaluation
  // TODO:DAZ
+
+### Incubating StartParameter.isParallelThreadCountConfigured method removed
+
+It is not needed internally and it shouldn't be needed by the users, too.
 
 ## External contributions
 

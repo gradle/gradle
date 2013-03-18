@@ -28,6 +28,8 @@ import org.gradle.logging.internal.LoggingCommandLineConverter;
 
 import java.util.Map;
 
+import static org.gradle.StartParameter.GRADLE_USER_HOME_PROPERTY_KEY;
+
 /**
  * @author Hans Dockter
  */
@@ -105,8 +107,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         BuildLayoutParameters layout = new BuildLayoutParameters()
                 .setGradleUserHomeDir(startParameter.getGradleUserHomeDir())
-                .setProjectDir(startParameter.getCurrentDir())
-                .maybeUpdateFromSystemProperty(systemProperties, resolver); //TODO SF not very nice. It should get cleaned up further down the refactoring
+                .setProjectDir(startParameter.getCurrentDir());
         layoutCommandLineConverter.convert(options, layout);
         startParameter.setGradleUserHomeDir(layout.getGradleUserHomeDir());
         startParameter.setProjectDir(layout.getProjectDir());
@@ -203,7 +204,18 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         return startParameter;
     }
 
-    private void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, FileResolver resolver) {
+    void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, FileResolver resolver) {
         startParameter.getSystemPropertiesArgs().putAll(systemProperties);
+        if (systemProperties.containsKey(GRADLE_USER_HOME_PROPERTY_KEY)) {
+            startParameter.setGradleUserHomeDir(resolver.resolve(systemProperties.get(GRADLE_USER_HOME_PROPERTY_KEY)));
+        }
+    }
+
+    public LayoutCommandLineConverter getLayoutConverter() {
+        return layoutCommandLineConverter;
+    }
+
+    public SystemPropertiesCommandLineConverter getSystemPropertiesConverter() {
+        return systemPropertiesCommandLineConverter;
     }
 }

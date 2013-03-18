@@ -75,7 +75,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean recompileScripts;
     private int parallelThreadCount;
     private boolean configureOnDemand;
-    private boolean parallelThreadCountConfigured;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -309,10 +308,14 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
+     * Deprecated. It is no longer used internally and there's no good reason to keep it.
+     * There is no replacement method.
+     *
      * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedence over JVM system properties.
      *
      * @return The merged system properties
      */
+    @Deprecated
     public Map<String, String> getMergedSystemProperties() {
         Map<String, String> merged = new HashMap<String, String>();
         merged.putAll((Map) System.getProperties());
@@ -621,7 +624,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @see #getParallelThreadCount()
      */
     public void setParallelThreadCount(int parallelThreadCount) {
-        this.parallelThreadCountConfigured = true;
         this.parallelThreadCount = parallelThreadCount;
     }
 
@@ -631,14 +633,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     @Incubating
     public boolean isConfigureOnDemand() {
         return configureOnDemand;
-    }
-
-    @Incubating
-    public boolean isParallelThreadCountConfigured() {
-        //This is not beautiful. As the number of gradle properties grows we may something like:
-        //1. Make StartParameter an interface
-        //2. StartParameter (StartParameterInternal) needs to inform if certain property was configured or not
-        return parallelThreadCountConfigured;
     }
 
     @Override

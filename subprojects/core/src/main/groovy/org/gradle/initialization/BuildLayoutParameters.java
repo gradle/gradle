@@ -17,11 +17,9 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.SystemProperties;
 
 import java.io.File;
-import java.util.Map;
 
 import static org.gradle.util.GFileUtils.canonicalise;
 
@@ -70,13 +68,5 @@ public class BuildLayoutParameters {
 
     public boolean getSearchUpwards() {
         return searchUpwards;
-    }
-
-    public BuildLayoutParameters maybeUpdateFromSystemProperty(Map<String, String> systemProperties, FileResolver resolver) {
-        String gradleUserHomeProp = "gradle.user.home";
-        if (systemProperties.containsKey(gradleUserHomeProp)) {
-            gradleUserHomeDir = resolver.resolve(systemProperties.get(gradleUserHomeProp));
-        }
-        return this;
     }
 }
