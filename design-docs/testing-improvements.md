@@ -104,10 +104,10 @@ HTML report is generated from the binary format, not from XML results
 
 ### Implementation
 
-- Add the above filtering in `JUnitTestClassExecuter`.
-- Add documentation to the 'testing' section of the user guide that describes how to use categories with JUnit and
+1. Add the above filtering in `JUnitTestClassExecuter`.
+2. Add documentation to the 'testing' section of the user guide that describes how to use categories with JUnit and
   groups with TestNG.
-- Extend the test detection to :
+3. Extend the JUnit test detection so that:
     - When exclude categories have been specified, then filter the following classes:
         - The class is annotated with an exclude category or one of its subtypes OR
         - The class and its supertypes are not annotated with `@RunWith` and all of of the class' declared and inherited
