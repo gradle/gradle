@@ -61,7 +61,7 @@ public class ModelMapping {
         return map;
     }
 
-    public Class getInternalType(Class<? extends Model> viewType) {
+    public Class getProtocolType(Class<? extends Model> viewType) {
         return MODEL_TYPE_MAP.get(viewType);
     }
 }

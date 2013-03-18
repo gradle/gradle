@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
+import org.gradle.tooling.internal.protocol.ProjectVersion3;
 
 /**
  * An implementation that wraps a protocol instance that has rigid compatibility policy.
@@ -47,7 +48,7 @@ public class AdaptedConnection extends AbstractConsumerConnection {
     }
 
     protected  <T> T doGetModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-        return (T) getDelegate().getModel((Class) type, operationParameters);
+        return type.cast(getDelegate().getModel(type.asSubclass(ProjectVersion3.class), operationParameters));
     }
 
     protected void doRunBuild(ConsumerOperationParameters operationParameters) {

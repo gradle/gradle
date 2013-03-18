@@ -15,9 +15,8 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.UnknownModelException
-import org.gradle.tooling.internal.consumer.async.AsyncConnection
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
+import org.gradle.tooling.internal.consumer.async.AsyncConnection
 import org.gradle.tooling.model.GradleProject
 import spock.lang.Specification
 
@@ -36,14 +35,6 @@ class DefaultProjectConnectionTest extends Specification {
         expect:
         connection.newBuild() instanceof DefaultBuildLauncher
     }
-    
-    def modelFailsForUnknownModelType() {
-        when:
-        connection.model(TestBuild.class)
-
-        then:
-        thrown(UnknownModelException)
-    }
 
     def closeStopsBackingConnection() {
         when:
@@ -52,8 +43,4 @@ class DefaultProjectConnectionTest extends Specification {
         then:
         1 * protocolConnection.stop()
     }
-}
-
-interface TestBuild extends GradleProject {
-    
 }

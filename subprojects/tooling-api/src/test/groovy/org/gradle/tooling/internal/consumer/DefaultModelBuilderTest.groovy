@@ -30,7 +30,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
     final AsyncConnection protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()
-    final DefaultModelBuilder<GradleProject> builder = new DefaultModelBuilder<GradleProject>(GradleProject, ProjectVersion3, protocolConnection, adapter, parameters)
+    final DefaultModelBuilder<GradleProject> builder = new DefaultModelBuilder<GradleProject>(GradleProject, protocolConnection, adapter, parameters)
 
     def getModelDelegatesToProtocolConnectionToFetchModel() {
         ResultHandlerVersion1<ProjectVersion3> adaptedHandler
@@ -42,7 +42,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         builder.get(handler)
 
         then:
-        1 * protocolConnection.run(ProjectVersion3, !null, !null) >> {args ->
+        1 * protocolConnection.run(GradleProject, !null, !null) >> {args ->
             def params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
@@ -71,7 +71,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         builder.forTasks('a', 'b').get(handler)
 
         then:
-        1 * protocolConnection.run(ProjectVersion3, !null, !null) >> {args ->
+        1 * protocolConnection.run(GradleProject, !null, !null) >> {args ->
             def params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null

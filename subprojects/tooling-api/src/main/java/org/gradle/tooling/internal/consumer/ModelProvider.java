@@ -16,24 +16,38 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.InternalGradleProject;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.Model;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.internal.Exceptions;
 
 /**
  * by Szczepan Faber, created at: 12/21/11
  */
 public class ModelProvider {
+    private final ModelMapping modelMapping = new ModelMapping();
 
-    public <T> T provide(ConsumerConnection connection, Class<T> type, ConsumerOperationParameters operationParameters) {
+    public <T> T provide(ConsumerConnection connection, Class<T> modelType, ConsumerOperationParameters operationParameters) {
         VersionDetails version = connection.getVersionDetails();
+
+        Class<?> protocolType = modelType == Void.class ? modelType : modelMapping.getProtocolType(modelType.asSubclass(Model.class));
+        if (protocolType == null) {
+            throw new UnknownModelException(
+                    "Unknown model: '" + modelType.getSimpleName() + "'.\n"
+                        + "Most likely you are trying to acquire a model for a class that is not a valid Tooling API model class.\n"
+                        + "Review the documentation on the version of Tooling API you use to find out what models can be build."
+            );
+        }
 
         if (operationParameters.getJavaHome() != null) {
             if(!version.supportsConfiguringJavaHome()) {
@@ -50,30 +64,29 @@ public class ModelProvider {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()");
             }
         }
-        if (type != Void.class && operationParameters.getTasks() != null) {
+        if (protocolType != Void.class && operationParameters.getTasks() != null) {
             if (!version.supportsRunningTasksWhenBuildingModel()) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()");
             }
         }
 
-        if (type == InternalBuildEnvironment.class && !version.isModelSupported(InternalBuildEnvironment.class)) {
+        if (modelType == BuildEnvironment.class && !version.isModelSupported(InternalBuildEnvironment.class)) {
             //early versions of provider do not support BuildEnvironment model
             //since we know the gradle version at least we can give back some result
             VersionOnlyBuildEnvironment out = new VersionOnlyBuildEnvironment(version.getVersion());
-            return type.cast(out);
+            return modelType.cast(out);
         }
-        if (type == InternalGradleProject.class && !version.isModelSupported(InternalGradleProject.class)) {
+        if (modelType == GradleProject.class && !version.isModelSupported(InternalGradleProject.class)) {
             //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
             //this patch enables getting gradle tasks for target gradle version pre M5
             EclipseProjectVersion3 project = connection.run(EclipseProjectVersion3.class, operationParameters);
             GradleProject gradleProject = new GradleProjectConverter().convert(project);
-            return type.cast(gradleProject);
+            return modelType.cast(gradleProject);
         }
-        if (!version.isModelSupported(type)) {
+        if (!version.isModelSupported(protocolType)) {
             //don't bother asking the provider for this model
-            String message = String.format("I don't know how to build a model of type '%s'.", type.getSimpleName());
-            throw new UnsupportedOperationException(message);
+            throw new UnsupportedOperationException(String.format("I don't know how to build a model of type '%s'.", modelType.getSimpleName()));
         }
-        return connection.run(type, operationParameters);
+        return (T) connection.run(protocolType, operationParameters);
     }
 }

@@ -31,15 +31,13 @@ import java.util.Arrays;
 
 public class DefaultModelBuilder<T extends Model> implements ModelBuilder<T> {
     private final Class<T> modelType;
-    private final Class<?> protocolType;
     private final AsyncConnection connection;
     private final ProtocolToModelAdapter adapter;
     private ConsumerOperationParameters operationParameters;
 
-    public DefaultModelBuilder(Class<T> modelType, Class<?> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+    public DefaultModelBuilder(Class<T> modelType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
         operationParameters = new ConsumerOperationParameters(parameters);
         this.modelType = modelType;
-        this.protocolType = protocolType;
         this.connection = connection;
         this.adapter = adapter;
     }
@@ -52,7 +50,7 @@ public class DefaultModelBuilder<T extends Model> implements ModelBuilder<T> {
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
         ResultHandler<Object> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
-        connection.run(protocolType, operationParameters, new ResultHandlerAdapter<Object>(adaptingHandler) {
+        connection.run(modelType, operationParameters, new ResultHandlerAdapter<Object>(adaptingHandler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
