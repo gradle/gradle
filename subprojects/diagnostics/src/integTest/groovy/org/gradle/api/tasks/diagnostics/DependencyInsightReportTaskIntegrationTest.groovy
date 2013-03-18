@@ -588,15 +588,13 @@ org:middle:1.0 -> 2.0+ FAILED
 """))
     }
 
-    @Ignore
-    // TODO SF - need to use a fixed ordering for dynamic requested versions - see other TODOs in this test
     def "shows version resolved from a range"() {
         given:
         mavenRepo.module("org", "leaf", "1.5").publish()
         mavenRepo.module("org", "top", "1.0")
                 .dependsOn("org", "leaf", "1.0")
-                .dependsOn("org", "leaf", "[1.5,2.0]")
-                .dependsOn("org", "leaf", "1.6+")
+                .dependsOn("org", "leaf", "[1.5,1.9]")
+                .dependsOn("org", "leaf", "2.0+")
                 .publish()
 
         file("build.gradle") << """
@@ -626,11 +624,11 @@ org:leaf:1.0 -> 1.5
 \\--- org:top:1.0
      \\--- conf
 
-org:leaf:1.6+ -> 1.5
+org:leaf:[1.5,1.9] -> 1.5
 \\--- org:top:1.0
      \\--- conf
 
-org:leaf:[1.5,2.0] -> 1.5
+org:leaf:2.0+ -> 1.5
 \\--- org:top:1.0
      \\--- conf
 """))
