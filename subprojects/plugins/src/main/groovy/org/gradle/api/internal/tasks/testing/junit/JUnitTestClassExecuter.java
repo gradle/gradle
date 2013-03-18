@@ -16,14 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.util.CollectionUtils;
-import org.junit.experimental.categories.Category;
-import org.junit.internal.runners.ErrorReportingRunner;
-import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.Runner;
 import org.junit.runner.manipulation.Filter;
@@ -31,10 +27,6 @@ import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public class JUnitTestClassExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
@@ -94,93 +86,13 @@ public class JUnitTestClassExecuter {
         }
 
         Runner runner = request.getRunner();
-        if (!Filter.class.equals(runner.getClass())){
+
+        //In case of no matching methods junit will return a ErrorReportingRunner for org.junit.runner.manipulation.Filter.class.
+        //Will be fixed with adding class filters
+        if (!Filter.class.equals(runner.getClass())) {
             RunNotifier notifier = new RunNotifier();
             notifier.addListener(listener);
             runner.run(notifier);
-        }
-    }
-
-    public static class CategoryFilter extends Filter {
-
-        private final Set<Class<?>> inclusions;
-        private final Set<Class<?>> exclusions;
-
-        public CategoryFilter(final Set<Class<?>> inclusions, final Set<Class<?>> exclusions) {
-            this.inclusions = inclusions;
-            this.exclusions = exclusions;
-        }
-
-        @Override
-        public boolean shouldRun(Description description) {
-            return shouldRun(description, description.isSuite() ? null : Description.createSuiteDescription(description.getTestClass()));
-        }
-
-        private boolean shouldRun(Description description, Description parent) {
-
-            final Set<Class<?>> categories = new HashSet<Class<?>>();
-            Category annotation = description.getAnnotation(Category.class);
-            if (annotation != null) {
-                categories.addAll(Arrays.asList(annotation.value()));
-            }
-
-            if (parent != null) {
-                annotation = parent.getAnnotation(Category.class);
-                if (annotation != null) {
-                    categories.addAll(Arrays.asList(annotation.value()));
-                }
-            }
-
-            boolean result = inclusions.isEmpty();
-
-
-            for (Class<?> category : categories) {
-                if (matches(category, inclusions)) {
-                    result = true;
-                    break;
-                }
-            }
-
-            if (result) {
-                for (Class<?> category : categories) {
-                    if (matches(category, exclusions)) {
-                        result = false;
-                        break;
-                    }
-                }
-            }
-
-            return result;
-
-        }
-
-        private boolean matches(final Class<?> category, final Set<Class<?>> categories) {
-            for (Class<?> cls : categories) {
-                if (cls.isAssignableFrom(category)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public String describe() {
-            StringBuilder sb = new StringBuilder();
-            if (!inclusions.isEmpty()) {
-                sb.append("(");
-                sb.append(StringUtils.join(inclusions, " OR "));
-                sb.append(")");
-                if (!exclusions.isEmpty()) {
-                    sb.append(" AND ");
-                }
-            }
-            if (!exclusions.isEmpty()) {
-                sb.append("NOT (");
-                sb.append(StringUtils.join(exclusions, " OR "));
-                sb.append(")");
-            }
-
-            return sb.toString();
         }
     }
 }
