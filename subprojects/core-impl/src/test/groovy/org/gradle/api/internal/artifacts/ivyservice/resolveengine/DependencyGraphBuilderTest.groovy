@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
-import org.apache.ivy.core.module.descriptor.DefaultArtifact
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
@@ -37,11 +34,15 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Resolve
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
-import org.gradle.api.artifacts.*
 import org.gradle.api.internal.artifacts.ivyservice.*
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import org.gradle.api.artifacts.ResolveException
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.LenientConfiguration
+import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.ModuleDependency
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
