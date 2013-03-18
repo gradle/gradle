@@ -399,7 +399,7 @@ public class DependencyGraphBuilder {
         }
 
         public boolean isFailed() {
-            return selector != null && selector.failure != null;
+            return selector != null && getFailure() != null;
         }
 
         public ModuleVersionSelector getRequested() {
@@ -424,10 +424,9 @@ public class DependencyGraphBuilder {
 
         public void collectFailures(FailureState failureState) {
             if (isFailed()) {
-                failureState.addUnresolvedDependency(this, selector.dependencyMetaData.getRequested(), selector.failure);
+                failureState.addUnresolvedDependency(this, selector.dependencyMetaData.getRequested(), getFailure());
             }
         }
-
     }
 
     private static class ResolveState {
