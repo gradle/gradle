@@ -47,7 +47,7 @@ Improve TestNG test execution/reporting
 
 - Story changes the default values (for better, though)
 
-## Story: JUnit XML generation is efficient
+## Story: JUnit XML generation is efficient (DONE)
 
 Use the same mechanism as TestNG for XML result generation
 
@@ -65,7 +65,7 @@ Use the same mechanism as TestNG for XML result generation
 
 - No partial XML results available when process crashes (see first story for more)
 
-## Story: HTML test report generation is efficient
+## Story: HTML test report generation is efficient (DONE)
 
 HTML report is generated from the binary format, not from XML results
 
@@ -73,7 +73,7 @@ HTML report is generated from the binary format, not from XML results
 - Spike using [jatl](http://code.google.com/p/jatl/) to generate the report instead of using the DOM.
 - Change the report rendering so that it copies the test output directly from `TestResultsProvider` to file, rather than loading it into heap.
 
-## Bug GRADLE-2649: Test report shows implementation class for tests run via `@RunWith(Suite.class)`
+## Bug GRADLE-2649: Test report shows implementation class for tests run via `@RunWith(Suite.class)` (DONE)
 
 - Change `DecoratingTestDescriptor.getClassName()` to return the delegate's class name.
 - Change `TestReportDataCollector.onOutput()` to create a class test result object when the test descriptor has a class name associated with it, and
@@ -91,6 +91,57 @@ HTML report is generated from the binary format, not from XML results
 - Multiple JUnit suites that include the same test class `SomeClass`.
     - The XML results should include an XML file for `SomeClass` that includes each test method multiple times, one for each time it was executed.
     - The HTML report should include the same information.
+
+## Story: Add support for JUnit categories
+
+- Add `JUnitOptions.includeCategories` and `excludeCategories` properties. These define a set of category types
+  to include and exclude, respectively.
+- When include categories are specified, a test method is filtered if it or its test class is not annotated with a
+  `@Category` annotation where one of the listed types is assignable-to one of the specified include category types.
+- When exclude categories are specified, a test method is filtered if it or its test class is annotated with a
+  `@Category` annotation where one of the listed types is assignable-to one of the specified exclude category types.
+- A test class is filtered when all of its test methods are filtered.
+
+### Implementation
+
+- Add the above filtering in `JUnitTestClassExecuter`.
+- Add documentation to the 'testing' section of the user guide that describes how to use categories with JUnit and
+  groups with TestNG.
+- Extend the test detection to :
+    - When exclude categories have been specified, then filter the following classes:
+        - The class is annotated with an exclude category or one of its subtypes OR
+        - The class and its supertypes are not annotated with `@RunWith` and all of of the class' declared and inherited
+          `@Test` methods are annotated with an exclude category or one of its subtypes.
+    - When include categories have been specified, then filter the following classes:
+        - The class or its super types are not annotated with `@RunWith` AND
+        - The class is not annotated with an include category or one of its subtypes AND
+        - None of the class' declared or inherited `@Test` methods annotated with an include category or one
+          of its subtypes.
+
+### Test coverage
+
+- When include and exclude categories specified:
+    - All test methods from a class annotated with include category are executed.
+    - All test methods from a class annotated with include category subtype are executed.
+    - No test methods for a class annotated with exclude category are executed.
+    - No test methods for a class annotated with exclude category subtype are executed.
+    - No test methods for a class annotated with both include and exclude categories are executed.
+    - No test methods for a class annotated with some other category are executed.
+    - No test methods for a class with no annotations are executed.
+    - Test method annotated with include category on class with no annotations is executed.
+    - Test method annotated with exclude category on class annotated with include category is not executed.
+    - Test method annotated with include category on class annotated with exclude category is not executed.
+- When exclude categories specified:
+    - All test methods for a class annotated with some other category are executed.
+    - All test methods from a class with no annotations are executed.
+    - No test methods for a class annotated with exclude category are executed.
+    - Test method annotated with include category on class with no annotations is executed.
+    - Test method annotated with exclude category on class with no annotations is not executed.
+- Class uses custom test runner that creates a tree of tests with a mix of categories.
+- Run one filtering test case against multiple JUnit versions in `JUnitCrossVersionIntegrationSpec`.
+- Report includes details when one of the include or exclude annotation types cannot be loaded.
+- Report include details when all test classes are excluded
+- When a test method is both included and @Ignored, the test method is reported as 'skipped'.
 
 ## Story: HTML test report shows runtime grouping of tests into suites
 
