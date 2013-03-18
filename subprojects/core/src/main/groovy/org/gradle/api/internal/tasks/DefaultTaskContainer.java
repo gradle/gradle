@@ -17,10 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.UnknownTaskException;
+import org.gradle.api.*;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.api.internal.DynamicObject;
@@ -81,6 +78,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     public Task create(String name) {
         return add(name);
+    }
+
+    public Task create(String name, Action<? super Task> configureAction) throws InvalidUserDataException {
+        Task task = create(name);
+        configureAction.execute(task);
+        return task;
     }
 
     public Task maybeCreate(String name) {

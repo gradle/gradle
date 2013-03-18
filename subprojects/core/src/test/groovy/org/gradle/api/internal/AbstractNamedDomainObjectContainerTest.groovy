@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal
 
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.DirectInstantiator
@@ -39,12 +40,28 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         container.getByName('obj') == ['obj']
     }
 
-    def "can create and configure object by name"() {
+    def "can create and configure object using closure"() {
         when:
         container.create('obj') {
             add(1)
             add('value')
         }
+
+        then:
+        container.getByName('obj') == ['obj', 1, 'value']
+    }
+
+    def "can create and configure object using action"() {
+        def action = Mock(Action)
+
+        given:
+        action.execute(_) >> { TestObject obj ->
+            obj.add(1)
+            obj.add('value')
+        }
+
+        when:
+        container.create('obj', action)
 
         then:
         container.getByName('obj') == ['obj', 1, 'value']

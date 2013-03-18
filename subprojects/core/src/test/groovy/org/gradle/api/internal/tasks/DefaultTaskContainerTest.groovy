@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks
 
-
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Rule
 import org.gradle.api.Task
@@ -28,7 +28,6 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.GUtil
-import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 import static java.util.Collections.singletonMap
@@ -76,7 +75,7 @@ public class DefaultTaskContainerTest extends Specification {
 
     void "adds by name and closure"() {
         given:
-        final Closure action = HelperUtil.toClosure("{ description = 'description' }")
+        final Closure action = {}
         def options = singletonMap(Task.TASK_NAME, "task")
         def task = task("task")
 
@@ -88,6 +87,38 @@ public class DefaultTaskContainerTest extends Specification {
         then:
         added == task
         1 * task.configure(action) >> task
+    }
+
+    void "creates by name and closure"() {
+        given:
+        final Closure action = {}
+        def options = singletonMap(Task.TASK_NAME, "task")
+        def task = task("task")
+
+        taskFactory.createTask(options) >> task
+
+        when:
+        def added = container.create("task", action)
+
+        then:
+        added == task
+        1 * task.configure(action) >> task
+    }
+
+    void "creates by name and action"() {
+        given:
+        def action = Mock(Action)
+        def options = singletonMap(Task.TASK_NAME, "task")
+        def task = task("task")
+
+        taskFactory.createTask(options) >> task
+
+        when:
+        def added = container.create("task", action)
+
+        then:
+        added == task
+        1 * action.execute(task)
     }
 
     void "replaces task by name"() {
