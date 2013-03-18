@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
-import spock.lang.Ignore
 
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
