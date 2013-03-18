@@ -16,22 +16,16 @@
 
 package org.gradle.integtests.tooling.m8
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.UnknownModelException
+import org.gradle.tooling.model.Model
 
 @MinToolingApiVersion('1.0-milestone-8')
-@MinTargetGradleVersion('1.0-milestone-3')
 class UnknownModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
-
-    class UnknownModel {}
+    interface UnknownModel extends Model {}
 
     def "fails gracefully when building unknown model"() {
-        //this test exposes a daemon issue that appears in M5 and M6
-        //basically when we ask to build a model for a an unknown type for given provider
-        //the daemon breaks and does not return anything to the client making the client waiting forever.
-
         when:
         maybeFailWithConnection { it.getModel(UnknownModel.class) }
 
