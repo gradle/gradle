@@ -18,7 +18,6 @@ package org.gradle.api.plugins.announce
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.project.ProjectInternal
 
 /**
  * This plugin allows to send announce messages to Twitter.
@@ -27,7 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal
  */
 class AnnouncePlugin implements Plugin<Project> {
     void apply(Project project) {
-        project.extensions.add("announce", new AnnouncePluginExtension((ProjectInternal)project))
+        project.extensions.create("announce", AnnouncePluginExtension.class, project)
     }
 }
 
