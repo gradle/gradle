@@ -49,6 +49,36 @@ Note that without 'mustRunAfter', `runUnitTests` task would run after the `creat
 `createTestReport.dependsOn(runUnitTests)` is not great, since that would make it hard to execute only `runIntegTests` and `createTestReport`
 in the correct order. The `mustRunAfter` task ordering rule makes it easy to wire this logic into your build.
 
+
+### Support for JUnit @Category
+Gradle now supports JUnit categories. Categories are a mechanism to label and group JUnit tests by using annotations. Having the following JUnit test code
+
+    public interface FastTests { /* category marker interface */ }
+    public interface SlowTests { /* category marker interface */ }
+
+    public class MyTestClass {
+        @Category(SlowTests.class)
+        @Test public void testA() {
+	    ...
+	    ...
+        }
+
+        @Category(FastTests.class)
+        @Test public void testB() {
+	    ...
+	    ...
+        }
+    }
+
+you can simply configure your test task to run only specific categories:
+
+    test { // run fast unit test only
+        useJUnit {
+            includeCategories 'org.gradle.categories.FastTests'
+            excludeCategories 'org.gradle.categories.SlowTests'
+        }
+    }
+
 <!-- TODO Add link to docs for this feature, once they are in place. -->
 
 ## Promoted features
@@ -105,9 +135,7 @@ It is not needed internally and it shouldn't be needed by the users, too.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
-* Some Person - fixed some issue (GRADLE-1234)
--->
+* Uladzimir Mihura - provide first-class support for JUnit @Category (GRADLE-2111)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
