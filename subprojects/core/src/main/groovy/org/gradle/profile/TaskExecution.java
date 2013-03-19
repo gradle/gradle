@@ -15,7 +15,6 @@
  */
 package org.gradle.profile;
 
-import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskState;
 
 /**
@@ -29,8 +28,8 @@ public class TaskExecution extends ContinuousOperation {
     private final String path;
     private String status;
 
-    public TaskExecution(Task task) {
-        this.path = task.getPath();
+    public TaskExecution(String taskPath) {
+        this.path = taskPath;
     }
 
     /**

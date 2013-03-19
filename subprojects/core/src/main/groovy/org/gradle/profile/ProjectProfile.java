@@ -15,12 +15,10 @@
  */
 package org.gradle.profile;
 
-import org.gradle.api.Task;
-
 import java.util.HashMap;
 
 public class ProjectProfile {
-    private HashMap<Task, TaskExecution> tasks = new HashMap<Task, TaskExecution>();
+    private HashMap<String, TaskExecution> tasks = new HashMap<String, TaskExecution>();
     private final ContinuousOperation configurationOperation;
     private String projectPath;
 
@@ -32,11 +30,11 @@ public class ProjectProfile {
     /**
      * Gets the task profiling container for the specified task.
      */
-    public TaskExecution getTaskProfile(Task task) {
-        TaskExecution result = tasks.get(task);
+    public TaskExecution getTaskProfile(String taskPath) {
+        TaskExecution result = tasks.get(taskPath);
         if (result == null) {
-            result = new TaskExecution(task);
-            tasks.put(task, result);
+            result = new TaskExecution(taskPath);
+            tasks.put(taskPath, result);
         }
         return result;
     }

@@ -22,12 +22,14 @@ public class ContinuousOperation extends Operation {
     private long start;
     private long finish;
 
-    public void setStart(long start) {
+    public ContinuousOperation setStart(long start) {
         this.start = start;
+        return this;
     }
 
-    public void setFinish(long finish) {
+    public ContinuousOperation setFinish(long finish) {
         this.finish = finish;
+        return this;
     }
 
     public long getStartTime() {

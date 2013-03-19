@@ -17,6 +17,7 @@
 package org.gradle.profile
 
 import org.gradle.StartParameter
+import org.gradle.api.tasks.TaskState
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -50,14 +51,20 @@ class ProfileReportRendererTest extends Specification {
 
         model.getProjectProfile("a").configurationOperation.start = time(12, 20, 7)
         model.getProjectProfile("a").configurationOperation.finish = time(12, 20, 10)
+        model.getProjectProfile("a").getTaskProfile("a:foo").completed(Stub(TaskState)).setStart(time(12, 25, 0)).setFinish(time(12, 26, 30))
+        model.getProjectProfile("a").getTaskProfile("a:bar").completed(Stub(TaskState)).setStart(time(12, 26, 30)).setFinish(time(12, 27, 0))
 
         model.getProjectProfile("b").configurationOperation.start = time(12, 20, 10)
         model.getProjectProfile("b").configurationOperation.finish = time(12, 20, 15)
+        //let's say they run in parallel, hence same start time
+        model.getProjectProfile("b").getTaskProfile("b:foo").completed(Stub(TaskState)).setStart(time(12, 27, 0)).setFinish(time(12, 29, 30))
+        model.getProjectProfile("b").getTaskProfile("b:bar").completed(Stub(TaskState)).setStart(time(12, 27, 0)).setFinish(time(12, 29, 0))
 
         when:
         new ProfileReportRenderer().writeTo(model, file)
 
         then:
+        println file
         println file.text
         file.text.contains(toPlatformLineSeparators("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
@@ -121,7 +128,7 @@ class ProfileReportRendererTest extends Specification {
 </tr>
 <tr>
 <td>Task Execution</td>
-<td class="numeric">0s</td>
+<td class="numeric">6m30.00s</td>
 </tr>
 </table>
 </div>
@@ -182,14 +189,34 @@ class ProfileReportRendererTest extends Specification {
 </tr>
 </thead>
 <tr>
-<td>a</td>
-<td class="numeric">0s</td>
+<td>b</td>
+<td class="numeric">4m30.00s</td>
 <td>(total)</td>
 </tr>
 <tr>
-<td>b</td>
-<td class="numeric">0s</td>
+<td class="indentPath">b:foo</td>
+<td class="numeric">2m30.00s</td>
+<td>Did No Work</td>
+</tr>
+<tr>
+<td class="indentPath">b:bar</td>
+<td class="numeric">2m0.00s</td>
+<td>Did No Work</td>
+</tr>
+<tr>
+<td>a</td>
+<td class="numeric">2m0.00s</td>
 <td>(total)</td>
+</tr>
+<tr>
+<td class="indentPath">a:foo</td>
+<td class="numeric">1m30.00s</td>
+<td>Did No Work</td>
+</tr>
+<tr>
+<td class="indentPath">a:bar</td>
+<td class="numeric">30.000s</td>
+<td>Did No Work</td>
 </tr>
 </table>
 </div>

@@ -88,13 +88,13 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     public void beforeExecute(Task task) {
         Project project = task.getProject();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
-        projectProfile.getTaskProfile(task).setStart(timeProvider.getCurrentTime());
+        projectProfile.getTaskProfile(task.getPath()).setStart(timeProvider.getCurrentTime());
     }
 
     public void afterExecute(Task task, TaskState state) {
         Project project = task.getProject();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
-        TaskExecution taskExecution = projectProfile.getTaskProfile(task);
+        TaskExecution taskExecution = projectProfile.getTaskProfile(task.getPath());
         taskExecution.setFinish(timeProvider.getCurrentTime());
         taskExecution.completed(state);
     }

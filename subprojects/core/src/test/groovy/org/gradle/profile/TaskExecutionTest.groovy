@@ -16,7 +16,6 @@
 
 package org.gradle.profile
 
-import org.gradle.api.Task
 import org.gradle.api.tasks.TaskState
 import spock.lang.Specification
 
@@ -40,8 +39,8 @@ class TaskExecutionTest extends Specification {
         }
 
         expect:
-        new TaskExecution(Stub(Task)).completed(skipped).status == "Skipped for a good reason."
-        new TaskExecution(Stub(Task)).completed(busy).status == ""
-        new TaskExecution(Stub(Task)).completed(noWork).status == TaskExecution.NO_WORK_MESSAGE
+        new TaskExecution("a").completed(skipped).status == "Skipped for a good reason."
+        new TaskExecution("a").completed(busy).status == ""
+        new TaskExecution("a").completed(noWork).status == TaskExecution.NO_WORK_MESSAGE
     }
 }
