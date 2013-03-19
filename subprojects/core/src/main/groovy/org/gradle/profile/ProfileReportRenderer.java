@@ -29,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.List;
 
-//TODO SF add coverage
 public class ProfileReportRenderer {
     public void writeTo(BuildProfile buildProfile, File file) {
         HtmlReportRenderer renderer = new HtmlReportRenderer();
@@ -55,7 +54,7 @@ public class ProfileReportRenderer {
                 @Override
                 public void render(BuildProfile model, SimpleHtmlWriter htmlWriter) throws IOException {
                     htmlWriter.startElement("div").attribute("id", "header")
-                        .startElement("p").characters(String.format("Profiled with tasks: %s", model.getTaskDescription())).endElement()
+                        .startElement("p").characters(model.getBuildDescription()).endElement()
                         .startElement("p").characters(String.format("Run on: %s", DATE_FORMAT.format(model.getBuildStarted()))).endElement()
                     .endElement();
                 }

@@ -15,9 +15,9 @@
  */
 package org.gradle.profile;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.invocation.Gradle;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -40,7 +40,6 @@ import java.util.Map;
  * </ul>
  */
 public class BuildProfile {
-    private final Gradle gradle;
     private final Map<Project, ProjectProfile> projects = new LinkedHashMap<Project, ProjectProfile>();
     private final Map<String, DependencyResolveProfile> dependencySets = new LinkedHashMap<String, DependencyResolveProfile>();
     private long profilingStarted;
@@ -50,35 +49,35 @@ public class BuildProfile {
     private long projectsEvaluated;
     private long buildFinished;
     private boolean successful;
-
-    public BuildProfile(Gradle gradle) {
-        this.gradle = gradle;
-    }
-
-    public Gradle getGradle() {
-        return gradle;
-    }
+    private String description;
 
     public long getBuildStarted() {
         return buildStarted;
     }
 
     /**
-     * Get a description of the tasks passed to gradle as targets from the command line
-     * @return
+     * Get a description of this profiled build. It contains info about tasks passed to gradle as targets from the command line.
      */
-    public String getTaskDescription() {
-        StringBuilder result = new StringBuilder();
-        for (String name : gradle.getStartParameter().getExcludedTaskNames()) {
-            result.append("-x");
-            result.append(name);
-            result.append(" ");
+    public String getBuildDescription() {
+        return description;
+    }
+
+    public void setBuildDescription(StartParameter startParameter) {
+        StringBuilder sb = new StringBuilder();
+        for (String name : startParameter.getExcludedTaskNames()) {
+            sb.append("-x ");
+            sb.append(name);
+            sb.append(" ");
         }
-        for (String name : gradle.getStartParameter().getTaskNames()) {
-            result.append(name);
-            result.append(" ");
+        for (String name : startParameter.getTaskNames()) {
+            sb.append(name);
+            sb.append(" ");
         }
-        return result.toString();
+        String tasks = sb.toString();
+        if (tasks.length() == 0) {
+            tasks = "(no tasks specified)";
+        }
+        this.description = String.format("Profiled build: %s", tasks);
     }
 
     /**

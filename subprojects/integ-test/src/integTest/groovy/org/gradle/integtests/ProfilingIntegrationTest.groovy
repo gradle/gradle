@@ -25,17 +25,22 @@ class ProfilingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
 allprojects {
     apply plugin: 'java'
+    task fooTask
+    task barTask
 }
 '''
         when:
-        executer.withArguments("--profile").withTasks("build").run()
+        executer.withArguments("--profile").withTasks("build", "fooTask", "-x", "barTask").run()
 
         then:
         def reportFile = file('build/reports/profile').listFiles().find { it.name ==~ /profile-.+.html/ }
+        println reportFile
         Document document = Jsoup.parse(reportFile, null);
         !document.select("TD:contains(:jar)").isEmpty()
         !document.select("TD:contains(:a:jar)").isEmpty()
         !document.select("TD:contains(:b:jar)").isEmpty()
         !document.select("TD:contains(:c:jar)").isEmpty()
+        document.text().contains("build fooTask")
+        document.text().contains("-x barTask")
     }
 }

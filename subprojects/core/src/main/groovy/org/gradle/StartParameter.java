@@ -51,7 +51,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     public static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getUserHome() + "/.gradle");
 
     private List<String> taskNames = new ArrayList<String>();
-    private Set<String> excludedTaskNames = new HashSet<String>();
+    private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
     private File currentDir;
     private File projectDir;
@@ -117,7 +117,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.settingsFile = settingsFile;
         p.useEmptySettings = useEmptySettings;
         p.taskNames = new ArrayList<String>(taskNames);
-        p.excludedTaskNames = new HashSet<String>(excludedTaskNames);
+        p.excludedTaskNames = new LinkedHashSet<String>(excludedTaskNames);
         p.buildProjectDependencies = buildProjectDependencies;
         p.currentDir = currentDir;
         p.searchUpwards = searchUpwards;

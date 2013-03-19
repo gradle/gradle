@@ -19,10 +19,10 @@ import spock.lang.Specification
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.Project
+import org.gradle.StartParameter
 
 class BuildProfileTest extends Specification {
-    final Gradle gradle = Mock()
-    final BuildProfile profile = new BuildProfile(gradle)
+    final BuildProfile profile = new BuildProfile()
 
     def "creates dependency set profile on first get"() {
         given:
@@ -50,6 +50,30 @@ class BuildProfileTest extends Specification {
 
         expect:
         profile.projectConfiguration.operations == [a.evaluation, b.evaluation]
+    }
+
+    def "contains build description"() {
+        given:
+        def param = new StartParameter()
+        param.setTaskNames(["foo", "bar"])
+        param.setExcludedTaskNames(["one", "two"])
+
+        when:
+        profile.setBuildDescription(param)
+
+        then:
+        profile.buildDescription.contains(" -x one -x two foo bar")
+    }
+
+    def "build description looks nice even if no tasks specified"() {
+        given:
+        def param = new StartParameter()
+
+        when:
+        profile.setBuildDescription(param)
+
+        then:
+        profile.buildDescription.contains(" (no tasks specified)")
     }
 
     def dependencySet(String path) {
