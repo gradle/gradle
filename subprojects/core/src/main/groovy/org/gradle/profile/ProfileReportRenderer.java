@@ -96,7 +96,7 @@ public class ProfileReportRenderer {
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Configuring Projects").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getElapsedAfterProjectsEvaluated())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getElapsedAfterProjectsConfigured())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Task Execution").endElement();

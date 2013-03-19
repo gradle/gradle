@@ -34,13 +34,13 @@ class ProfileReportRendererTest extends Specification {
         def model = new BuildProfile(new StartParameter())
         def file = temp.file("report.html")
 
-        model.profilingStarted  = time(12, 20, 0)
-        model.buildStarted      = time(12, 20, 0, 700)
-        model.settingsEvaluated = time(12, 20, 3)
-        model.projectsLoaded    = time(12, 20, 6)
-        model.projectsEvaluated = time(12, 20, 15)
+        model.profilingStarted   = time(12, 20, 0)
+        model.buildStarted       = time(12, 20, 0, 700)
+        model.settingsEvaluated  = time(12, 20, 3)
+        model.projectsLoaded     = time(12, 20, 6)
+        model.projectsConfigured = time(12, 20, 15)
 
-        model.buildFinished     = time(12, 35, 30)
+        model.buildFinished      = time(12, 35, 30)
 
         model.getDependencySetProfile("compile").start = time(12, 22, 0)
         model.getDependencySetProfile("compile").finish = time(12, 23, 30)
