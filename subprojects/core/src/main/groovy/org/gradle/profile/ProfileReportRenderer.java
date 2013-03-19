@@ -24,8 +24,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.List;
 
@@ -41,8 +39,6 @@ public class ProfileReportRenderer {
     private static final DurationFormatter DURATION_FORMAT = new DurationFormatter();
 
     private static class ProfilePageRenderer extends TabbedPageRenderer<BuildProfile> {
-        static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
-
         @Override
         protected String getTitle() {
             return "Profile report";
@@ -55,7 +51,7 @@ public class ProfileReportRenderer {
                 public void render(BuildProfile model, SimpleHtmlWriter htmlWriter) throws IOException {
                     htmlWriter.startElement("div").attribute("id", "header")
                         .startElement("p").characters(model.getBuildDescription()).endElement()
-                        .startElement("p").characters(String.format("Run on: %s", DATE_FORMAT.format(model.getBuildStarted()))).endElement()
+                        .startElement("p").characters(model.getBuildStartedDescription()).endElement()
                     .endElement();
                 }
             };

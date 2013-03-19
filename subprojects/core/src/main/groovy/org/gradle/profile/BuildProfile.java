@@ -19,6 +19,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolvableDependencies;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,6 +42,9 @@ import java.util.Map;
  * </ul>
  */
 public class BuildProfile {
+
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
+
     private final Map<Project, ProjectProfile> projects = new LinkedHashMap<Project, ProjectProfile>();
     private final Map<String, DependencyResolveProfile> dependencySets = new LinkedHashMap<String, DependencyResolveProfile>();
     private long profilingStarted;
@@ -243,5 +248,9 @@ public class BuildProfile {
 
     public void setSuccessful(boolean successful) {
         this.successful = successful;
+    }
+
+    public String getBuildStartedDescription() {
+        return String.format("Started on: %s", DATE_FORMAT.format(buildStarted));
     }
 }

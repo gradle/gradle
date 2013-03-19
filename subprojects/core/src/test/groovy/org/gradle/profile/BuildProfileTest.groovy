@@ -15,11 +15,10 @@
  */
 package org.gradle.profile
 
-import spock.lang.Specification
-import org.gradle.api.invocation.Gradle
-import org.gradle.api.artifacts.ResolvableDependencies
-import org.gradle.api.Project
 import org.gradle.StartParameter
+import org.gradle.api.Project
+import org.gradle.api.artifacts.ResolvableDependencies
+import spock.lang.Specification
 
 class BuildProfileTest extends Specification {
     final BuildProfile profile = new BuildProfile()
@@ -74,6 +73,14 @@ class BuildProfileTest extends Specification {
 
         then:
         profile.buildDescription.contains(" (no tasks specified)")
+    }
+
+    def "provides start time description"() {
+        when:
+        profile.buildStarted = new GregorianCalendar(2010, 1, 1, 12, 25).getTimeInMillis()
+
+        then:
+        profile.buildStartedDescription == "Started on: 2010/02/01 - 12:25:00"
     }
 
     def dependencySet(String path) {
