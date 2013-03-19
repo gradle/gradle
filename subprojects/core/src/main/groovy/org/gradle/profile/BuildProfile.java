@@ -53,7 +53,6 @@ public class BuildProfile {
     private long projectsLoaded;
     private long projectsEvaluated;
     private long buildFinished;
-    private boolean successful;
     private String description;
 
     public long getBuildStarted() {
@@ -215,14 +214,6 @@ public class BuildProfile {
     }
 
     /**
-     * Get the elapsed time (in mSec) between the projectsEvaluated event and the projectsLoaded event.
-     * @return
-     */
-    public long getElapsedProjectsEvaluated() {
-        return projectsEvaluated - projectsLoaded;
-    }
-
-    /**
      * Get the elapsed time (in mSec) between the buildFinished event and the projectsEvaluated event.
      * @return
      */
@@ -240,14 +231,6 @@ public class BuildProfile {
             result += projectProfile.getTasks().getElapsedTime();
         }
         return result;
-    }
-
-    public boolean isSuccessful() {
-        return successful;
-    }
-
-    public void setSuccessful(boolean successful) {
-        this.successful = successful;
     }
 
     public String getBuildStartedDescription() {

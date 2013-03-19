@@ -67,7 +67,6 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
 
     public void buildFinished(BuildResult result) {
         buildProfile.setBuildFinished(timeProvider.getCurrentTime());
-        buildProfile.setSuccessful(result.getFailure() == null);
         try {
             listener.buildFinished(buildProfile);
         } finally {
