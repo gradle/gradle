@@ -20,7 +20,7 @@ import org.gradle.api.Project
 import spock.lang.Specification
 
 class BuildProfileTest extends Specification {
-    final BuildProfile profile = new BuildProfile()
+    private profile = new BuildProfile(new StartParameter())
 
     def "creates dependency set profile on first get"() {
         expect:
@@ -54,7 +54,7 @@ class BuildProfileTest extends Specification {
         param.setExcludedTaskNames(["one", "two"])
 
         when:
-        profile.setBuildDescription(param)
+        profile = new BuildProfile(param)
 
         then:
         profile.buildDescription.contains(" -x one -x two foo bar")
@@ -65,7 +65,7 @@ class BuildProfileTest extends Specification {
         def param = new StartParameter()
 
         when:
-        profile.setBuildDescription(param)
+        profile = new BuildProfile(param)
 
         then:
         profile.buildDescription.contains(" (no tasks specified)")

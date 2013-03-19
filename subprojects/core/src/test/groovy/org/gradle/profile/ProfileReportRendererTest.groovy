@@ -16,6 +16,7 @@
 
 package org.gradle.profile
 
+import org.gradle.StartParameter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,7 +31,7 @@ class ProfileReportRendererTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
     def "renders report"() {
-        def model = new BuildProfile(description: "build description")
+        def model = new BuildProfile(new StartParameter())
         def file = temp.file("report.html")
 
         model.profilingStarted  = time(12, 20, 0)
@@ -58,7 +59,7 @@ class ProfileReportRendererTest extends Specification {
 <div id="content">
 <h1>Profile report</h1>
 <div id="header">
-<p>build description</p>
+<p>Profiled build: (no tasks specified)</p>
 <p>Started on: 2010/02/05 - 12:20:00</p>
 </div>
 <div id="tabs">

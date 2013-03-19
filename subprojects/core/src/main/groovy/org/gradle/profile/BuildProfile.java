@@ -52,7 +52,12 @@ public class BuildProfile {
     private long projectsLoaded;
     private long projectsEvaluated;
     private long buildFinished;
-    private String description;
+    private StartParameter startParameter;
+    private boolean successful;
+
+    public BuildProfile(StartParameter startParameter) {
+        this.startParameter = startParameter;
+    }
 
     public long getBuildStarted() {
         return buildStarted;
@@ -62,10 +67,6 @@ public class BuildProfile {
      * Get a description of this profiled build. It contains info about tasks passed to gradle as targets from the command line.
      */
     public String getBuildDescription() {
-        return description;
-    }
-
-    public void setBuildDescription(StartParameter startParameter) {
         StringBuilder sb = new StringBuilder();
         for (String name : startParameter.getExcludedTaskNames()) {
             sb.append("-x ");
@@ -80,7 +81,15 @@ public class BuildProfile {
         if (tasks.length() == 0) {
             tasks = "(no tasks specified)";
         }
-        this.description = String.format("Profiled build: %s", tasks);
+        return String.format("Profiled build: %s", tasks);
+    }
+
+    public boolean isSuccessful() {
+        return successful;
+    }
+
+    public void setSuccessful(boolean successful) {
+        this.successful = successful;
     }
 
     /**
@@ -234,5 +243,9 @@ public class BuildProfile {
 
     public String getBuildStartedDescription() {
         return String.format("Started on: %s", DATE_FORMAT.format(buildStarted));
+    }
+
+    public StartParameter getStartParameter() {
+        return startParameter;
     }
 }
