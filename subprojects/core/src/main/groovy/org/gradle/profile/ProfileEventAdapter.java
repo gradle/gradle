@@ -99,12 +99,12 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
 
     // DependencyResolutionListener
     public void beforeResolve(ResolvableDependencies dependencies) {
-        DependencyResolveProfile profile = buildProfile.getDependencySetProfile(dependencies.getPath());
+        ContinuousOperation profile = buildProfile.getDependencySetProfile(dependencies.getPath());
         profile.setStart(timeProvider.getCurrentTime());
     }
 
     public void afterResolve(ResolvableDependencies dependencies) {
-        DependencyResolveProfile profile = buildProfile.getDependencySetProfile(dependencies.getPath());
+        ContinuousOperation profile = buildProfile.getDependencySetProfile(dependencies.getPath());
         profile.setFinish(timeProvider.getCurrentTime());
     }
 }

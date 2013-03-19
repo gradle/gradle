@@ -27,7 +27,7 @@ public class ProjectProfile extends Operation {
 
     public ProjectProfile(String projectPath) {
         this.projectPath = projectPath;
-        this.configurationOperation = new ConfigurationOperation(projectPath);
+        this.configurationOperation = new ContinuousOperation(projectPath);
     }
 
     /**
@@ -65,6 +65,10 @@ public class ProjectProfile extends Operation {
     }
 
     public String toString() {
+        return projectPath;
+    }
+
+    public String getDescription() {
         return projectPath;
     }
 

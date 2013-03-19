@@ -45,7 +45,7 @@ public class BuildProfile {
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
 
     private final Map<String, ProjectProfile> projects = new LinkedHashMap<String, ProjectProfile>();
-    private final Map<String, DependencyResolveProfile> dependencySets = new LinkedHashMap<String, DependencyResolveProfile>();
+    private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<String, ContinuousOperation>();
     private long profilingStarted;
     private long buildStarted;
     private long settingsEvaluated;
@@ -121,18 +121,18 @@ public class BuildProfile {
         return new CompositeOperation<Operation>(operations);
     }
 
-    public DependencyResolveProfile getDependencySetProfile(String dependencySetDescription) {
-        DependencyResolveProfile profile = dependencySets.get(dependencySetDescription);
+    public ContinuousOperation getDependencySetProfile(String dependencySetDescription) {
+        ContinuousOperation profile = dependencySets.get(dependencySetDescription);
         if (profile == null) {
-            profile = new DependencyResolveProfile(dependencySetDescription);
+            profile = new ContinuousOperation(dependencySetDescription);
             dependencySets.put(dependencySetDescription, profile);
         }
         return profile;
     }
 
-    public CompositeOperation<DependencyResolveProfile> getDependencySets() {
-        final List<DependencyResolveProfile> profiles = CollectionUtils.sort(dependencySets.values(), Operation.comparator());
-        return new CompositeOperation<DependencyResolveProfile>(profiles);
+    public CompositeOperation<ContinuousOperation> getDependencySets() {
+        final List<ContinuousOperation> profiles = CollectionUtils.sort(dependencySets.values(), Operation.comparator());
+        return new CompositeOperation<ContinuousOperation>(profiles);
     }
 
     /**

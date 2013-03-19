@@ -26,6 +26,8 @@ public abstract class Operation {
      */
     abstract long getElapsedTime();
 
+    abstract String getDescription();
+
     /**
      * @return comparator that compares operations, slowest first
      */

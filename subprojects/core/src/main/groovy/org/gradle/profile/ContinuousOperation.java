@@ -21,6 +21,11 @@ package org.gradle.profile;
 public class ContinuousOperation extends Operation {
     private long start;
     private long finish;
+    private String description;
+
+    public ContinuousOperation(String description) {
+        this.description = description;
+    }
 
     public ContinuousOperation setStart(long start) {
         this.start = start;
@@ -38,5 +43,9 @@ public class ContinuousOperation extends Operation {
 
     public long getElapsedTime() {
         return finish - start;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

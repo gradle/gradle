@@ -117,10 +117,9 @@ public class ProfileReportRenderer {
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profiledProjectConfiguration.getElapsedTime())).endElement();
                                 htmlWriter.endElement();
                                 for (Operation operation : profiledProjectConfiguration) {
-                                    ConfigurationOperation evalOperation = (ConfigurationOperation)operation;
                                     htmlWriter.startElement("tr");
-                                        htmlWriter.startElement("td").characters(evalOperation.getDescription()).endElement();
-                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(evalOperation.getElapsedTime())).endElement();
+                                        htmlWriter.startElement("td").characters(operation.getDescription()).endElement();
+                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(operation.getElapsedTime())).endElement();
                                     htmlWriter.endElement();
                                 }
                             htmlWriter.endElement()
@@ -139,10 +138,10 @@ public class ProfileReportRenderer {
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getDependencySets().getElapsedTime())).endElement();
                                 htmlWriter.endElement();
 
-                                for (DependencyResolveProfile profile : model.getDependencySets()) {
+                                for (Operation operation : model.getDependencySets()) {
                                     htmlWriter.startElement("tr");
-                                        htmlWriter.startElement("td").characters(profile.getDescription()).endElement();
-                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profile.getElapsedTime())).endElement();
+                                        htmlWriter.startElement("td").characters(operation.getDescription()).endElement();
+                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(operation.getElapsedTime())).endElement();
                                     htmlWriter.endElement();
                                 }
                             htmlWriter.endElement()

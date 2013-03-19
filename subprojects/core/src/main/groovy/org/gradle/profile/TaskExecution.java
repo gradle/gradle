@@ -29,6 +29,7 @@ public class TaskExecution extends ContinuousOperation {
     private String status;
 
     public TaskExecution(String taskPath) {
+        super(taskPath);
         this.path = taskPath;
     }
 
@@ -51,6 +52,10 @@ public class TaskExecution extends ContinuousOperation {
     }
 
     public String toString() {
+        return path;
+    }
+
+    public String getDescription() {
         return path;
     }
 }
