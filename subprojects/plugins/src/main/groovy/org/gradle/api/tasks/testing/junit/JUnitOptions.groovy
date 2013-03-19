@@ -24,25 +24,23 @@ import org.gradle.api.tasks.testing.TestFrameworkOptions;
 public class JUnitOptions extends TestFrameworkOptions {
 
     /**
-     * The set of groups to run.
+     * The set of categories to run.
      */
     Set<String> includeCategories = new HashSet<String>();
 
     /**
-     * The set of groups to exclude.
+     * The set of categories to exclude.
      */
     Set<String> excludeCategories = new HashSet<String>();
 
 
-    JUnitOptions includeCategories(String... includeGroups) {
-        this.includeCategories.addAll(Arrays.asList(includeGroups));
+    JUnitOptions includeCategories(String... includeCategories) {
+        this.includeCategories.addAll(Arrays.asList(includeCategories));
         this;
     }
 
-    JUnitOptions excludeCategories(String... excludeGroups) {
-        this.excludeCategories.addAll(Arrays.asList(excludeGroups));
+    JUnitOptions excludeCategories(String... excludeCategories) {
+        this.excludeCategories.addAll(Arrays.asList(excludeCategories));
         this;
     }
-
-
 }
