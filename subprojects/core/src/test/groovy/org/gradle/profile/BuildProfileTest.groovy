@@ -17,26 +17,22 @@ package org.gradle.profile
 
 import org.gradle.StartParameter
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ResolvableDependencies
 import spock.lang.Specification
 
 class BuildProfileTest extends Specification {
     final BuildProfile profile = new BuildProfile()
 
     def "creates dependency set profile on first get"() {
-        given:
-        ResolvableDependencies deps = dependencySet("path")
-
         expect:
-        def dependencyProfile = profile.getDependencySetProfile(deps)
+        def dependencyProfile = profile.getDependencySetProfile("path")
         dependencyProfile != null
-        profile.getDependencySetProfile(deps) == dependencyProfile
+        profile.getDependencySetProfile("path") == dependencyProfile
     }
 
     def "can get all dependency set profiles"() {
         given:
-        def a = profile.getDependencySetProfile(dependencySet("a"))
-        def b = profile.getDependencySetProfile(dependencySet("b"))
+        def a = profile.getDependencySetProfile("a")
+        def b = profile.getDependencySetProfile("b")
 
         expect:
         profile.dependencySets.operations == [a, b]
@@ -81,12 +77,6 @@ class BuildProfileTest extends Specification {
 
         then:
         profile.buildStartedDescription == "Started on: 2010/02/01 - 12:25:00"
-    }
-
-    def dependencySet(String path) {
-        ResolvableDependencies dependencies = Mock()
-        _ * dependencies.path >> path
-        return dependencies
     }
 
     def project(String path) {

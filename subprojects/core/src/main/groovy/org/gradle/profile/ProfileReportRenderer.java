@@ -152,7 +152,7 @@ public class ProfileReportRenderer {
                                     });
                                 for (DependencyResolveProfile profile : dependencyResolveProfiles) {
                                     htmlWriter.startElement("tr");
-                                        htmlWriter.startElement("td").characters(profile.getPath()).endElement();
+                                        htmlWriter.startElement("td").characters(profile.getDescription()).endElement();
                                         htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profile.getElapsedTime())).endElement();
                                     htmlWriter.endElement();
                                 }

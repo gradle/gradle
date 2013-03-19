@@ -17,7 +17,6 @@ package org.gradle.profile;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ResolvableDependencies;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -114,11 +113,11 @@ public class BuildProfile {
         return new CompositeOperation<Operation>(operations);
     }
 
-    public DependencyResolveProfile getDependencySetProfile(ResolvableDependencies dependencySet) {
-        DependencyResolveProfile profile = dependencySets.get(dependencySet.getPath());
+    public DependencyResolveProfile getDependencySetProfile(String description) {
+        DependencyResolveProfile profile = dependencySets.get(description);
         if (profile == null) {
-            profile = new DependencyResolveProfile(dependencySet);
-            dependencySets.put(dependencySet.getPath(), profile);
+            profile = new DependencyResolveProfile(description);
+            dependencySets.put(description, profile);
         }
         return profile;
     }

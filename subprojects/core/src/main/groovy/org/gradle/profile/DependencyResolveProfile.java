@@ -15,16 +15,14 @@
  */
 package org.gradle.profile;
 
-import org.gradle.api.artifacts.ResolvableDependencies;
-
 public class DependencyResolveProfile extends ContinuousOperation {
-    private final ResolvableDependencies dependencySet;
+    private String description;
 
-    public DependencyResolveProfile(ResolvableDependencies dependencySet) {
-        this.dependencySet = dependencySet;
+    public DependencyResolveProfile(String description) {
+        this.description = description;
     }
 
-    public String getPath() {
-        return dependencySet.getPath();
+    public String getDescription() {
+        return description;
     }
 }
