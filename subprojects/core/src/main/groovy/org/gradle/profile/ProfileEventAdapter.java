@@ -96,7 +96,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
         TaskExecution taskExecution = projectProfile.getTaskProfile(task);
         taskExecution.setFinish(timeProvider.getCurrentTime());
-        taskExecution.setState(state);
+        taskExecution.completed(state);
     }
 
     // DependencyResolutionListener

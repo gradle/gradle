@@ -188,7 +188,7 @@ public class ProfileReportRenderer {
                                         htmlWriter.startElement("tr")
                                             .startElement("td").attribute("class", "indentPath").characters(taskExecution.getPath()).endElement()
                                             .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(taskExecution.getElapsedTime())).endElement()
-                                            .startElement("td").characters(taskExecution.getState().getSkipped() ? taskExecution.getState().getSkipMessage() : (taskExecution.getState().getDidWork()) ? "" : "Did No Work").endElement()
+                                            .startElement("td").characters(taskExecution.getStatus()).endElement()
                                         .endElement();
                                     }
                                 }
