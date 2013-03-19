@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing.junit;
+package org.gradle.junit;
 
-import org.gradle.api.tasks.testing.TestFrameworkOptions;
+import org.junit.Test;
+import java.lang.System;
 
-/**
- * The JUnit specific test options.
- */
-public class JUnitOptions extends TestFrameworkOptions {
+public class SimpleJUnitTest {
+    @Test
+    public void ok() {
+        System.out.println("hello from SimpleJUnitTest.");
+    }
 }
