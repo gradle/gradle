@@ -16,16 +16,15 @@
 
 package org.gradle.profile;
 
-import org.gradle.api.Project;
+public class ConfigurationOperation extends ContinuousOperation {
 
-public class EvalutationOperation extends ContinuousOperation {
-    private final Project project;
+    private String description;
 
-    public EvalutationOperation(Project project) {
-        this.project = project;
+    public ConfigurationOperation(String description) {
+        this.description = description;
     }
 
-    public String getPath(){
-        return project.getPath();
+    public String getDescription(){
+        return description;
     }
 }

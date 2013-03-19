@@ -15,21 +15,20 @@
  */
 package org.gradle.profile;
 
-import org.gradle.api.Project;
 import org.gradle.api.ProjectState;
 import org.gradle.api.Task;
 
 import java.util.HashMap;
 
 public class ProjectProfile {
-    private final Project project;
     private ProjectState state;
     private HashMap<Task, TaskExecution> tasks = new HashMap<Task, TaskExecution>();
-    private final ContinuousOperation evaluation;
+    private final ContinuousOperation configurationOperation;
+    private String projectPath;
 
-    public ProjectProfile(Project project) {
-        this.project = project;
-        this.evaluation = new EvalutationOperation(project);
+    public ProjectProfile(String projectPath) {
+        this.projectPath = projectPath;
+        this.configurationOperation = new ConfigurationOperation(projectPath);
     }
 
     /**
@@ -55,18 +54,18 @@ public class ProjectProfile {
      * Get the String project path.
      */
     public String getPath() {
-        return project.getPath();
+        return projectPath;
     }
 
     /**
-     * Returns the evaluation time of this project.
+     * Returns the configuration time of this project.
      */
-    public ContinuousOperation getEvaluation() {
-        return evaluation;
+    public ContinuousOperation getConfigurationOperation() {
+        return configurationOperation;
     }
 
     /**
-     * Gets the state of the project after evaluation finishes.
+     * Gets the state of the project after configuration finishes.
      */
     public ProjectState getState() {
         return state;

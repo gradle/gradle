@@ -20,6 +20,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
 class ProfilingIntegrationTest extends AbstractIntegrationSpec {
+
     def "can generate profiling report"() {
         file('settings.gradle') << 'include "a", "b", "c"'
         buildFile << '''
@@ -34,7 +35,6 @@ allprojects {
 
         then:
         def reportFile = file('build/reports/profile').listFiles().find { it.name ==~ /profile-.+.html/ }
-        println reportFile
         Document document = Jsoup.parse(reportFile, null);
         !document.select("TD:contains(:jar)").isEmpty()
         !document.select("TD:contains(:a:jar)").isEmpty()

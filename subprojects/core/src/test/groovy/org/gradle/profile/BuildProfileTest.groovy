@@ -16,7 +16,6 @@
 package org.gradle.profile
 
 import org.gradle.StartParameter
-import org.gradle.api.Project
 import spock.lang.Specification
 
 class BuildProfileTest extends Specification {
@@ -40,11 +39,11 @@ class BuildProfileTest extends Specification {
 
     def "can get all project configuration profiles"() {
         given:
-        def a = profile.getProjectProfile(project("a"))
-        def b = profile.getProjectProfile(project("b"))
+        def a = profile.getProjectProfile("a")
+        def b = profile.getProjectProfile("b")
 
         expect:
-        profile.projectConfiguration.operations == [a.evaluation, b.evaluation]
+        profile.projectConfiguration.operations == [a.configurationOperation, b.configurationOperation]
     }
 
     def "contains build description"() {
@@ -77,11 +76,5 @@ class BuildProfileTest extends Specification {
 
         then:
         profile.buildStartedDescription == "Started on: 2010/02/01 - 12:25:00"
-    }
-
-    def project(String path) {
-        Project project = Mock()
-        _ * project.path >> path
-        return project
     }
 }

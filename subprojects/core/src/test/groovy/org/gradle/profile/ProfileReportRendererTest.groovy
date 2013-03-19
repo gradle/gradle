@@ -48,10 +48,17 @@ class ProfileReportRendererTest extends Specification {
         model.getDependencySetProfile("runtime").start = time(12, 24, 0)
         model.getDependencySetProfile("runtime").finish = time(12, 24, 30)
 
+        model.getProjectProfile("a").configurationOperation.start = time(12, 20, 7)
+        model.getProjectProfile("a").configurationOperation.finish = time(12, 20, 10)
+
+        model.getProjectProfile("b").configurationOperation.start = time(12, 20, 10)
+        model.getProjectProfile("b").configurationOperation.finish = time(12, 20, 15)
+
         when:
         new ProfileReportRenderer().writeTo(model, file)
 
         then:
+        println file.text
         file.text.contains(toPlatformLineSeparators("""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
@@ -129,7 +136,15 @@ class ProfileReportRendererTest extends Specification {
 </thead>
 <tr>
 <td>All projects</td>
-<td class="numeric">0s</td>
+<td class="numeric">8.000s</td>
+</tr>
+<tr>
+<td>b</td>
+<td class="numeric">5.000s</td>
+</tr>
+<tr>
+<td>a</td>
+<td class="numeric">3.000s</td>
 </tr>
 </table>
 </div>
@@ -166,6 +181,16 @@ class ProfileReportRendererTest extends Specification {
 <th>Result</th>
 </tr>
 </thead>
+<tr>
+<td>a</td>
+<td class="numeric">0s</td>
+<td>(total)</td>
+</tr>
+<tr>
+<td>b</td>
+<td class="numeric">0s</td>
+<td>(total)</td>
+</tr>
 </table>
 </div>
 </div>"""))

@@ -76,25 +76,25 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
 
     // ProjectEvaluationListener
     public void beforeEvaluate(Project project) {
-        buildProfile.getProjectProfile(project).getEvaluation().setStart(System.currentTimeMillis());
+        buildProfile.getProjectProfile(project.getPath()).getConfigurationOperation().setStart(System.currentTimeMillis());
     }
 
     public void afterEvaluate(Project project, ProjectState state) {
-        ProjectProfile projectProfile = buildProfile.getProjectProfile(project);
-        projectProfile.getEvaluation().setFinish(timeProvider.getCurrentTime());
+        ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
+        projectProfile.getConfigurationOperation().setFinish(timeProvider.getCurrentTime());
         projectProfile.setState(state);
     }
 
     // TaskExecutionListener
     public void beforeExecute(Task task) {
         Project project = task.getProject();
-        ProjectProfile projectProfile = buildProfile.getProjectProfile(project);
+        ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
         projectProfile.getTaskProfile(task).setStart(timeProvider.getCurrentTime());
     }
 
     public void afterExecute(Task task, TaskState state) {
         Project project = task.getProject();
-        ProjectProfile projectProfile = buildProfile.getProjectProfile(project);
+        ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
         TaskExecution taskExecution = projectProfile.getTaskProfile(task);
         taskExecution.setFinish(timeProvider.getCurrentTime());
         taskExecution.setState(state);

@@ -16,7 +16,6 @@
 package org.gradle.profile;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Project;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -44,7 +43,7 @@ public class BuildProfile {
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
 
-    private final Map<Project, ProjectProfile> projects = new LinkedHashMap<Project, ProjectProfile>();
+    private final Map<String, ProjectProfile> projects = new LinkedHashMap<String, ProjectProfile>();
     private final Map<String, DependencyResolveProfile> dependencySets = new LinkedHashMap<String, DependencyResolveProfile>();
     private long profilingStarted;
     private long buildStarted;
@@ -94,14 +93,13 @@ public class BuildProfile {
 
     /**
      * Get the profiling container for the specified project
-     * @param project to look up
-     * @return
+     * @param projectPath to look up
      */
-    public ProjectProfile getProjectProfile(Project project) {
-        ProjectProfile result = projects.get(project);
+    public ProjectProfile getProjectProfile(String projectPath) {
+        ProjectProfile result = projects.get(projectPath);
         if (result == null) {
-            result = new ProjectProfile(project);
-            projects.put(project, result);
+            result = new ProjectProfile(projectPath);
+            projects.put(projectPath, result);
         }
         return result;
     }
@@ -117,7 +115,7 @@ public class BuildProfile {
     public CompositeOperation<Operation> getProjectConfiguration() {
         List<Operation> operations = new ArrayList<Operation>();
         for (ProjectProfile projectProfile : projects.values()) {
-            operations.add(projectProfile.getEvaluation());
+            operations.add(projectProfile.getConfigurationOperation());
         }
         return new CompositeOperation<Operation>(operations);
     }

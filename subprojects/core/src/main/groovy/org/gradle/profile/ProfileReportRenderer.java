@@ -123,9 +123,9 @@ public class ProfileReportRenderer {
                                     }
                                 });
                                 for (Operation operation : operations) {
-                                    EvalutationOperation evalOperation = (EvalutationOperation)operation;
+                                    ConfigurationOperation evalOperation = (ConfigurationOperation)operation;
                                     htmlWriter.startElement("tr");
-                                        htmlWriter.startElement("td").characters(evalOperation.getPath()).endElement();
+                                        htmlWriter.startElement("td").characters(evalOperation.getDescription()).endElement();
                                         htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(evalOperation.getElapsedTime())).endElement();
                                     htmlWriter.endElement();
                                 }
