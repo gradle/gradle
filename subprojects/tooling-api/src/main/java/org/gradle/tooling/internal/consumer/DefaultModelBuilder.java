@@ -15,11 +15,12 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.*;
+import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ModelBuilder;
+import org.gradle.tooling.ProgressListener;
+import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.converters.ConsumerPropertyHandler;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -32,14 +33,12 @@ import java.util.Arrays;
 public class DefaultModelBuilder<T extends Model> implements ModelBuilder<T> {
     private final Class<T> modelType;
     private final AsyncConnection connection;
-    private final ProtocolToModelAdapter adapter;
     private ConsumerOperationParameters operationParameters;
 
-    public DefaultModelBuilder(Class<T> modelType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+    public DefaultModelBuilder(Class<T> modelType, AsyncConnection connection, ConnectionParameters parameters) {
         operationParameters = new ConsumerOperationParameters(parameters);
         this.modelType = modelType;
         this.connection = connection;
-        this.adapter = adapter;
     }
 
     public T get() throws GradleConnectionException {
@@ -49,8 +48,7 @@ public class DefaultModelBuilder<T extends Model> implements ModelBuilder<T> {
     }
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
-        ResultHandler<Object> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
-        connection.run(modelType, operationParameters, new ResultHandlerAdapter<Object>(adaptingHandler) {
+        connection.run(modelType, operationParameters, new ResultHandlerAdapter<T>(handler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
@@ -101,21 +99,5 @@ public class DefaultModelBuilder<T extends Model> implements ModelBuilder<T> {
     public DefaultModelBuilder<T> forTasks(String... tasks) {
         operationParameters.setTasks(Arrays.asList(tasks));
         return this;
-    }
-
-    private class ProtocolToModelAdaptingHandler implements ResultHandler<Object> {
-        private final ResultHandler<? super T> handler;
-
-        public ProtocolToModelAdaptingHandler(ResultHandler<? super T> handler) {
-            this.handler = handler;
-        }
-
-        public void onComplete(Object result) {
-            handler.onComplete(adapter.adapt(modelType, result, new ConsumerPropertyHandler(connection.getVersionDetails())));
-        }
-
-        public void onFailure(GradleConnectionException failure) {
-            handler.onFailure(failure);
-        }
     }
 }

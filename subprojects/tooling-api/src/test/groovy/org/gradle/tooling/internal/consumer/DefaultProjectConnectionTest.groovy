@@ -15,16 +15,14 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.async.AsyncConnection
 import org.gradle.tooling.model.GradleProject
 import spock.lang.Specification
 
 class DefaultProjectConnectionTest extends Specification {
     final AsyncConnection protocolConnection = Mock()
-    final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()
-    final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, adapter, parameters)
+    final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, parameters)
 
     def canCreateAModelBuilder() {
         expect:

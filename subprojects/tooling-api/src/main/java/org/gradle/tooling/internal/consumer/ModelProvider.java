@@ -17,8 +17,10 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.converters.ConsumerPropertyHandler;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -36,6 +38,11 @@ import org.gradle.tooling.model.internal.Exceptions;
  */
 public class ModelProvider {
     private final ModelMapping modelMapping = new ModelMapping();
+    private final ProtocolToModelAdapter protocolToModelAdapter;
+
+    public ModelProvider(ProtocolToModelAdapter protocolToModelAdapter) {
+        this.protocolToModelAdapter = protocolToModelAdapter;
+    }
 
     public <T> T provide(ConsumerConnection connection, Class<T> modelType, ConsumerOperationParameters operationParameters) {
         VersionDetails version = connection.getVersionDetails();
@@ -79,7 +86,7 @@ public class ModelProvider {
         if (modelType == GradleProject.class && !version.isModelSupported(InternalGradleProject.class)) {
             //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
             //this patch enables getting gradle tasks for target gradle version pre M5
-            EclipseProjectVersion3 project = connection.run(EclipseProjectVersion3.class, operationParameters);
+            EclipseProjectVersion3 project = protocolToModelAdapter.adapt(EclipseProjectVersion3.class, connection.run(EclipseProjectVersion3.class, operationParameters), new ConsumerPropertyHandler(version));
             GradleProject gradleProject = new GradleProjectConverter().convert(project);
             return modelType.cast(gradleProject);
         }
@@ -87,6 +94,11 @@ public class ModelProvider {
             //don't bother asking the provider for this model
             throw new UnsupportedOperationException(String.format("I don't know how to build a model of type '%s'.", modelType.getSimpleName()));
         }
-        return (T) connection.run(protocolType, operationParameters);
+
+        Object result = connection.run(protocolType, operationParameters);
+        if (result == null) {
+            return null;
+        }
+        return protocolToModelAdapter.adapt(modelType, result, new ConsumerPropertyHandler(version));
     }
 }

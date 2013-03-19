@@ -19,19 +19,16 @@ import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.model.Model;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConnection connection;
-    private ProtocolToModelAdapter adapter;
     private final ConnectionParameters parameters;
 
-    public DefaultProjectConnection(AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+    public DefaultProjectConnection(AsyncConnection connection, ConnectionParameters parameters) {
         this.connection = connection;
         this.parameters = parameters;
-        this.adapter = adapter;
     }
 
     public void close() {
@@ -51,6 +48,6 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public <T extends Model> ModelBuilder<T> model(Class<T> modelType) {
-        return new DefaultModelBuilder<T>(modelType, connection, adapter, parameters);
+        return new DefaultModelBuilder<T>(modelType, connection, parameters);
     }
 }
