@@ -22,21 +22,16 @@ import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.util.CollectionUtils;
 import org.junit.runner.Request;
 import org.junit.runner.Runner;
-import org.junit.runner.manipulation.Filter;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JUnitTestClassExecuter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
     private final ClassLoader applicationClassLoader;
     private final RunListener listener;
     private final JUnitSpec options;
     private final TestClassExecutionListener executionListener;
 
     public JUnitTestClassExecuter(ClassLoader applicationClassLoader, JUnitSpec options, RunListener listener, TestClassExecutionListener executionListener) {
-
         assert executionListener instanceof ThreadSafe;
         this.applicationClassLoader = applicationClassLoader;
         this.listener = listener;
@@ -86,10 +81,9 @@ public class JUnitTestClassExecuter {
         }
 
         Runner runner = request.getRunner();
-
         //In case of no matching methods junit will return a ErrorReportingRunner for org.junit.runner.manipulation.Filter.class.
         //Will be fixed with adding class filters
-        if (!Filter.class.equals(runner.getClass())) {
+        if (!org.junit.runner.manipulation.Filter.class.equals(runner.getDescription().getTestClass())){
             RunNotifier notifier = new RunNotifier();
             notifier.addListener(listener);
             runner.run(notifier);

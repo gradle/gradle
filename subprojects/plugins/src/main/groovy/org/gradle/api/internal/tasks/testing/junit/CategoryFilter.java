@@ -48,7 +48,6 @@ class CategoryFilter extends Filter {
     }
 
     private boolean shouldRun(final Description description, final Description parent) {
-
         final Set<Class<?>> categories = new HashSet<Class<?>>();
         Category annotation = description.getAnnotation(Category.class);
         if (annotation != null) {
@@ -63,7 +62,6 @@ class CategoryFilter extends Filter {
         }
 
         boolean result = inclusions.isEmpty();
-
 
         for (Class<?> category : categories) {
             if (matches(category, inclusions)) {
@@ -80,9 +78,7 @@ class CategoryFilter extends Filter {
                 }
             }
         }
-
         return result;
-
     }
 
     private boolean matches(final Class<?> category, final Set<Class<?>> categories) {
