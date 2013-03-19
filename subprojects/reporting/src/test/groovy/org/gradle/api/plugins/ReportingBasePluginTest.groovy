@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins
+package org.gradle.plugins.binaries.tasks
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.plugins.ReportingBasePluginConvention
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
