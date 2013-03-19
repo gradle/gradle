@@ -82,7 +82,6 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     public void afterEvaluate(Project project, ProjectState state) {
         ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
         projectProfile.getConfigurationOperation().setFinish(timeProvider.getCurrentTime());
-        projectProfile.setState(state);
     }
 
     // TaskExecutionListener

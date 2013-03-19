@@ -15,13 +15,11 @@
  */
 package org.gradle.profile;
 
-import org.gradle.api.ProjectState;
 import org.gradle.api.Task;
 
 import java.util.HashMap;
 
 public class ProjectProfile {
-    private ProjectState state;
     private HashMap<Task, TaskExecution> tasks = new HashMap<Task, TaskExecution>();
     private final ContinuousOperation configurationOperation;
     private String projectPath;
@@ -62,16 +60,5 @@ public class ProjectProfile {
      */
     public ContinuousOperation getConfigurationOperation() {
         return configurationOperation;
-    }
-
-    /**
-     * Gets the state of the project after configuration finishes.
-     */
-    public ProjectState getState() {
-        return state;
-    }
-
-    public void setState(ProjectState state) {
-        this.state = state;
     }
 }
