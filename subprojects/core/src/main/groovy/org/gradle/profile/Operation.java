@@ -29,12 +29,16 @@ public abstract class Operation {
     abstract String getDescription();
 
     /**
-     * @return comparator that compares operations, slowest first
+     * @return comparator that compares operations, slowest first, then alphabetically
      */
     public static Comparator<? super Operation> comparator() {
         return new Comparator<Operation>() {
             public int compare(Operation o1, Operation o2) {
-                return Long.valueOf(o2.getElapsedTime()).compareTo(Long.valueOf(o1.getElapsedTime()));
+                int byElapsedTime = Long.valueOf(o2.getElapsedTime()).compareTo(Long.valueOf(o1.getElapsedTime()));
+                if (byElapsedTime!=0) {
+                    return byElapsedTime;
+                }
+                return o1.getDescription().compareTo(o2.getDescription());
             }
         };
     }

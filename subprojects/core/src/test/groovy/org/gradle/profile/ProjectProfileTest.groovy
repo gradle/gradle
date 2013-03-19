@@ -32,6 +32,6 @@ class ProjectProfileTest extends Specification {
         def d = profile.getTaskProfile("foo:d").completed(Stub(TaskState)).setStart(301).setFinish(302)
 
         expect:
-        profile.tasks.operations == [a, d, c, b]
+        profile.tasks.operations == [a, d, b, c]
     }
 }
