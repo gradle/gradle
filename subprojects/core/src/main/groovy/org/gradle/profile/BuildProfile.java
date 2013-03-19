@@ -122,11 +122,11 @@ public class BuildProfile {
         return new CompositeOperation<Operation>(operations);
     }
 
-    public DependencyResolveProfile getDependencySetProfile(String description) {
-        DependencyResolveProfile profile = dependencySets.get(description);
+    public DependencyResolveProfile getDependencySetProfile(String dependencySetDescription) {
+        DependencyResolveProfile profile = dependencySets.get(dependencySetDescription);
         if (profile == null) {
-            profile = new DependencyResolveProfile(description);
-            dependencySets.put(description, profile);
+            profile = new DependencyResolveProfile(dependencySetDescription);
+            dependencySets.put(dependencySetDescription, profile);
         }
         return profile;
     }

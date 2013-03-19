@@ -42,6 +42,12 @@ class ProfileReportRendererTest extends Specification {
 
         model.buildFinished     = time(12, 35, 30)
 
+        model.getDependencySetProfile("compile").start = time(12, 22, 0)
+        model.getDependencySetProfile("compile").finish = time(12, 23, 30)
+
+        model.getDependencySetProfile("runtime").start = time(12, 24, 0)
+        model.getDependencySetProfile("runtime").finish = time(12, 24, 30)
+
         when:
         new ProfileReportRenderer().writeTo(model, file)
 
@@ -138,7 +144,15 @@ class ProfileReportRendererTest extends Specification {
 </thead>
 <tr>
 <td>All dependencies</td>
-<td class="numeric">0s</td>
+<td class="numeric">2m0.00s</td>
+</tr>
+<tr>
+<td>compile</td>
+<td class="numeric">1m30.00s</td>
+</tr>
+<tr>
+<td>runtime</td>
+<td class="numeric">30.000s</td>
 </tr>
 </table>
 </div>
