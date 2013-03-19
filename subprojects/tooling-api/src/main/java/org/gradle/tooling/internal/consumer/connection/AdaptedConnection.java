@@ -48,7 +48,7 @@ public class AdaptedConnection extends AbstractConsumerConnection {
     }
 
     protected  <T> T doGetModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-        return type.cast(getDelegate().getModel(type.asSubclass(ProjectVersion3.class), operationParameters));
+        return (T) getDelegate().getModel(type.asSubclass(ProjectVersion3.class), operationParameters);
     }
 
     protected void doRunBuild(ConsumerOperationParameters operationParameters) {
