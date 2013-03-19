@@ -26,7 +26,7 @@ public class TaskExecution extends ContinuousOperation {
     final static String NO_WORK_MESSAGE = "Did No Work";
 
     private final String path;
-    private String status;
+    private TaskState state;
 
     public TaskExecution(String taskPath) {
         super(taskPath);
@@ -35,19 +35,17 @@ public class TaskExecution extends ContinuousOperation {
 
     /**
      * Gets the string task path.
-     * @return
      */
     public String getPath() {
         return path;
     }
 
     public String getStatus() {
-        assert status != null;
-        return status;
+        return state.getSkipped() ? state.getSkipMessage() : (state.getDidWork()) ? "" : NO_WORK_MESSAGE;
     }
 
     public TaskExecution completed(TaskState state) {
-        this.status = state.getSkipped() ? state.getSkipMessage() : (state.getDidWork()) ? "" : NO_WORK_MESSAGE;
+        this.state = state;
         return this;
     }
 
