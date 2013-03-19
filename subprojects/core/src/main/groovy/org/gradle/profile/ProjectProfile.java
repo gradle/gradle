@@ -15,9 +15,12 @@
  */
 package org.gradle.profile;
 
-import java.util.HashMap;
+import org.gradle.util.CollectionUtils;
 
-public class ProjectProfile {
+import java.util.HashMap;
+import java.util.List;
+
+public class ProjectProfile extends Operation {
     private HashMap<String, TaskExecution> tasks = new HashMap<String, TaskExecution>();
     private final ContinuousOperation configurationOperation;
     private String projectPath;
@@ -43,7 +46,8 @@ public class ProjectProfile {
      * Returns the task executions for this project.
      */
     public CompositeOperation<TaskExecution> getTasks() {
-        return new CompositeOperation<TaskExecution>(tasks.values());
+        List<TaskExecution> taskExecutions = CollectionUtils.sort(tasks.values(), Operation.comparator());
+        return new CompositeOperation<TaskExecution>(taskExecutions);
     }
 
     /**
@@ -58,5 +62,13 @@ public class ProjectProfile {
      */
     public ContinuousOperation getConfigurationOperation() {
         return configurationOperation;
+    }
+
+    public String toString() {
+        return projectPath;
+    }
+
+    long getElapsedTime() {
+        return getTasks().getElapsedTime();
     }
 }

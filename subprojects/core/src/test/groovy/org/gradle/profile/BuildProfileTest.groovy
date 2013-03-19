@@ -16,6 +16,7 @@
 package org.gradle.profile
 
 import org.gradle.StartParameter
+import org.gradle.api.tasks.TaskState
 import spock.lang.Specification
 
 class BuildProfileTest extends Specification {
@@ -28,22 +29,37 @@ class BuildProfileTest extends Specification {
         profile.getDependencySetProfile("path") == dependencyProfile
     }
 
-    def "can get all dependency set profiles"() {
+    def "provides sorted dependency set profiles"() {
         given:
-        def a = profile.getDependencySetProfile("a")
-        def b = profile.getDependencySetProfile("b")
+        def a = profile.getDependencySetProfile("a").setStart(100).setFinish(200)
+        def b = profile.getDependencySetProfile("b").setStart(200).setFinish(400)
+        def c = profile.getDependencySetProfile("c").setStart(400).setFinish(600)
+        def d = profile.getDependencySetProfile("d").setStart(600).setFinish(601)
 
         expect:
-        profile.dependencySets.operations == [a, b]
+        profile.dependencySets.operations == [b, c, a, d]
     }
 
-    def "can get all project configuration profiles"() {
+    def "provides sorted configuration profiles"() {
         given:
-        def a = profile.getProjectProfile("a")
-        def b = profile.getProjectProfile("b")
+        def a = profile.getProjectProfile("a").configurationOperation.setStart(100).setFinish(200)
+        def b = profile.getProjectProfile("b").configurationOperation.setStart(200).setFinish(500)
+        def c = profile.getProjectProfile("c").configurationOperation.setStart(500).setFinish(800)
+        def d = profile.getProjectProfile("d").configurationOperation.setStart(800).setFinish(850)
 
         expect:
-        profile.projectConfiguration.operations == [a.configurationOperation, b.configurationOperation]
+        profile.projectConfiguration.operations == [b, c, a, d]
+    }
+
+    def "provides sorted project profiles"() {
+        given:
+        profile.getProjectProfile("a").getTaskProfile("a:x").completed(Stub(TaskState)).setStart(100).setFinish(300)
+        profile.getProjectProfile("b").getTaskProfile("b:x").completed(Stub(TaskState)).setStart(300).setFinish(300)
+        profile.getProjectProfile("c").getTaskProfile("c:x").completed(Stub(TaskState)).setStart(300).setFinish(300)
+        profile.getProjectProfile("d").getTaskProfile("d:x").completed(Stub(TaskState)).setStart(301).setFinish(302)
+
+        expect:
+        profile.projects == [profile.getProjectProfile("a"), profile.getProjectProfile("d"), profile.getProjectProfile("b"), profile.getProjectProfile("c")]
     }
 
     def "contains build description"() {

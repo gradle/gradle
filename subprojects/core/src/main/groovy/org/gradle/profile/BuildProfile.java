@@ -16,6 +16,7 @@
 package org.gradle.profile;
 
 import org.gradle.StartParameter;
+import org.gradle.util.CollectionUtils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -108,7 +109,7 @@ public class BuildProfile {
      * @return list
      */
     public List<ProjectProfile> getProjects() {
-        return new ArrayList<ProjectProfile>(projects.values());
+        return CollectionUtils.sort(projects.values(), Operation.comparator());
     }
 
     public CompositeOperation<Operation> getProjectConfiguration() {
@@ -116,6 +117,7 @@ public class BuildProfile {
         for (ProjectProfile projectProfile : projects.values()) {
             operations.add(projectProfile.getConfigurationOperation());
         }
+        operations = CollectionUtils.sort(operations, Operation.comparator());
         return new CompositeOperation<Operation>(operations);
     }
 
@@ -129,7 +131,8 @@ public class BuildProfile {
     }
 
     public CompositeOperation<DependencyResolveProfile> getDependencySets() {
-        return new CompositeOperation<DependencyResolveProfile>(dependencySets.values());
+        final List<DependencyResolveProfile> profiles = CollectionUtils.sort(dependencySets.values(), Operation.comparator());
+        return new CompositeOperation<DependencyResolveProfile>(profiles);
     }
 
     /**
@@ -216,7 +219,7 @@ public class BuildProfile {
     public long getElapsedTotalExecutionTime() {
         long result = 0;
         for (ProjectProfile projectProfile : projects.values()) {
-            result += projectProfile.getTasks().getElapsedTime();
+            result += projectProfile.getElapsedTime();
         }
         return result;
     }

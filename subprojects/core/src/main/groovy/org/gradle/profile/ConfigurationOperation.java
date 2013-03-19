@@ -27,4 +27,8 @@ public class ConfigurationOperation extends ContinuousOperation {
     public String getDescription(){
         return description;
     }
+
+    public String toString() {
+        return description;
+    }
 }

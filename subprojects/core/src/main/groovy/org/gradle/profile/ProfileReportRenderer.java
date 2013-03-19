@@ -20,12 +20,9 @@ import org.gradle.reporting.DurationFormatter;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.List;
 
 public class ProfileReportRenderer {
     public void writeTo(BuildProfile buildProfile, File file) {
@@ -119,12 +116,7 @@ public class ProfileReportRenderer {
                                     htmlWriter.startElement("td").characters("All projects").endElement();
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profiledProjectConfiguration.getElapsedTime())).endElement();
                                 htmlWriter.endElement();
-                                final List<Operation> operations = CollectionUtils.sort(profiledProjectConfiguration.getOperations(), new Comparator<Operation>() {
-                                    public int compare(Operation o1, Operation o2) {
-                                        return Long.valueOf(o2.getElapsedTime()).compareTo(Long.valueOf(o1.getElapsedTime()));
-                                    }
-                                });
-                                for (Operation operation : operations) {
+                                for (Operation operation : profiledProjectConfiguration) {
                                     ConfigurationOperation evalOperation = (ConfigurationOperation)operation;
                                     htmlWriter.startElement("tr");
                                         htmlWriter.startElement("td").characters(evalOperation.getDescription()).endElement();
@@ -147,12 +139,7 @@ public class ProfileReportRenderer {
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getDependencySets().getElapsedTime())).endElement();
                                 htmlWriter.endElement();
 
-                                final List<DependencyResolveProfile> dependencyResolveProfiles = CollectionUtils.sort(model.getDependencySets().getOperations(), new Comparator<DependencyResolveProfile>() {
-                                        public int compare(DependencyResolveProfile p1, DependencyResolveProfile p2) {
-                                        return Long.valueOf(p2.getElapsedTime()).compareTo(Long.valueOf(p1.getElapsedTime()));
-                                    }
-                                    });
-                                for (DependencyResolveProfile profile : dependencyResolveProfiles) {
+                                for (DependencyResolveProfile profile : model.getDependencySets()) {
                                     htmlWriter.startElement("tr");
                                         htmlWriter.startElement("td").characters(profile.getDescription()).endElement();
                                         htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profile.getElapsedTime())).endElement();
@@ -170,23 +157,13 @@ public class ProfileReportRenderer {
                                         .startElement("th").characters("Result").endElement()
                                     .endElement()
                                 .endElement();
-                                final List<ProjectProfile> projects = CollectionUtils.sort(model.getProjects(), new Comparator<ProjectProfile>() {
-                                        public int compare(ProjectProfile p1, ProjectProfile p2) {
-                                        return Long.valueOf(p2.getTasks().getElapsedTime()).compareTo(p1.getTasks().getElapsedTime());
-                                    }
-                                });
-                                for (ProjectProfile project : projects) {
+                                for (ProjectProfile project : model.getProjects()) {
                                    htmlWriter.startElement("tr")
                                         .startElement("td").characters(project.getPath()).endElement()
-                                        .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(project.getTasks().getElapsedTime())).endElement()
+                                        .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(project.getElapsedTime())).endElement()
                                         .startElement("td").characters("(total)").endElement()
                                     .endElement();
-                                    final List<TaskExecution> taskExecutions = CollectionUtils.sort(project.getTasks().getOperations(), new Comparator<TaskExecution>() {
-                                        public int compare(TaskExecution p1, TaskExecution p2) {
-                                            return Long.valueOf(p2.getElapsedTime()).compareTo(Long.valueOf(p1.getElapsedTime()));
-                                        }
-                                    });
-                                    for (TaskExecution taskExecution : taskExecutions) {
+                                    for (TaskExecution taskExecution : project.getTasks()) {
                                         htmlWriter.startElement("tr")
                                             .startElement("td").attribute("class", "indentPath").characters(taskExecution.getPath()).endElement()
                                             .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(taskExecution.getElapsedTime())).endElement()
