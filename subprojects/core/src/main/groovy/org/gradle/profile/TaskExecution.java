@@ -44,6 +44,10 @@ public class TaskExecution extends ContinuousOperation {
         return state.getSkipped() ? state.getSkipMessage() : (state.getDidWork()) ? "" : NO_WORK_MESSAGE;
     }
 
+    public TaskState getState() {
+        return state;
+    }
+
     public TaskExecution completed(TaskState state) {
         this.state = state;
         return this;
