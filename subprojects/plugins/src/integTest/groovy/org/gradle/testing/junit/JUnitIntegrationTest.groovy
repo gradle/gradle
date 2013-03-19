@@ -467,4 +467,14 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
     }
+
+    @Test
+    public void supportsTestCategories() {
+        executer.withTasks('test').run();
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+
+        result.assertTestClassesExecuted('org.gradle.SomeTest')
+        result.testClass("org.gradle.SomeTest").assertTestCount(2, 0, 0)
+        result.testClass("org.gradle.SomeTest").assertTestsExecuted('testOk1','testOk3')
+    }
 }
