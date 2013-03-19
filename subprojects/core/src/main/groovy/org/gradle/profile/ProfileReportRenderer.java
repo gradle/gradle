@@ -62,6 +62,8 @@ public class ProfileReportRenderer {
             return new ReportRenderer<BuildProfile, SimpleHtmlWriter>() {
                 @Override
                 public void render(BuildProfile model, SimpleHtmlWriter htmlWriter) throws IOException {
+                    CompositeOperation<Operation> profiledProjectConfiguration = model.getProjectConfiguration();
+
                     htmlWriter.startElement("div").attribute("id", "tabs")
                         .startElement("ul").attribute("class", "tabLinks")
                             .startElement("li").startElement("a").attribute("href", "#tab0").characters("Summary").endElement().endElement()
@@ -96,7 +98,7 @@ public class ProfileReportRenderer {
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Configuring Projects").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getElapsedAfterProjectsConfigured())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profiledProjectConfiguration.getElapsedTime())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Task Execution").endElement();
@@ -115,9 +117,9 @@ public class ProfileReportRenderer {
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("All projects").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getProjectConfiguration().getElapsedTime())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profiledProjectConfiguration.getElapsedTime())).endElement();
                                 htmlWriter.endElement();
-                                final List<Operation> operations = CollectionUtils.sort(model.getProjectConfiguration().getOperations(), new Comparator<Operation>() {
+                                final List<Operation> operations = CollectionUtils.sort(profiledProjectConfiguration.getOperations(), new Comparator<Operation>() {
                                     public int compare(Operation o1, Operation o2) {
                                         return Long.valueOf(o2.getElapsedTime()).compareTo(Long.valueOf(o1.getElapsedTime()));
                                     }

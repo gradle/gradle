@@ -39,7 +39,6 @@ class ProfileReportRendererTest extends Specification {
         model.buildStarted       = time(12, 20, 0, 700)
         model.settingsEvaluated  = time(12, 20, 3)
         model.projectsLoaded     = time(12, 20, 6)
-        model.projectsConfigured = time(12, 20, 15)
 
         model.buildFinished      = time(12, 35, 30)
 
@@ -124,7 +123,7 @@ class ProfileReportRendererTest extends Specification {
 </tr>
 <tr>
 <td>Configuring Projects</td>
-<td class="numeric">15m15.00s</td>
+<td class="numeric">8.000s</td>
 </tr>
 <tr>
 <td>Task Execution</td>

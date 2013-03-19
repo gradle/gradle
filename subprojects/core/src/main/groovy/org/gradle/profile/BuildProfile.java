@@ -49,7 +49,6 @@ public class BuildProfile {
     private long buildStarted;
     private long settingsEvaluated;
     private long projectsLoaded;
-    private long projectsConfigured;
     private long buildFinished;
     private StartParameter startParameter;
     private boolean successful;
@@ -169,15 +168,6 @@ public class BuildProfile {
     }
 
     /**
-     * Should be set with a timestamp from a {@link org.gradle.BuildListener#projectsEvaluated}
-     * callback.
-     * @param projectsConfigured
-     */
-    public void setProjectsConfigured(long projectsConfigured) {
-        this.projectsConfigured = projectsConfigured;
-    }
-
-    /**
      * Should be set with a timestamp from a {@link org.gradle.BuildListener#buildFinished}
      * callback.
      * @param buildFinished
@@ -217,14 +207,6 @@ public class BuildProfile {
      */
     public long getElapsedProjectsLoading() {
         return projectsLoaded - settingsEvaluated;
-    }
-
-    /**
-     * Get the elapsed time (in mSec) between the buildFinished event and the projectsConfigured event.
-     * @return
-     */
-    public long getElapsedAfterProjectsConfigured() {
-        return buildFinished - projectsConfigured;
     }
 
     /**
