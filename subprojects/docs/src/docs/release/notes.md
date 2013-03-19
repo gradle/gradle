@@ -49,6 +49,10 @@ Note that without 'mustRunAfter', `runUnitTests` task would run after the `creat
 `createTestReport.dependsOn(runUnitTests)` is not great, since that would make it hard to execute only `runIntegTests` and `createTestReport`
 in the correct order. The `mustRunAfter` task ordering rule makes it easy to wire this logic into your build.
 
+> We are incredibly grateful to Marcin Erdmann for taking on this long anticipated feature.
+> The design and implementation of task ordering rules involved a deep understanding and refactoring of the Gradle Task execution engine, and Marcin took this on with gusto.
+>
+> Thanks, Marcin: I'm sure many Gradle users will appreciate your contribution.
 
 ### Support for JUnit @Category
 Gradle now supports JUnit categories. Categories are a mechanism to label and group JUnit tests by using annotations. Having the following JUnit test code
@@ -136,6 +140,7 @@ It is not needed internally and it shouldn't be needed by the users, too.
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * Uladzimir Mihura - provide first-class support for JUnit @Category (GRADLE-2111)
+* Marcin Erdmann - added the ability to schedule one task to always run after another, without adding a hard dependency.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
