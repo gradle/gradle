@@ -19,23 +19,25 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.*;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 import java.io.Serializable;
 
 public class BuildModelAction implements BuildAction<Object>, Serializable {
-    private final Class<?> type;
     private final boolean runTasks;
+    private final String modelName;
     private Object model;
 
-    public BuildModelAction(Class<?> type, boolean runTasks) {
-        this.type = type;
+    public BuildModelAction(String modelName, boolean runTasks) {
+        this.modelName = modelName;
         this.runTasks = runTasks;
     }
 
     public Object run(BuildController buildController) {
         DefaultGradleLauncher launcher = (DefaultGradleLauncher) buildController.getLauncher();
+        final Class<?> type = new ModelMapping().getProtocolTypeFromModelName(modelName);
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
                 public void onTasksFinished(GradleInternal gradle) {

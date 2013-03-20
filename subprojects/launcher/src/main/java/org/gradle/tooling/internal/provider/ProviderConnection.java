@@ -35,6 +35,7 @@ import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GUtil;
@@ -66,12 +67,12 @@ public class ProviderConnection {
     }
 
     public Object run(String modelName, ProviderOperationParameters providerParameters) {
-        Class<?> type = new ModelMapping().getProtocolTypeFromModelName(modelName);
         List<String> tasks = providerParameters.getTasks();
-        if (type.equals(Void.class) && tasks == null) {
+        if (modelName.equals(ModelIdentifier.NULL_MODEL) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
         }
         Parameters params = initParams(providerParameters);
+        Class<?> type = new ModelMapping().getProtocolTypeFromModelName(modelName);
         if (type == InternalBuildEnvironment.class) {
             //we don't really need to launch the daemon to acquire information needed for BuildEnvironment
             if (tasks != null) {
@@ -83,13 +84,13 @@ public class ProviderConnection {
                     params.daemonParams.getEffectiveJvmArgs());
         }
 
-        BuildAction<Object> action = new BuildModelAction(type, tasks != null);
+        BuildAction<Object> action = new BuildModelAction(modelName, tasks != null);
         return run(action, providerParameters, params.properties);
     }
 
-    private <T> T run(BuildAction<T> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {
+    private Object run(BuildAction<?> action, ProviderOperationParameters operationParameters, Map<String, String> properties) {
         BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
-        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters, action, properties);
+        ConfiguringBuildAction<Object> configuringAction = new ConfiguringBuildAction<Object>(operationParameters, action, properties);
         return executer.execute(configuringAction, operationParameters);
     }
 

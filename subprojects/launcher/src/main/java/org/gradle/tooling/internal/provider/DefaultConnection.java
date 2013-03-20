@@ -33,17 +33,19 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         connection = new ProviderConnection();
     }
 
+    /**
+     * This is used by consumers 1.2-rc-1 and later.
+     */
     public void configure(ConnectionParameters parameters) {
         ProviderConnectionParameters providerConnectionParameters = adapter.adapt(ProviderConnectionParameters.class, parameters);
         connection.configure(providerConnectionParameters);
     }
 
+    /**
+     * This method was used by consumers 1.0-rc-1 through to 1.1. Later consumers use {@link #configure(org.gradle.tooling.internal.protocol.ConnectionParameters)} instead.
+     */
     public void configureLogging(final boolean verboseLogging) {
-        ProviderConnectionParameters providerConnectionParameters = adapter.adapt(ProviderConnectionParameters.class, new Object() {
-            public boolean getVerboseLogging() {
-                return verboseLogging;
-            }
-        });
+        ProviderConnectionParameters providerConnectionParameters = adapter.adapt(ProviderConnectionParameters.class, new VerboseLoggingOnlyConnectionParameters(verboseLogging));
         connection.configure(providerConnectionParameters);
     }
 
@@ -54,17 +56,26 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     public void stop() {
     }
 
+    /**
+     * This is used by consumers 1.0-milestone-3 to 1.1.
+     */
     @Deprecated
     public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
         logTargetVersion();
         connection.run(ModelIdentifier.NULL_MODEL, new AdaptedOperationParameters(operationParameters, buildParameters.getTasks()));
     }
 
+    /**
+     * This is used by consumers 1.0-milestone-3 to 1.0-milestone-7
+     */
     @Deprecated
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 parameters) {
         return run(type, parameters);
     }
 
+    /**
+     * This is used by consumers 1.0-milestone-8 to 1.1
+     */
     @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
         return run(type, parameters);
@@ -76,6 +87,9 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         return (T) connection.run(modelName, new AdaptedOperationParameters(parameters));
     }
 
+    /**
+     * This is used by consumers 1.2-rc-1 to 1.5
+     */
     public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
         logTargetVersion();
         ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
@@ -84,6 +98,9 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         return new ProviderBuildResult<T>(result);
     }
 
+    /**
+     * This is used by consumers 1.6-rc-1 and later
+     */
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         logTargetVersion();
         ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, operationParameters, BuildLogLevelMixIn.class);
@@ -93,5 +110,17 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
 
     private void logTargetVersion() {
         LOGGER.info("Tooling API uses target gradle version: {}.", GradleVersion.current().getVersion());
+    }
+
+    private static class VerboseLoggingOnlyConnectionParameters {
+        private final boolean verboseLogging;
+
+        public VerboseLoggingOnlyConnectionParameters(boolean verboseLogging) {
+            this.verboseLogging = verboseLogging;
+        }
+
+        public boolean getVerboseLogging() {
+            return verboseLogging;
+        }
     }
 }

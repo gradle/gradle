@@ -37,7 +37,7 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
     private LogLevel buildLogLevel;
     private List<String> arguments;
     private List<String> tasks;
-    private BuildAction<T> action;
+    private BuildAction<? extends T> action;
     private File projectDirectory;
     private File gradleUserHomeDir;
     private Boolean searchUpwards;
@@ -48,7 +48,7 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
 
     public ConfiguringBuildAction() {}
 
-    public ConfiguringBuildAction(ProviderOperationParameters parameters, BuildAction<T> action, Map<String, String> properties) {
+    public ConfiguringBuildAction(ProviderOperationParameters parameters, BuildAction<? extends T> action, Map<String, String> properties) {
         this.properties.putAll(properties);
         this.gradleUserHomeDir = parameters.getGradleUserHomeDir();
         this.projectDirectory = parameters.getProjectDir();
