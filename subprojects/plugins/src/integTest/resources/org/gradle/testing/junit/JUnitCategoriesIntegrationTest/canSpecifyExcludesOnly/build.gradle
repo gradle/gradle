@@ -19,10 +19,6 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testCompile "junit:junit:4.11"
-}
-
 test {
     useJUnit {
         excludeCategories 'org.gradle.CategoryA'

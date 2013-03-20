@@ -16,8 +16,9 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
@@ -26,19 +27,34 @@ import org.junit.Test
 
 import static org.hamcrest.Matchers.startsWith
 
-public class JUnitCategoriesIntegrationTest extends AbstractIntegrationTest {
+@TargetVersions(['4.8', '4.11'])
+public class JUnitCategoriesIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule
-    public final TestResources resources = new TestResources(testDirectoryProvider)
+    public final TestResources resources = new TestResources(temporaryFolder)
+
+    String junitDependency = "junit:junit:$version"
 
     @Before
     public void before() {
         executer.noExtraLogging()
     }
 
+
+    private void configureJUnit() {
+        buildFile << """
+        dependencies {
+        testCompile '${junitDependency.toString()}'
+        }"""
+    }
+
     @Test
     public void canSpecifyIncludeAndExcludeCategories() {
+        given:
+        configureJUnit();
+        when:
         executer.withTasks('test').run();
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.CatATests', 'org.gradle.CatBTests', 'org.gradle.CatADTests', 'org.gradle.MixedTests')
         result.testClass("org.gradle.CatATests").assertTestCount(4, 0, 0)
@@ -54,7 +70,11 @@ public class JUnitCategoriesIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canSpecifyExcludesOnly() {
+        given:
+        configureJUnit();
+        when:
         executer.withTasks('test').run();
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.NoCatTests', 'org.gradle.SomeTests', 'org.gradle.SomeOtherCatTests')
         result.testClass("org.gradle.SomeOtherCatTests").assertTestCount(2, 0, 0)
@@ -67,8 +87,11 @@ public class JUnitCategoriesIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canCombineCategoriesWithCustomRunner() {
+        given:
+        configureJUnit();
+        when:
         executer.withTasks('test').run();
-        println testDirectory
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeLocaleTests')
         result.testClass("org.gradle.SomeLocaleTests").assertTestCount(3, 0, 0)
@@ -77,16 +100,21 @@ public class JUnitCategoriesIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void reportsUnloadableExcludeCategory() {
+        given:
         resources.maybeCopy("JUnitCategoriesIntegrationTest/reportsUnloadableCategories")
         TestFile buildFile = testDirectory.file('build.gradle');
-        buildFile << '''
-                    test {
-                        useJUnit {
-                            excludeCategories 'org.gradle.CategoryA'
-                        }
-                    }
-                '''
+        buildFile << '''test {
+                                useJUnit {
+                                    excludeCategories 'org.gradle.CategoryA'
+                                }
+                            }
+                        '''
+
+        configureJUnit();
+
+        when:
         executer.withTasks('test').runWithFailure();
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeTestClass')
         result.testClass("org.gradle.SomeTestClass").assertTestCount(1, 1, 0)
@@ -95,16 +123,21 @@ public class JUnitCategoriesIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void reportsUnloadableIncludeCategory() {
+        given:
         resources.maybeCopy("JUnitCategoriesIntegrationTest/reportsUnloadableCategories")
         TestFile buildFile = testDirectory.file('build.gradle');
-        buildFile << '''
-                        test {
-                            useJUnit {
-                                includeCategories 'org.gradle.CategoryA'
-                            }
-                        }
-                    '''
+        buildFile << '''test {
+                                        useJUnit {
+                                            includeCategories 'org.gradle.CategoryA'
+                                        }
+                                    }
+                                '''
+
+        configureJUnit();
+
+        when:
         executer.withTasks('test').runWithFailure();
+        then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeTestClass')
         result.testClass("org.gradle.SomeTestClass").assertTestCount(1, 1, 0)
