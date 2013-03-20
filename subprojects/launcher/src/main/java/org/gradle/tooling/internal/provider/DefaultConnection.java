@@ -15,12 +15,10 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.*;
-import org.gradle.tooling.model.Model;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,12 +81,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
 
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         logTargetVersion();
-        Class<?> protocolType;
-        try {
-            protocolType = modelIdentifier.getName().equals(ModelIdentifier.NULL_MODEL) ? Void.class : new ModelMapping().getProtocolType(getClass().getClassLoader().loadClass(modelIdentifier.getName()).asSubclass(Model.class));
-        } catch (ClassNotFoundException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        Class<?> protocolType = new ModelMapping().getProtocolTypeFromModelName(modelIdentifier.getName());
         return run(protocolType, operationParameters);
     }
 

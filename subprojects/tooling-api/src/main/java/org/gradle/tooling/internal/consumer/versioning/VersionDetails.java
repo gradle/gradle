@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.versioning;
 
 import org.gradle.api.Nullable;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.model.Model;
 
 /**
  * by Szczepan Faber, created at: 1/13/12
@@ -69,7 +68,7 @@ public abstract class VersionDetails {
      */
     @Nullable
     public Class<?> mapModelTypeToProtocolType(Class<?> modelType) {
-        return modelType == Void.class ? modelType : new ModelMapping().getProtocolType(modelType.asSubclass(Model.class));
+        return null;
     }
 
     /**

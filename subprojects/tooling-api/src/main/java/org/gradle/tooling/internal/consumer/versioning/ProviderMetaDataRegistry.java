@@ -21,7 +21,6 @@ import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
@@ -64,10 +63,10 @@ public class ProviderMetaDataRegistry {
 
         @Nullable
         public Class<?> mapModelTypeToProtocolType(Class<?> modelType) {
-            if (modelType == Void.class || ProjectVersion3.class.isAssignableFrom(modelType) || InternalProtocolInterface.class.isAssignableFrom(modelType)) {
+            if (ProjectVersion3.class.isAssignableFrom(modelType) || InternalProtocolInterface.class.isAssignableFrom(modelType)) {
                 return modelType;
             }
-            return new ModelMapping().getProtocolType(modelType.asSubclass(Model.class));
+            return new ModelMapping().getProtocolType(modelType);
         }
 
         @Override
@@ -180,6 +179,13 @@ public class ProviderMetaDataRegistry {
         public ModelIdentifier mapModelTypeToModelIdentifier(final Class<?> modelType) {
             return new ModelIdentifier() {
                 public String getName() {
+                    if (modelType.equals(Void.class)) {
+                        return ModelIdentifier.NULL_MODEL;
+                    }
+                    String modelName = new ModelMapping().getModelName(modelType);
+                    if (modelName != null) {
+                        return modelName;
+                    }
                     return modelType.getName();
                 }
 

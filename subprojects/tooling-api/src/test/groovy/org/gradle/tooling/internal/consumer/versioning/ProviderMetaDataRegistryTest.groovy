@@ -235,7 +235,7 @@ class ProviderMetaDataRegistryTest extends Specification {
         GradleProject              | "org.gradle.tooling.model.GradleProject"
         BasicIdeaProject           | "org.gradle.tooling.model.idea.BasicIdeaProject"
         BuildEnvironment           | "org.gradle.tooling.model.build.BuildEnvironment"
-        ProjectOutcomes            | "org.gradle.tooling.model.internal.outcomes.ProjectOutcomes"
+        ProjectOutcomes            | "org.gradle.tooling.model.outcomes.ProjectOutcomes"
         CustomModel                | CustomModel.name
     }
 }
