@@ -69,7 +69,7 @@ public class JUnitTestClassExecuter {
                     try {
                         return applicationClassLoader.loadClass(original);
                     } catch (ClassNotFoundException e) {
-                        throw new InvalidUserDataException("Can't load category class.", e);
+                        throw new InvalidUserDataException(String.format("Can't load category class [%s].", original), e);
                     }
                 }
             };

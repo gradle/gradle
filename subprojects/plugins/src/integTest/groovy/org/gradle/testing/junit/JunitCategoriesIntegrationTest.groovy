@@ -19,9 +19,12 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
+import static org.hamcrest.Matchers.startsWith
 
 public class JUnitCategoriesIntegrationTest extends AbstractIntegrationTest {
 
@@ -44,8 +47,9 @@ public class JUnitCategoriesIntegrationTest extends AbstractIntegrationTest {
         result.testClass("org.gradle.CatBTests").assertTestsExecuted('catBOk1', 'catBOk2', 'catBOk3', 'catBOk4')
         result.testClass("org.gradle.CatADTests").assertTestCount(2, 0, 0)
         result.testClass("org.gradle.CatADTests").assertTestsExecuted('catAOk1', 'catAOk2')
-        result.testClass("org.gradle.MixedTests").assertTestCount(2, 0, 0)
+        result.testClass("org.gradle.MixedTests").assertTestCount(3, 0, 0)
         result.testClass("org.gradle.MixedTests").assertTestsExecuted('catAOk1', 'catBOk2')
+        result.testClass("org.gradle.MixedTests").assertTestsSkipped('someIgnoredTest')
     }
 
     @Test
@@ -69,5 +73,41 @@ public class JUnitCategoriesIntegrationTest extends AbstractIntegrationTest {
         result.assertTestClassesExecuted('org.gradle.SomeLocaleTests')
         result.testClass("org.gradle.SomeLocaleTests").assertTestCount(3, 0, 0)
         result.testClass("org.gradle.SomeLocaleTests").assertTestsExecuted('ok1 [de]', 'ok1 [en]', 'ok1 [fr]')
+    }
+
+    @Test
+    public void reportsUnloadableExcludeCategory() {
+        resources.maybeCopy("JUnitCategoriesIntegrationTest/reportsUnloadableCategories")
+        TestFile buildFile = testDirectory.file('build.gradle');
+        buildFile << '''
+                    test {
+                        useJUnit {
+                            excludeCategories 'org.gradle.CategoryA'
+                        }
+                    }
+                '''
+        executer.withTasks('test').runWithFailure();
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('org.gradle.SomeTestClass')
+        result.testClass("org.gradle.SomeTestClass").assertTestCount(1, 1, 0)
+        result.testClass("org.gradle.SomeTestClass").assertTestFailed("initializationError", startsWith("org.gradle.api.InvalidUserDataException: Can't load category class [org.gradle.CategoryA]"))
+    }
+
+    @Test
+    public void reportsUnloadableIncludeCategory() {
+        resources.maybeCopy("JUnitCategoriesIntegrationTest/reportsUnloadableCategories")
+        TestFile buildFile = testDirectory.file('build.gradle');
+        buildFile << '''
+                        test {
+                            useJUnit {
+                                includeCategories 'org.gradle.CategoryA'
+                            }
+                        }
+                    '''
+        executer.withTasks('test').runWithFailure();
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('org.gradle.SomeTestClass')
+        result.testClass("org.gradle.SomeTestClass").assertTestCount(1, 1, 0)
+        result.testClass("org.gradle.SomeTestClass").assertTestFailed("initializationError", startsWith("org.gradle.api.InvalidUserDataException: Can't load category class [org.gradle.CategoryA]"))
     }
 }

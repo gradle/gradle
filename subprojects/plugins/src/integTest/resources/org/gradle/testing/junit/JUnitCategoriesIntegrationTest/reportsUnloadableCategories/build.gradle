@@ -13,32 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
-
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 
-public class MixedTests {
 
-    @Category(org.gradle.CategoryA.class)
-    @Test
-    public void catAOk1() {
-    }
+apply plugin: "java"
 
-    @Category(org.gradle.CategoryB.class)
-    @Test
-    public void catBOk2() {
-    }
-
-    @Category(org.gradle.CategoryA.class)
-    @Ignore
-    @Test
-    public void someIgnoredTest() {
-    }
-
-    @Test
-    public void noCatOk4() {
-    }
+repositories {
+    mavenCentral()
 }
+
+dependencies {
+    testCompile "junit:junit:4.11"
+}
+
+
