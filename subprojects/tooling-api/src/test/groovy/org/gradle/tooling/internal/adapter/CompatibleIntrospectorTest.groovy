@@ -30,7 +30,11 @@ class CompatibleIntrospectorTest extends Specification {
         String getMessage() {
             "Hello!"
         }
-        
+
+        String getBroken() {
+            throw new ArithmeticException("broken")
+        }
+
         void setNumber(int number) {
             this.number = number
         }
@@ -45,6 +49,15 @@ class CompatibleIntrospectorTest extends Specification {
         'blah' == intro.getSafely('blah', 'doesNotExist')
     }
 
+    def "propagates failure to get value"() {
+        when:
+        intro.getSafely('default', 'getBroken')
+
+        then:
+        ArithmeticException e = thrown()
+        e.message == 'broken'
+    }
+
     def "calls methods safely"() {
         when:
         intro.callSafely('doesNotExist', 10)
@@ -56,4 +69,14 @@ class CompatibleIntrospectorTest extends Specification {
         then:
         foo.number == 10
     }
+
+    def "propagates failure to call method"() {
+        when:
+        intro.callSafely('getBroken')
+
+        then:
+        ArithmeticException e = thrown()
+        e.message == 'broken'
+    }
+
 }

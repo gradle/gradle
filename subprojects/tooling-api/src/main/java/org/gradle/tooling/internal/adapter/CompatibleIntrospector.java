@@ -16,6 +16,9 @@
 
 package org.gradle.tooling.internal.adapter;
 
+import org.gradle.internal.UncheckedException;
+
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -48,6 +51,8 @@ public class CompatibleIntrospector {
             return (T) method.invoke(target);
         } catch (NoSuchMethodException e) {
             return defaultValue;
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (Exception e) {
             throw new RuntimeException("Unable to get value reflectively", e);
         }
@@ -64,6 +69,8 @@ public class CompatibleIntrospector {
         method.setAccessible(true);
         try {
             method.invoke(target, params);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (Exception e) {
             throw new RuntimeException("Unable to call method reflectively", e);
         }
