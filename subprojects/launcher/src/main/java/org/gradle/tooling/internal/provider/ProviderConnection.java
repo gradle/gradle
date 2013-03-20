@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
@@ -32,6 +33,7 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -56,18 +58,15 @@ public class ProviderConnection {
     }
 
     public void configure(ProviderConnectionParameters parameters) {
-        configureLogging(parameters.getVerboseLogging());
-    }
-
-    private void configureLogging(boolean verboseLogging) {
-        LogLevel providerLogLevel = verboseLogging? LogLevel.DEBUG : LogLevel.INFO;
+        LogLevel providerLogLevel = parameters.getVerboseLogging() ? LogLevel.DEBUG : LogLevel.INFO;
         LOGGER.debug("Configuring logging to level: {}", providerLogLevel);
         LoggingManagerInternal loggingManager = embeddedExecuterSupport.getLoggingServices().newInstance(LoggingManagerInternal.class);
         loggingManager.setLevel(providerLogLevel);
         loggingManager.start();
     }
 
-    public <T> T run(Class<T> type, ProviderOperationParameters providerParameters) {
+    public Object run(String modelName, ProviderOperationParameters providerParameters) {
+        Class<?> type = new ModelMapping().getProtocolTypeFromModelName(modelName);
         List<String> tasks = providerParameters.getTasks();
         if (type.equals(Void.class) && tasks == null) {
             throw new IllegalArgumentException("No model type or tasks specified.");
@@ -78,15 +77,13 @@ public class ProviderConnection {
             if (tasks != null) {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
-            DefaultBuildEnvironment out = new DefaultBuildEnvironment(
+            return new DefaultBuildEnvironment(
                     GradleVersion.current().getVersion(),
                     params.daemonParams.getEffectiveJavaHome(),
                     params.daemonParams.getEffectiveJvmArgs());
-
-            return type.cast(out);
         }
 
-        BuildAction<T> action = new BuildModelAction<T>(type, tasks != null);
+        BuildAction<Object> action = new BuildModelAction(type, tasks != null);
         return run(action, providerParameters, params.properties);
     }
 

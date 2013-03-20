@@ -57,32 +57,38 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     @Deprecated
     public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
         logTargetVersion();
-        connection.run(Void.class, new AdaptedOperationParameters(operationParameters, buildParameters.getTasks()));
+        connection.run(ModelIdentifier.NULL_MODEL, new AdaptedOperationParameters(operationParameters, buildParameters.getTasks()));
     }
 
     @Deprecated
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 parameters) {
-        logTargetVersion();
-        return connection.run(type, new AdaptedOperationParameters(parameters));
+        return run(type, parameters);
     }
 
     @Deprecated
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
+        return run(type, parameters);
+    }
+
+    private <T> T run(Class<T> type, BuildOperationParametersVersion1 parameters) {
         logTargetVersion();
-        return connection.run(type, new AdaptedOperationParameters(parameters));
+        String modelName = new ModelMapping().getModelNameFromProtocolType(type);
+        return (T) connection.run(modelName, new AdaptedOperationParameters(parameters));
     }
 
     public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
         logTargetVersion();
         ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
-        T result = connection.run(type, providerParameters);
+        String modelName = new ModelMapping().getModelNameFromProtocolType(type);
+        T result = (T) connection.run(modelName, providerParameters);
         return new ProviderBuildResult<T>(result);
     }
 
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         logTargetVersion();
-        Class<?> protocolType = new ModelMapping().getProtocolTypeFromModelName(modelIdentifier.getName());
-        return run(protocolType, operationParameters);
+        ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, operationParameters, BuildLogLevelMixIn.class);
+        Object result = connection.run(modelIdentifier.getName(), providerParameters);
+        return new ProviderBuildResult<Object>(result);
     }
 
     private void logTargetVersion() {

@@ -27,7 +27,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
-import org.gradle.tooling.model.internal.TestModel;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 
 import java.util.Map;
@@ -51,7 +50,6 @@ public class ModelMapping {
         map.put(GradleProject.class, InternalGradleProject.class);
         map.put(BasicIdeaProject.class, InternalBasicIdeaProject.class);
         map.put(BuildEnvironment.class, InternalBuildEnvironment.class);
-        map.put(TestModel.class, InternalTestModel.class);
         map.put(ProjectOutcomes.class, InternalProjectOutcomes.class);
         map.put(Void.class, Void.class);
     }
@@ -72,6 +70,14 @@ public class ModelMapping {
     }
 
     public String getModelName(Class<?> modelType) {
+        return MODEL_NAME_MAP.get(modelType);
+    }
+
+    public String getModelNameFromProtocolType(Class<?> protocolType) {
+        Class<?> modelType = MODEL_TO_PROTOCOL_MAP.inverse().get(protocolType);
+        if (modelType == null) {
+            return null;
+        }
         return MODEL_NAME_MAP.get(modelType);
     }
 

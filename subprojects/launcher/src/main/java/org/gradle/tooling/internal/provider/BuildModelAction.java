@@ -24,17 +24,17 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 import java.io.Serializable;
 
-public class BuildModelAction<T> implements BuildAction<T>, Serializable {
-    private final Class<T> type;
+public class BuildModelAction implements BuildAction<Object>, Serializable {
+    private final Class<?> type;
     private final boolean runTasks;
     private Object model;
 
-    public BuildModelAction(Class<T> type, boolean runTasks) {
+    public BuildModelAction(Class<?> type, boolean runTasks) {
         this.type = type;
         this.runTasks = runTasks;
     }
 
-    public T run(BuildController buildController) {
+    public Object run(BuildController buildController) {
         DefaultGradleLauncher launcher = (DefaultGradleLauncher) buildController.getLauncher();
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
@@ -54,7 +54,7 @@ public class BuildModelAction<T> implements BuildAction<T>, Serializable {
             });
             buildController.configure();
         }
-        return (T) model;
+        return model;
     }
 
     private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
