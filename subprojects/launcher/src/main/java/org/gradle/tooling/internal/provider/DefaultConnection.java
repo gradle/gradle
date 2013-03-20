@@ -15,14 +15,17 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.*;
+import org.gradle.tooling.model.Model;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection {
+public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection, ModelBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
     private final ProviderConnection connection;
@@ -47,15 +50,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     }
 
     public ConnectionMetaDataVersion1 getMetaData() {
-        return new ConnectionMetaDataVersion1() {
-            public String getVersion() {
-                return GradleVersion.current().getVersion();
-            }
-
-            public String getDisplayName() {
-                return String.format("Gradle %s", getVersion());
-            }
-        };
+        return new DefaultConnectionMetaData();
     }
 
     public void stop() {
@@ -84,6 +79,17 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         ProviderOperationParameters providerParameters = adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
         T result = connection.run(type, providerParameters);
         return new ProviderBuildResult<T>(result);
+    }
+
+    public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+        logTargetVersion();
+        Class<?> protocolType;
+        try {
+            protocolType = modelIdentifier.getName().equals(ModelIdentifier.NULL_MODEL) ? Void.class : new ModelMapping().getProtocolType(getClass().getClassLoader().loadClass(modelIdentifier.getName()).asSubclass(Model.class));
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        return run(protocolType, operationParameters);
     }
 
     private void logTargetVersion() {

@@ -97,14 +97,14 @@ public class DefaultDaemonConnector implements DaemonConnector {
         LOGGER.debug("Started Gradle Daemon: {}", startupInfo);
         long expiry = System.currentTimeMillis() + connectTimeout;
         do {
+            DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
+            if (daemonConnection != null) {
+                return daemonConnection;
+            }
             try {
                 Thread.sleep(200L);
             } catch (InterruptedException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
-            }
-            DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
-            if (daemonConnection != null) {
-                return daemonConnection;
             }
         } while (System.currentTimeMillis() < expiry);
 
