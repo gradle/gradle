@@ -21,7 +21,8 @@ package org.gradle.tooling.internal.protocol;
  *
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 1.6-rc-1.</p> <p>Provider compatibility: This interface is uses by all provider versions from 1.6-rc-1.</p>
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 1.6-rc-1.</p>
+ * <p>Provider compatibility: This interface is uses by all provider versions from 1.6-rc-1.</p>
  *
  * @since 1.6-rc-1
  */
