@@ -23,12 +23,12 @@ import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.model.GradleProject
 import spock.lang.Specification
 
-class AdaptedConnectionTest extends Specification {
+class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
     final ConnectionVersion4 target = Mock()
     final ConsumerOperationParameters parameters = Mock()
     final ProtocolToModelAdapter adapter = Mock()
     final VersionDetails versionDetails = Mock()
-    final AdaptedConnection connection = new AdaptedConnection(target, versionDetails, adapter)
+    final ConnectionVersion4BackedConsumerConnection connection = new ConnectionVersion4BackedConsumerConnection(target, versionDetails, adapter)
 
     def "builds model using connection's getModel() method"() {
         ProjectVersion3 protocolModel = Mock()

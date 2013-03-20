@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,21 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.InternalConnection;
+import org.gradle.tooling.internal.protocol.ProjectVersion3;
 
-public class InternalConnectionBackedConsumerConnection extends AbstractPre12ConsumerConnection {
-    private final InternalConnection connection;
+/**
+ * An implementation that wraps a protocol instance that has rigid compatibility policy.
+ * <p>
+ * by Szczepan Faber, created at: 12/22/11
+ */
+public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12ConsumerConnection {
 
-    public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ProtocolToModelAdapter adapter) {
+    public ConnectionVersion4BackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ProtocolToModelAdapter adapter) {
         super(delegate, providerMetaData, adapter);
-        connection = (InternalConnection) delegate;
     }
 
     @Override
     protected Object doGetModel(Class<?> protocolType, ConsumerOperationParameters operationParameters) {
-        return connection.getTheModel(protocolType, operationParameters);
+        return getDelegate().getModel(protocolType.asSubclass(ProjectVersion3.class), operationParameters);
     }
 }

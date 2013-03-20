@@ -31,6 +31,7 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
+import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.util.FilteringClassLoader;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.MultiParentClassLoader;
@@ -73,12 +74,14 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             // Adopting the connection to a refactoring friendly type that the consumer owns
             VersionDetails providerMetaData = new ProviderMetaDataRegistry().getVersionDetails(connection.getMetaData().getVersion());
             AbstractConsumerConnection adaptedConnection;
-            if (connection instanceof BuildActionRunner) {
+            if (connection instanceof ModelBuilder) {
+                adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, providerMetaData, adapter);
+            } else if (connection instanceof BuildActionRunner) {
                 adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, providerMetaData, adapter);
             } else if (connection instanceof InternalConnection) {
                 adaptedConnection = new InternalConnectionBackedConsumerConnection(connection, providerMetaData, adapter);
             } else {
-                adaptedConnection = new AdaptedConnection(connection, providerMetaData, adapter);
+                adaptedConnection = new ConnectionVersion4BackedConsumerConnection(connection, providerMetaData, adapter);
             }
             adaptedConnection.configure(connectionParameters);
             return adaptedConnection;

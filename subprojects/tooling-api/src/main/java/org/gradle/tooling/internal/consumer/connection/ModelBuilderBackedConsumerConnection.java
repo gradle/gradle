@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,23 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.ConsumerPropertyHandler;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.internal.protocol.ModelBuilder;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 
-public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12ConsumerConnection {
-    private final BuildActionRunner buildActionRunner;
+public class ModelBuilderBackedConsumerConnection extends AbstractPost12ConsumerConnection {
+    private final ModelBuilder builder;
     private final ProtocolToModelAdapter adapter;
 
-    public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ProtocolToModelAdapter adapter) {
+    public ModelBuilderBackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ProtocolToModelAdapter adapter) {
         super(delegate, providerMetaData);
         this.adapter = adapter;
-        buildActionRunner = (BuildActionRunner) delegate;
+        builder = (ModelBuilder) delegate;
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        Class<?> protocolType = getVersionDetails().mapModelTypeToProtocolType(type);
-        Object model = buildActionRunner.run(protocolType, operationParameters).getModel();
+        ModelIdentifier modelIdentifier = getVersionDetails().mapModelTypeToModelIdentifier(type);
+        Object model = builder.getModel(modelIdentifier, operationParameters).getModel();
         return adapter.adapt(type, model, new ConsumerPropertyHandler(getVersionDetails()));
     }
 }

@@ -38,5 +38,5 @@ public interface ModelBuilder extends InternalProtocolInterface {
      * @throws IllegalStateException When this connection has been stopped.
      * @since 1.6-rc-1
      */
-    BuildResult<Object> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
+    BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
 }
