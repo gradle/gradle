@@ -30,6 +30,11 @@ import java.nio.channels.Channel
 class ProtocolToModelAdapterTest extends Specification {
     final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter()
 
+    def mapsNullToNull() {
+        expect:
+        adapter.adapt(TestModel.class, null) == null
+    }
+
     def createsProxyAdapterForProtocolModel() {
         TestProtocolModel protocolModel = Mock()
 

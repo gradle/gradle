@@ -16,6 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
+import org.gradle.api.Nullable;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.model.Model;
+
 /**
  * by Szczepan Faber, created at: 1/13/12
  */
@@ -31,10 +35,10 @@ public abstract class VersionDetails {
     }
 
     /**
-     * Returns true if this provider may support the given protocol model type. Returns false if it is known that the
-     * provider does not support the given model type and should not be asked to provide it.
+     * Returns true if this provider may support the given model type. Returns false if it is known that the
+     * provider does not support the given model type and <em>should not</em> be asked to provide it.
      */
-    public boolean isModelSupported(Class<?> protocolModelType) {
+    public boolean isModelSupported(Class<?> modelType) {
         return false;
     }
 
@@ -57,4 +61,19 @@ public abstract class VersionDetails {
     public boolean supportsGradleProjectModel() {
         return false;
     }
+
+    /**
+     * Maps the given model type to a protocol type, for those older provider versions that use protocol types.
+     *
+     * @return null for an unknown model type.
+     */
+    @Nullable
+    public Class<?> mapModelTypeToProtocolType(Class<?> modelType) {
+        return modelType == Void.class ? modelType : new ModelMapping().getProtocolType(modelType.asSubclass(Model.class));
+    }
+
+    /**
+     * Maps the given model type to a cross-version identifier for the model.
+     */
+    abstract public ModelIdentifier mapModelTypeToModelIdentifier(Class<?> modelType);
 }

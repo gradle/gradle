@@ -17,19 +17,13 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.UnknownModelException;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.converters.ConsumerPropertyHandler;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.internal.protocol.InternalGradleProject;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.internal.Exceptions;
 
@@ -37,17 +31,10 @@ import org.gradle.tooling.model.internal.Exceptions;
  * by Szczepan Faber, created at: 12/21/11
  */
 public class ModelProvider {
-    private final ModelMapping modelMapping = new ModelMapping();
-    private final ProtocolToModelAdapter protocolToModelAdapter;
-
-    public ModelProvider(ProtocolToModelAdapter protocolToModelAdapter) {
-        this.protocolToModelAdapter = protocolToModelAdapter;
-    }
-
     public <T> T provide(ConsumerConnection connection, Class<T> modelType, ConsumerOperationParameters operationParameters) {
         VersionDetails version = connection.getVersionDetails();
 
-        Class<?> protocolType = modelType == Void.class ? modelType : modelMapping.getProtocolType(modelType.asSubclass(Model.class));
+        Class<?> protocolType = version.mapModelTypeToProtocolType(modelType);
         if (protocolType == null) {
             throw new UnknownModelException(
                     "Unknown model: '" + modelType.getSimpleName() + "'.\n"
@@ -71,34 +58,30 @@ public class ModelProvider {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()");
             }
         }
-        if (protocolType != Void.class && operationParameters.getTasks() != null) {
+        if (modelType != Void.class && operationParameters.getTasks() != null) {
             if (!version.supportsRunningTasksWhenBuildingModel()) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()");
             }
         }
 
-        if (modelType == BuildEnvironment.class && !version.isModelSupported(InternalBuildEnvironment.class)) {
+        if (modelType == BuildEnvironment.class && !version.isModelSupported(BuildEnvironment.class)) {
             //early versions of provider do not support BuildEnvironment model
             //since we know the gradle version at least we can give back some result
             VersionOnlyBuildEnvironment out = new VersionOnlyBuildEnvironment(version.getVersion());
             return modelType.cast(out);
         }
-        if (modelType == GradleProject.class && !version.isModelSupported(InternalGradleProject.class)) {
+        if (modelType == GradleProject.class && !version.isModelSupported(GradleProject.class)) {
             //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
             //this patch enables getting gradle tasks for target gradle version pre M5
-            EclipseProjectVersion3 project = protocolToModelAdapter.adapt(EclipseProjectVersion3.class, connection.run(EclipseProjectVersion3.class, operationParameters), new ConsumerPropertyHandler(version));
+            EclipseProjectVersion3 project = connection.run(EclipseProjectVersion3.class, operationParameters);
             GradleProject gradleProject = new GradleProjectConverter().convert(project);
             return modelType.cast(gradleProject);
         }
-        if (!version.isModelSupported(protocolType)) {
+        if (!version.isModelSupported(modelType)) {
             //don't bother asking the provider for this model
             throw new UnsupportedOperationException(String.format("I don't know how to build a model of type '%s'.", modelType.getSimpleName()));
         }
 
-        Object result = connection.run(protocolType, operationParameters);
-        if (result == null) {
-            return null;
-        }
-        return protocolToModelAdapter.adapt(modelType, result, new ConsumerPropertyHandler(version));
+        return connection.run(modelType, operationParameters);
     }
 }

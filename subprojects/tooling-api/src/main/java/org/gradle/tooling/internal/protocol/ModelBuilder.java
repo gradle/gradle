@@ -28,21 +28,15 @@ package org.gradle.tooling.internal.protocol;
  */
 public interface ModelBuilder extends InternalProtocolInterface {
     /**
-     * The name of the null model.
-     */
-    final String NULL_MODEL = Void.class.getName();
-
-    /**
      * Performs some action against a build and returns the requested model.
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.6-rc-1.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.6-rc-1.</p>
      *
-     * @param modelName The name of the model to build. Note that the model name is not necessarily a class name, and it simply
-     * uniquely identifies the model. Use {@link #NULL_MODEL} to indicate that no model is desired.
+     * @param modelIdentifier The identifier of the model to build.
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 1.6-rc-1
      */
-    BuildResult<Object> getModel(String modelName, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
+    BuildResult<Object> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
 }

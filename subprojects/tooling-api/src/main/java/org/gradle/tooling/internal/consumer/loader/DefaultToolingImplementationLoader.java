@@ -21,8 +21,10 @@ import org.gradle.internal.service.ServiceLocator;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.*;
+import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.versioning.ProviderMetaDataRegistry;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -66,15 +68,17 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             // ConnectionVersion4 is a part of the protocol and cannot be easily changed.
             ConnectionVersion4 connection = factory.create();
 
+            ProtocolToModelAdapter adapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
+
             // Adopting the connection to a refactoring friendly type that the consumer owns
             VersionDetails providerMetaData = new ProviderMetaDataRegistry().getVersionDetails(connection.getMetaData().getVersion());
             AbstractConsumerConnection adaptedConnection;
             if (connection instanceof BuildActionRunner) {
-                adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, providerMetaData);
+                adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, providerMetaData, adapter);
             } else if (connection instanceof InternalConnection) {
-                adaptedConnection = new InternalConnectionBackedConsumerConnection(connection, providerMetaData);
+                adaptedConnection = new InternalConnectionBackedConsumerConnection(connection, providerMetaData, adapter);
             } else {
-                adaptedConnection = new AdaptedConnection(connection, providerMetaData);
+                adaptedConnection = new AdaptedConnection(connection, providerMetaData, adapter);
             }
             adaptedConnection.configure(connectionParameters);
             return adaptedConnection;

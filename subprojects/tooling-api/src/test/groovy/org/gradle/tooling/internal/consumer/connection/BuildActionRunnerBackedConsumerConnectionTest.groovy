@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails
@@ -28,7 +29,9 @@ import spock.lang.Specification
 class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
     final TestBuildActionRunner target = Mock()
     final ConsumerOperationParameters parameters = Mock()
-    final BuildActionRunnerBackedConsumerConnection connection = new BuildActionRunnerBackedConsumerConnection(target, Mock(VersionDetails))
+    final ProtocolToModelAdapter adapter = Mock()
+    final VersionDetails versionDetails = Mock()
+    final BuildActionRunnerBackedConsumerConnection connection = new BuildActionRunnerBackedConsumerConnection(target, versionDetails, adapter)
 
     def "configures connection"() {
         def parameters = new ConsumerConnectionParameters(false)
@@ -41,11 +44,11 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         0 * target._
     }
 
-    def "builds model using run() method"() {
+    def "builds model using connection's run() method"() {
         BuildResult<String> result = Mock()
 
         given:
-        result.model >> 'ok'
+        result.model >> 12
 
         when:
         def model = connection.run(String.class, parameters)
@@ -54,7 +57,9 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         model == 'ok'
 
         and:
-        1 * target.run(String.class, parameters) >> result
+        1 * versionDetails.mapModelTypeToProtocolType(String.class) >> Integer.class
+        1 * target.run(Integer.class, parameters) >> result
+        1 * adapter.adapt(String.class, 12, _) >> 'ok'
         0 * target._
     }
 

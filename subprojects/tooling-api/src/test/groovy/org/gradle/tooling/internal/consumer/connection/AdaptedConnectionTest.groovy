@@ -15,32 +15,39 @@
  */
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.internal.protocol.ProjectVersion3
+import org.gradle.tooling.model.GradleProject
 import spock.lang.Specification
 
 class AdaptedConnectionTest extends Specification {
     final ConnectionVersion4 target = Mock()
     final ConsumerOperationParameters parameters = Mock()
-    final AdaptedConnection connection = new AdaptedConnection(target, Mock(VersionDetails))
+    final ProtocolToModelAdapter adapter = Mock()
+    final VersionDetails versionDetails = Mock()
+    final AdaptedConnection connection = new AdaptedConnection(target, versionDetails, adapter)
 
-    def "builds model using getModel() method"() {
-        ProjectVersion3 model = Mock()
+    def "builds model using connection's getModel() method"() {
+        ProjectVersion3 protocolModel = Mock()
+        GradleProject model = Mock()
 
         when:
-        def result = connection.run(ProjectVersion3.class, parameters)
+        def result = connection.run(GradleProject.class, parameters)
 
         then:
         result == model
 
         and:
-        1 * target.getModel(ProjectVersion3.class, parameters) >> model
+        1 * versionDetails.mapModelTypeToProtocolType(GradleProject.class) >> ProjectVersion3.class
+        1 * target.getModel(ProjectVersion3.class, parameters) >> protocolModel
+        1 * adapter.adapt(GradleProject.class, protocolModel, _) >> model
         0 * target._
     }
 
-    def "runs build using executeBuild() method"() {
+    def "runs build using connection's executeBuild() method"() {
         when:
         connection.run(Void.class, parameters)
 

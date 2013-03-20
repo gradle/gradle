@@ -58,6 +58,9 @@ public class ProtocolToModelAdapter {
     }
 
     public <T, S> T adapt(Class<T> targetType, S protocolObject, MethodInvoker overrideMethodInvoker) {
+        if (protocolObject == null) {
+            return null;
+        }
         Class<? extends T> target = targetTypeProvider.getTargetType(targetType, protocolObject);
         if (target.isInstance(protocolObject)) {
             return target.cast(protocolObject);

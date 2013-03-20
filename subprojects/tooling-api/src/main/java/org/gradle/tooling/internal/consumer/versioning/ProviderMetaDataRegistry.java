@@ -16,9 +16,18 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
-import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
-import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
+import org.gradle.api.Nullable;
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.ProjectVersion3;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.Model;
+import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
+import org.gradle.tooling.model.idea.BasicIdeaProject;
+import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
 import org.gradle.util.GradleVersion;
 
 public class ProviderMetaDataRegistry {
@@ -53,18 +62,31 @@ public class ProviderMetaDataRegistry {
             super(providerVersion);
         }
 
+        @Nullable
+        public Class<?> mapModelTypeToProtocolType(Class<?> modelType) {
+            if (modelType == Void.class || ProjectVersion3.class.isAssignableFrom(modelType) || InternalProtocolInterface.class.isAssignableFrom(modelType)) {
+                return modelType;
+            }
+            return new ModelMapping().getProtocolType(modelType.asSubclass(Model.class));
+        }
+
         @Override
-        public boolean isModelSupported(Class<?> protocolModelType) {
-            if (protocolModelType.equals(HierarchicalEclipseProjectVersion1.class)) {
+        public ModelIdentifier mapModelTypeToModelIdentifier(Class<?> modelType) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isModelSupported(Class<?> modelType) {
+            if (modelType.equals(HierarchicalEclipseProject.class)) {
                 return true;
             }
-            if (protocolModelType.equals(EclipseProjectVersion3.class)) {
+            if (modelType.equals(EclipseProject.class)) {
                 return true;
             }
-            if (protocolModelType.equals(Void.class)) {
+            if (modelType.equals(Void.class)) {
                 return true;
             }
-            return super.isModelSupported(protocolModelType);
+            return super.isModelSupported(modelType);
         }
     }
 
@@ -74,17 +96,17 @@ public class ProviderMetaDataRegistry {
         }
 
         @Override
-        public boolean isModelSupported(Class<?> protocolModelType) {
-            if (protocolModelType.equals(InternalIdeaProject.class)) {
+        public boolean isModelSupported(Class<?> modelType) {
+            if (modelType.equals(IdeaProject.class)) {
                 return true;
             }
-            if (protocolModelType.equals(InternalBasicIdeaProject.class)) {
+            if (modelType.equals(BasicIdeaProject.class)) {
                 return true;
             }
-            if (protocolModelType.equals(InternalGradleProject.class)) {
+            if (modelType.equals(GradleProject.class)) {
                 return true;
             }
-            return super.isModelSupported(protocolModelType);
+            return super.isModelSupported(modelType);
         }
 
         @Override
@@ -99,11 +121,11 @@ public class ProviderMetaDataRegistry {
         }
 
         @Override
-        public boolean isModelSupported(Class<?> protocolModelType) {
-            if (protocolModelType.equals(InternalBuildEnvironment.class)) {
+        public boolean isModelSupported(Class<?> modelType) {
+            if (modelType.equals(BuildEnvironment.class)) {
                 return true;
             }
-            return super.isModelSupported(protocolModelType);
+            return super.isModelSupported(modelType);
         }
 
         @Override
@@ -128,14 +150,14 @@ public class ProviderMetaDataRegistry {
         }
 
         @Override
-        public boolean isModelSupported(Class<?> protocolModelType) {
-            if (protocolModelType.equals(InternalProjectOutcomes.class)) {
+        public boolean isModelSupported(Class<?> modelType) {
+            if (modelType.equals(ProjectOutcomes.class)) {
                 return true;
             }
-            if (protocolModelType.equals(Void.class)) {
+            if (modelType.equals(Void.class)) {
                 return true;
             }
-            return super.isModelSupported(protocolModelType);
+            return super.isModelSupported(modelType);
         }
 
         @Override
@@ -150,8 +172,21 @@ public class ProviderMetaDataRegistry {
         }
 
         @Override
-        public boolean isModelSupported(Class<?> protocolModelType) {
+        public boolean isModelSupported(Class<?> modelType) {
             return true;
+        }
+
+        @Override
+        public ModelIdentifier mapModelTypeToModelIdentifier(final Class<?> modelType) {
+            return new ModelIdentifier() {
+                public String getName() {
+                    return modelType.getName();
+                }
+
+                public String getVersion() {
+                    return GradleVersion.current().getVersion();
+                }
+            };
         }
     }
 }

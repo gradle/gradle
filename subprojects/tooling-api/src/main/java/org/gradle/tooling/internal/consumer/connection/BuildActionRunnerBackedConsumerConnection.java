@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.converters.ConsumerPropertyHandler;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -25,9 +27,11 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 public class BuildActionRunnerBackedConsumerConnection extends AbstractConsumerConnection {
     private final BuildActionRunner buildActionRunner;
+    private final ProtocolToModelAdapter adapter;
 
-    public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData) {
+    public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ProtocolToModelAdapter adapter) {
         super(delegate, providerMetaData);
+        this.adapter = adapter;
         buildActionRunner = (BuildActionRunner) delegate;
     }
 
@@ -36,6 +40,8 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractConsumerC
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return buildActionRunner.run(type, operationParameters).getModel();
+        Class<?> protocolType = getVersionDetails().mapModelTypeToProtocolType(type);
+        Object model = buildActionRunner.run(protocolType, operationParameters).getModel();
+        return adapter.adapt(type, model, new ConsumerPropertyHandler(getVersionDetails()));
     }
 }
