@@ -34,12 +34,12 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         builders.add(builder);
     }
 
-    public ToolingModelBuilder getBuilder(Class<?> modelType) {
+    public ToolingModelBuilder getBuilder(String modelName) throws UnsupportedOperationException {
         ToolingModelBuilder match = null;
         for (ToolingModelBuilder builder : builders) {
-            if (builder.canBuild(modelType)) {
+            if (builder.canBuild(modelName)) {
                 if (match != null) {
-                    throw new UnsupportedOperationException(String.format("Multiple builders are available to build a model of type '%s'.", modelType.getSimpleName()));
+                    throw new UnsupportedOperationException(String.format("Multiple builders are available to build a model of type '%s'.", modelName));
                 }
                 match = builder;
             }
@@ -48,15 +48,15 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             return match;
         }
 
-        throw new UnsupportedOperationException(String.format("No builders are available to build a model of type '%s'.", modelType.getSimpleName()));
+        throw new UnsupportedOperationException(String.format("No builders are available to build a model of type '%s'.", modelName));
     }
 
     private static class VoidToolingModelBuilder implements ToolingModelBuilder {
-        public boolean canBuild(Class<?> type) {
-            return type.equals(Void.class);
+        public boolean canBuild(String modelName) {
+            return modelName.equals(Void.class.getName());
         }
 
-        public Object buildAll(Class<?> type, ProjectInternal project) {
+        public Object buildAll(String modelName, ProjectInternal project) {
             return null;
         }
     }

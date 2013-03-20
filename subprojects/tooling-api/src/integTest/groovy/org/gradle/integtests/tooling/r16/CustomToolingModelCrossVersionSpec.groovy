@@ -22,8 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import spock.lang.Ignore
 
 @Ignore
-@MinToolingApiVersion("1.6")
-@MinTargetGradleVersion("1.6")
+@MinToolingApiVersion("1.6-rc-1")
+@MinTargetGradleVersion("1.6-rc-1")
 class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
     def "plugin can contribute a custom tooling model"() {
         file('build.gradle') << """
@@ -38,10 +38,10 @@ class CustomModel {
     String getValue() { 'greetings' }
 }
 class CustomBuilder implements ToolingModelBuilder {
-    boolean canBuild(Class<?> type) {
-        return type.simpleName == 'CustomModel'
+    boolean canBuild(String modelName) {
+        return modelName == '${CustomModel.name}'
     }
-    Object buildAll(Class<?> type, ProjectInternal project) {
+    Object buildAll(String modelName, ProjectInternal project) {
         return new CustomModel()
     }
 }

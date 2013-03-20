@@ -24,6 +24,6 @@ import org.gradle.api.internal.project.ProjectInternal;
  */
 @Incubating
 public interface ToolingModelBuilder {
-    boolean canBuild(Class<?> type);
-    Object buildAll(Class<?> type, ProjectInternal project);
+    boolean canBuild(String modelName);
+    Object buildAll(String modelName, ProjectInternal project);
 }

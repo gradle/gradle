@@ -32,25 +32,25 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         registy.register(builder2)
 
         and:
-        builder1.canBuild(String) >> false
-        builder2.canBuild(String) >> true
+        builder1.canBuild("model") >> false
+        builder2.canBuild("model") >> true
 
         expect:
-        registy.getBuilder(String) == builder2
+        registy.getBuilder("model") == builder2
     }
 
     def "includes a simple implementation for the Void model"() {
         expect:
-        registy.getBuilder(Void).buildAll(Void, Mock(ProjectInternal)) == null
+        registy.getBuilder(Void.class.name).buildAll(Void.class.name, Mock(ProjectInternal)) == null
     }
 
     def "fails when no builder is available for requested model"() {
         when:
-        registy.getBuilder(String)
+        registy.getBuilder("model")
 
         then:
         UnsupportedOperationException e = thrown()
-        e.message == "No builders are available to build a model of type 'String'."
+        e.message == "No builders are available to build a model of type 'model'."
     }
 
     def "fails when multiple builders are available for requested model"() {
@@ -62,14 +62,14 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         registy.register(builder2)
 
         and:
-        builder1.canBuild(String) >> true
-        builder2.canBuild(String) >> true
+        builder1.canBuild("model") >> true
+        builder2.canBuild("model") >> true
 
         when:
-        registy.getBuilder(String)
+        registy.getBuilder("model")
 
         then:
         UnsupportedOperationException e = thrown()
-        e.message == "Multiple builders are available to build a model of type 'String'."
+        e.message == "Multiple builders are available to build a model of type 'model'."
     }
 }

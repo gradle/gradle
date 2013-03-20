@@ -24,10 +24,8 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.tooling.internal.eclipse.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.internal.protocol.BuildableProjectVersion1;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion2;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseTaskVersion1;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -48,14 +46,15 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private DefaultGradleProject rootGradleProject;
     private ProjectInternal currentProject;
 
-    public boolean canBuild(Class<?> type) {
-        return type.isAssignableFrom(EclipseProjectVersion3.class);
+    public boolean canBuild(String modelName) {
+        return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
+                || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
     }
 
-    public DefaultEclipseProject buildAll(Class<?> type, ProjectInternal project) {
-        boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);
+    public DefaultEclipseProject buildAll(String modelName, ProjectInternal project) {
+        boolean includeTasks = modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject");
         tasksFactory = new TasksFactory(includeTasks);
-        projectDependenciesOnly = !EclipseProjectVersion3.class.isAssignableFrom(type);
+        projectDependenciesOnly = modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
         currentProject = project;
         ProjectInternal root = project.getRootProject();
         rootGradleProject = gradleProjectBuilder.buildAll(project);
@@ -67,8 +66,8 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     }
 
     private void applyEclipsePlugin(Project root) {
-        Set<Project> allprojects = root.getAllprojects();
-        for (Project p : allprojects) {
+        Set<Project> allProjects = root.getAllprojects();
+        for (Project p : allProjects) {
             p.getPlugins().apply(EclipsePlugin.class);
         }
         root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();

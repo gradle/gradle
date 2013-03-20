@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleTask;
-import org.gradle.tooling.internal.protocol.InternalGradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
@@ -33,14 +32,14 @@ import java.util.List;
 /**
  * Builds the GradleProject that contains the project hierarchy and task information
  *
- * @author: Szczepan Faber, created at: 7/27/11
+ * @author Szczepan Faber, created at: 7/27/11
  */
 public class GradleProjectBuilder implements ToolingModelBuilder {
-    public boolean canBuild(Class<?> type) {
-        return type == InternalGradleProject.class;
+    public boolean canBuild(String modelName) {
+        return modelName.equals("org.gradle.tooling.model.GradleProject");
     }
 
-    public Object buildAll(Class<?> type, ProjectInternal project) {
+    public Object buildAll(String modelName, ProjectInternal project) {
         return buildHierarchy(project.getRootProject());
     }
 
