@@ -37,7 +37,7 @@ public class JUnitCategoriesIntegrationTest extends AbstractIntegrationTest {
     public void canSpecifyIncludeAndExcludeCategories() {
         executer.withTasks('test').run();
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.CatATests', 'org.gradle.CatBTests', 'org.gradle.CatADTests','org.gradle.MixedTests')
+        result.assertTestClassesExecuted('org.gradle.CatATests', 'org.gradle.CatBTests', 'org.gradle.CatADTests', 'org.gradle.MixedTests')
         result.testClass("org.gradle.CatATests").assertTestCount(4, 0, 0)
         result.testClass("org.gradle.CatATests").assertTestsExecuted('catAOk1', 'catAOk2', 'catAOk3', 'catAOk4')
         result.testClass("org.gradle.CatBTests").assertTestCount(4, 0, 0)
@@ -46,5 +46,28 @@ public class JUnitCategoriesIntegrationTest extends AbstractIntegrationTest {
         result.testClass("org.gradle.CatADTests").assertTestsExecuted('catAOk1', 'catAOk2')
         result.testClass("org.gradle.MixedTests").assertTestCount(2, 0, 0)
         result.testClass("org.gradle.MixedTests").assertTestsExecuted('catAOk1', 'catBOk2')
+    }
+
+    @Test
+    public void canSpecifyExcludesOnly() {
+        executer.withTasks('test').run();
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('org.gradle.NoCatTests', 'org.gradle.SomeTests', 'org.gradle.SomeOtherCatTests')
+        result.testClass("org.gradle.SomeOtherCatTests").assertTestCount(2, 0, 0)
+        result.testClass("org.gradle.SomeOtherCatTests").assertTestsExecuted('someOtherOk1', 'someOtherOk2')
+        result.testClass("org.gradle.NoCatTests").assertTestCount(2, 0, 0)
+        result.testClass("org.gradle.NoCatTests").assertTestsExecuted('noCatOk1', 'noCatOk2')
+        result.testClass("org.gradle.SomeTests").assertTestCount(3, 0, 0)
+        result.testClass("org.gradle.SomeTests").assertTestsExecuted('noCatOk3', 'noCatOk4', 'someOtherCatOk2')
+    }
+
+    @Test
+    public void canCombineCategoriesWithCustomRunner() {
+        executer.withTasks('test').run();
+        println testDirectory
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted('org.gradle.SomeLocaleTests')
+        result.testClass("org.gradle.SomeLocaleTests").assertTestCount(3, 0, 0)
+        result.testClass("org.gradle.SomeLocaleTests").assertTestsExecuted('ok1 [de]', 'ok1 [en]', 'ok1 [fr]')
     }
 }
