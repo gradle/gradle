@@ -34,6 +34,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
         this.binDistribution = binDistribution;
     }
 
+    @Override
+    public String toString() {
+        return version.toString();
+    }
+
     public TestFile getGradleHomeDir() {
         return gradleHomeDir;
     }
