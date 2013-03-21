@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 
-@TargetVersions(['4,0', '4.4', '4.8.2', '4.11'])
+@TargetVersions(['4.4', '4.6', '4.8.2', '4.11'])
 class JUnitCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -47,7 +47,7 @@ class JUnitCrossVersionIntegrationSpec extends MultiVersionIntegrationSpec {
         result.testClass('org.gradle.Junit3Test').assertTestPassed('testRenamesItself')
         result.testClass('org.gradle.Junit4Test').assertTestsExecuted('ok')
         result.testClass('org.gradle.Junit4Test').assertTestPassed('ok')
-        result.testClass('org.gradle.Junit4Test').assertTestsSkipped('broken', 'assumptionFailed')
+        result.testClass('org.gradle.Junit4Test').assertTestsSkipped('broken')
         result.testClass('org.gradle.IgnoredTest').assertTestsSkipped('testIgnored')
         result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
     }

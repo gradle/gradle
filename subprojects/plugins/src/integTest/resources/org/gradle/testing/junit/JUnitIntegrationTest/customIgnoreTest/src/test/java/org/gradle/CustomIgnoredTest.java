@@ -53,7 +53,6 @@ public class CustomIgnoredTest {
                     notifier.fireTestFailure(new Failure(description, e));
                 }
             }
-
         }
 
         private org.gradle.CustomIgnoredTest reflectMeATestContainingInstance(Class<? extends org.gradle.CustomIgnoredTest> testClass) {
