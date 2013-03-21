@@ -1,0 +1,6 @@
+task taskX << {
+    println 'taskX'
+}
+task taskY(mustRunAfter: 'taskX') << {
+    println 'taskY'
+}
