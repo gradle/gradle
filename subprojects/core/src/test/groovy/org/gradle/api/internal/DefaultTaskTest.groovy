@@ -92,13 +92,22 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    public void testMustRunAfter() {
+    public void testMustRunAfterDependencies() {
         Task mustRunAfterTask = createTask(project, "mustRunAfter")
         Task mustRunAfterTaskUsingPath = project.getTasks().add("path")
         Task task = createTask(project, TEST_TASK_NAME)
 
         task.mustRunAfter(mustRunAfterTask, "path")
-        assert task.mustRunAfter.getDependencies(task) == [mustRunAfterTask, mustRunAfterTaskUsingPath] as Set
+        assert task.mustRunAfterTaskDependencies.getDependencies(task) == [mustRunAfterTask, mustRunAfterTaskUsingPath] as Set
+    }
+
+    @Test
+    public void testMustRunAfter() {
+        Task mustRunAfterTask = createTask(project, "mustRunAfter")
+        Task task = createTask(project, TEST_TASK_NAME)
+
+        mustRunAfterTask.mustRunAfter(task, "path")
+        assert mustRunAfterTask.mustRunAfter == [task, "path"] as Set
     }
 
     @Test

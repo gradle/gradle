@@ -528,7 +528,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return this;
     }
 
-    public TaskDependency getMustRunAfter() {
+    public TaskDependency getMustRunAfterTaskDependencies() {
         return mustRunAfter;
+    }
+
+    public Set<Object> getMustRunAfter() {
+        return mustRunAfter.getValues();
     }
 }

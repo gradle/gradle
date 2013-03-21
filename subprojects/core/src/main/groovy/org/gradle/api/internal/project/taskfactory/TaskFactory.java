@@ -73,6 +73,10 @@ public class TaskFactory implements ITaskFactory {
         if (dependsOnTasks != null) {
             task.dependsOn(dependsOnTasks);
         }
+        Object mustRunAfterTasks = actualArgs.get(Task.MUST_RUN_AFTER);
+        if (mustRunAfterTasks != null) {
+            task.mustRunAfter(mustRunAfterTasks);
+        }
         Object description = actualArgs.get(Task.TASK_DESCRIPTION);
         if (description != null) {
             task.setDescription(description.toString());

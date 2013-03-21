@@ -526,7 +526,7 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(":" + name));
             allowing(task).getState();
             will(returnValue(state));
-            allowing(task).getMustRunAfter();
+            allowing(task).getMustRunAfterTaskDependencies();
             will(returnValue(new DefaultTaskDependency()));
             allowing(task).compareTo(with(notNullValue(TaskInternal.class)));
             will(new org.jmock.api.Action() {
