@@ -101,7 +101,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     public void canRunMixOfJunit3And4Tests() {
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
         resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
-        resources.maybeCopy('JUnitIntegrationTest/customIgnoreTest')
+        resources.maybeCopy('JUnitIntegrationTest/ignoreTests')
 
         executer.withTasks('check').run()
 
@@ -124,6 +124,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
     public void supportsAssumptions() {
         resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
         resources.maybeCopy('JUnitIntegrationTest/customIgnoreTest')
+        resources.maybeCopy('JUnitIntegrationTest/ignoreTests')
         executer.withTasks('check').run()
 
         def result = new DefaultTestExecutionResult(testDirectory)

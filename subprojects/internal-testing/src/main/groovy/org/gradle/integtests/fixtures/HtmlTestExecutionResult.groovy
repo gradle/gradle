@@ -41,9 +41,8 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         def indexFile = new File(htmlReportDirectory, "index.html")
         assert indexFile.exists()
         Document html = Jsoup.parse(indexFile, null)
-        def executedTestClasses = html.select("div:contains(classes) a").collect { it.text() }
+        def executedTestClasses = html.select("div:has(h2:contains(Classes)) a").collect { it.text() }
         assert executedTestClasses.containsAll(expectedTestClasses)
-
     }
 
     def assertHtmlReportForTestClassExists(String... classNames) {
