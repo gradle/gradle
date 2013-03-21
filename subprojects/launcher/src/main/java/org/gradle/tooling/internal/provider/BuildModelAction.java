@@ -21,10 +21,15 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.*;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.util.ClasspathUtil;
+import org.gradle.util.GUtil;
 
 import java.io.Serializable;
+import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 
-public class BuildModelAction implements BuildAction<Object>, Serializable {
+public class BuildModelAction implements BuildAction<ToolingModel>, Serializable {
     private final boolean runTasks;
     private final String modelName;
     private Object model;
@@ -34,7 +39,7 @@ public class BuildModelAction implements BuildAction<Object>, Serializable {
         this.runTasks = runTasks;
     }
 
-    public Object run(BuildController buildController) {
+    public ToolingModel run(BuildController buildController) {
         DefaultGradleLauncher launcher = (DefaultGradleLauncher) buildController.getLauncher();
         if (runTasks) {
             launcher.addListener(new TasksCompletionListener() {
@@ -54,7 +59,10 @@ public class BuildModelAction implements BuildAction<Object>, Serializable {
             });
             buildController.configure();
         }
-        return model;
+
+        List<URL> classpath = model == null ? Collections.<URL>emptyList() : ClasspathUtil.getClasspath(model.getClass().getClassLoader());
+        byte[] serializedModel = GUtil.serialize(model);
+        return new ToolingModel(classpath, serializedModel);
     }
 
     private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {

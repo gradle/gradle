@@ -31,6 +31,7 @@ class UnknownModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         UnknownModelException e = thrown()
-        e.message.contains('Unknown model: \'UnknownModel\'.')
+        // TODO:ADAM - clean up message
+        e.message.contains('UnknownModel')
     }
 }
