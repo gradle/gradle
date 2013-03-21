@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
+
 /**
  * Mixed into a provider connection, to allow models about a build to be requested by the client.
  *
@@ -34,9 +36,15 @@ public interface ModelBuilder extends InternalProtocolInterface {
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.6-rc-1.</p>
      *
      * @param modelIdentifier The identifier of the model to build.
-     * @throws UnsupportedOperationException When the given model type is not supported.
+     * @throws BuildExceptionVersion1 On build failure.
+     * @throws InternalUnsupportedModelException When the requested model is not supported.
+     * @throws InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 1.6-rc-1
      */
-    BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
+    BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws
+            BuildExceptionVersion1,
+            InternalUnsupportedModelException,
+            InternalUnsupportedBuildArgumentException,
+            IllegalStateException;
 }
