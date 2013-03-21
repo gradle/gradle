@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import spock.lang.Ignore
 
-@Ignore
 @MinToolingApiVersion("1.6-rc-1")
 @MinTargetGradleVersion("1.6-rc-1")
 class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
@@ -34,7 +33,7 @@ import org.gradle.api.internal.project.ProjectInternal
 
 apply plugin: CustomPlugin
 
-class CustomModel {
+class CustomModel implements Serializable {
     String getValue() { 'greetings' }
 }
 class CustomBuilder implements ToolingModelBuilder {
@@ -65,7 +64,18 @@ class CustomPlugin implements Plugin<Project> {
         model.value == 'greetings'
     }
 
+    @Ignore
     def "gives reasonable error message for unknown model"() {
+        expect: false
+    }
+
+    @Ignore
+    def "gives reasonable error message when model build fails"() {
+        expect: false
+    }
+
+    @Ignore
+    def "gives reasonable error message when model cannot be transported to consumer"() {
         expect: false
     }
 }
