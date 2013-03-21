@@ -83,8 +83,6 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
         context.checking(new Expectations() {{
             allowing(jUnitOptionsMock).getIncludeCategories();
             allowing(jUnitOptionsMock).getExcludeCategories();
-            one(testMock).getTestResultsDir();
-            will(returnValue(testResultsDir));
             one(serviceRegistry).get(IdGenerator.class);
             will(returnValue(idGenerator));
             one(serviceRegistry).get(ActorFactory.class);

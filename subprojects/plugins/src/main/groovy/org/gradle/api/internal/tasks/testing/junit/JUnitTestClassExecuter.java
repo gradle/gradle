@@ -36,11 +36,11 @@ public class JUnitTestClassExecuter {
     private final JUnitSpec options;
     private final TestClassExecutionListener executionListener;
 
-    public JUnitTestClassExecuter(ClassLoader applicationClassLoader, JUnitSpec options, RunListener listener, TestClassExecutionListener executionListener) {
+    public JUnitTestClassExecuter(ClassLoader applicationClassLoader, JUnitSpec spec, RunListener listener, TestClassExecutionListener executionListener) {
         assert executionListener instanceof ThreadSafe;
         this.applicationClassLoader = applicationClassLoader;
         this.listener = listener;
-        this.options = options;
+        this.options = spec;
         this.executionListener = executionListener;
     }
 

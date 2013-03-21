@@ -47,7 +47,7 @@ class JUnitTestClassProcessorTest {
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final ActorFactory actorFactory = new TestActorFactory()
     private final JUnitSpec spec = new JUnitSpec(new JUnitOptions());
-    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.testDirectory, spec, new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
+    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(spec, new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
 
     @Test
     public void executesAJUnit4TestClass() {
