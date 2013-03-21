@@ -37,4 +37,9 @@ public class JUnitSpec implements Serializable {
     public Set<String> getExcludeCategories() {
         return excludeCategories;
     }
+
+    public boolean hasCategoryConfiguration() {
+        return !(excludeCategories.isEmpty() && includeCategories.isEmpty());
+
+    }
 }

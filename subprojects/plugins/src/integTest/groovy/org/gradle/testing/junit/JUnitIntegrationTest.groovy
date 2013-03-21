@@ -475,6 +475,20 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
         result.assertTestClassesExecuted('org.gradle.SomeTest')
         result.testClass("org.gradle.SomeTest").assertTestCount(2, 0, 0)
-        result.testClass("org.gradle.SomeTest").assertTestsExecuted('testOk1','testOk3')
+        result.testClass("org.gradle.SomeTest").assertTestsExecuted('testOk1', 'testOk3')
+    }
+
+    @Test
+    public void emitsWarningIfCategoriesNotSupported() {
+        when:
+        ExecutionResult executionResult = executer.withTasks('test').run();
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+
+        then:
+        result.assertTestClassesExecuted('org.gradle.SomeTest')
+        result.testClass('org.gradle.SomeTest')
+                .assertTestCount(1, 0, 0)
+                .assertTestsExecuted('ok')
+        assert executionResult.getOutput().contains("Ignoring JUnit category configuration.")
     }
 }

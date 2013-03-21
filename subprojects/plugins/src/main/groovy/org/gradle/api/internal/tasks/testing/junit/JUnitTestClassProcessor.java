@@ -52,11 +52,6 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
         this.outputRedirector = standardOutputRedirector;
     }
 
-    public JUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator, ActorFactory actorFactory,
-                                   StandardOutputRedirector standardOutputRedirector) {
-        this(testResultsDir, null, idGenerator, actorFactory, standardOutputRedirector);
-    }
-
     public void startProcessing(TestResultProcessor resultProcessor) {
         // Build a result processor chain
         ClassLoader applicationClassLoader = Thread.currentThread().getContextClassLoader();
