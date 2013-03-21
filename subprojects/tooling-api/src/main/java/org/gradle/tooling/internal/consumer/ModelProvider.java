@@ -34,15 +34,6 @@ public class ModelProvider {
     public <T> T provide(ConsumerConnection connection, Class<T> modelType, ConsumerOperationParameters operationParameters) {
         VersionDetails version = connection.getVersionDetails();
 
-        Class<?> protocolType = version.mapModelTypeToProtocolType(modelType);
-        if (protocolType == null) {
-            throw new UnknownModelException(
-                    "Unknown model: '" + modelType.getSimpleName() + "'.\n"
-                        + "Most likely you are trying to acquire a model for a class that is not a valid Tooling API model class.\n"
-                        + "Review the documentation on the version of Tooling API you use to find out what models can be build."
-            );
-        }
-
         if (operationParameters.getJavaHome() != null) {
             if(!version.supportsConfiguringJavaHome()) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJavaHome() and buildLauncher.setJavaHome()");
@@ -79,7 +70,8 @@ public class ModelProvider {
         }
         if (!version.isModelSupported(modelType)) {
             //don't bother asking the provider for this model
-            throw new UnsupportedOperationException(String.format("I don't know how to build a model of type '%s'.", modelType.getSimpleName()));
+            throw new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'.",
+                    version.getVersion(), modelType.getSimpleName()));
         }
 
         return connection.run(modelType, operationParameters);
