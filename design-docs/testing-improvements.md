@@ -101,6 +101,7 @@ HTML report is generated from the binary format, not from XML results
 - When exclude categories are specified, a test method is filtered if it or its test class is annotated with a
   `@Category` annotation where one of the listed types is assignable-to one of the specified exclude category types.
 - A test class is filtered when all of its test methods are filtered.
+- if include and/or exclude categories are defined but the selected JUnit version does not support categories, a warning is emitted.
 
 ### Implementation
 
@@ -139,6 +140,7 @@ HTML report is generated from the binary format, not from XML results
     - Test method annotated with exclude category on class with no annotations is not executed.
 - Class uses custom test runner that creates a tree of tests with a mix of categories.
 - Run one filtering test case against multiple JUnit versions in `JUnitCrossVersionIntegrationSpec`.
+- Warning is emitted if categories are configured but junit version does not support categories.
 - Report includes details when one of the include or exclude annotation types cannot be loaded.
 - Report include details when all test classes are excluded
 - When a test method is both included and @Ignored, the test method is reported as 'skipped'.
