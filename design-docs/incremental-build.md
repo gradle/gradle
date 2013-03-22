@@ -20,7 +20,7 @@ Gradle should provide some mechanism that allows an incremental task to be imple
 For some tasks, the exact output files are not known until after the task has completed. For these tasks, Gradle scans the output directories
 both before and after task execution and determines the output files based on the differences. This has a couple of drawbacks:
 
-- It's potentially quite slow, and often the task implementation can ddetermine the output files more cheaply.
+- It's potentially quite slow, and often the task implementation can determine the output files more cheaply.
 - It's not very accurate if the task does any kind of up-to-date checking itself or if it changes file timestamps.
 
 The set of output files is currently used for:
@@ -60,7 +60,7 @@ Gradle should invalidate a task's outputs when its implementation changes.
 ## Don't compile a source file when the API of its compile dependencies has not changed
 
 Currently, changing the body of a method invalidates all class files that have been compiled against the method's class. Instead, only the method's class should be recompiled.
-Simiarly, changing a resource file invalidates all class files that included that resource file in the compile classpath. Instead, resource files should be ignored
+Similarly, changing a resource file invalidates all class files that included that resource file in the compile classpath. Instead, resource files should be ignored
 when compiling.
 
 We don't necessarily need a full incremental Java compilation to improve this. For example, the Java compilation task may consider the API of the compile classpath - if it has
@@ -69,9 +69,59 @@ through the dependency graph.
 
 # Implementation plan
 
-## Plugin author implements incremental task
+## Plugin author uses changes to input files to implement incremental task
 
-TBD
+Incremental input file changes will be provided via an optional parameter on the TaskAction method for a task. The TaskExecutionContext will provide access to the set of changed input files,
+as well as a flag to indicate if incremental execution is possible.
+If incremental execution is not possible, then the task action will be executed with a 'rebuild' context, where every input file is regarded as "ADDED".
+
+Incremental execution is not possible when:
+- If there are no declared outputs for the task
+- One or more of the output files have changed since last execution
+- One or more of the input properties have changed since last execution
+- There is no information available about a previous execution
+- The upToDate action of the task returns false
+- Other cases listed in test cases below
+
+    class IncrementalSync extends DefaultTask {
+        @InputFiles
+        def FileCollection src
+
+        @OutputDirectory
+        def File destination
+
+        @TaskAction
+        void execute(TaskExecutionContext executionContext) {
+            if (executionContext.rebuild) {
+                FileUtils.forceDelete(destination)
+            }
+            executionContext.inputFileChanges { change ->
+                def target = new File(destination, change.file.name)
+                if (change.added || change.modified) {
+                    FileUtils.copyFile(change.file, target)
+                } else if (change.removed) {
+                    FileUtils.forceDelete(target)
+                }
+            }
+        }
+    }
+
+### Test coverage
+
+1. Incremental task action is executed with rebuild context when run for the first time
+2. Incremental task action is executed with a an empty incremental context when run with no changes
+3. Incremental task is executed with incremental context when run with:
+    - Single added input file
+    - Single removed input file
+    - Single modified input file
+4. Incremental task action is executed with 'rebuild' context (every input file flagged as "added") when:
+    - Input property value has changed since previous execution
+    - Task class has changed since previous execution
+    - Output file has changed since previous execution
+    - Single output file removed since previous execution
+    - Task has no declared outputs
+    - Task.upToDate() is false
+    - Gradle build executed with '--rerun-tasks'
 
 ## Java compile task specifies its output files
 
