@@ -15,6 +15,8 @@ When the compile settings change, then all source files must be recompiled.
 
 Gradle should provide some mechanism that allows an incremental task to be implemented.
 
+TODO - treat all inputs as out-of-date when any output file has changed, or any other task input has changed, or no history available.
+
 ## Plugin author implements a task that can accurately describe its output files
 
 For some tasks, the exact output files are not known until after the task has completed. For these tasks, Gradle scans the output directories
@@ -69,7 +71,7 @@ through the dependency graph.
 
 # Implementation plan
 
-## Plugin author uses changes to input files to implement incremental task
+## Story: Plugin author uses changes to input files to implement incremental task
 
 Incremental input file changes will be provided via an optional parameter on the TaskAction method for a task. The TaskExecutionContext will provide access to the set of changed input files,
 as well as a flag to indicate if incremental execution is possible.
@@ -123,10 +125,10 @@ Incremental execution is not possible when:
     - Task.upToDate() is false
     - Gradle build executed with '--rerun-tasks'
 
-## Java compile task specifies its output files
+## Story: Java compile task specifies its output files
 
 TBD
 
 # Open issues
 
-None yet.
+- Some tasks may need to know about changed output files.
