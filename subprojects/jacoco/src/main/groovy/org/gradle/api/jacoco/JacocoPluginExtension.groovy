@@ -18,6 +18,7 @@ package org.gradle.api.jacoco
 import groovy.util.logging.Slf4j
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.process.JavaForkOptions
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.internal.jacoco.JacocoAgentJar
@@ -33,6 +34,16 @@ class JacocoPluginExtension {
 	 * Version of Jacoco JARs to use.
 	 */
 	String toolVersion = '0.6.2.201302030002'
+
+	/**
+	 * The name of the task used for unit tests.
+	 */
+	String unitTestTaskName = JavaPlugin.TEST_TASK_NAME
+
+	/**
+	 * The name of task used for integration tests.
+	 */
+	String integrationTestTaskName = 'integTest'
 
 	protected final Project project
 	private final JacocoAgentJar agent
