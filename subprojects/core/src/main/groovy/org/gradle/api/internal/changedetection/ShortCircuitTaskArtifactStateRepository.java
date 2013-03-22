@@ -17,6 +17,8 @@ package org.gradle.api.internal.changedetection;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.StartParameter;
+import org.gradle.api.execution.RebuildTaskExecutionContext;
+import org.gradle.api.execution.TaskExecutionContext;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -38,12 +40,22 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return new ShortCircuitArtifactState(task, repository.getStateFor(task));
         }
         LOGGER.info(String.format("%s has not declared any outputs, assuming that it is out-of-date.", StringUtils.capitalize(task.toString())));
-        return new NoHistoryArtifactState();
+        return new NoHistoryArtifactState(task);
     }
 
     private static class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
+        private final TaskInternal task;
+
+        public NoHistoryArtifactState(TaskInternal task) {
+            this.task = task;
+        }
+
         public boolean isUpToDate() {
             return false;
+        }
+
+        public TaskExecutionContext getExecutionContext() {
+            return new RebuildTaskExecutionContext(task);
         }
 
         public void beforeTask() {
@@ -75,6 +87,14 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
         public boolean isUpToDate() {
             return !startParameter.isRerunTasks() && task.getOutputs().getUpToDateSpec().isSatisfiedBy(task) && state.isUpToDate();
+        }
+
+        public TaskExecutionContext getExecutionContext() {
+            // If we would normally re-run the task, then use a rebuild context
+            if (startParameter.isRerunTasks() || !task.getOutputs().getUpToDateSpec().isSatisfiedBy(task)) {
+                return new RebuildTaskExecutionContext(task);
+            }
+            return state.getExecutionContext();
         }
 
         public TaskExecutionHistory getExecutionHistory() {

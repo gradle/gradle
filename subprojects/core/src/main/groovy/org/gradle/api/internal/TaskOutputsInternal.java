@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.execution.TaskExecutionContext;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
@@ -26,4 +27,9 @@ public interface TaskOutputsInternal extends TaskOutputs {
     FileCollection getPreviousFiles();
 
     void setHistory(TaskExecutionHistory history);
+
+    void setExecutionContext(TaskExecutionContext executionContext);
+
+    TaskExecutionContext getExecutionContext();
+
 }

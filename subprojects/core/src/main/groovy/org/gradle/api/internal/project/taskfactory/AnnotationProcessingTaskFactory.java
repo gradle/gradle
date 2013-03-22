@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.execution.TaskExecutionContext;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
@@ -144,31 +145,66 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             throw new GradleException(String.format("Cannot use @TaskAction annotation on static method %s.%s().",
                     method.getDeclaringClass().getSimpleName(), method.getName()));
         }
-        if (method.getParameterTypes().length > 0) {
+        final Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length == 1) {
+            if (!parameterTypes[0].equals(TaskExecutionContext.class)) {
+                throw new GradleException(String.format(
+                        "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
+                        method.getDeclaringClass().getSimpleName(), method.getName(), parameterTypes[0]));
+            }
+        } else if (parameterTypes.length > 1) {
             throw new GradleException(String.format(
-                    "Cannot use @TaskAction annotation on method %s.%s() as this method takes parameters.",
+                    "Cannot use @TaskAction annotation on method %s.%s() as this method takes multiple parameters.",
                     method.getDeclaringClass().getSimpleName(), method.getName()));
         }
         if (methods.contains(method.getName())) {
             return;
         }
         methods.add(method.getName());
-        actions.add(new Action<Task>() {
-            public void execute(Task task) {
-                ClassLoader original = Thread.currentThread().getContextClassLoader();
-                Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());
-                try {
-                    ReflectionUtil.invoke(task, method.getName());
-                } finally {
-                    Thread.currentThread().setContextClassLoader(original);
-                }
-            }
-        });
+        if (parameterTypes.length == 1) {
+            actions.add(new IncrementalTaskAction(method));
+        } else {
+            actions.add(new StandardTaskAction(method));
+        }
     }
 
     private static boolean isGetter(Method method) {
         return method.getName().startsWith("get") && method.getReturnType() != Void.TYPE
                 && method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers());
+    }
+
+    private static class StandardTaskAction implements Action<Task> {
+        private final Method method;
+
+        public StandardTaskAction(Method method) {
+            this.method = method;
+        }
+
+        public void execute(Task task) {
+            ClassLoader original = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());
+            try {
+                doActions(task, method.getName());
+            } finally {
+                Thread.currentThread().setContextClassLoader(original);
+            }
+        }
+
+        protected void doActions(Task task, String methodName) {
+            ReflectionUtil.invoke(task, methodName);
+        }
+    }
+
+    public static class IncrementalTaskAction extends StandardTaskAction {
+
+        public IncrementalTaskAction(Method method) {
+            super(method);
+        }
+
+        protected void doActions(Task task, String methodName) {
+            TaskExecutionContext executionContext = ((TaskInternal) task).getOutputs().getExecutionContext();
+            ReflectionUtil.invoke(task, methodName, executionContext);
+        }
     }
 
     private class Validator implements Action<Task>, TaskValidator {

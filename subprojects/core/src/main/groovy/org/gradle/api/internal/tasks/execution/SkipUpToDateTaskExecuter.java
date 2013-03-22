@@ -41,16 +41,19 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         LOGGER.debug("Determining if {} is up-to-date", task);
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
         try {
-            if (taskArtifactState.isUpToDate()) {
-                LOGGER.info("Skipping {} as it is up-to-date", task);
-                state.upToDate();
-                return;
-
-            }
-            LOGGER.debug("{} is not up-to-date", task);
+            // TODO: If this is an incremental task, don't do this.
+//            if (taskArtifactState.isUpToDate()) {
+//                LOGGER.info("Skipping {} as it is up-to-date", task);
+//                state.upToDate();
+//                return;
+//
+//            }
+//            LOGGER.debug("{} is not up-to-date", task);
 
             taskArtifactState.beforeTask();
             task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
+            // TODO This is a crappy place for this
+            task.getOutputs().setExecutionContext(taskArtifactState.getExecutionContext());
             try {
                 executer.execute(task, state);
                 if (state.getFailure() == null) {

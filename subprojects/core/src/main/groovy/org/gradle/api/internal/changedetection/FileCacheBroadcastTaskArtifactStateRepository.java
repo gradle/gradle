@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.api.execution.TaskExecutionContext;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 
@@ -35,6 +36,10 @@ public class FileCacheBroadcastTaskArtifactStateRepository implements TaskArtifa
                 listener.cacheable(task.getOutputs().getFiles());
 
                 return state.isUpToDate();
+            }
+
+            public TaskExecutionContext getExecutionContext() {
+                return state.getExecutionContext();
             }
 
             public void beforeTask() {
