@@ -128,7 +128,10 @@ This story adds support for automatically applying the `build-setup` plugin when
 
 # Story: Handle existing Gradle build files
 
-Better handle the case where there is already some Gradle build scripts (i.e. don't overwrite an existing Gradle build).
+Better handle the case where there is already some Gradle build scripts.
+
+* When `setupBuild` is run and any of the files that would be generated already exist, warn the user and do not
+  overwrite the file.
 
 # Story: Create a Java library project from scratch
 
@@ -136,8 +139,10 @@ Better handle the case where there is already some Gradle build scripts (i.e. do
 * When `type` is `java-library` then:
     * Ignore any existing POM.
     * Generate a `build.gradle` that applies the Java plugin, adds `mavenCentral()` and the dependencies to allow testing with JUnit.
-    * Create the appropriate source directories.
-    * Possibly add a sample class and a unit test.
+    * Create the appropriate source directories, if they do not exist.
+    * Possibly add a sample class and a unit test, if there are no existing source or test files.
+* When `type` is not specified then:
+    * Convert a POM, if present.
 
 ## User interaction
 
@@ -146,6 +151,10 @@ From the command-line:
 1. User downloads and installs a Gradle distribution.
 2. User runs `gradle setupBuild --type java-library` from an empty directory.
 3. User modifies generated build scripts and source, as appropriate.
+
+# Story: Improve POM conversion
+
+TBD - fix issues with POM conversion to make it more accurate
 
 # Story: User manually completes migration with help from the build comparison plugin
 
@@ -158,6 +167,20 @@ From the command-line:
 * Add the `setup build` action. When invoked it:
     * Determines the most recent Gradle release.
     * Uses it to run the `setup build` action.
+
+# Story: Create a library project from scratch
+
+* The user specifies the type of library project to create
+* As for Java library project creation
+* Add support for prompting from the command-line and tooling API
+
+## User interaction
+
+1. User downloads and installs a Gradle distribution.
+2. User runs `gradle setupBuild` from an empty directory.
+3. The user is prompted for the type of project they would like to create. Alternatively,
+   the user can specify the project type as a command-line option.
+4. User modifies generated build scripts and source, as appropriate.
 
 # Story: Migrating from Ant to Gradle
 
@@ -176,12 +199,6 @@ From the command-line:
 2. User runs `gradle initGradleBuild` from the root directory of the Ant build.
 3. User runs the appropriate build comparison task from the root directory.
 4. User modifies Gradle build, directed by the build comparison report.
-
-From the IDE:
-
-1. User runs `initialize Gradle build` action from UI and selects the Ant build to initialize from.
-2. User runs the appropriate build comparison task from the root directory.
-3. User modifies Gradle build, directed by the build comparison report.
 
 # Story: Migrating from Ant+Ivy to Gradle
 
@@ -210,22 +227,9 @@ As for the Ant to Gradle case.
 
 As for the Eclipse to Gradle case.
 
-# Story: Create a library project from scratch
+# Story: Add further project types
 
-* The user specifies the type of library project to create
-* As for Java library project creation
-
-## User interaction
-
-1. User downloads and installs a Gradle distribution.
-2. User runs `gradle setupBuild` from an empty directory.
-3. The user is prompted for the type of project they would like to create. Alternatively,
-   the user can specify the project type as a command-line option.
-4. User modifies generated build scripts and source, as appropriate.
-
-# Story: Create an application project from scratch
-
-As for creating a library project.
+TBD
 
 # Story: Create a project with custom convention from scratch
 
