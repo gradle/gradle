@@ -133,7 +133,7 @@ class JacocoPlugin implements Plugin<Project> {
 		}
 
 		// look for a project with a sonar plugin applied
-		currentProject.allprojects {
+		currentProject.rootProject.allprojects {
 			project.plugins.withType(SonarPlugin) {
 				currentProject.afterEvaluate {
 					currentProject.sonar.project.withProjectProperties { props ->
