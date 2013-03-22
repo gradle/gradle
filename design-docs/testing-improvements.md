@@ -145,6 +145,28 @@ HTML report is generated from the binary format, not from XML results
 - Report include details when all test classes are excluded
 - When a test method is both included and @Ignored, the test method is reported as 'skipped'.
 
+## Story: Add a JaCoCo code coverage plugin
+
+- Merge the [JaCoCo plugin pull request](https://github.com/gradle/gradle/pull/138)
+- Add `@Incubating` to public task, plugin and extension types.
+- Move tasks to `org.gradle.testing.jacoco.tasks`
+- Move plugin and extensions to `org.gradle.testing.jacoco.plugin`
+- Move default destination dir from `JacocoMerge` to plugin.
+- Move default report dir from `JacocoReport` to plugin.
+- Fix up input and output files on `JacocoReport`.
+- `JacocoReport` should not use sourcesets to represent source
+- Change the reporting task so that it `mustRunAfter` the test task.
+- Flip the relationship between `jacoco` plugin and `sonar` plugins.
+- Rename the `jacoco` project to `testing`.
+- Move the testing infrastructure into this project.
+- Change the reporting task to implement `Reporting`.
+
+### Test coverage
+
+- Report is generated when all tests fail.
+- Report is generated when one or more tests fail.
+- Report is not generated when tests cannot be run.
+
 ## Story: HTML test report shows runtime grouping of tests into suites
 
 - Add the tree of test execution to the test report

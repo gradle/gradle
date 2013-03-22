@@ -231,11 +231,6 @@ The report will show more information.
 
 ## Allow a custom reporting task to be implemented
 
-## Add a code coverage plugin
-
-Cobertura plugin adds instrument task and coverage report task. The test task depends on instrument task and the coverage report "always runs after"
-the test task.
-
 ## Include code coverage summary in the dashboard report
 
 ## Link to the API documentation in the dashboard report
