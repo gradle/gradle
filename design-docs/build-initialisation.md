@@ -33,7 +33,7 @@ files and supporting files.
 From the command-line:
 
 1. User downloads and installs a Gradle distribution.
-2. User runs `gradle initGradleBuild` from the root directory of the source tree.
+2. User runs `gradle setupBuild` from the root directory of the source tree.
 3. User runs the appropriate build comparison task from the root directory.
 4. User modifies Gradle build, if required, directed by the build comparison report.
 
@@ -108,17 +108,19 @@ general purpose:
 
 ## Test coverage
 
-* Change the existing integration tests to run the `buildSetup` task.
+* Change the existing integration tests to run the `setupBuild` task.
 * Change the existing integration tests to verify that the wrapper files are generated.
-* Verify that when `buildSetup` is run in a directory that does not contain a `pom.xml` then an empty `build.gradle` file
+* Change the existing integration tests to verify that a `settings.gradle` is generated.
+* Verify that when `setupBuild` is run in a directory that does not contain a `pom.xml` then an empty `build.gradle` file
   and the wrapper files are generated.
 
 # Story: User initializes a Gradle build without writing a stub build script
 
 This story adds support for automatically applying the `build-setup` plugin when `gradle setupBuild` is run:
 
-* Add `ProjectConfigureAction` to the plugin project which, for the root project only, adds a task rule that applies
-  the `build-setup` plugin when `setupBuild` is requested.
+* Add `ProjectConfigureAction` to the plugin project which adds a task rule that applies the `build-setup` plugin
+  when `setupBuild` is requested. It should only apply the plugin to the root project of a single project build
+  where the project build script does not exist.
 
 ## Test coverage
 
@@ -126,33 +128,36 @@ This story adds support for automatically applying the `build-setup` plugin when
 
 # Story: Handle existing Gradle build files
 
-Better handle the case where there's already some Gradle build scripts (i.e. don't overwrite an existing Gradle build).
-
-# Story: User manually completes migration with help from the build comparison plugin
-
-* Preconfigure the build comparison plugin, as appropriate.
-* Inform the user about the build comparison plugin.
+Better handle the case where there is already some Gradle build scripts (i.e. don't overwrite an existing Gradle build).
 
 # Story: Create a Java library project from scratch
 
-* Generate a `build.gradle` that applies the Java plugin, adds `mavenCentral()` and the dependencies to allow testing with JUnit.
-* Generate a `settings.gradle`.
-* Generate the wrapper files.
-* Create the appropriate source directories.
-* Possibly add a class and a unit test.
+* Add a `--type` command-line option to `setupBuild`.
+* When `type` is `java-library` then:
+    * Ignore any existing POM.
+    * Generate a `build.gradle` that applies the Java plugin, adds `mavenCentral()` and the dependencies to allow testing with JUnit.
+    * Create the appropriate source directories.
+    * Possibly add a sample class and a unit test.
 
 ## User interaction
 
 From the command-line:
 
 1. User downloads and installs a Gradle distribution.
-2. User runs `gradle initGradleBuild` from an empty directory.
+2. User runs `gradle setupBuild --type java-library` from an empty directory.
 3. User modifies generated build scripts and source, as appropriate.
 
-From the IDE:
+# Story: User manually completes migration with help from the build comparison plugin
 
-1. User runs `initialize Gradle build` action from the UI.
-2. User modifies generated build scripts and source, as appropriate.
+* Preconfigure the build comparison plugin, as appropriate.
+* Inform the user about the build comparison plugin.
+
+# Story: Expose build initialisation through the tooling API
+
+* Extend the tooling API to add the concept of actions. Running a build is a kind of action.
+* Add the `setup build` action. When invoked it:
+    * Determines the most recent Gradle release.
+    * Uses it to run the `setup build` action.
 
 # Story: Migrating from Ant to Gradle
 
@@ -213,7 +218,7 @@ As for the Eclipse to Gradle case.
 ## User interaction
 
 1. User downloads and installs a Gradle distribution.
-2. User runs `gradle initGradleBuild` from an empty directory.
+2. User runs `gradle setupBuild` from an empty directory.
 3. The user is prompted for the type of project they would like to create. Alternatively,
    the user can specify the project type as a command-line option.
 4. User modifies generated build scripts and source, as appropriate.
@@ -232,4 +237,4 @@ TBD
 
 # Open issues
 
-None yet.
+- Extensibility: need to be able to add more types of projects
