@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.tooling.internal.outcomes.DefaultProjectOutcomes;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -37,7 +36,7 @@ public class ProjectOutcomesModelBuilder implements ToolingModelBuilder {
         return modelName.equals("org.gradle.tooling.model.outcomes.ProjectOutcomes");
     }
 
-    public Object buildAll(String modelName, ProjectInternal project) {
+    public Object buildAll(String modelName, Project project) {
         return buildProjectOutput(project.getRootProject(), null);
     }
 

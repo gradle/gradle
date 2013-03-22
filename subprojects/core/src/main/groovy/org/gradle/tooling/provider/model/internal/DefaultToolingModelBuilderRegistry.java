@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
@@ -56,7 +56,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             return modelName.equals(Void.class.getName());
         }
 
-        public Object buildAll(String modelName, ProjectInternal project) {
+        public Object buildAll(String modelName, Project project) {
             return null;
         }
     }

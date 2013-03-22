@@ -16,19 +16,19 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.tooling.internal.idea.DefaultIdeaProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 /**
- * @author: Szczepan Faber, created at: 7/23/11
+ * @author Szczepan Faber, created at: 7/23/11
  */
 public class BasicIdeaModelBuilder implements ToolingModelBuilder {
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.idea.BasicIdeaProject");
     }
 
-    public DefaultIdeaProject buildAll(String modelName, ProjectInternal project) {
+    public DefaultIdeaProject buildAll(String modelName, Project project) {
         return new IdeaModelBuilder()
                 .setOfflineDependencyResolution(true)
                 .buildAll(modelName, project);

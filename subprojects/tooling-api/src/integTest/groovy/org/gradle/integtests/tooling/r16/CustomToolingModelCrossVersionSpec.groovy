@@ -29,7 +29,6 @@ class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import javax.inject.Inject
-import org.gradle.api.internal.project.ProjectInternal
 
 apply plugin: CustomPlugin
 
@@ -40,7 +39,7 @@ class CustomBuilder implements ToolingModelBuilder {
     boolean canBuild(String modelName) {
         return modelName == '${CustomModel.name}'
     }
-    Object buildAll(String modelName, ProjectInternal project) {
+    Object buildAll(String modelName, Project project) {
         return new CustomModel()
     }
 }

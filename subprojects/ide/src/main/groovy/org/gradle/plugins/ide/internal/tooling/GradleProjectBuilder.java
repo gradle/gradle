@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleTask;
@@ -39,11 +38,11 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return modelName.equals("org.gradle.tooling.model.GradleProject");
     }
 
-    public Object buildAll(String modelName, ProjectInternal project) {
+    public Object buildAll(String modelName, Project project) {
         return buildHierarchy(project.getRootProject());
     }
 
-    public DefaultGradleProject buildAll(ProjectInternal project) {
+    public DefaultGradleProject buildAll(Project project) {
         return buildHierarchy(project.getRootProject());
     }
 

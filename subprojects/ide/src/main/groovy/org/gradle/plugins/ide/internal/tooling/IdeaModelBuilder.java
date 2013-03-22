@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
@@ -41,8 +40,8 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         return modelName.equals("org.gradle.tooling.model.idea.IdeaProject");
     }
 
-    public DefaultIdeaProject buildAll(String modelName, ProjectInternal project) {
-        ProjectInternal root = project.getRootProject();
+    public DefaultIdeaProject buildAll(String modelName, Project project) {
+        Project root = project.getRootProject();
         applyIdeaPlugin(root);
         GradleProject rootGradleProject = gradleProjectBuilder.buildAll(project);
         return build(root, rootGradleProject);

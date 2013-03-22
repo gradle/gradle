@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.tooling.internal.eclipse.*;
@@ -44,19 +43,19 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private TasksFactory tasksFactory;
     private GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
     private DefaultGradleProject rootGradleProject;
-    private ProjectInternal currentProject;
+    private Project currentProject;
 
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
                 || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
     }
 
-    public DefaultEclipseProject buildAll(String modelName, ProjectInternal project) {
+    public DefaultEclipseProject buildAll(String modelName, Project project) {
         boolean includeTasks = modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject");
         tasksFactory = new TasksFactory(includeTasks);
         projectDependenciesOnly = modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
         currentProject = project;
-        ProjectInternal root = project.getRootProject();
+        Project root = project.getRootProject();
         rootGradleProject = gradleProjectBuilder.buildAll(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root);

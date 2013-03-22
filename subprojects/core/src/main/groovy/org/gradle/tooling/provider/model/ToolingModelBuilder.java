@@ -17,7 +17,7 @@
 package org.gradle.tooling.provider.model;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 
 /**
  * Responsible for building tooling models.
@@ -25,5 +25,5 @@ import org.gradle.api.internal.project.ProjectInternal;
 @Incubating
 public interface ToolingModelBuilder {
     boolean canBuild(String modelName);
-    Object buildAll(String modelName, ProjectInternal project);
+    Object buildAll(String modelName, Project project);
 }
