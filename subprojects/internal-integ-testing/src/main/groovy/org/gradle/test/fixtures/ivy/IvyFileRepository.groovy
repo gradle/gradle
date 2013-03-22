@@ -59,6 +59,14 @@ class IvyFileRepository implements IvyRepository {
     }
 
     IvyFileModule module(String organisation, String module, Object revision = '1.0') {
+        return createModule(organisation, module, revision as String)
+    }
+
+    IvyFileModule module(String module) {
+        return createModule("org.gradle.test", module, '1.0')
+    }
+
+    private IvyFileModule createModule(String organisation, String module, String revision) {
         def revisionString = revision.toString()
         def path = IvyPatternHelper.substitute(dirPattern, ModuleRevisionId.newInstance(organisation, module, revisionString))
         def moduleDir = rootDir.file(path)
