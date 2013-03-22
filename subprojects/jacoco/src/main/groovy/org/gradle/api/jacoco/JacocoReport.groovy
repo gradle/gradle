@@ -53,6 +53,10 @@ class JacocoReport extends JacocoBase {
 	 */
 	Object destPath = "${getProject().getBuildDir()}/reports/jacoco/${getName()}"
 
+	JacocoReport() {
+		onlyIf { getExecutionData().every { it.exists() } }
+	}
+
 	@TaskAction
 	void generate() {
 		getAnt().taskdef(name:'report', classname:'org.jacoco.ant.ReportTask', classpath:getJacocoClasspath().asPath)
