@@ -17,8 +17,10 @@ package org.gradle.api.jacoco
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
+import org.junit.Ignore
 import org.junit.Test
 
+@Ignore
 @TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002'])
 class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
