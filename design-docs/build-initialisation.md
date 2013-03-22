@@ -110,6 +110,8 @@ general purpose:
 
 * Change the existing integration tests to run the `buildSetup` task.
 * Change the existing integration tests to verify that the wrapper files are generated.
+* Verify that when `buildSetup` is run in a directory that does not contain a `pom.xml` then an empty `build.gradle` file
+  and the wrapper files are generated.
 
 # Story: User initializes a Gradle build without writing a stub build script
 
@@ -120,7 +122,7 @@ This story adds support for automatically applying the `build-setup` plugin when
 
 ## Test coverage
 
-* Change the existing integration tests so that they do not create the stub build script that applies the plugin
+* Change the existing integration tests so that they do not create the stub build script that applies the plugin.
 
 # Story: Handle existing Gradle build files
 
