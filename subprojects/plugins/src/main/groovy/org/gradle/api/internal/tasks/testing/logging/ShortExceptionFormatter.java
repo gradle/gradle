@@ -46,6 +46,10 @@ public class ShortExceptionFormatter implements TestExceptionFormatter {
         if (cause) {
             builder.append("Caused by: ");
         }
+        if(exception == null) {
+            builder.append("(null exception)\n");
+            return;
+        }
         String className = exception instanceof PlaceholderException
                 ? ((PlaceholderException) exception).getExceptionClassName() : exception.getClass().getName();
         builder.append(className);
