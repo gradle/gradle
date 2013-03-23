@@ -1,4 +1,3 @@
-
 This spec defines some improvements to improve incremental build and task up-to-date checks
 
 # Use cases
@@ -85,28 +84,28 @@ Incremental execution is not possible when:
 - The upToDate action of the task returns false
 - Other cases listed in test cases below
 
-    class IncrementalSync extends DefaultTask {
-        @InputFiles
-        def FileCollection src
+        class IncrementalSync extends DefaultTask {
+            @InputFiles
+            def FileCollection src
 
-        @OutputDirectory
-        def File destination
+            @OutputDirectory
+            def File destination
 
-        @TaskAction
-        void execute(TaskExecutionContext executionContext) {
-            if (executionContext.rebuild) {
-                FileUtils.forceDelete(destination)
-            }
-            executionContext.inputFileChanges { change ->
-                def target = new File(destination, change.file.name)
-                if (change.added || change.modified) {
-                    FileUtils.copyFile(change.file, target)
-                } else if (change.removed) {
-                    FileUtils.forceDelete(target)
+            @TaskAction
+            void execute(TaskExecutionContext executionContext) {
+                if (executionContext.rebuild) {
+                    FileUtils.forceDelete(destination)
+                }
+                executionContext.inputFileChanges { change ->
+                    def target = new File(destination, change.file.name)
+                    if (change.added || change.modified) {
+                        FileUtils.copyFile(change.file, target)
+                    } else if (change.removed) {
+                        FileUtils.forceDelete(target)
+                    }
                 }
             }
         }
-    }
 
 ### Test coverage
 
