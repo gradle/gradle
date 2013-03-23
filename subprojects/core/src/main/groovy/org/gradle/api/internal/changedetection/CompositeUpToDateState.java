@@ -23,7 +23,7 @@ import java.util.List;
 
 public class CompositeUpToDateState implements TaskUpToDateState {
     private final List<TaskUpToDateState> states;
-    private Integer count = null;
+    private Integer count;
 
     public CompositeUpToDateState(TaskUpToDateState... states) {
         this.states = Arrays.asList(states);
@@ -51,6 +51,7 @@ public class CompositeUpToDateState implements TaskUpToDateState {
         if (count == null) {
             findChanges(new Action<TaskUpToDateStateChange>() {
                 public void execute(TaskUpToDateStateChange failure) {
+                    System.out.println("SHOULD NEVER GET HERE");
                     // No-op: we just need to get the count incremented.
                 }
             });

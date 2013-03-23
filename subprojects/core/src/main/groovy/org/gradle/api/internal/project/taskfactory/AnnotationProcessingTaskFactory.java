@@ -147,6 +147,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length == 1) {
+            // TODO:DAZ This doesn't work well with Groovy? Use a parameter annotation? Or a different method annotation?
             if (!parameterTypes[0].equals(TaskExecutionContext.class)) {
                 throw new GradleException(String.format(
                         "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",

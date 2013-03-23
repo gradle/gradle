@@ -20,16 +20,48 @@ import org.gradle.api.Action;
 
 import java.io.File;
 
+/**
+ * Provides task state information to incremental task implementations.
+ */
 public interface TaskExecutionContext {
+
+    /**
+     * Specifies if incremental build is not possible due to changed Input Properties, Output Files, etc.
+     * In this case, every file will be considered to be 'added'.
+     */
     boolean isRebuild();
 
+    /**
+     * Provides access to all of the changes made to input files since the previous task execution.
+     */
     void inputFileChanges(Action<InputFileChange> action);
 
+    /**
+     * A change to an input file.
+     */
     interface InputFileChange {
+        /**
+         * Was the file removed?
+         * @return if the file was removed
+         */
         boolean isRemoved();
+
+        /**
+         * Was the file added?
+         * @return if the file was added
+         */
         boolean isAdded();
+
+        /**
+         * Was the file modified?
+         * @return if the file was modified
+         */
         boolean isModified();
 
+        /**
+         * The input file, which may no longer exist.
+         * @return the input file
+         */
         File getFile();
     }
 }
