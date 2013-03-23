@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.api.plugins.maven.internal
+package org.gradle.buildsetup.plugins.internal
 
 import org.gradle.mvn3.org.apache.maven.project.MavenProject
 import org.gradle.util.GFileUtils
@@ -47,7 +47,6 @@ class Maven2Gradle {
   def convert() {
     workingDir = new File('.').canonicalFile
     println "Working path:" + workingDir.absolutePath + "\n"
-
       //For now we're building the effective pom xml from the model
       //and then we parse the xml using slurper.
       //This way we don't have to rewrite the Maven2Gradle just yet.

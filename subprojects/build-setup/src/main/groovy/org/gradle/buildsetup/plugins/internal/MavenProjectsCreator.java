@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.maven.internal;
+package org.gradle.buildsetup.plugins.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.mvn3.org.apache.maven.execution.*;

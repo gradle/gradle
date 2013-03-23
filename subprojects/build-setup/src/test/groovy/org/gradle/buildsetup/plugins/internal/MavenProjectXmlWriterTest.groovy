@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.maven.internal
+package org.gradle.buildsetup.plugins.internal
 
 import spock.lang.Specification
 

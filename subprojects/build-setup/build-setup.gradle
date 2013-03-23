@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,11 @@
 
 
 
-package org.gradle.api.plugins.maven
-
-import org.gradle.api.Incubating
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-
-/**
- * by Szczepan Faber, created at: 8/1/12
- */
-@Incubating
-class Maven2GradlePlugin implements Plugin<Project>{
-    void apply(Project project) {
-        project.task("maven2Gradle", type: ConvertMaven2Gradle) {
-            group = 'Bootstrap experimental'
-            description = '[incubating] Attempts to generate gradle builds from maven project.'
-        }
-    }
+dependencies {
+	compile libraries.groovy
+	compile project(':core')
+    compile project(':plugins')
+    compile project(':maven')
 }
+
+useTestFixtures()

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.maven
+package org.gradle.buildsetup.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
@@ -32,10 +32,10 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
     def "multiModule"() {
         given:
-        file("build.gradle") << "apply plugin: 'maven2Gradle'"
+        file("build.gradle") << "apply plugin: 'build-setup'"
 
         when:
-        run 'maven2Gradle'
+        run 'setupBuild'
 
         then:
         file("settings.gradle").exists()
@@ -65,11 +65,11 @@ Root project 'webinar-parent'
 
     def "flatmultimodule"() {
         given:
-        file("webinar-parent/build.gradle") << "apply plugin: 'maven2Gradle'"
+        file("webinar-parent/build.gradle") << "apply plugin: 'build-setup'"
 
         when:
         executer.inDirectory(file("webinar-parent"))
-        run 'maven2Gradle'
+        run 'setupBuild'
 
         then:
         file("webinar-parent/settings.gradle").exists()
@@ -101,10 +101,10 @@ Root project 'webinar-parent'
 
     def "singleModule"() {
         given:
-        file("build.gradle") << "apply plugin: 'maven2Gradle'"
+        file("build.gradle") << "apply plugin: 'build-setup'"
 
         when:
-        run 'maven2Gradle'
+        run 'setupBuild'
 
         then:
         noExceptionThrown()
@@ -121,10 +121,10 @@ Root project 'webinar-parent'
 
     def "testjar"() {
         given:
-        file("build.gradle") << "apply plugin: 'maven2Gradle'"
+        file("build.gradle") << "apply plugin: 'build-setup'"
 
         when:
-        run 'maven2Gradle'
+        run 'setupBuild'
 
         then:
         noExceptionThrown()
@@ -139,10 +139,10 @@ Root project 'webinar-parent'
 
     def "enforcerplugin"() {
         given:
-        file("build.gradle") << "apply plugin: 'maven2Gradle'"
+        file("build.gradle") << "apply plugin: 'build-setup'"
 
         when:
-        run 'maven2Gradle'
+        run 'setupBuild'
 
         then:
         noExceptionThrown()

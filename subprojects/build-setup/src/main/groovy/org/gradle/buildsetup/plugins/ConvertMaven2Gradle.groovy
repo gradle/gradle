@@ -16,14 +16,14 @@
 
 
 
-package org.gradle.api.plugins.maven
+package org.gradle.buildsetup.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
-import org.gradle.api.plugins.maven.internal.Maven2Gradle
-import org.gradle.api.plugins.maven.internal.MavenProjectsCreator
+import org.gradle.buildsetup.plugins.internal.Maven2Gradle
+import org.gradle.buildsetup.plugins.internal.MavenProjectsCreator
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.SingleMessageLogger
 

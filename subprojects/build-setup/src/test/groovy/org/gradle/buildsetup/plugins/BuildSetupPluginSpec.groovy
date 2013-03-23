@@ -14,23 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.maven
+package org.gradle.buildsetup.plugins
 
+import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.Matchers
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 8/1/12
- */
-class Maven2GradlePluginSpec extends Specification {
+class BuildSetupPluginSpec extends Specification {
 
     def project = new ProjectBuilder().build()
 
     def "applies plugin"() {
         when:
-        project.plugins.apply Maven2GradlePlugin
+        project.plugins.apply BuildSetupPlugin
+
+        then:
+        project.tasks.wrapper instanceof Wrapper
+        Matchers.dependsOn("wrapper").matches(project.tasks.setupBuild)
+    }
+
+    def "adds maven2Gradle task if pom exists"() {
+        given:
+        project.file("pom.xml").createNewFile()
+        when:
+        project.plugins.apply BuildSetupPlugin
 
         then:
         project.tasks.maven2Gradle instanceof ConvertMaven2Gradle
+        project.tasks.wrapper instanceof Wrapper
+        Matchers.dependsOn("wrapper", "maven2Gradle").matches(project.tasks.setupBuild)
     }
 }
