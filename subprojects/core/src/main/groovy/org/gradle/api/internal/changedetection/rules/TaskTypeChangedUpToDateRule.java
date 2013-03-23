@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection;
+package org.gradle.api.internal.changedetection.rules;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
-
-import java.util.Collection;
+import org.gradle.api.internal.changedetection.TaskExecution;
+import org.gradle.api.internal.changedetection.TaskUpToDateState;
+import org.gradle.api.internal.changedetection.TaskUpToDateStateChange;
 
 /**
- * A rule which marks a task out-of-date when its implementation class changes.
+ * A rule which detects changes in the task implementation class.
  */
-public class TaskTypeChangedUpToDateRule implements UpToDateRule {
-    public TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
+public class TaskTypeChangedUpToDateRule {
+    public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
         final String taskClass = task.getClass().getName();
         currentExecution.setTaskClass(taskClass);
 
         return new TaskUpToDateState() {
-            public void checkUpToDate(Collection<String> messages) {
+            public void findChanges(Action<? super TaskUpToDateStateChange> failures) {
                 if (!taskClass.equals(previousExecution.getTaskClass())) {
-                    messages.add(String.format("%s has changed type from '%s' to '%s'.", StringUtils.capitalize(task.toString()), previousExecution.getTaskClass(), task.getClass().getName()));
+                    failures.execute(new DescriptiveChange("%s has changed type from '%s' to '%s'.",
+                            StringUtils.capitalize(task.toString()), previousExecution.getTaskClass(), task.getClass().getName()));
                 }
             }
 

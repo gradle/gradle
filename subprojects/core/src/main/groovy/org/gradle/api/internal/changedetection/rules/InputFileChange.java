@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution;
+package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.changedetection.ChangeType;
 
 import java.io.File;
 
-public class RebuildTaskExecutionContext implements TaskExecutionContext {
+public class InputFileChange extends FileChange {
+    private static final String INPUT = "Input";
 
-    private final Task task;
-
-    public RebuildTaskExecutionContext(Task task) {
-        this.task = task;
+    public InputFileChange(Task task, File file, ChangeType change) {
+        super(task, file, INPUT, change);
     }
-
-    public boolean isRebuild() {
-        return true;
-    }
-
-    public void inputFileChanges(Action<InputFileChange> action) {
-        for (File file : task.getInputs().getFiles()) {
-            action.execute(new DefaultInputFileChange(file, DefaultInputFileChange.ChangeType.ADDED));
-        }
-    }
-
 }

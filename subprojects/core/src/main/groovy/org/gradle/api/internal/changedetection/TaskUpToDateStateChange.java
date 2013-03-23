@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.internal.changedetection;
 
-import java.lang.annotation.*;
-
-/**
- * <p>Marks a field that should be populated with the TaskAnnotationContext prior to execution.</p>
- *
- * <p>This annotation should be attached to the field for the property.</p>
- */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
-public @interface ExecutionContext {
+public interface TaskUpToDateStateChange {
+    String getMessage();
 }

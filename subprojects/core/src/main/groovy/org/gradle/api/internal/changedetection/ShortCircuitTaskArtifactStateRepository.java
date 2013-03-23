@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.StartParameter;
-import org.gradle.api.execution.RebuildTaskExecutionContext;
+import org.gradle.api.internal.execution.RebuildTaskExecutionContext;
 import org.gradle.api.execution.TaskExecutionContext;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
@@ -91,6 +91,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
         public TaskExecutionContext getExecutionContext() {
             // If we would normally re-run the task, then use a rebuild context
+            // TODO: Don't want to re-execute the upToDateSpec
             if (startParameter.isRerunTasks() || !task.getOutputs().getUpToDateSpec().isSatisfiedBy(task)) {
                 return new RebuildTaskExecutionContext(task);
             }

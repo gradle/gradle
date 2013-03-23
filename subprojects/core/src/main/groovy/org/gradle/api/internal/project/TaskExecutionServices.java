@@ -73,8 +73,9 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
                         get(StartParameter.class),
                         new DefaultTaskArtifactStateRepository(
                                 taskHistoryRepository,
-                                fileSnapshotter,
-                                outputFilesSnapshotter)),
+                                outputFilesSnapshotter,
+                                fileSnapshotter
+                        )),
                 new DefaultFileCacheListener());
     }
 

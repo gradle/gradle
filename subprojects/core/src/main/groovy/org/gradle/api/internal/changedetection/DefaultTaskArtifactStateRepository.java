@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.execution.DefaultInputFileChange;
-import org.gradle.api.execution.IncrementalTaskExecutionContext;
-import org.gradle.api.execution.RebuildTaskExecutionContext;
+import org.gradle.api.Action;
+import org.gradle.api.internal.changedetection.rules.*;
+import org.gradle.api.internal.execution.DefaultInputFileChange;
+import org.gradle.api.internal.execution.RebuildTaskExecutionContext;
 import org.gradle.api.execution.TaskExecutionContext;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
@@ -26,34 +27,21 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.ChangeListener;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 10;
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
     private final TaskHistoryRepository taskHistoryRepository;
-    private final UpToDateRule upToDateRule;
-    private final UpToDateRule incrementalUpToDateRule;
+    private final FileSnapshotter outputFilesSnapshotter;
     private final FileSnapshotter inputFilesSnapshotter;
 
-    public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, FileSnapshotter inputFilesSnapshotter, FileSnapshotter outputFilesSnapshotter) {
+    public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, FileSnapshotter outputFilesSnapshotter, FileSnapshotter inputFilesSnapshotter) {
         this.taskHistoryRepository = taskHistoryRepository;
-        upToDateRule = new CompositeUpToDateRule(
-                new TaskTypeChangedUpToDateRule(),
-                new InputPropertiesChangedUpToDateRule(),
-                new OutputFilesChangedUpToDateRule(outputFilesSnapshotter),
-                new InputFilesChangedUpToDateRule(inputFilesSnapshotter));
-        incrementalUpToDateRule = new CompositeUpToDateRule(
-                new TaskTypeChangedUpToDateRule(),
-                new InputPropertiesChangedUpToDateRule(),
-                new OutputFilesChangedUpToDateRule(outputFilesSnapshotter));
+        this.outputFilesSnapshotter = outputFilesSnapshotter;
         this.inputFilesSnapshotter = inputFilesSnapshotter;
     }
 
@@ -61,127 +49,82 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         return new TaskArtifactStateImpl(task, taskHistoryRepository.getHistory(task));
     }
 
-    private interface TaskExecutionState {
-        List<String> isUpToDate();
+    private class UpToDateStates {
+        private TaskUpToDateState noHistoryState;
+        private TaskUpToDateState inputFilesState;
+        private TaskUpToDateState inputPropertiesState;
+        private TaskUpToDateState taskTypeState;
+        private TaskUpToDateState outputFilesState;
+        private CompositeUpToDateState allTaskState;
+        private CompositeUpToDateState rebuildState;
 
-        boolean incrementalRequiresRebuild();
-
-        List<TaskExecutionContext.InputFileChange> getInputFileChanges();
-
-        boolean snapshot();
-
-        FileCollection getPreviousOutputFiles();
-    }
-
-    private static class HistoricExecution implements TaskExecutionState {
-        private final TaskInternal task;
-        private final TaskExecution lastExecution;
-        private boolean upToDate;
-        private final UpToDateRule rule;
-        private final UpToDateRule incrementalRule;
-        private final FileSnapshotter inputFilesSnapshotter;
-        private TaskExecution thisExecution;
-        private UpToDateRule.TaskUpToDateState upToDateState;
-        private UpToDateRule.TaskUpToDateState incrementalUpToDateState;
-
-        public HistoricExecution(TaskInternal task, TaskHistoryRepository.History history, UpToDateRule rule, UpToDateRule incrementalRule, FileSnapshotter inputFilesSnapshotter) {
-            this.task = task;
-            this.inputFilesSnapshotter = inputFilesSnapshotter;
-            this.lastExecution = history.getPreviousExecution();
-            this.thisExecution = history.getCurrentExecution();
-            this.rule = rule;
-            this.incrementalRule = incrementalRule;
+        public UpToDateStates(TaskInternal task, TaskExecution lastExecution, TaskExecution thisExecution, FileSnapshotter outputFilesSnapshotter, FileSnapshotter inputFilesSnapshotter) {
+            noHistoryState = NoHistoryUpToDateRule.create(task, lastExecution);
+            taskTypeState = TaskTypeChangedUpToDateRule.create(task, lastExecution, thisExecution);
+            inputPropertiesState = InputPropertiesChangedUpToDateRule.create(task, lastExecution, thisExecution);
+            outputFilesState = OutputFilesChangedUpToDateRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter);
+            inputFilesState = InputFilesChangedUpToDateRule.create(task, lastExecution, thisExecution, inputFilesSnapshotter);
+            allTaskState = new CompositeUpToDateState(noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState);
+            rebuildState = new CompositeUpToDateState(noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
         }
 
-        private void calcCurrentState() {
-            if (upToDateState != null) {
-                return;
-            }
-
-            // Calculate initial state - note this is potentially expensive
-            upToDateState = rule.create(task, lastExecution, thisExecution);
+        public TaskUpToDateState getInputFilesState() {
+            return inputFilesState;
         }
 
-        public FileCollection getPreviousOutputFiles() {
-            return lastExecution != null && lastExecution.getOutputFilesSnapshot() != null ? lastExecution.getOutputFilesSnapshot().getFiles() : new SimpleFileCollection();
+        public TaskUpToDateState getInputPropertiesState() {
+            return inputPropertiesState;
         }
 
-        public List<String> isUpToDate() {
-            calcCurrentState();
-
-            // Now determine if we're out of date
-            if (lastExecution == null) {
-                return singletonList(String.format("No history is available for %s.", task));
-            }
-
-            List<String> messages = new ArrayList<String>();
-            upToDateState.checkUpToDate(messages);
-
-            if (messages.isEmpty()) {
-                upToDate = true;
-            }
-            return messages;
+        public TaskUpToDateState getOutputFilesState() {
+            return outputFilesState;
         }
 
-        public boolean snapshot() {
-            calcCurrentState();
-            
-            if (upToDate) {
-                return false;
-            }
-
-            upToDateState.snapshotAfterTask();
-            return true;
+        public TaskUpToDateState getTaskTypeState() {
+            return taskTypeState;
         }
 
-        public boolean incrementalRequiresRebuild() {
-            if (lastExecution == null) {
-                return true;
-            }
-
-            incrementalUpToDateState = incrementalRule.create(task, lastExecution, thisExecution);
-            List<String> messages = new ArrayList<String>();
-            incrementalUpToDateState.checkUpToDate(messages);
-            return !messages.isEmpty();
+        public CompositeUpToDateState getAllTaskState() {
+            return allTaskState;
         }
 
-        public List<TaskExecutionContext.InputFileChange> getInputFileChanges() {
-            final FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
-            final List<TaskExecutionContext.InputFileChange> changes = new ArrayList<TaskExecutionContext.InputFileChange>();
-            inputFilesSnapshot.changesSince(lastExecution.getInputFilesSnapshot(), new ChangeListener<File>() {
-                public void added(File element) {
-                    changes.add(new DefaultInputFileChange(element, DefaultInputFileChange.ChangeType.ADDED));
-                }
-
-                public void removed(File element) {
-                    changes.add(new DefaultInputFileChange(element, DefaultInputFileChange.ChangeType.REMOVED));
-                }
-
-                public void changed(File element) {
-                    changes.add(new DefaultInputFileChange(element, DefaultInputFileChange.ChangeType.MODIFIED));
-                }
-            });
-            return changes;
+        public CompositeUpToDateState getRebuildState() {
+            return rebuildState;
         }
     }
 
     private class TaskArtifactStateImpl implements TaskArtifactState, TaskExecutionHistory {
         private final TaskInternal task;
+        private final TaskExecution lastExecution;
+        private final TaskExecution thisExecution;
         private final TaskHistoryRepository.History history;
-        private final TaskExecutionState execution;
+        private boolean upToDate;
+        private UpToDateStates states;
 
         public TaskArtifactStateImpl(TaskInternal task, TaskHistoryRepository.History history) {
             this.task = task;
+            this.lastExecution = history.getPreviousExecution();
+            this.thisExecution = history.getCurrentExecution();
             this.history = history;
-            execution = getExecution();
         }
 
         public boolean isUpToDate() {
-            List<String> messages = execution.isUpToDate();
-            if (messages == null || messages.isEmpty()) {
+            final List<String> messages = new ArrayList<String>();
+            getStates().getAllTaskState().findChanges(new Action<TaskUpToDateStateChange>() {
+                public void execute(TaskUpToDateStateChange taskUpToDateStateChange) {
+                    messages.add(taskUpToDateStateChange.getMessage());
+                }
+            });
+            if (messages.isEmpty()) {
+                upToDate = true;
                 LOGGER.info("Skipping {} as it is up-to-date.", task);
                 return true;
             }
+            logUpToDateMessages(messages);
+            return false;
+        }
+
+        private void logUpToDateMessages(List<String> messages) {
             if (LOGGER.isInfoEnabled()) {
                 Formatter formatter = new Formatter();
                 formatter.format("Executing %s due to:", task);
@@ -194,38 +137,83 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 }
                 LOGGER.info(formatter.toString());
             }
-            return false;
         }
 
+        // TODO:DAZ Ensure that all of the work done in isUpToDate() is reused here
         public TaskExecutionContext getExecutionContext() {
-            if (execution.incrementalRequiresRebuild()) {
+            assert !upToDate : "I don't think we should be here if the task is up-to-date";
+
+            if (incrementalRequiresRebuild()) {
                 return new RebuildTaskExecutionContext(task);
             }
-            return new IncrementalTaskExecutionContext(execution.getInputFileChanges());
+            return new TaskExecutionContext() {
+                public boolean isRebuild() {
+                    return false;
+                }
+
+                public void inputFileChanges(final Action<InputFileChange> action) {
+                    getStates().getInputFilesState().findChanges(new Action<TaskUpToDateStateChange>() {
+                        public void execute(TaskUpToDateStateChange change) {
+                            // TODO:DAZ Generify properly to avoid this check & cast
+                            assert change instanceof FileChange;
+                            FileChange fileChange = (FileChange) change;
+                            action.execute(new DefaultInputFileChange(fileChange.getFile(), fileChange.getChange()));
+                        }
+                    });
+                }
+            };
         }
 
         public FileCollection getOutputFiles() {
-            return execution.getPreviousOutputFiles();
+            return lastExecution != null && lastExecution.getOutputFilesSnapshot() != null ? lastExecution.getOutputFilesSnapshot().getFiles() : new SimpleFileCollection();
         }
 
         public TaskExecutionHistory getExecutionHistory() {
             return this;
         }
 
-        public TaskExecutionState getExecution() {
-            return new HistoricExecution(task, history, upToDateRule, incrementalUpToDateRule, inputFilesSnapshotter);
-        }
-
         public void afterTask() {
-            if (execution.snapshot()) {
-                history.update();
+            if (upToDate) {
+                return;
             }
+
+            getStates().getAllTaskState().snapshotAfterTask();
+            history.update();
         }
 
         public void beforeTask() {
         }
 
         public void finished() {
+        }
+
+
+        private UpToDateStates getStates() {
+            if (states == null) {
+                // Calculate initial state - note this is potentially expensive
+                states = new UpToDateStates(task, lastExecution, thisExecution, outputFilesSnapshotter, inputFilesSnapshotter);
+            }
+            return states;
+        }
+
+        public boolean incrementalRequiresRebuild() {
+            return !getStates().getRebuildState().isUpToDate();
+        }
+    }
+
+    private static class NoHistoryUpToDateRule {
+        public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution) {
+            return new TaskUpToDateState() {
+                public void findChanges(Action<? super TaskUpToDateStateChange> messages) {
+                    if (previousExecution == null) {
+                        messages.execute(new DescriptiveChange("No history is available for %s.", task));
+
+                    }
+                }
+
+                public void snapshotAfterTask() {
+                }
+            };
         }
     }
 }

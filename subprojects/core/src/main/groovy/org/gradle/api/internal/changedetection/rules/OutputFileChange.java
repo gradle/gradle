@@ -14,27 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution;
+package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.Action;
+import org.gradle.api.Task;
+import org.gradle.api.internal.changedetection.ChangeType;
 
-import java.util.List;
+import java.io.File;
 
-public class IncrementalTaskExecutionContext implements TaskExecutionContext {
+public class OutputFileChange extends FileChange {
+    private static final String OUTPUT = "Output";
 
-    private final List<InputFileChange> inputFileChanges;
-
-    public IncrementalTaskExecutionContext(List<InputFileChange> inputFileChanges) {
-        this.inputFileChanges = inputFileChanges;
-    }
-
-    public boolean isRebuild() {
-        return false;
-    }
-
-    public void inputFileChanges(Action<InputFileChange> action) {
-        for (InputFileChange inputFileChange : inputFileChanges) {
-            action.execute(inputFileChange);
-        }
+    public OutputFileChange(Task task, File file, ChangeType change) {
+        super(task, file, OUTPUT, change);
     }
 }

@@ -68,7 +68,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
         FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess);
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess));
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, inputFilesSnapshotter, outputFilesSnapshotter);
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, outputFilesSnapshotter, inputFilesSnapshotter);
     }
 
     @Test

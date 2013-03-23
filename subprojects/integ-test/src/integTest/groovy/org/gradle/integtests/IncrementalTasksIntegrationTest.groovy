@@ -92,12 +92,15 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "incrementalCheck"
     }
 
-    def "incremental task action is executed with empty incremental context when run with no changes"() {
+    def "incremental task is skipped when run with no changes"() {
+        given:
+        run "incremental"
+
         when:
         run "incremental"
 
         then:
-        succeeds "incrementalCheck"
+        ":incremental" in skippedTasks
     }
 
     def "incremental task execution context reports modified input file"() {

@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution;
+package org.gradle.api.internal.execution;
+
+import org.gradle.api.execution.TaskExecutionContext;
+import org.gradle.api.internal.changedetection.ChangeType;
 
 import java.io.File;
 
 public class DefaultInputFileChange implements TaskExecutionContext.InputFileChange {
-    public enum ChangeType { ADDED, MODIFIED, REMOVED }
 
     private final ChangeType type;
     private final File file;

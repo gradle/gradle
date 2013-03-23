@@ -13,37 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection;
+package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.TaskExecution;
+import org.gradle.api.internal.changedetection.TaskUpToDateState;
+import org.gradle.api.internal.changedetection.TaskUpToDateStateChange;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A rule which marks a task out-of-date when its input properties change.
+ * A rule which detects changes in the input properties of a task.
  */
-public class InputPropertiesChangedUpToDateRule implements UpToDateRule {
-    public TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
+public class InputPropertiesChangedUpToDateRule {
+    public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
         final Map<String, Object> properties = new HashMap<String, Object>(task.getInputs().getProperties());
         currentExecution.setInputProperties(properties);
 
         return new TaskUpToDateState() {
-            public void checkUpToDate(final Collection<String> messages) {
+            public void findChanges(final Action<? super TaskUpToDateStateChange> failures) {
                 DiffUtil.diff(properties, previousExecution.getInputProperties(), new ChangeListener<Map.Entry<String, Object>>() {
                     public void added(Map.Entry<String, Object> element) {
-                        messages.add(String.format("Input property '%s' has been added for %s", element.getKey(), task));
+                        failures.execute(new DescriptiveChange("Input property '%s' has been added for %s", element.getKey(), task));
                     }
 
                     public void removed(Map.Entry<String, Object> element) {
-                        messages.add(String.format("Input property '%s' has been removed for %s", element.getKey(), task));
+                        failures.execute(new DescriptiveChange("Input property '%s' has been removed for %s", element.getKey(), task));
                     }
 
                     public void changed(Map.Entry<String, Object> element) {
-                        messages.add(String.format("Value of input property '%s' has changed for %s", element.getKey(), task));
+                        failures.execute(new DescriptiveChange("Value of input property '%s' has changed for %s", element.getKey(), task));
                     }
                 });
             }

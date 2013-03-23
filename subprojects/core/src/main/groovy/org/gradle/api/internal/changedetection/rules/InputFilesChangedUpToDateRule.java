@@ -13,44 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection;
+package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.*;
 import org.gradle.util.ChangeListener;
 
 import java.io.File;
-import java.util.Collection;
 
 /**
- * A rule which marks a task out-of-date when its input files change.
+ * A rule which detects changes in the input files of a task.
  */
-public class InputFilesChangedUpToDateRule implements UpToDateRule {
-    private final FileSnapshotter inputFilesSnapshotter;
+public class InputFilesChangedUpToDateRule {
 
-    public InputFilesChangedUpToDateRule(FileSnapshotter inputFilesSnapshotter) {
-        this.inputFilesSnapshotter = inputFilesSnapshotter;
-    }
-
-    public TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
+    public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter) {
         final FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
 
         return new TaskUpToDateState() {
-            public void checkUpToDate(final Collection<String> messages) {
+            public void findChanges(final Action<? super TaskUpToDateStateChange> failures) {
                 if (previousExecution.getInputFilesSnapshot() == null) {
-                    messages.add(String.format("Input file history is not available for %s.", task));
+                    failures.execute(new DescriptiveChange("Input file history is not available for %s.", task));
                     return;
                 }
                 inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(), new ChangeListener<File>() {
                     public void added(File file) {
-                        messages.add(String.format("Input file %s for %s added.", file, task));
+                        failures.execute(new InputFileChange(task, file, ChangeType.ADDED));
                     }
 
                     public void removed(File file) {
-                        messages.add(String.format("Input file %s for %s removed.", file, task));
+                        failures.execute(new InputFileChange(task, file, ChangeType.REMOVED));
                     }
 
                     public void changed(File file) {
-                        messages.add(String.format("Input file %s for %s has changed.", file, task));
+                        failures.execute(new InputFileChange(task, file, ChangeType.MODIFIED));
                     }
                 });
             }

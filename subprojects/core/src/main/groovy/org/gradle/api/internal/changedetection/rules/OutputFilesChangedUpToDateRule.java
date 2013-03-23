@@ -13,44 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection;
+package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.*;
 import org.gradle.util.ChangeListener;
 
 import java.io.File;
-import java.util.Collection;
 
 /**
- * A rule which marks a task out-of-date when its output files change.
+ * A rule which detects changes in output files.
  */
-public class OutputFilesChangedUpToDateRule implements UpToDateRule {
-    private final FileSnapshotter outputFilesSnapshotter;
-
-    public OutputFilesChangedUpToDateRule(FileSnapshotter outputFilesSnapshotter) {
-        this.outputFilesSnapshotter = outputFilesSnapshotter;
-    }
-
-    public TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
+public class OutputFilesChangedUpToDateRule {
+    public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter outputFilesSnapshotter) {
         final FileCollectionSnapshot outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
 
         return new TaskUpToDateState() {
-            public void checkUpToDate(final Collection<String> messages) {
+            public void findChanges(final Action<? super TaskUpToDateStateChange> failures) {
                 if (previousExecution.getOutputFilesSnapshot() == null) {
-                    messages.add(String.format("Output file history is not available for %s.", task));
+                    failures.execute(new DescriptiveChange("Output file history is not available for %s.", task));
                     return;
                 }
                 outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(), new ChangeListener<File>() {
                     public void added(File element) {
-                        messages.add(String.format("Output file '%s' has been added for %s.", element, task));
+                        failures.execute(new OutputFileChange(task, element, ChangeType.ADDED));
                     }
 
                     public void removed(File element) {
-                        messages.add(String.format("Output file %s has been removed for %s.", element.getAbsolutePath(), task));
+                        failures.execute(new OutputFileChange(task, element, ChangeType.REMOVED));
                     }
 
                     public void changed(File element) {
-                        messages.add(String.format("Output file %s for %s has changed.", element.getAbsolutePath(), task));
+                        failures.execute(new OutputFileChange(task, element, ChangeType.MODIFIED));
                     }
                 });
             }
