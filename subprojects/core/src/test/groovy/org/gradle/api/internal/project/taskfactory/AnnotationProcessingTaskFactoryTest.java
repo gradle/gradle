@@ -155,7 +155,7 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void failsWhenMethodWithParametersHasTaskActionAnnotation() {
         assertTaskCreationFails(TaskWithParamMethod.class,
-                "Cannot use @TaskAction annotation on method TaskWithParamMethod.doStuff() as this method takes parameters.");
+                "Cannot use @TaskAction annotation on method TaskWithParamMethod.doStuff() as this method takes multiple parameters.");
     }
 
     private void assertTaskCreationFails(Class<? extends Task> type, String message) {
@@ -734,7 +734,7 @@ public class AnnotationProcessingTaskFactoryTest {
 
     public static class TaskWithParamMethod extends DefaultTask {
         @TaskAction
-        public void doStuff(int value) {
+        public void doStuff(int value1, int value2) {
         }
     }
 
