@@ -17,8 +17,9 @@
 package org.gradle.buildsetup.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -28,7 +29,8 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
  */
 class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    public final TestResources resources = new TestResources(temporaryFolder)
 
     def "multiModule"() {
         given:
@@ -49,7 +51,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
         file('webinar-impl/build/reports/tests/index.html').exists()
 
-        new JUnitXmlTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+        new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
         run 'projects'
@@ -61,7 +63,11 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """))
+        and:
+        wrapperFilesGenerated()
     }
+
+
 
     def "flatmultimodule"() {
         given:
@@ -76,7 +82,7 @@ Root project 'webinar-parent'
 
         when:
         executer.inDirectory(file("webinar-parent"))
-        run '-i', 'clean', 'build'
+        run 'clean', 'build'
 
         then: //smoke test the build artifacts
         file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
@@ -84,7 +90,7 @@ Root project 'webinar-parent'
         file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
         file('webinar-impl/build/reports/tests/index.html').exists()
 
-        new JUnitXmlTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+        new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
         executer.inDirectory(file("webinar-parent"))
@@ -97,6 +103,7 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """))
+        wrapperFilesGenerated(file("webinar-parent"))
     }
 
     def "singleModule"() {
@@ -117,6 +124,7 @@ Root project 'webinar-parent'
 
         then:
         file("build/libs/util-2.5.jar").exists()
+        wrapperFilesGenerated()
     }
 
     def "testjar"() {
@@ -135,6 +143,7 @@ Root project 'webinar-parent'
         then:
         file("build/libs/testjar-2.5.jar").exists()
         file("build/libs/testjar-2.5-tests.jar").exists()
+        wrapperFilesGenerated()
     }
 
     def "enforcerplugin"() {
@@ -157,5 +166,16 @@ it.exclude group: '*', module: 'badArtifact'
 
         then:
         file("build/libs/enforcerExample-1.0.jar").exists()
+        wrapperFilesGenerated()
+    }
+
+    def wrapperFilesGenerated(){
+        wrapperFilesGenerated(file("."))
+    }
+    def wrapperFilesGenerated(TestFile parentFolder) {
+        parentFolder.file("gradlew").assertExists()
+        parentFolder.file("gradlew.bat").assertExists()
+        parentFolder.file("gradle/wrapper/gradle-wrapper.jar").assertExists()
+        parentFolder.file("gradle/wrapper/gradle-wrapper.properties").assertExists()
     }
 }
