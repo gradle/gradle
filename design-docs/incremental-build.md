@@ -14,8 +14,6 @@ When the compile settings change, then all source files must be recompiled.
 
 Gradle should provide some mechanism that allows an incremental task to be implemented.
 
-TODO - treat all inputs as out-of-date when any output file has changed, or any other task input has changed, or no history available.
-
 ## Plugin author implements a task that can accurately describe its output files
 
 For some tasks, the exact output files are not known until after the task has completed. For these tasks, Gradle scans the output directories
@@ -57,6 +55,10 @@ does not trigger task execution, which in turn makes developing the task impleme
 Gradle should invalidate a task's outputs when its implementation changes.
 
 ## Fix up-to-date issues on copy tasks
+
+## Plugin author implements a task that produces outputs other than files
+
+## Plugin author implements a task that uses inputs other than files
 
 ## Don't compile a source file when the API of its compile dependencies has not changed
 
@@ -126,8 +128,56 @@ Incremental execution is not possible when:
 
 ## Story: Java compile task specifies its output files
 
+A task action will be able to use an API to notify Gradle of the output files it produces. For task implementations
+that do not use this API, Gradle will scan the output directories before and after task execution to infer the task
+outputs, as it does now.
+
+- Change the Java and Groovy compile task types to use this.
+- Change the Copy and Sync task types to use this.
+
+TBD - the API, which needs to work for both 'build everything' task execution (which includes task implementations that
+are not incremental aware) and incremental task execution.
+
+TBD - Need to have a solution for Java and Groovy compile tasks with `useAnt=true`
+
+## Story: Plugin author implements task that cleans up stale output files
+
+A task implementation will be able to use an API or a declarative element to request that stale output files should
+be removed.
+
+- Change the Java and Groovy compile task types to use this.
+- Change the ProcessResources and Sync task types to use this, possibly remove the ProcessResources type.
+- When a `@SkipWhenEmpty` input is empty, remove all output files from a previous execution.
+
+TBD - The API.
+
+## Story: Remove stale classes when compile task history is not known
+
+TBD - The stale outputs mechanism needs to handle the case where:
+
+- multiple tasks generate their outputs into a given output directory
+- some files exist in this output directory
+- task history is not available for one or more of the tasks
+
+In particular, we need to solve the case where a classes directory is built from Java and Groovy source and static resources, but the task
+history is not available because an upgraded version of Gradle is being used.
+
+## Story: Invalidate task outputs when task implementation changes
+
+Add to the task history a hash of the task implementation, and rebuild the task's outputs when this changes.
+
+- Add a mechanism to determine a hash given a classpath. Probably also add some persistent caching for this.
+  This mechanism should be reusable, to allow us to cache the result of scanning a classpath for annotated classes,
+  such as plugin-level services.
+- The hash of a class is the hash of its ClassLoader's classpath.
+- The hash of a task is the combination of the hash of the task's implementation class plus the hash of
+  the implementation class of each task action attached to the task.
+
+## Story: Plugin author uses changes to output files to implement incremental task
+
 TBD
 
 # Open issues
 
 - Some tasks may need to know about changed output files.
+- Look at making task history available across Gradle versions.
