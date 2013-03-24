@@ -70,9 +70,9 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
     task incrementalCheck(dependsOn: incremental) << {
         assert incremental.rebuild == project.ext.rebuild
-        assert incremental.addedFiles.collect { it.name } == project.ext.added
-        assert incremental.changedFiles.collect { it.name } == project.ext.changed
-        assert incremental.removedFiles.collect { it.name } == project.ext.removed
+        assert incremental.addedFiles.collect { it.name } as Set == project.ext.added as Set
+        assert incremental.changedFiles.collect { it.name } as Set == project.ext.changed as Set
+        assert incremental.removedFiles.collect { it.name } as Set == project.ext.removed as Set
     }
 """
         file('inputs/file1.txt') << "file content"
