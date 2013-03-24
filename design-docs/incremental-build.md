@@ -159,8 +159,20 @@ TBD - The stale outputs mechanism needs to handle the case where:
 - some files exist in this output directory
 - task history is not available for one or more of the tasks
 
-In particular, we need to solve the case where a classes directory is built from Java and Groovy source and static resources, but the task
-history is not available because an upgraded version of Gradle is being used.
+TBD - The solution must handle the case where output files are generated into a directory that also contains
+non-generated files, so that simply removing the output directory is not really a solution.
+
+In particular, this story must solve the case where a classes directory is built from Java and Groovy source and static resources,
+but the task history is not available because an upgraded version of Gradle is being used.
+
+Potential solutions:
+
+- When a task in the task graph has no history and one of its output directories already exists and is not empty, then automatically
+  schedule a `clean` task for the project.
+- As above, but notify the user that they should really do a clean build first.
+- Handle this at the binary level, rather than the task level. For example, the `classes` task might remove unclaimed files (ie not known
+  to be built by any task) from the classes directory. Or perhaps when a task that contributes to the classes directory is scheduled to
+  run and no history is available for that task, then remove the classes directory and schedule a `classes` task to run.
 
 ## Story: Invalidate task outputs when task implementation changes
 
