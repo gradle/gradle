@@ -15,89 +15,87 @@
  */
 package org.gradle.integtests
 
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.apache.commons.io.IOUtils
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.wrapper.*
 import org.junit.Rule
+import org.junit.rules.ExternalResource
+import org.mortbay.jetty.Connector
+import org.mortbay.jetty.Server
+import org.mortbay.jetty.bio.SocketConnector
+import org.mortbay.jetty.handler.AbstractHandler
 import spock.lang.Issue
 
-import static java.lang.Math.floor
+import javax.servlet.ServletException
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
-class WrapperConcurrentDownloadTest extends ConcurrentSpec {
-
-    @Rule TestNameTestDirectoryProvider testDirectoryProvider
-
-    TestFile file(Object... path) {
-        testDirectoryProvider.file(path)
-    }
+class WrapperConcurrentDownloadTest extends AbstractIntegrationSpec {
+    @Rule BlockingDownloadHttpServer server = new BlockingDownloadHttpServer(distribution.binDistribution)
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2699")
     def "concurrent downloads do not stomp over each other"() {
         given:
-        def gradleFilePath = "dir/bin/gradle"
-        def gradleFileContent = "a"
-        def userHome = file("gradleUserHome")
-        def content = file("content")
-        assert content.mkdirs() || content.directory
-        content.file(gradleFilePath) << gradleFileContent
-        def contentZip = file("content.zip")
-        content.zipTo(contentZip)
+        buildFile << """
+    import org.gradle.api.tasks.wrapper.Wrapper
+    task wrapper(type: Wrapper) {
+        archiveBase = Wrapper.PathBase.PROJECT
+        archivePath = 'dist'
+        distributionUrl = '${server.distUri}'
+        distributionBase = Wrapper.PathBase.PROJECT
+        distributionPath = 'dist'
+    }
+"""
 
-        def wrapperConfig = new WrapperConfiguration()
-        wrapperConfig.distribution = contentZip.toURI()
-
-        def pathAssembler = new PathAssembler(userHome)
-        def distribution = pathAssembler.getDistribution(wrapperConfig)
-
-        def zipBytes = contentZip.bytes
-        def numZipBytes = zipBytes.size()
-        def halfNumZipBytes = floor(numZipBytes / 2)
-        byte[] firstHalfZipBytes = zipBytes[0..(halfNumZipBytes - 1)]
-        byte[] secondHalfZipBytes = zipBytes[halfNumZipBytes..(numZipBytes - 1)]
-
-        def downloader = { waitFor, afterFirstHalf, haltFor, afterDone ->
-            new IDownload() {
-                void download(URI address, File destination) throws Exception {
-                    def thread = getThread()
-                    def instant = getInstant()
-
-                    destination.parentFile.mkdirs()
-                    destination.createNewFile()
-                    thread.blockUntil[waitFor]
-                    destination.append(firstHalfZipBytes)
-                    instant[afterFirstHalf]
-                    thread.blockUntil[haltFor]
-                    destination.append(secondHalfZipBytes)
-                    instant[afterDone]
-                }
-            }
-        }
-
-        def install = { waitFor, afterFirstHalf, haltFor, afterDownload, afterInstalled ->
-            new Install(downloader(waitFor, afterFirstHalf, haltFor, afterDownload), pathAssembler).createDist(wrapperConfig)
-            instant.now(afterInstalled)
-        }
+        succeeds('wrapper')
 
         when:
-        start { install('start', 'firstHalf1', 'firstHalf2', 'downloaded1', "done1") }
-        start { install('firstHalf1', 'firstHalf2', 'downloaded1', 'downloaded2', "done2") }
-
-        instant.now('start')
-        thread.blockUntil.done1
-        thread.blockUntil.done2
+        def build1 = executer.usingExecutable("gradlew").start()
+        def build2 = executer.usingExecutable("gradlew").start()
+        def build3 = executer.usingExecutable("gradlew").start()
+        def build4 = executer.usingExecutable("gradlew").start()
+        def builds = [build1, build2, build3, build4]
+        builds.each { it.waitForFinish() }
 
         then:
-        def unzipped = distribution.distributionDir
-        unzipped.directory
-        def unzippedFile = new File(unzipped, gradleFilePath)
-        unzippedFile.text == gradleFileContent
+        builds.collect { it.standardOutput.contains("Downloading") == 1 }
+    }
 
-        and: "no temp files left lying around"
-        distribution.zipFile.parentFile.listFiles().findAll { it.name.endsWith(".part") }.empty
+    static class BlockingDownloadHttpServer extends ExternalResource {
+        private final Server server = new Server()
+        private final TestFile binZip
 
-        testDirectoryProvider.testDirectory.eachFileRecurse {
-            assert !it.name.endsWith(ExclusiveFileAccessManager.LOCK_FILE_SUFFIX)
+        BlockingDownloadHttpServer(TestFile binZip) {
+            this.binZip = binZip
+        }
+
+        URI getDistUri() {
+            return new URI("http://localhost:${server.connectors[0].localPort}/gradle-bin.zip")
+        }
+
+        void waitForDownloadToStart() {
+        }
+
+        void continueDownload() {
+        }
+
+        @Override
+        protected void before() throws Throwable {
+            server.connectors = [new SocketConnector()] as Connector[]
+            server.addHandler(new AbstractHandler() {
+                void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) throws IOException, ServletException {
+                    binZip.withInputStream { instr ->
+                        IOUtils.copy(instr, response.outputStream)
+                    }
+                    request.handled = true
+                }
+            })
+            server.start()
+        }
+
+        @Override
+        protected void after() {
+            server.stop()
         }
     }
 }
