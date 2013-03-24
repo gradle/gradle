@@ -45,59 +45,36 @@ public class Install {
         final PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
         final File distDir = localDistribution.getDistributionDir();
 
-        // No lock lane
-        if (!alwaysDownload && !alwaysUnpack && distDir.isDirectory()) {
-            return getDistributionRoot(distDir, distDir.getAbsolutePath());
-        }
-
-        // Slow lane
-        final File localZipFile = localDistribution.getZipFile();
-        boolean needsDownload = alwaysDownload || !localZipFile.isFile();
-
-        final File tmpZipFile;
-        if (needsDownload) {
-            String downloadId = UUID.randomUUID().toString();
-            tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + "-" + downloadId + ".part");
-            System.out.println("Downloading " + distributionUrl);
-            download.download(distributionUrl, tmpZipFile);
-        } else {
-            tmpZipFile = null;
-        }
-
-        return exclusiveFileAccessManager.access(localZipFile, new Callable<File>() {
+        return exclusiveFileAccessManager.access(distDir, new Callable<File>() {
             public File call() throws Exception {
-                final boolean downloaded;
-
-                if (tmpZipFile != null) {
-                    if (!localZipFile.exists() || alwaysDownload) {
-                        tmpZipFile.renameTo(localZipFile);
-                        downloaded = true;
-                    } else {
-                        downloaded = false;
-                    }
-
-                    tmpZipFile.delete();
-                } else {
-                    downloaded = false;
+                if (!alwaysDownload && !alwaysUnpack && distDir.isDirectory()) {
+                    return getDistributionRoot(distDir, distDir.getAbsolutePath());
                 }
 
-                return exclusiveFileAccessManager.access(distDir, new Callable<File>() {
-                    public File call() throws Exception {
-                        List<File> topLevelDirs = listDirs(distDir);
-                        if (downloaded || alwaysUnpack || topLevelDirs.isEmpty()) {
-                            for (File dir : topLevelDirs) {
-                                System.out.println("Deleting directory " + dir.getAbsolutePath());
-                                deleteDir(dir);
-                            }
-                            System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
-                            unzip(localZipFile, distDir);
-                        }
+                final File localZipFile = localDistribution.getZipFile();
+                boolean needsDownload = alwaysDownload || !localZipFile.isFile();
 
-                        File root = getDistributionRoot(distDir, distributionUrl.toString());
-                        setExecutablePermissions(root);
-                        return root;
+                if (needsDownload) {
+                    String downloadId = UUID.randomUUID().toString();
+                    File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + "-" + downloadId + ".part");
+                    System.out.println("Downloading " + distributionUrl);
+                    download.download(distributionUrl, tmpZipFile);
+                    tmpZipFile.renameTo(localZipFile);
+                }
+
+                List<File> topLevelDirs = listDirs(distDir);
+                if (needsDownload || alwaysUnpack || topLevelDirs.isEmpty()) {
+                    for (File dir : topLevelDirs) {
+                        System.out.println("Deleting directory " + dir.getAbsolutePath());
+                        deleteDir(dir);
                     }
-                });
+                    System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
+                    unzip(localZipFile, distDir);
+                }
+
+                File root = getDistributionRoot(distDir, distributionUrl.toString());
+                setExecutablePermissions(root);
+                return root;
             }
         });
     }

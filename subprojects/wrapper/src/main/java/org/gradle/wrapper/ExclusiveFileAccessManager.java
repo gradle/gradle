@@ -55,6 +55,7 @@ public class ExclusiveFileAccessManager {
 
     public <T> T access(File exclusiveFile, Callable<T> task) {
         final File lockFile = new File(exclusiveFile.getParentFile(), exclusiveFile.getName() + LOCK_FILE_SUFFIX);
+        lockFile.getParentFile().mkdirs();
         RandomAccessFile randomAccessFile = null;
         FileChannel channel = null;
         try {
@@ -91,8 +92,6 @@ public class ExclusiveFileAccessManager {
                 channel = null;
                 maybeCloseQuietly(randomAccessFile);
                 randomAccessFile = null;
-
-                lockFile.delete();
             }
         } catch (Exception e) {
             if (e instanceof RuntimeException) {
