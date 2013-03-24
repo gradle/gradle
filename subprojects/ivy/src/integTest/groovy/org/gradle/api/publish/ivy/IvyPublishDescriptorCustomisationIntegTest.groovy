@@ -119,7 +119,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':generateIvyModuleDescriptor'")
+        failure.assertHasDescription("Execution failed for task ':generateIvyModuleDescriptor'.")
         failure.assertHasCause("Could not apply withXml() to Ivy module descriptor")
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
     }
@@ -140,7 +140,7 @@ class IvyPublishDescriptorCustomisationIntegTest extends AbstractIntegrationSpec
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'")
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
         failure.assertHasCause("Invalid publication 'ivy': supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file).")
     }

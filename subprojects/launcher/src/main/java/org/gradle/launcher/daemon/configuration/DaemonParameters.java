@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.configuration;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GUtil;
@@ -39,13 +40,10 @@ public class DaemonParameters {
     private boolean enabled;
     private File javaHome;
 
-    public DaemonParameters(String uid) {
-        this.uid = uid;
+    public DaemonParameters(BuildLayoutParameters layout) {
+        this.uid = UUID.randomUUID().toString();
         jvmOptions.setAllJvmArgs(getDefaultJvmArgs());
-    }
-
-    public DaemonParameters() {
-        this(UUID.randomUUID().toString());
+        baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
     }
 
     List<String> getDefaultJvmArgs() {
@@ -126,24 +124,16 @@ public class DaemonParameters {
         jvmOptions.setAllJvmArgs(jvmArgs);
     }
 
-    public void configureFrom(GradleProperties gradleProperties) {
-        if (gradleProperties.getIdleTimeout() != null) {
-            idleTimeout = gradleProperties.getIdleTimeout();
-        }
-        if (gradleProperties.getJvmArgs() != null) {
-            setJvmArgs(JvmOptions.fromString(gradleProperties.getJvmArgs()));
-        }
-        if (gradleProperties.isDaemonEnabled()) {
-            enabled = true;
-        }
-        if (gradleProperties.getJavaHome() != null) {
-            javaHome = gradleProperties.getJavaHome();
-        }
-        if (gradleProperties.isDebugMode()) {
-            jvmOptions.setDebug(true);
-        }
-        if (gradleProperties.getDaemonBaseDir() != null) {
-            baseDir = gradleProperties.getDaemonBaseDir();
-        }
+    public void setDebug(boolean debug) {
+        jvmOptions.setDebug(debug);
+    }
+
+    public DaemonParameters setBaseDir(File baseDir) {
+        this.baseDir = baseDir;
+        return this;
+    }
+
+    public boolean getDebug() {
+        return jvmOptions.getDebug();
     }
 }

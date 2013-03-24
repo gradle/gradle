@@ -46,6 +46,8 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -136,6 +138,12 @@ public class ProjectInternalServiceRegistryTest {
 
         assertThat(registry.get(PluginContainer.class), instanceOf(DefaultProjectsPluginContainer.class));
         assertThat(registry.get(PluginContainer.class), sameInstance(registry.get(PluginContainer.class)));
+    }
+
+    @Test
+    public void providesAToolingModelRegistry() {
+        assertThat(registry.get(ToolingModelBuilderRegistry.class), instanceOf(DefaultToolingModelBuilderRegistry.class));
+        assertThat(registry.get(ToolingModelBuilderRegistry.class), sameInstance(registry.get(ToolingModelBuilderRegistry.class)));
     }
 
     @Test

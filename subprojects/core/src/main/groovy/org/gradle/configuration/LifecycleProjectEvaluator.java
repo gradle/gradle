@@ -15,9 +15,12 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manages lifecycle concerns while delegating actual evaluation to another evaluator
@@ -25,10 +28,12 @@ import org.gradle.api.internal.project.ProjectStateInternal;
  * @see org.gradle.api.internal.project.TopLevelBuildServiceRegistry#createProjectEvaluator()
  */
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
-    private final ProjectEvaluator evaluator;
+    private static final Logger LOGGER = LoggerFactory.getLogger(LifecycleProjectEvaluator.class);
 
-    public LifecycleProjectEvaluator(ProjectEvaluator evaluator) {
-        this.evaluator = evaluator;
+    private final ProjectEvaluator delegate;
+
+    public LifecycleProjectEvaluator(ProjectEvaluator delegate) {
+        this.delegate = delegate;
     }
 
     public void evaluate(ProjectInternal project, ProjectStateInternal state) {
@@ -38,14 +43,40 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         }
 
         ProjectEvaluationListener listener = project.getProjectEvaluationBroadcaster();
-        listener.beforeEvaluate(project);
+        try {
+            listener.beforeEvaluate(project);
+        } catch (Exception e) {
+            addConfigurationFailure(project, state, e);
+            return;
+        }
+
         state.setExecuting(true);
         try {
-            evaluator.evaluate(project, state);
+            delegate.evaluate(project, state);
+        } catch (Exception e) {
+            addConfigurationFailure(project, state, e);
         } finally {
             state.setExecuting(false);
             state.executed();
-            listener.afterEvaluate(project, state);
+            notifyAfterEvaluate(listener, project, state);
         }
+    }
+
+    private void notifyAfterEvaluate(ProjectEvaluationListener listener, ProjectInternal project, ProjectStateInternal state) {
+        try {
+            listener.afterEvaluate(project, state);
+        } catch (Exception e) {
+            if (state.hasFailure()) {
+                // Just log this failure, and pass the existing failure out in the project state
+                LOGGER.error("Failed to notify ProjectEvaluationListener.afterEvaluate(), but primary configuration failure takes precedence.", e);
+                return;
+            }
+            addConfigurationFailure(project, state, e);
+        }
+    }
+
+    private void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e) {
+        ProjectConfigurationException failure = new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
+        state.executed(failure);
     }
 }

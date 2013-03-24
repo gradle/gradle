@@ -25,5 +25,5 @@ import org.gradle.api.Incubating;
 public interface ToolingModelBuilderRegistry {
     void register(ToolingModelBuilder builder);
 
-    ToolingModelBuilder getBuilder(Class<?> modelType) throws UnsupportedOperationException;
+    ToolingModelBuilder getBuilder(String modelName) throws UnsupportedOperationException;
 }

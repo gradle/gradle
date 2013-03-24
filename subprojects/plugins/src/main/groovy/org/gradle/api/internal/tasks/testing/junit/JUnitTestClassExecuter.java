@@ -16,21 +16,31 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ThreadSafe;
+import org.gradle.util.CollectionUtils;
 import org.junit.runner.Request;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 
 public class JUnitTestClassExecuter {
+    public static final String IGNORING_JUNIT_CATEGORY_CONFIGURATION = "Ignoring JUnit category configuration. Declared JUnit Dependency does not support categories.";
+    private static Logger logger = Logging.getLogger(Task.class);
     private final ClassLoader applicationClassLoader;
     private final RunListener listener;
+    private final JUnitSpec options;
     private final TestClassExecutionListener executionListener;
 
-    public JUnitTestClassExecuter(ClassLoader applicationClassLoader, RunListener listener, TestClassExecutionListener executionListener) {
+    public JUnitTestClassExecuter(ClassLoader applicationClassLoader, JUnitSpec spec, RunListener listener, TestClassExecutionListener executionListener) {
         assert executionListener instanceof ThreadSafe;
         this.applicationClassLoader = applicationClassLoader;
         this.listener = listener;
+        this.options = spec;
         this.executionListener = executionListener;
     }
 
@@ -48,10 +58,45 @@ public class JUnitTestClassExecuter {
     }
 
     private void runTestClass(String testClassName) throws ClassNotFoundException {
-        Class<?> testClass = Class.forName(testClassName, true, applicationClassLoader);
-        Runner runner = Request.aClass(testClass).getRunner();
-        RunNotifier notifier = new RunNotifier();
-        notifier.addListener(listener);
-        runner.run(notifier);
+        final Class<?> testClass = Class.forName(testClassName, true, applicationClassLoader);
+        Request request = Request.aClass(testClass);
+        if (options.hasCategoryConfiguration()) {
+            if (categoriesSupported()) {
+                Transformer<Class<?>, String> transformer = new Transformer<Class<?>, String>() {
+                    public Class<?> transform(final String original) {
+                        try {
+                            return applicationClassLoader.loadClass(original);
+                        } catch (ClassNotFoundException e) {
+                            throw new InvalidUserDataException(String.format("Can't load category class [%s].", original), e);
+                        }
+                    }
+                };
+                request = request.filterWith(new CategoryFilter(
+                        CollectionUtils.collect(options.getIncludeCategories(), transformer),
+                        CollectionUtils.collect(options.getExcludeCategories(), transformer)
+                ));
+            }else{
+                logger.warn(IGNORING_JUNIT_CATEGORY_CONFIGURATION);
+            }
+
+        }
+
+        Runner runner = request.getRunner();
+        //In case of no matching methods junit will return a ErrorReportingRunner for org.junit.runner.manipulation.Filter.class.
+        //Will be fixed with adding class filters
+        if (!org.junit.runner.manipulation.Filter.class.getName().equals(runner.getDescription().getDisplayName())) {
+            RunNotifier notifier = new RunNotifier();
+            notifier.addListener(listener);
+            runner.run(notifier);
+        }
+    }
+
+    private boolean categoriesSupported() {
+        try {
+            applicationClassLoader.loadClass("org.junit.experimental.categories.Category");
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+        return true;
     }
 }

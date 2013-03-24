@@ -21,12 +21,45 @@ manual changes to the Gradle build, and to inform when the Gradle build is ready
 10. I want to create a project that follows my organisation's conventions from scratch.
 11. I want to create an organisation specific project type from scratch.
 
-# User visible changes
+# Implementation approach
 
-* A new plugin, `init-build`
-* The plugin adds task `initGradleBuild` that depends the appropriate tasks based on the contents of the project directory.
+A new plugin called `build-setup` will be added. Generally, this plugin will be used in a source tree
+that may or may not be empty and that contains no Gradle build. The plugin will infer the project
+model from the contents of the source tree, as described below, and generate the necessary Gradle build
+files and supporting files.
 
-# Migrating from Maven to Gradle
+## User interaction
+
+From the command-line:
+
+1. User downloads and installs a Gradle distribution.
+2. User runs `gradle setupBuild` from the root directory of the source tree.
+3. User runs the appropriate build comparison task from the root directory.
+4. User modifies Gradle build, if required, directed by the build comparison report.
+
+From the IDE:
+
+1. User runs `initialize Gradle build` action from UI and selects the source tree to initialize.
+2. User runs the appropriate build comparison task from the root directory.
+3. User modifies Gradle build, if required, directed by the build comparison report.
+
+## Inferring the project model
+
+This can start off pretty basic: if there is a source file with extension `.java`, then the Java plugin is required, if there is a
+source file with extension `.groovy`, then the Groovy plugin is required, and so on.
+
+The inference can evolve over time:
+* if the source file path contains an element called `test`, then assume it is part of the test source set.
+* parse the source to extract package declarations, and infer the source directory roots from this.
+* parse the source import statements and infer the test frameworks involved.
+* parse the source import statements and infer the project dependencies.
+* infer that the project is a web app from the presence of a `web.xml`.
+* And so on.
+
+The result of the inference can potentially be presented to the user to confirm (or they can just edit the generated build file). When nothing
+useful can be inferred, the user can select from a list or assemble the model interactively.
+
+# Story: Generate Gradle build from Maven POM (DONE)
 
 When the `pom.xml` packaging is `pom`:
 * Generate a multi-project build, with a separate Gradle project for each Maven module referenced in the `pom.xml`, and a root project for the parent module.
@@ -37,24 +70,6 @@ For all other packagings:
 
 For all builds:
 * Generate a `settings.gradle`
-* Generate the wrapper files.
-* Preconfigure the build comparison plugin, as appropriate.
-* Inform the user about the build comparison plugin.
-
-## User interaction
-
-From the command-line:
-
-1. User downloads and installs a Gradle distribution.
-2. User runs `gradle initGradleBuild` from the root directory of the Maven build.
-3. User runs the appropriate build comparison task from the root directory.
-4. User modifies Gradle build, if required, directed by the build comparison report.
-
-From the IDE:
-
-1. User runs `initialize Gradle build` action from UI and selects the Maven build to initialize from.
-2. User runs the appropriate build comparison task from the root directory.
-3. User modifies Gradle build, if required, directed by the build comparison report.
 
 ## Sad day cases
 
@@ -73,17 +88,103 @@ From the IDE:
 * Add some basic unit and integration test coverage.
 * Use the maven libraries to determine the effective pom in process, rather than forking 'mvn'.
 * Reuse the import and maven->gradle mapping that the importer uses.
- We cannot have the converter using one mapping and the importer using a different mapping.
- Plus this means the converter can make use of any type of import (see below).
+  We cannot have the converter using one mapping and the importer using a different mapping.
+  Plus this means the converter can make use of any type of import (see below).
 
-## Other potential stories
+# Story: Build initialisation generates the Gradle wrapper files
 
-* Better handle the case where there's already some Gradle build scripts (i.e. don't overwrite an existing Gradle build).
-* Add support for auto-applying a plugin, so that I can run `gradle initGradleBuild' in a directory that contains a `pom.xml` and no Gradle stuff.
+This story add support for generating the Gradle wrapper files, and changes the existing plugin so that it is more
+general purpose:
 
-# Migrating from Ant to Gradle
+* Rename the `maven2Gradle` plugin to `build-setup`.
+* Rename the `Maven2GradlePlugin` type to `BuildSetupPlugin`.
+* Move the plugin and task implementation out of the `maven` project to a new `buildSetup` project.
+* Move the plugin and task implementation to the `org.gradle.buildsetup.plugins` package.
+* Move the integration tests to live in the `buildSetup` project.
+* Change the plugin to add a lifecycle task called `setupBuild` that depends on the `maven2Gradle` task.
+* Change the plugin to only add the `maven2Gradle` task if the `pom.xml` file exists in the project root directory.
+* Change the plugin so that it adds a task of type `Wrapper` to generate the wrapper files.
+* Update and rename the existing `boostrapPlugin` chapter in the user guide to reflect the changes.
 
-* Infer the project model from the contents of the source tree (see below).
+## Test coverage
+
+* Change the existing integration tests to run the `setupBuild` task.
+* Change the existing integration tests to verify that the wrapper files are generated.
+* Change the existing integration tests to verify that a `settings.gradle` is generated.
+* Verify that when `setupBuild` is run in a directory that does not contain a `pom.xml` then an empty `build.gradle` file
+  and the wrapper files are generated.
+
+# Story: User initializes a Gradle build without writing a stub build script
+
+This story adds support for automatically applying the `build-setup` plugin when `gradle setupBuild` is run:
+
+* Add `ProjectConfigureAction` to the plugin project which adds a task rule that applies the `build-setup` plugin
+  when `setupBuild` is requested. It should only apply the plugin to the root project of a single project build
+  where the project build script does not exist.
+
+## Test coverage
+
+* Change the existing integration tests so that they do not create the stub build script that applies the plugin.
+
+# Story: Handle existing Gradle build files
+
+Better handle the case where there is already some Gradle build scripts.
+
+* When `setupBuild` is run and any of the files that would be generated already exist, warn the user and do not
+  overwrite the file.
+
+# Story: Create a Java library project from scratch
+
+* Add a `--type` command-line option to `setupBuild`.
+* When `type` is `java-library` then:
+    * Ignore any existing POM.
+    * Generate a `build.gradle` that applies the Java plugin, adds `mavenCentral()` and the dependencies to allow testing with JUnit.
+    * Create the appropriate source directories, if they do not exist.
+    * Possibly add a sample class and a unit test, if there are no existing source or test files.
+* When `type` is not specified then:
+    * Convert a POM, if present.
+
+## User interaction
+
+From the command-line:
+
+1. User downloads and installs a Gradle distribution.
+2. User runs `gradle setupBuild --type java-library` from an empty directory.
+3. User modifies generated build scripts and source, as appropriate.
+
+# Story: Improve POM conversion
+
+TBD - fix issues with POM conversion to make it more accurate
+
+# Story: User manually completes migration with help from the build comparison plugin
+
+* Preconfigure the build comparison plugin, as appropriate.
+* Inform the user about the build comparison plugin.
+
+# Story: Expose build initialisation through the tooling API
+
+* Extend the tooling API to add the concept of actions. Running a build is a kind of action.
+* Add the `setup build` action. When invoked it:
+    * Determines the most recent Gradle release.
+    * Uses it to run the `setup build` action.
+
+# Story: Create a library project from scratch
+
+* The user specifies the type of library project to create
+* As for Java library project creation
+* Add support for prompting from the command-line and tooling API
+
+## User interaction
+
+1. User downloads and installs a Gradle distribution.
+2. User runs `gradle setupBuild` from an empty directory.
+3. The user is prompted for the type of project they would like to create. Alternatively,
+   the user can specify the project type as a command-line option.
+4. User modifies generated build scripts and source, as appropriate.
+
+# Story: Migrating from Ant to Gradle
+
+* Infer the project model from the contents of the source tree.
 * Generate a `build.gradle` that applies the appropriate plugin for the project type. It does _not_ import the `build.xml`.
 * Generate a `settings.gradle`.
 * Generate the wrapper files.
@@ -99,13 +200,7 @@ From the command-line:
 3. User runs the appropriate build comparison task from the root directory.
 4. User modifies Gradle build, directed by the build comparison report.
 
-From the IDE:
-
-1. User runs `initialize Gradle build` action from UI and selects the Ant build to initialize from.
-2. User runs the appropriate build comparison task from the root directory.
-3. User modifies Gradle build, directed by the build comparison report.
-
-# Migrating from Ant+Ivy to Gradle
+# Story: Migrating from Ant+Ivy to Gradle
 
 * Infer the project model from the contents of the source tree.
 * Generate a `build.gradle` that applies the appropriate plugin for the project type.
@@ -115,11 +210,11 @@ From the IDE:
 * Preconfigure the build comparison plugin, as appropriate.
 * Inform the user about the build comparison plugin.
 
-# Migrating from Make to Gradle
+# Story: Migrating from Make to Gradle
 
 As for the Ant to Gradle case.
 
-# Migrating from Eclipse to Gradle
+# Story: Migrating from Eclipse to Gradle
 
 * Infer the project layout, type and dependencies from the Eclipse project files.
 * Generate a multi-project build, with a Gradle project per Eclipse project.
@@ -128,72 +223,22 @@ As for the Ant to Gradle case.
 * Preconfigure the build comparison plugin, as appropriate.
 * Inform the user about the build comparison plugin.
 
-# Migrating from IDEA to Gradle
+# Story: Migrating from IDEA to Gradle
 
 As for the Eclipse to Gradle case.
 
-# Create a Java library project from scratch
-
-* Generate a `build.gradle` that applies the Java plugin, adds `mavenCentral()` and the dependencies to allow testing with JUnit.
-* Generate a `settings.gradle`.
-* Generate the wrapper files.
-* Create the appropriate source directories.
-* Possibly add a class and a unit test.
-
-## User interaction
-
-From the command-line:
-
-1. User downloads and installs a Gradle distribution.
-2. User runs `gradle initGradleBuild` from an empty directory.
-3. User modifies generated build scripts and source, as appropriate.
-
-From the IDE:
-
-1. User runs `initialize Gradle build` action from the UI.
-2. User modifies generated build scripts and source, as appropriate.
-
-# Create a library project from scratch
-
-* The user specifies the type of library project to create
-* As for Java library project creation
-
-## User interaction
-
-1. User downloads and installs a Gradle distribution.
-2. User runs `gradle initGradleBuild` from an empty directory.
-3. The user is prompted for the type of project they would like to create. Alternatively,
-   the user can specify the project type as a command-line option.
-4. User modifies generated build scripts and source, as appropriate.
-
-# Create an application project from scratch
-
-As for creating a library project.
-
-# Create a project with custom convention from scratch
+# Story: Add further project types
 
 TBD
 
-# Create an organisation specific project from scratch
+# Story: Create a project with custom convention from scratch
 
 TBD
 
-# Inferring the project model
+# Story: Create an organisation specific project from scratch
 
-This can start off pretty basic: if there is a source file with extension `.java`, then the Java plugin is required, if there is a
-source file with extension `.groovy`, then the Groovy plugin is required, and so on.
-
-The inference can evolve over time:
-* if the source file path contains an element called `test`, then assume it is part of the test source set.
-* parse the source to extract package declarations, and infer the source directory roots from this.
-* parse the source import statements and infer the test frameworks involved.
-* parse the source import statements and infer the project dependencies.
-* infer that the project is a web app from the presence of a `web.xml`.
-* And so on.
-
-The result of the inference can potentially be presented to the user to confirm (or they can just edit the generated build file). When nothing
-useful can be inferred, the user can select from a list or assemble the model interactively.
+TBD
 
 # Open issues
 
-None yet.
+- Extensibility: need to be able to add more types of projects

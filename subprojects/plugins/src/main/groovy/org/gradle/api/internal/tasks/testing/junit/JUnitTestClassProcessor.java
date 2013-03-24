@@ -30,22 +30,20 @@ import org.gradle.messaging.actor.ActorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
 public class JUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
-    private final File testResultsDir;
     private final IdGenerator<?> idGenerator;
     private final ActorFactory actorFactory;
     private final StandardOutputRedirector outputRedirector;
     private final TimeProvider timeProvider = new TrueTimeProvider();
+    private final JUnitSpec spec;
     private JUnitTestClassExecuter executer;
     private Actor resultProcessorActor;
 
-    public JUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator, ActorFactory actorFactory,
+    public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory,
                                    StandardOutputRedirector standardOutputRedirector) {
-        this.testResultsDir = testResultsDir;
         this.idGenerator = idGenerator;
+        this.spec = spec;
         this.actorFactory = actorFactory;
         this.outputRedirector = standardOutputRedirector;
     }
@@ -63,7 +61,7 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
 
         // Build the JUnit adaptor stuff
         JUnitTestEventAdapter junitEventAdapter = new JUnitTestEventAdapter(threadSafeResultProcessor, timeProvider, idGenerator);
-        executer = new JUnitTestClassExecuter(applicationClassLoader, junitEventAdapter, threadSafeTestClassListener);
+        executer = new JUnitTestClassExecuter(applicationClassLoader, spec, junitEventAdapter, threadSafeTestClassListener);
     }
 
     public void processTestClass(TestClassRunInfo testClass) {

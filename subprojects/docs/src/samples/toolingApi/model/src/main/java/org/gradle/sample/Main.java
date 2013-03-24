@@ -11,7 +11,6 @@ public class Main {
     public static void main(String[] args) {
         // Configure the connector and create the connection
         GradleConnector connector = GradleConnector.newConnector();
-        connector.forProjectDirectory(new File("."));
 
         if (args.length > 0) {
             connector.useInstallation(new File(args[0]));
@@ -20,9 +19,7 @@ public class Main {
             }
         }
 
-        if (args.length > 0) {
-            connector.useInstallation(new File(args[0]));
-        }
+        connector.forProjectDirectory(new File("."));
 
         ProjectConnection connection = connector.connect();
         try {

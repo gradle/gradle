@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Unroll
 
 class IvyDescriptorResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "substitutes system properties into ivy descriptor"() {
@@ -87,5 +88,52 @@ task check << {
         name | includeLocation
         "with explicit location" | true
         "without explicit location" | false
+    }
+
+    @Unroll
+    def "handles ivy.xml with dependency declared with #name"() {
+        given:
+
+        ivyRepo.module("org.gradle.dep", "dep_module", "1.134")
+                .dependsOn("org.gradle.one", "mod_one", "1.1")
+                .dependsOn("org.gradle.two", "mod_one", "2.1")
+                .dependsOn("org.gradle.two", "mod_two", "2.2")
+                .publish()
+        ivyRepo.module("org.gradle.one", "mod_one", "1.1").publish()
+        ivyRepo.module("org.gradle.two", "mod_one", "2.1").publish()
+        ivyRepo.module("org.gradle.two", "mod_two", "2.2").publish()
+
+        ivyRepo.module("org.gradle.test", "test_exclude", "1.134")
+                .dependsOn("org.gradle.dep", "dep_module", "1.134")
+                .withXml({
+                    asNode().dependencies[0].dependency[0].appendNode("exclude", excludeAttributes)
+                })
+                .publish()
+
+        and:
+        buildFile << """
+repositories { ivy { url "${ivyRepo.uri}" } }
+configurations { compile }
+dependencies {
+    compile "org.gradle.test:test_exclude:1.134"
+}
+
+task check(type: Sync) {
+    into "libs"
+    from configurations.compile
+}
+"""
+
+        when:
+        succeeds "check"
+
+        then:
+        file("libs").assertHasDescendants(jars.toArray(new String[0]))
+
+        where:
+        name | excludeAttributes | jars
+        "module exclude" | [module: "mod_one"] | ['test_exclude-1.134.jar', 'dep_module-1.134.jar', 'mod_two-2.2.jar']
+        "org exclude" | [org: "org.gradle.two"] | ['test_exclude-1.134.jar','dep_module-1.134.jar', 'mod_one-1.1.jar']
+        "module and org exclude" | [org: "org.gradle.two", module: "mod_one"] | ['test_exclude-1.134.jar', 'dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_two-2.2.jar']
     }
 }

@@ -18,9 +18,14 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
+
+import static org.gradle.util.Matchers.isSerializable
+import static org.hamcrest.MatcherAssert.assertThat
 
 /**
  * by Szczepan Faber, created at: 3/6/12
@@ -70,18 +75,32 @@ class ConfiguringBuildActionTest extends Specification {
         def start = action.configureStartParameter()
 
         then:
-        !start.isSearchUpwards()
+        !start.searchUpwards
     }
 
-    def "can overwrite configure on demand via build arguments"() {
-        expect:
-        !new ConfiguringBuildAction().configureStartParameter().configureOnDemand
-
+    def "searchUpwards configured directly on the action wins over the command line setting"() {
         when:
-        def action = new ConfiguringBuildAction(arguments: ['--configure-on-demand'])
+        def action = new ConfiguringBuildAction(arguments: ['-u'], searchUpwards: true)
         def start = action.configureStartParameter()
 
         then:
-        start.configureOnDemand
+        start.searchUpwards
+    }
+
+    def "the start parameter is configured from properties"() {
+        given:
+        def converter = Mock(PropertiesToStartParameterConverter)
+        def action = new ConfiguringBuildAction(properties: [foo: 'bar'])
+
+        when:
+        action.configureStartParameter(converter)
+
+        then:
+        1 * converter.convert([foo: 'bar'], _)
+    }
+
+    def "is serializable"() {
+        expect:
+        assertThat(new ConfiguringBuildAction({} as ProviderOperationParameters, null, [foo: 'bar']), isSerializable())
     }
 }

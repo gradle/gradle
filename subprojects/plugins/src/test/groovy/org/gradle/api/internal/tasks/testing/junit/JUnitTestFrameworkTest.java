@@ -81,8 +81,8 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
         final ActorFactory actorFactory = context.mock(ActorFactory.class);
 
         context.checking(new Expectations() {{
-            one(testMock).getTestResultsDir();
-            will(returnValue(testResultsDir));
+            allowing(jUnitOptionsMock).getIncludeCategories();
+            allowing(jUnitOptionsMock).getExcludeCategories();
             one(serviceRegistry).get(IdGenerator.class);
             will(returnValue(idGenerator));
             one(serviceRegistry).get(ActorFactory.class);

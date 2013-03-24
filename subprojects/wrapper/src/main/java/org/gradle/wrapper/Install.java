@@ -19,6 +19,7 @@ package org.gradle.wrapper;
 import java.io.*;
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -29,6 +30,7 @@ public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
     private final IDownload download;
     private final PathAssembler pathAssembler;
+    private final ExclusiveFileAccessManager exclusiveFileAccessManager = new ExclusiveFileAccessManager(10000, 100);
 
     public Install(IDownload download, PathAssembler pathAssembler) {
         this.download = download;
@@ -36,47 +38,77 @@ public class Install {
     }
 
     public File createDist(WrapperConfiguration configuration) throws Exception {
-        URI distributionUrl = configuration.getDistribution();
-        boolean alwaysDownload = configuration.isAlwaysDownload();
-        boolean alwaysUnpack = configuration.isAlwaysUnpack();
+        final URI distributionUrl = configuration.getDistribution();
+        final boolean alwaysDownload = configuration.isAlwaysDownload();
+        final boolean alwaysUnpack = configuration.isAlwaysUnpack();
 
-        PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
+        final PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
+        final File distDir = localDistribution.getDistributionDir();
 
-        File localZipFile = localDistribution.getZipFile();
-        boolean downloaded = false;
-        if (alwaysDownload || !localZipFile.exists()) {
+        // No lock lane
+        if (!alwaysDownload && !alwaysUnpack && distDir.isDirectory()) {
+            return getDistributionRoot(distDir, distDir.getAbsolutePath());
+        }
+
+        // Slow lane
+        final File localZipFile = localDistribution.getZipFile();
+        boolean needsDownload = alwaysDownload || !localZipFile.isFile();
+
+        final File tmpZipFile;
+        if (needsDownload) {
             String downloadId = UUID.randomUUID().toString();
-
-            File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + "-" + downloadId + ".part");
-            tmpZipFile.delete();
+            tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + "-" + downloadId + ".part");
             System.out.println("Downloading " + distributionUrl);
             download.download(distributionUrl, tmpZipFile);
-
-            if (!localZipFile.exists() || alwaysDownload) {
-                tmpZipFile.renameTo(localZipFile);
-                downloaded = true;
-            }
-
+        } else {
+            tmpZipFile = null;
         }
 
-        File distDir = localDistribution.getDistributionDir();
-        List<File> dirs = listDirs(distDir);
+        return exclusiveFileAccessManager.access(localZipFile, new Callable<File>() {
+            public File call() throws Exception {
+                final boolean downloaded;
 
-        if (downloaded || alwaysUnpack || dirs.isEmpty()) {
-            for (File dir : dirs) {
-                System.out.println("Deleting directory " + dir.getAbsolutePath());
-                deleteDir(dir);
+                if (tmpZipFile != null) {
+                    if (!localZipFile.exists() || alwaysDownload) {
+                        tmpZipFile.renameTo(localZipFile);
+                        downloaded = true;
+                    } else {
+                        downloaded = false;
+                    }
+
+                    tmpZipFile.delete();
+                } else {
+                    downloaded = false;
+                }
+
+                return exclusiveFileAccessManager.access(distDir, new Callable<File>() {
+                    public File call() throws Exception {
+                        List<File> topLevelDirs = listDirs(distDir);
+                        if (downloaded || alwaysUnpack || topLevelDirs.isEmpty()) {
+                            for (File dir : topLevelDirs) {
+                                System.out.println("Deleting directory " + dir.getAbsolutePath());
+                                deleteDir(dir);
+                            }
+                            System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
+                            unzip(localZipFile, distDir);
+                        }
+
+                        File root = getDistributionRoot(distDir, distributionUrl.toString());
+                        setExecutablePermissions(root);
+                        return root;
+                    }
+                });
             }
-            System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
-            unzip(localZipFile, distDir);
-            dirs = listDirs(distDir);
-            if (dirs.isEmpty()) {
-                throw new RuntimeException(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionUrl));
-            }
-            setExecutablePermissions(dirs.get(0));
+        });
+    }
+
+    private File getDistributionRoot(File distDir, String distributionDescription) {
+        List<File> dirs = listDirs(distDir);
+        if (dirs.isEmpty()) {
+            throw new RuntimeException(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionDescription));
         }
         if (dirs.size() != 1) {
-            throw new RuntimeException(String.format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionUrl));
+            throw new RuntimeException(String.format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionDescription));
         }
         return dirs.get(0);
     }
@@ -180,5 +212,6 @@ public class Install {
         in.close();
         out.close();
     }
+
 
 }

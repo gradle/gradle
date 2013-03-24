@@ -21,13 +21,6 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.*
 
-/**
- * Executes instances of {@link ToolingApiSpecification} against all compatible versions of tooling API consumer
- * and provider, including the current Gradle version under test.
- *
- * <p>A test can be annotated with {@link MinToolingApiVersion} and {@link MinTargetGradleVersion} to indicate the
- * minimum tooling API or Gradle versions required for the test.
- */
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
 
@@ -106,10 +99,6 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         }
 
         private GradleVersion extractVersion(annotation) {
-            if (GradleVersion.current().isSnapshot() && GradleVersion.current().version.startsWith(annotation.value())) {
-                //so that one can use an unreleased version in the annotation value
-                return GradleVersion.current()
-            }
             if ("current".equals(annotation.value())) {
                 //so that one can use 'current' literal in the annotation value
                 //(useful if you don't know if the feature makes its way to the upcoming release)

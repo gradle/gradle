@@ -37,12 +37,12 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
+import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.Directory;
@@ -947,7 +947,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure);
     }
 
-    public ExtensionContainer getExtensions() {
-        return getConvention();
+    public ExtensionContainerInternal getExtensions() {
+        return (ExtensionContainerInternal) getConvention();
     }
 }

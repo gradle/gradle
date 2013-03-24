@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.api.publish.maven
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
 
 class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec {
 
-    protected def resolveArtifact(MavenFileModule module, def extension) {
-        doResolveArtifacts("""
-    dependencies {
-        resolve group: '${sq(module.groupId)}', name: '${sq(module.artifactId)}', version: '${sq(module.version)}', ext: '${sq(extension)}'
-    }
-""")
-    }
     protected def resolveArtifact(MavenFileModule module, def extension, def classifier) {
         doResolveArtifacts("""
     dependencies {

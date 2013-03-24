@@ -37,13 +37,12 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         return this
     }
 
-    def indexContainsTestClass(String... testClasses) {
+    def indexContainsTestClass(String... expectedTestClasses) {
         def indexFile = new File(htmlReportDirectory, "index.html")
         assert indexFile.exists()
         Document html = Jsoup.parse(indexFile, null)
-        testClasses.each { testClass ->
-            assert html.select("a").find { it.text() == testClass } != null
-        }
+        def executedTestClasses = html.select("div:has(h2:contains(Classes)) a").collect { it.text() }
+        assert executedTestClasses.containsAll(expectedTestClasses)
     }
 
     def assertHtmlReportForTestClassExists(String... classNames) {

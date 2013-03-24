@@ -18,10 +18,10 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.BuildAction;
-import org.gradle.launcher.daemon.configuration.GradleProperties;
+import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -29,25 +29,27 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
     private LogLevel buildLogLevel;
     private List<String> arguments;
     private List<String> tasks;
-    private BuildAction<T> action;
+    private BuildAction<? extends T> action;
     private File projectDirectory;
     private File gradleUserHomeDir;
     private Boolean searchUpwards;
+    private Map<String, String> properties = new HashMap<String, String>();
 
     // Important that this is constructed on the client so that it has the right gradleHomeDir internally
     private final StartParameter startParameterTemplate = new StartParameter();
-    private boolean configureOnDemand;
 
     public ConfiguringBuildAction() {}
 
-    public ConfiguringBuildAction(ProviderOperationParameters parameters, BuildAction<T> action, GradleProperties gradleProperties) {
-        this.configureOnDemand = gradleProperties.isConfigureOnDemand();
+    public ConfiguringBuildAction(ProviderOperationParameters parameters, BuildAction<? extends T> action, Map<String, String> properties) {
+        this.properties.putAll(properties);
         this.gradleUserHomeDir = parameters.getGradleUserHomeDir();
         this.projectDirectory = parameters.getProjectDir();
         this.searchUpwards = parameters.isSearchUpwards();
@@ -58,20 +60,22 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
     }
 
     StartParameter configureStartParameter() {
+        return configureStartParameter(new PropertiesToStartParameterConverter());
+    }
+
+    StartParameter configureStartParameter(PropertiesToStartParameterConverter propertiesToStartParameterConverter) {
         StartParameter startParameter = startParameterTemplate.newInstance();
+
         startParameter.setProjectDir(projectDirectory);
         if (gradleUserHomeDir != null) {
             startParameter.setGradleUserHomeDir(gradleUserHomeDir);
-        }
-        if (searchUpwards != null) {
-            startParameter.setSearchUpwards(searchUpwards);
         }
 
         if (tasks != null) {
             startParameter.setTaskNames(tasks);
         }
 
-        startParameter.setConfigureOnDemand(configureOnDemand);
+        propertiesToStartParameterConverter.convert(properties, startParameter);
 
         if (arguments != null) {
             DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
@@ -87,6 +91,10 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
                     + "\nExamples of unsupported build options: '--daemon', '-?', '-v'."
                     + "\nPlease find more information in the javadoc for the BuildLauncher class.", e);
             }
+        }
+
+        if (searchUpwards != null) {
+            startParameter.setSearchUpwards(searchUpwards);
         }
 
         if (buildLogLevel != null) {

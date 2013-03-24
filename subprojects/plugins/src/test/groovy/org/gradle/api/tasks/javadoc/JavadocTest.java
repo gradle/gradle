@@ -76,7 +76,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).options(task.getOptions());
             will(returnValue(javadocExecHandleBuilderMock));
-            one(javadocExecHandleBuilderMock).optionsFile(new File(getProject().getBuildDir(), "tmp/taskname/javadoc.options"));
+            one(javadocExecHandleBuilderMock).optionsFile(new File(getProject().getBuildDir(), "tmp/testTask/javadoc.options"));
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).getExecHandle();
             will(returnValue(execActionMock));

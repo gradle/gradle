@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.WrapUtil;

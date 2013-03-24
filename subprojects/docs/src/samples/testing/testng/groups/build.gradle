@@ -1,0 +1,18 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'org.testng:testng:6.3.1'
+}
+
+// START SNIPPET test-config
+test {
+    useTestNG() {
+        excludeGroups 'integrationTests'
+        includeGroups 'unitTests'
+    }
+}
+// END SNIPPET test-config

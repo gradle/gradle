@@ -21,22 +21,26 @@ package org.gradle.tooling.internal.protocol;
  *
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 1.2-rc-1.</p>
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 1.2-rc-1 to 1.5.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 1.2-rc-1.</p>
  *
  * @since 1.2-rc-1
+ * @deprecated 1.6-rc-1. Use {@link ModelBuilder} instead.
  */
+@Deprecated
 public interface BuildActionRunner extends InternalProtocolInterface {
     /**
      * Performs some action against a build and returns some result of the given type.
      *
-     * <p>Consumer compatibility: This method is used by all consumer versions from 1.2-rc-1.</p>
+     * <p>Consumer compatibility: This method is used by all consumer versions from 1.2-rc-1 to 1.5.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.2-rc-1.</p>
      *
      * @param type The desired result type. Use {@link Void} to indicate that no result is desired.
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      * @since 1.2-rc-1
+     * @deprecated 1.6-rc-1. Use {@link ModelBuilder} instead.
      */
+    @Deprecated
     <T> BuildResult<T> run(Class<T> type, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
 }

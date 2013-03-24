@@ -1228,7 +1228,30 @@
                 and the for exclude it is <literal>"**/Abstract*.class"</literal>.
             </para>
         </section>
-
+        <section id="test_grouping">
+            <title>Test grouping</title>
+            <para>JUnit and TestNG allows sophisticated groupings of test methods. </para>
+            <para>For grouping JUnit test classes and methods JUnit 4.8 introduces the concept of categories.
+                <footnote>
+                    <para>The JUnit wiki contains a detailed description on how to work with JUnit categories:
+                        <ulink url='https://github.com/junit-team/junit/wiki/Categories'/>.
+                    </para>
+                </footnote>
+                The <literal>test</literal> task allows the specification of the JUnit categories you want to include and exclude.
+            </para>
+            <sample id="junitcategories" dir="testing/junit/categories" title="JUnit Categories">
+                <sourcefile file="build.gradle" snippet="test-categories"/>
+            </sample>
+            <para>The TestNG framework has a quite similar concept. In TestNG you can specify different test groups.
+                <footnote>
+                    <para>The TestNG documentation contains more details about test groups:
+                        <ulink url='http://testng.org/doc/documentation-main.html#test-groups'/>.
+                    </para>
+                </footnote> The test groups that should be included or excluded from the test execution can be configured in the test task. </para>
+            <sample id="testnggrouping" dir="testing/testng/groups" title="Grouping TestNG tests">
+                <sourcefile file="build.gradle" snippet="test-config"/>
+            </sample>
+        </section>
         <section id="test_reporting">
             <title>Test reporting</title>
 

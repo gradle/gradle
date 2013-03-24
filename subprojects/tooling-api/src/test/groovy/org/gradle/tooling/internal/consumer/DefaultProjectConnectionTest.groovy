@@ -15,17 +15,14 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.consumer.async.AsyncConnection
-import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter
 import org.gradle.tooling.model.GradleProject
 import spock.lang.Specification
 
 class DefaultProjectConnectionTest extends Specification {
     final AsyncConnection protocolConnection = Mock()
-    final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()
-    final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, adapter, parameters)
+    final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, parameters)
 
     def canCreateAModelBuilder() {
         expect:
@@ -36,14 +33,6 @@ class DefaultProjectConnectionTest extends Specification {
         expect:
         connection.newBuild() instanceof DefaultBuildLauncher
     }
-    
-    def modelFailsForUnknownModelType() {
-        when:
-        connection.model(TestBuild.class)
-
-        then:
-        thrown(UnknownModelException)
-    }
 
     def closeStopsBackingConnection() {
         when:
@@ -52,8 +41,4 @@ class DefaultProjectConnectionTest extends Specification {
         then:
         1 * protocolConnection.stop()
     }
-}
-
-interface TestBuild extends GradleProject {
-    
 }

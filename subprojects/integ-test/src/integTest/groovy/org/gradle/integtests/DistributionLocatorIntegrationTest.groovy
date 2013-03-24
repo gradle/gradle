@@ -36,7 +36,7 @@ class DistributionLocatorIntegrationTest extends Specification {
 
     def "locates snapshot versions"() {
         expect:
-        urlExist(locator.getDistributionFor(GradleVersion.version("1.3-20120919220026+0000")))
+        urlExist(locator.getDistributionFor(GradleVersion.version("1.6-20130321190822+0000")))
     }
 
     void urlExist(URI url) {

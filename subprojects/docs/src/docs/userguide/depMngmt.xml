@@ -897,11 +897,104 @@ someroot/[artifact]-[revision].[ext]
         </itemizedlist>
     </section>
     <section>
-        <title>Changing the dependency resolution process</title>
+        <title>Fine-tuning the dependency resolution process</title>
+        <para>In most cases, Gradle's default dependency management will resolve the dependencies that you want in your build. In some cases, however, it can be necessary to tweak
+            dependency resolution to ensure that your build receives exactly the right dependencies.
+        </para>
         <para>There are a number of ways that you can influence how Gradle resolves dependencies.</para>
 
+        <section id='sec:forcing_modules'>
+            <title>Forcing a particular module version</title>
+            <para>Forcing a module version tells Gradle to always use a specific version for given dependency (transitive or not), overriding any version specified in a
+                published module descriptor. This can be very useful when tackling version conflicts - for more information see <xref linkend='sub:version_conflicts'/>.
+            </para>
+            <para>
+                Force versions can also be used to deal with rogue metadata of transitive dependencies.
+                If a transitive dependency has poor quality metadata that leads to problems at dependency resolution time, you can force Gradle to use a newer, fixed version of this dependency.
+                For an example, see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
+                Note that 'dependency resolve rules' (outlined below) provide a more powerful mechanism for replacing a broken module dependency. See <xref linkend='sec:blacklisting_version'/>.
+            </para>
+        </section>
+        <section id='sec:dependency_resolve_rules'>
+            <title>Using dependency resolve rules</title>
+            <para>A dependency resolve rule is executed for each resolved dependency, and offers a powerful api for manipulating a requested dependency prior to that dependency being resolved.
+                This feature is incubating, but currently offers the ability to change the group, name and/or version of a requested dependency,
+                allowing a dependency to be substituted with a completely different module during resolution.
+            </para>
+            <para>
+                Dependency resolve rules provide a very powerful way to control the dependency resolution process, and can be used to implement all sorts of advanced
+                patterns in dependency management. Some of these patterns are outlined below.
+                For more information and code samples see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
+            </para>
+            <section id='sec:releasable_unit'>
+                <title>Modelling releaseable units</title>
+                <para>Often an organisation publishes a set of libraries with a single version; where the libraries are built, tested and published together.
+                    These libraries form a 'releasable unit', designed and intended to be used as a whole. It does not make sense to use libraries from different releasable units together.
+                </para>
+                <para>
+                    But it is easy for transitive dependency resolution to violate this contract. For example:
+                    <itemizedlist>
+                        <listitem><literal>module-a</literal> depends on <literal>releasable-unit:part-one:1.0</literal></listitem>
+                        <listitem><literal>module-b</literal> depends on <literal>releasable-unit:part-two:1.1</literal></listitem>
+                    </itemizedlist>
+                    A build depending on both <literal>module-a</literal> and <literal>module-b</literal> will obtain different versions of libraries within the releasable unit.
+                </para>
+                <para>
+                    Dependency resolve rules give you the power to enforce releasable units in your build.
+                    Imagine a releasable unit defined by all libraries that have 'org.gradle' group. We can force all of these libraries to use a consistent version:
+                    <sample id="releasable-unit" dir="userguide/artifacts/resolutionStrategy" title="Forcing consistent version for a group of libraries">
+                        <sourcefile file="build.gradle" snippet="releasable-unit"/>
+                    </sample>
+                </para>
+            </section>
+            <section id='sec:custom_versioning_scheme'>
+                <title>Implement a custom versioning scheme</title>
+                <para>
+                    In some corporate environments, the list of module versions that can be declared in gradle builds is maintained and audited externally.
+                    Dependency resolve rules provide a neat implementation of this pattern:
+                    <itemizedlist>
+                        <listitem>In the build script, the developer declares dependencies with the module group and name, but uses a placeholder version, for example: '<literal>default</literal>'.</listitem>
+                        <listitem>The 'default' version is resolved to a specific version via a dependency resolve rule, which looks up the version in a corporate catalog of approved modules.</listitem>
+                    </itemizedlist>
+
+                    This rule implementation can be neatly encapsulated in a corporate plugin, and shared across all builds within the organisation.
+                    <sample id="custom-versioning-scheme" dir="userguide/artifacts/resolutionStrategy" title="Using a custom versioning scheme">
+                        <sourcefile file="build.gradle" snippet="custom-versioning-scheme"/>
+                    </sample>
+                </para>
+            </section>
+            <section id='sec:blacklisting_version'>
+                <title>Blacklisting a particular version with a replacement</title>
+                <para>
+                    Dependency resolve rules provide a mechanism for blacklisting a particular version of a dependency and providing a replacement version.
+                    This can be useful if a certain dependency version is broken and should not be used,
+                    where a dependency resolve rule causes this version to be replaced with a known good version.
+                    One example of a broken module is one that declares a dependency on a library that cannot be found in any of the public repositories,
+                    but there are many other reasons why a particular module version is unwanted and a different version is preferred.
+                </para>
+                <para>
+                    In example below, imagine that version <literal>1.2.1</literal> contains important fixes and should always be used in preference to <literal>1.2</literal>.
+                    The rule provided will enforce just this: any time version <literal>1.2</literal> is encountered it will be replaced with <literal>1.2.1</literal>.
+                    Note that this is different from a forced version as described above, in that any other versions of this module would not be affected.
+                    This means that the 'newest' conflict resolution strategy would still select version <literal>1.3</literal> if this version was also pulled transitively.
+                    <sample id="blacklisting_version" dir="userguide/artifacts/resolutionStrategy" title="Blacklisting a version with a replacement">
+                        <sourcefile file="build.gradle" snippet="blacklisting_version"/>
+                    </sample>
+                </para>
+            </section>
+            <section id='sec:module_substitution'>
+                <title>Substituting a dependency module with a compatible replacement</title>
+                <para>At times a completely different module can serve as a replacement for a requested module dependency.
+                    Examples include using '<literal>groovy</literal>' in place of '<literal>groovy-all</literal>', or using '<literal>log4j-over-slf4j</literal>' instead of '<literal>log4j</literal>'.
+                    Starting with Gradle 1.5 you can make these substitutions using dependency resolve rules:
+                    <sample id="module_substitution" dir="userguide/artifacts/resolutionStrategy" title="Changing dependency group and/or name at the resolution">
+                        <sourcefile file="build.gradle" snippet="module_substitution"/>
+                    </sample>
+                </para>
+            </section>
+        </section>
         <section id="ivy_dynamic_resolve_mode">
-            <title>Ivy dynamic resolve mode</title>
+            <title>Enabling Ivy dynamic resolve mode</title>
             <para>
                 Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic resolve mode. Normally, Gradle will use the <literal>rev</literal> attribute for each dependency
                 definition included in an <filename>ivy.xml</filename> file. In dynamic resolve mode, Gradle will instead prefer the <literal>revConstraint</literal> attribute over the
@@ -913,87 +1006,6 @@ someroot/[artifact]-[revision].[ext]
             <sample id="dynamicResolveMode" dir="userguide/artifacts/defineRepository" title="Enabling dynamic resolve mode">
                 <sourcefile file="build.gradle" snippet="ivy-repo-dynamic-mode"/>
             </sample>
-        </section>
-
-        <section id='sec:forcing_modules'>
-            <title>Forcing certain module versions</title>
-            <para>It is possible to configure dependency resolution to use a specific version for given dependency (transitive or not).
-                The dependency is identified by group and name.
-                This feature is useful when tackling version conflicts - for more information see <xref linkend='sub:version_conflicts'/>.
-                Another interesting use case that drives this feature is dealing with rogue metadata of transitive dependencies.
-                Imagine a transitive dependency that is pulled onto your classpath. This dependency has poor quality metadata
-                that leads to some problems at dependency resolution time.
-                However, there is a new version of this dependency available, a version with improved metadata information.
-                Using forced modules, you can force a better version of this dependency and hence avoid the problem.
-                For an example, see
-                <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
-            </para>
-        </section>
-        <section id='sec:dependency_resolve_rules'>
-            <title>Dependency resolve rules</title>
-            <para>A dependency resolve rule is executed for each resolved dependency and offers ways
-                to manipulate the dependency metadata when the dependency is resolved.
-                This feature is incubating, not entire dependency metadata can be manipulated at this time.
-                At the moment, the dependency resolve rule can be used to manipulate the dependency version.
-            </para>
-            <section id='sec:releasable_unit'>
-                <title>Modelling releaseable units</title>
-                <para>One of the use cases for dependency resolve rules was the requirement
-                    of resolving all dependencies from a single releasable unit with the same consistent version.
-                    Lets consider that the releasable unit is a set of libraries that are built, tested and published together.
-                    Lets imagine that the releasable unit are all libraries that have 'org.gradle' group and we want them to use a consistent version:
-                    <sample id="releasable-unit" dir="userguide/artifacts/resolutionStrategy" title="Forcing consistent version for a group of libraries">
-                        <sourcefile file="build.gradle" snippet="releasable-unit"/>
-                    </sample>
-                    For more information and code samples see <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
-                </para>
-            </section>
-            <section id='sec:custom_versioning_scheme'>
-                <title>Custom versioning scheme</title>
-                <para>Another use case that supports the dependency resolve rules is a custom versioning scheme.
-                    Imagine an environment where the versions of libraries that can be declared in gradle builds are maintained and audited externally.
-                    In the build script, the developer declares dependencies using group, name and a placeholder for version, for example a String value: 'default'.
-                    The 'default' version is resolved to a specific version via a dependency resolve rule, which looks up the version in some corporate catalog.
-                    The dependency resolve rule implementation can be neatly encapsulated in a suite of corporate plugins.
-                    Here is an example of such dependency resolve rule:
-                    <sample id="custom-versioning-scheme" dir="userguide/artifacts/resolutionStrategy" title="Using a custom versioning scheme">
-                        <sourcefile file="build.gradle" snippet="custom-versioning-scheme"/>
-                    </sample>
-                    For more information and code samples see<apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
-                </para>
-            </section>
-            <section id='sec:blacklisting_version'>
-                <title>Blacklisting a version with a replacement</title>
-                <para>One of the interesting scenarios for dependency resolve rules is blacklisting a certain version of a dependency
-                    and providing a replacement version. This is extremely useful if an unwanted transitive dependency is pulled in to the dependency graph.
-                    In this scenario the dependency resolve rule can be used to specify a different version of an unwanted dependency.
-                    Why a transitive dependency might be unwanted? For example, it was published with troublesome metadata
-                    that causes the dependency resolution to fail. More specifically, our unwanted transitive dependency
-                    declares dependency to a library that cannot be found in any of the public repositories.
-                    There are many other reasons why certain version of a dependency might be unwanted and a different version is preferred.
-                </para>
-                <para>
-                    In below example, the dependency resolution is configured to prefer a different version of a certain library.
-                    Let's imagine version 1.2.1 contains important fixes and hence we prefer it over 1.2.
-                    Bear in mind that in the example below, only version 1.2 is replaced with 1.2.1.
-                    If there are other versions that participate in a conflict resolution the final version may be different.
-                    For example the 'newest' conflict resolution strategy can select version 1.3 if this version was also pulled transitively.
-                    <sample id="blacklisting_version" dir="userguide/artifacts/resolutionStrategy" title="Blacklisting a version with a replacement">
-                        <sourcefile file="build.gradle" snippet="blacklisting_version"/>
-                    </sample>
-                    For more information and code samples see<apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
-                </para>
-            </section>
-            <section id='sec:module_substitution'>
-                <title>Changing dependency group and/or name during the resolution</title>
-                <para>In previous scenarios only dependency version was changed during the resolution.
-                    Starting with Gradle 1.5 it is also possible to change group or name of the dependency:
-                    <sample id="module_substitution" dir="userguide/artifacts/resolutionStrategy" title="Changing dependency group and/or name at the resolution">
-                        <sourcefile file="build.gradle" snippet="module_substitution"/>
-                    </sample>
-                    For more information and code samples see<apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
-                </para>
-            </section>
         </section>
     </section>
     <section id='sec:dependency_cache'>

@@ -133,6 +133,56 @@ class ExtensionsStorageTest extends Specification {
         1 * delegate.call(2)
     }
 
+    def "propagates configure exception on each attempt to access deferred configurable exception"() {
+
+        TestDeferredExtension extension = new TestDeferredExtension()
+        def delegate = Mock(TestExtension)
+        extension.delegate = delegate
+
+        given:
+        storage.add("ext", extension)
+        storage.configureExtension("ext", {
+            throw new RuntimeException("bad")
+        })
+
+        when:
+        storage.getByName("ext")
+
+        then:
+        def first = thrown RuntimeException
+        first.message == "bad"
+
+        when:
+        storage.getByName("ext")
+
+        then:
+        def second = thrown RuntimeException
+        second == first
+    }
+
+    def "rethrows unknown domain object exception thrown by deferred configurable extension config"() {
+
+        TestDeferredExtension extension = new TestDeferredExtension()
+        def delegate = Mock(TestExtension)
+        extension.delegate = delegate
+
+        when:
+        storage.add("ext", extension)
+        storage.configureExtension("ext", {
+            throw new UnknownDomainObjectException("ORIGINAL")
+        })
+
+        then:
+        0 * _
+
+        when:
+        storage.findByType(TestDeferredExtension)
+
+        then:
+        def t = thrown UnknownDomainObjectException
+        t.message == "ORIGINAL"
+    }
+
     def "cannot configure deferred configurable extension after access"() {
 
         TestDeferredExtension extension = new TestDeferredExtension()
@@ -154,7 +204,8 @@ class ExtensionsStorageTest extends Specification {
         })
 
         then:
-        thrown InvalidUserDataException
+        def t = thrown InvalidUserDataException
+        t.message == "Cannot configure the 'ext' extension after it has been accessed."
     }
 
     public static interface TestExtension {

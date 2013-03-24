@@ -24,21 +24,25 @@ import org.apache.ivy.core.resolve.ResolveEngine
 import org.apache.ivy.core.resolve.ResolveOptions
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
-import org.gradle.api.artifacts.*
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.ivyservice.*
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaData
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
+import org.gradle.api.internal.artifacts.ivyservice.*
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.artifacts.ResolveException
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.LenientConfiguration
+import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.ModuleDependency
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
@@ -50,7 +54,7 @@ class DependencyGraphBuilderTest extends Specification {
     final DependencyToModuleVersionIdResolver dependencyResolver = Mock()
     final ResolvedConfigurationListener listener = Mock()
     final ModuleVersionMetaData root = revision('root')
-    final DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, dependencyResolver, conflictResolver)
+    final DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, dependencyResolver, conflictResolver, Stub(CacheLockingManager))
 
     def setup() {
         config(root, 'root', 'default')

@@ -587,9 +587,54 @@ org:middle:1.0 -> 2.0+ FAILED
 """))
     }
 
+    def "shows version resolved from a range"() {
+        given:
+        mavenRepo.module("org", "leaf", "1.5").publish()
+        mavenRepo.module("org", "top", "1.0")
+                .dependsOn("org", "leaf", "1.0")
+                .dependsOn("org", "leaf", "[1.5,1.9]")
+                .dependsOn("org", "leaf", "2.0+")
+                .publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                setDependencySpec { it.requested.name == 'leaf' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+org:leaf:1.5 (conflict resolution)
+
+org:leaf:1.0 -> 1.5
+\\--- org:top:1.0
+     \\--- conf
+
+org:leaf:[1.5,1.9] -> 1.5
+\\--- org:top:1.0
+     \\--- conf
+
+org:leaf:2.0+ -> 1.5
+\\--- org:top:1.0
+     \\--- conf
+"""))
+    }
+
     def "shows multiple failed outgoing dependencies"() {
         given:
-        mavenRepo.module("org", "leaf", "1.0").publish()
         mavenRepo.module("org", "top", "1.0")
                 .dependsOn("org", "leaf", "1.0")
                 .dependsOn("org", "leaf", "[1.5,2.0]")
@@ -618,7 +663,7 @@ org:middle:1.0 -> 2.0+ FAILED
         then:
         // TODO - need to use a fixed ordering for dynamic requested versions
         output.contains(toPlatformLineSeparators("""
-org:leaf:1.0
+org:leaf:1.0 FAILED
 \\--- org:top:1.0
      \\--- conf
 """))

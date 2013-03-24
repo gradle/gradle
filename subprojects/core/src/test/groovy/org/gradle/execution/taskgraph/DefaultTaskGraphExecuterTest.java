@@ -24,6 +24,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -244,8 +245,9 @@ public class DefaultTaskGraphExecuterTest {
         Task c = task("c", b);
         dependsOn(a, c);
 
+        taskExecuter.addTasks(toList(c));
         try {
-            taskExecuter.addTasks(toList(c));
+            taskExecuter.execute();
             fail();
         } catch (CircularReferenceException e) {
             // Expected
@@ -524,6 +526,8 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(":" + name));
             allowing(task).getState();
             will(returnValue(state));
+            allowing(task).getMustRunAfter();
+            will(returnValue(new DefaultTaskDependency()));
             allowing(task).compareTo(with(notNullValue(TaskInternal.class)));
             will(new org.jmock.api.Action() {
                 public Object invoke(Invocation invocation) throws Throwable {

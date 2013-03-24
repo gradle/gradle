@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.initialization.BuildLayoutParameters
 
 public class CurrentProcessTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -29,7 +30,7 @@ public class CurrentProcessTest extends Specification {
     private FileResolver fileResolver = Mock()
     private def currentJavaHome = tmpDir.file('java_home')
     private JvmOptions currentJvmOptions = new JvmOptions(fileResolver)
-    private DaemonParameters parameters = new DaemonParameters()
+    private DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters())
 
     def "can only run build with identical java home"() {
         when:

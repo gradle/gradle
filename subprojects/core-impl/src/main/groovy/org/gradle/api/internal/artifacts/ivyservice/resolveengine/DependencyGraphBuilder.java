@@ -30,15 +30,9 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,12 +45,15 @@ public class DependencyGraphBuilder {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final DependencyToModuleVersionIdResolver dependencyResolver;
+    private CacheLockingManager cacheLockingManager;
     private final InternalConflictResolver conflictResolver;
 
-    public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory, DependencyToModuleVersionIdResolver dependencyResolver, ModuleConflictResolver conflictResolver) {
+    public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory, DependencyToModuleVersionIdResolver dependencyResolver,
+                                  ModuleConflictResolver conflictResolver, CacheLockingManager cacheLockingManager) {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.dependencyResolver = dependencyResolver;
+        this.cacheLockingManager = cacheLockingManager;
         this.conflictResolver = new InternalConflictResolver(conflictResolver);
     }
 
@@ -68,7 +65,7 @@ public class DependencyGraphBuilder {
         ResolveState resolveState = new ResolveState(rootMetaData, configuration.getName(), dependencyResolver, resolveData);
         traverseGraph(resolveState);
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult());
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult(), cacheLockingManager);
         assembleResult(resolveState, result, listener);
 
         return result;
@@ -402,7 +399,7 @@ public class DependencyGraphBuilder {
         }
 
         public boolean isFailed() {
-            return selector != null && selector.failure != null;
+            return selector != null && getFailure() != null;
         }
 
         public ModuleVersionSelector getRequested() {
@@ -427,10 +424,9 @@ public class DependencyGraphBuilder {
 
         public void collectFailures(FailureState failureState) {
             if (isFailed()) {
-                failureState.addUnresolvedDependency(this, selector.dependencyMetaData.getRequested(), selector.failure);
+                failureState.addUnresolvedDependency(this, selector.dependencyMetaData.getRequested(), getFailure());
             }
         }
-
     }
 
     private static class ResolveState {

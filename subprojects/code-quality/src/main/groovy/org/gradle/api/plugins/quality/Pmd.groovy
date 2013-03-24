@@ -48,7 +48,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     List<String> ruleSets
 
     /**
-     * The target jdk to use with pmd
+     * The target JDK to use with PMD.
      */
     @Input
     TargetJdk targetJdk
@@ -81,20 +81,26 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
 
     @TaskAction
     void run() {
-        boolean oldBranch = getPmdClasspath().find {
+        def prePmd5 = getPmdClasspath().any {
             it.name ==~ /pmd-([1-4]\.[0-9\.]+)\.jar/
         }
         def antPmdArgs = [failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount"]
-        if (oldBranch){
+        if (prePmd5) {
+            // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose
+            // http://sourceforge.net/p/pmd/bugs/1004/
+            // http://java-pmd.30631.n5.nabble.com/pmd-pmd-db05bc-pmd-AntTask-support-for-language-td5710041.html
             antPmdArgs["targetjdk"] = getTargetJdk().getName()
+        } else {
+            // allow PmdPlugin to set a version-independent default
+            if (getRuleSets() == ["basic"]) {
+                setRuleSets(["java-basic"])
+            }
         }
+
         antBuilder.withClasspath(getPmdClasspath()).execute {
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
                 ant.pmd(antPmdArgs) {
                     getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                    if (getRuleSets().isEmpty()) {
-                        setRuleSets([oldBranch ? "basic" : "java-basic"])
-                    }
                     getRuleSets().each {
                         ruleset(it)
                     }
@@ -104,7 +110,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
 
                     if (reports.html.enabled) {
                         assert reports.html.destination.parentFile.exists()
-                        formatter(type: oldBranch ? "betterhtml" : "html", toFile: reports.html.destination)
+                        formatter(type: prePmd5 ? "betterhtml" : "html", toFile: reports.html.destination)
                     }
                     if (reports.xml.enabled) {
                         formatter(type: 'xml', toFile: reports.xml.destination)

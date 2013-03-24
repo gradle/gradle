@@ -98,7 +98,8 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        Amount<Q> other = (Amount<Q>) obj;
+        @SuppressWarnings("unchecked")
+        Amount<Q> other = (Amount) obj;
         return compareTo(other) == 0;
     }
 

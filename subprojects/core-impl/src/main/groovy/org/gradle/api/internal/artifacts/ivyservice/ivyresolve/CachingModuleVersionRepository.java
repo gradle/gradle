@@ -189,7 +189,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
 
         delegate.resolve(artifact, result, cachedModuleSource.getDelegate());
-        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate);
+        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate.getName());
 
         if (result.getFailure() instanceof ArtifactNotFoundException) {
             artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey, descriptorHash);

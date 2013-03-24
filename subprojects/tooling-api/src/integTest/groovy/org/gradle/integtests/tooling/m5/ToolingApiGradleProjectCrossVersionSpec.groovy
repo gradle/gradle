@@ -15,14 +15,12 @@
  */
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
 
 @MinToolingApiVersion('1.0-milestone-5')
-@MinTargetGradleVersion('1.0-milestone-3')
 class ToolingApiGradleProjectCrossVersionSpec extends ToolingApiSpecification {
 
     def "provides tasks of a project"() {

@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph
 
-import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
+import org.gradle.internal.graph.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 import org.gradle.logging.TestStyledTextOutput
 import spock.lang.Specification

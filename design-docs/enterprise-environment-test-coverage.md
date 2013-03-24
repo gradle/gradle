@@ -22,6 +22,10 @@ In each use case, the 'standard enterprise environment' includes:
 
 # Implementation plan
 
+## Investigate licensing options for virtualization of Windows Server instances
+
+Research and spike the virtualization of a Windows Server instance that can be used for both developer and CI builds.
+
 ## Test coverage for generic client resolving dependencies from MavenCentral via an NTLM authenticated proxy server
 
 Here we introduce the _server_ portion of the 'standard enterprise environment', and a simple smoke test that will use this as a proxy server.
@@ -32,13 +36,12 @@ The _client_ portion of the 'standard enterprise environment' is left for a late
 
 ### Implementation approach
 
-1. Investigate licensing options for virtualization of Windows Server instances.
-2. Create and configure a single Windows Server instance for tests to utilize. Use a virtual instance if possible.
+1. Create and configure a single Windows Server instance for tests to utilize. Use a virtual instance if possible.
     - If it is feasible, use Vagrant (or similar) to configure and initialise a virtualised Windows Server instance for test execution.
     - If not possible, create and configure a single shared instance for all tests to utilise.
-3. Configure the Windows Server with IIS serving as an NTLM authenticated proxy server to access the internet, and a single permitted user.
+2. Configure the Windows Server with IIS serving as an NTLM authenticated proxy server to access the internet, and a single permitted user.
     - Restrict this proxy server so that only MavenCentral is accessible.
-4. Create integ tests that executes a build that resolves dependencies from MavenCentral, hard-coded to use the NTLM authenticated proxy server.
+3. Create integ tests that executes a build that resolves dependencies from MavenCentral, hard-coded to use the NTLM authenticated proxy server.
     - Test should be run on all standard platforms.
     - Correct proxy credentials should not be hard-coded into the test or anywhere in the codebase (supplied via a build property)
     - Test should be ignored if proxy credentials are not available.
@@ -78,6 +81,7 @@ The _client_ portion of the 'standard enterprise environment' is left for a late
 - Test NTLM proxy authentication with "http.auth.ntlm.impl" values ['httpclient', 'jcifs']
 
 ### Sad day cases
+
 - Verify useful error message with "http.auth.ntlm.impl" set to invalid value
 - Verify that system property setting is recommended when NTLM proxy auth fails
 
@@ -91,9 +95,10 @@ This story introduces a 'standard enterprise developer workstation' concept, tog
 - The 'workstation' used for testing will be a virtualised Windows instance, with configuration scripted via Vagrant/Puppet/Chef.
 - The default 'workstation' will be:
     - a virtualised Windows instance, with configuration scripted via Vagrant/Puppet/Chef
-    - a clean install of Windows with a JDK
+    - a clean install of Windows with a JDK installed to the default locations
+    - no changes to environment variables such as PATH or JAVA_HOME beyond whatever the Windows and JDK installers set up by default
     - have standard security settings for a corporate desktop, using the 'standard enterprise server' for all network services
-    - force all internet access via the corporate proxy server.
+    - force all internet access via the corporate proxy server
 
 The smoke test will involve installing Gradle from an available distribution, and launching a simple Gradle project that does not have any remote dependencies.
 
@@ -101,4 +106,7 @@ The smoke test will involve installing Gradle from an available distribution, an
 
 # Open issues
 
-None yet.
+* Need to determine whether virtualisation is an option.
+* Once we have a good test harness in place:
+    * Investigate using native APIs for authentication and rework the credentials DSL to allow this
+    * Investigate using native APIs to discover proxy settings

@@ -70,6 +70,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private DefaultTaskDependency dependencies;
 
+    private DefaultTaskDependency mustRunAfter;
+
     private ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
@@ -115,6 +117,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         path = project.absoluteProjectPath(name);
         state = new TaskStateInternal(toString());
         dependencies = new DefaultTaskDependency(project.getTasks());
+        mustRunAfter = new DefaultTaskDependency(project.getTasks());
         services = project.getServices().createFor(this);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, getServices().get(Instantiator.class));
         taskStatusNagger = services.get(TaskStatusNagger.class);
@@ -512,5 +515,20 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 Thread.currentThread().setContextClassLoader(original);
             }
         }
+    }
+
+    public void setMustRunAfter(Iterable<?> mustRunAfterTasks) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("Task.setMustRunAfter(Iterable)");
+        mustRunAfter.setValues(mustRunAfterTasks);
+    }
+
+    public Task mustRunAfter(Object... paths) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("Task.mustRunAfter(Object...)");
+        mustRunAfter.add(paths);
+        return this;
+    }
+
+    public TaskDependency getMustRunAfter() {
+        return mustRunAfter;
     }
 }

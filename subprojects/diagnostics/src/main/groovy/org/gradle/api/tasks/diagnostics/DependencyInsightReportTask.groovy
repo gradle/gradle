@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
+import org.gradle.internal.graph.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationParser
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer

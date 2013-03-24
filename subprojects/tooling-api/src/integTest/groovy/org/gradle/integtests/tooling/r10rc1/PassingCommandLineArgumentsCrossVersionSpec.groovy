@@ -144,12 +144,11 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         noExceptionThrown()
     }
 
-    def "can overwrite searchUpwards via build arguments"() {
+    def "can configure searchUpwards via build arguments"() {
         given:
         file('build.gradle') << "assert !gradle.startParameter.searchUpwards"
 
         when:
-        toolingApi.withConnector { it.searchUpwards(true) }
         withConnection {
             it.newBuild().withArguments('-u').run()
         }

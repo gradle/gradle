@@ -15,34 +15,30 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConnection
-import org.gradle.tooling.internal.consumer.protocoladapter.ConsumerPropertyHandler
-import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.internal.Exceptions
-import org.gradle.util.ConcurrentSpecification
 
-class DefaultModelBuilderTest extends ConcurrentSpecification {
+class DefaultModelBuilderTest extends ConcurrentSpec {
     final AsyncConnection protocolConnection = Mock()
-    final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()
-    final DefaultModelBuilder<GradleProject, ProjectVersion3> builder = new DefaultModelBuilder<GradleProject, ProjectVersion3>(GradleProject, ProjectVersion3, protocolConnection, adapter, parameters)
+    final DefaultModelBuilder<GradleProject> builder = new DefaultModelBuilder<GradleProject>(GradleProject, protocolConnection, parameters)
 
     def getModelDelegatesToProtocolConnectionToFetchModel() {
         ResultHandlerVersion1<ProjectVersion3> adaptedHandler
         ResultHandler<GradleProject> handler = Mock()
-        ProjectVersion3 result = Mock()
-        GradleProject adaptedResult = Mock()
+        GradleProject result = Mock()
 
         when:
         builder.get(handler)
 
         then:
-        1 * protocolConnection.run(ProjectVersion3, !null, !null) >> {args ->
+        1 * protocolConnection.run(GradleProject, !null, !null) >> {args ->
             def params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
@@ -55,23 +51,20 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         adaptedHandler.onComplete(result)
 
         then:
-        1 * protocolConnection.versionDetails
-        1 * adapter.adapt(GradleProject.class, result, _ as ConsumerPropertyHandler) >> adaptedResult
-        1 * handler.onComplete(adaptedResult)
+        1 * handler.onComplete(result)
         0 * _._
     }
 
     def canConfigureTheOperation() {
         ResultHandler<GradleProject> handler = Mock()
         ResultHandlerVersion1<ProjectVersion3> adaptedHandler
-        ProjectVersion3 result = Mock()
-        GradleProject adaptedResult = Mock()
+        GradleProject result = Mock()
 
         when:
         builder.forTasks('a', 'b').get(handler)
 
         then:
-        1 * protocolConnection.run(ProjectVersion3, !null, !null) >> {args ->
+        1 * protocolConnection.run(GradleProject, !null, !null) >> {args ->
             def params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
@@ -84,9 +77,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         adaptedHandler.onComplete(result)
 
         then:
-        1 * protocolConnection.versionDetails
-        1 * adapter.adapt(GradleProject.class, result, _ as ConsumerPropertyHandler) >> adaptedResult
-        1 * handler.onComplete(adaptedResult)
+        1 * handler.onComplete(result)
         0 * _._
     }
 
@@ -135,46 +126,55 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
     }
 
     def getModelBlocksUntilResultReceivedFromProtocolConnection() {
-        def supplyResult = waitsForAsyncCallback()
-        ProjectVersion3 result = Mock()
-        GradleProject adaptedResult = Mock()
-        _ * adapter.adapt(GradleProject.class, result, _) >> adaptedResult
+        GradleProject result = Mock()
+
+        given:
+        protocolConnection.run(!null, !null, !null) >> { args ->
+            def handler = args[2]
+            start {
+                thread.block()
+                instant.handleResult
+                handler.onComplete(result)
+            }
+        }
 
         when:
         def model
-        supplyResult.start {
+        operation.buildResult {
             model = builder.get()
         }
 
         then:
-        model == adaptedResult
-        1 * protocolConnection.run(!null, !null, !null) >> { args ->
-            def handler = args[2]
-            supplyResult.callbackLater {
-                handler.onComplete(result)
-            }
-        }
+        model == result
+
+        and:
+        operation.buildResult.end > instant.handleResult
     }
 
     def getModelBlocksUntilFailureReceivedFromProtocolConnectionAndRethrowsFailure() {
-        def supplyResult = waitsForAsyncCallback()
         RuntimeException failure = new RuntimeException()
 
+        given:
+        protocolConnection.run(!null, !null, !null) >> { args ->
+            def handler = args[2]
+            start {
+                thread.block()
+                instant.handlingResult
+                handler.onFailure(failure)
+            }
+        }
+
         when:
-        def model
-        supplyResult.start {
-            model = builder.get()
+        operation.buildResult {
+            builder.get()
         }
 
         then:
         GradleConnectionException e = thrown()
         e.cause.is(failure)
-        1 * protocolConnection.run(!null, !null, !null) >> { args ->
-            def handler = args[2]
-            supplyResult.callbackLater {
-                handler.onFailure(failure)
-            }
-        }
+
+        and:
+        operation.buildResult.end > instant.handlingResult
     }
 }
 

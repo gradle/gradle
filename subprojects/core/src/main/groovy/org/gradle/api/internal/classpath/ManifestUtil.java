@@ -43,7 +43,6 @@ public class ManifestUtil {
         return CollectionUtils.join(" ", paths);
     }
 
-    // TODO:DAZ The returned URI will only be relative if the file is contained in the jarfile directory. Otherwise, an absolute URI is returned.
     private static String constructRelativeClasspathUri(File jarFile, File file) {
         URI jarFileUri = jarFile.getParentFile().toURI();
         URI fileUri = file.toURI();

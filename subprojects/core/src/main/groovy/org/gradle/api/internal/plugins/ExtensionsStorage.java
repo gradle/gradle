@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.plugins.DeferredConfigurable;
+import org.gradle.internal.UncheckedException;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.listener.ListenerNotificationException;
 
@@ -81,11 +82,13 @@ public class ExtensionsStorage {
     }
 
     public <T> T findByType(Class<T> type) {
+        ExtensionHolder<T> holder;
         try {
-            return getHolderByType(type).get();
+            holder = getHolderByType(type);
         } catch (UnknownDomainObjectException e) {
             return null;
         }
+        return holder.get();
     }
 
     private <T> ExtensionHolder<T> getHolderByType(Class<T> type) {
@@ -152,6 +155,7 @@ public class ExtensionsStorage {
         private final String name;
         private ActionBroadcast<T> actions = new ActionBroadcast<T>();
         private boolean configured;
+        private Throwable configureFailure;
 
         public DeferredConfigurableExtensionHolder(String name, T extension) {
             super(extension);
@@ -182,8 +186,13 @@ public class ExtensionsStorage {
                 try {
                     actions.execute(extension);
                 } catch (ListenerNotificationException e) {
-                    throw new InvalidUserDataException(String.format("A problem occurred configuring the '%s' extension", name), e.getCause());
+                    configureFailure = e.getCause();
                 }
+                actions = null;
+            }
+
+            if (configureFailure != null) {
+                throw UncheckedException.throwAsUncheckedException(configureFailure);
             }
         }
 

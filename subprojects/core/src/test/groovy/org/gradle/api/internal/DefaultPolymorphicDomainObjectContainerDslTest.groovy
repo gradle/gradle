@@ -85,17 +85,13 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends Specification {
         container.asDynamicObject.getProperty("Barney") == barney
     }
 
-    def "configure elements with default type"() {
-
-    }
-
     def "create elements with specified type"() {
         container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
         container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
 
         when:
         project.container {
-            Fred(Person) {}
+            Fred(Person)
             Barney(AgeAwarePerson) {}
         }
 
@@ -105,6 +101,84 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends Specification {
         container.findByName("Barney") == agedBarney
         container.asDynamicObject.getProperty("Fred") == fred
         container.asDynamicObject.getProperty("Barney") == agedBarney
+    }
 
+    def "configure elements with default type"() {
+        container.registerDefaultFactory({ new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
+
+        when:
+        project.container {
+            Fred {
+                age = 11
+            }
+            Barney {
+                age = 22
+            }
+        }
+
+        then:
+        container.size() == 2
+        container.findByName("Fred").age == 11
+        container.findByName("Barney").age == 22
+    }
+
+    def "configure elements with specified type"() {
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
+
+        when:
+        project.container {
+            Fred(AgeAwarePerson) {
+                age = 11
+            }
+            Barney(AgeAwarePerson) {
+                age = 22
+            }
+        }
+
+        then:
+        container.size() == 2
+        container.findByName("Fred").age == 11
+        container.findByName("Barney").age == 22
+    }
+
+    def "configure same element multiple times"() {
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
+
+        when:
+        project.container {
+            Fred(AgeAwarePerson) {
+                age = 11
+            }
+            Barney(AgeAwarePerson) {
+                age = 22
+            }
+            Fred(AgeAwarePerson) {
+                age = 33
+            }
+            Barney(AgeAwarePerson) {
+                age = 44
+            }
+        }
+
+        then:
+        container.size() == 2
+        container.findByName("Fred").age == 33
+        container.findByName("Barney").age == 44
+    }
+
+    def "create elements without configuration"() {
+        container.registerDefaultFactory({ new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 43) } as NamedDomainObjectFactory)
+
+        when:
+        project.container {
+            Fred
+            Barney(AgeAwarePerson)
+        }
+
+        then:
+        container.size() == 2
+        container.findByName("Fred").age == 42
+        container.findByName("Barney").age == 43
     }
 }

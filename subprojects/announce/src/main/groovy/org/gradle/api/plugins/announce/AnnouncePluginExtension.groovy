@@ -37,14 +37,14 @@ class AnnouncePluginExtension {
      */
     String password
 
-    Announcer local
-
+    private final onDemandLocalAnnouncer
     private final Project project
     AnnouncerFactory announcerFactory
 
     AnnouncePluginExtension(ProjectInternal project) {
         this.project = project
         this.announcerFactory = new DefaultAnnouncerFactory(this, project, new DefaultIconProvider(project.services.get(GradleDistributionLocator)))
+        this.onDemandLocalAnnouncer = new LocalAnnouncer(this)
     }
 
     /**
@@ -53,14 +53,14 @@ class AnnouncePluginExtension {
      * @return The announcer.
      */
     Announcer getLocal() {
-        return new Announcer() {
-            void send(String title, String message) {
-                if (local == null) {
-                    local = announcerFactory.createAnnouncer("local")
-                }
-                local.send(title, message)
-            }
-        }
+        return onDemandLocalAnnouncer
+    }
+
+    /**
+     * Sets the {@link Announcer} that should be used to send announcements to the local desktop.
+     */
+    void setLocal(Announcer localAnnouncer) {
+        onDemandLocalAnnouncer.local = localAnnouncer
     }
 
     /**
@@ -74,6 +74,22 @@ class AnnouncePluginExtension {
             announcerFactory.createAnnouncer(type).send(project.name, msg)
         } catch (Exception e) {
             logger.warn("Failed to send message '$msg' to '$type'", e)
+        }
+    }
+
+    private static class LocalAnnouncer implements Announcer {
+        AnnouncePluginExtension extension
+        Announcer local
+
+        LocalAnnouncer(AnnouncePluginExtension extension) {
+            this.extension = extension
+        }
+
+        void send(String title, String message) {
+            if (local == null) {
+                local = extension.getAnnouncerFactory().createAnnouncer("local")
+            }
+            local.send(title, message)
         }
     }
 }

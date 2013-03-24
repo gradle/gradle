@@ -134,7 +134,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
                     maven { url "${mavenRepo.uri}" }
                 }
                 publications {
-                    maven(MavenPublication) {}
+                    maven(MavenPublication)
                 }
             }
         """
@@ -142,7 +142,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         fails 'publish'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':publishMavenPublicationToMavenRepository'"
+        failure.assertHasDescription "Execution failed for task ':publishMavenPublicationToMavenRepository'."
         failure.assertHasCause "Failed to publish publication 'maven' to repository 'maven'"
         failure.assertHasCause "Invalid publication 'maven': groupId cannot be empty"
     }

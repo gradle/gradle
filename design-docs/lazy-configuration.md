@@ -120,7 +120,8 @@ Once the publishing extension has been configured, it will be an error to make f
 ### Test coverage
 
 - Update the publishing integration tests so that the publications are declared along with the other injected configuration in `allprojects`/`subprojects`
-- A custom plugin can use a `DeferredConfigurable` extension to implement lazy configuration.
+- A custom plugin can use a `DeferredConfigurable` extension to implement lazy configuration. Verify that that extension is configured before the
+  project's afterEvaluate {} event is fired.
 - Attempting to configure a `DeferredConfigurable` extension after access provides reasonable failure message.
 - A reasonable error message is given when the configuration of an extension fails.
 - A reasonable error message is given when attempting to access an extension whose configuration has previously failed.

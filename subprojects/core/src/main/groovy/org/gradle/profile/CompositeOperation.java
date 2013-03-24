@@ -47,4 +47,8 @@ public class CompositeOperation<T extends Operation> extends Operation implement
         }
         return sum;
     }
+
+    public String getDescription() {
+        return "<composite operation>";
+    }
 }

@@ -16,10 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.CachingDirectedGraphWalker;
-import org.gradle.api.internal.DirectedGraphWithEdgeValues;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
+import org.gradle.internal.graph.CachingDirectedGraphWalker;
+import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -27,6 +28,7 @@ import java.util.*;
 
 public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder, LenientConfiguration {
     private final ResolvedDependency root;
+    private CacheLockingManager cacheLockingManager;
     private final Configuration configuration;
     private final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
     private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
@@ -34,9 +36,10 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
     private final CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker
             = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph());
 
-    public DefaultLenientConfiguration(Configuration configuration, ResolvedDependency root) {
+    public DefaultLenientConfiguration(Configuration configuration, ResolvedDependency root, CacheLockingManager cacheLockingManager) {
         this.configuration = configuration;
         this.root = root;
+        this.cacheLockingManager = cacheLockingManager;
     }
 
     public boolean hasError() {
@@ -107,27 +110,35 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
      * @param dependencySpec dependency spec
      */
     public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
-        Set<ResolvedArtifact> allArtifacts = getAllArtifacts(dependencySpec);
-        return CollectionUtils.filter(allArtifacts, new Spec<ResolvedArtifact>() {
-            public boolean isSatisfiedBy(ResolvedArtifact element) {
-                try {
-                    File file = element.getFile();
-                    return file != null;
-                } catch (ArtifactResolveException e) {
-                    return false;
-                }
+        final Set<ResolvedArtifact> allArtifacts = getAllArtifacts(dependencySpec);
+        return cacheLockingManager.useCache("retrieve artifacts from " + configuration, new Factory<Set<ResolvedArtifact>>() {
+            public Set<ResolvedArtifact> create() {
+                return CollectionUtils.filter(allArtifacts, new Spec<ResolvedArtifact>() {
+                    public boolean isSatisfiedBy(ResolvedArtifact element) {
+                        try {
+                            File file = element.getFile();
+                            return file != null;
+                        } catch (ArtifactResolveException e) {
+                            return false;
+                        }
+                    }
+                });
             }
         });
     }
 
-    private Set<File> getFiles(Set<ResolvedArtifact> artifacts) {
-        Set<File> files = new LinkedHashSet<File>();
-        for (ResolvedArtifact artifact : artifacts) {
-            File depFile = artifact.getFile();
-            if (depFile != null) {
-                files.add(depFile);
+    private Set<File> getFiles(final Set<ResolvedArtifact> artifacts) {
+        final Set<File> files = new LinkedHashSet<File>();
+        cacheLockingManager.useCache("resolve files from " + configuration, new Runnable() {
+            public void run() {
+                for (ResolvedArtifact artifact : artifacts) {
+                    File depFile = artifact.getFile();
+                    if (depFile != null) {
+                        files.add(depFile);
+                    }
+                }
             }
-        }
+        });
         return files;
     }
 
@@ -155,8 +166,8 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
     }
 
     private static class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
-        public void getNodeValues(ResolvedDependency node, Collection<ResolvedArtifact> values,
-                                  Collection<ResolvedDependency> connectedNodes) {
+        public void getNodeValues(ResolvedDependency node, Collection<? super ResolvedArtifact> values,
+                                  Collection<? super ResolvedDependency> connectedNodes) {
             connectedNodes.addAll(node.getChildren());
         }
 

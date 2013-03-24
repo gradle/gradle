@@ -29,16 +29,18 @@ public class PolymorphicDomainObjectContainerConfigureDelegate extends NamedDoma
 
     @Override
     protected boolean _isConfigureMethod(String name, Object[] params) {
-        return super._isConfigureMethod(name, params) || params.length == 2 && params[0] instanceof Class && params[1] instanceof Closure;
+        return super._isConfigureMethod(name, params)
+                || params.length == 1 && params[0] instanceof Class
+                || params.length == 2 && params[0] instanceof Class && params[1] instanceof Closure;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     protected void _configure(String name, Object[] params) {
-        if (params.length <= 1) {
-            container.create(name);
-        } else {
+        if (params.length > 0 && params[0] instanceof Class) {
             container.create(name, (Class) params[0]);
+        } else {
+            container.create(name);
         }
     }
 }

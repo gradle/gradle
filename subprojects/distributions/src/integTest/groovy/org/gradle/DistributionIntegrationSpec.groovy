@@ -45,7 +45,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         when:
         def entries = zipFile.entries().toList()
         def entriesByPath = entries.groupBy { ZipEntry zipEntry -> zipEntry.name }
-        def dupes = entriesByPath.findAll() { it.value.size() > 1 }
+        def dupes = entriesByPath.findAll { it.value.size() > 1 && !it.key.contains('/META-INF/services/') }
         def dupesWithCount = dupes.collectEntries { [it.key, it.value.size()]}
 
         then:
@@ -80,7 +80,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         coreLibs.each { assertIsGradleJar(it) }
         def wrapperJar = contentsDir.file("lib/gradle-wrapper-${version}.jar")
         wrapperJar.assertIsFile()
-        assert wrapperJar.length() < 20 * 1024; // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
+        assert wrapperJar.length() < 28 * 1024; // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${version}.jar")
         toolingApiJar.assertIsFile()

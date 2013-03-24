@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.GraphRenderer;
+import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;

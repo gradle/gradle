@@ -16,6 +16,7 @@
 
 package org.gradle.configuration
 
+import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
@@ -30,6 +31,7 @@ public class LifecycleProjectEvaluatorTest extends Specification {
 
     void setup() {
         project.getProjectEvaluationBroadcaster() >> listener
+        project.toString() >> "project1"
     }
 
     void "nothing happens if project was already configured"() {
@@ -69,22 +71,82 @@ public class LifecycleProjectEvaluatorTest extends Specification {
         1 * listener.afterEvaluate(project, state)
     }
 
-    void "notifies listeners and updates states even if there was evaluation failure"() {
+    void "notifies listeners and updates state on evaluation failure"() {
         def failure = new RuntimeException()
 
         when:
         evaluator.evaluate(project, state)
 
         then:
-        def ex = thrown(RuntimeException)
-        ex == failure
+        delegate.evaluate(project, state) >> { throw failure }
 
         and:
-        delegate.evaluate(project, state) >> { throw failure }
+        1 * state.executed({
+            assertIsConfigurationFailure(it, failure)
+        })
+        1 * state.setExecuting(false)
+        1 * listener.afterEvaluate(project, state)
+    }
+
+    void "updates state and does not delegate when beforeEvaluate action fails"() {
+        def failure = new RuntimeException()
+
+        when:
+        evaluator.evaluate(project, state)
+
+        then:
+        1 * listener.beforeEvaluate(project) >> { throw failure }
+        1 * state.executed({
+            assertIsConfigurationFailure(it, failure)
+        })
+        0 * delegate._
+        0 * listener._
+    }
+
+    void "updates state when afterEvaluate action fails"() {
+        def failure = new RuntimeException()
+
+        when:
+        evaluator.evaluate(project, state)
+
+        then:
+        delegate.evaluate(project, state)
 
         and:
         1 * state.setExecuting(false)
         1 * state.executed()
-        1 * listener.afterEvaluate(project, state)
+
+        then:
+        1 * listener.afterEvaluate(project, state) >> { throw failure }
+        1 * state.executed({
+            assertIsConfigurationFailure(it, failure)
+        })
+    }
+
+    def assertIsConfigurationFailure(def it, def cause) {
+        assert it instanceof ProjectConfigurationException
+        assert it.message == "A problem occurred configuring project1."
+        assert it.cause == cause
+        true
+    }
+
+    void "notifies listeners and updates state on evaluation failure even if afterEvaluate fails"() {
+        def failure = new RuntimeException()
+
+        when:
+        evaluator.evaluate(project, state)
+
+        then:
+        delegate.evaluate(project, state) >> { throw failure }
+
+        and:
+        _ * project.toString() >> "project1"
+        1 * state.executed(_)
+        1 * state.setExecuting(false)
+
+        then:
+        1 * listener.afterEvaluate(project, state) >> { throw new RuntimeException("afterEvaluate")}
+        1 * state.hasFailure() >> true
+        0 * state.executed(_)
     }
 }

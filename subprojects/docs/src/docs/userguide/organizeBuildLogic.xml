@@ -118,7 +118,7 @@
         <para>Listed below is the default build script that Gradle applies to the <filename>buildSrc</filename> project:</para>
         <figure>
             <title>Default buildSrc build script</title>
-            <programlisting><xi:include href='../../../../../subprojects/core/src/main/resources/org/gradle/initialization/defaultBuildSourceScript.txt' parse='text'/></programlisting>
+            <programlisting><xi:include href='../../../../../subprojects/core/src/main/resources/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt' parse='text'/></programlisting>
         </figure>
         <para>
             This means that you can just put you build source code in this directory and stick to the layout convention for a 
