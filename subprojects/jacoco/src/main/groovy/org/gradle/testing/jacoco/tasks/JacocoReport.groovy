@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.jacoco
+package org.gradle.testing.jacoco.tasks
 
+import org.gradle.api.Incubating
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.testing.jacoco.plugin.JacocoTaskExtension
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
@@ -26,6 +29,7 @@ import org.gradle.api.tasks.TaskCollection
 /**
  * Task to generate HTML reports of Jacoco coverage data.
  */
+@Incubating
 class JacocoReport extends JacocoBase {
 	/**
 	 * Collection of execution data files to analyze.
@@ -41,12 +45,14 @@ class JacocoReport extends JacocoBase {
 	/**
 	 * Additional class dirs that coverage data should be reported for.
 	 */
+    @Optional @InputFiles
 	FileCollection additionalClassDirs
 
 	/**
 	 * Additional source dirs for the classes coverage data is being reported for.
 	 */
-	FileCollection additionalSourceDirs
+    @Optional @InputFiles
+    FileCollection additionalSourceDirs
 
 	/**
 	 * Path to write report to. Defaults to {@code build/reports/jacoco/<task name>}.

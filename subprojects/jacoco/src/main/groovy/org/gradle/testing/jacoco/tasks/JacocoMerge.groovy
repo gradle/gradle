@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.jacoco
+package org.gradle.testing.jacoco.tasks
 
+import org.gradle.api.Incubating
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.testing.jacoco.plugin.JacocoTaskExtension
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -25,6 +27,7 @@ import org.gradle.api.tasks.TaskCollection
 /**
  * Task to merge multiple execution data files into one.
  */
+@Incubating
 class JacocoMerge extends JacocoBase {
 	/**
 	 * Collection of execution data files to merge.
