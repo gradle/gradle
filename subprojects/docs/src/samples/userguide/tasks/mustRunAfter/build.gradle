@@ -1,6 +1,7 @@
 task taskX << {
     println 'taskX'
 }
-task taskY(mustRunAfter: 'taskX') << {
+task taskY << {
     println 'taskY'
 }
+taskY.mustRunAfter taskX
