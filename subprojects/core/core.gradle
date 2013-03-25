@@ -21,7 +21,7 @@ configurations {
 }
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     publishCompile libraries.slf4j_api
     publishCompile project(":baseServices")

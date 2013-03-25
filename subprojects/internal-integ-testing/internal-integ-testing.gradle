@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
     compile project(":internalTesting")
     compile project(':cli')
     compile project(':launcher')

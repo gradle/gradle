@@ -7,8 +7,6 @@ configurations {
 }
 
 dependencies {
-    groovy libraries.groovy
-
     compile project(":core")
 
     compile libraries.commons_httpclient
@@ -25,6 +23,8 @@ dependencies {
     }
 
     mvn3Input libraries.maven3
+
+    testCompile libraries.groovy
 
     //this dependency is necessary to run IvySFtpResolverIntegrationTest on ibm jdk
     integTestRuntime "org.bouncycastle:bcprov-jdk15:1.46@jar"

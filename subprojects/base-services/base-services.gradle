@@ -5,9 +5,8 @@
  * application (eg as part of the tooling API).
  */
 dependencies {
-    groovy libraries.groovy
-
     publishCompile libraries.slf4j_api
+    testCompile libraries.groovy
 }
 
 useTestFixtures()

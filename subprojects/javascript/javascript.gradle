@@ -15,7 +15,7 @@
  */
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile "org.mozilla:rhino:1.7R3"
     compile "com.google.code.gson:gson:2.2.1" // used by JsHint

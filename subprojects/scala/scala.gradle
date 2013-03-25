@@ -17,7 +17,7 @@
 apply from: "$rootDir/gradle/providedConfiguration.gradle"
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile project(":core")
     compile project(":plugins")

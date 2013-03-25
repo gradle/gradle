@@ -1,9 +1,9 @@
 dependencies {
-    groovy libraries.groovy
     publishCompile project(':baseServices')
     publishCompile libraries.slf4j_api
     publishCompile libraries.guava
     publishCompile 'com.esotericsoftware.kryo:kryo:2.20'
+    testCompile libraries.groovy
 }
 
 useTestFixtures()

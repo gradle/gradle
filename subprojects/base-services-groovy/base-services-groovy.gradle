@@ -15,7 +15,7 @@
  */
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
     compile project(":baseServices")
 }
 
