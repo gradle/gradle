@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing.junit;
+package org.gradle.api.tasks.testing.junit
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 
 /**
@@ -26,19 +27,23 @@ public class JUnitOptions extends TestFrameworkOptions {
     /**
      * The set of categories to run.
      */
+    @Incubating
     Set<String> includeCategories = new HashSet<String>();
 
     /**
      * The set of categories to exclude.
      */
+    @Incubating
     Set<String> excludeCategories = new HashSet<String>();
 
 
+    @Incubating
     JUnitOptions includeCategories(String... includeCategories) {
         this.includeCategories.addAll(Arrays.asList(includeCategories));
         this;
     }
 
+    @Incubating
     JUnitOptions excludeCategories(String... excludeCategories) {
         this.excludeCategories.addAll(Arrays.asList(excludeCategories));
         this;
