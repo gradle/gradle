@@ -23,18 +23,17 @@ import org.gradle.api.file.FileCollection
  * of the {@code org.jacoco.agent.jar}.
  */
 class JacocoAgentJar {
-	private final FileCollection agentConf
 	private final Project project
 	private File agentJar
+    FileCollection agentConf
 
 	/**
 	 * Constructs a new agent JAR wrapper.
 	 * @param project a project that can be used to resolve files
 	 * @param agentConf the configuration that the agent JAR is located in
 	 */
-	JacocoAgentJar(Project project, FileCollection agentConf) {
+	JacocoAgentJar(Project project) {
 		this.project = project
-		this.agentConf = agentConf
 	}
 
 	/**
@@ -44,7 +43,7 @@ class JacocoAgentJar {
 	 */
 	File getJar() {
 		if (!agentJar) {
-			agentJar = project.zipTree(agentConf.singleFile).filter { it.name == 'jacocoagent.jar' }.singleFile
+			agentJar = project.zipTree(getAgentConf().singleFile).filter { it.name == 'jacocoagent.jar' }.singleFile
 		}
 		return agentJar
 	}

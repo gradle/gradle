@@ -150,7 +150,7 @@ class JacocoTaskExtension {
 			}
 		}
 
-		builder << '-javaagent:'
+        builder << '-javaagent:'
 		builder << agent.jar.canonicalPath
 		builder << '='
 		arg 'destfile', getDestFile()
@@ -164,7 +164,7 @@ class JacocoTaskExtension {
 		arg 'address', getAddress()
 		arg 'port', getPort()
 		arg 'classdumpdir', getClassDumpDir()
-		arg 'jmx', getJmx()
+        arg 'jmx', getJmx()
 
 		return builder.toString()
 	}

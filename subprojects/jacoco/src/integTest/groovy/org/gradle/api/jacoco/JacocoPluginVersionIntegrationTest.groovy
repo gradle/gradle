@@ -22,7 +22,7 @@ import org.junit.Test
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ OperatingSystem.current().isWindows() })
-@TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002'])
+@TargetVersions(['0.6.2.201302030002'])
 class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Test
@@ -41,7 +41,8 @@ class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         }
         jacoco {
             toolVersion = '$version'
-        }"""
+        }
+        """
         createTestFiles();
         when:
         succeeds('jacocoTestReport')
