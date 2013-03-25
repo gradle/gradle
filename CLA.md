@@ -33,3 +33,13 @@ Subject to the terms and conditions of this Agreement, You hereby grant to the C
 10\. The validity of the interpretation of this Agreement shall be governed by, and constructed and enforced in accordance with, the laws of the United States of America, applicable to the agreements made there (excluding the conflict of law rules). This Agreement embodies the entire agreement and understanding of the parties hereto and supersedes any and all prior agreements, arrangements and understandings relating to the matters provided for herein. No alteration, waiver, amendment changed or supplement hereto shall be binding more effective unless the same as set forth in writing signed by both parties.
 
 11\. Your approval of this Agreement, as communicated to Company by specific electronic means (such as by clicking on a "Sign" button), constitutes Your acceptance of this Agreement. 
+
+# Agreement
+I hereby accept the terms of this agreement:
+
+* Name:
+* Email:
+* Telephone:
+* Mailing Address:
+* Country:
+* Signed :
