@@ -46,6 +46,7 @@ class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         """
         createTestFiles();
         when:
+        executer.withArgument("--stacktrace")
         succeeds('jacocoTestReport')
         then:
         file("build/reports/jacoco/jacocoTestReport/index.html").exists()

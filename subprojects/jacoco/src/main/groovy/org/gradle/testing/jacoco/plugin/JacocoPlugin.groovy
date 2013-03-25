@@ -65,11 +65,11 @@ class JacocoPlugin implements Plugin<Project> {
 
     def configureDefaultOutputPaths() {
         project.tasks.withType(JacocoReport) { task ->
-            task.destPath = new File(project.getBuildDir(), "/reports/jacoco/${task.name}")
+            task.destDir = new File(project.getBuildDir(), "/reports/jacoco/${task.name}")
         }
 
         project.tasks.withType(JacocoMerge) { task ->
-            task.destPath = new File(project.getBuildDir(), "/jacoco/${task.name}.exec")
+            task.destFile = new File(project.getBuildDir(), "/jacoco/${task.name}.exec")
         }
     }
 
@@ -149,7 +149,7 @@ class JacocoPlugin implements Plugin<Project> {
                 if (task.name in [extension.unitTestTaskName, extension.integrationTestTaskName]) {
                     JacocoReport reportTask = this.project.tasks.add("jacoco${task.name.capitalize()}Report", JacocoReport)
                     reportTask.executionData task
-                    reportTask.sourceSets this.project.sourceSets.main
+                    reportTask.sourceSets(this.project.sourceSets.main)
                 }
             }
         }

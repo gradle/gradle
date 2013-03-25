@@ -36,9 +36,10 @@ class JacocoMerge extends JacocoBase {
     FileCollection executionData
 
     /**
-     * Path to write merged execution data to. Defaults to {@code build/jacoco/<task name>.exec}
+     * Path to write merged execution data to.
      */
-    Object destPath
+    @OutputFile
+    File destFile
 
     @TaskAction
     void merge() {
@@ -46,14 +47,6 @@ class JacocoMerge extends JacocoBase {
         getAnt().merge(destfile: getDestFile()) {
             getExecutionData().addToAntBuilder(ant, 'resources')
         }
-    }
-
-    /**
-     * Path to write merged execution daat to.
-     */
-    @OutputFile
-    File getDestFile() {
-        return getProject().file(destPath)
     }
 
     /**
