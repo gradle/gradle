@@ -29,9 +29,19 @@ wrapper from an older version.
 In the past, the only way to ensure that Gradle ran one task after another was to add a dependency between those tasks. So if `Task A` must always run before `Task B`, you would
  say that `B.dependsOn(A)`. This has the added effect of forcing `Task A` to always run if `Task B` is executed.
 
-In some cases, `dependsOn` is not the correct semantics. Let's say that you have a test-aggregation task that consumes the outputs of all of the test tasks. You want this aggregation
-task to run _after_ all test tasks, but you do not necessarily want to force all test tasks to run. For this purpose, Gradle is introducing "task ordering" rules, the first of which
-is `Task.mustRunAfter`. This rule does not change which tasks will be executed, but it does influence the order in which they will be executed.
+In some cases, `dependsOn` is not the correct semantics. A simple example is "clean" must always run before "build", but you don't always want to run "clean" whenever you run "build".
+For this use case Gradle now has "task ordering" rules, the first of which is `Task.mustRunAfter`.
+This rule does not change which tasks will be executed, but it does influence the order in which they will be executed.
+
+    task clean { ... }
+    task build { ... }
+
+    build.mustRunAfter clean
+
+In this example you can still execute `gradle clean` and `gradle build` independently, but running `gradle build clean` will cause 'clean' to be executed before 'build'.
+
+Another example is a test-aggregation task that consumes the outputs of all of the test tasks.
+You want this aggregation task to run _after_ all test tasks, but you do not necessarily want to force all test tasks to run.
 
     task runUnitTests(type: Test) { ... }
     task runIntegTests(type: Test) { ... }
@@ -45,9 +55,11 @@ is `Task.mustRunAfter`. This rule does not change which tasks will be executed, 
     task unitTest(dependsOn: [runUnitTests, createTestReports]) // This will run unit tests only and create the report
     task integTest(dependsOn: [runIntegTests, createTestReports]) // This will run integ tests only and create the report
 
-Note that without 'mustRunAfter', `runUnitTests` task would run after the `createTestReport` task. But the using
-`createTestReport.dependsOn(runUnitTests)` is not great, since that would make it hard to execute only `runIntegTests` and `createTestReport`
-in the correct order. The `mustRunAfter` task ordering rule makes it easy to wire this logic into your build.
+Note that it would not be suitable to use `createTestReport.dependsOn(runUnitTests)` in this case,
+since that would make it difficult to execute the integration tests and generate the report, _without_ running the unit tests.
+The `mustRunAfter` task ordering rule makes it easy to wire this logic into your build.
+
+See the User guide section on “[Ordering Tasks](userguide/more_about_tasks.html#sec:ordering_tasks)” for more information.
 
 > We are incredibly grateful to Marcin Erdmann for taking on this long anticipated feature.
 > The design and implementation of task ordering rules involved a deep understanding and refactoring of the Gradle Task execution engine, and Marcin took this on with gusto.
@@ -125,8 +137,6 @@ The semantics of the replacement methods is identical to those replaced.
 This change does not effect publications added to the PublicationContainer using [a configuration block](javadoc/org/gradle/api/publish/PublishingExtension.html#publications),
 but will impact publications added directly using `add()`.
 
-### Task dependency graph changes
- // TODO:DAZ
 
 ### Changes to exceptions thrown on project evaluation
  // TODO:DAZ

@@ -151,37 +151,40 @@
         </sample>
         <para>For more information about task dependencies, see the <apilink class="org.gradle.api.Task"/> API.</para>
     </section>
-    <section>
+    <section id="sec:ordering_tasks">
         <title>Ordering tasks</title>
         <note>
             <para>
                 Task ordering is an <firstterm>incubating</firstterm> feature (see <xref linkend="sec:incubating_state"/>).
             </para>
         </note>
-        <para>Apart from ensuring that one task runs after another by specifying a dependency between those tasks it is sometimes
-            needed to be able to define that one task runs after another but only if both of the tasks are in the task graph. This might be
-            useful in a number of scenarios:
+        <para>
+            In some cases it is useful to control the <emphasis>order</emphasis> in which 2 tasks will execute, without introducing an explicit dependency between those tasks.
+            The primary difference between a task <emphasis>ordering</emphasis> and a task <emphasis>dependency</emphasis> is that an ordering rule does not influence which tasks
+            will be executed, only the order in which they will be executed.
+        </para>
+        <para>
+            Presently, the only task ordering rule available is "must run after", which allows you to specify that <literal>taskB</literal> must always run after <literal>taskA</literal>.
+            This rule doesn't stop you from executing <literal>taskA</literal> without <literal>taskB</literal> and vice-versa.
+        </para>
+        <para>
+            This "must run after" task ordering can be useful in a number of scenarios:
         </para>
         <itemizedlist>
-            <listitem>when specifying that unit tests should always run before integration tests to fail fast but still being
-                able to run integration tests without running unit tests,</listitem>
-            <listitem>when aggregating results of several tasks without forcing them all to run, for example aggregating results of several
-                test tasks.
+            <listitem>Specify that unit tests should always run before integration tests to fail faster, but still allow integration tests to be run without unit tests.</listitem>
+            <listitem>Aggregate the results of all tasks of a particular type, without forcing any particular task to run (eg. aggregating results of all executed test tasks).
             </listitem>
         </itemizedlist>
-        <para>It is possible to achieve that by specifying that a task "must run after" another task:</para>
-        <sample id="mustRunAfter" dir="userguide/tasks/mustRunAfter" title="Adding mustRunAfter ordering">
+        <sample id="mustRunAfter" dir="userguide/tasks/mustRunAfter" title="Adding a 'must run after' task ordering">
             <sourcefile file="build.gradle"/>
             <output args="-q taskY taskX"/>
         </sample>
-        <para>Running `taskY` doesn't force `taskX` to run:</para>
-        <sample id="mustRunAfterSingleTask" dir="userguide/tasks/mustRunAfter" title="Running only the task that specifies must run after ordering">
+        <para>In the example, it is still possible to execute <literal>taskY</literal> without causing <literal>taskX</literal> to run:</para>
+        <sample id="mustRunAfterSingleTask" dir="userguide/tasks/mustRunAfter" title="Task ordering does not imply task execution">
             <output args="-q taskY"/>
         </sample>
-        <para>Syntax for specifying "must run after" ordering is very similar to specifying task dependencies.
-            Apart from the syntax shown in the sample you can use <apilink class="org.gradle.api.Task" method="mustRunAfter"/> and
-            <apilink class="org.gradle.api.Task" method="setMustRunAfter"/> methods and specify tasks using the exact same types as
-            when specifying task dependencies.
+        <para>To specify a "must run after" ordering between 2 tasks, you use the <apilink class="org.gradle.api.Task" method="mustRunAfter"/> method.
+            This method accepts a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
         </para>
     </section>
     <section>
