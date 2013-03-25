@@ -569,7 +569,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * <pre autoTested="true">
      * task taskY {
-     *     mustRunAfter = "taskX1", "taskX2"
+     *     mustRunAfter = ["taskX1", "taskX2"]
      * }
      * </pre>
      *
