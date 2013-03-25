@@ -34,7 +34,6 @@ class IdeaScalaConfigurer {
     void configure() {
         rootProject.gradle.projectsEvaluated {
             def scalaProjects = findProjectsApplyingIdeaAndScalaPlugins()
-            scalaProjects.tasks.ideaModule*.dependsOn(rootProject.tasks.ideaProject)
             Map<String, ProjectLibrary> scalaCompilerLibraries = [:]
 
             rootProject.ideaProject.doFirst {
