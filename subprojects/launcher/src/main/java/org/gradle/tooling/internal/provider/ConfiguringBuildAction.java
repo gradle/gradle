@@ -22,7 +22,6 @@ import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
-import org.gradle.logging.ShowStacktrace;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
@@ -101,7 +100,6 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
             startParameter.setLogLevel(buildLogLevel);
         }
 
-        startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
         return startParameter;
     }
 
