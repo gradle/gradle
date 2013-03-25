@@ -53,8 +53,9 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
      * The name of the configuration holding the Groovy compiler and tools.
      *
      * @deprecated The {@code groovy} configuration (and hence also this member) has been deprecated.
-     * Either rely on automatic configuration of a task's {@code groovyClasspath} based on the Groovy
-     * library on its {@code classpath}, or configure the task's {@code groovyClasspath} directly.
+     * Typically, the only necessary change is to add the Groovy libraries to the {@code compile} configuration,
+     * rather than the {@code groovy} configuration. In some cases, it may be necessary to additionally configure
+     * the {@code groovyClasspath} property of {@code GroovyCompile} and {@code Groovydoc} tasks.
      */
     @Deprecated
     public static final String GROOVY_CONFIGURATION_NAME = "groovy";
@@ -84,8 +85,9 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     private void deprecateGroovyConfiguration(Configuration groovyConfiguration) {
         groovyConfiguration.getDependencies().whenObjectAdded(new Action<Dependency>() {
             public void execute(Dependency dependency) {
-                DeprecationLogger.nagUserOfDiscontinuedConfiguration(GROOVY_CONFIGURATION_NAME, "Either rely on automatic configuration"
-                        + " of a task's 'groovyClasspath' based on the Groovy library on its 'classpath', or configure the task's 'groovyClasspath' directly.");
+                DeprecationLogger.nagUserOfDiscontinuedConfiguration(GROOVY_CONFIGURATION_NAME, "Typically, the only necessary change is to add the " +
+                        "Groovy libraries to the 'compile' configuration, rather than the 'groovy' configuration. In some cases, it may be necessary " +
+                        "to additionally configure the 'groovyClasspath' property of GroovyCompile and Groovydoc tasks.");
             }
         });
     }
