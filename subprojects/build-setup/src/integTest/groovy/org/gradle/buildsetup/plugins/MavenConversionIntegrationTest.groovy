@@ -38,9 +38,10 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("settings.gradle").exists()
+        file("build.gradle").exists()
 
         when:
-        run '-i', 'clean', 'build'
+        run 'clean', 'build'
 
         then: //smoke test the build artifacts
         file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
@@ -73,6 +74,7 @@ Root project 'webinar-parent'
 
         then:
         file("webinar-parent/settings.gradle").exists()
+        file("webinar-parent/build.gradle").exists()
 
         when:
         executer.inDirectory(file("webinar-parent"))
@@ -152,6 +154,20 @@ it.exclude group: '*', module: 'badArtifact'
         then:
         file("build/libs/enforcerExample-1.0.jar").exists()
         wrapperFilesGenerated()
+    }
+
+    def "providedNotWar"() {
+      when:
+      run 'setupBuild'
+
+      then:
+      noExceptionThrown()
+      println file("build.gradle").text
+      when:
+      run 'clean', 'build'
+
+      then:
+      file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
     }
 
     def wrapperFilesGenerated(){
