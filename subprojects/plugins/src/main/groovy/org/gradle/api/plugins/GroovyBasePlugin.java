@@ -84,9 +84,9 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     private void deprecateGroovyConfiguration(Configuration groovyConfiguration) {
         groovyConfiguration.getDependencies().whenObjectAdded(new Action<Dependency>() {
             public void execute(Dependency dependency) {
-                DeprecationLogger.nagUserOfDiscontinuedConfiguration(GROOVY_CONFIGURATION_NAME, "Typically, usages of 'groovy' " +
-                        "can simply be replaced with 'compile'. In some cases, it may be necessary to additionally configure " +
-                        "the 'groovyClasspath' property of GroovyCompile and Groovydoc tasks.");
+                DeprecationLogger.nagUserOfDiscontinuedConfiguration(GROOVY_CONFIGURATION_NAME, "Typically, usages of 'groovy' "
+                        + "can simply be replaced with 'compile'. In some cases, it may be necessary to additionally configure "
+                        + "the 'groovyClasspath' property of GroovyCompile and Groovydoc tasks.");
             }
         });
     }
