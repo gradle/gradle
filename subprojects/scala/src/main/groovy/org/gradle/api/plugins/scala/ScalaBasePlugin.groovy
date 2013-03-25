@@ -19,6 +19,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -31,13 +32,23 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.api.tasks.JavaExec
+import org.gradle.util.DeprecationLogger
 
 import javax.inject.Inject
 import java.util.regex.Pattern
 
 class ScalaBasePlugin implements Plugin<Project> {
-    // public configurations
+    /**
+     * The name of the configuration holding the Scala compiler and tools.
+     *
+     * @deprecated Typically, usages of {@code scalaTools} can simply be removed,
+     * and the Scala tools libraries to be used will be inferred from the Scala
+     * library found on the regular (compile) class path. In some cases, it may
+     * be necessary to additionally configure the {@code scalaClasspath} property
+     * of {@code ScalaCompile} and {@code ScalaDoc} tasks.
+     */
     static final String SCALA_TOOLS_CONFIGURATION_NAME = "scalaTools"
+
     static final String ZINC_CONFIGURATION_NAME = "zinc"
 
     private static final String DEFAULT_ZINC_VERSION = "0.2.1"
@@ -129,9 +140,11 @@ class ScalaBasePlugin implements Plugin<Project> {
         this.project = project
         def javaPlugin = project.plugins.apply(JavaBasePlugin.class)
 
-        project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME)
+        def scalaToolsConfiguration = project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME)
                 .setVisible(false)
-                .setDescription("The Scala tools libraries to be used for this Scala project.")
+                .setDescription("The Scala tools libraries to be used for this Scala project. (Deprecated)")
+        deprecateScalaToolsConfiguration(scalaToolsConfiguration)
+
         project.configurations.add(ZINC_CONFIGURATION_NAME)
                 .setVisible(false)
                 .setDescription("The Zinc incremental compiler to be used for this Scala project.")
@@ -139,6 +152,16 @@ class ScalaBasePlugin implements Plugin<Project> {
         configureCompileDefaults()
         configureSourceSetDefaults(javaPlugin)
         configureScaladoc()
+    }
+
+    private void deprecateScalaToolsConfiguration(Configuration scalaConfiguration) {
+        scalaConfiguration.dependencies.whenObjectAdded {
+            DeprecationLogger.nagUserOfDiscontinuedConfiguration(SCALA_TOOLS_CONFIGURATION_NAME,
+                    "Typically, usages of 'scalaTools' can simply be removed, and the Scala tools libraries " +
+                    "to be used will be inferred from the Scala library found on the regular (compile) class path. " +
+                    "In some cases, it may be necessary to additionally configure the 'scalaClasspath' property of " +
+                    "ScalaCompile and ScalaDoc tasks.");
+        }
     }
 
     private void configureSourceSetDefaults(JavaBasePlugin javaPlugin) {
