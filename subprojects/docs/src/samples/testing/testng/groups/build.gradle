@@ -10,7 +10,7 @@ dependencies {
 
 // START SNIPPET test-config
 test {
-    useTestNG() {
+    useTestNG {
         excludeGroups 'integrationTests'
         includeGroups 'unitTests'
     }
