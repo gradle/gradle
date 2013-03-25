@@ -35,6 +35,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -48,6 +49,14 @@ import java.util.concurrent.Callable;
  * @author Hans Dockter
  */
 public class GroovyBasePlugin implements Plugin<ProjectInternal> {
+    /**
+     * The name of the configuration holding the Groovy compiler and tools.
+     *
+     * @deprecated The {@code groovy} configuration (and hence also this member) has been deprecated.
+     * Either rely on automatic configuration of a task's {@code groovyClasspath} based on the Groovy
+     * library on its {@code classpath}, or configure the task's {@code groovyClasspath} directly.
+     */
+    @Deprecated
     public static final String GROOVY_CONFIGURATION_NAME = "groovy";
 
     private final FileResolver fileResolver;
@@ -62,13 +71,23 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         this.project = project;
         JavaBasePlugin javaBasePlugin = project.getPlugins().apply(JavaBasePlugin.class);
 
-        project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).
-                setDescription("The Groovy libraries to be used for this Groovy project.");
+        Configuration groovyConfiguration = project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).
+                setDescription("The Groovy libraries to be used for this Groovy project. (Deprecated)");
+        deprecateGroovyConfiguration(groovyConfiguration);
 
         configureCompileDefaults();
         configureSourceSetDefaults(javaBasePlugin);
 
         configureGroovydoc();
+    }
+
+    private void deprecateGroovyConfiguration(Configuration groovyConfiguration) {
+        groovyConfiguration.getDependencies().whenObjectAdded(new Action<Dependency>() {
+            public void execute(Dependency dependency) {
+                DeprecationLogger.nagUserOfDiscontinuedConfiguration(GROOVY_CONFIGURATION_NAME, "Either rely on automatic configuration"
+                        + " of a task's 'groovyClasspath' based on the Groovy library on its 'classpath', or configure the task's 'groovyClasspath' directly.");
+            }
+        });
     }
 
     private void configureCompileDefaults() {

@@ -60,7 +60,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
                 dependencies {
                     codenarc 'org.codenarc:CodeNarc:0.16.1'
-                    groovy localGroovy()
+                    compile localGroovy()
                 }
             }
         """

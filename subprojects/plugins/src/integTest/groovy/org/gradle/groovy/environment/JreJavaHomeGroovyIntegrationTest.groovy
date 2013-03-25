@@ -36,7 +36,7 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
                 println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
                 apply plugin:'groovy'
                 dependencies{
-                    groovy localGroovy()
+                    compile localGroovy()
                 }
                 compileGroovy{
                     options.fork = ${forkMode}
@@ -62,10 +62,10 @@ class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
         writeGroovyTestSource("src/main/groovy")
         file('build.gradle') << """
             apply plugin:'groovy'
-            dependencies{
-                groovy localGroovy()
+            dependencies {
+                compile localGroovy()
             }
-            compileGroovy{
+            compileGroovy {
                 options.fork = ${forkMode}
                 DeprecationLogger.whileDisabled {
                     options.useAnt = ${useAnt}

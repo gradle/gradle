@@ -37,7 +37,7 @@ apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
         inTestDirectory().withTasks('check').run()
     }
@@ -66,7 +66,7 @@ repositories { mavenCentral() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
         writeCheckstyleConfig()
 
@@ -89,7 +89,7 @@ dependencies { groovy localGroovy() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
         writeCheckstyleConfig()
 
@@ -109,7 +109,7 @@ dependencies { groovy localGroovy() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
         writeCheckstyleConfig()
 
@@ -129,7 +129,7 @@ dependencies { groovy localGroovy() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
         writeCodeNarcConfigFile()
 
@@ -148,7 +148,7 @@ dependencies { groovy localGroovy() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
 
         writeCodeNarcConfigFile()
@@ -167,7 +167,7 @@ dependencies { groovy localGroovy() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
 
         writeCodeNarcConfigFile()

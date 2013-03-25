@@ -37,6 +37,7 @@ public class SingleMessageLogger {
     private static final Set<String> METHODS = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> DYNAMIC_PROPERTIES = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> PROPERTIES = Collections.synchronizedSet(new HashSet<String>());
+    private static final Set<String> CONFIGURATIONS = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> NAMED_PARAMETERS = Collections.synchronizedSet(new HashSet<String>());
 
     private static final ThreadLocal<Boolean> ENABLED = new ThreadLocal<Boolean>() {
@@ -141,6 +142,14 @@ public class SingleMessageLogger {
         if (isEnabled() && PROPERTIES.add(propertyName)) {
             LOGGER.warn(String.format("The %s property %s. %s",
                     propertyName, getDeprecationMessage(), advice));
+            logTraceIfNecessary();
+        }
+    }
+
+    public static void nagUserOfDiscontinuedConfiguration(String configurationName, String advice) {
+        if (isEnabled() && CONFIGURATIONS.add(configurationName)) {
+            LOGGER.warn(String.format("The %s configuration %s. %s",
+                    configurationName, getDeprecationMessage(), advice));
             logTraceIfNecessary();
         }
     }

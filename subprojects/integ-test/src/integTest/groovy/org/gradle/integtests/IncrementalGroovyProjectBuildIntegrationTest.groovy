@@ -26,7 +26,7 @@ class IncrementalGroovyProjectBuildIntegrationTest extends AbstractIntegrationTe
         file("src/main/groovy/BuildClass.java") << 'public class BuildClass { }'
         file("build.gradle") << '''
             apply plugin: 'groovy'
-            dependencies { groovy localGroovy() }
+            dependencies { compile localGroovy() }
             groovydoc {
                 link('http://download.oracle.com/javase/1.5.0/docs/api', 'java.,org.xml.,javax.,org.xml.')
             }

@@ -26,7 +26,7 @@ class PluginCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         file("producer/build.gradle") << """
 apply plugin: 'groovy'
 dependencies {
-    groovy localGroovy()
+    compile localGroovy()
     compile gradleApi()
 }
 """

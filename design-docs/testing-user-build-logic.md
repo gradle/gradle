@@ -23,7 +23,7 @@ The following is an example of a Groovy Gradle project that builds a Gradle plug
     apply plugin: "groovy"
     
     dependencies {
-        groovy localGroovy()
+        compile localGroovy()
         compile gradleApi()
         testCompile gradleTestKit()
         testCompile "junit:junit:4.10"

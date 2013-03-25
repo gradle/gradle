@@ -1,12 +1,16 @@
 apply plugin: 'groovy'
 
+repositories {
+    mavenCentral()
+}
+
 // START SNIPPET groovy-dependency
 repositories {
     flatDir { dirs 'lib' }
 }
 
 dependencies {
-    groovy module(':groovy:1.6.0') {
+    compile module(':groovy:1.6.0') {
         dependency('asm:asm-all:2.2.3')
         dependency('antlr:antlr:2.7.7')
         dependency('commons-cli:commons-cli:1.2')

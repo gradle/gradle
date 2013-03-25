@@ -213,11 +213,11 @@ import java.util.Map;
  * <pre autoTested=''>
  * //Our Gradle plugin is written in groovy
  * apply plugin: 'groovy'
- * //now we can use 'groovy' and 'compile' configuration for declaring dependencies
+ * //now we can use the 'compile' configuration for declaring dependencies
  *
  * dependencies {
- *   //we will use groovy that ships with Gradle:
- *   groovy localGroovy()
+ *   //we will use the Groovy version that ships with Gradle:
+ *   compile localGroovy()
  *
  *   //our plugin requires Gradle API interfaces and classes to compile:
  *   compile gradleApi()

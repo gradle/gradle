@@ -144,7 +144,7 @@ repositories {
 }
 
 dependencies {
-    groovy localGroovy()
+    compile localGroovy()
 }
         """
     }
