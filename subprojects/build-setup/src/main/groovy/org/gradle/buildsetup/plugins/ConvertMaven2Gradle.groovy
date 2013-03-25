@@ -22,8 +22,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
-import org.gradle.buildsetup.plugins.internal.Maven2Gradle
-import org.gradle.buildsetup.plugins.internal.MavenProjectsCreator
+import org.gradle.buildsetup.plugins.internal.maven.Maven2Gradle
+import org.gradle.buildsetup.plugins.internal.maven.MavenProjectsCreator
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.SingleMessageLogger
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.buildsetup.plugins.internal;
+package org.gradle.buildsetup.plugins.internal.maven;
 
 import org.gradle.mvn3.org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.gradle.mvn3.org.apache.maven.project.MavenProject;

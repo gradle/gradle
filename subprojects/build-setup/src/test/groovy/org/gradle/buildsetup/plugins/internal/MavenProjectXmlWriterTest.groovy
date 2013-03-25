@@ -16,6 +16,7 @@
 
 package org.gradle.buildsetup.plugins.internal
 
+import org.gradle.buildsetup.plugins.internal.maven.MavenProjectXmlWriter
 import spock.lang.Specification
 
 /**

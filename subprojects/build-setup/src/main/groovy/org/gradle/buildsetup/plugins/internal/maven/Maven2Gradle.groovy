@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.buildsetup.plugins.internal
+package org.gradle.buildsetup.plugins.internal.maven
 
 import org.gradle.mvn3.org.apache.maven.project.MavenProject
 import org.gradle.util.GFileUtils

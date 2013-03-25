@@ -33,9 +33,6 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources resources = new TestResources(temporaryFolder)
 
     def "multiModule"() {
-        given:
-        file("build.gradle") << "apply plugin: 'build-setup'"
-
         when:
         run 'setupBuild'
 
@@ -70,9 +67,6 @@ Root project 'webinar-parent'
 
 
     def "flatmultimodule"() {
-        given:
-        file("webinar-parent/build.gradle") << "apply plugin: 'build-setup'"
-
         when:
         executer.inDirectory(file("webinar-parent"))
         run 'setupBuild'
@@ -107,9 +101,6 @@ Root project 'webinar-parent'
     }
 
     def "singleModule"() {
-        given:
-        file("build.gradle") << "apply plugin: 'build-setup'"
-
         when:
         run 'setupBuild'
 
@@ -128,9 +119,6 @@ Root project 'webinar-parent'
     }
 
     def "testjar"() {
-        given:
-        file("build.gradle") << "apply plugin: 'build-setup'"
-
         when:
         run 'setupBuild'
 
@@ -147,9 +135,6 @@ Root project 'webinar-parent'
     }
 
     def "enforcerplugin"() {
-        given:
-        file("build.gradle") << "apply plugin: 'build-setup'"
-
         when:
         run 'setupBuild'
 
@@ -172,6 +157,7 @@ it.exclude group: '*', module: 'badArtifact'
     def wrapperFilesGenerated(){
         wrapperFilesGenerated(file("."))
     }
+
     def wrapperFilesGenerated(TestFile parentFolder) {
         parentFolder.file("gradlew").assertExists()
         parentFolder.file("gradlew.bat").assertExists()
