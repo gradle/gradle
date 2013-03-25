@@ -19,8 +19,6 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.sonar.SonarPlugin
-import org.gradle.api.sonar.runner.SonarRunnerPlugin
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.internal.reflect.Instantiator
@@ -60,7 +58,6 @@ class JacocoPlugin implements Plugin<Project> {
         applyToDefaultTasks(extension)
         configureDefaultOutputPaths()
         addDefaultReportTasks(extension)
-        configureSonarPlugin(extension)
     }
 
     def configureDefaultOutputPaths() {
@@ -151,40 +148,6 @@ class JacocoPlugin implements Plugin<Project> {
                     reportTask.executionData task
                     reportTask.mustRunAfter task
                     reportTask.sourceSets(this.project.sourceSets.main)
-                }
-            }
-        }
-    }
-
-    /**
-     * Configures default paths to Jacoco execution data for unit and
-     * integration tests. Only configures them if tasks of the default
-     * names exist. This is {@code test} for unit tests and either
-     * {@code integTest} or {@code intTest} for integration tests.
-     * @param extension the extension describing the tes task names
-     */
-    private void configureSonarPlugin(JacocoPluginExtension extension) {
-        def configureTasks = { propertySetter ->
-            project.tasks.withType(Test) { task ->
-                if (task.name == extension.unitTestTaskName) {
-                    propertySetter('sonar.jacoco.reportPath', task.jacoco.destFile)
-                } else if (task.name == extension.integrationTestTaskName) {
-                    propertySetter('sonar.jacoco.itReportPath', task.jacoco.destFile)
-                }
-            }
-        }
-
-        // look for a project with a sonar plugin applied
-        project.rootProject.allprojects {
-            this.project.plugins.withType(SonarPlugin) {
-                project.sonar.project.withProjectProperties { props ->
-                    configureTasks { name, value -> props[name] = value }
-                }
-            }
-
-            this.project.plugins.withType(SonarRunnerPlugin) {
-                project.sonarRunner.sonarProperties {
-                    configureTasks { name, value -> property name, value }
                 }
             }
         }

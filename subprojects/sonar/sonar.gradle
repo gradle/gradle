@@ -19,6 +19,7 @@ apply from: "$rootDir/gradle/providedConfiguration.gradle"
 dependencies {
     compile project(":core")
     compile project(":plugins")
+    compile project(":jacoco")
     compile libraries.groovy
 
     // Sonar Runner plugin

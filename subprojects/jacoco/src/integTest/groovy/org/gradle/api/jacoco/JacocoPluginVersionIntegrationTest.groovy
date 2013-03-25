@@ -31,7 +31,6 @@ class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         buildFile << """
         apply plugin: "java"
         apply plugin: "jacoco"
-        apply plugin: "sonar"
 
         repositories {
             mavenCentral()

@@ -21,7 +21,9 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.jvm.Jvm
+import org.gradle.testing.jacoco.plugin.JacocoPlugin
 
 /**
  * A plugin for analyzing projects with the
@@ -35,16 +37,12 @@ import org.gradle.internal.jvm.Jvm
  * small example:
  *
  * <pre autoTested=''>
- * sonarRunner {
- *     skipProject = false // this is the default
+ * sonarRunner {*     skipProject = false // this is the default
  *
- *     sonarProperties {
- *         property "sonar.host.url", "http://my.sonar.server" // adding a single property
+ *     sonarProperties {*         property "sonar.host.url", "http://my.sonar.server" // adding a single property
  *         properties mapOfProperties // adding multiple properties at once
  *         properties["sonar.sources"] += sourceSets.other.java.srcDirs // manipulating an existing property
- *     }
- * }
- * </pre>
+ *}*}* </pre>
  *
  * The Sonar Runner already comes with defaults for some of the most important
  * Sonar properties (server URL, database settings, etc.). For details see
@@ -120,21 +118,27 @@ class SonarRunnerPlugin implements Plugin<Project> {
 
     void computeSonarProperties(Project project, Properties properties) {
         def extension = project.extensions.getByType(SonarRunnerExtension)
-        if (extension.skipProject) { return }
+        if (extension.skipProject) {
+            return
+        }
 
         Map<String, Object> rawProperties = [:]
         addGradleDefaults(project, rawProperties)
         extension.evaluateSonarPropertiesBlocks(rawProperties)
-        if (project == targetProject) { addSystemProperties(rawProperties) }
+        if (project == targetProject) {
+            addSystemProperties(rawProperties)
+        }
 
         def projectPrefix = project.path.substring(targetProject.path.size()).replace(":", ".")
         if (projectPrefix.startsWith(".")) {
             projectPrefix = projectPrefix.substring(1)
         }
         convertProperties(rawProperties, projectPrefix, properties)
-        
+
         def enabledChildProjects = project.childProjects.values().findAll { !it.sonarRunner.skipProject }
-        if (enabledChildProjects.empty) { return }
+        if (enabledChildProjects.empty) {
+            return
+        }
 
         properties[convertKey("sonar.modules", projectPrefix)] = convertValue(enabledChildProjects.name)
         for (childProject in enabledChildProjects) {
@@ -180,6 +184,16 @@ class SonarRunnerPlugin implements Plugin<Project> {
             // if we can live with the fact that leaf projects w/o source dirs will still cause a failure.
             properties["sonar.sources"] = ""
         }
+
+        project.plugins.withType(JacocoPlugin) {
+            project.tasks.withType(Test) { testTask ->
+                if (testTask.name == project.jacoco.unitTestTaskName) {
+                    properties["sonar.jacoco.reportPath"] = testTask.jacoco.destFile
+                } else if (testTask.name == project.jacoco.integrationTestTaskName) {
+                    properties["sonar.jacoco.itReportPath"] = testTask.jacoco.destFile
+                }
+            }
+        }
     }
 
     private String getProjectKey(Project project) {
@@ -211,11 +225,11 @@ class SonarRunnerPlugin implements Plugin<Project> {
             }
         }
     }
-    
+
     private String convertKey(String key, String projectPrefix) {
         projectPrefix ? "${projectPrefix}.$key" : key
     }
-    
+
     private String convertValue(Object value) {
         value instanceof Iterable ? value.collect { convertValue(it) }.join(",") : value.toString()
     }
