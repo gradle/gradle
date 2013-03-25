@@ -94,6 +94,14 @@ class TaskFactoryTest extends Specification {
         task.dependsOn == ["/path1"] as Set
     }
 
+    public void testCreateTaskWithMustRunAfterOrdering() {
+        when:
+        Task task = taskFactory.createTask([name: 'task', mustRunAfter: "/path1"])
+
+        then:
+        task.mustRunAfter == ["/path1"] as Set
+    }
+
     public void testCreateTaskWithAction() {
         Action<Task> action = Mock()
 

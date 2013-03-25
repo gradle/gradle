@@ -561,7 +561,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     private void mustRunAfter(TaskInternal task, List<Task> mustRunAfterTasks) {
-        task.getMustRunAfter() >> taskDependencyResolvingTo(task, mustRunAfterTasks)
+        task.getMustRunAfterTaskDependencies() >> taskDependencyResolvingTo(task, mustRunAfterTasks)
     }
 
     private void failure(TaskInternal task, final RuntimeException failure) {
@@ -586,7 +586,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     private TaskInternal filteredTask(final String name) {
         def task = createTask(name);
         task.getTaskDependencies() >> brokenDependencies()
-        task.getMustRunAfter() >> brokenDependencies()
+        task.getMustRunAfterTaskDependencies() >> brokenDependencies()
         return task
     }
 

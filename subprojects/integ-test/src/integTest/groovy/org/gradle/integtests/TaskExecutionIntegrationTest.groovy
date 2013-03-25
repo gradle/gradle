@@ -233,9 +233,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "sensible error message for circular task dependency due to mustRunAfter"() {
         buildFile << """
-    task a {
-        mustRunAfter 'b'
-    }
+    task a(mustRunAfter: 'b')
     task b(dependsOn: 'a')
 """
         when:

@@ -152,6 +152,39 @@
         <para>For more information about task dependencies, see the <apilink class="org.gradle.api.Task"/> API.</para>
     </section>
     <section>
+        <title>Ordering tasks</title>
+        <note>
+            <para>
+                Task ordering is an <firstterm>incubating</firstterm> feature (see <xref linkend="sec:incubating_state"/>).
+            </para>
+        </note>
+        <para>Apart from ensuring that one task runs after another by specifying a dependency between those tasks it is sometimes
+            needed to be able to define that one task runs after another but only if both of the tasks are in the task graph. This might be
+            useful in a number of scenarios:
+        </para>
+        <itemizedlist>
+            <listitem>when specifying that unit tests should always run before integration tests to fail fast but still being
+                able to run integration tests without running unit tests,</listitem>
+            <listitem>when aggregating results of several tasks without forcing them all to run, for example aggregating results of several
+                test tasks.
+            </listitem>
+        </itemizedlist>
+        <para>It is possible to achieve that by specifying that a task "must run after" another task:</para>
+        <sample id="mustRunAfter" dir="userguide/tasks/mustRunAfter" title="Adding mustRunAfter ordering">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskY taskX"/>
+        </sample>
+        <para>Running `taskY` doesn't force `taskX` to run:</para>
+        <sample id="mustRunAfterSingleTask" dir="userguide/tasks/mustRunAfter" title="Running only the task that specifies must run after ordering">
+            <output args="-q taskY"/>
+        </sample>
+        <para>Syntax for specifying "must run after" ordering is very similar to specifying task dependencies.
+            Apart from the syntax shown in the sample you can use <apilink class="org.gradle.api.Task" method="mustRunAfter"/> and
+            <apilink class="org.gradle.api.Task" method="setMustRunAfter"/> methods and specify tasks using the exact same types as
+            when specifying task dependencies.
+        </para>
+    </section>
+    <section>
         <title>Adding a description to a task</title>
         <para>You can add a description to your task. This description is for example displayed when executing
             <userinput>gradle tasks</userinput>.

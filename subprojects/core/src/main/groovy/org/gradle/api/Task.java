@@ -143,6 +143,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
 
     public static final String TASK_DEPENDS_ON = "dependsOn";
 
+    public static final String MUST_RUN_AFTER = "mustRunAfter";
+
     public static final String TASK_OVERWRITE = "overwrite";
 
     public static final String TASK_ACTION = "action";
@@ -565,11 +567,19 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     void setMustRunAfter(Iterable<?> mustRunAfter);
 
     /**
+     * <p>Returns a {@link TaskDependency} which contains all the tasks that this task must run after.</p>
+     *
+     * @return The tasks that this task must run after. Never returns null.
+     */
+    @Incubating
+    TaskDependency getMustRunAfterTaskDependencies();
+
+    /**
      * <p>Returns tasks that this task must run after.</p>
      *
      * @return The tasks that this task must run after. Returns an empty set if this task has no tasks it must run after.
      */
     @Incubating
-    TaskDependency getMustRunAfter();
+    Set<Object> getMustRunAfter();
 }
 
