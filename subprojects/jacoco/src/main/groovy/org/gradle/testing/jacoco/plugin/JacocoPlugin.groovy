@@ -149,6 +149,7 @@ class JacocoPlugin implements Plugin<Project> {
                 if (task.name in [extension.unitTestTaskName, extension.integrationTestTaskName]) {
                     JacocoReport reportTask = this.project.tasks.add("jacoco${task.name.capitalize()}Report", JacocoReport)
                     reportTask.executionData task
+                    reportTask.mustRunAfter task
                     reportTask.sourceSets(this.project.sourceSets.main)
                 }
             }
