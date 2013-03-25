@@ -18,11 +18,9 @@ package org.gradle.wrapper;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.Callable;
 
 public class ExclusiveFileAccessManager {
@@ -31,26 +29,10 @@ public class ExclusiveFileAccessManager {
 
     private final int timeoutMs;
     private final int pollIntervalMs;
-    private final Locker locker;
-
-    static interface Locker {
-        FileLock tryLock(FileChannel channel) throws IOException;
-    }
-
-    static class DefaultLocker implements Locker {
-        public FileLock tryLock(FileChannel channel) throws IOException {
-            return channel.tryLock();
-        }
-    }
-
-    ExclusiveFileAccessManager(int timeoutMs, int pollIntervalMs, Locker locker) {
-        this.timeoutMs = timeoutMs;
-        this.pollIntervalMs = pollIntervalMs;
-        this.locker = locker;
-    }
 
     public ExclusiveFileAccessManager(int timeoutMs, int pollIntervalMs) {
-        this(timeoutMs, pollIntervalMs, new DefaultLocker());
+        this.timeoutMs = timeoutMs;
+        this.pollIntervalMs = pollIntervalMs;
     }
 
     public <T> T access(File exclusiveFile, Callable<T> task) {
@@ -64,13 +46,9 @@ public class ExclusiveFileAccessManager {
             FileLock lock = null;
 
             while (lock == null && System.currentTimeMillis() < startAt + timeoutMs) {
-                try {
-                    randomAccessFile = new RandomAccessFile(lockFile, "rw");
-                    channel = randomAccessFile.getChannel();
-                    lock = locker.tryLock(channel);
-                } catch (OverlappingFileLockException ignore) {
-                    // this JVM already has a lock on this file
-                }
+                randomAccessFile = new RandomAccessFile(lockFile, "rw");
+                channel = randomAccessFile.getChannel();
+                lock = channel.tryLock();
 
                 if (lock == null) {
                     maybeCloseQuietly(channel);
