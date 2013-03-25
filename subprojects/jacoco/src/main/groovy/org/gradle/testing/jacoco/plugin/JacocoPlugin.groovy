@@ -25,6 +25,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.tasks.JacocoBase
+import org.gradle.testing.jacoco.tasks.JacocoMerge
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
 import javax.inject.Inject
@@ -57,11 +58,22 @@ class JacocoPlugin implements Plugin<Project> {
         configureAgentDependencies(agent, extension)
         configureTaskClasspathDefaults(extension)
         applyToDefaultTasks(extension)
+        configureDefaultOutputPaths()
         addDefaultReportTasks(extension)
         configureSonarPlugin(extension)
     }
 
-    /**
+    def configureDefaultOutputPaths() {
+        project.tasks.withType(JacocoReport) { task ->
+            task.destPath = new File(project.getBuildDir(), "/reports/jacoco/${task.name}")
+        }
+
+        project.tasks.withType(JacocoMerge) { task ->
+            task.destPath = new File(project.getBuildDir(), "/jacoco/${task.name}.exec")
+        }
+    }
+
+        /**
      * Creates the configurations used by plugin.
      * @param project the project to add the configurations to
      */

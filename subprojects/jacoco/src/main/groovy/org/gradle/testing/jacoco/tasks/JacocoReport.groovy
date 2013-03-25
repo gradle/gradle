@@ -57,7 +57,7 @@ class JacocoReport extends JacocoBase {
 	/**
 	 * Path to write report to. Defaults to {@code build/reports/jacoco/<task name>}.
 	 */
-	Object destPath = "${getProject().getBuildDir()}/reports/jacoco/${getName()}"
+	Object destPath
 
 	JacocoReport() {
 		onlyIf { getExecutionData().every { it.exists() } }
