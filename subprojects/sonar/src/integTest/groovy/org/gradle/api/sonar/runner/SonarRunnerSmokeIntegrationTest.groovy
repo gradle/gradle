@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.server.http.ServletContainer
 import org.gradle.util.AvailablePortFinder
 import org.gradle.util.ClasspathUtil
 import org.junit.Rule
+
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 
@@ -71,7 +72,7 @@ sonar.embeddedDatabase.port=$databasePort
                 .withArgument("-i")
                 .withArgument("-PserverUrl=foo") // dummy value for configuring sonarAnalyze task
                 .withArgument("-PdatabaseUrl=bar") // dummy value for configuring sonarAnalyze task
-                .withArgument("-Dsonar.host.url=http://localhost:${webServer.connectors[0].localPort}")
+                .withArgument("-Dsonar.host.url=http://localhost:${container.port}")
                 .withArgument("-Dsonar.jdbc.url=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
                 .withTasks("sonarRunner").run()
 

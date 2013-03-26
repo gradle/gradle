@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.server.http.ServletContainer
 import org.gradle.util.AvailablePortFinder
 import org.gradle.util.ClasspathUtil
 import org.junit.Rule
+
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 
@@ -73,7 +74,7 @@ sonar.embeddedDatabase.port=$databasePort
         // the wrong class loader.
         when:
         executer.requireGradleHome()
-                .withArgument("-PserverUrl=http://localhost:${webServer.connectors[0].localPort}")
+                .withArgument("-PserverUrl=http://localhost:${container.port}")
                 .withArgument("-PdatabaseUrl=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
                 .withTasks("build", "sonarAnalyze").run()
 
