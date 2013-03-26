@@ -62,11 +62,15 @@ class BuildDashboardGeneratorSpec extends Specification {
 
     void 'links to reports are added to the generated markup'() {
         given:
+        def htmlFolder = tmpDir.createDir('htmlContent');
+        htmlFolder.createFile("index.html")
         generatorFor([
                 mockReport('a', tmpDir.createFile('report.html')),
                 mockReport('b', tmpDir.createDir('inner').createFile('otherReport.html')),
                 mockReport('c', tmpDir.file('idonotexist.html')),
-                mockReport('d', null)
+                mockReport('d', htmlFolder),
+                mockReport('e', tmpDir.createDir('simpleDirectory')),
+                mockReport('e', null)
         ])
 
         when:
@@ -75,9 +79,11 @@ class BuildDashboardGeneratorSpec extends Specification {
         then:
         outputHtml.select('h1').text() == 'Available build reports:'
         with outputHtml.select('ul li'), {
-            size() == 2
+            size() == 4
             select('a[href=report.html]').text() == 'a'
             select('a[href=inner/otherReport.html]').text() == 'b'
+            select('a[href=htmlContent/index.html]').text() == 'd'
+            select('a[href=simpleDirectory]').text() == 'e'
         }
     }
 

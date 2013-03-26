@@ -84,7 +84,7 @@ public class BuildDashboardGenerator {
                         ul();
                         for (Report report : reports) {
                             li();
-                                a().href(GFileUtils.relativePath(outputFile.getParentFile(), report.getDestination())).text(report.getDisplayName());
+                                a().href(GFileUtils.relativePath(outputFile.getParentFile(), getHtmlLinkedFileFromReport(report))).text(report.getDisplayName());
                             end(2);
                         }
                         end();
@@ -93,5 +93,16 @@ public class BuildDashboardGenerator {
                     }
             endAll();
         }};
+    }
+
+    private File getHtmlLinkedFileFromReport(Report report) {
+        final File destination = report.getDestination();
+        if(destination.isFile()){
+            return destination;
+        }
+        if(destination.isDirectory() && new File(destination, "index.html").exists()){
+            return new File(destination, "index.html");
+        }
+        return destination;
     }
 }

@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.jacoco
 
-import java.util.concurrent.Callable
+package org.gradle.api.reporting.internal;
 
-class ObjectUtil {
-	static Object unpack(Object obj) {
-		if (obj instanceof Callable) {
-			return obj.call()
-		} else {
-			return obj
-		}
-	}
+import org.gradle.api.Task;
+import org.gradle.api.reporting.SingleFileReport;
 
-	static String unpackString(Object obj) {
-		return unpack(obj).toString()
-	}
+public class TaskGeneratedSingleDirectoryReport extends TaskGeneratedReport implements SingleFileReport {
+
+    public TaskGeneratedSingleDirectoryReport(String name, Task task) {
+        super(name, OutputType.DIRECTORY, task);
+    }
+
+    @Override
+    public void setDestination(Object destination) {
+        super.setDestination(destination);
+    }
 }
