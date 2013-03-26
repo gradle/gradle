@@ -86,7 +86,7 @@
             <sourcefile file="build.gradle" snippet="connection-settings"/>
         </sample>
         <para>
-            For a complete list of standard Sonar properties, consult the<ulink url="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Sonar documentation</ulink>.
+            For a complete list of standard Sonar properties, consult the <ulink url="http://docs.codehaus.org/display/SONAR/Analysis+Parameters">Sonar documentation</ulink>.
             If you happen to use additional Sonar plugins, consult their documentation.
         </para>
         <para>

@@ -165,35 +165,35 @@
             The following properties can alternatively be set from the command line, as task parameters of the <literal>sonarAnalyze</literal> task.
             A task parameter will override any corresponding value set in the build script.
         </para>
-        <ul>
-            <li>
+        <itemizedlist>
+            <listitem>
                 <literal>server.url</literal>
-            </li>
-            <li>
+            </listitem>
+            <listitem>
                 <literal>database.url</literal>
-            </li>
-            <li>
+            </listitem>
+            <listitem>
                 <literal>database.driverClassName</literal>
-            </li>
-            <li>
+            </listitem>
+            <listitem>
                 <literal>database.username</literal>
-            </li>
-            <li>
+            </listitem>
+            <listitem>
                 <literal>database.password</literal>
-            </li>
-            <li>
+            </listitem>
+            <listitem>
                 <literal>showSql</literal>
-            </li>
-            <li>
+            </listitem>
+            <listitem>
                 <literal>showSqlResults</literal>
-            </li>
-            <li>
+            </listitem>
+            <listitem>
                 <literal>verbose</literal>
-            </li>
-            <li>
+            </listitem>
+            <listitem>
                 <literal>forceAnalysis</literal>
-            </li>
-        </ul>
+            </listitem>
+        </itemizedlist>
         <para>
             Here is a complete example:
         </para>
