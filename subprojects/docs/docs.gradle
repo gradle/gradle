@@ -69,6 +69,8 @@ dependencies {
         "ubuntumono:bold:3:ceqTZGKHipo8pJj4molytp_TkvowlIOtbR7ePgFOpF4@ttf",
         "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9WsGzsqhEorxQDpu60nfWEc@ttf"
 
+    groovy libraries.groovy
+
     testCompile libraries.groovy
     testCompile "org.pegdown:pegdown:1.1.0"
     testCompile libraries.jsoup
@@ -329,7 +331,7 @@ task groovydocAll(type: Groovydoc, dependsOn: configureGroovydocAll) {
         windowTitle = "Gradle API $version"
         docTitle = windowTitle
     }
-    groovyClasspath = project(':core').configurations.groovy
+    groovyClasspath = configurations.groovy
     doLast {
         def index = new File(destinationDir, "index.html")
         index.text = index.text.replace("{todo.title}", windowTitle) // workaround groovydoc bug
