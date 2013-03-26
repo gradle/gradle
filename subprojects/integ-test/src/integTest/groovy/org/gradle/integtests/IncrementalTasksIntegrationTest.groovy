@@ -83,18 +83,13 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "incremental task action is executed with rebuild context when run for the first time"() {
-        when:
-        buildFile << """
-    ext.added = ['file1.txt', 'file2.txt']
-    ext.rebuild = true
-"""
-        then:
-        succeeds "incrementalCheck"
+        expect:
+        executesWithRebuildContext()
     }
 
     def "incremental task is skipped when run with no changes"() {
         given:
-        run "incremental"
+        previousExecution()
 
         when:
         run "incremental"
@@ -104,132 +99,133 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "incremental task execution context reports modified input file"() {
-        buildFile << "ext.changed = ['file1.txt']"
-        when:
-        run "incremental"
+        given:
+        previousExecution()
 
-        and:
+        when:
         file('inputs/file1.txt') << "changed content"
 
         then:
-        succeeds "incrementalCheck"
+        executesWithIncrementalContext("ext.changed = ['file1.txt']");
     }
 
     def "incremental task execution context reports added input file"() {
-        buildFile << "ext.added = ['file3.txt']"
-        when:
-        run "incremental"
+        given:
+        previousExecution()
 
-        and:
+        when:
         file('inputs/file3.txt') << "file3 content"
 
         then:
-        succeeds "incrementalCheck"
+        executesWithIncrementalContext("ext.added = ['file3.txt']")
     }
 
     def "incremental task execution context reports removed input file"() {
-        buildFile << "ext.removed = ['file2.txt']"
-        when:
-        run "incremental"
+        given:
+        previousExecution()
 
-        and:
+        when:
         file('inputs/file2.txt').delete()
 
         then:
-        succeeds "incrementalCheck"
+        executesWithIncrementalContext("ext.removed = ['file2.txt']")
+    }
+
+    def "incremental task execution context reports all input files removed"() {
+        given:
+        previousExecution()
+
+        when:
+        file('inputs/file1.txt').delete()
+        file('inputs/file2.txt').delete()
+
+        then:
+        executesWithIncrementalContext("ext.removed = ['file1.txt', 'file2.txt']")
     }
 
     def "incremental task action is executed with rebuild context when input property changes"() {
-        buildFile << """
-    ext.added = ['file1.txt', 'file2.txt']
-    ext.rebuild = true
-"""
-        when:
-        run "incremental"
+        given:
+        previousExecution()
 
-        and:
+        when:
         buildFile << "incremental.prop = 'changed'"
 
         then:
-        succeeds "incrementalCheck"
+        executesWithRebuildContext()
     }
 
     def "incremental task action is executed with rebuild context when output directory is changed"() {
-        buildFile << """
-    ext.added = ['file1.txt', 'file2.txt']
-    ext.rebuild = true
-"""
-        when:
-        run "incremental"
+        given:
+        previousExecution()
 
-        and:
+        when:
         buildFile << "incremental.outputDir = project.mkdir('new-outputs')"
 
         then:
-        succeeds "incrementalCheck"
+        executesWithRebuildContext()
     }
 
     @Ignore("Not sure why this isn't picking up output file changes")
     def "incremental task action is executed with rebuild context when output file has changed"() {
-        buildFile << """
-    ext.added = ['file1.txt', 'file2.txt']
-    ext.rebuild = true
-"""
-        when:
-        run "incremental"
+        given:
+        previousExecution()
 
-        and:
+        when:
         outputFile.touch() << "changed"
 
         then:
-        succeeds "incrementalCheck"
+        executesWithRebuildContext()
     }
 
     @Ignore("Not sure why this isn't picking up output file changes")
     def "incremental task action is executed with rebuild context when output file has been removed"() {
-        buildFile << """
-    ext.added = ['file1.txt', 'file2.txt']
-    ext.rebuild = true
-"""
-        when:
-        run "incremental"
+        given:
+        previousExecution()
 
-        and:
+        when:
         outputFile.delete()
         file('outputs/new-file.txt') << 'new output'
 
         then:
-        succeeds "incrementalCheck"
+        executesWithRebuildContext()
     }
 
     def "incremental task action is executed with rebuild context when Task.upToDate() is false"() {
-        buildFile << """
-    ext.added = ['file1.txt', 'file2.txt']
-    ext.rebuild = true
-"""
-        when:
-        run "incremental"
+        given:
+        previousExecution()
 
-        and:
+        when:
         buildFile << "incremental.outputs.upToDateWhen { false }"
 
         then:
-        succeeds "incrementalCheck"
+        executesWithRebuildContext()
     }
 
     def "incremental task action is executed with rebuild context when gradle is executed with --rerun-tasks"() {
+        given:
+        previousExecution()
+
+        when:
+        executer.withArgument("--rerun-tasks")
+
+        then:
+        executesWithRebuildContext()
+    }
+
+    def previousExecution() {
+        run "incremental"
+    }
+
+    def executesWithIncrementalContext(String fileChanges) {
+        buildFile << fileChanges
+        succeeds "incrementalCheck"
+    }
+
+    def executesWithRebuildContext() {
         buildFile << """
     ext.added = ['file1.txt', 'file2.txt']
     ext.rebuild = true
 """
-        when:
-        run "incremental"
-
-        and:
-        executer.withArgument("--rerun-tasks")
-
-        then:
         succeeds "incrementalCheck"
     }
-
 }
