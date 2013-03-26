@@ -80,8 +80,8 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         registerFactory(type, new NamedDomainObjectFactory<V>() {
             boolean named = Named.class.isAssignableFrom(implementationType);
             public V create(String name) {
-                return named ? getInstantiator().newInstance(implementationType, name) :
-                        getInstantiator().newInstance(implementationType);
+                return named ? getInstantiator().newInstance(implementationType, name)
+                        : getInstantiator().newInstance(implementationType);
             }
         });
     }
