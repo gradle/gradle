@@ -17,6 +17,7 @@
 package org.gradle.junit;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 public class CategorizedJUnitTest {
 

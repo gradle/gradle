@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.junit
+package org.gradle.junit;
 
 public interface CategoryB{
 

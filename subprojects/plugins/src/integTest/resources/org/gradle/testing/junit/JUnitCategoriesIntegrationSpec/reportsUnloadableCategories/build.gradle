@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
-repositories { mavenCentral() }
-dependencies { testCompile 'junit:junit:4.9' }
+
+
+apply plugin: "java"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.11'
+}

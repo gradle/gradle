@@ -8,7 +8,6 @@ dependencies {
     testCompile 'junit:junit:4.11'
 }
 
-
 // START SNIPPET test-categories
 test {
     useJUnit {

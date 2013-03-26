@@ -14,12 +14,5 @@
  * limitations under the License.
  */
 
-
-
-apply plugin: "java"
-
-repositories {
-    mavenCentral()
-}
-
-
+apply plugin: 'java'
+repositories { mavenCentral() }
