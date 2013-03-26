@@ -19,6 +19,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.reporting.Report
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.internal.reflect.Instantiator
@@ -53,6 +54,8 @@ class JacocoPlugin implements Plugin<Project> {
         configureJacocoConfigurations()
         JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar, project)
         JacocoPluginExtension extension = project.extensions.create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension, project, agent)
+        extension.conventionMapping.reportsDir = { new File(project.buildDir, "reports/jacoco") }
+
         configureAgentDependencies(agent, extension)
         configureTaskClasspathDefaults(extension)
         applyToDefaultTasks(extension)
@@ -61,16 +64,12 @@ class JacocoPlugin implements Plugin<Project> {
     }
 
     def configureDefaultOutputPaths() {
-        project.tasks.withType(JacocoReport) { task ->
-            task.destDir = new File(project.getBuildDir(), "/reports/jacoco/${task.name}")
-        }
-
         project.tasks.withType(JacocoMerge) { task ->
             task.destFile = new File(project.getBuildDir(), "/jacoco/${task.name}.exec")
         }
     }
 
-        /**
+    /**
      * Creates the configurations used by plugin.
      * @param project the project to add the configurations to
      */
@@ -148,6 +147,18 @@ class JacocoPlugin implements Plugin<Project> {
                     reportTask.executionData task
                     reportTask.mustRunAfter task
                     reportTask.sourceSets(this.project.sourceSets.main)
+                    reportTask.conventionMapping.with {
+                        reportTask.reports.all { report ->
+                            report.conventionMapping.with {
+                                enabled = { true }
+                                if(report.outputType == Report.OutputType.DIRECTORY){
+                                    destination = { new File(extension.reportsDir, "${task.name}/${report.name}") }
+                                }else{
+                                    destination = { new File(extension.reportsDir, "${task.name}/${reportTask.name}.${report.name}") }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

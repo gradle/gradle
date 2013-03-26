@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+
+
 dependencies {
 	compile libraries.groovy
 	compile project(':core')
 	compile project(':plugins')
+	compile project(':reporting')
 }
