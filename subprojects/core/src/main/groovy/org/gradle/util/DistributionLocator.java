@@ -21,8 +21,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class DistributionLocator {
-    private static final String RELEASE_REPOSITORY = "http://services.gradle.org/distributions";
-    private static final String SNAPSHOT_REPOSITORY = "http://services.gradle.org/distributions-snapshots";
+    private static final String RELEASE_REPOSITORY = "http://downloads.gradle.org/distributions";
+    private static final String SNAPSHOT_REPOSITORY = "http://downloads.gradle.org/distributions-snapshots";
 
     public URI getDistributionFor(GradleVersion version) {
         return getDistribution(getDistributionRepository(version), version, "gradle", "bin");
