@@ -51,6 +51,9 @@ class CodeNarcPluginTest extends Specification {
         expect:
         CodeNarcExtension codenarc = project.extensions.codenarc
         codenarc.configFile == project.file("config/codenarc/codenarc.xml")
+        codenarc.maxPriority1Violations == 0
+        codenarc.maxPriority2Violations == 0
+        codenarc.maxPriority3Violations == 0
         codenarc.reportFormat == "html"
         codenarc.reportsDir == project.file("build/reports/codenarc")
         codenarc.sourceSets == []
@@ -79,6 +82,9 @@ class CodeNarcPluginTest extends Specification {
             assert source as List == sourceSet.allGroovy  as List
             assert codenarcClasspath == project.configurations.codenarc
             assert configFile == project.file("config/codenarc/codenarc.xml")
+            assert maxPriority1Violations == 0
+            assert maxPriority2Violations == 0
+            assert maxPriority3Violations == 0
             assert reportFormat == "html"
             assert reportFile == project.file("build/reports/codenarc/${sourceSet.name}.html")
             assert ignoreFailures == false
@@ -96,6 +102,9 @@ class CodeNarcPluginTest extends Specification {
         project.codenarc {
             checkTasks = ["codenarcMain"]
             configFile = project.file("codenarc-config")
+            maxPriority1Violations = 10
+            maxPriority2Violations = 50
+            maxPriority3Violations = 200
             reportFormat = "xml"
             reportsDir = project.file("codenarc-reports")
             ignoreFailures = true
@@ -115,6 +124,9 @@ class CodeNarcPluginTest extends Specification {
             assert source as List == sourceSet.allGroovy as List
             assert codenarcClasspath == project.configurations.codenarc
             assert configFile == project.file("codenarc-config")
+            assert maxPriority1Violations == 10
+            assert maxPriority2Violations == 50
+            assert maxPriority3Violations == 200
             assert reportFormat == "xml"
             assert reportFile == project.file("codenarc-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
@@ -129,6 +141,9 @@ class CodeNarcPluginTest extends Specification {
         task.source.isEmpty()
         task.codenarcClasspath == project.configurations.codenarc
         task.configFile == project.file("config/codenarc/codenarc.xml")
+        task.maxPriority1Violations == 0
+        task.maxPriority2Violations == 0
+        task.maxPriority3Violations == 0
         task.reportFormat == "html"
         task.reportFile == project.file("build/reports/codenarc/custom.html")
         task.ignoreFailures == false
@@ -139,6 +154,9 @@ class CodeNarcPluginTest extends Specification {
 
         project.codenarc {
             configFile = project.file("codenarc-config")
+            maxPriority1Violations = 10
+            maxPriority2Violations = 50
+            maxPriority3Violations = 200
             reportFormat = "xml"
             reportsDir = project.file("codenarc-reports")
             ignoreFailures = true
@@ -149,6 +167,9 @@ class CodeNarcPluginTest extends Specification {
         task.source.isEmpty()
         task.codenarcClasspath == project.configurations.codenarc
         task.configFile == project.file("codenarc-config")
+        task.maxPriority1Violations == 10
+        task.maxPriority2Violations == 50
+        task.maxPriority3Violations == 200
         task.reportFormat == "xml"
         task.reportFile == project.file("codenarc-reports/custom.xml")
         task.ignoreFailures == true
