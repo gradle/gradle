@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.tasks.bundling.*;
 import org.gradle.plugins.ear.Ear;
-import org.gradle.tooling.internal.outcomes.DefaultGradleFileBuildOutcome;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 
 import java.net.URI;

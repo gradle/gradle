@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.outcomes;
+package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling;
 
 import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;

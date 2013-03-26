@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.tooling.internal.outcomes.DefaultProjectOutcomes;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
