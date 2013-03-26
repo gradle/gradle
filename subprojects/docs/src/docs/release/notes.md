@@ -372,7 +372,7 @@ We would like to thank the following community members for making excellent cont
     * Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
     * Added support for PMD version 5.0.+
 * [Marcin Erdmann](https://github.com/erdi)
-    * Add`build-dashboard` plugin
+    * Add `build-dashboard` plugin
     * Make notify-send notifications transient in Gnome Shell
 * [Michael R. Maletich](https://github.com/HawaiianSpork)
     * Add `maxHeapSize` property to `FindBugs` task to allow setting the max heap size for spawned FindBugs java process
