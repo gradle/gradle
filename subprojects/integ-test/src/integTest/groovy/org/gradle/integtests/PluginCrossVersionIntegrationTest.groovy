@@ -18,6 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.util.GradleVersion
 
 @TargetVersions('0.9-rc-3+')
 class PluginCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
@@ -26,7 +27,7 @@ class PluginCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         file("producer/build.gradle") << """
 apply plugin: 'groovy'
 dependencies {
-    compile localGroovy()
+    ${previous.version < GradleVersion.version("1.4-rc-1") ? "groovy" : "compile" } localGroovy()
     compile gradleApi()
 }
 """
