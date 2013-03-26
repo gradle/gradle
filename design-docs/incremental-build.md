@@ -79,12 +79,13 @@ as well as a flag to indicate if incremental execution is possible.
 If incremental execution is not possible, then the task action will be executed with a 'rebuild' context, where every input file is regarded as "ADDED".
 
 Incremental execution is not possible when:
-- If there are no declared outputs for the task
-- One or more of the output files have changed since last execution
+- Task class has changed since previous execution
 - One or more of the input properties have changed since last execution
-- There is no information available about a previous execution
-- The upToDate action of the task returns false
-- Other cases listed in test cases below
+- Output files have changed or been removed since last execution
+- No information available about a previous execution
+- Task has no declared outputs
+- Task.upToDate() is false
+- Gradle build executed with '--rerun-tasks'
 
         class IncrementalSync extends DefaultTask {
             @InputFiles
@@ -112,11 +113,12 @@ Incremental execution is not possible when:
 ### Test coverage
 
 1. Incremental task action is executed with rebuild context when run for the first time
-2. Incremental task action is executed with a an empty incremental context when run with no changes
+2. Incremental task action is skipped when run with no changes since last execution
 3. Incremental task is executed with incremental context when run with:
     - Single added input file
     - Single removed input file
     - Single modified input file
+    - All input files removed
 4. Incremental task action is executed with 'rebuild' context (every input file flagged as "added") when:
     - Input property value has changed since previous execution
     - Task class has changed since previous execution
