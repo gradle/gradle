@@ -135,7 +135,7 @@ class SonarRunnerPlugin implements Plugin<Project> {
         }
         convertProperties(rawProperties, projectPrefix, properties)
 
-        def enabledChildProjects = project.childProjects.values().findAll { !it.sonarRunner.skipProject }
+        def enabledChildProjects = project.childProjects.values().findAll { !it.sonarRunner.skipProject }.sort()
         if (enabledChildProjects.empty) {
             return
         }

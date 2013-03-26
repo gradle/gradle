@@ -240,7 +240,7 @@ class SonarRunnerPluginTest extends Specification {
         def properties = parentProject.tasks.sonarRunner.sonarProperties
 
         then:
-        properties["sonar.modules"] in ["child,child2", "child2,child"]
+        properties["sonar.modules"] == "child,child2"
         properties["child.sonar.modules"] == "leaf"
         !properties.containsKey("child2.sonar.modules")
         !properties.containsKey("child.leaf.sonar.modules")
@@ -258,7 +258,7 @@ class SonarRunnerPluginTest extends Specification {
         def properties = rootProject.tasks.sonarRunner.sonarProperties
 
         then:
-        properties["sonar.modules"] in ["parent,parent2", "parent2,parent"]
+        properties["sonar.modules"] == "parent,parent2"
         properties["parent.sonar.modules"] == "child"
         !properties.containsKey("parent2.sonar.modules")
         !properties.containsKey("parent.child.sonar.modules")
