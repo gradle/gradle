@@ -1,0 +1,58 @@
+
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: "java"
+
+// START SNIPPET apply-plugin
+apply plugin: "jacoco"
+// END SNIPPET apply-plugin
+
+// START SNIPPET jacoco-configuration
+jacoco {
+    toolVersion = "0.6.2.201302030002"
+    reportsDir = new File(buildDir, "customJacocoReportDir")
+}
+// END SNIPPET jacoco-configuration
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile "junit:junit:4.+"
+}
+
+// START SNIPPET testtask-configuration
+test{
+    jacoco{
+        append = false
+        destPath = file("$buildDir/jacoco/jacocoTest.exec")
+        classDumpPath = file("$buildDir/jacoco/classpathdumps")
+    }
+}
+// END SNIPPET testtask-configuration
+
+
+// START SNIPPET report-configuration
+jacocoTestReport{
+    reports {
+            xml.enabled false
+            csv.enabled false
+            html.destination "${buildDir}/jacocoHtml"
+    }
+}
+// END SNIPPET report-configuration

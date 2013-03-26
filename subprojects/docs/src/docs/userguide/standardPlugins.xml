@@ -575,6 +575,21 @@
                     </para>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <link linkend='jacoco_plugin'>
+                        <literal>jacoco</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Provides integration with the
+                        <ulink url="http://www.eclemma.org/jacoco/">Jacoco</ulink>
+                            code coverage library for Java.
+                    </para>
+                </td>
+            </tr>
         </table>
     </section>
     <section>

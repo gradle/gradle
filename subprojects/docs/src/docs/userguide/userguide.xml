@@ -60,6 +60,7 @@
     <xi:include href='findBugsPlugin.xml'/>
     <xi:include href='jdependPlugin.xml'/>
     <xi:include href='pmdPlugin.xml'/>
+    <xi:include href='jacocoPlugin.xml'/>
     <xi:include href='sonarPlugin.xml'/>
     <xi:include href='sonarRunnerPlugin.xml'/>
     <xi:include href='osgi.xml'/>

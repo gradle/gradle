@@ -1,0 +1,220 @@
+<!--
+  ~ Copyright 2013 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id="jacoco_plugin">
+    <title>The Jacoco Plugin</title>
+    <note>
+        <para>
+            The Jacoco plugin is <link linkend="sec:incubating_state">incubating</link>.
+        </para>
+    </note>
+    <para>The Jacoco plugin provides integration with <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>,
+        a code coverage library for Java.
+    </para>
+
+    <section>
+        <title>Getting Started</title>
+        <para>To get started, apply the Jacoco plugin to the project you want to calculate code coverage for.</para>
+        <sample id="quickstart" dir="testing/jacoco/quickstart" title="Applying the Jacoco plugin">
+            <sourcefile file="build.gradle" snippet="apply-plugin"/>
+        </sample>
+        <para>
+            If the Java plugin is also applied to your project a new task named <literal>jacocoTestReport</literal> is created.
+            Executing <userinput>gradle jacocoTestReport</userinput> will trigger the <literal>test</literal> task and afterwards the
+            <literal>jacocoTestReport</literal> to be executed. After the build has finished you find the jacoco code coverage in
+            <filename><replaceable>$buildDir</replaceable>/<replaceable>reports</replaceable>/<replaceable>jacoco/test</replaceable></filename>.
+            The output format of the report is configurable. As a default all three supported output formats (html, csv and xml) are generated.
+        </para>
+    </section>
+
+    <section>
+        <title>Configuring the Jacoco Plugin</title>
+        <para>The Jacoco plugin adds a <apilink class="org.gradle.testing.jacoco.plugin.JacocoPluginExtension" /> extension to the project,
+            which allows to configure the Jacoco plugin.
+        </para>
+        <sample id="quickstart" dir="testing/jacoco/quickstart" title="Configuring jacoco plugin settings">
+            <sourcefile file="build.gradle" snippet="jacoco-configuration"/>
+        </sample>
+        <table>
+            <title>Gradle defaults for Jacoco properties</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Gradle default</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>reportsDir</td>
+                <td>$buildDir/reports/jacoco"</td>
+            </tr>
+            <tr>
+                <td>unitTestTaskName</td>
+                <td>"test"</td>
+            </tr>
+            <tr>
+                <td>integrationTestTaskName</td>
+                <td>"integTest"</td>
+            </tr>
+        </table>
+    </section>
+    <section><title>Jacoco Report configuration</title>
+            <para>The <apilink class="org.gradle.testing.jacoco.tasks.JacocoReport" /> task can be used to generate code coverage reports in different formats.
+            The current supported formats are
+            </para>
+                <itemizedlist>
+                    <listitem>html</listitem>
+                    <listitem>xml</listitem>
+                    <listitem>csv</listitem>
+                </itemizedlist>
+            <para><apilink class="org.gradle.testing.jacoco.tasks.JacocoReport" /> implements <apilink class="org.gradle.api.reporting.Reporting" /> and allows the configuration of the report formats.
+            </para>
+            <sample id="quickstart" dir="testing/jacoco/quickstart" title="Configuring test task">
+                <sourcefile file="build.gradle" snippet="report-configuration"/>
+            </sample>
+    </section>
+
+    <section>
+            <title>Jacoco specific task configuration</title>
+            <para>The Jacoco plugin adds a <apilink class="org.gradle.testing.jacoco.plugin.JacocoTaskExtension" /> extension to all tasks of type <apilink class="org.gradle.api.tasks.testing.Test"/>
+            This extension allows the configuration of the jacoco specific properties of a Test task.
+            </para>
+            <sample id="quickstart" dir="testing/jacoco/quickstart" title="Configuring test task">
+                <sourcefile file="build.gradle" snippet="testtask-configuration"/>
+            </sample>
+            <table>
+                <title>Default values of the Jacoco Task extension</title>
+                <thead>
+                    <tr>
+                        <td>Property</td>
+                        <td>Gradle default</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>enabled</td>
+                    <td>true</td>
+                </tr>
+                <tr>
+                    <td>destPath</td>
+                    <td><replaceable>$buildDir</replaceable>/<replaceable>jacoco</replaceable></td>
+                </tr>
+                <tr>
+                    <td>append</td>
+                    <td>true</td>
+                </tr>
+                <tr>
+                    <td>includes</td>
+                    <td>[]</td>
+                </tr>
+                <tr>
+                    <td>excludes</td>
+                    <td>[]</td>
+                </tr>
+                <tr>
+                    <td>excludeClassLoaders</td>
+                    <td>[]</td>
+                </tr>
+                <tr>
+                    <td>sessionId</td>
+                    <td>
+                        <literal>auto-generated</literal>
+                    </td>
+                </tr>
+                <tr>
+                    <td>dumpOnExit</td>
+                    <td><literal>true</literal></td>
+                </tr>
+                <tr>
+                    <td>output</td>
+                    <td><literal>Output.FILE</literal></td>
+                </tr>
+                <tr>
+                    <td>address</td>
+                    <td><literal>-</literal></td>
+                </tr>
+                <tr>
+                    <td>port</td>
+                    <td><literal>-</literal></td>
+                </tr>
+                <tr>
+                    <td>classDumpPath</td>
+                    <td><literal>-</literal></td>
+                </tr>
+                <tr>
+                    <td>jmx</td>
+                    <td><literal>false</literal></td>
+                </tr>
+            </table>
+            <para>Not only tasks of type <apilink class="org.gradle.api.tasks.testing.Test"/> can be used to gather code coverage data.
+                All tasks implementing <apilink class="org.gradle.process.JavaForkOptions"/> can be configured to generate code coverage information.
+                For example you can configure your build to generate code coverage using the <literal>application plugin</literal>.
+            </para>
+            <sample id="application" dir="testing/jacoco/application" title="Using application plugin to generate code coverage data">
+                <sourcefile file="build.gradle" snippet="application-configuration"/>
+            </sample>
+
+        </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The Jacoco plugin adds the following tasks to the project:</para>
+        <table>
+            <title>Jacoco plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>jacocoTestReport</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.testing.jacoco.tasks.JacocoReport"/></td>
+                <td>Generates code coverage report for the test task.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+            <title>Dependency management</title>
+            <para>The Jacoco plugin adds the following dependency configurations:</para>
+            <table>
+                <title>Jacoco plugin - dependency configurations</title>
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Meaning</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>
+                        <filename>jacocoAnt</filename>
+                    </td>
+                    <td>The jacoco ant library used running the <literal>JacocoReport</literal> and <literal>JacocoMerge</literal> task</td>
+                </tr>
+                <tr>
+                    <td>
+                        <filename>jacocoAgent</filename>
+                    </td>
+                    <td>The jacoco agent library used for instrumenting the code under test</td>
+                </tr>
+            </table>
+        </section>
+
+</chapter>
