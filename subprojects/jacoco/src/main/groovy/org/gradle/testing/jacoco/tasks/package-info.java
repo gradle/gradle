@@ -13,21 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.testing.jacoco.tasks
-
-import org.gradle.api.DefaultTask
-import org.gradle.api.Incubating
-import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.InputFiles
 
 /**
- * Base class for Jacoco tasks.
+ * Tasks to work with the jacoco code coverage library.
  */
-@Incubating
-abstract class JacocoBase extends DefaultTask {
-	/**
-	 * Classpath containing Jacoco classes for use by the task.
-	 */
-	@InputFiles
-	FileCollection jacocoClasspath
-}
+package org.gradle.testing.jacoco.tasks;

@@ -16,11 +16,15 @@
 
 package org.gradle.testing.jacoco.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
 
-
-interface JacocoReportsContainer extends ReportContainer<SingleFileReport> {
+/**
+ * The reporting configuration for the the {@link JacocoReport} task.
+ */
+@Incubating
+public interface JacocoReportsContainer extends ReportContainer<SingleFileReport> {
     /**
      * The jacoco (single file) html report
      *

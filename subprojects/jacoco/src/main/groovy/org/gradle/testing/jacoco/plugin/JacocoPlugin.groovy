@@ -51,7 +51,7 @@ class JacocoPlugin implements Plugin<Project> {
 
     void apply(Project project) {
         this.project = project
-        configureJacocoConfigurations()
+        addJacocoConfigurations()
         JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar, project)
         JacocoPluginExtension extension = project.extensions.create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension, project, agent)
         extension.conventionMapping.reportsDir = { new File(project.buildDir, "reports/jacoco") }
@@ -59,11 +59,29 @@ class JacocoPlugin implements Plugin<Project> {
         configureAgentDependencies(agent, extension)
         configureTaskClasspathDefaults(extension)
         applyToDefaultTasks(extension)
-        configureDefaultOutputPaths()
+        configureDefaultOutputPathForJacocoMerge()
+        configureJacocoReportDefaults(project, extension)
         addDefaultReportTasks(extension)
     }
 
-    def configureDefaultOutputPaths() {
+    private void configureJacocoReportDefaults(Project project, extension) {
+        project.tasks.withType(JacocoReport) { reportTask ->
+            reportTask.conventionMapping.with {
+                reportTask.reports.all { report ->
+                    report.conventionMapping.with {
+                        enabled = { true }
+                        if (report.outputType == Report.OutputType.DIRECTORY) {
+                            destination = { new File(extension.reportsDir, "${reportTask.name}/${report.name}") }
+                        } else {
+                            destination = { new File(extension.reportsDir, "${reportTask.name}/${reportTask.name}.${report.name}") }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    def configureDefaultOutputPathForJacocoMerge() {
         project.tasks.withType(JacocoMerge) { task ->
             task.destFile = new File(project.getBuildDir(), "/jacoco/${task.name}.exec")
         }
@@ -73,7 +91,7 @@ class JacocoPlugin implements Plugin<Project> {
      * Creates the configurations used by plugin.
      * @param project the project to add the configurations to
      */
-    private void configureJacocoConfigurations() {
+    private void addJacocoConfigurations() {
         this.project.configurations.add(AGENT_CONFIGURATION_NAME).with {
             visible = false
             transitive = true
@@ -132,7 +150,9 @@ class JacocoPlugin implements Plugin<Project> {
      * @param extension the extension to apply Jacoco with
      */
     private void applyToDefaultTasks(JacocoPluginExtension extension) {
-        extension.applyTo(this.project.tasks.withType(Test))
+        project.tasks.withType(Test) {
+            extension.applyTo(it)
+        }
     }
 
     /**
@@ -151,9 +171,9 @@ class JacocoPlugin implements Plugin<Project> {
                         reportTask.reports.all { report ->
                             report.conventionMapping.with {
                                 enabled = { true }
-                                if(report.outputType == Report.OutputType.DIRECTORY){
+                                if (report.outputType == Report.OutputType.DIRECTORY) {
                                     destination = { new File(extension.reportsDir, "${task.name}/${report.name}") }
-                                }else{
+                                } else {
                                     destination = { new File(extension.reportsDir, "${task.name}/${reportTask.name}.${report.name}") }
                                 }
                             }

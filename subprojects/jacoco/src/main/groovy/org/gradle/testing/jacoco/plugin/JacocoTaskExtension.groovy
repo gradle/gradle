@@ -15,6 +15,7 @@
  */
 package org.gradle.testing.jacoco.plugin
 
+import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.internal.jacoco.JacocoAgentJar
 
@@ -22,6 +23,7 @@ import org.gradle.internal.jacoco.JacocoAgentJar
  * Extension for tasks that should run with a Jacoco agent
  * to generate coverage execution data.
  */
+@Incubating
 class JacocoTaskExtension {
     protected final Project project
     private final JacocoAgentJar agent
@@ -98,6 +100,9 @@ class JacocoTaskExtension {
     /**
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}.
      * Defaults to {@code false}.
+     *
+     * The configuration of the jmx property is only taken into account if the used jacoco version
+     * supports this option (jacoco version >= 0.6.2)
      */
     boolean jmx = false
 

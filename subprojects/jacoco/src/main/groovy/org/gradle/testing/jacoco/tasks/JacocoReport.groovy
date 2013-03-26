@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
+import org.gradle.internal.jacoco.JacocoReportsContainerImpl
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.plugin.JacocoTaskExtension
 

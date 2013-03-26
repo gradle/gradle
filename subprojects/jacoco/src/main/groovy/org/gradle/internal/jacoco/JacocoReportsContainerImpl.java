@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.jacoco.tasks;
+package org.gradle.internal.jacoco;
 
 import org.gradle.api.Task;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
+import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
 
 public class JacocoReportsContainerImpl extends TaskReportContainer<SingleFileReport> implements JacocoReportsContainer {
 

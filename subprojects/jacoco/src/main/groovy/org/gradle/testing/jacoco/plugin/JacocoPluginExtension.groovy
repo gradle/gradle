@@ -15,20 +15,24 @@
  */
 package org.gradle.testing.jacoco.plugin
 
-import groovy.util.logging.Slf4j
+import org.gradle.api.Incubating
 import org.gradle.api.Project
+import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.process.JavaForkOptions
 
+import static org.gradle.api.logging.Logging.getLogger
+
 /**
  * Extension including common properties and methods for Jacoco.
  */
-@Slf4j
+@Incubating
 class JacocoPluginExtension {
     static final String TASK_EXTENSION_NAME = 'jacoco'
 
+    Logger logger = getLogger(getClass())
     /**
      * Version of Jacoco JARs to use.
      */
@@ -70,7 +74,7 @@ class JacocoPluginExtension {
      * @param task the task to apply Jacoco to.
      */
     void applyTo(JavaForkOptions task) {
-        log.debug "Applying Jacoco to $task.name"
+        logger.debug "Applying Jacoco to $task.name"
         JacocoTaskExtension extension = task.extensions.create(TASK_EXTENSION_NAME, JacocoTaskExtension, project, agent)
         task.jacoco.destPath = { "${project.buildDir}/jacoco/${task.name}.exec" }
         task.doFirst {
