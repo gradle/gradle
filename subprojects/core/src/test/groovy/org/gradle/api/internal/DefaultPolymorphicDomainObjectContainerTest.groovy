@@ -63,6 +63,18 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         }
     }
 
+    interface UnnamedPerson {} // doesn't implement Named
+
+    static class DefaultUnnamedPerson {}
+
+    interface CtorNamedPerson extends Person {}
+
+    static class DefaultCtorNamedPerson extends DefaultPerson implements CtorNamedPerson {
+        DefaultCtorNamedPerson(String name) {
+            this.name = name
+        }
+    }
+
     def "add elements"() {
         when:
         container.add(fred)
@@ -98,7 +110,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         e.message == "This container does not support creating domain objects without specifying a type."
     }
 
-    def "create elements with specified type"() {
+    def "create elements with specified type based on NamedDomainObjectFactory"() {
         container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
         container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
 
@@ -112,6 +124,45 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         container.findByName("barney") == agedBarney
         container.asDynamicObject.getProperty("fred") == fred
         container.asDynamicObject.getProperty("barney") == agedBarney
+    }
+
+    def "create elements with specified type based on closure-based factory"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) })
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) })
+
+        when:
+        container.create("fred", Person)
+        container.create("barney", AgeAwarePerson)
+
+        then:
+        container.size() == 2
+        container.findByName("fred") == fred
+        container.findByName("barney") == agedBarney
+        container.asDynamicObject.getProperty("fred") == fred
+        container.asDynamicObject.getProperty("barney") == agedBarney
+    }
+
+    def "create elements with specified type based on type binding"() {
+        container = new DefaultPolymorphicDomainObjectContainer<?>(Object, new DirectInstantiator(),
+                { it instanceof Named ? it.name : "unknown" } as Named.Namer)
+
+        container.registerBinding(UnnamedPerson, DefaultUnnamedPerson)
+        container.registerBinding(CtorNamedPerson, DefaultCtorNamedPerson)
+
+        when:
+        container.create("fred", UnnamedPerson)
+        container.create("barney", CtorNamedPerson)
+
+        then:
+        container.size() == 2
+        !container.findByName("fred")
+        with(container.findByName("unknown")) {
+            it.getClass() == DefaultUnnamedPerson
+        }
+        with(container.findByName("barney")) {
+            it.getClass() == DefaultCtorNamedPerson
+            name == "barney"
+        }
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects with the specified type"() {

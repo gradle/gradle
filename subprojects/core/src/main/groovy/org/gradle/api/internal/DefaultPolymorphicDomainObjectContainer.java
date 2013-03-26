@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -65,5 +66,23 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
                     + "container element type '%s'", type.getName(), getType().getName()));
         }
         factories.put(type, factory);
+    }
+
+    public <U extends T, V extends U> void registerFactory(Class<U> type, final Closure<V> factory) {
+        registerFactory(type, new NamedDomainObjectFactory<V>() {
+            public V create(String name) {
+                return factory.call(name);
+            }
+        });
+    }
+
+    public <U extends T, V extends U> void registerBinding(Class<U> type, final Class<V> implementationType) {
+        registerFactory(type, new NamedDomainObjectFactory<V>() {
+            boolean named = Named.class.isAssignableFrom(implementationType);
+            public V create(String name) {
+                return named ? getInstantiator().newInstance(implementationType, name) :
+                        getInstantiator().newInstance(implementationType);
+            }
+        });
     }
 }
