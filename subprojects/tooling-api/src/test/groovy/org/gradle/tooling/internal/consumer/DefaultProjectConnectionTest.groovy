@@ -29,6 +29,15 @@ class DefaultProjectConnectionTest extends Specification {
         connection.model(GradleProject.class) instanceof DefaultModelBuilder
     }
 
+    def modelTypeMustBeAnInterface() {
+        when:
+        connection.model(String.class)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot fetch a model of type 'java.lang.String' as this type is not an interface."
+    }
+
     def canCreateABuildLauncher() {
         expect:
         connection.newBuild() instanceof DefaultBuildLauncher

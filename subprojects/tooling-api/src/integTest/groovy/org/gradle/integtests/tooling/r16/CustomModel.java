@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.tooling.r16;
 
-import org.gradle.tooling.model.Model;
-
-public interface CustomModel extends Model {
+public interface CustomModel {
     String getValue();
 }

@@ -21,7 +21,6 @@ import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
@@ -30,7 +29,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-public class DefaultModelBuilder<T extends Model> implements ModelBuilder<T> {
+public class DefaultModelBuilder<T> implements ModelBuilder<T> {
     private final Class<T> modelType;
     private final AsyncConnection connection;
     private ConsumerOperationParameters operationParameters;

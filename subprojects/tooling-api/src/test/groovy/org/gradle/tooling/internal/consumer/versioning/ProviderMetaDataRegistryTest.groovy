@@ -16,16 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.versioning
 
-import org.gradle.tooling.internal.protocol.InternalBasicIdeaProject
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment
-import org.gradle.tooling.internal.protocol.InternalGradleProject
-import org.gradle.tooling.internal.protocol.InternalIdeaProject
-import org.gradle.tooling.internal.protocol.InternalProjectOutcomes
-import org.gradle.tooling.internal.protocol.ModelIdentifier
+import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1
 import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
@@ -240,4 +234,4 @@ class ProviderMetaDataRegistryTest extends Specification {
     }
 }
 
-interface CustomModel extends Model {}
+interface CustomModel {}

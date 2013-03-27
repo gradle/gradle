@@ -16,7 +16,6 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.Model;
 
 import java.io.File;
 import java.io.InputStream;
@@ -67,7 +66,7 @@ import java.io.OutputStream;
  * @param <T> The type of model to build
  * @since 1.0-milestone-3
  */
-public interface ModelBuilder<T extends Model> extends LongRunningOperation {
+public interface ModelBuilder<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}

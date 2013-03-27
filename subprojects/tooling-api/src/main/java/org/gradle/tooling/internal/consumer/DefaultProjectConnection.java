@@ -20,7 +20,6 @@ import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
-import org.gradle.tooling.model.Model;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConnection connection;
@@ -35,19 +34,22 @@ class DefaultProjectConnection implements ProjectConnection {
         connection.stop();
     }
 
-    public <T extends Model> T getModel(Class<T> viewType) {
-        return model(viewType).get();
+    public <T> T getModel(Class<T> modelType) {
+        return model(modelType).get();
     }
 
-    public <T extends Model> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
-        model(viewType).get(handler);
+    public <T> void getModel(final Class<T> modelType, final ResultHandler<? super T> handler) {
+        model(modelType).get(handler);
     }
 
     public BuildLauncher newBuild() {
         return new DefaultBuildLauncher(connection, parameters);
     }
 
-    public <T extends Model> ModelBuilder<T> model(Class<T> modelType) {
+    public <T> ModelBuilder<T> model(Class<T> modelType) {
+        if (!modelType.isInterface()) {
+            throw new IllegalArgumentException(String.format("Cannot fetch a model of type '%s' as this type is not an interface.", modelType.getName()));
+        }
         return new DefaultModelBuilder<T>(modelType, connection, parameters);
     }
 }
