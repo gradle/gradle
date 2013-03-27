@@ -179,9 +179,30 @@ To configure the output of the main Java source and resources:
     assert sourceSets.main.output.classesDir == jvm.binaries.main.classesDir
     assert compileJava.destinationDir == jvm.binaries.main.classesDir
 
+## Story: Add general purpose polymorphic domain object container
+
+1. Add `NamedDomainObjectContainer` subtypes which allow elements to be added using a name and a type.
+2. Allow type -> factory, type -> factory closure and type -> implementation mappings to be specified for a container.
+   The type -> implementation mapping should decorate the instances.
+3. Change `PublicationContainer` and the publication plugins to use this and remove `GroovyPublicationContainer`.
+4. Change `TaskContainer` to extend `PolymorphicDomainObjectContainer` and deprecate the `add()` methods in favour of the inherited
+   `create()` methods.
+5. Change `SourceSetContainer` and `ConfigurationContainer` to deprecate the `add()` methods in favour of the inherited `create()` methods.
+
+An example of using the container in the DSL:
+
+    publications {
+        ivy(IvyPublication) { ... }
+        maven(MavenPublication)
+    }
+
+### Test coverage
+
+Should be sufficient to use unit tests for the new types and the existing publication integration test coverage.
+
 ## Story: Define source sets and binaries without using the `java-base` plugin
 
-This story introduces the ability to define arbitrary source sets and class directory binaries.
+This story introduces the ability to define arbitrary source sets and class directory binaries and wire them together.
 
 To build a binary from the main source set:
 
@@ -226,9 +247,25 @@ Running `gradle implClasses` will compile the impl source.
 
 TBD - running `gradle assemble` does what?
 
+### Test coverage
+
+- Using the `java-lang` plugin, build two different binaries from the same Java source and resources.
+- Using the `jvm-lang` plugin, build a binary from resources only.
+- Using the `java-lang` plugin, build an empty binary that has no source.
+
+## Story: Move language and binary support out of the `plugins` project
+
+1. Add a `languages-core` project
+2. Move the source set models and implementations to this new project, and to packages `org.gradle.language` and `org.gradle.java.language` and
+  corresponding internal packages.
+3. Move the binary models and implementation to this new project, and to packages `org.gradle.jvm.binaries` and corresponding internal packages.
+4. Move the plugins to this new project, and to packages `org.gradle.language.plugins` and `org.gradle.jvm.plugins` and `org.gradle.java.language.plugins`.
+5. Update the default imports to include the new model packages.
+6. Update the javadoc includes to include the new public packages.
+
 ## Story: Build binaries from multiple source sets
 
-In this story, the ability to build a binary from multiple source sets that are jointly compiled is added.
+This story adds the ability to build a binary from multiple source sets that are jointly compiled.
 
 - Allow multiple resource and java source sets to be added to a binary.
 - Allow functional source sets to be added to a binary.

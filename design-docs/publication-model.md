@@ -415,17 +415,6 @@ The 'dependency' creation method will accept the following forms of input:
 * Either of the first 2, together with a configuration closure that permits further configuration (like adding scope/conf)
 * A map that is treated as per the configuration closure.
 
-## Add general purpose polymorphic domain object container
-
-1. Move `PublicationContainer.add()` up to `DomainObjectContainer`
-    - Need to sync up API with `NamedDomainObjectContainer`.
-    - Need to sync up API with `TaskContainer`.
-    - Need to sync up API with `SourceSetContainer`, `ConfigurationContainer`.
-2. Default factory decorates instances when added and applies dependency injection via @Inject.
-3. Allow a type -> implementation type mapping to be declared.
-4. Remove `GroovyPublicationContainer`.
-6. Possibly allow configure-by-map dynamic add methods.
-
 ## Fix POM generation issues
 
 * excludes on configuration.
