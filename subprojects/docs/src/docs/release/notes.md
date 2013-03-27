@@ -107,11 +107,11 @@ We reworked the functionality for converting maven projects into Gradle projects
 Running `gradle setupBuild` in a directory with no build.gradle file a gradle project is initialized by
 
 * If a `pom.xml` exists, the maven2Gradle task is triggered for generating a gradle project out of the information gathered from the maven pom files.
-* If no `pom.xml` can be found an empty 'build.gradle' file is generated
-* A `Wrapper` task is executed to generate all files needed run the build using the Gradle Wrapper
+* If no `pom.xml` can be found an empty 'build.gradle' file is generated.
+* A `Wrapper` task is executed to generate all files needed run the build using the Gradle Wrapper.
 
 As all new plugins, this Build Setup Plugin is marked as *incubating*. We have multiple plans to 
-enhance the build initialization. Feel free to check out the current plans written up in the 
+enhance the build initialization in future releases. Feel free to check out the current plans written up in the 
 [Gradle design docs](https://github.com/gradle/gradle/blob/master/design-docs/build-initialisation.md) and give feedback!
 
 ### Support for JUnit @Category (i)
