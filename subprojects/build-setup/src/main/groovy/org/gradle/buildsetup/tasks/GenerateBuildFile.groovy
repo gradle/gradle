@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.buildsetup.plugins
+package org.gradle.buildsetup.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Incubating
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
+@Incubating
 class GenerateBuildFile extends DefaultTask {
 
     @OutputFile File buildFile

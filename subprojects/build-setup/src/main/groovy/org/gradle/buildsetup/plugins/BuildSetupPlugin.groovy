@@ -23,6 +23,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.wrapper.Wrapper
+import org.gradle.buildsetup.tasks.ConvertMaven2Gradle
+import org.gradle.buildsetup.tasks.GenerateBuildFile
 
 @Incubating
 class BuildSetupPlugin implements Plugin<Project> {
