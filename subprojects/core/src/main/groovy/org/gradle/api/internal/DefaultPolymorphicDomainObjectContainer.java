@@ -40,8 +40,8 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
 
     protected T doCreate(String name) {
         if (defaultFactory == null) {
-            throw new InvalidUserDataException("This container does not support "
-                    + "creating domain objects without specifying a type.");
+            throw new InvalidUserDataException(String.format("This container does not support "
+                    + "creating %s's without specifying a type.", getTypeDisplayName()));
         }
         return defaultFactory.create(name);
     }
