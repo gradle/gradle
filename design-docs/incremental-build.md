@@ -139,6 +139,11 @@ Incremental execution is not possible when:
     - Incremental task has input files declared
     - Incremental task action throws exception
 
+### Questions
+
+Handle multiple actions added via multiple calls to outOfDate() and removed()?
+Provide a simpler API that separates outOfDate() and removed() processing temporally?
+
 ## Story: Invalidate task outputs when task implementation changes
 
 Add to the task history a hash of the task implementation, and rebuild the task's outputs when this changes.

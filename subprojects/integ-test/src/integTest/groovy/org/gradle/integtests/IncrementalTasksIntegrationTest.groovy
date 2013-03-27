@@ -30,27 +30,25 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         prop = 'foo'
     }
 """
-        file('inputs/file1.txt') << "file content"
-        file('inputs/file2.txt') << "file content2"
+        file('inputs/file1.txt') << "inputFile1"
+        file('inputs/file2.txt') << "inputFile2"
 
-        file('outputs/file1.txt') << "output content1"
-        file('outputs/file2.txt') << "output content1"
+        file('outputs/file1.txt') << "outputFile1"
+        file('outputs/file2.txt') << "outputFile2"
     }
 
     private static String getBuildFileBase() {
         """
-    class IncrementalTask extends DefaultTask {
-        @Input
-        def String prop
-
+    class BaseIncrementalTask extends DefaultTask {
         @InputDirectory
         def File inputDir
 
-        @OutputDirectory
-        def File outputDir
-
         @TaskAction
         void execute(TaskInputChanges inputs) {
+            if (project.hasProperty('forceFail')) {
+                throw new RuntimeException('failed')
+            }
+
             allOutOfDate = inputs.allOutOfDate
 
             inputs
@@ -73,6 +71,21 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         def allOutOfDate
     }
 
+    class IncrementalTask extends BaseIncrementalTask {
+        @Input
+        def String prop
+
+        @OutputDirectory
+        def File outputDir
+
+        @TaskAction
+        def updateOutputs() {
+            outputDir.eachFile {
+                it << "more content"
+            }
+        }
+    }
+
     ext {
         allOutOfDate = false
         added = []
@@ -89,7 +102,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
-    def "incremental task action is executed with rebuild context when run for the first time"() {
+    def "incremental task is informed that all input files are 'out-of-date' when run for the first time"() {
         expect:
         executesWithRebuildContext()
     }
@@ -105,7 +118,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         ":incremental" in skippedTasks
     }
 
-    def "incremental task execution context reports modified input file"() {
+    def "incremental task is informed of 'out-of-date' files when input file modified"() {
         given:
         previousExecution()
 
@@ -116,7 +129,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithIncrementalContext("ext.changed = ['file1.txt']");
     }
 
-    def "incremental task execution context reports added input file"() {
+    def "incremental task is informed of 'out-of-date' files when input file added"() {
         given:
         previousExecution()
 
@@ -127,7 +140,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithIncrementalContext("ext.added = ['file3.txt']")
     }
 
-    def "incremental task execution context reports removed input file"() {
+    def "incremental task is informed of 'out-of-date' files when input file removed"() {
         given:
         previousExecution()
 
@@ -138,7 +151,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithIncrementalContext("ext.removed = ['file2.txt']")
     }
 
-    def "incremental task execution context reports all input files removed"() {
+    def "incremental task is informed of 'out-of-date' files when all input files removed"() {
         given:
         previousExecution()
 
@@ -150,7 +163,62 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithIncrementalContext("ext.removed = ['file1.txt', 'file2.txt']")
     }
 
-    def "incremental task action is executed with rebuild context when input property changes"() {
+    @Ignore("Does not yet work: need incremental task not to use NoHistoryArtifactState")
+    def "incremental task is informed of 'out-of-date' files when task has no declared outputs"() {
+        given:
+        buildFile.text = buildFileBase
+        buildFile << """
+    class NoOutputIncrementalTask extends BaseIncrementalTask {
+        @Input
+        def String prop
+    }
+    task incremental(type: NoOutputIncrementalTask) {
+        inputDir = project.mkdir('inputs')
+        prop = 'foo'
+    }
+"""
+        and:
+        previousExecution()
+
+        when:
+        file('inputs/file3.txt') << "file3 content"
+
+        then:
+        executesWithIncrementalContext("ext.added = ['file3.txt']")
+    }
+
+    // TODO:DAZ Might want to merge with the previous test (when it passes)
+    def "incremental task is informed of 'out-of-date' files when task has no declared properties"() {
+        given:
+        buildFile.text = buildFileBase
+        buildFile << """
+    class NoPropertyIncrementalTask extends BaseIncrementalTask {
+        @OutputDirectory
+        def File outputDir
+
+        @TaskAction
+        def updateOutputs() {
+            outputDir.eachFile {
+                it << "more content"
+            }
+        }
+    }
+    task incremental(type: NoPropertyIncrementalTask) {
+        inputDir = project.mkdir('inputs')
+        outputDir = project.mkdir('outputs')
+    }
+"""
+        and:
+        previousExecution()
+
+        when:
+        file('inputs/file3.txt') << "file3 content"
+
+        then:
+        executesWithIncrementalContext("ext.added = ['file3.txt']")
+    }
+
+    def "incremental task is informed that all input files are 'out-of-date' when input property has changed"() {
         given:
         previousExecution()
 
@@ -161,18 +229,16 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithRebuildContext()
     }
 
-    def "incremental task action is executed with rebuild context task class changes"() {
+    def "incremental task is informed that all input files are 'out-of-date' when task class has changed"() {
         given:
         previousExecution()
 
         when:
         buildFile.text = buildFileBase
         buildFile << """
-    class IncrementalTask2 extends IncrementalTask {}
+    class IncrementalTask2 extends BaseIncrementalTask {}
     task incremental(type: IncrementalTask2) {
         inputDir = project.mkdir('inputs')
-        outputDir = project.mkdir('outputs')
-        prop = 'foo'
     }
 """
 
@@ -180,7 +246,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithRebuildContext()
     }
 
-    def "incremental task action is executed with rebuild context when output directory is changed"() {
+    def "incremental task is informed that all input files are 'out-of-date' when output directory is changed"() {
         given:
         previousExecution()
 
@@ -191,57 +257,40 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithRebuildContext()
     }
 
-    @Ignore("Not sure why this isn't picking up output file changes")
-    def "incremental task action is executed with rebuild context when output file has changed"() {
+    def "incremental task is informed that all input files are 'out-of-date' when output file has changed"() {
         given:
         previousExecution()
 
         when:
-        file("outputs/file1.txt").touch().text == "foobar"
+        file("outputs/file1.txt") << "further change"
 
         then:
         executesWithRebuildContext()
     }
 
-    @Ignore("Not sure why this isn't picking up output file changes")
-    def "incremental task action is executed with rebuild context when output file has been removed"() {
-        given:
-        previousExecution()
-
-        when:
-        file("outputs/file1.txt").delete()
-
-        then:
-        executesWithRebuildContext()
-    }
-
-    @Ignore("Not sure why this isn't picking up output file changes")
-    def "incremental task action is executed with rebuild context when all output files have been removed"() {
+    def "incremental task is informed that all input files are 'out-of-date' when output file has been removed"() {
         given:
         previousExecution()
 
         when:
         file("outputs/file1.txt").delete()
-        file("outputs/file2.txt").delete()
 
         then:
         executesWithRebuildContext()
     }
 
-    @Ignore("Not sure why this isn't picking up output file changes")
-    def "incremental task action is executed with rebuild context when task has no declared outputs"() {
+    def "incremental task is informed that all input files are 'out-of-date' when all output files have been removed"() {
         given:
         previousExecution()
 
         when:
-        file("outputs/file1.txt").delete()
-        file("outputs/file2.txt").delete()
+        file("outputs").deleteDir()
 
         then:
         executesWithRebuildContext()
     }
 
-    def "incremental task action is executed with rebuild context when Task.upToDate() is false"() {
+    def "incremental task is informed that all input files are 'out-of-date' when Task.upToDate() is false"() {
         given:
         previousExecution()
 
@@ -252,7 +301,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithRebuildContext()
     }
 
-    def "incremental task action is executed with rebuild context when gradle is executed with --rerun-tasks"() {
+    def "incremental task is informed that all input files are 'out-of-date' when gradle is executed with --rerun-tasks"() {
         given:
         previousExecution()
 
@@ -263,8 +312,34 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithRebuildContext()
     }
 
+
+    def "incremental task is informed of 'out-of-date' files since previous successful execution"() {
+        given:
+        previousExecution()
+
+        and:
+        file('inputs/file1.txt') << "changed content"
+
+        when:
+        failedExecution()
+
+        then:
+        executesWithIncrementalContext("ext.changed = ['file1.txt']");
+    }
+    /*
+     7. Sad-day cases
+         - Incremental task has input files declared
+         - Incremental task action throws exception
+     */
+
     def previousExecution() {
         run "incremental"
+    }
+
+    def failedExecution() {
+        executer.withArgument("-PforceFail=yep")
+        assert fails("incremental")
+        executer.withArguments()
     }
 
     def executesWithIncrementalContext(String fileChanges) {
