@@ -101,8 +101,18 @@ Since the jacoco plugin can be used in combination with any `JavaExec` task of y
 There was a great demand by the Gradle community for having a first class code coverage plugin in the Gradle distribution.
 Therefore we're very happy that this plugin was provided by Andrew Oberstar, an energetic member of the Gradle community.
 
-### build-setup Plugin
-// TODO:Rene
+### Build Setup Plugin
+This Gradle distribution introduces a `build-setup` plugin that supports users on initializing new Gradle projects.
+We reworked the functionality for converting maven projects into Gradle projects (formerly provided by the incubating `maven2Gradle` plugin) to be part of that new `build-setup` plugin. 
+Running `gradle setupBuild` in a directory with no build.gradle file a gradle project is initialized by
+
+* If a `pom.xml` exists, the maven2Gradle task is triggered for generating a gradle project out of the information gathered from the maven pom files.
+* If no `pom.xml` can be found an empty 'build.gradle' file is generated
+* A `Wrapper` task is executed to generate all files needed run the build using the Gradle Wrapper
+
+As all new plugins, this Build Setup Plugin is marked as *incubating*. We have multiple plans to 
+enhance the build initialization. Feel free to check out the current plans written up in the 
+[Gradle design docs](https://github.com/gradle/gradle/blob/master/design-docs/build-initialisation.md) and give feedback!
 
 ### Support for JUnit @Category
 Gradle now supports JUnit categories. Categories are a mechanism to label and group JUnit tests by using annotations. Having the following JUnit test code
