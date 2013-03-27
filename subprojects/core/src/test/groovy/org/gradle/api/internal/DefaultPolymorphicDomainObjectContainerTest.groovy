@@ -107,7 +107,8 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "This container does not support creating domain objects without specifying a type."
+        e.message == "Cannot create a Person named 'fred' because this container does not support creating " +
+                "elements by name alone. Please specify which subtype of Person to create. Known subtypes are: (None)"
     }
 
     def "create elements with specified type based on NamedDomainObjectFactory"() {
@@ -173,8 +174,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "This container does not support creating domain objects of type " +
-                "'org.gradle.api.internal.DefaultPolymorphicDomainObjectContainerTest\$Person'."
+        e.message == "Cannot create a Person because this type is not known to this container. Known types are: (None)"
     }
 
     def "throws meaningful exception if factory element type is not a subtype of container element type"() {
@@ -183,8 +183,8 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "Factory element type 'java.lang.String' is not a subtype of container element type " +
-                "'org.gradle.api.internal.DefaultPolymorphicDomainObjectContainerTest\$Person'"
+        e.message == "Cannot register a factory for type String because it is not a subtype of " +
+                "container element type Person."
     }
 
     def "fires events when elements are added"() {

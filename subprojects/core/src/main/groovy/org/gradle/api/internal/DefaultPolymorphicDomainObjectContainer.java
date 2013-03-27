@@ -15,11 +15,15 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T>
@@ -40,8 +44,9 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
 
     protected T doCreate(String name) {
         if (defaultFactory == null) {
-            throw new InvalidUserDataException(String.format("This container does not support "
-                    + "creating %s's without specifying a type.", getTypeDisplayName()));
+            throw new InvalidUserDataException(String.format("Cannot create a %s named '%s' because this container "
+                    + "does not support creating elements by name alone. Please specify which subtype of %s to create. "
+                    + "Known subtypes are: %s", getTypeDisplayName(), name, getTypeDisplayName(), getSupportedTypeNames()));
         }
         return defaultFactory.create(name);
     }
@@ -50,8 +55,8 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         @SuppressWarnings("unchecked")
         NamedDomainObjectFactory<U> factory = (NamedDomainObjectFactory<U>) factories.get(type);
         if (factory == null) {
-            throw new InvalidUserDataException(String.format("This container does not support "
-                    + "creating domain objects of type '%s'.", type.getName()));
+            throw new InvalidUserDataException(String.format("Cannot create a %s because this type is not known "
+                    + "to this container. Known types are: %s", type.getSimpleName(), getSupportedTypeNames()));
         }
         return factory.create(name);
     }
@@ -62,8 +67,8 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
 
     public <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory) {
         if (!getType().isAssignableFrom(type)) {
-            throw new IllegalArgumentException(String.format("Factory element type '%s' is not a subtype of "
-                    + "container element type '%s'", type.getName(), getType().getName()));
+            throw new IllegalArgumentException(String.format("Cannot register a factory for type %s because "
+                    + "it is not a subtype of container element type %s.", type.getSimpleName(), getTypeDisplayName()));
         }
         factories.put(type, factory);
     }
@@ -84,5 +89,14 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
                         : getInstantiator().newInstance(implementationType);
             }
         });
+    }
+
+    private String getSupportedTypeNames() {
+        List<String> names = Lists.newArrayList();
+        for (Class<?> clazz : factories.keySet()) {
+            names.add(clazz.getSimpleName());
+        }
+        Collections.sort(names);
+        return names.isEmpty() ? "(None)" : Joiner.on(", ").join(names);
     }
 }
