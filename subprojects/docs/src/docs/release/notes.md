@@ -73,9 +73,11 @@ To gather code coverage information for your java project, just apply the jacoco
 
     apply plugin:'jacoco'
 
-and run the automatically created task "jacocoTestReport" which generates code coverage reports for the "test" task introduced by the `java` plugin. After the build has finished you find the coverage report in different formats in `build/reports/jacoco/test`.
+and run the automatically created task "jacocoTestReport" which generates code coverage reports for the "test" task introduced by the `java` plugin.
+After the build has finished you find the coverage report in different formats in `build/reports/jacoco/test`.
 
-You configure every task of type `JacocoReport` to disable output formats and change the output directory. For example if you just want the `xml` coverage report that can be reused by your favourite CI server, you can simply configure this:
+You configure every task of type `JacocoReport` to disable output formats and change the output directory. For example if you just want the `xml` coverage report that can be reused by your
+favourite CI server, you can simply configure this:
 
     jacocoTestReport{
         reports {
@@ -84,7 +86,8 @@ You configure every task of type `JacocoReport` to disable output formats and ch
         } 
     }
 
-In some scenarios it might be desirable to compute code coverage not by running tests, but by running the application itself. Since the jacoco plugin can be used in combination with any `JavaExec` task of your build, it's quite simple to combine the `jacoco` plugin with the `run` task introduced by the `application` plugin:  
+In some scenarios it might be desirable to compute code coverage not by running tests, but by running the application itself.
+Since the jacoco plugin can be used in combination with any `JavaExec` task of your build, it's quite simple to combine the `jacoco` plugin with the `run` task introduced by the `application` plugin:
 
     jacoco {
         applyTo run
@@ -95,7 +98,8 @@ In some scenarios it might be desirable to compute code coverage not by running 
         sourceSets sourceSets.main
     }
 
-There was a great demand by the Gradle community for having a first class code coverage plugin in the Gradle distribution. Therefore we're very happy that this plugin was provided by Andrew Oberstar, an energetic member of the Gradle community. 
+There was a great demand by the Gradle community for having a first class code coverage plugin in the Gradle distribution.
+Therefore we're very happy that this plugin was provided by Andrew Oberstar, an energetic member of the Gradle community.
 
 ### build-setup Plugin
 // TODO:Rene
