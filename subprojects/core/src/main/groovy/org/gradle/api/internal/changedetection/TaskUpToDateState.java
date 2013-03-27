@@ -21,12 +21,15 @@ import org.gradle.api.Action;
 // TODO:DAZ Generify properly, and grow a brain that can grok java generics
 public interface TaskUpToDateState {
     /**
-     * Checks if the task is up-to-date. If not, this method must add at least 1 message explaining why the task is out-of-date to the given collection. Note that this method may not be called for
-     * a given execution. Also note, this method is called only when the previous execution is not null.
-     *
-     * @param messages The out-of-date messages.
+     * Executes the provided action for every change that makes this task out-of-date.
      */
-    void findChanges(Action<? super TaskUpToDateStateChange> messages);
+    void findChanges(Action<? super TaskUpToDateStateChange> action);
+
+    /**
+     * Returns if the state is up-to-date. If this method returns true, then {@link #findChanges} will not execute the action.
+     * Implementations should ensure that this method is cheap to execute after {@link #findChanges} has already been executed.
+     */
+    boolean isUpToDate();
 
     /**
      * Snapshot any final state after the task has executed. This method is executed only if the task is to be executed.

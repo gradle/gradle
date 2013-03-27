@@ -29,23 +29,24 @@ public class OutputFilesChangedUpToDateRule {
     public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter outputFilesSnapshotter) {
         final FileCollectionSnapshot outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
 
-        return new TaskUpToDateState() {
-            public void findChanges(final Action<? super TaskUpToDateStateChange> failures) {
+        return new CachingUpToDateState() {
+            @Override
+            protected void doFindChanges(final Action<TaskUpToDateStateChange> action) {
                 if (previousExecution.getOutputFilesSnapshot() == null) {
-                    failures.execute(new DescriptiveChange("Output file history is not available for %s.", task));
+                    action.execute(new DescriptiveChange("Output file history is not available for %s.", task));
                     return;
                 }
                 outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(), new ChangeListener<File>() {
                     public void added(File element) {
-                        failures.execute(new OutputFileChange(task, element, ChangeType.ADDED));
+                        action.execute(new OutputFileChange(task, element, ChangeType.ADDED));
                     }
 
                     public void removed(File element) {
-                        failures.execute(new OutputFileChange(task, element, ChangeType.REMOVED));
+                        action.execute(new OutputFileChange(task, element, ChangeType.REMOVED));
                     }
 
                     public void changed(File element) {
-                        failures.execute(new OutputFileChange(task, element, ChangeType.MODIFIED));
+                        action.execute(new OutputFileChange(task, element, ChangeType.MODIFIED));
                     }
                 });
             }

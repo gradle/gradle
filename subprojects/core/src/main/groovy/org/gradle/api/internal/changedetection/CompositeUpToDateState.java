@@ -23,40 +23,28 @@ import java.util.List;
 
 public class CompositeUpToDateState implements TaskUpToDateState {
     private final List<TaskUpToDateState> states;
-    private Integer count;
 
     public CompositeUpToDateState(TaskUpToDateState... states) {
         this.states = Arrays.asList(states);
     }
 
-    public void findChanges(final Action<? super TaskUpToDateStateChange> failures) {
-        count = 0;
-        Action<TaskUpToDateStateChange> recordingAction = new Action<TaskUpToDateStateChange>() {
-            public void execute(TaskUpToDateStateChange upToDateFailure) {
-                failures.execute(upToDateFailure);
-                // Record message for later replay
-                count++;
-            }
-        };
+    public void findChanges(Action<? super TaskUpToDateStateChange> action) {
         for (TaskUpToDateState state : states) {
-            state.findChanges(recordingAction);
-            // Short circuit
-            if (count > 0) {
+            state.findChanges(action);
+            if (!state.isUpToDate()) {
+                // Short-circuit the rest of the states
                 break;
             }
         }
     }
 
     public boolean isUpToDate() {
-        if (count == null) {
-            findChanges(new Action<TaskUpToDateStateChange>() {
-                public void execute(TaskUpToDateStateChange failure) {
-                    System.out.println("SHOULD NEVER GET HERE");
-                    // No-op: we just need to get the count incremented.
-                }
-            });
+        for (TaskUpToDateState state : states) {
+            if (!state.isUpToDate()) {
+                return false;
+            }
         }
-        return count == 0;
+        return true;
     }
 
     public void snapshotAfterTask() {

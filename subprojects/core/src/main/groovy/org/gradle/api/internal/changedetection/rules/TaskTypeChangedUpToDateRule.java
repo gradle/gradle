@@ -32,10 +32,14 @@ public class TaskTypeChangedUpToDateRule {
 
         return new TaskUpToDateState() {
             public void findChanges(Action<? super TaskUpToDateStateChange> failures) {
-                if (!taskClass.equals(previousExecution.getTaskClass())) {
+                if (!isUpToDate()) {
                     failures.execute(new DescriptiveChange("%s has changed type from '%s' to '%s'.",
                             StringUtils.capitalize(task.toString()), previousExecution.getTaskClass(), task.getClass().getName()));
                 }
+            }
+
+            public boolean isUpToDate() {
+                return taskClass.equals(previousExecution.getTaskClass());
             }
 
             public void snapshotAfterTask() {

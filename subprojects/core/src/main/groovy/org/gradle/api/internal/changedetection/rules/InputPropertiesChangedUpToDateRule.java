@@ -17,6 +17,7 @@ package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.CachingUpToDateState;
 import org.gradle.api.internal.changedetection.TaskExecution;
 import org.gradle.api.internal.changedetection.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.TaskUpToDateStateChange;
@@ -34,19 +35,20 @@ public class InputPropertiesChangedUpToDateRule {
         final Map<String, Object> properties = new HashMap<String, Object>(task.getInputs().getProperties());
         currentExecution.setInputProperties(properties);
 
-        return new TaskUpToDateState() {
-            public void findChanges(final Action<? super TaskUpToDateStateChange> failures) {
+        return new CachingUpToDateState() {
+            @Override
+            protected void doFindChanges(final Action<TaskUpToDateStateChange> action) {
                 DiffUtil.diff(properties, previousExecution.getInputProperties(), new ChangeListener<Map.Entry<String, Object>>() {
                     public void added(Map.Entry<String, Object> element) {
-                        failures.execute(new DescriptiveChange("Input property '%s' has been added for %s", element.getKey(), task));
+                        action.execute(new DescriptiveChange("Input property '%s' has been added for %s", element.getKey(), task));
                     }
 
                     public void removed(Map.Entry<String, Object> element) {
-                        failures.execute(new DescriptiveChange("Input property '%s' has been removed for %s", element.getKey(), task));
+                        action.execute(new DescriptiveChange("Input property '%s' has been removed for %s", element.getKey(), task));
                     }
 
                     public void changed(Map.Entry<String, Object> element) {
-                        failures.execute(new DescriptiveChange("Value of input property '%s' has changed for %s", element.getKey(), task));
+                        action.execute(new DescriptiveChange("Value of input property '%s' has changed for %s", element.getKey(), task));
                     }
                 });
             }

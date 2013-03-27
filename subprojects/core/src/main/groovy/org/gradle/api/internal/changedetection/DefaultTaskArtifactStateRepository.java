@@ -207,8 +207,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 public void findChanges(Action<? super TaskUpToDateStateChange> messages) {
                     if (previousExecution == null) {
                         messages.execute(new DescriptiveChange("No history is available for %s.", task));
-
                     }
+                }
+
+                public boolean isUpToDate() {
+                    return previousExecution != null;
                 }
 
                 public void snapshotAfterTask() {

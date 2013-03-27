@@ -30,23 +30,24 @@ public class InputFilesChangedUpToDateRule {
     public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter) {
         final FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
 
-        return new TaskUpToDateState() {
-            public void findChanges(final Action<? super TaskUpToDateStateChange> failures) {
+        return new CachingUpToDateState() {
+            @Override
+            protected void doFindChanges(final Action<TaskUpToDateStateChange> action) {
                 if (previousExecution.getInputFilesSnapshot() == null) {
-                    failures.execute(new DescriptiveChange("Input file history is not available for %s.", task));
+                    action.execute(new DescriptiveChange("Input file history is not available for %s.", task));
                     return;
                 }
                 inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(), new ChangeListener<File>() {
                     public void added(File file) {
-                        failures.execute(new InputFileChange(task, file, ChangeType.ADDED));
+                        action.execute(new InputFileChange(task, file, ChangeType.ADDED));
                     }
 
                     public void removed(File file) {
-                        failures.execute(new InputFileChange(task, file, ChangeType.REMOVED));
+                        action.execute(new InputFileChange(task, file, ChangeType.REMOVED));
                     }
 
                     public void changed(File file) {
-                        failures.execute(new InputFileChange(task, file, ChangeType.MODIFIED));
+                        action.execute(new InputFileChange(task, file, ChangeType.MODIFIED));
                     }
                 });
             }
