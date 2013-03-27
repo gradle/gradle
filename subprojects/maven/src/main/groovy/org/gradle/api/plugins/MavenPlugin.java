@@ -129,6 +129,6 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         installUpload.setConfiguration(configuration);
         MavenRepositoryHandlerConvention repositories = new DslObject(installUpload.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
         repositories.mavenInstaller();
-        installUpload.setDescription("Does a maven install of the archives artifacts into the local .m2 cache.");
+        installUpload.setDescription("Installs the 'archives' artifacts into the local Maven repository.");
     }
 }
