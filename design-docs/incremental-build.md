@@ -76,7 +76,7 @@ through the dependency graph.
 
 Incremental input file changes will be provided via an optional parameter on the TaskAction method for a task. The TaskExecutionContext will provide access to the set of changed input files,
 as well as a flag to indicate if incremental execution is possible.
-If incremental execution is not possible, then the task action will be executed with a 'rebuild' context, where every input file is regarded as "ADDED".
+If incremental execution is not possible, then the task action will be executed with a rebuild context, where every input file is regarded as 'out-of-date'.
 
 Incremental execution is not possible when:
 - Task class has changed since previous execution
@@ -95,18 +95,21 @@ Incremental execution is not possible when:
             def File destination
 
             @TaskAction
-            void execute(TaskExecutionContext executionContext) {
-                if (executionContext.rebuild) {
+            void execute(TaskInputChanges inputs) {
+                if (inputs.allOutOfDate) {
                     FileUtils.forceDelete(destination)
                 }
-                executionContext.inputFileChanges { change ->
-                    def target = new File(destination, change.file.name)
-                    if (change.added || change.modified) {
-                        FileUtils.copyFile(change.file, target)
-                    } else if (change.removed) {
-                        FileUtils.forceDelete(target)
-                    }
-                }
+                inputs.outOfDate({
+                    FileUtils.copyFile(change.file, targetFile(change.file))
+                } as Action)
+
+                inputs.removed({
+                    FileUtils.forceDelete(targetFile(change.file))
+                } as Action)
+            }
+
+            def targetFile(def inputFile) {
+                new File(destination, change.file.name)
             }
         }
 
@@ -114,19 +117,46 @@ Incremental execution is not possible when:
 
 1. Incremental task action is executed with rebuild context when run for the first time
 2. Incremental task action is skipped when run with no changes since last execution
-3. Incremental task is executed with incremental context when run with:
+3. Incremental task is informed of 'out-of-date' files when run with:
     - Single added input file
-    - Single removed input file
     - Single modified input file
+    - Single removed input file
     - All input files removed
-4. Incremental task action is executed with 'rebuild' context (every input file flagged as "added") when:
+4. Incremental task is informed of 'out-of-date' files when:
+    - Task has no declared input properties
+    - Task has no declared outputs
+5. Incremental task action is executed with every file 'out-of-date' when:
     - Input property value has changed since previous execution
     - Task class has changed since previous execution
+    - Output directory changed since previous execution
     - Output file has changed since previous execution
     - Single output file removed since previous execution
-    - Task has no declared outputs
+    - All output files removed since previous execution
     - Task.upToDate() is false
     - Gradle build executed with '--rerun-tasks'
+6. Incremental task action is informed of all files changed since last successful execution
+7. Sad-day cases
+    - Incremental task has input files declared
+    - Incremental task action throws exception
+
+## Story: Invalidate task outputs when task implementation changes
+
+Add to the task history a hash of the task implementation, and rebuild the task's outputs when this changes.
+
+- Add a mechanism to determine a hash given a classpath. Probably also add some persistent caching for this.
+  This mechanism should be reusable, to allow us to cache the result of scanning a classpath for annotated classes,
+  such as plugin-level services.
+- The hash of a class is the hash of its ClassLoader's classpath.
+- The hash of a task is the combination of the hash of the task's implementation class plus the hash of
+  the implementation class of each task action attached to the task.
+
+## GRADLE-1646: Copy tasks do not consider filter/expansion properties in up-to-date checks
+
+## GRADLE-1276: processResources task considered up-to-date although its spec has changed
+
+## GRADLE-1814: Uptodate check fails when changing property includeEmptyDirs of Copy task
+
+## GRADLE-1298: Change in filtered resource not picked up by archive tasks
 
 ## Story: Java compile task specifies its output files
 
@@ -175,17 +205,6 @@ Potential solutions:
 - Handle this at the binary level, rather than the task level. For example, the `classes` task might remove unclaimed files (ie not known
   to be built by any task) from the classes directory. Or perhaps when a task that contributes to the classes directory is scheduled to
   run and no history is available for that task, then remove the classes directory and schedule a `classes` task to run.
-
-## Story: Invalidate task outputs when task implementation changes
-
-Add to the task history a hash of the task implementation, and rebuild the task's outputs when this changes.
-
-- Add a mechanism to determine a hash given a classpath. Probably also add some persistent caching for this.
-  This mechanism should be reusable, to allow us to cache the result of scanning a classpath for annotated classes,
-  such as plugin-level services.
-- The hash of a class is the hash of its ClassLoader's classpath.
-- The hash of a task is the combination of the hash of the task's implementation class plus the hash of
-  the implementation class of each task action attached to the task.
 
 ## Story: Plugin author uses changes to output files to implement incremental task
 
