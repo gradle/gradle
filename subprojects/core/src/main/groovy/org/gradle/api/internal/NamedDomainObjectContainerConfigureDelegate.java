@@ -18,15 +18,15 @@ package org.gradle.api.internal;
 import org.gradle.api.NamedDomainObjectContainer;
 
 public class NamedDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
-    private final NamedDomainObjectContainer container;
+    private final NamedDomainObjectContainer _container;
 
     public NamedDomainObjectContainerConfigureDelegate(Object owner, NamedDomainObjectContainer container) {
         super(owner, container);
-        this.container = container;
+        _container = container;
     }
 
     @Override
     protected void _configure(String name, Object[] params) {
-        container.create(name);
+        _container.create(name);
     }
 }
