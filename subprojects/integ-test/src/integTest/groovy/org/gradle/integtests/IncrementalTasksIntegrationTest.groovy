@@ -16,14 +16,27 @@
 
 package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Ignore
 
 class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
-    TestFile outputFile
-
     def "setup"() {
+        buildFile << buildFileBase
         buildFile << """
+    task incremental(type: IncrementalTask) {
+        inputDir = project.mkdir('inputs')
+        outputDir = project.mkdir('outputs')
+        prop = 'foo'
+    }
+"""
+        file('inputs/file1.txt') << "file content"
+        file('inputs/file2.txt') << "file content2"
+
+        file('outputs/file1.txt') << "output content1"
+        file('outputs/file2.txt') << "output content1"
+    }
+
+    private static String getBuildFileBase() {
+        """
     class IncrementalTask extends DefaultTask {
         @Input
         def String prop
@@ -65,24 +78,13 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         removed = []
     }
 
-    task incremental(type: IncrementalTask) {
-        inputDir = project.mkdir('inputs')
-        outputDir = project.mkdir('outputs')
-        prop = 'foo'
-    }
-
-    task incrementalCheck(dependsOn: incremental) << {
+    task incrementalCheck(dependsOn: "incremental") << {
         assert incremental.allOutOfDate == project.ext.allOutOfDate
         assert incremental.addedFiles.collect { it.name } as Set == project.ext.added as Set
         assert incremental.changedFiles.collect { it.name } as Set == project.ext.changed as Set
         assert incremental.removedFiles.collect { it.name } as Set == project.ext.removed as Set
     }
 """
-        file('inputs/file1.txt') << "file content"
-        file('inputs/file2.txt') << "file content2"
-
-        outputFile = file('outputs/output.txt')
-        outputFile << "content"
     }
 
     def "incremental task action is executed with rebuild context when run for the first time"() {
@@ -90,7 +92,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithRebuildContext()
     }
 
-    def "incremental task is skipped when run with no changes"() {
+    def "incremental task is skipped when run with no changes since last execution"() {
         given:
         previousExecution()
 
@@ -157,6 +159,25 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithRebuildContext()
     }
 
+    def "incremental task action is executed with rebuild context task class changes"() {
+        given:
+        previousExecution()
+
+        when:
+        buildFile.text = buildFileBase
+        buildFile << """
+    class IncrementalTask2 extends IncrementalTask {}
+    task incremental(type: IncrementalTask2) {
+        inputDir = project.mkdir('inputs')
+        outputDir = project.mkdir('outputs')
+        prop = 'foo'
+    }
+"""
+
+        then:
+        executesWithRebuildContext()
+    }
+
     def "incremental task action is executed with rebuild context when output directory is changed"() {
         given:
         previousExecution()
@@ -174,7 +195,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         previousExecution()
 
         when:
-        outputFile.touch() << "changed"
+        file("outputs/file1.txt").touch().text == "foobar"
 
         then:
         executesWithRebuildContext()
@@ -186,8 +207,33 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         previousExecution()
 
         when:
-        outputFile.delete()
-        file('outputs/new-file.txt') << 'new output'
+        file("outputs/file1.txt").delete()
+
+        then:
+        executesWithRebuildContext()
+    }
+
+    @Ignore("Not sure why this isn't picking up output file changes")
+    def "incremental task action is executed with rebuild context when all output files have been removed"() {
+        given:
+        previousExecution()
+
+        when:
+        file("outputs/file1.txt").delete()
+        file("outputs/file2.txt").delete()
+
+        then:
+        executesWithRebuildContext()
+    }
+
+    @Ignore("Not sure why this isn't picking up output file changes")
+    def "incremental task action is executed with rebuild context when task has no declared outputs"() {
+        given:
+        previousExecution()
+
+        when:
+        file("outputs/file1.txt").delete()
+        file("outputs/file2.txt").delete()
 
         then:
         executesWithRebuildContext()
@@ -226,7 +272,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def executesWithRebuildContext() {
         buildFile << """
-    ext.added = ['file1.txt', 'file2.txt']
+    ext.changed = ['file1.txt', 'file2.txt']
     ext.allOutOfDate = true
 """
         succeeds "incrementalCheck"
