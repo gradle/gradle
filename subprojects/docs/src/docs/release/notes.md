@@ -66,6 +66,12 @@ See the User guide section on “[Ordering Tasks](userguide/more_about_tasks.htm
 >
 > Thanks, Marcin: I'm sure many Gradle users will appreciate your contribution.
 
+### Jacoco Code Coverage Plugin
+// TODO:Rene
+
+### build-setup Plugin
+// TODO:Rene
+
 ### Support for JUnit @Category
 Gradle now supports JUnit categories. Categories are a mechanism to label and group JUnit tests by using annotations. Having the following JUnit test code
 

@@ -295,6 +295,12 @@
                 <td>org.gradle.api.tasks.javadoc.Groovydoc</td>
             </tr>
             <tr>
+                <td>org.gradle.testing.jacoco.tasks.JacocoReport</td>
+            </tr>
+            <tr>
+                <td>org.gradle.testing.jacoco.tasks.JacocoMerge</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.bundling.Jar</td>
             </tr>
             <tr>
