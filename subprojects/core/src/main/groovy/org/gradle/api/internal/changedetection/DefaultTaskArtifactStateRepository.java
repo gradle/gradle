@@ -17,13 +17,12 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.changedetection.rules.*;
-import org.gradle.api.internal.execution.DefaultInputFileChange;
-import org.gradle.api.internal.execution.RebuildTaskExecutionContext;
-import org.gradle.api.execution.TaskExecutionContext;
+import org.gradle.api.execution.TaskInputChanges;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.rules.*;
+import org.gradle.api.internal.execution.RebuildTaskInputChanges;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -140,28 +139,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         // TODO:DAZ Ensure that all of the work done in isUpToDate() is reused here
-        public TaskExecutionContext getExecutionContext() {
+        public TaskInputChanges getExecutionContext() {
             assert !upToDate : "I don't think we should be here if the task is up-to-date";
 
             if (incrementalRequiresRebuild()) {
-                return new RebuildTaskExecutionContext(task);
+                return new RebuildTaskInputChanges(task);
             }
-            return new TaskExecutionContext() {
-                public boolean isRebuild() {
-                    return false;
-                }
-
-                public void inputFileChanges(final Action<InputFileChange> action) {
-                    getStates().getInputFilesState().findChanges(new Action<TaskUpToDateStateChange>() {
-                        public void execute(TaskUpToDateStateChange change) {
-                            // TODO:DAZ Generify properly to avoid this check & cast
-                            assert change instanceof FileChange;
-                            FileChange fileChange = (FileChange) change;
-                            action.execute(new DefaultInputFileChange(fileChange.getFile(), fileChange.getChange()));
-                        }
-                    });
-                }
-            };
+            return new IncrementalTaskInputChanges(getStates().getInputFilesState());
         }
 
         public FileCollection getOutputFiles() {
@@ -219,4 +203,5 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             };
         }
     }
+
 }

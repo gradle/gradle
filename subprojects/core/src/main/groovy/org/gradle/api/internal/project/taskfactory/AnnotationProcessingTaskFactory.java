@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.execution.TaskExecutionContext;
+import org.gradle.api.execution.TaskInputChanges;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
@@ -148,7 +148,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length == 1) {
             // TODO:DAZ This doesn't work well with Groovy? Use a parameter annotation? Or a different method annotation?
-            if (!parameterTypes[0].equals(TaskExecutionContext.class)) {
+            if (!parameterTypes[0].equals(TaskInputChanges.class)) {
                 throw new GradleException(String.format(
                         "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
                         method.getDeclaringClass().getSimpleName(), method.getName(), parameterTypes[0]));
@@ -203,7 +203,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         protected void doActions(Task task, String methodName) {
-            TaskExecutionContext executionContext = ((TaskInternal) task).getOutputs().getExecutionContext();
+            TaskInputChanges executionContext = ((TaskInternal) task).getOutputs().getExecutionContext();
             ReflectionUtil.invoke(task, methodName, executionContext);
         }
     }

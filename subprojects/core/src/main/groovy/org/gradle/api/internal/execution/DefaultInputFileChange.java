@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.execution;
 
-import org.gradle.api.execution.TaskExecutionContext;
+import org.gradle.api.execution.TaskInputChanges;
 import org.gradle.api.internal.changedetection.ChangeType;
 
 import java.io.File;
 
-public class DefaultInputFileChange implements TaskExecutionContext.InputFileChange {
+public class DefaultInputFileChange implements TaskInputChanges.InputFileChange {
 
     private final ChangeType type;
     private final File file;
@@ -29,10 +29,6 @@ public class DefaultInputFileChange implements TaskExecutionContext.InputFileCha
     public DefaultInputFileChange(File file, ChangeType type) {
         this.file = file;
         this.type = type;
-    }
-
-    public boolean isRemoved() {
-        return type == ChangeType.REMOVED;
     }
 
     public boolean isAdded() {

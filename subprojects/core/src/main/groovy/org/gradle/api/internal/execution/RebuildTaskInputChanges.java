@@ -18,27 +18,38 @@ package org.gradle.api.internal.execution;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionContext;
+import org.gradle.api.execution.TaskInputChanges;
 import org.gradle.api.internal.changedetection.ChangeType;
 
 import java.io.File;
 
-public class RebuildTaskExecutionContext implements TaskExecutionContext {
-
+public class RebuildTaskInputChanges implements TaskInputChanges {
     private final Task task;
+    private Action<InputFileChange> outOfDateAction;
 
-    public RebuildTaskExecutionContext(Task task) {
+    public RebuildTaskInputChanges(Task task) {
         this.task = task;
     }
 
-    public boolean isRebuild() {
+    public boolean isAllOutOfDate() {
         return true;
     }
 
-    public void inputFileChanges(Action<InputFileChange> action) {
-        for (File file : task.getInputs().getFiles()) {
-            action.execute(new DefaultInputFileChange(file, ChangeType.ADDED));
-        }
+    public RebuildTaskInputChanges outOfDate(Action<InputFileChange> outOfDateAction) {
+        this.outOfDateAction = outOfDateAction;
+        return this;
     }
 
+    public RebuildTaskInputChanges removed(Action<InputFileChange> removedAction) {
+        return this;
+    }
+
+    public void process() {
+        if (outOfDateAction == null) {
+            throw new IllegalStateException("No outOfDate action specified");
+        }
+        for (File file : task.getInputs().getFiles()) {
+            outOfDateAction.execute(new DefaultInputFileChange(file, ChangeType.UNSPECIFIED));
+        }
+    }
 }

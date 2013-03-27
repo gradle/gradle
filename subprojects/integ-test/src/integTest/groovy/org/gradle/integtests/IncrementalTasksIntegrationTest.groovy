@@ -35,28 +35,31 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         def File outputDir
 
         @TaskAction
-        void execute(TaskExecutionContext executionContext) {
-            rebuild = executionContext.rebuild
+        void execute(TaskInputChanges inputs) {
+            allOutOfDate = inputs.allOutOfDate
 
-            executionContext.inputFileChanges({ change ->
+            inputs
+            .outOfDate({ change ->
                 if (change.added) {
                     addedFiles << change.file
-                } else if (change.modified) {
+                } else {
                     changedFiles << change.file
-                } else if (change.removed) {
-                    removedFiles << change.file
                 }
             } as Action)
+            .removed({ change ->
+                removedFiles << change.file
+            } as Action)
+            .process()
         }
 
         def addedFiles = []
         def changedFiles = []
         def removedFiles = []
-        def rebuild
+        def allOutOfDate
     }
 
     ext {
-        rebuild = false
+        allOutOfDate = false
         added = []
         changed = []
         removed = []
@@ -69,7 +72,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     task incrementalCheck(dependsOn: incremental) << {
-        assert incremental.rebuild == project.ext.rebuild
+        assert incremental.allOutOfDate == project.ext.allOutOfDate
         assert incremental.addedFiles.collect { it.name } as Set == project.ext.added as Set
         assert incremental.changedFiles.collect { it.name } as Set == project.ext.changed as Set
         assert incremental.removedFiles.collect { it.name } as Set == project.ext.removed as Set
@@ -224,7 +227,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     def executesWithRebuildContext() {
         buildFile << """
     ext.added = ['file1.txt', 'file2.txt']
-    ext.rebuild = true
+    ext.allOutOfDate = true
 """
         succeeds "incrementalCheck"
     }

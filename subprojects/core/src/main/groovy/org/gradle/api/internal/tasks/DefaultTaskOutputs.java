@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionContext;
+import org.gradle.api.execution.TaskInputChanges;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -94,7 +94,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.history = history;
     }
 
-    public TaskExecutionContext getExecutionContext() {
+    public TaskInputChanges getExecutionContext() {
         return artifactState.getExecutionContext();
     }
 

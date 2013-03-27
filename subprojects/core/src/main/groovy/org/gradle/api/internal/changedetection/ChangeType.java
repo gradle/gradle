@@ -19,7 +19,8 @@ package org.gradle.api.internal.changedetection;
 public enum ChangeType {
     ADDED("has been added"),
     MODIFIED("has changed"),
-    REMOVED("has been removed");
+    REMOVED("has been removed"),
+    UNSPECIFIED("is not up-to-date");
 
     private final String description;
 

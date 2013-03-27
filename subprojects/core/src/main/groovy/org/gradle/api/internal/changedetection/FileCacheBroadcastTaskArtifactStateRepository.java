@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.execution.TaskExecutionContext;
+import org.gradle.api.execution.TaskInputChanges;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 
@@ -38,7 +38,7 @@ public class FileCacheBroadcastTaskArtifactStateRepository implements TaskArtifa
                 return state.isUpToDate();
             }
 
-            public TaskExecutionContext getExecutionContext() {
+            public TaskInputChanges getExecutionContext() {
                 return state.getExecutionContext();
             }
 

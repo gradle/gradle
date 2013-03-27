@@ -30,7 +30,12 @@ class CompositeUpToDateStateTest extends Specification {
 
         then:
         1 * state1.findChanges(_)
+        1 * state1.isUpToDate() >> true
+
+        then:
         1 * state2.findChanges(_)
+        1 * state2.isUpToDate() >> true
+        0 * _
 
         when:
         state.snapshotAfterTask()
@@ -45,22 +50,8 @@ class CompositeUpToDateStateTest extends Specification {
         state.findChanges(action)
 
         then:
-        1 * state1.findChanges(_ as Action<TaskUpToDateStateChange>) >> { args -> args[0].execute(Mock(TaskUpToDateStateChange)) }
-        0 * state2.findChanges(_)
-    }
-
-    def isUpToDateRemembersPreviousExecution() {
-        when:
-        state.isUpToDate()
-
-        then:
         1 * state1.findChanges(_)
-        1 * state2.findChanges(_)
-
-        when:
-        state.isUpToDate()
-
-        then:
+        1 * state1.isUpToDate() >> false
         0 * _
     }
 }

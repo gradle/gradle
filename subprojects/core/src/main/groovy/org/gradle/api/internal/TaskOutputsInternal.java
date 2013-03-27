@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.execution.TaskExecutionContext;
+import org.gradle.api.execution.TaskInputChanges;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.specs.Spec;
@@ -32,6 +32,6 @@ public interface TaskOutputsInternal extends TaskOutputs {
     // TODO:DAZ Don't want these 2 on here
     void setTaskArtifactState(TaskArtifactState artifactState);
 
-    TaskExecutionContext getExecutionContext();
+    TaskInputChanges getExecutionContext();
 
 }

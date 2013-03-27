@@ -23,32 +23,36 @@ import java.io.File;
 /**
  * Provides task state information to incremental task implementations.
  */
-public interface TaskExecutionContext {
+public interface TaskInputChanges {
 
     /**
      * Specifies if incremental build is not possible due to changed Input Properties, Output Files, etc.
-     * In this case, every file will be considered to be 'added'.
+     * In this case, every file will be considered to be 'out-of-date'.
      */
-    boolean isRebuild();
+    boolean isAllOutOfDate();
 
     /**
-     * Provides access to all of the changes made to input files since the previous task execution.
+     * Specifies the action to be executed for all of the input files that are out-of-date since the previous task execution.
      */
-    void inputFileChanges(Action<InputFileChange> action);
+    TaskInputChanges outOfDate(Action<InputFileChange> outOfDateAction);
+
+    /**
+     * Specifies the action to be executed for all of the input files that were removed since the previous task execution.
+     */
+    TaskInputChanges removed(Action<InputFileChange> removedAction);
+
+    /**
+     * Processes the supplied actions for all input files. Note that there is no guarantee as to the order in which inputs will be provided.
+     */
+    void process();
 
     /**
      * A change to an input file.
      */
     interface InputFileChange {
         /**
-         * Was the file removed?
-         * @return if the file was removed
-         */
-        boolean isRemoved();
-
-        /**
          * Was the file added?
-         * @return if the file was added
+         * @return true if the file was added since the last execution
          */
         boolean isAdded();
 
