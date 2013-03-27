@@ -16,17 +16,19 @@
 
 package org.gradle.buildsetup.plugins
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 
-class SetupBuildIntegrationTest extends AbstractIntegrationSpec {
-    def "can be executed without existing pom"() {
-        when:
-        run 'setupBuild'
-        then:
-        file("build.gradle").text == ""
-        file("gradlew").assertExists()
-        file("gradlew.bat").assertExists()
-        file("gradle/wrapper/gradle-wrapper.jar").assertExists()
-        file("gradle/wrapper/gradle-wrapper.properties").assertExists()
+class GenerateBuildFile extends DefaultTask {
+
+    @OutputFile File buildFile
+
+    @TaskAction
+    public void generate() {
+        if (!buildFile.exists()) {
+            buildFile.text = ""
+        }
+
     }
 }
