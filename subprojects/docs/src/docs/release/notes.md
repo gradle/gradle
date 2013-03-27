@@ -114,8 +114,8 @@ As all new plugins, this Build Setup Plugin is marked as *incubating*. We have m
 enhance the build initialization. Feel free to check out the current plans written up in the 
 [Gradle design docs](https://github.com/gradle/gradle/blob/master/design-docs/build-initialisation.md) and give feedback!
 
-### Support for JUnit @Category
-Gradle now supports JUnit categories. Categories are a mechanism to label and group JUnit tests by using annotations. Having the following JUnit test code
+### Support for JUnit @Category (i)
+Thanks to a contribution by Uladzimir Mihura, Gradle now supports JUnit categories. Categories are a mechanism to label and group JUnit tests by using annotations. Having the following JUnit test code
 
     public interface FastTests { /* category marker interface */ }
     public interface SlowTests { /* category marker interface */ }
@@ -145,6 +145,10 @@ you can simply configure your test task to run only specific categories:
 
 <!-- TODO Add link to docs for this feature, once they are in place. -->
 
+### Plugins can expose custom tooling models via the tooling API
+
+TODO
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -165,18 +169,18 @@ in the next major Gradle version (Gradle 2.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-### StartParameter.getMergedSystemProperties method is deprecated
+### `StartParameter.getMergedSystemProperties()` method is deprecated
 
 This method is no longer used internally so it does not make sense to keep it in the public API.
 
 ## Potential breaking changes
 
-### org.gradle.api.artifacts.ProjectDependency and org.gradle.api.plugins.ExtensionContainer now have an internal protocol
+### `org.gradle.api.artifacts.ProjectDependency` and `org.gradle.api.plugins.ExtensionContainer` now have an internal protocol
 
-This means that the users should not create own implementations of org.gradle.api.artifacts.ProjectDependency or org.gradle.api.plugins.ExtensionContainer.
+This means that the users should not create own implementations of `org.gradle.api.artifacts.ProjectDependenc` or `org.gradle.api.plugins.ExtensionContainer`.
 This change should not affect any builds because there are no known use cases supporting custom instances of these API classes.
 
-### Renamed `add` method on PublicationContainer (incubating)
+### Renamed `add()` method on PublicationContainer (incubating)
 
 The [org.gradle.api.publish.PublicationContainer](javadoc/org/gradle/api/publish/PublicationContainer.html) introduced by the incubating publish plugins leverages the new support for
 polymorphic DomainObject containers in Gradle. This change involved switching from the custom `add` methods to the standard `create`.
@@ -188,9 +192,14 @@ but will impact publications added directly using `add()`.
 ### Changes to exceptions thrown on project evaluation
  // TODO:DAZ
 
-### Incubating StartParameter.isParallelThreadCountConfigured method removed
+### Incubating `StartParameter.isParallelThreadCountConfigured()` method removed
 
 It is not needed internally and it shouldn't be needed by the users, too.
+
+### Upper bound removed from Tooling API `org.gradle.tooling.ModelBuilder`
+
+With the introduction of support for custom tooling API models, the tooling API models are no longer required to extend the `org.gradle.tooling.model.Model` marker
+interface. The upper bound `extends Model` has been removed from the type parameter of `ModelBuilder`.
 
 ## External contributions
 
