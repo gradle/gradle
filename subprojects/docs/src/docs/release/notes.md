@@ -67,7 +67,35 @@ See the User guide section on “[Ordering Tasks](userguide/more_about_tasks.htm
 > Thanks, Marcin: I'm sure many Gradle users will appreciate your contribution.
 
 ### Jacoco Code Coverage Plugin
-// TODO:Rene
+Gradle now ships with a Jacoco plugin to generate code coverage reports. JaCoCo is a free code coverage library for Java. 
+
+To gather code coverage information for your java project, just apply the jacoco plugin:
+
+    apply plugin:'jacoco'
+
+and run the automatically created task "jacocoTestReport" which generates code coverage reports for the "test" task introduced by the `java` plugin. After the build has finished you find the coverage report in different formats in `build/reports/jacoco/test`.
+
+You configure every task of type `JacocoReport` to disable output formats and change the output directory. For example if you just want the `xml` coverage report that can be reused by your favourite CI server, you can simply configure this:
+
+    jacocoTestReport{
+        reports {
+            html.enabled false
+            csv.enabled false
+        } 
+    }
+
+In some scenarios it might be desirable to compute code coverage not by running tests, but by running the application itself. Since the jacoco plugin can be used in combination with any `JavaExec` task of your build, it's quite simple to combine the `jacoco` plugin with the `run` task introduced by the `application` plugin:  
+
+    jacoco {
+        applyTo run
+    }
+    
+    task applicationCodeCoverageReport(type:JacocoReport){
+        executionData run
+        sourceSets sourceSets.main
+    }
+
+There was a great demand by the Gradle community for having a first class code coverage plugin in the Gradle distribution. Therefore we're very happy that this plugin was provided by Andrew Oberstar, an energetic member of the Gradle community. 
 
 ### build-setup Plugin
 // TODO:Rene
@@ -155,8 +183,9 @@ It is not needed internally and it shouldn't be needed by the users, too.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* Uladzimir Mihura - provide first-class support for JUnit @Category (GRADLE-2111)
 * Marcin Erdmann - added the ability to schedule one task to always run after another, without adding a hard dependency.
+* Andrew Oberstar - added the jacoco code coverage plugin.
+* Uladzimir Mihura - provide first-class support for JUnit @Category (GRADLE-2111).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
