@@ -84,6 +84,9 @@
             <sample id="configJacocoReport" dir="testing/jacoco/quickstart" title="Configuring test task">
                 <sourcefile file="build.gradle" snippet="report-configuration"/>
             </sample>
+            <imageobject>
+                <imagedata fileref="img/jacocoHtmlReport.png" width="903px" depth="277px"/>
+            </imageobject>
     </section>
 
     <section>
