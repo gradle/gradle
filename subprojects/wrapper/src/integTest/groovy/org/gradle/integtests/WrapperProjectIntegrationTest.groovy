@@ -51,7 +51,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private prepareWrapper(String baseUrl) {
-        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :binZip task"
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :distributions:binZip task"
 
         file("build.gradle") << """
     import org.gradle.api.tasks.wrapper.Wrapper
