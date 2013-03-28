@@ -17,9 +17,9 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.ObjectConfigurationAction;
+import org.gradle.api.plugins.PluginAware;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.UriScriptSource;
@@ -85,22 +85,22 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyPlugin(Class<? extends Plugin> pluginClass) {
         for (Object target : targets) {
-            if (target instanceof Project) {
-                Project project = (Project) target;
-                project.getPlugins().apply(pluginClass);
+            if (target instanceof PluginAware) {
+                PluginAware pluginAware = (PluginAware) target;
+                pluginAware.getPlugins().apply(pluginClass);
             } else {
-                throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it is not a Project", pluginClass.getName(), target.toString(), target.getClass().getName()));
+                throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
             }
         }
     }
 
     private void applyPlugin(String pluginId) {
         for (Object target : targets) {
-            if (target instanceof Project) {
-                Project project = (Project) target;
-                project.getPlugins().apply(pluginId);
+            if (target instanceof PluginAware) {
+                PluginAware pluginAware = (PluginAware) target;
+                pluginAware.getPlugins().apply(pluginId);
             } else {
-                throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it is not a Project", pluginId, target.toString(), target.getClass().getName()));
+                throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginId, target.toString(), target.getClass().getName()));
             }
         }
     }

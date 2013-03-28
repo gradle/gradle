@@ -32,10 +32,7 @@ import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.plugins.*;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
@@ -194,7 +191,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 @HasInternalProtocol
-public interface Project extends Comparable<Project>, ExtensionAware {
+public interface Project extends Comparable<Project>, ExtensionAware, PluginAware {
     /**
      * The default project build file name.
      */
@@ -1328,14 +1325,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     void dependencies(Closure configureClosure);
 
     /**
-     * Returns the plugins container for this project. The returned container can be used to manage the plugins which
-     * are used by this project.
-     *
-     * @return the plugin container. Never returns null.
-     */
-    PluginContainer getPlugins();
-
-    /**
      * Returns the build script handler for this project. You can use this handler to query details about the build
      * script for this project, and manage the classpath used to compile and execute the project's build script.
      *
@@ -1390,30 +1379,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @return The CopySpec
      */
     CopySpec copySpec(Closure closure);
-
-    /**
-     * <p>Configures this project using plugins or scripts. The given closure is used to configure an {@link
-     * org.gradle.api.plugins.ObjectConfigurationAction} which is then used to configure this project.</p>
-     *
-     * @param closure The closure to configure the {@code ObjectConfigurationAction}.
-     */
-    void apply(Closure closure);
-
-    /**
-     * <p>Configures this project using plugins or scripts. The following options are available:</p>
-     *
-     * <ul><li>{@code from}: A script to apply to the project. Accepts any path supported by {@link #uri(Object)}.</li>
-     *
-     * <li>{@code plugin}: The id or implementation class of the plugin to apply to the project.</li>
-     *
-     * <li>{@code to}: The target delegate object or objects. Use this to configure objects other than the
-     * project.</li></ul>
-     *
-     * <p>For more detail, see {@link org.gradle.api.plugins.ObjectConfigurationAction}.</p>
-     *
-     * @param options The options to use to configure the {@code ObjectConfigurationAction}.
-     */
-    void apply(Map<String, ?> options);
 
     /**
      * Returns the evaluation state of this project. You can use this to access information about the evaluation of this

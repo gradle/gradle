@@ -36,7 +36,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
@@ -49,7 +48,6 @@ import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.configuration.ScriptPlugin;
-import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
@@ -74,7 +72,7 @@ import static org.gradle.util.GUtil.isTrue;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractProject implements ProjectInternal, DynamicObjectAware {
+public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private ServiceRegistryFactory services;
 
@@ -116,8 +114,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private Object buildDir = Project.DEFAULT_BUILD_DIR_NAME;
 
-    private PluginContainer pluginContainer;
-
     private final int depth;
 
     private TaskContainerInternal taskContainer;
@@ -156,6 +152,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
                            ScriptSource buildScriptSource,
                            GradleInternal gradle,
                            ServiceRegistryFactory serviceRegistryFactory) {
+        super(serviceRegistryFactory);
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
@@ -184,7 +181,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         projectEvaluator = services.get(ProjectEvaluator.class);
         repositoryHandler = services.get(RepositoryHandler.class);
         configurationContainer = services.get(ConfigurationContainerInternal.class);
-        pluginContainer = services.get(PluginContainer.class);
         artifactHandler = services.get(ArtifactHandler.class);
         dependencyHandler = services.get(DependencyHandler.class);
         scriptHandler = services.get(ScriptHandler.class);
@@ -208,10 +204,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public GradleInternal getGradle() {
         return gradle;
-    }
-
-    public PluginContainer getPlugins() {
-        return pluginContainer;
     }
 
     public ProjectEvaluator getProjectEvaluator() {
@@ -830,20 +822,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public Module getModule() {
         return getServices().get(DependencyMetaDataProvider.class).getModule();
-    }
-
-    public void apply(Closure closure) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
-                ScriptPluginFactory.class), this);
-        configure(action, closure);
-        action.execute();
-    }
-
-    public void apply(Map<String, ?> options) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
-                ScriptPluginFactory.class), this);
-        ConfigureUtil.configureByMap(options, action);
-        action.execute();
     }
 
     public AntBuilder ant(Closure configureClosure) {
