@@ -113,7 +113,7 @@ class ToolingApi {
         connector.useGradleUserHomeDir(userHomeDir)
         connector.forProjectDirectory(testWorkDirProvider.testDirectory)
         connector.searchUpwards(false)
-        connector.daemonMaxIdleTime(60, TimeUnit.SECONDS)
+        connector.daemonMaxIdleTime(120, TimeUnit.SECONDS)
         if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {
             connector.verboseLogging = verboseLogging
         }
