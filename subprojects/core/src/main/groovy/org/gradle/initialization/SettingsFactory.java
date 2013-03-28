@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -31,17 +32,19 @@ import java.util.Map;
 public class SettingsFactory {
     private final IProjectDescriptorRegistry projectDescriptorRegistry;
     private final Instantiator instantiator;
+    private final ServiceRegistryFactory serviceRegistryFactory;
 
-    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry, Instantiator instantiator) {
+    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry, Instantiator instantiator, ServiceRegistryFactory serviceRegistryFactory) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.instantiator = instantiator;
+        this.serviceRegistryFactory = serviceRegistryFactory;
     }
 
     public SettingsInternal createSettings(GradleInternal gradle, File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter,
                                            URLClassLoader classloader) {
 
-        DefaultSettings settings = instantiator.newInstance(DefaultSettings.class,
+        DefaultSettings settings = instantiator.newInstance(DefaultSettings.class, serviceRegistryFactory,
                 gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter
         );
 

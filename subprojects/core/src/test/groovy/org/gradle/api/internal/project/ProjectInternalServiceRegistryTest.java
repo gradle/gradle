@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
+import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
@@ -136,7 +136,7 @@ public class ProjectInternalServiceRegistryTest {
             one(pluginRegistry).createChild(with(notNullValue(ClassLoader.class)), with((Matcher<Instantiator>)matcher));
         }});
 
-        assertThat(registry.get(PluginContainer.class), instanceOf(DefaultProjectsPluginContainer.class));
+        assertThat(registry.get(PluginContainer.class), instanceOf(DefaultPluginContainer.class));
         assertThat(registry.get(PluginContainer.class), sameInstance(registry.get(PluginContainer.class)));
     }
 

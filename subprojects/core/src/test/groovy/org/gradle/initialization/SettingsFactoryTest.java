@@ -16,11 +16,15 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternallServiceRegistry;
 import org.gradle.api.internal.ThreadGlobalInstantiator;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.WrapUtil;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
@@ -50,7 +54,15 @@ public class SettingsFactoryTest {
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = new StartParameter();
-        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry, ThreadGlobalInstantiator.getOrCreate());
+        final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
+        final SettingsInternallServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternallServiceRegistry.class);
+        context.checking(new Expectations() {{
+            one(serviceRegistryFactory).createFor(with(any(Settings.class)));
+            will(returnValue(settingsInternallServiceRegistry));
+        }});
+
+
+        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry, ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory);
         final URLClassLoader urlClassLoader = new URLClassLoader(new URL[0]);
         GradleInternal gradle = context.mock(GradleInternal.class);
 
@@ -60,7 +72,7 @@ public class SettingsFactoryTest {
         assertSame(gradle, settings.getGradle());
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
         for (Map.Entry<String, String> entry : expectedGradleProperties.entrySet()) {
-            assertEquals(entry.getValue(), ((DynamicObjectAware)settings).getAsDynamicObject().getProperty(entry.getKey()));
+            assertEquals(entry.getValue(), ((DynamicObjectAware) settings).getAsDynamicObject().getProperty(entry.getKey()));
         }
 
         assertSame(expectedSettingsDir, settings.getSettingsDir());

@@ -20,8 +20,12 @@ import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.ProjectDescriptor
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.SettingsInternallServiceRegistry
+import org.gradle.api.internal.project.ServiceRegistryFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.Expectations
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
@@ -45,6 +49,7 @@ class DefaultSettingsTest {
     DefaultSettings settings
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     DefaultProjectDescriptorRegistry projectDescriptorRegistry
+    ServiceRegistryFactory serviceRegistryFactory
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
@@ -55,9 +60,14 @@ class DefaultSettingsTest {
 
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
-
+        serviceRegistryFactory = context.mock(ServiceRegistryFactory.class)
+        SettingsInternallServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternallServiceRegistry.class)
+        context.checking(new Expectations() {{
+                    one(serviceRegistryFactory).createFor(with(any(Settings.class)));
+                    will(returnValue(settingsInternallServiceRegistry));
+                }});
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-        settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings,
+        settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,
                 gradleMock, projectDescriptorRegistry, expectedClassLoader, settingsDir, scriptSourceMock, startParameter
         )
     }

@@ -38,7 +38,7 @@ public class DefaultProjectsPluginContainerTest {
     private final DefaultProject project = HelperUtil.createRootProject();
 
     private PluginRegistry pluginRegistryStub = context.mock(PluginRegistry.class);
-    private DefaultProjectsPluginContainer container = new DefaultProjectsPluginContainer(pluginRegistryStub, project);
+    private DefaultPluginContainer container = new DefaultPluginContainer(pluginRegistryStub, project);
 
     private TestPlugin1 pluginWithIdMock = new TestPlugin1();
     private TestPlugin2 pluginWithoutIdMock = new TestPlugin2();

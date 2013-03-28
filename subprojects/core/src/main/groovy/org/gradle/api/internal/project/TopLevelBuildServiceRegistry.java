@@ -195,7 +195,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                         get(ScriptPluginFactory.class),
                         new SettingsFactory(
                                 new DefaultProjectDescriptorRegistry(),
-                                get(Instantiator.class)
+                                get(Instantiator.class),
+                                this
                         ),
                         get(IGradlePropertiesLoader.class)),
                 get(IGradlePropertiesLoader.class));
@@ -244,12 +245,14 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         if (domainObject instanceof GradleInternal) {
             return new GradleInternalServiceRegistry(this, (GradleInternal) domainObject);
         }
+        if (domainObject instanceof SettingsInternal) {
+            return new SettingsInternallServiceRegistry(this, (SettingsInternal) domainObject);
+        }
         throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
                 domainObject.getClass().getSimpleName()));
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-
         public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }

@@ -39,7 +39,7 @@ import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
+import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -102,7 +102,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected PluginContainer createPluginContainer() {
-        return new DefaultProjectsPluginContainer(get(PluginRegistry.class), project);
+        return new DefaultPluginContainer(get(PluginRegistry.class), project);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {

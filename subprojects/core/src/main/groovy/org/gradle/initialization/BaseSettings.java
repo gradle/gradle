@@ -21,7 +21,9 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
@@ -30,7 +32,7 @@ import java.net.URLClassLoader;
 /**
  * @author Hans Dockter
  */
-public class BaseSettings implements SettingsInternal {
+public class BaseSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
 
     private ScriptSource settingsScript;
@@ -46,13 +48,14 @@ public class BaseSettings implements SettingsInternal {
     private GradleInternal gradle;
     private IProjectDescriptorRegistry projectDescriptorRegistry;
 
-    protected BaseSettings() {
+    protected BaseSettings(){
     }
 
-    public BaseSettings(GradleInternal gradle,
+    public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                         IProjectDescriptorRegistry projectDescriptorRegistry,
                         URLClassLoader classloader, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
+        super(serviceRegistryFactory);
         this.gradle = gradle;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;

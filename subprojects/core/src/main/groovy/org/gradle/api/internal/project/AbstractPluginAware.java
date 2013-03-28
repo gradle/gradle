@@ -26,16 +26,20 @@ import org.gradle.util.ConfigureUtil;
 
 import java.util.Map;
 
-abstract public class AbstractPluginAware implements PluginAware{
+abstract public class AbstractPluginAware implements PluginAware {
     private PluginContainer pluginContainer;
-    ServiceRegistryFactory services;
+    private ServiceRegistryFactory services;
+    private FileResolver fileResolver;
 
-    public AbstractPluginAware(ServiceRegistryFactory serviceRegistryFactory){
+    protected AbstractPluginAware() {
+    }
+
+    public AbstractPluginAware(ServiceRegistryFactory serviceRegistryFactory) {
         this.services = serviceRegistryFactory.createFor(this);
     }
 
     public PluginContainer getPlugins() {
-        if(pluginContainer==null){
+        if (pluginContainer == null) {
             pluginContainer = services.get(PluginContainer.class);
         }
         return pluginContainer;
@@ -48,6 +52,13 @@ abstract public class AbstractPluginAware implements PluginAware{
         action.execute();
     }
 
+    FileResolver getFileResolver() {
+        if(fileResolver == null){
+            fileResolver = services.get(FileResolver.class);
+        }
+        return fileResolver;
+    }
+
 
     public void apply(Map<String, ?> options) {
         DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), services.get(
@@ -55,7 +66,4 @@ abstract public class AbstractPluginAware implements PluginAware{
         ConfigureUtil.configureByMap(options, action);
         action.execute();
     }
-
-    protected abstract FileResolver getFileResolver();
-
 }

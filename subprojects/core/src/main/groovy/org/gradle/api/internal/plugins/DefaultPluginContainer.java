@@ -16,21 +16,21 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
+public class DefaultPluginContainer<T extends PluginAware> extends DefaultPluginCollection<Plugin> implements PluginContainer {
     private PluginRegistry pluginRegistry;
-    private final Project project;
+    private final T pluginAware;
 
-    public DefaultProjectsPluginContainer(PluginRegistry pluginRegistry, Project project) {
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, T pluginAware) {
         super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
-        this.project = project;
+        this.pluginAware = pluginAware;
     }
 
     public Plugin apply(String id) {
@@ -102,9 +102,9 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
         return pluginRegistry.getTypeForId(id);
     }
 
-    private Plugin<Project> providePlugin(Class<? extends Plugin> type) {
-        Plugin<Project> plugin = pluginRegistry.loadPlugin(type);
-        plugin.apply(project);
+    private Plugin<T> providePlugin(Class<? extends Plugin> type) {
+        Plugin<T> plugin = pluginRegistry.loadPlugin(type);
+        plugin.apply(pluginAware);
         return plugin;
     }
 }
