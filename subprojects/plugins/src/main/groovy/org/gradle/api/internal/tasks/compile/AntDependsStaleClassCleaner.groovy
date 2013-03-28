@@ -23,6 +23,7 @@ import org.gradle.language.jvm.tasks.StaleClassCleaner
 
 class AntDependsStaleClassCleaner extends StaleClassCleaner {
     private final Factory<AntBuilder> antBuilderFactory
+    private final DependOptions dependOptions
 
     File dependencyCacheDir
 
