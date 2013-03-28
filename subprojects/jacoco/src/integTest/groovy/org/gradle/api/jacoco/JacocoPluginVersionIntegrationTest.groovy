@@ -15,7 +15,6 @@
  */
 package org.gradle.api.jacoco
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.internal.os.OperatingSystem
