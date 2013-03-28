@@ -33,17 +33,17 @@ import javax.servlet.http.HttpServletResponse
 class WrapperConcurrentDownloadTest extends AbstractIntegrationSpec {
     @Rule BlockingDownloadHttpServer server = new BlockingDownloadHttpServer(distribution.binDistribution)
 
+    def setup() {
+        executer.beforeExecute(new WrapperSetup())
+    }
+
     @Issue("http://issues.gradle.org/browse/GRADLE-2699")
     def "concurrent downloads do not stomp over each other"() {
         given:
         buildFile << """
     import org.gradle.api.tasks.wrapper.Wrapper
     task wrapper(type: Wrapper) {
-        archiveBase = Wrapper.PathBase.PROJECT
-        archivePath = 'dist'
         distributionUrl = '${server.distUri}'
-        distributionBase = Wrapper.PathBase.PROJECT
-        distributionPath = 'dist'
     }
 """
 
@@ -71,12 +71,6 @@ class WrapperConcurrentDownloadTest extends AbstractIntegrationSpec {
 
         URI getDistUri() {
             return new URI("http://localhost:${server.connectors[0].localPort}/gradle-bin.zip")
-        }
-
-        void waitForDownloadToStart() {
-        }
-
-        void continueDownload() {
         }
 
         @Override

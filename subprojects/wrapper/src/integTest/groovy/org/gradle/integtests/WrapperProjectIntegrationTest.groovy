@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.GradleVersion
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.hamcrest.Matchers
 import org.junit.Rule
@@ -39,9 +38,10 @@ import static org.junit.Assert.assertThat
 class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer(server)
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
 
     void setup() {
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :distributions:binZip task"
+        executer.beforeExecute(new WrapperSetup())
         server.start()
         server.expectUserAgent(matchesNameAndVersion("gradlew", GradleVersion.current().getVersion()))
     }
@@ -51,16 +51,10 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private prepareWrapper(String baseUrl) {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :distributions:binZip task"
-
         file("build.gradle") << """
     import org.gradle.api.tasks.wrapper.Wrapper
     task wrapper(type: Wrapper) {
-        archiveBase = Wrapper.PathBase.PROJECT
-        archivePath = 'dist'
         distributionUrl = '${baseUrl}/gradlew/dist'
-        distributionBase = Wrapper.PathBase.PROJECT
-        distributionPath = 'dist'
     }
 
     task hello << {
@@ -157,16 +151,10 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 
     public void "generated wrapper scripts use correct line separators"() {
         given:
-        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :binZip task"
-
         file("build.gradle") << """
             import org.gradle.api.tasks.wrapper.Wrapper
             task wrapper(type: Wrapper) {
-                archiveBase = Wrapper.PathBase.PROJECT
-                archivePath = 'dist'
                 distributionUrl = 'http://localhost:${server.port}/gradlew/dist'
-                distributionBase = Wrapper.PathBase.PROJECT
-                distributionPath = 'dist'
             }
         """
 
