@@ -138,13 +138,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
         }
 
-        // TODO:DAZ Ensure that all of the work done in isUpToDate() is reused here
         public TaskInputChanges getInputChanges() {
-            assert !upToDate : "I don't think we should be here if the task is up-to-date";
+            assert !upToDate : "Should not be here if the task is up-to-date";
 
             if (incrementalRequiresRebuild()) {
                 return new RebuildTaskInputChanges(task);
             }
+            // TODO:DAZ We are rescanning all of the input files, which were previously scanned to get the out-of-date messages.
             return new IncrementalTaskInputChanges(getStates().getInputFilesState());
         }
 

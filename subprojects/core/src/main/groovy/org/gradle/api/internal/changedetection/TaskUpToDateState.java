@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.Action;
 
-// TODO:DAZ Generify properly, and grow a brain that can grok java generics
 public interface TaskUpToDateState {
     /**
      * Executes the provided action for every change that makes this task out-of-date.

@@ -37,6 +37,7 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
         this.repository = repository;
     }
 
+    // TODO:DAZ Add a TaskExecutionContext that can hold onto the taskArtifactState throughout execution, instead of setting on TaskOutputs.
     public void execute(TaskInternal task, TaskStateInternal state) {
         LOGGER.debug("Determining if {} is up-to-date", task);
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
@@ -52,7 +53,6 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
             taskArtifactState.beforeTask();
             task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
 
-            // TODO:DAZ This is a crappy place for this
             if (task.isIncrementalTask()) {
                 task.getOutputs().setTaskArtifactState(taskArtifactState);
             }

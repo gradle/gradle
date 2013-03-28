@@ -47,7 +47,6 @@ public abstract class CachingUpToDateState implements TaskUpToDateState {
         if (count == null) {
             findChanges(new Action<TaskUpToDateStateChange>() {
                 public void execute(TaskUpToDateStateChange action) {
-                    System.out.println("SHOULD NEVER GET HERE");
                     // No-op: we just need to get the count incremented.
                 }
             });
