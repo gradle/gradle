@@ -20,7 +20,7 @@ dependencies {
     compile libraries.groovy
 
     compile project(":core")
-    compile project(":language-jvm")
+    compile project(":languageJvm")
     compile project(":plugins")
 
     // keep in sync with ScalaBasePlugin code
