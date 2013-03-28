@@ -204,7 +204,9 @@ This change does not effect publications added to the PublicationContainer using
 but will impact publications added directly using `add()`.
 
 ### Changes to exceptions thrown on project evaluation
- // TODO:DAZ
+
+The exception thrown by Gradle when on build script error or other configuration problem has changed. All such exceptions are now chained in ProjectConfigurationException.
+This change will only impact code that explicitly catches and processes an exception thrown by Gradle when configuring a project.
 
 ### Incubating `StartParameter.isParallelThreadCountConfigured()` method removed
 
