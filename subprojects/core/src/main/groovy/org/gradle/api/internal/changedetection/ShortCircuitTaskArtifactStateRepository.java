@@ -36,26 +36,20 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
-        if (task.getOutputs().getHasOutput()) {
+        if (task.getOutputs().getHasOutput() || task.isIncrementalTask()) {
             return new ShortCircuitArtifactState(task, repository.getStateFor(task));
         }
         LOGGER.info(String.format("%s has not declared any outputs, assuming that it is out-of-date.", StringUtils.capitalize(task.toString())));
-        return new NoHistoryArtifactState(task);
+        return new NoHistoryArtifactState();
     }
 
     private static class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
-        private final TaskInternal task;
-
-        public NoHistoryArtifactState(TaskInternal task) {
-            this.task = task;
-        }
-
         public boolean isUpToDate() {
             return false;
         }
 
         public TaskInputChanges getExecutionContext() {
-            return new RebuildTaskInputChanges(task);
+            throw new UnsupportedOperationException();
         }
 
         public void beforeTask() {

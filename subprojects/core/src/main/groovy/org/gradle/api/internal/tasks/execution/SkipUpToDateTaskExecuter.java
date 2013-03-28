@@ -53,7 +53,9 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
             task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
 
             // TODO:DAZ This is a crappy place for this
-            task.getOutputs().setTaskArtifactState(taskArtifactState);
+            if (task.isIncrementalTask()) {
+                task.getOutputs().setTaskArtifactState(taskArtifactState);
+            }
             try {
                 executer.execute(task, state);
                 if (state.getFailure() == null) {

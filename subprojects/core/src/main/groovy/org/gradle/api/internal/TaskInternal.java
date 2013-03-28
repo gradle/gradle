@@ -54,4 +54,8 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * The getTemporaryDir() method creates the directory which can be problematic. Use this to delay that creation.
      */
     Factory<File> getTemporaryDirFactory();
+
+    // TODO:DAZ Remove these: they are really only required during the execution chain
+    void setIncrementalTask(boolean incremental);
+    boolean isIncrementalTask();
 }

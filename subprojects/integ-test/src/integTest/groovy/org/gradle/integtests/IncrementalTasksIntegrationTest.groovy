@@ -18,7 +18,6 @@
 
 package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -163,49 +162,12 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithIncrementalContext("ext.removed = ['file1.txt', 'file2.txt']")
     }
 
-    @Ignore("Does not yet work: need incremental task not to use NoHistoryArtifactState")
-    def "incremental task is informed of 'out-of-date' files when task has no declared outputs"() {
+    def "incremental task is informed of 'out-of-date' files when task has no declared outputs or properties"() {
         given:
         buildFile.text = buildFileBase
         buildFile << """
-    class NoOutputIncrementalTask extends BaseIncrementalTask {
-        @Input
-        def String prop
-    }
-    task incremental(type: NoOutputIncrementalTask) {
+    task incremental(type: BaseIncrementalTask) {
         inputDir = project.mkdir('inputs')
-        prop = 'foo'
-    }
-"""
-        and:
-        previousExecution()
-
-        when:
-        file('inputs/file3.txt') << "file3 content"
-
-        then:
-        executesWithIncrementalContext("ext.added = ['file3.txt']")
-    }
-
-    // TODO:DAZ Might want to merge with the previous test (when it passes)
-    def "incremental task is informed of 'out-of-date' files when task has no declared properties"() {
-        given:
-        buildFile.text = buildFileBase
-        buildFile << """
-    class NoPropertyIncrementalTask extends BaseIncrementalTask {
-        @OutputDirectory
-        def File outputDir
-
-        @TaskAction
-        def updateOutputs() {
-            outputDir.eachFile {
-                it << "more content"
-            }
-        }
-    }
-    task incremental(type: NoPropertyIncrementalTask) {
-        inputDir = project.mkdir('inputs')
-        outputDir = project.mkdir('outputs')
     }
 """
         and:
