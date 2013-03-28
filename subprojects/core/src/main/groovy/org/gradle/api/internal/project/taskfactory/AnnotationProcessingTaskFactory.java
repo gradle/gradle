@@ -25,6 +25,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.tasks.*;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ReflectionUtil;
 
@@ -42,7 +43,7 @@ import java.util.concurrent.Callable;
  */
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private final ITaskFactory taskFactory;
-    private final Map<Class, List<Action<Task>>> actionsForType;
+    private final Map<Class, TaskClassInfo> classInfos;
     
     private final Transformer<Iterable<File>, Object> filePropertyTransformer = new Transformer<Iterable<File>, Object>() {
         public Iterable<File> transform(Object original) {
@@ -78,69 +79,65 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
     public AnnotationProcessingTaskFactory(ITaskFactory taskFactory) {
         this.taskFactory = taskFactory;
-        this.actionsForType = new HashMap<Class, List<Action<Task>>>();
+        this.classInfos = new HashMap<Class, TaskClassInfo>();
     }
 
-    private AnnotationProcessingTaskFactory(Map<Class, List<Action<Task>>> actionsForType, ITaskFactory taskFactory) {
-        this.actionsForType = actionsForType;
+    private AnnotationProcessingTaskFactory(Map<Class, TaskClassInfo> classInfos, ITaskFactory taskFactory) {
+        this.classInfos = classInfos;
         this.taskFactory = taskFactory;
     }
 
     public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
-        return new AnnotationProcessingTaskFactory(actionsForType, taskFactory.createChild(project, instantiator));
+        return new AnnotationProcessingTaskFactory(classInfos, taskFactory.createChild(project, instantiator));
     }
 
     public TaskInternal createTask(Map<String, ?> args) {
         TaskInternal task = taskFactory.createTask(args);
+        TaskClassInfo taskClassInfo = getTaskClassInfo(task.getClass());
 
-        Class<? extends Task> type = task.getClass();
-        List<Action<Task>> actions = actionsForType.get(type);
-        if (actions == null) {
-            actions = createActionsForType(type);
-            actionsForType.put(type, actions);
+        for (Factory<Action<Task>> actionFactory : taskClassInfo.taskActions) {
+            task.doFirst(actionFactory.create());
         }
 
-        for (Action<Task> action : actions) {
-            task.doFirst(action);
-            if (action instanceof Validator) {
-                Validator validator = (Validator) action;
-                validator.addInputsAndOutputs(task);
-            }
-            if (action instanceof IncrementalTaskAction) {
-                task.setIncrementalTask(true);
-            }
+        if (taskClassInfo.hasIncrementalAction) {
+            task.setIncrementalTask(true);
+        }
+
+        if (taskClassInfo.validator != null) {
+            task.doFirst(taskClassInfo.validator);
+            taskClassInfo.validator.addInputsAndOutputs(task);
         }
 
         return task;
     }
 
-    private List<Action<Task>> createActionsForType(Class<? extends Task> type) {
-        List<Action<Task>> actions = new ArrayList<Action<Task>>();
-        findTaskActions(type, actions);
-        findProperties(type, actions);
-        return actions;
-    }
+    private TaskClassInfo getTaskClassInfo(Class<? extends Task> type) {
+        TaskClassInfo taskClassInfo = classInfos.get(type);
+        if (taskClassInfo == null) {
+            taskClassInfo = new TaskClassInfo();
+            findTaskActions(type, taskClassInfo);
 
-    private void findProperties(Class<? extends Task> type, List<Action<Task>> actions) {
-        Validator validator = new Validator();
+            Validator validator = new Validator();
+            validator.attachActions(null, type);
 
-        validator.attachActions(null, type);
-
-        if (!validator.properties.isEmpty()) {
-            actions.add(validator);
+            if (!validator.properties.isEmpty()) {
+                taskClassInfo.validator = validator;
+            }
+            classInfos.put(type, taskClassInfo);
         }
+        return taskClassInfo;
     }
 
-    private void findTaskActions(Class<? extends Task> type, List<Action<Task>> actions) {
+    private void findTaskActions(Class<? extends Task> type, TaskClassInfo taskClassInfo) {
         Set<String> methods = new HashSet<String>();
         for (Class current = type; current != null; current = current.getSuperclass()) {
             for (Method method : current.getDeclaredMethods()) {
-                attachTaskAction(method, actions, methods);
+                attachTaskAction(method, taskClassInfo, methods);
             }
         }
     }
 
-    private void attachTaskAction(final Method method, Collection<Action<Task>> actions, Collection<String> methods) {
+    private void attachTaskAction(final Method method, TaskClassInfo taskClassInfo, Collection<String> methods) {
         if (method.getAnnotation(TaskAction.class) == null) {
             return;
         }
@@ -165,9 +162,10 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
         methods.add(method.getName());
         if (parameterTypes.length == 1) {
-            actions.add(new IncrementalTaskAction(method));
+            taskClassInfo.taskActions.add(new IncrementalTaskActionFactory(method));
+            taskClassInfo.hasIncrementalAction = true;
         } else {
-            actions.add(new StandardTaskAction(method));
+            taskClassInfo.taskActions.add(new StandardTaskActionFactory(method));
         }
     }
 
@@ -176,21 +174,25 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 && method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers());
     }
 
-    private static class StandardTaskAction implements Action<Task> {
+    private static class StandardTaskActionFactory implements Factory<Action<Task>> {
         private final Method method;
 
-        public StandardTaskAction(Method method) {
+        public StandardTaskActionFactory(Method method) {
             this.method = method;
         }
 
-        public void execute(Task task) {
-            ClassLoader original = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());
-            try {
-                doActions(task, method.getName());
-            } finally {
-                Thread.currentThread().setContextClassLoader(original);
-            }
+        public Action<Task> create() {
+            return new Action<Task>() {
+                public void execute(Task task) {
+                    ClassLoader original = Thread.currentThread().getContextClassLoader();
+                    Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());
+                    try {
+                        doActions(task, method.getName());
+                    } finally {
+                        Thread.currentThread().setContextClassLoader(original);
+                    }
+                }
+            };
         }
 
         protected void doActions(Task task, String methodName) {
@@ -198,9 +200,9 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
     }
 
-    public static class IncrementalTaskAction extends StandardTaskAction {
+    public static class IncrementalTaskActionFactory extends StandardTaskActionFactory {
 
-        public IncrementalTaskAction(Method method) {
+        public IncrementalTaskActionFactory(Method method) {
             super(method);
         }
 
@@ -208,6 +210,12 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             TaskInputChanges executionContext = ((TaskInternal) task).getOutputs().getInputChanges();
             ReflectionUtil.invoke(task, methodName, executionContext);
         }
+    }
+
+    private class TaskClassInfo {
+        public boolean hasIncrementalAction;
+        public Validator validator;
+        public List<Factory<Action<Task>>> taskActions = new ArrayList<Factory<Action<Task>>>();
     }
 
     private class Validator implements Action<Task>, TaskValidator {
