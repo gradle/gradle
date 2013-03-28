@@ -17,14 +17,15 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.Action;
-import org.gradle.api.execution.TaskInputChanges;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.execution.DefaultInputFileChange;
 
-class IncrementalTaskInputChanges implements TaskInputChanges {
+import java.util.ArrayList;
+import java.util.List;
+
+class IncrementalTaskInputChanges extends StatefulTaskInputChanges {
     private final TaskUpToDateState inputFilesState;
-    private Action<InputFileChange> outOfDateAction;
-    private Action<InputFileChange> removedAction;
+    private List<InputFileChange> removedFiles = new ArrayList<InputFileChange>();
 
     IncrementalTaskInputChanges(TaskUpToDateState inputFilesState) {
         this.inputFilesState = inputFilesState;
@@ -34,17 +35,8 @@ class IncrementalTaskInputChanges implements TaskInputChanges {
         return false;
     }
 
-    public TaskInputChanges outOfDate(Action<InputFileChange> outOfDateAction) {
-        this.outOfDateAction = outOfDateAction;
-        return this;
-    }
-
-    public TaskInputChanges removed(Action<InputFileChange> removedAction) {
-        this.removedAction = removedAction;
-        return this;
-    }
-
-    public void process() {
+    @Override
+    protected void doOutOfDate(final Action<? super InputFileChange> outOfDateAction) {
         inputFilesState.findChanges(new Action<TaskUpToDateStateChange>() {
             public void execute(TaskUpToDateStateChange change) {
                 // TODO:DAZ Generify properly to avoid this check & cast
@@ -53,15 +45,18 @@ class IncrementalTaskInputChanges implements TaskInputChanges {
 
                 DefaultInputFileChange inputFileChange = new DefaultInputFileChange(fileChange.getFile(), fileChange.getChange());
                 if (fileChange.getChange() == ChangeType.REMOVED) {
-                    if (removedAction != null) {
-                        removedAction.execute(inputFileChange);
-                    }
+                    removedFiles.add(inputFileChange);
                 } else {
-                    if (outOfDateAction != null) {
-                        outOfDateAction.execute(inputFileChange);
-                    }
+                    outOfDateAction.execute(inputFileChange);
                 }
             }
         });
+    }
+
+    @Override
+    protected void doRemoved(Action<? super InputFileChange> removedAction) {
+        for (InputFileChange removedFile : removedFiles) {
+            removedAction.execute(removedFile);
+        }
     }
 }

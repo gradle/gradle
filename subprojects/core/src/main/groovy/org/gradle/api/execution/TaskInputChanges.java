@@ -22,6 +22,11 @@ import java.io.File;
 
 /**
  * Provides task state information to incremental task implementations.
+ * Note that this is a stateful API:
+ * <ul>
+ *     <li>{@link #outOfDate} and {@link #removed} can each only be executed a single time per {@link TaskInputChanges} instance.</li>
+ *     <li>{@link #outOfDate} must be executed before {@link #removed} is called.</li>
+ * </ul>
  */
 public interface TaskInputChanges {
 
@@ -32,19 +37,17 @@ public interface TaskInputChanges {
     boolean isAllOutOfDate();
 
     /**
-     * Specifies the action to be executed for all of the input files that are out-of-date since the previous task execution.
+     * Executes the action for all of the input files that are out-of-date since the previous task execution.
+     * This method may only be executed a single time for a single {@link TaskInputChanges} instance.
      */
-    TaskInputChanges outOfDate(Action<InputFileChange> outOfDateAction);
+    void outOfDate(Action<? super InputFileChange> outOfDateAction);
 
     /**
-     * Specifies the action to be executed for all of the input files that were removed since the previous task execution.
+     * Executes the action for all of the input files that were removed since the previous task execution.
+     * This method may only be executed a single time for a single {@link TaskInputChanges} instance.
+     * This method may only be called after {@link #outOfDate} has executed.
      */
-    TaskInputChanges removed(Action<InputFileChange> removedAction);
-
-    /**
-     * Processes the supplied actions for all input files. Note that there is no guarantee as to the order in which inputs will be provided.
-     */
-    void process();
+    void removed(Action<? super InputFileChange> removedAction);
 
     /**
      * A change to an input file.

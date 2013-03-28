@@ -50,18 +50,17 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
             allOutOfDate = inputs.allOutOfDate
 
-            inputs
-            .outOfDate({ change ->
+            inputs.outOfDate({ change ->
                 if (change.added) {
                     addedFiles << change.file
                 } else {
                     changedFiles << change.file
                 }
             } as Action)
-            .removed({ change ->
+
+            inputs.removed({ change ->
                 removedFiles << change.file
             } as Action)
-            .process()
         }
 
         def addedFiles = []
@@ -292,6 +291,8 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
      7. Sad-day cases
          - Incremental task has input files declared
          - Incremental task action throws exception
+         - Incremental task action processes outOfDate files multiple times
+         - Attempt to process removed files without first processing outOfDate files
      */
 
     def previousExecution() {
