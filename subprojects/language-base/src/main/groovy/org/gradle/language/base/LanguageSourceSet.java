@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.language.base;
 
-import org.gradle.api.*;
+import org.gradle.api.Buildable;
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
+import org.gradle.api.file.SourceDirectorySet;
 
 /**
- * A container for binaries that in turn contains more specialized containers.
- * Added to a project by the {@link org.gradle.api.plugins.LanguageBasePlugin}.
+ * A set of sources for a programming language.
  */
-// TODO: ideally this would be a container where each element type is only allowed once and elements can be looked up by type
-// for now I solved the lookup (usability) problem with a JvmLanguagePlugin.getJvmBinariesContainer() method; maybe that's good enough
 @Incubating
-public interface BinariesContainer extends NamedDomainObjectSet<Named> {}
+public interface LanguageSourceSet extends Named, Buildable {
+    // TODO: do we want to keep using SourceDirectorySet in the new API?
+    // would feel more natural if dirs could be added directly to LanguageSourceSet
+    // could also think about extending SourceDirectorySet
+    SourceDirectorySet getSource();
+    FunctionalSourceSet getParent();
+}

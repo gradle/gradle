@@ -13,27 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.language.jvm.tasks;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
 
 public abstract class StaleClassCleaner {
     private File destinationDir;
-    CompileOptions compileOptions;
     FileCollection source;
 
     public abstract void execute();
-
-    public CompileOptions getCompileOptions() {
-        return compileOptions;
-    }
-
-    public void setCompileOptions(CompileOptions compileOptions) {
-        this.compileOptions = compileOptions;
-    }
 
     public FileCollection getSource() {
         return source;

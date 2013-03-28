@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
+package org.gradle.language.jvm.internal;
 
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.tasks.FunctionalSourceSet;
-import org.gradle.api.tasks.ProjectSourceSet;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.language.jvm.ClassDirectoryBinary;
+import org.gradle.language.jvm.JvmBinaryContainer;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultProjectSourceSet extends AbstractNamedDomainObjectContainer<FunctionalSourceSet> implements ProjectSourceSet {
-    public DefaultProjectSourceSet(Instantiator instantiator) {
-        super(FunctionalSourceSet.class, instantiator);
+public class DefaultJvmBinaryContainer extends DefaultPolymorphicDomainObjectContainer<ClassDirectoryBinary> implements JvmBinaryContainer {
+    public DefaultJvmBinaryContainer(Instantiator instantiator) {
+        super(ClassDirectoryBinary.class, instantiator);
+    }
+
+    public String getName() {
+        return "jvm";
     }
 
     @Override
-    protected FunctionalSourceSet doCreate(String name) {
-        return getInstantiator().newInstance(DefaultFunctionalSourceSet.class, name, getInstantiator());
+    protected ClassDirectoryBinary doCreate(String name) {
+        return getInstantiator().newInstance(DefaultClassDirectoryBinary.class, name);
     }
 }

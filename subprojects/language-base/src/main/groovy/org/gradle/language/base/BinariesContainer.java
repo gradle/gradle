@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.language.base;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.api.*;
 
 /**
- * A container for JVM binaries.
+ * A container for binaries that in turn contains more specialized containers.
+ * Added to a project by the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
  */
+// TODO: ideally this would be a container where each element type is only allowed once and elements can be looked up by type
+// for now I solved the lookup (usability) problem with a JvmLanguagePlugin.getJvmBinariesContainer() method; maybe that's good enough
 @Incubating
-public interface JvmBinaryContainer extends ExtensiblePolymorphicDomainObjectContainer<ClassDirectoryBinary>, Named {
-}
+public interface BinariesContainer extends NamedDomainObjectSet<Named> {}

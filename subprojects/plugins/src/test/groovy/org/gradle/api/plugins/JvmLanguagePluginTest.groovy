@@ -15,10 +15,11 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.plugins.ProcessResources
-import org.gradle.api.tasks.ClassDirectoryBinary
-import org.gradle.api.tasks.JvmBinaryContainer
-import org.gradle.api.tasks.ResourceSet
+import org.gradle.language.jvm.tasks.ProcessResources
+import org.gradle.language.jvm.ClassDirectoryBinary
+import org.gradle.language.jvm.JvmBinaryContainer
+import org.gradle.language.jvm.ResourceSet
+import org.gradle.language.jvm.plugins.JvmLanguagePlugin
 import org.gradle.util.HelperUtil
 
 import spock.lang.Specification

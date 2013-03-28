@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
+package org.gradle.language.base.internal;
 
-import org.gradle.api.tasks.FunctionalSourceSet;
-import org.gradle.api.tasks.LanguageSourceSet;
-import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.Named;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.language.base.BinariesContainer;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultFunctionalSourceSet extends DefaultPolymorphicDomainObjectContainer<LanguageSourceSet> implements FunctionalSourceSet {
-    private final String name;
-
-    public DefaultFunctionalSourceSet(String name, Instantiator instantiator) {
-        super(LanguageSourceSet.class, instantiator);
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
+public class DefaultBinariesContainer extends DefaultNamedDomainObjectSet<Named> implements BinariesContainer {
+    public DefaultBinariesContainer(Instantiator instantiator) {
+        super(Named.class, instantiator);
     }
 }

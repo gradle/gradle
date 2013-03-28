@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
+package org.gradle.language.base.internal;
 
-import org.gradle.api.Named;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.tasks.BinariesContainer;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultBinariesContainer extends DefaultNamedDomainObjectSet<Named> implements BinariesContainer {
-    public DefaultBinariesContainer(Instantiator instantiator) {
-        super(Named.class, instantiator);
+public class DefaultProjectSourceSet extends AbstractNamedDomainObjectContainer<FunctionalSourceSet> implements ProjectSourceSet {
+    public DefaultProjectSourceSet(Instantiator instantiator) {
+        super(FunctionalSourceSet.class, instantiator);
+    }
+
+    @Override
+    protected FunctionalSourceSet doCreate(String name) {
+        return getInstantiator().newInstance(DefaultFunctionalSourceSet.class, name, getInstantiator());
     }
 }

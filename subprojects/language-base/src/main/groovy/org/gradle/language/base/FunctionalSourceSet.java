@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.language.base;
 
-import org.gradle.api.Buildable;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.file.SourceDirectorySet;
 
 /**
- * A set of sources for a programming language.
+ * A container holding {@link LanguageSourceSet}s with a similar function
+ * (production code, test code, etc.).
  */
 @Incubating
-public interface LanguageSourceSet extends Named, Buildable {
-    // TODO: do we want to keep using SourceDirectorySet in the new API?
-    // would feel more natural if dirs could be added directly to LanguageSourceSet
-    // could also think about extending SourceDirectorySet
-    SourceDirectorySet getSource();
-    FunctionalSourceSet getParent();
-}
+public interface FunctionalSourceSet extends ExtensiblePolymorphicDomainObjectContainer<LanguageSourceSet>, Named {}

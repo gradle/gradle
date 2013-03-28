@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
+package org.gradle.language.jvm.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DomainObjectCollection;
@@ -21,7 +21,8 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.tasks.*;
-import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.jvm.ClassDirectoryBinary;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -33,7 +34,6 @@ public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
     private final DomainObjectCollection<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private Task classesTask;
     private Copy resourcesTask;
-    private AbstractCompile compileTask;
 
     public DefaultClassDirectoryBinary(String name) {
         this.name = name;
@@ -82,15 +82,6 @@ public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
 
     public void setResourcesTask(Copy resourcesTask) {
         this.resourcesTask = resourcesTask;
-    }
-
-    @Nullable
-    public AbstractCompile getCompileTask() {
-        return compileTask;
-    }
-
-    public void setCompileTask(AbstractCompile compileTask) {
-        this.compileTask = compileTask;
     }
 
     public String getTaskName(@Nullable String verb, @Nullable String target) {

@@ -13,29 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins;
+package org.gradle.language.jvm.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.plugins.ProcessResources;
-import org.gradle.api.internal.tasks.*;
 import org.gradle.api.tasks.*;
-import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.BinariesContainer;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.jvm.ResourceSet;
+import org.gradle.language.base.plugins.LanguageBasePlugin;
+import org.gradle.language.jvm.ClassDirectoryBinary;
+import org.gradle.language.jvm.JvmBinaryContainer;
+import org.gradle.language.jvm.internal.DefaultClassDirectoryBinary;
+import org.gradle.language.jvm.internal.DefaultJvmBinaryContainer;
+import org.gradle.language.jvm.internal.DefaultResourceSet;
+import org.gradle.language.jvm.tasks.ProcessResources;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
- * Base plugin for JVM language support. Applies the {@link LanguageBasePlugin}.
- * Adds a {@link JvmBinaryContainer} named {@code jvm} to the project's {@link BinariesContainer}.
- * Registers the {@link ClassDirectoryBinary} element type for that container.
- * Adds a lifecycle task named {@code classes} for each {@link ClassDirectoryBinary}.
- * Adds a {@link Copy} task named {@code processXYZResources} for each {@link ResourceSet} added to a {@link ClassDirectoryBinary}.
+ * Base plugin for JVM language support. Applies the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
+ * Adds a {@link org.gradle.language.jvm.JvmBinaryContainer} named {@code jvm} to the project's {@link org.gradle.language.base.BinariesContainer}.
+ * Registers the {@link org.gradle.language.jvm.ClassDirectoryBinary} element type for that container.
+ * Adds a lifecycle task named {@code classes} for each {@link org.gradle.language.jvm.ClassDirectoryBinary}.
+ * Registers the {@link org.gradle.language.jvm.ResourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
+ * Adds a {@link Copy} task named {@code processXYZResources} for each {@link org.gradle.language.jvm.ResourceSet} added to a {@link org.gradle.language.jvm.ClassDirectoryBinary}.
  */
 @Incubating
 public class JvmLanguagePlugin implements Plugin<Project> {
@@ -53,7 +62,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
     public void apply(final Project target) {
         target.getPlugins().apply(LanguageBasePlugin.class);
 
-        ProjectSourceSet projectSourceSet = target.getExtensions().getByType(DefaultProjectSourceSet.class);
+        ProjectSourceSet projectSourceSet = target.getExtensions().getByType(ProjectSourceSet.class);
         projectSourceSet.all(new Action<FunctionalSourceSet>() {
             public void execute(final FunctionalSourceSet functionalSourceSet) {
                 functionalSourceSet.registerFactory(ResourceSet.class, new NamedDomainObjectFactory<ResourceSet>() {
@@ -65,7 +74,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
             }
         });
 
-        BinariesContainer binariesContainer = target.getExtensions().getByType(DefaultBinariesContainer.class);
+        BinariesContainer binariesContainer = target.getExtensions().getByType(BinariesContainer.class);
         jvmBinaryContainer = instantiator.newInstance(DefaultJvmBinaryContainer.class, instantiator);
         binariesContainer.add(jvmBinaryContainer);
 
@@ -114,29 +123,5 @@ public class JvmLanguagePlugin implements Plugin<Project> {
      */
     public JvmBinaryContainer getJvmBinaryContainer() {
         return jvmBinaryContainer;
-    }
-
-    /**
-     * Preconfigures the specified compile task based on the specified source set and class directory binary.
-     *
-     * @param compile the compile task to be preconfigured
-     * @param sourceSet the source set for the compile task
-     * @param binary the binary for the compile task
-     */
-    public void configureCompileTask(AbstractCompile compile, final JvmLanguageSourceSet sourceSet, final ClassDirectoryBinary binary) {
-        compile.setDescription(String.format("Compiles the %s.", sourceSet));
-        compile.setSource(sourceSet.getSource());
-        compile.dependsOn(sourceSet);
-        ConventionMapping conventionMapping = compile.getConventionMapping();
-        conventionMapping.map("classpath", new Callable<Object>() {
-            public Object call() throws Exception {
-                return sourceSet.getCompileClasspath().getFiles();
-            }
-        });
-        conventionMapping.map("destinationDir", new Callable<Object>() {
-            public Object call() throws Exception {
-                return binary.getClassesDir();
-            }
-        });
     }
 }

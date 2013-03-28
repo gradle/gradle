@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.language.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.language.base.Classpath;
+import org.gradle.language.base.LanguageSourceSet;
 
 /**
- * A container of {@link FunctionalSourceSet}s. Added to a project by the
- * {@link org.gradle.api.plugins.LanguageBasePlugin}.
+ * A set of sources for a JVM language.
  */
 @Incubating
-public interface ProjectSourceSet extends NamedDomainObjectContainer<FunctionalSourceSet> {}
+public interface JvmLanguageSourceSet extends LanguageSourceSet {
+    Classpath getCompileClasspath();
+}

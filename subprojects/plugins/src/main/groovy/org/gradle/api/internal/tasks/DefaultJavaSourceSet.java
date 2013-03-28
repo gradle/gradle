@@ -17,8 +17,8 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.FunctionalSourceSet;
+import org.gradle.language.base.Classpath;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.api.tasks.JavaSourceSet;
 import org.gradle.api.tasks.TaskDependency;
 

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.language.jvm;
 
 import org.gradle.api.*;
-import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.Copy;
+import org.gradle.language.base.LanguageSourceSet;
 
 import java.io.File;
 
@@ -40,10 +41,6 @@ public interface ClassDirectoryBinary extends Named, Buildable {
     @Nullable
     Copy getResourcesTask();
     void setResourcesTask(Copy task);
-    // TODO: having a single compile task won't work if multiple separately compiled langs are used
-    @Nullable
-    AbstractCompile getCompileTask();
-    void setCompileTask(AbstractCompile task);
     String getTaskName(String verb, String target);
     String getTaskBaseName();
 }

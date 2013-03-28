@@ -16,6 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.language.jvm.plugins.JvmLanguagePlugin
 import org.gradle.util.HelperUtil
 
 import spock.lang.Specification

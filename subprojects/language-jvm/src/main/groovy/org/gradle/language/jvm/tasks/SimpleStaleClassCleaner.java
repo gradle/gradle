@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.language.jvm.tasks;
 
 import org.gradle.api.internal.TaskOutputsInternal;
 

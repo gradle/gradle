@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.language.jvm;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
-import org.gradle.api.file.FileCollection;
+import org.gradle.language.base.LanguageSourceSet;
 
 /**
- * A collection of files to be used as a class path.
+ * A set of resource files.
  */
 @Incubating
-public interface Classpath extends Buildable {
-    FileCollection getFiles();
-}
+public interface ResourceSet extends LanguageSourceSet {}

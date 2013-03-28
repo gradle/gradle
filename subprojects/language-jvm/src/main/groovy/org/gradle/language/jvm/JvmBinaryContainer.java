@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.language.jvm;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 
 /**
- * A set of resource files.
+ * A container for JVM binaries.
  */
 @Incubating
-public interface ResourceSet extends LanguageSourceSet {}
+public interface JvmBinaryContainer extends ExtensiblePolymorphicDomainObjectContainer<ClassDirectoryBinary>, Named {
+}

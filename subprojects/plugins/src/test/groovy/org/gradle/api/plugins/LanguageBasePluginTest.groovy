@@ -16,8 +16,9 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.tasks.BinariesContainer
-import org.gradle.api.tasks.ProjectSourceSet
+import org.gradle.language.base.BinariesContainer
+import org.gradle.language.base.ProjectSourceSet
+import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.util.HelperUtil
 
 import spock.lang.Specification

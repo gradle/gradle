@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.language.jvm.tasks;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+import org.gradle.api.tasks.Copy;
 
 /**
- * A container holding {@link LanguageSourceSet}s with a similar function
- * (production code, test code, etc.).
+ * Copies resources from their source to their target directory, potentially processing them.
+ * Makes sure no stale resources remain in the target directory.
  */
-@Incubating
-public interface FunctionalSourceSet extends ExtensiblePolymorphicDomainObjectContainer<LanguageSourceSet>, Named {}
+public class ProcessResources extends Copy {
+    @Override
+    protected void copy() {
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        cleaner.setDestinationDir(getDestinationDir());
+        cleaner.execute();
+        super.copy();
+    }
+}

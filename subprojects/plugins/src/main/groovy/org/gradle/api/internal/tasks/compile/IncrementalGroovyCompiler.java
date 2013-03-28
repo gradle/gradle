@@ -16,6 +16,8 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.language.jvm.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.jvm.tasks.StaleClassCleaner;
 
 public class IncrementalGroovyCompiler extends IncrementalJavaCompilerSupport<GroovyJavaJointCompileSpec> {
     private final Compiler<GroovyJavaJointCompileSpec> compiler;

@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins;
+package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.tasks.*;
-import org.gradle.api.tasks.*;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.internal.DefaultBinariesContainer;
+import org.gradle.language.base.internal.DefaultProjectSourceSet;
 
 import javax.inject.Inject;
 
 /**
  * Base plugin for language support.
- * Adds a {@link BinariesContainer} named {@code binaries} to the project.
- * Adds a {@link ProjectSourceSet} named {@code sources} to the project.
- * Registers the {@link ResourceSet} element type for each {@link FunctionalSourceSet} added to {@link ProjectSourceSet}.
+ * Adds a {@link org.gradle.language.base.BinariesContainer} named {@code binaries} to the project.
+ * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
