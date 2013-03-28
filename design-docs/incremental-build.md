@@ -99,13 +99,13 @@ Incremental execution is not possible when:
                 if (inputs.allOutOfDate) {
                     FileUtils.forceDelete(destination)
                 }
-                inputs.outOfDate({
+                inputs.outOfDate({ change ->
                     FileUtils.copyFile(change.file, targetFile(change.file))
                 } as Action)
-                .removed({
+                
+                inputs.removed({ change ->
                     FileUtils.forceDelete(targetFile(change.file))
                 } as Action)
-                .process()
             }
 
             def targetFile(def inputFile) {
