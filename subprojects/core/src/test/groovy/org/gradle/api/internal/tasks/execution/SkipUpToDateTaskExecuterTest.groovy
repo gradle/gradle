@@ -59,6 +59,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         1 * taskArtifactState.getExecutionHistory() >> executionHistory
         2 * task.outputs >> outputs
         1 * outputs.setHistory(executionHistory)
+        1 * task.isIncrementalTask() >> true
         1 * outputs.setTaskArtifactState(taskArtifactState)
 
         then:
@@ -84,9 +85,9 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         then:
         1 * taskArtifactState.beforeTask()
         1 * taskArtifactState.getExecutionHistory() >> executionHistory
-        2 * task.outputs >> outputs
+        1 * task.outputs >> outputs
         1 * outputs.setHistory(executionHistory)
-        1 * outputs.setTaskArtifactState(taskArtifactState)
+        1 * task.isIncrementalTask() >> false
 
         then:
         1 * delegate.execute(task, taskState)

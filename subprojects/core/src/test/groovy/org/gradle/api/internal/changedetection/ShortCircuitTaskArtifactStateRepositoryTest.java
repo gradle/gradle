@@ -158,6 +158,8 @@ public class ShortCircuitTaskArtifactStateRepositoryTest {
             will(returnValue(taskOutputsInternal));
             allowing(taskOutputsInternal).getHasOutput();
             will(returnValue(false));
+            allowing(task).isIncrementalTask();
+            will(returnValue(false));
         }});
 
         return task;
