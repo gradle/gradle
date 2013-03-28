@@ -139,7 +139,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         // TODO:DAZ Ensure that all of the work done in isUpToDate() is reused here
-        public TaskInputChanges getExecutionContext() {
+        public TaskInputChanges getInputChanges() {
             assert !upToDate : "I don't think we should be here if the task is up-to-date";
 
             if (incrementalRequiresRebuild()) {

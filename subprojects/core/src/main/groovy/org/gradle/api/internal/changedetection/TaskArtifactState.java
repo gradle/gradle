@@ -27,7 +27,7 @@ public interface TaskArtifactState {
      */
     boolean isUpToDate();
 
-    TaskInputChanges getExecutionContext();
+    TaskInputChanges getInputChanges();
 
     /**
      * Called before the task is to be executed. Note that {@link #isUpToDate()} may not necessarily have been called.

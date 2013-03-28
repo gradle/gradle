@@ -32,6 +32,6 @@ public interface TaskOutputsInternal extends TaskOutputs {
     // TODO:DAZ Don't want these 2 on here
     void setTaskArtifactState(TaskArtifactState artifactState);
 
-    TaskInputChanges getExecutionContext();
+    TaskInputChanges getInputChanges();
 
 }

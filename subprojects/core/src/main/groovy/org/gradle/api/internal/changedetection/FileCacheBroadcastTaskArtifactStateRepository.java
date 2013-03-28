@@ -38,8 +38,8 @@ public class FileCacheBroadcastTaskArtifactStateRepository implements TaskArtifa
                 return state.isUpToDate();
             }
 
-            public TaskInputChanges getExecutionContext() {
-                return state.getExecutionContext();
+            public TaskInputChanges getInputChanges() {
+                return state.getInputChanges();
             }
 
             public void beforeTask() {

@@ -205,7 +205,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         protected void doActions(Task task, String methodName) {
-            TaskInputChanges executionContext = ((TaskInternal) task).getOutputs().getExecutionContext();
+            TaskInputChanges executionContext = ((TaskInternal) task).getOutputs().getInputChanges();
             ReflectionUtil.invoke(task, methodName, executionContext);
         }
     }

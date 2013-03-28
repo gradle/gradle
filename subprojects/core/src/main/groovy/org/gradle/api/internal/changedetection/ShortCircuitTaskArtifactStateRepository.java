@@ -48,7 +48,7 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return false;
         }
 
-        public TaskInputChanges getExecutionContext() {
+        public TaskInputChanges getInputChanges() {
             throw new UnsupportedOperationException();
         }
 
@@ -83,13 +83,13 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return !startParameter.isRerunTasks() && task.getOutputs().getUpToDateSpec().isSatisfiedBy(task) && state.isUpToDate();
         }
 
-        public TaskInputChanges getExecutionContext() {
+        public TaskInputChanges getInputChanges() {
             // If we would normally re-run the task, then use a rebuild context
             // TODO: Don't want to re-execute the upToDateSpec
             if (startParameter.isRerunTasks() || !task.getOutputs().getUpToDateSpec().isSatisfiedBy(task)) {
                 return new RebuildTaskInputChanges(task);
             }
-            return state.getExecutionContext();
+            return state.getInputChanges();
         }
 
         public TaskExecutionHistory getExecutionHistory() {

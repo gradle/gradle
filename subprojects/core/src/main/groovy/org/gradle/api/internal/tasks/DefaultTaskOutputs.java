@@ -94,8 +94,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.history = history;
     }
 
-    public TaskInputChanges getExecutionContext() {
-        return artifactState.getExecutionContext();
+    public TaskInputChanges getInputChanges() {
+        return artifactState.getInputChanges();
     }
 
     public void setTaskArtifactState(TaskArtifactState artifactState) {
