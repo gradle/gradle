@@ -44,7 +44,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.projectAccessListener = projectAccessListener;
     }
 
-    public Task add(Map<String, ?> options) {
+    public Task create(Map<String, ?> options) {
         Map<String, Object> mutableOptions = new HashMap<String, Object>(options);
 
         Object replaceStr = mutableOptions.remove(Task.TASK_OVERWRITE);
@@ -68,16 +68,28 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return task;
     }
 
+    public Task add(Map<String, ?> options) {
+        return create(options);
+    }
+
+    public Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
+        return create(options).configure(configureClosure);
+    }
+
     public Task add(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
-        return add(options).configure(configureClosure);
+        return create(options, configureClosure);
+    }
+
+    public <T extends Task> T create(String name, Class<T> type) {
+        return type.cast(create(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type)));
     }
 
     public <T extends Task> T add(String name, Class<T> type) {
-        return type.cast(add(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type)));
+        return create(name, type);
     }
 
     public Task create(String name) {
-        return add(name);
+        return create(GUtil.map(Task.TASK_NAME, name));
     }
 
     public Task create(String name, Action<? super Task> configureAction) throws InvalidUserDataException {
@@ -95,23 +107,29 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task add(String name) {
-        return add(GUtil.map(Task.TASK_NAME, name));
+        return create(name);
     }
 
     public Task replace(String name) {
-        return add(GUtil.map(Task.TASK_NAME, name, Task.TASK_OVERWRITE, true));
+        return create(GUtil.map(Task.TASK_NAME, name, Task.TASK_OVERWRITE, true));
     }
 
     public Task create(String name, Closure configureClosure) {
-        return add(name, configureClosure);
+        return create(name).configure(configureClosure);
     }
 
     public Task add(String name, Closure configureClosure) {
-        return add(GUtil.map(Task.TASK_NAME, name)).configure(configureClosure);
+        return create(name, configureClosure);
+    }
+
+    public <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException {
+        T task = create(name, type);
+        configuration.execute(task);
+        return task;
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {
-        return type.cast(add(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type, Task.TASK_OVERWRITE, true)));
+        return type.cast(create(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type, Task.TASK_OVERWRITE, true)));
     }
 
     public Task findByPath(String path) {
