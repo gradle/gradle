@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea
 
+import groovy.util.slurpersupport.GPathResult
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.gradle.integtests.fixtures.TestResources
@@ -91,8 +92,12 @@ apply plugin: 'idea'
     void overwritesExistingDependencies() {
         executer.withTasks('idea').run()
 
-        assertHasExpectedContents('root.ipr')
-        assertHasExpectedContents('root.iml')
+        hasExplodedWarArtifact('root.ipr', 'webservice', 'file://$PROJECT_DIR$/out/webservice_web_exploded', ['webservice'],
+                ['commons-collections-3.2.jar', 'junit-4.7.jar'])
+        hasModuleLibraries('root.iml', 'RUNTIME', ['commons-collections-3.2.jar', 'junit-4.7.jar'], [],
+                ['commons-collections-3.2-sources.jar', 'junit-4.7-sources.jar'])
+        hasModuleLibraries('webservice/webservice.iml', 'RUNTIME', ['commons-collections-3.2.jar', 'junit-4.7.jar'], [],
+                ['commons-collections-3.2-sources.jar', 'junit-4.7-sources.jar'])
     }
 
     @Test
@@ -395,6 +400,28 @@ idea.project {
                 process.waitFor()
             }
             throw new AssertionError("generated file '$path' does not contain the expected contents: ${e.message}.\nExpected:\n${expectedXml}\nActual:\n${actualXml}").initCause(e)
+        }
+    }
+
+    private void hasModuleLibraries(String imlFileName, String scope, List<String> classesLibs, List<String> javadocLibs, List<String> sourcesLibs) {
+        def module = new XmlSlurper().parse(file(imlFileName))
+
+        def newModuleRootManager = module.component.find { it.@name == 'NewModuleRootManager' }
+        assert newModuleRootManager
+
+        def moduleLibraryNodes = newModuleRootManager.orderEntry.findAll { it.@type == 'module-library' && it.@scope == scope }
+        assert moduleLibraryNodes
+
+        hasLibraries(moduleLibraryNodes, 'CLASSES', classesLibs)
+        hasLibraries(moduleLibraryNodes, 'JAVADOC', javadocLibs)
+        hasLibraries(moduleLibraryNodes, 'SOURCES', sourcesLibs)
+    }
+
+    private void hasLibraries(GPathResult moduleLibraryNodes, String libraryPart, List<String> expectedLibraries) {
+        def rootNodes = moduleLibraryNodes.collect { it.library."$libraryPart".root }.findAll { it.size() > 0 }
+        assert rootNodes.size() == expectedLibraries.size()
+        expectedLibraries.each {
+            lib -> assert rootNodes.find { it.@url.text().contains(lib) }
         }
     }
 
