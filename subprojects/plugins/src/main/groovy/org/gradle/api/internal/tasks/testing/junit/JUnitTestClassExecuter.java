@@ -75,10 +75,9 @@ public class JUnitTestClassExecuter {
                         CollectionUtils.collect(options.getIncludeCategories(), transformer),
                         CollectionUtils.collect(options.getExcludeCategories(), transformer)
                 ));
-            }else{
+            } else {
                 logger.warn(IGNORING_JUNIT_CATEGORY_CONFIGURATION);
             }
-
         }
 
         Runner runner = request.getRunner();
