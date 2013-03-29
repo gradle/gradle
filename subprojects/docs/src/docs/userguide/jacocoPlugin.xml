@@ -42,7 +42,7 @@
 
     <section>
         <title>Configuring the Jacoco Plugin</title>
-        <para>The Jacoco plugin adds a <apilink class="org.gradle.testing.jacoco.plugin.JacocoPluginExtension" /> extension to the project,
+        <para>The Jacoco plugin adds a <apilink class="org.gradle.testing.jacoco.plugins.JacocoPluginExtension" /> extension to the project,
             which allows to configure the Jacoco plugin.
         </para>
         <sample id="configJacoco" dir="testing/jacoco/quickstart" title="Configuring jacoco plugin settings">
@@ -91,7 +91,7 @@
 
     <section>
             <title>Jacoco specific task configuration</title>
-            <para>The Jacoco plugin adds a <apilink class="org.gradle.testing.jacoco.plugin.JacocoTaskExtension" /> extension to all tasks of type <apilink class="org.gradle.api.tasks.testing.Test"/>
+            <para>The Jacoco plugin adds a <apilink class="org.gradle.testing.jacoco.plugins.JacocoTaskExtension" /> extension to all tasks of type <apilink class="org.gradle.api.tasks.testing.Test"/>
             This extension allows the configuration of the jacoco specific properties of a Test task.
             </para>
             <sample id="jacocotesttast" dir="testing/jacoco/quickstart" title="Configuring test task">

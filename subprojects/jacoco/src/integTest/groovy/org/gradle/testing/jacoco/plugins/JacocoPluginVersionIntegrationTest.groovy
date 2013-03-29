@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.jacoco
+package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
@@ -40,7 +40,7 @@ class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
             testCompile 'junit:junit:4.10'
         }
         jacoco {
-            toolVersion = '$version'
+            toolVersion = '$org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.version'
         }
         """
         createTestFiles();

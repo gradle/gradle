@@ -22,7 +22,7 @@ import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
 import org.gradle.internal.jacoco.JacocoReportsContainerImpl
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.testing.jacoco.plugin.JacocoTaskExtension
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 
 import javax.inject.Inject
 

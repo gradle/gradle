@@ -24,7 +24,7 @@ import org.gradle.api.plugins.sonar.model.*
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.testing.jacoco.plugin.JacocoPlugin
+import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import org.gradle.util.GradleVersion
 
 import javax.inject.Inject

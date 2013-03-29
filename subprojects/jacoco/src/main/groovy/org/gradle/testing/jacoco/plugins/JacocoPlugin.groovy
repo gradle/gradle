@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.testing.jacoco.plugin
+package org.gradle.testing.jacoco.plugins
 
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -83,7 +83,7 @@ class JacocoPlugin implements Plugin<Project> {
 
     def configureDefaultOutputPathForJacocoMerge() {
         project.tasks.withType(JacocoMerge) { task ->
-            task.destFile = new File(project.getBuildDir(), "/jacoco/${task.name}.exec")
+            task.conventionMapping.destFile = { new File(project.getBuildDir(), "/jacoco/${task.name}.exec") }
         }
     }
 

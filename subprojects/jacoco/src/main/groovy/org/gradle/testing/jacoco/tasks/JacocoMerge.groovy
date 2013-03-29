@@ -22,7 +22,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskCollection
-import org.gradle.testing.jacoco.plugin.JacocoTaskExtension
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 
 /**
  * Task to merge multiple execution data files into one.

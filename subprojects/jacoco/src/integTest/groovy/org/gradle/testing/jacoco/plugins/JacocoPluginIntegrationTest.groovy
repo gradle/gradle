@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.jacoco
+package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Test

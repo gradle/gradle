@@ -23,7 +23,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.jvm.Jvm
-import org.gradle.testing.jacoco.plugin.JacocoPlugin
+import org.gradle.testing.jacoco.plugins.JacocoPlugin
 
 /**
  * A plugin for analyzing projects with the
