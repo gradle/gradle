@@ -17,18 +17,10 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.test.fixtures.server.http.TestProxyServer
-import org.gradle.util.GradleVersion
-import org.gradle.util.TextUtil
 import org.hamcrest.Matchers
-import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
@@ -36,25 +28,20 @@ import static org.junit.Assert.assertThat
  * @author Hans Dockter
  */
 class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
-    @Rule HttpServer server = new HttpServer()
-    @Rule TestProxyServer proxyServer = new TestProxyServer(server)
-
     void setup() {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :distributions:binZip task"
+        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :distributions:binZip task"
         executer.beforeExecute(new WrapperSetup())
-        server.start()
-        server.expectUserAgent(matchesNameAndVersion("gradlew", GradleVersion.current().getVersion()))
     }
 
     GradleExecuter getWrapperExecuter() {
         executer.usingExecutable('gradlew').inDirectory(testDirectory)
     }
 
-    private prepareWrapper(String baseUrl) {
+    private prepareWrapper() {
         file("build.gradle") << """
     import org.gradle.api.tasks.wrapper.Wrapper
     task wrapper(type: Wrapper) {
-        distributionUrl = '${baseUrl}/gradlew/dist'
+        distributionUrl = '${distribution.binDistribution.toURI()}'
     }
 
     task hello << {
@@ -67,103 +54,28 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 """
 
         executer.withTasks('wrapper').run()
-        server.allowGetOrHead("/gradlew/dist", distribution.binDistribution)
     }
 
     public void "has non-zero exit code on build failure"() {
         given:
-        prepareWrapper("http://localhost:${server.port}")
-
-        expect:
-        server.allowGetOrHead("/gradlew/dist", distribution.binDistribution)
+        prepareWrapper()
 
         when:
-        ExecutionFailure failure = wrapperExecuter.withTasks('unknown').runWithFailure()
+        def failure = wrapperExecuter.withTasks('unknown').runWithFailure()
 
         then:
         failure.assertThatDescription(Matchers.startsWith("Task 'unknown' not found in root project"))
     }
 
-    public void "runs sample target using wrapper"() {
-        given:
-        prepareWrapper("http://localhost:${server.port}")
-
-        when:
-        ExecutionResult result = wrapperExecuter.withTasks('hello').run()
-
-        then:
-        assertThat(result.output, containsString('hello'))
-    }
-
-    public void "downloads wrapper via proxy"() {
-        given:
-        proxyServer.start()
-        prepareWrapper("http://not.a.real.domain")
-        file("gradle.properties") << """
-    systemProp.http.proxyHost=localhost
-    systemProp.http.proxyPort=${proxyServer.port}
-"""
-
-        when:
-        ExecutionResult result = wrapperExecuter.withTasks('hello').run()
-
-        then:
-        assertThat(result.output, containsString('hello'))
-
-        and:
-        proxyServer.requestCount == 1
-    }
-
-    public void "downloads wrapper via authenticated proxy"() {
-        given:
-        proxyServer.start()
-        proxyServer.requireAuthentication('my_user', 'my_password')
-
-        and:
-        prepareWrapper("http://not.a.real.domain")
-        file("gradle.properties") << """
-    systemProp.http.proxyHost=localhost
-    systemProp.http.proxyPort=${proxyServer.port}
-    systemProp.http.proxyUser=my_user
-    systemProp.http.proxyPassword=my_password
-"""
-        when:
-        ExecutionResult result = wrapperExecuter.withTasks('hello').run()
-
-        then:
-        assertThat(result.output, containsString('hello'))
-
-        and:
-        proxyServer.requestCount == 1
-    }
-
     @Issue("http://issues.gradle.org/browse/GRADLE-1871")
     public void "can specify project properties containing D"() {
         given:
-        prepareWrapper("http://localhost:${server.port}")
+        prepareWrapper()
 
         when:
-        ExecutionResult result = wrapperExecuter.withArguments("-PfooD=bar").withTasks('echoProperty').run()
+        def result = wrapperExecuter.withArguments("-PfooD=bar").withTasks('echoProperty').run()
 
         then:
         assertThat(result.output, containsString("fooD=bar"))
-    }
-
-    public void "generated wrapper scripts use correct line separators"() {
-        given:
-        file("build.gradle") << """
-            import org.gradle.api.tasks.wrapper.Wrapper
-            task wrapper(type: Wrapper) {
-                distributionUrl = 'http://localhost:${server.port}/gradlew/dist'
-            }
-        """
-
-        when:
-        run "wrapper"
-        then:
-        assert file("gradlew").text.split(TextUtil.unixLineSeparator).length > 1
-        assert file("gradlew").text.split(TextUtil.windowsLineSeparator).length == 1
-        assert file("gradlew.bat").text.split(TextUtil.windowsLineSeparator).length > 1
-        noExceptionThrown()
     }
 }
