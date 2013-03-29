@@ -131,7 +131,7 @@ class SigningExtension {
         def configurations = project.configurations
         def configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME)
         if (configuration == null) {
-            configuration = configurations.add(DEFAULT_CONFIGURATION_NAME)
+            configuration = configurations.create(DEFAULT_CONFIGURATION_NAME)
         }
         configuration
     }

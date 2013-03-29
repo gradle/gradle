@@ -73,7 +73,7 @@ public class WarPlugin implements Plugin<Project> {
             }
         });
         
-        War war = project.getTasks().add(WAR_TASK_NAME, War.class);
+        War war = project.getTasks().create(WAR_TASK_NAME, War.class);
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
         war.setGroup(BasePlugin.BUILD_GROUP);
         ArchivePublishArtifact warArtifact = new ArchivePublishArtifact(war);
@@ -83,9 +83,9 @@ public class WarPlugin implements Plugin<Project> {
     }
 
     public void configureConfigurations(ConfigurationContainer configurationContainer) {
-        Configuration provideCompileConfiguration = configurationContainer.add(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
+        Configuration provideCompileConfiguration = configurationContainer.create(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
                 setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
-        Configuration provideRuntimeConfiguration = configurationContainer.add(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
+        Configuration provideRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
                 extendsFrom(provideCompileConfiguration).
                 setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
         configurationContainer.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);

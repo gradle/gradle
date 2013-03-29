@@ -71,7 +71,7 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         this.project = project;
         JavaBasePlugin javaBasePlugin = project.getPlugins().apply(JavaBasePlugin.class);
 
-        Configuration groovyConfiguration = project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).
+        Configuration groovyConfiguration = project.getConfigurations().create(GROOVY_CONFIGURATION_NAME).setVisible(false).
                 setDescription("The Groovy libraries to be used for this Groovy project. (Deprecated)");
         deprecateGroovyConfiguration(groovyConfiguration);
 

@@ -52,7 +52,7 @@ public class ScalaBasePluginTest {
 
     @Test void defaultsScalaClasspathToScalaToolsConfigurationIfTheLatterIsNonEmpty() {
         project.plugins.apply(ScalaBasePlugin)
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         def configuration = project.configurations.scalaTools
         project.dependencies {
             scalaTools "org.scala-lang:scala-compiler:2.10"
@@ -82,7 +82,7 @@ public class ScalaBasePluginTest {
 
     @Test void preconfiguresZincClasspathForCompileTasksThatUseZinc() {
         project.plugins.apply(ScalaBasePlugin)
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         def task = project.tasks.compileCustomScala
         task.scalaCompileOptions.useAnt = false
         assert task.zincClasspath instanceof Configuration
@@ -91,7 +91,7 @@ public class ScalaBasePluginTest {
 
     @Test void doesNotPreconfigureZincClasspathForCompileTasksThatUseAnt() {
         project.plugins.apply(ScalaBasePlugin)
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         def task = project.tasks.compileCustomScala
         task.scalaCompileOptions.useAnt = true
         assert task.zincClasspath instanceof Configuration
@@ -101,7 +101,7 @@ public class ScalaBasePluginTest {
     @Test void addsScalaConventionToNewSourceSet() {
         project.plugins.apply(ScalaBasePlugin)
 
-        def sourceSet = project.sourceSets.add('custom')
+        def sourceSet = project.sourceSets.create('custom')
         assertThat(sourceSet.scala.displayName, equalTo("custom Scala source"))
         assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/custom/scala"))))
     }
@@ -109,7 +109,7 @@ public class ScalaBasePluginTest {
     @Test void addsCompileTaskForNewSourceSet() {
         project.plugins.apply(ScalaBasePlugin)
 
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         def task = project.tasks['compileCustomScala']
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the custom Scala source.'))
@@ -122,7 +122,7 @@ public class ScalaBasePluginTest {
     @Test void preconfiguresIncrementalCompileOptions() {
         project.plugins.apply(ScalaBasePlugin)
 
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         project.tasks.add('customJar', Jar)
         ScalaCompile task = project.tasks['compileCustomScala']
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
@@ -134,7 +134,7 @@ public class ScalaBasePluginTest {
     @Test void incrementalCompileOptionsCanBeOverridden() {
         project.plugins.apply(ScalaBasePlugin)
 
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         project.tasks.add('customJar', Jar)
         ScalaCompile task = project.tasks['compileCustomScala']
         task.scalaCompileOptions.incrementalOptions.analysisFile = new File("/my/file")
@@ -148,7 +148,7 @@ public class ScalaBasePluginTest {
     @Test void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
         project.plugins.apply(ScalaBasePlugin)
 
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         def task = project.tasks['customClasses']
         assertThat(task, dependsOn(hasItem('compileCustomScala')))
     }

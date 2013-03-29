@@ -172,9 +172,9 @@ public class EarPlugin implements Plugin<Project> {
     private void configureConfigurations(final Project project) {
 
         ConfigurationContainer configurations = project.getConfigurations();
-        Configuration moduleConfiguration = configurations.add(DEPLOY_CONFIGURATION_NAME).setVisible(false)
+        Configuration moduleConfiguration = configurations.create(DEPLOY_CONFIGURATION_NAME).setVisible(false)
                 .setTransitive(false).setDescription("Classpath for deployable modules, not transitive.");
-        Configuration earlibConfiguration = configurations.add(EARLIB_CONFIGURATION_NAME).setVisible(false)
+        Configuration earlibConfiguration = configurations.create(EARLIB_CONFIGURATION_NAME).setVisible(false)
                 .setDescription("Classpath for module dependencies.");
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION)

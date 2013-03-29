@@ -100,14 +100,14 @@ public class JavaBasePlugin implements Plugin<Project> {
 
                 Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
                 if (compileConfiguration == null) {
-                    compileConfiguration = configurations.add(sourceSet.getCompileConfigurationName());
+                    compileConfiguration = configurations.create(sourceSet.getCompileConfigurationName());
                 }
                 compileConfiguration.setVisible(false);
                 compileConfiguration.setDescription(String.format("Classpath for compiling the %s sources.", sourceSet.getName()));
 
                 Configuration runtimeConfiguration = configurations.findByName(sourceSet.getRuntimeConfigurationName());
                 if (runtimeConfiguration == null) {
-                    runtimeConfiguration = configurations.add(sourceSet.getRuntimeConfigurationName());
+                    runtimeConfiguration = configurations.create(sourceSet.getRuntimeConfigurationName());
                 }
                 runtimeConfiguration.setVisible(false);
                 runtimeConfiguration.extendsFrom(compileConfiguration);

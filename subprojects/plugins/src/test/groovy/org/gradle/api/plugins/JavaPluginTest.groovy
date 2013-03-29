@@ -134,7 +134,7 @@ class JavaPluginTest {
     @Test public void createsMappingsForCustomSourceSets() {
         javaPlugin.apply(project)
 
-        def set = project.sourceSets.add('custom')
+        def set = project.sourceSets.create('custom')
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/custom/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/custom/resources'))))
         assertThat(set.compileClasspath, sameInstance(project.configurations.customCompile))

@@ -59,7 +59,7 @@ class JavaBasePluginTest extends Specification {
     void createsTasksAndAppliesMappingsForNewSourceSet() {
         when:
         javaBasePlugin.apply(project)
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         
         then:
         def set = project.sourceSets.custom
@@ -96,7 +96,7 @@ class JavaBasePluginTest extends Specification {
     void "wires generated resources task into classes task for sourceset"() {
         when:
         javaBasePlugin.apply(project)
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
 
         and:
         final someTask = project.task("someTask")
@@ -113,7 +113,7 @@ class JavaBasePluginTest extends Specification {
 
         when:
         javaBasePlugin.apply(project)
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         project.sourceSets.custom.output.classesDir = classesDir
         project.sourceSets.custom.output.resourcesDir = resourcesDir
 
@@ -128,7 +128,7 @@ class JavaBasePluginTest extends Specification {
     void createsConfigurationsForNewSourceSet() {
         when:
         javaBasePlugin.apply(project)
-        def sourceSet = project.sourceSets.add('custom')
+        def sourceSet = project.sourceSets.create('custom')
 
         then:
         def compile = project.configurations.customCompile

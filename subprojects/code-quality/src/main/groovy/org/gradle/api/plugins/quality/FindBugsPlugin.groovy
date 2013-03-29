@@ -52,7 +52,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     }
 
     private configureFindBugsConfigurations() {
-        project.configurations.add('findbugsPlugins').with {
+        project.configurations.create('findbugsPlugins').with {
             visible = false
             transitive = true
             description = 'The FindBugs plugins to be used for this project.'

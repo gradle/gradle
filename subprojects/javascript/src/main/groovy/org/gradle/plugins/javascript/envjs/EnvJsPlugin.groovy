@@ -83,7 +83,7 @@ class EnvJsPlugin implements Plugin<Project> {
     }
 
     Configuration addConfiguration(ConfigurationContainer configurations, DependencyHandler dependencies, EnvJsExtension extension) {
-        Configuration configuration = configurations.add(EnvJsExtension.CONFIGURATION_NAME)
+        Configuration configuration = configurations.create(EnvJsExtension.CONFIGURATION_NAME)
         configuration.incoming.beforeResolve(new Action<ResolvableDependencies>() {
             void execute(ResolvableDependencies resolvableDependencies) {
                 if (configuration.dependencies.empty) {

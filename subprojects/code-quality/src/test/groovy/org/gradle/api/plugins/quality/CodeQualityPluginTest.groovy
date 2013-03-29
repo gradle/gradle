@@ -78,7 +78,7 @@ class CodeQualityPluginTest {
         assertThat(task.properties, equalTo(project.checkstyleProperties))
         assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME))
 
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         task = project.tasks['checkstyleCustom']
         assertThat(task, instanceOf(Checkstyle))
         assertThat(task.source as List, equalTo(project.sourceSets.custom.allJava as List))
@@ -114,7 +114,7 @@ class CodeQualityPluginTest {
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/test.html")))
         assertThat(task, dependsOn())
 
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         task = project.tasks['codenarcCustom']
         assertThat(task, instanceOf(CodeNarc))
         assertThat(task.source as List, equalTo(project.sourceSets.custom.allGroovy as List))

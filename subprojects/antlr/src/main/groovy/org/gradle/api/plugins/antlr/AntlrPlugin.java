@@ -53,7 +53,7 @@ public class AntlrPlugin implements Plugin<ProjectInternal> {
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
-        Configuration antlrConfiguration = project.getConfigurations().add(ANTLR_CONFIGURATION_NAME).setVisible(false)
+        Configuration antlrConfiguration = project.getConfigurations().create(ANTLR_CONFIGURATION_NAME).setVisible(false)
                 .setTransitive(false).setDescription("The Antlr libraries to be used for this project.");
         project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(antlrConfiguration);
 

@@ -92,12 +92,12 @@ class JacocoPlugin implements Plugin<Project> {
      * @param project the project to add the configurations to
      */
     private void addJacocoConfigurations() {
-        this.project.configurations.add(AGENT_CONFIGURATION_NAME).with {
+        this.project.configurations.create(AGENT_CONFIGURATION_NAME).with {
             visible = false
             transitive = true
             description = 'The Jacoco agent to use to get coverage data.'
         }
-        this.project.configurations.add(ANT_CONFIGURATION_NAME).with {
+        this.project.configurations.create(ANT_CONFIGURATION_NAME).with {
             visible = false
             transitive = true
             description = 'The Jacoco ant tasks to use to get execute Gradle tasks.'

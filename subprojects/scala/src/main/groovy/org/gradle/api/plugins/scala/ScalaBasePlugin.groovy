@@ -140,12 +140,12 @@ class ScalaBasePlugin implements Plugin<Project> {
         this.project = project
         def javaPlugin = project.plugins.apply(JavaBasePlugin.class)
 
-        def scalaToolsConfiguration = project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME)
+        def scalaToolsConfiguration = project.configurations.create(SCALA_TOOLS_CONFIGURATION_NAME)
                 .setVisible(false)
                 .setDescription("The Scala tools libraries to be used for this Scala project. (Deprecated)")
         deprecateScalaToolsConfiguration(scalaToolsConfiguration)
 
-        project.configurations.add(ZINC_CONFIGURATION_NAME)
+        project.configurations.create(ZINC_CONFIGURATION_NAME)
                 .setVisible(false)
                 .setDescription("The Zinc incremental compiler to be used for this Scala project.")
 

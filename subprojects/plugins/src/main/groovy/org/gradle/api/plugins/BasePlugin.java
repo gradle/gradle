@@ -129,10 +129,10 @@ public class BasePlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         project.setProperty("status", "integration");
 
-        Configuration archivesConfiguration = configurations.add(Dependency.ARCHIVES_CONFIGURATION).
+        Configuration archivesConfiguration = configurations.create(Dependency.ARCHIVES_CONFIGURATION).
                 setDescription("Configuration for archive artifacts.");
 
-        configurations.add(Dependency.DEFAULT_CONFIGURATION).
+        configurations.create(Dependency.DEFAULT_CONFIGURATION).
                 setDescription("Configuration for default artifacts.");
 
         final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(

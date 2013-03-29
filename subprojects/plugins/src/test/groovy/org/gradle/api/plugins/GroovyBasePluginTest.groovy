@@ -56,13 +56,13 @@ class GroovyBasePluginTest {
     }
 
     @Test void appliesMappingsToNewSourceSet() {
-        def sourceSet = project.sourceSets.add('custom')
+        def sourceSet = project.sourceSets.create('custom')
         assertThat(sourceSet.groovy.displayName, equalTo("custom Groovy source"))
         assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/custom/groovy"))))
     }
 
     @Test void addsCompileTaskToNewSourceSet() {
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
 
         def task = project.tasks['compileCustomGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
@@ -71,7 +71,7 @@ class GroovyBasePluginTest {
     }
 
     @Test void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         def task = project.tasks['customClasses']
         assertThat(task, dependsOn(hasItem('compileCustomGroovy')))
     }
@@ -84,7 +84,7 @@ class GroovyBasePluginTest {
     }
 
     @Test void defaultsGroovyClasspathToGroovyConfigurationIfTheLatterIsNonEmpty() {
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         def configuration = project.configurations.groovy
         project.dependencies {
             groovy "org.codehaus.groovy:groovy-all:2.0.5"

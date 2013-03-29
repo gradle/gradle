@@ -58,7 +58,7 @@ class JsHintPlugin implements Plugin<Project> {
     }
 
     Configuration addConfiguration(ConfigurationContainer configurations, DependencyHandler dependencies, JsHintExtension extension) {
-        Configuration configuration = configurations.add(JsHintExtension.CONFIGURATION_NAME)
+        Configuration configuration = configurations.create(JsHintExtension.CONFIGURATION_NAME)
         configuration.incoming.beforeResolve(new Action<ResolvableDependencies>() {
             void execute(ResolvableDependencies resolvableDependencies) {
                 if (configuration.dependencies.empty) {

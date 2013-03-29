@@ -64,7 +64,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     }
 
     protected void createConfigurations() {
-        project.configurations.add(configurationName).with {
+        project.configurations.create(configurationName).with {
             visible = false
             transitive = true
             description = "The ${toolName} libraries to be used for this project."
