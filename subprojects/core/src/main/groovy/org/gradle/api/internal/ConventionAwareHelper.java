@@ -35,7 +35,7 @@ import java.util.concurrent.Callable;
 public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final Convention _convention;
-    private IConventionAware _source;
+    private final IConventionAware _source;
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
 
     /**
@@ -122,14 +122,6 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
 
     public Convention getConvention() {
         return _convention;
-    }
-
-    public IConventionAware getSource() {
-        return _source;
-    }
-
-    public void setSource(IConventionAware source) {
-        this._source = source;
     }
 
     private static class MappedPropertyImpl implements MappedProperty {
