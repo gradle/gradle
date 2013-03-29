@@ -17,8 +17,8 @@
     <title>Build Setup Plugin</title>
     <para>The Gradle build setup plugin prepares the current project for Gradle.
         Typically it will create the relevant build.gradle, settings.gradle files.
-        If a pom.xml file is found in the project directory the maven build is
-        converted to a Gradle build. At the moment only the conversion from maven3 is supported.</para>
+        If a <filename>pom.xml</filename> file is found in the project directory the Maven build is
+        converted to a Gradle build. At the moment only the conversion from Maven 3 is supported.</para>
     <para>
         The plugin is currently *incubating* which means it is already useful
         but not everything might work perfectly.
@@ -93,7 +93,7 @@
             </table>
     <para>
         The ConvertMaven2Gradle task works by obtaining the effective POM of the current project
-        by executing maven internally. Then it reads the dependencies and other information
+        by executing Maven internally. Then it reads the dependencies and other information
         to generate build.gradle scripts. This task is inspired by the
         <ulink url="https://github.com/jbaruch/maven2gradle">maven2gradle tool</ulink>
         founded and maintained by recognized leaders of Gradle community;

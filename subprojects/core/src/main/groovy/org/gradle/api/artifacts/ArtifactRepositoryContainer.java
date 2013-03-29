@@ -104,9 +104,9 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      *
      * <ul>
      *
-     * <li>A String. This is treated as a URL, and used to create a maven repository.</li>
+     * <li>A String. This is treated as a URL, and used to create a Maven repository.</li>
      *
-     * <li>A map. This is used to create a maven maven repository. The map must contain an {@value #RESOLVER_NAME} entry and a
+     * <li>A map. This is used to create a Maven repository. The map must contain an {@value #RESOLVER_NAME} entry and a
      * {@value #RESOLVER_URL} entry.</li>
      *
      * <li>A {@link org.apache.ivy.plugins.resolver.DependencyResolver}.</li>

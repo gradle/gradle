@@ -39,7 +39,7 @@ class BuildSetupPlugin implements Plugin<Project> {
         if (project.file("pom.xml").exists()) {
             def maven2Gradle = project.task("maven2Gradle", type: ConvertMaven2Gradle) {
                 group = GROUP
-                description = '[incubating] Attempts to generate gradle builds from maven project.'
+                description = '[incubating] Attempts to generate gradle builds from Maven project.'
             }
             setupBuild.dependsOn(maven2Gradle)
         }

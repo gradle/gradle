@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Defines a set of rules for how to map the Gradle dependencies to a pom. This mapping is based
+ * Defines a set of rules for how to map the Gradle dependencies to a POM. This mapping is based
  * on the configuration the dependencies belong to.
  *
  * @author Hans Dockter
@@ -49,8 +49,8 @@ public interface Conf2ScopeMappingContainer {
 
     /**
      * Returns a scope that corresponds to the given configurations. Dependencies of different configurations can
-     * be equal. But only one of those equals dependencies (which might differ in content) can be mapped to a pom
-     * (due to the the nature of a Maven pom).
+     * be equal. But only one of those equals dependencies (which might differ in content) can be mapped to a POM
+     * (due to the the nature of a Maven POM).
      *
      * <p>Which scope is returned depends on the existing mappings. See {@link #addMapping(int, Configuration, String)}. If
      * only one configuration is mapped, this mapping is used to choose the scope. If more than one configuration of a
@@ -81,7 +81,7 @@ public interface Conf2ScopeMappingContainer {
 
     /**
      * Sets, whether unmapped configuration should be skipped or not. If this is set to
-     * false, dependencies belonging to unmapped configurations will be added to the Maven pom with no
+     * false, dependencies belonging to unmapped configurations will be added to the Maven POM with no
      * scope specified. This means they belong to the Maven default scope, which is 'compile'.
      */
     void setSkipUnmappedConfs(boolean skipDependenciesWithUnmappedConfiguration);

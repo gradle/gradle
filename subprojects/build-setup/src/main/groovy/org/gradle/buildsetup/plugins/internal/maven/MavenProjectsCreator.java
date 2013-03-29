@@ -46,18 +46,18 @@ public class MavenProjectsCreator {
 
     public Set<MavenProject> create(Settings mavenSettings, File pomFile) {
         if (!pomFile.exists()) {
-            throw new GradleException("Unable to create maven project model. The input pom file does not exist: " + pomFile);
+            throw new GradleException("Unable to create Maven project model. The input POM file does not exist: " + pomFile);
         }
         try {
             return createNow(mavenSettings, pomFile);
         } catch (Exception e) {
-            throw new GradleException("Unable to create maven project model using pom file: " + pomFile.getAbsolutePath(), e);
+            throw new GradleException("Unable to create Maven project model using POM file: " + pomFile.getAbsolutePath(), e);
         }
     }
 
     private Set<MavenProject> createNow(Settings settings, File pomFile) throws PlexusContainerException, PlexusConfigurationException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
         //using jarjar for maven3 classes affects the contents of the effective pom
-        //references to certain maven standard plugins contain jarjar in the fqn
+        //references to certain Maven standard plugins contain jarjar in the fqn
         //not sure if this is a problem.
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
                 .setClassWorld(new ClassWorld("plexus.core", ClassWorld.class.getClassLoader()))

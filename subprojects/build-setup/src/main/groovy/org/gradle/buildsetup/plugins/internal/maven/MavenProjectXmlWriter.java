@@ -32,7 +32,7 @@ public class MavenProjectXmlWriter {
     //instead of this class we should walk the maven project object model (instead of parsing the xml!)
 
     String toXml(Set<MavenProject> projects) {
-        assert !projects.isEmpty() : "Cannot prepare the maven projects effective xml because provided projects set is empty.";
+        assert !projects.isEmpty() : "Cannot prepare the Maven projects effective XML because provided projects set is empty.";
 
         if (projects.size() == 1) {
             return toXml(projects.iterator().next());
@@ -50,7 +50,7 @@ public class MavenProjectXmlWriter {
         try {
             new MavenXpp3Writer().write(out, project.getModel());
         } catch (IOException e) {
-            throw new RuntimeException("Unable to serialize maven model to xml. Maven project: " + project, e);
+            throw new RuntimeException("Unable to serialize Maven model to XML. Maven project: " + project, e);
         }
         return prepareXml(out.toString());
     }

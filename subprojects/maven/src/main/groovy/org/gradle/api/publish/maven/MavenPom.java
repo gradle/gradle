@@ -42,7 +42,7 @@ public interface MavenPom {
      *   publications {
      *     maven(MavenPublication) {
      *       pom.withXml {
-     *         asNode().appendNode('description', 'A demonstration of maven pom customisation')
+     *         asNode().appendNode('description', 'A demonstration of Maven POM customisation')
      *       }
      *     }
      *   }

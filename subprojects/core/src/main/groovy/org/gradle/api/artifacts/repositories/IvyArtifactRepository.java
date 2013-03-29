@@ -106,7 +106,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *     <li>Artifacts: <code>$baseUri/{@value #MAVEN_ARTIFACT_PATTERN}</code></li>
      *     <li>Ivy: <code>$baseUri/{@value #MAVEN_IVY_PATTERN}</code></li>
      * </ul>
-     * Following the maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
+     * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
      *
      * <h4>'pattern'</h4>
      * A repository layout that allows custom patterns to be defined. eg:

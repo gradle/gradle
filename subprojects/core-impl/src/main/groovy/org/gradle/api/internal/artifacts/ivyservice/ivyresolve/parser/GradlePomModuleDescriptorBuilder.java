@@ -328,7 +328,7 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     public void addDependency(DependencyDescriptor descriptor) {
-        // Some POMs depend on theirselfves through their parent pom, don't add this dependency
+        // Some POMs depend on theirselfves through their parent POM, don't add this dependency
         // since Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/com/atomikos/atomikos-util/3.6.4/atomikos-util-3.6.4.pom
         ModuleId dependencyId = descriptor.getDependencyId();

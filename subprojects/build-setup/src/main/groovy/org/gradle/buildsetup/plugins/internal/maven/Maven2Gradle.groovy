@@ -22,7 +22,7 @@ import org.gradle.mvn3.org.apache.maven.project.MavenProject
 import org.gradle.util.GFileUtils
 
 /**
- * This script obtains  the effective pom of the current project, reads its dependencies
+ * This script obtains  the effective POM of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>
  *
  * It currently supports both single-module and multi-module POMs, inheritance, dependency management, properties - everything.
@@ -40,14 +40,14 @@ class Maven2Gradle {
     private Set<MavenProject> mavenProjects
 
     Maven2Gradle(Set<MavenProject> mavenProjects) {
-        assert !mavenProjects.empty: "No maven projects provided."
+        assert !mavenProjects.empty: "No Maven projects provided."
         this.mavenProjects = mavenProjects
     }
 
     def convert() {
         workingDir = new File('.').canonicalFile
         println "Working path:" + workingDir.absolutePath + "\n"
-        //For now we're building the effective pom XML from the model
+        //For now we're building the effective POM XML from the model
         //and then we parse the XML using slurper.
         //This way we don't have to rewrite the Maven2Gradle just yet.
         //Maven2Gradle should be rewritten (with coverage) so that feeds of the maven object model, not XML.
@@ -141,7 +141,7 @@ description = '${module.name}'
 
 uploadArchives {
   group = 'Maven'
-  description = "Does a maven deploy of archives artifacts."
+  description = "Does a Maven deploy of archives artifacts."
 
   repositories.mavenDeployer {
         name = 'sshDeployer' // optional
@@ -345,7 +345,7 @@ version = '$project.version'""";
                 if (!war && scope == 'providedCompile') {
                     scope = 'compile'
                     providedMessage = '''\
-                       /* This dependency was originally in the maven provided scope, but the project was not of type war.
+                       /* This dependency was originally in the Maven provided scope, but the project was not of type war.
                        This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
                        Please review and delete this closure when resolved. */
                        '''.stripIndent(16)

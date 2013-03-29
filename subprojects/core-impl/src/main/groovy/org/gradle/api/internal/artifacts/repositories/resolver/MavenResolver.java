@@ -191,7 +191,7 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
             } catch (ResourceNotFoundException e) {
                 return new MavenMetadata();
             } catch (ResourceException e) {
-                LOGGER.warn("impossible to access maven metadata file, ignored.", e);
+                LOGGER.warn("impossible to access Maven metadata file, ignored.", e);
             }
         }
         return new MavenMetadata();

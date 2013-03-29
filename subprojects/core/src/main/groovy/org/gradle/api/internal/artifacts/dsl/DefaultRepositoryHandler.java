@@ -101,7 +101,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             if (!urls.isEmpty()) {
                 DeprecationLogger.nagUserOfDeprecated(
                         "The 'urls' property of the RepositoryHandler.mavenRepo() method",
-                        "You should use the 'url' property to define the core maven repository & the 'artifactUrls' property to define any additional artifact locations"
+                        "You should use the 'url' property to define the core Maven repository & the 'artifactUrls' property to define any additional artifact locations"
                 );
                 modifiedArgs.put("url", urls.get(0));
                 List<?> extraUrls = urls.subList(1, urls.size());

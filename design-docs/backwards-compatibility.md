@@ -84,7 +84,7 @@ What constitutes a 'feature'? Some candidates:
 * performance
 
 What do we do with bugs? For some bugs, we will need to deprecate and keep the old behaviour for a while. For example, our usage of
-the packaging specified in a pom is a bug. Although this behaviour is 'wrong', it is nevertheless the default behaviour of Gradle.
+the packaging specified in a POM is a bug. Although this behaviour is 'wrong', it is nevertheless the default behaviour of Gradle.
 In order to avoid breaking stuff, we will deprecate the usage of the packaging (i.e warn you in the cases where the old behaviour
 and new behaviour will give you a different result).
 

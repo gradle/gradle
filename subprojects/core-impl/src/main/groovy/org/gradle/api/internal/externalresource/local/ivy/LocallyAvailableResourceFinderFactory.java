@@ -113,7 +113,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         public LocallyAvailableResourceCandidates findCandidates(ArtifactRevisionId criterion) {
             if(!logged){
                 LOGGER.warn("Unable to locate local Maven repository.");
-                LOGGER.debug("Problems while locating local maven repository.", ex);
+                LOGGER.debug("Problems while locating local Maven repository.", ex);
                 logged = true;
             }
             return new LocallyAvailableResourceCandidates() {

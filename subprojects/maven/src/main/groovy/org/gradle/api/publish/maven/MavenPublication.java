@@ -71,7 +71,7 @@ import org.gradle.api.publish.Publication;
  *         classifier "source"
  *       }
  *       pom.withXml {
- *         asNode().appendNode('description', 'A demonstration of maven pom customisation')
+ *         asNode().appendNode('description', 'A demonstration of Maven POM customisation')
  *       }
  *     }
  *   }
@@ -111,7 +111,7 @@ public interface MavenPublication extends Publication {
      * Currently 2 types of component are supported: 'components.java' (added by the JavaPlugin) and 'components.web' (added by the WarPlugin).
      * For any individual MavenPublication, only a single component can be provided in this way.
      *
-     * The following example demonstrates how to publish the 'java' component to a maven repository.
+     * The following example demonstrates how to publish the 'java' component to a Maven repository.
      * <pre autoTested="true">
      * apply plugin: "java"
      * apply plugin: "maven-publish"

@@ -103,11 +103,11 @@ Therefore we're very happy that this plugin was provided by Andrew Oberstar, an 
 
 ### Build Setup Plugin
 This Gradle distribution introduces a `build-setup` plugin that supports users on initializing new Gradle projects.
-We reworked the functionality for converting maven projects into Gradle projects (formerly provided by the incubating `maven2Gradle` plugin) to be part of that new `build-setup` plugin. 
-Running `gradle setupBuild` in a directory with no build.gradle file a gradle project is initialized by
+We reworked the functionality for converting Maven projects into Gradle projects (formerly provided by the incubating `maven2Gradle` plugin) to be part of that new `build-setup` plugin.
+Running `gradle setupBuild` in a directory with no `build.gradle` file a gradle project is initialized by
 
-* If a `pom.xml` exists, the maven2Gradle task is triggered for generating a gradle project out of the information gathered from the maven pom files.
-* If no `pom.xml` can be found an empty 'build.gradle' file is generated.
+* If a `pom.xml` exists, the maven2Gradle task is triggered for generating a Gradle project out of the information gathered from the Maven POM files.
+* If no `pom.xml` can be found an empty `build.gradle` file is generated.
 * A `Wrapper` task is executed to generate all files needed run the build using the Gradle Wrapper.
 
 As all new plugins, this Build Setup Plugin is marked as *incubating*. We have multiple plans to 
