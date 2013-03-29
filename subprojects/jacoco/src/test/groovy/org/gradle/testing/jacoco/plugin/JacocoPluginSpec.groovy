@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -26,6 +27,18 @@ class JacocoPluginSpec extends Specification {
 
     def setup() {
         project.apply plugin: 'jacoco'
+    }
+
+    def 'jacoco plugin adds coverage report for test task when java plugin applied'() {
+        when:
+        project.apply plugin:"java"
+        and:
+        project.evaluate()
+        then:
+        project.test.extensions.getByType(JacocoTaskExtension) != null
+        project.jacocoTestReport instanceof JacocoReport
+        project.jacocoTestReport.sourceDirectories == project.sourceSets.main.allJava
+        project.jacocoTestReport.classDirectories == project.sourceSets.main.output
     }
 
     def 'jacoco applied to specific JavaExec task'() {
@@ -39,7 +52,7 @@ class JacocoPluginSpec extends Specification {
 
     def 'jacoco applied to Test task'() {
         given:
-        Test task = project.tasks.add('test', Test)
+        Test task = project.tasks.add('customTest', Test)
         expect:
         task.extensions.getByType(JacocoTaskExtension) != null
     }
