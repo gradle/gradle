@@ -110,10 +110,10 @@ apply plugin: 'idea'
     void addsWebFacetAndExplodedWarArtifact() {
         executer.withTasks('idea').run()
 
-        assertHasExpectedContents('root.ipr')
-        assertHasExpectedContents('project1/project1.iml')
-        assertHasExpectedContents('project2/project2.iml')
-        assertHasExpectedContents('api/api.iml')
+        hasWebFacet('project1/project1.iml', 'src/main/webapp', ['src/main/java', 'src/main/resources'])
+        hasWebFacet('project2/project2.iml', 'src/main/web', ['src/java', 'src/main/resources'])
+        hasExplodedWarArtifact('root.ipr', 'project1', 'file://$PROJECT_DIR$/out/project1_web_exploded', ['project1'], ['commons-lang-2.4.jar'])
+        hasExplodedWarArtifact('root.ipr', 'project2', 'file://$PROJECT_DIR$/project2/build/project2_web_exploded', ['project2', 'api'], ['commons-lang-2.4.jar'])
     }
 
     @Test
@@ -426,21 +426,93 @@ idea.project {
     }
 
     private void hasScalaFacet(String imlFileName, String libraryName) {
+        hasFacet(imlFileName, "Scala", "scala") {
+            facet ->
+                def compilerLibraryLevel = facet.configuration.option.find { it.@name == "compilerLibraryLevel" }
+                assert compilerLibraryLevel
+                assert compilerLibraryLevel.@value == "Project"
+
+                def compilerLibraryName = facet.configuration.option.find { it.@name == "compilerLibraryName" }
+                assert compilerLibraryName
+                assert compilerLibraryName.@value == libraryName
+        }
+    }
+
+    private void hasWebFacet(String imlFileName, String expectedWebRootName, Iterable<String> expectedSourceRootNames) {
+        hasFacet(imlFileName, "Web", "web") {
+            facet ->
+                def deploymentDescriptor = facet.configuration.descriptors.deploymentDescriptor
+                assert deploymentDescriptor
+                assert deploymentDescriptor.@name == 'web.xml'
+                assert deploymentDescriptor.@url == "file://\$MODULE_DIR\$/$expectedWebRootName/WEB-INF/web.xml"
+
+                def webRoot = facet.configuration.webroots.root
+                assert webRoot
+                assert webRoot.@url == "file://\$MODULE_DIR\$/$expectedWebRootName"
+                assert webRoot.@relative == '/'
+
+                def sourceRoots = facet.configuration.sourceRoots
+                assert sourceRoots
+                assert sourceRoots.root.find { it.@url == "file://\$MODULE_DIR\$/src/main/resources" }
+                expectedSourceRootNames.each {
+                    name -> assert sourceRoots.root.find { it.@url == "file://\$MODULE_DIR\$/$name" }
+                }
+        }
+    }
+
+    private void hasFacet(String imlFileName, String facetName, String facetType, Closure closure) {
         def module = new XmlSlurper().parse(file(imlFileName))
         def facetManager = module.component.find { it.@name == "FacetManager" }
         assert facetManager
 
-        def facet = facetManager.facet.find { it.@name == "Scala" }
+        def facet = facetManager.facet.find { it.@name == facetName }
         assert facet
-        assert facet.@type == "scala"
+        assert facet.@type == facetType
 
-        def compilerLibraryLevel = facet.configuration.option.find { it.@name == "compilerLibraryLevel" }
-        assert compilerLibraryLevel
-        assert compilerLibraryLevel.@value == "Project"
+        closure.call(facet)
+    }
 
-        def compilerLibraryName = facet.configuration.option.find { it.@name == "compilerLibraryName" }
-        assert compilerLibraryName
-        assert compilerLibraryName.@value == libraryName
+    private void hasExplodedWarArtifact(String iprFileName, String projectName, String expectedOutputPath, Iterable<String> expectedModules, Iterable<String> expectedLibraries) {
+        hasArtifact(iprFileName, "$projectName:Web exploded", 'exploded-war') {
+            artifact ->
+                def outputPath = artifact."output-path"
+                assert outputPath
+                assert outputPath.text() == expectedOutputPath
+
+                def root = artifact.root
+                assert root
+                assert root.@id == 'root'
+
+                def javaeeFacetResources = root.element.find { it.@id == 'javaee-facet-resources' }
+                assert javaeeFacetResources
+                assert javaeeFacetResources.@facet == "$projectName/web/Web"
+
+                def webInfDir = root.element.find { it.@id == 'directory' && it.@name == 'WEB-INF' }
+                assert webInfDir
+
+                def classesDir = webInfDir.element.find { it.@id == 'directory' && it.@name == 'classes' }
+                assert classesDir
+                expectedModules.each {
+                    module -> assert classesDir.element.find { it.@id == 'module-output' && it.@name == module }
+                }
+
+                def libDir = webInfDir.element.find { it.@id == 'directory' && it.@name == 'lib' }
+                assert libDir
+                expectedLibraries.each {
+                    lib -> assert libDir.element.find { it.@id == 'file-copy' && it.@path.text().contains(lib) }
+                }
+        }
+    }
+
+    private void hasArtifact(String iprFileName, String artifactName, String artifactType, Closure closure) {
+        def ipr = new XmlSlurper().parse(file(iprFileName))
+        def artifactManager = ipr.component.find { it.@name == 'ArtifactManager' }
+        assert artifactManager
+
+        def artifact = artifactManager.artifact.find { it.@type == artifactType && it.@name == artifactName }
+        assert artifact
+
+        closure.call(artifact)
     }
 
     private containsDir(path, urls) {

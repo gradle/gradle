@@ -4,6 +4,8 @@ version = '2.5'
 
 webAppDirName = 'src/main/web'
 
+sourceSets.main.java.srcDir 'src/java'
+
 idea {
     module {
         inheritOutputDirs = false
