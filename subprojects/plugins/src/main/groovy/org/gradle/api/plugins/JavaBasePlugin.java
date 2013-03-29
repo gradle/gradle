@@ -24,6 +24,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultJavaSourceSet;
+import org.gradle.language.base.BinariesContainer;
 import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.reporting.ReportingExtension;
@@ -42,7 +43,6 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.jvm.ResourceSet;
 import org.gradle.language.jvm.ClassDirectoryBinary;
 import org.gradle.language.jvm.JvmBinaryContainer;
-import org.gradle.language.jvm.plugins.JvmLanguagePlugin;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -140,7 +140,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 ResourceSet resourceSet = instantiator.newInstance(DefaultResourceSet.class, "resources", sourceSet.getResources(), functionalSourceSet);
                 functionalSourceSet.add(resourceSet);
 
-                JvmBinaryContainer jvmBinaryContainer = project.getPlugins().getPlugin(JvmLanguagePlugin.class).getJvmBinaryContainer();
+                JvmBinaryContainer jvmBinaryContainer = (JvmBinaryContainer) project.getExtensions().getByType(BinariesContainer.class).getByName("jvm");
                 ClassDirectoryBinary binary = jvmBinaryContainer.create(sourceSet.getName(), ClassDirectoryBinary.class);
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {

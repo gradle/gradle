@@ -51,8 +51,6 @@ public class JvmLanguagePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
 
-    private JvmBinaryContainer jvmBinaryContainer;
-
     @Inject
     public JvmLanguagePlugin(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
@@ -75,7 +73,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
         });
 
         BinariesContainer binariesContainer = target.getExtensions().getByType(BinariesContainer.class);
-        jvmBinaryContainer = instantiator.newInstance(DefaultJvmBinaryContainer.class, instantiator);
+        JvmBinaryContainer jvmBinaryContainer = instantiator.newInstance(DefaultJvmBinaryContainer.class, instantiator);
         binariesContainer.add(jvmBinaryContainer);
 
         jvmBinaryContainer.registerFactory(ClassDirectoryBinary.class, new NamedDomainObjectFactory<ClassDirectoryBinary>() {
@@ -114,14 +112,5 @@ public class JvmLanguagePlugin implements Plugin<Project> {
                 });
             }
         });
-    }
-
-    /**
-     * Returns the {@code binaries.jvm} container that was added by this plugin to the project.
-     *
-     * @return the {@code binaries.jvm} container that was added by this plugin to the project
-     */
-    public JvmBinaryContainer getJvmBinaryContainer() {
-        return jvmBinaryContainer;
     }
 }

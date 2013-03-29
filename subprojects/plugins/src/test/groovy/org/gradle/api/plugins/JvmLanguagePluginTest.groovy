@@ -45,11 +45,6 @@ class JvmLanguagePluginTest extends Specification {
         binaries.jvm instanceof JvmBinaryContainer
     }
 
-    def "allows the JvmBinaryContainer to be looked up on the plugin"() {
-        expect:
-        jvmLanguagePlugin.jvmBinaryContainer instanceof JvmBinaryContainer
-    }
-
     def "adds a 'classes' task for every ClassDirectoryBinary added to the container"() {
         when:
         def binary = project.binaries.jvm.create("prod", ClassDirectoryBinary)
