@@ -492,7 +492,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         Map<String, Object> allArgs = new HashMap<String, Object>(args);
         allArgs.put(Task.TASK_NAME, name);
         allArgs.put(Task.TASK_ACTION, action);
-        return taskContainer.add(allArgs);
+        return taskContainer.create(allArgs);
     }
 
     public Task createTask(Map<String, ?> args, String name, Action<? super Task> action) {
@@ -502,7 +502,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         if (action != null) {
             allArgs.put(Task.TASK_ACTION, action);
         }
-        return taskContainer.add(allArgs);
+        return taskContainer.create(allArgs);
     }
 
     private void warnCreateTaskDeprecated() {
@@ -894,15 +894,15 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Task task(String task) {
-        return taskContainer.add(task);
+        return taskContainer.create(task);
     }
 
     public Task task(Object task) {
-        return taskContainer.add(task.toString());
+        return taskContainer.create(task.toString());
     }
 
     public Task task(String task, Closure configureClosure) {
-        return taskContainer.add(task).configure(configureClosure);
+        return taskContainer.create(task).configure(configureClosure);
     }
 
     public Task task(Object task, Closure configureClosure) {
@@ -910,7 +910,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Task task(Map options, String task) {
-        return taskContainer.add(addMaps(options, singletonMap(Task.TASK_NAME, task)));
+        return taskContainer.create(addMaps(options, singletonMap(Task.TASK_NAME, task)));
     }
 
     public Task task(Map options, Object task) {
@@ -918,7 +918,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Task task(Map options, String task, Closure configureClosure) {
-        return taskContainer.add(addMaps(options, singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
+        return taskContainer.create(addMaps(options, singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
     }
 
     public Task task(Map options, Object task, Closure configureClosure) {

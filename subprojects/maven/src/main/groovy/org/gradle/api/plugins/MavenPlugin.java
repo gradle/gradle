@@ -124,7 +124,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureInstall(Project project) {
-        Upload installUpload = project.getTasks().add(INSTALL_TASK_NAME, Upload.class);
+        Upload installUpload = project.getTasks().create(INSTALL_TASK_NAME, Upload.class);
         Configuration configuration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         installUpload.setConfiguration(configuration);
         MavenRepositoryHandlerConvention repositories = new DslObject(installUpload.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);

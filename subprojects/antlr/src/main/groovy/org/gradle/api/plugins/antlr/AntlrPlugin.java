@@ -73,7 +73,7 @@ public class AntlrPlugin implements Plugin<ProjectInternal> {
                         // 2) create an AntlrTask for this sourceSet following the gradle
                         //    naming conventions via call to sourceSet.getTaskName()
                         final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
-                        AntlrTask antlrTask = project.getTasks().add(taskName, AntlrTask.class);
+                        AntlrTask antlrTask = project.getTasks().create(taskName, AntlrTask.class);
                         antlrTask.setDescription(String.format("Processes the %s Antlr grammars.",
                                 sourceSet.getName()));
 

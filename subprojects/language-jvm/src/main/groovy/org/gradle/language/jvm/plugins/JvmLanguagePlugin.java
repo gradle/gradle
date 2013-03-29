@@ -90,14 +90,14 @@ public class JvmLanguagePlugin implements Plugin<Project> {
                         return new File(new File(target.getBuildDir(), "classes"), binary.getName());
                     }
                 });
-                final Task classesTask = target.getTasks().add(binary.getTaskName(null, "classes"));
+                final Task classesTask = target.getTasks().create(binary.getTaskName(null, "classes"));
                 classesTask.setDescription(String.format("Assembles the %s classes.", binary.getName()));
                 binary.setClassesTask(classesTask);
                 binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
                     public void execute(ResourceSet resourceSet) {
                         Copy resourcesTask = binary.getResourcesTask();
                         if (resourcesTask == null) {
-                            resourcesTask = target.getTasks().add(binary.getTaskName("process", "resources"), ProcessResources.class);
+                            resourcesTask = target.getTasks().create(binary.getTaskName("process", "resources"), ProcessResources.class);
                             resourcesTask.setDescription(String.format("Processes the %s resources.", binary.getName()));
                             new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
                                 public File call() throws Exception {

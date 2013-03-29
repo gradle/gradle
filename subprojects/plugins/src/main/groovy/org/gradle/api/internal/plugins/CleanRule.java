@@ -50,7 +50,7 @@ public class CleanRule extends AbstractRule {
             return;
         }
 
-        Delete clean = tasks.add(taskName, Delete.class);
+        Delete clean = tasks.create(taskName, Delete.class);
         clean.delete(task.getOutputs().getFiles());
     }
 }

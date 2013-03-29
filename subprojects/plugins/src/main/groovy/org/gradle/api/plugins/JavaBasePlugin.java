@@ -225,13 +225,13 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureCheck(final Project project) {
-        Task checkTask = project.getTasks().add(CHECK_TASK_NAME);
+        Task checkTask = project.getTasks().create(CHECK_TASK_NAME);
         checkTask.setDescription("Runs all checks.");
         checkTask.setGroup(VERIFICATION_GROUP);
     }
 
     private void configureBuild(Project project) {
-        DefaultTask buildTask = project.getTasks().add(BUILD_TASK_NAME, DefaultTask.class);
+        DefaultTask buildTask = project.getTasks().create(BUILD_TASK_NAME, DefaultTask.class);
         buildTask.setDescription("Assembles and tests this project.");
         buildTask.setGroup(BasePlugin.BUILD_GROUP);
         buildTask.dependsOn(BasePlugin.ASSEMBLE_TASK_NAME);
@@ -239,14 +239,14 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureBuildNeeded(Project project) {
-        DefaultTask buildTask = project.getTasks().add(BUILD_NEEDED_TASK_NAME, DefaultTask.class);
+        DefaultTask buildTask = project.getTasks().create(BUILD_NEEDED_TASK_NAME, DefaultTask.class);
         buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
         buildTask.setGroup(BasePlugin.BUILD_GROUP);
         buildTask.dependsOn(BUILD_TASK_NAME);
     }
 
     private void configureBuildDependents(Project project) {
-        DefaultTask buildTask = project.getTasks().add(BUILD_DEPENDENTS_TASK_NAME, DefaultTask.class);
+        DefaultTask buildTask = project.getTasks().create(BUILD_DEPENDENTS_TASK_NAME, DefaultTask.class);
         buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
         buildTask.setGroup(BasePlugin.BUILD_GROUP);
         buildTask.dependsOn(BUILD_TASK_NAME);

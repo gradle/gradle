@@ -125,7 +125,7 @@ public class EarPlugin implements Plugin<Project> {
     }
 
     private void setupEarTask(final Project project, EarPluginConvention convention) {
-        Ear ear = project.getTasks().add(EAR_TASK_NAME, Ear.class);
+        Ear ear = project.getTasks().create(EAR_TASK_NAME, Ear.class);
         ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
         DeploymentDescriptor deploymentDescriptor = convention.getDeploymentDescriptor();
         if (deploymentDescriptor != null) {

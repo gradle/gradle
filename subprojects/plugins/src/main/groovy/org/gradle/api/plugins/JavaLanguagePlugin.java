@@ -59,7 +59,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
                     public void execute(JavaSourceSet javaSourceSet) {
                         // TODO: handle case where binary has multiple JavaSourceSet's
-                        JavaCompile compileTask = target.getTasks().add(binary.getTaskName("compile", "java"), JavaCompile.class);
+                        JavaCompile compileTask = target.getTasks().create(binary.getTaskName("compile", "java"), JavaCompile.class);
                         configureCompileTask(compileTask, javaSourceSet, binary);
                         binary.getClassesTask().dependsOn(compileTask);
                     }

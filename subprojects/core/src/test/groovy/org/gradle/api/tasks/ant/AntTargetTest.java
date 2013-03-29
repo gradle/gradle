@@ -62,8 +62,8 @@ public class AntTargetTest {
 
     @Test
     public void dependsOnTargetDependencies() {
-        Task a = project.getTasks().add("a");
-        Task b = project.getTasks().add("b");
+        Task a = project.getTasks().create("a");
+        Task b = project.getTasks().create("b");
         antTarget.setDepends("a, b");
 
         task.setTarget(antTarget);
