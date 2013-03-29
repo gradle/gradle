@@ -20,11 +20,11 @@ import org.gradle.api.PolymorphicDomainObjectContainer;
 import groovy.lang.Closure;
 
 public class PolymorphicDomainObjectContainerConfigureDelegate extends NamedDomainObjectContainerConfigureDelegate {
-    private final PolymorphicDomainObjectContainer container;
+    private final PolymorphicDomainObjectContainer _container;
 
     public PolymorphicDomainObjectContainerConfigureDelegate(Object owner, PolymorphicDomainObjectContainer container) {
         super(owner, container);
-        this.container = container;
+        this._container = container;
     }
 
     @Override
@@ -38,9 +38,9 @@ public class PolymorphicDomainObjectContainerConfigureDelegate extends NamedDoma
     @SuppressWarnings("unchecked")
     protected void _configure(String name, Object[] params) {
         if (params.length > 0 && params[0] instanceof Class) {
-            container.create(name, (Class) params[0]);
+            _container.create(name, (Class) params[0]);
         } else {
-            container.create(name);
+            _container.create(name);
         }
     }
 }
