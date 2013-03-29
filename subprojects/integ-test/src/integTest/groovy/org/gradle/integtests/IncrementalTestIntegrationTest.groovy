@@ -78,7 +78,7 @@ class IncrementalTestIntegrationTest extends AbstractIntegrationTest {
         // Switch test framework
         file('build.gradle').append 'test.useTestNG()\n'
 
-        //TODO this exposes a possible problem: When changing the test framework stale xml result files from former test framework are still present.
+        //TODO this exposes a possible problem: When changing the test framework stale XML result files from former test framework are still present.
         executer.withTasks('cleanTest', 'test').run().assertTasksNotSkipped(':cleanTest',':test')
 
         result = new JUnitXmlTestExecutionResult(testDirectory)

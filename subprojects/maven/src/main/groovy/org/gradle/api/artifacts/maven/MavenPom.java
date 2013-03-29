@@ -155,20 +155,20 @@ public interface MavenPom {
     MavenPom setModel(Object model);
 
     /**
-     * Writes the {@link #getEffectivePom()} xml to a writer while applying the {@link #withXml(org.gradle.api.Action)} actions. Closes the supplied
+     * Writes the {@link #getEffectivePom()} XML to a writer while applying the {@link #withXml(org.gradle.api.Action)} actions. Closes the supplied
      * Writer when finished.
      *
-     * @param writer The writer to write the pom xml.
+     * @param writer The writer to write the pom XML.
      * @return this
      */
     MavenPom writeTo(Writer writer);
 
     /**
-     * Writes the {@link #getEffectivePom()} xml to a file while applying the {@link #withXml(org.gradle.api.Action)} actions.
+     * Writes the {@link #getEffectivePom()} XML to a file while applying the {@link #withXml(org.gradle.api.Action)} actions.
      * The path is resolved as defined by {@link org.gradle.api.Project#files(Object...)}
      * The file will be encoded as UTF-8.
      *
-     * @param path The path of the file to write the pom xml into.
+     * @param path The path of the file to write the pom XML into.
      * @return this
      */
     MavenPom writeTo(Object path);

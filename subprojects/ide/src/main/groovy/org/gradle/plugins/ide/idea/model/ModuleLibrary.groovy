@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.idea.model
 
 /**
- * Represents an orderEntry of type module-library in the iml xml.
+ * Represents an orderEntry of type module-library in the iml XML.
  *
  * @author Hans Dockter
  */

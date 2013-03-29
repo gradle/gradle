@@ -188,7 +188,7 @@ Any supplied configuration closure will be applied to each created artifact.
 ### Test cases
 
 * Publication fails for a project with no group or version defined.
-* Publication coordinates can contain non-ascii characters, whitespace, xml markup and reserved filesystem characters, where permitted by the format.
+* Publication coordinates can contain non-ascii characters, whitespace, XML markup and reserved filesystem characters, where permitted by the format.
   Verify that these publications can be resolved by Gradle.
 * Reasonable error messages are given when the above validation fails.
 
@@ -202,7 +202,7 @@ Validate the following prior to publication:
 
 ### Test cases
 
-* Artifact attributes can contain non-ascii characters, whitespace, xml markup and reserved filesystem characters, where permitted by the format.
+* Artifact attributes can contain non-ascii characters, whitespace, XML markup and reserved filesystem characters, where permitted by the format.
   Verify that these artifacts can be resolved by Gradle.
 * Reasonable error messages are given when the above validation fails.
 

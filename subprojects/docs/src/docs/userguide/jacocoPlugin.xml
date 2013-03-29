@@ -36,7 +36,7 @@
             Executing <userinput>gradle jacocoTestReport</userinput> will trigger the <literal>test</literal> task and afterwards the
             <literal>jacocoTestReport</literal> to be executed. After the build has finished you find the jacoco code coverage in
             <filename><replaceable>$buildDir</replaceable>/<replaceable>reports</replaceable>/<replaceable>jacoco/test</replaceable></filename>.
-            The output format of the report is configurable. As a default all three supported output formats (html, csv and xml) are generated.
+            The output format of the report is configurable. As a default all three supported output formats (HTML, CSV and XML) are generated.
         </para>
     </section>
 

@@ -25,16 +25,16 @@ import org.gradle.api.reporting.SingleFileReport;
 public interface CodeNarcReports extends ReportContainer<SingleFileReport> {
 
     /**
-     * The codenarc xml report
+     * The codenarc XML report
      *
-     * @return The codenarc xml report
+     * @return The codenarc XML report
      */
     SingleFileReport getXml();
 
     /**
-     * The codenarc html report
+     * The codenarc HTML report
      *
-     * @return The codenarc html report
+     * @return The codenarc HTML report
      */
     SingleFileReport getHtml();
 

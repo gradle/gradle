@@ -148,7 +148,7 @@ An opinionated plugin that adds a single distribution that
 - add unit tests for the plugin, validate all the features (separate tests) declared in 'user visible changes' section.
 - documentation
     - add new plugin chapter and hook it up to the user guide
-    - add the xml for the new extension object
+    - add the XML for the new extension object
     - new extension object should have a javadoc with small code sample (using our 'autoTested').
         - say, apply plugin and configure the distribution.name
     - link the new extension from plugins.xml

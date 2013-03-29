@@ -27,7 +27,7 @@ import org.gradle.testing.jacoco.plugin.JacocoTaskExtension
 import javax.inject.Inject
 
 /**
- * Task to generate HTML, Xml and csv reports of Jacoco coverage data.
+ * Task to generate HTML, Xml and CSV reports of Jacoco coverage data.
  */
 @Incubating
 class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContainer> {

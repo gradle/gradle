@@ -257,7 +257,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -doctitle  title
      * Specifies the title to be placed near the top of the overview summary file. The title will be placed as a centered,
-     * level-one heading directly beneath the upper navigation bar. The title may contain html tags and white space,
+     * level-one heading directly beneath the upper navigation bar. The title may contain HTML tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within title may have to be escaped.
      * C:> javadoc -doctitle "Java&lt;sup>&lt;font size=\"-2\">TM&lt;/font>&lt;/sup>" com.mypackage
      */
@@ -279,7 +279,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -footer  footer
      * Specifies the footer text to be placed at the bottom of each output file.
-     * The footer will be placed to the right of the lower navigation bar. footer may contain html tags and white space,
+     * The footer will be placed to the right of the lower navigation bar. footer may contain HTML tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within footer may have to be escaped.
      */
     private final JavadocOptionFileOption<String> footer;

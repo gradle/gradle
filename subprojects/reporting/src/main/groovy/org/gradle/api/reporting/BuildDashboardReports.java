@@ -24,9 +24,9 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface BuildDashboardReports extends ReportContainer<SingleFileReport> {
     /**
-     * The build dashboard html report
+     * The build dashboard HTML report
      *
-     * @return The build dashboard html report
+     * @return The build dashboard HTML report
      */
     SingleFileReport getHtml();
 }

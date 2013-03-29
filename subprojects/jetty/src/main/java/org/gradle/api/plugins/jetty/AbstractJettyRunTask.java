@@ -86,7 +86,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     protected String reload;
 
     /**
-     * Location of a jetty xml configuration file whose contents will be applied before any plugin configuration. Optional.
+     * Location of a jetty XML configuration file whose contents will be applied before any plugin configuration. Optional.
      */
     private File jettyConfig;
 

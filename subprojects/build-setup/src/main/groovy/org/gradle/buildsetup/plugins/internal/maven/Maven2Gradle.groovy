@@ -47,10 +47,10 @@ class Maven2Gradle {
     def convert() {
         workingDir = new File('.').canonicalFile
         println "Working path:" + workingDir.absolutePath + "\n"
-        //For now we're building the effective pom xml from the model
-        //and then we parse the xml using slurper.
+        //For now we're building the effective pom XML from the model
+        //and then we parse the XML using slurper.
         //This way we don't have to rewrite the Maven2Gradle just yet.
-        //Maven2Gradle should be rewritten (with coverage) so that feeds of the maven object model, not xml.
+        //Maven2Gradle should be rewritten (with coverage) so that feeds of the maven object model, not XML.
         def effectivePom = new MavenProjectXmlWriter().toXml(mavenProjects)
         //use the Groovy XmlSlurper library to parse the text string
         this.effectivePom = new XmlSlurper().parseText(effectivePom)

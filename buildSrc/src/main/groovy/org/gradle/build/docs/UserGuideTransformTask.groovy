@@ -29,7 +29,7 @@ import org.w3c.dom.Element
 import org.gradle.api.tasks.*
 
 /**
- * Transforms userguide source into docbook, replacing custom xml elements.
+ * Transforms userguide source into docbook, replacing custom XML elements.
  *
  * Takes the following as input:
  * <ul>

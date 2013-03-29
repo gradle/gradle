@@ -970,7 +970,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * &lt;/target&gt;
      * </pre>
      *
-     * Here's how it would look like in gradle. Observe how the ant xml is represented in groovy by the ant builder
+     * Here's how it would look like in gradle. Observe how the ant XML is represented in groovy by the ant builder
      * <pre autoTested=''>
      * task printChecksum {
      *   doLast {
