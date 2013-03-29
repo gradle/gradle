@@ -22,3 +22,5 @@ dependencies {
 	compile project(':plugins')
 	compile project(':reporting')
 }
+
+useTestFixtures()

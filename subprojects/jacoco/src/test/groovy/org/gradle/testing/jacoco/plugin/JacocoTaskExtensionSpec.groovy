@@ -15,18 +15,12 @@
  */
 package org.gradle.testing.jacoco.plugin
 
-import org.gradle.api.Project
 import org.gradle.internal.jacoco.JacocoAgentJar
 import spock.lang.Specification
 
 class JacocoTaskExtensionSpec extends Specification {
-    Project project = Mock()
     JacocoAgentJar agent = Mock()
-    JacocoTaskExtension extension = new JacocoTaskExtension(project, agent)
-
-    def setup() {
-        project.file(_) >> { println it; new File(it[0]) }
-    }
+    JacocoTaskExtension extension = new JacocoTaskExtension(agent)
 
     def 'asJvmArg with default arguments assembles correct string'() {
         setup:
@@ -49,7 +43,7 @@ class JacocoTaskExtensionSpec extends Specification {
         agent.supportsJmx() >> true
         agent.jar >> new File('fakeagent.jar')
         extension.with {
-            destPath = 'build/jacoco/fake.exec'
+            destPath = 'build/jacoco/fake.exec' as File
             append = false
             includes = ['org.*', '*.?acoco*']
             excludes = ['org.?joberstar']
@@ -59,7 +53,7 @@ class JacocoTaskExtensionSpec extends Specification {
             output = JacocoTaskExtension.Output.TCP_SERVER
             address = '1.1.1.1'
             port = 100
-            classDumpPath = 'build/jacoco-dump'
+            classDumpPath = 'build/jacoco-dump' as File
             jmx = true
         }
 

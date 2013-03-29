@@ -15,32 +15,32 @@
  */
 package org.gradle.testing.jacoco.plugin
 
-import spock.lang.Specification
 import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
-import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
 
 class JacocoPluginSpec extends Specification {
-	Project project = ProjectBuilder.builder().withProjectDir(new File(System.properties['java.io.tmpdir'])).build()
+    Project project = HelperUtil.createRootProject()
 
-	def setup() {
-		project.apply plugin: 'jacoco'
-	}
+    def setup() {
+        project.apply plugin: 'jacoco'
+    }
 
-	def 'jacoco applied to specific JavaExec task'() {
-		given:
-		JavaExec task = project.tasks.add('exec', JavaExec)
-		when:
-		project.jacoco.applyTo(task)
-		then:
-		task.extensions.getByType(JacocoTaskExtension) != null
-	}
+    def 'jacoco applied to specific JavaExec task'() {
+        given:
+        JavaExec task = project.tasks.add('exec', JavaExec)
+        when:
+        project.jacoco.applyTo(task)
+        then:
+        task.extensions.getByType(JacocoTaskExtension) != null
+    }
 
-	def 'jacoco applied to Test task'() {
-		given:
-		Test task = project.tasks.add('test', Test)
-		expect:
-		task.extensions.getByType(JacocoTaskExtension) != null
-	}
+    def 'jacoco applied to Test task'() {
+        given:
+        Test task = project.tasks.add('test', Test)
+        expect:
+        task.extensions.getByType(JacocoTaskExtension) != null
+    }
 }

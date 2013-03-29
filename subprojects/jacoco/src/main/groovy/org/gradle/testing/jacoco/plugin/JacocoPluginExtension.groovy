@@ -75,8 +75,8 @@ class JacocoPluginExtension {
      */
     void applyTo(JavaForkOptions task) {
         logger.debug "Applying Jacoco to $task.name"
-        JacocoTaskExtension extension = task.extensions.create(TASK_EXTENSION_NAME, JacocoTaskExtension, project, agent)
-        task.jacoco.destPath = { "${project.buildDir}/jacoco/${task.name}.exec" }
+        JacocoTaskExtension extension = task.extensions.create(TASK_EXTENSION_NAME, JacocoTaskExtension, agent)
+        task.jacoco.conventionMapping.destPath = { project.file("${project.buildDir}/jacoco/${task.name}.exec") }
         task.doFirst {
             //add agent
             if (extension.enabled) {

@@ -16,7 +16,6 @@
 package org.gradle.testing.jacoco.plugin
 
 import org.gradle.api.Incubating
-import org.gradle.api.Project
 import org.gradle.internal.jacoco.JacocoAgentJar
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.internal.jacoco.JacocoAgentJar
  */
 @Incubating
 class JacocoTaskExtension {
-    protected final Project project
     private final JacocoAgentJar agent
 
     /**
@@ -37,7 +35,7 @@ class JacocoTaskExtension {
     /**
      * The path for the execution data to be written to.
      */
-    Object destPath
+    File destPath
 
     /**
      * Whether or not data should be appended if the {@code destFile}
@@ -50,19 +48,19 @@ class JacocoTaskExtension {
      * can use wildcards (* and ?). If left empty, all classes will
      * be included. Defaults to an empty list.
      */
-    List includes = []
+    List<String> includes = []
 
     /**
      * List of class names that should be excluded from analysis. Names
      * can use wildcard (* and ?). Defaults to an empty list.
      */
-    List excludes = []
+    List<String> excludes = []
 
     /**
      * List of classloader names that should be excluded from analysis. Names
      * can use wildcards (* and ?). Defaults to an empty list.
      */
-    List excludeClassLoaders = []
+    List<String> excludeClassLoaders = []
 
     /**
      * An identifier for the session written to the execution data. Defaults
@@ -95,7 +93,7 @@ class JacocoTaskExtension {
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
      */
-    Object classDumpPath
+    File classDumpPath
 
     /**
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}.
@@ -111,25 +109,8 @@ class JacocoTaskExtension {
      * @param project the project the task is attached to
      * @param agent the agent JAR to use for analysis
      */
-    JacocoTaskExtension(Project project, JacocoAgentJar agent) {
-        this.project = project
+    JacocoTaskExtension(JacocoAgentJar agent) {
         this.agent = agent
-    }
-
-    /**
-     * The path for the execution data to be written to.
-     * @return the destination file
-     */
-    File getDestFile() {
-        destPath?.with { project.file(it) }
-    }
-
-    /**
-     * Directory to dump all class files the agent sees are dumped to. Defaults to no dumps.
-     * @return the class dump directory
-     */
-    File getClassDumpDir() {
-        classDumpPath?.with { project.file(it) }
     }
 
     /**
@@ -160,7 +141,7 @@ class JacocoTaskExtension {
         builder << '-javaagent:'
         builder << agent.jar.canonicalPath
         builder << '='
-        arg 'destfile', getDestFile()
+        arg 'destfile', getDestPath()
         arg 'append', getAppend()
         arg 'includes', getIncludes()
         arg 'excludes', getExcludes()
@@ -170,7 +151,7 @@ class JacocoTaskExtension {
         arg 'output', getOutput().asArg
         arg 'address', getAddress()
         arg 'port', getPort()
-        arg 'classdumpdir', getClassDumpDir()
+        arg 'classdumpdir', classDumpPath
 
         if (agent.supportsJmx()) {
             arg 'jmx', getJmx()
