@@ -1,0 +1,34 @@
+defaultTasks 'idea', 'cleanIdea'
+
+allprojects {
+    apply plugin: 'idea'
+}
+
+idea.project.jdkName = '1.6'
+
+subprojects {
+    apply plugin: 'java'
+
+    idea {
+        module {
+            downloadJavadoc = true
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testCompile 'junit:junit:4.7'
+    }
+
+    group = 'org.gradle'
+    version = '1.0'
+}
+
+cleanIdea.doLast {
+    assert !file("${project.name}.iml").isFile()
+    assert !file("${project.name}.ipr").isFile()
+    assert file("${project.name}.iws").isFile() //we don't rid the iws file
+}

@@ -45,7 +45,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/root.iml" filepath="$PROJECT_DIR$/root.iml"/>
-      <module fileurl="file://$PROJECT_DIR$/api/api.iml" filepath="$PROJECT_DIR$/api/api.iml"/>
       <module fileurl="file://$PROJECT_DIR$/webservice/webservice.iml" filepath="$PROJECT_DIR$/webservice/webservice.iml"/>
     </modules>
   </component>
@@ -107,12 +106,9 @@
         <element id="directory" name="WEB-INF">
           <element id="directory" name="classes">
             <element id="module-output" name="webservice" />
-            <element id="module-output" name="api" />
           </element>
           <element id="directory" name="lib">
-            <element id="file-copy" path="@CACHE_DIR@/commons-lang/commons-lang/2.4/jar/@SHA1@/commons-lang-2.4.jar"/>
-            <element id="file-copy" path="@CACHE_DIR@/commons-io/commons-io/1.2/jar/@SHA1@/commons-io-1.2.jar"/>
-            <element id="file-copy" path="$PROJECT_DIR$/webservice/lib/compile-1.0.jar"/>
+            <element id="file-copy" path="@CACHE_DIR@/junit/junit/4.7/jar/@SHA1@/junit-4.7.jar"/>
           </element>
         </element>
       </root>

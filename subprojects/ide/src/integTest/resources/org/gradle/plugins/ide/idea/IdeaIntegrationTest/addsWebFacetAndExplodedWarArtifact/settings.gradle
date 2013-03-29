@@ -1,0 +1,4 @@
+include "project1", "project2", "api"
+
+rootProject.name = 'root'
+

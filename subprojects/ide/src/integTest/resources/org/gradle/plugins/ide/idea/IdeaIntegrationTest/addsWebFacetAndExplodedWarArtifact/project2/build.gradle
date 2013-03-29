@@ -1,0 +1,24 @@
+apply plugin: 'war'
+
+version = '2.5'
+
+webAppDirName = 'src/main/web'
+
+sourceSets.main.java.srcDir 'src/java'
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file('build')
+    }
+}
+
+dependencies {
+    providedCompile 'org.slf4j:slf4j-api:1.5.8@jar'
+    compile project(':api')
+    compile 'commons-lang:commons-lang:2.4'
+}
+
+cleanIdea.doLast {
+    assert !file("project2/project2.iml").isFile()
+}

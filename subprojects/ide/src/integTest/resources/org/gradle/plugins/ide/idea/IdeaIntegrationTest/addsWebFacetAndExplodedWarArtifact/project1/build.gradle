@@ -1,0 +1,12 @@
+apply plugin: 'war'
+
+version = '2.5'
+
+dependencies {
+    providedCompile 'org.slf4j:slf4j-api:1.5.8@jar'
+    compile 'commons-lang:commons-lang:2.4'
+}
+
+cleanIdea.doLast {
+    assert !file("project1/project1.iml").isFile()
+}
