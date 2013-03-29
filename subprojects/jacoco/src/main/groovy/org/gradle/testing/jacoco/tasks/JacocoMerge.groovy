@@ -43,8 +43,8 @@ class JacocoMerge extends JacocoBase {
 
     @TaskAction
     void merge() {
-        getAnt().taskdef(name: 'merge', classname: 'org.jacoco.ant.MergeTask', classpath: getJacocoClasspath().asPath)
-        getAnt().merge(destfile: getDestFile()) {
+        getAnt().taskdef(name: 'jacocoMerge', classname: 'org.jacoco.ant.MergeTask', classpath: getJacocoClasspath().asPath)
+        getAnt().jacocoMerge(destfile: getDestFile()) {
             getExecutionData().addToAntBuilder(ant, 'resources')
         }
     }

@@ -73,8 +73,8 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
 
     @TaskAction
     void generate() {
-        getAnt().taskdef(name: 'report', classname: 'org.jacoco.ant.ReportTask', classpath: getJacocoClasspath().asPath)
-        getAnt().report {
+        getAnt().taskdef(name: 'jacocoReport', classname: 'org.jacoco.ant.ReportTask', classpath: getJacocoClasspath().asPath)
+        getAnt().jacocoReport {
             executiondata {
                 getExecutionData().addToAntBuilder(getAnt(), 'resources')
             }
