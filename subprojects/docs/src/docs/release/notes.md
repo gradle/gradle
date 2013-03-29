@@ -173,6 +173,19 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 This method is no longer used internally so it does not make sense to keep it in the public API.
 
+### `groovy` configuration is deprecated
+
+Since Gradle 1.4, the preferred way to specify the Groovy library is to add it to the `compile` (or `testCompile`) configuration, rather than the `groovy` configuration.
+Therefore, the `groovy` configuration is now deprecated. Simply replace `groovy` with `compile` in the `dependencies` block:
+
+    dependencies {
+        compile "org.codehaus.groovy:groovy-all:2.0.6"
+    }
+
+In some cases (for example if the Groovy Jar has been renamed), it may also be necessary to explicitly configure the `groovyClasspath` of `GroovyCompile` and `Groovydoc` tasks.
+
+For additional background information about this change, see the [Groovy chapter](userguide/groovy_plugin.html#N1289B) of the Gradle user guide.
+
 ## Potential breaking changes
 
 ### `org.gradle.api.artifacts.ProjectDependency` and `org.gradle.api.plugins.ExtensionContainer` now have an internal protocol
