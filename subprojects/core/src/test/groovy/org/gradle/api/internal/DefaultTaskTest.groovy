@@ -102,6 +102,16 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test
+    public void testFinalisedBy() {
+        Task finaliser = createTask(project, "finaliser")
+        Task finaliserFromPath = project.getTasks().create("path")
+        Task finalised = createTask(project, TEST_TASK_NAME)
+
+        finalised.finalisedBy(finaliser, "path")
+        assert finalised.finalisedBy.getDependencies(finalised) == [finaliser, finaliserFromPath] as Set
+    }
+
+    @Test
     public void testConfigure() {
         Closure action1 = { Task t -> }
         assertSame(task, task.configure {

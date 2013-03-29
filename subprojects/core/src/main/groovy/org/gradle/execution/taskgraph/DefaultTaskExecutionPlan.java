@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -57,7 +58,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         List<Task> queue = new ArrayList<Task>(tasks);
         Collections.sort(queue);
         for (Task task : queue) {
-            entryTasks.add(graph.addNode(task));
+            addEntryTask(task);
         }
         Set<Task> visiting = new HashSet<Task>();
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
@@ -65,7 +66,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         while (!queue.isEmpty()) {
             Task task = queue.get(0);
             TaskInfo node = graph.addNode(task);
-            if (node.getRequired()) {
+            if (node.getDependenciesProcessed()) {
                 // Have already visited this task - skip it
                 queue.remove(0);
                 continue;
@@ -73,6 +74,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             boolean filtered = !filter.isSatisfiedBy(task);
             if (filtered) {
                 // Task is not required - skip it
+                node.setRequired(false);
                 queue.remove(0);
                 continue;
             }
@@ -88,6 +90,10 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     }
                     queue.add(0, dependsOnTask);
                 }
+                for (Task finaliserTask : task.getFinalisedBy().getDependencies(task)) {
+                    addFinaliserTaskToGraph(node, finaliserTask);
+                    queue.add(finaliserTask);
+                }
             } else {
                 // Have visited this task's dependencies - add it to the graph
                 queue.remove(0);
@@ -100,8 +106,21 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
                     graph.addSoftEdge(node, mustRunAfter);
                 }
+                node.dependenciesProcessed();
             }
         }
+    }
+
+    private void addFinaliserTaskToGraph(TaskInfo finalisedNode, Task finaliserTask) {
+        TaskInfo finaliserNode = addEntryTask(finaliserTask);
+        finaliserNode.addSoftSuccessor(finalisedNode);
+        finaliserNode.shouldNotRun();
+    }
+
+    private TaskInfo addEntryTask(Task task) {
+        TaskInfo node = graph.addNode(task);
+        entryTasks.add(node);
+        return node;
     }
 
     private <T> void addAllReversed(List<T> list, TreeSet<T> set) {
@@ -117,7 +136,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         while (!nodeQueue.isEmpty()) {
             TaskInfo taskNode = nodeQueue.get(0);
 
-            if (!taskNode.getRequired() || executionPlan.containsKey(taskNode.getTask())) {
+            if (!taskNode.isRequired() || executionPlan.containsKey(taskNode.getTask())) {
                 nodeQueue.remove(0);
                 continue;
             }
@@ -238,6 +257,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void taskComplete(TaskInfo taskInfo) {
         lock.lock();
         try {
+            enforceFinaliserTasks(taskInfo);
             if (taskInfo.isFailed()) {
                 handleFailure(taskInfo);
             }
@@ -247,6 +267,18 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             condition.signalAll();
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void enforceFinaliserTasks(TaskInfo taskInfo) {
+        TaskInternal task = taskInfo.getTask();
+        if (task.getDidWork()) {
+            for (Task finaliserTask : task.getFinalisedBy().getDependencies(task)) {
+                TaskInfo finaliserNode = graph.getNode(finaliserTask);
+                if (finaliserNode.isRequired()) {
+                    finaliserNode.enforceRun();
+                }
+            }
         }
     }
 
@@ -273,7 +305,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void abortExecution() {
         // Allow currently executing tasks to complete, but skip everything else.
         for (TaskInfo taskInfo : executionPlan.values()) {
-            if (taskInfo.isReady()) {
+            if (taskInfo.isReady() && !taskInfo.getMustRun()) {
                 taskInfo.skipExecution();
             }
         }
