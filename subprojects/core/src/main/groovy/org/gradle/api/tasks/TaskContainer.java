@@ -119,7 +119,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param options The task creation options.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated renamed to {@link #create(java.util.Map)}
+     * @deprecated use {@link #create(java.util.Map)} instead
      */
     @Deprecated
     Task add(Map<String, ?> options) throws InvalidUserDataException;
@@ -151,7 +151,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param configureClosure The closure to use to configure the task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated renamed to {@link #create(java.util.Map, groovy.lang.Closure)}
+     * @deprecated use {@link #create(java.util.Map, groovy.lang.Closure)} instead
      */
     @Deprecated
     Task add(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException;
@@ -181,7 +181,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param configureClosure The closure to use to configure the task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated renamed to {@link #create(String, groovy.lang.Closure)}
+     * @deprecated use {@link #create(String, groovy.lang.Closure)} instead
      */
     @Deprecated
     Task add(String name, Closure configureClosure) throws InvalidUserDataException;
@@ -207,7 +207,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated renamed to {@link #create(String)}
+     * @deprecated use {@link #create(String)} instead
      */
     @Deprecated
     Task add(String name) throws InvalidUserDataException;
@@ -235,7 +235,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param type The type of task to create.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated renamed to {@link #create(String, Class)}
+     * @deprecated use {@link #create(String, Class)} instead
      */
     @Deprecated
     <T extends Task> T add(String name, Class<T> type) throws InvalidUserDataException;
