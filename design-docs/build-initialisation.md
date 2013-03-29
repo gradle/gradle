@@ -100,19 +100,25 @@ general purpose:
 * Rename the `Maven2GradlePlugin` type to `BuildSetupPlugin`.
 * Move the plugin and task implementation out of the `maven` project to a new `buildSetup` project.
 * Move the plugin and task implementation to the `org.gradle.buildsetup.plugins` package.
+* Add the new packages to `default-imports.txt`.
 * Move the integration tests to live in the `buildSetup` project.
 * Change the plugin to add a lifecycle task called `setupBuild` that depends on the `maven2Gradle` task.
 * Change the plugin to only add the `maven2Gradle` task if the `pom.xml` file exists in the project root directory.
+* Change the plugin to always generate a `settings.gradle` file.
+* Change the plugin to generate an empty `build.gradle` when no `pom.xml` is present. The empty script should include
+  some comments about how to get started - eg perhaps a commented-out template Java project or perhaps a link to the
+  'java' tutorial user guide chapter.
 * Change the plugin so that it adds a task of type `Wrapper` to generate the wrapper files.
 * Update and rename the existing `boostrapPlugin` chapter in the user guide to reflect the changes.
 
 ## Test coverage
 
+* Well-behaved plugin int test for the new plugin.
 * Change the existing integration tests to run the `setupBuild` task.
 * Change the existing integration tests to verify that the wrapper files are generated.
 * Change the existing integration tests to verify that a `settings.gradle` is generated.
-* Verify that when `setupBuild` is run in a directory that does not contain a `pom.xml` then an empty `build.gradle` file
-  and the wrapper files are generated.
+* Verify that when `setupBuild` is run in a directory that does not contain a `pom.xml` then an empty `build.gradle` file,
+  plus a `settings.gradle` and the wrapper files are generated.
 
 # Story: User initializes a Gradle build without writing a stub build script
 
@@ -125,13 +131,44 @@ This story adds support for automatically applying the `build-setup` plugin when
 ## Test coverage
 
 * Change the existing integration tests so that they do not create the stub build script that applies the plugin.
+* Running `gradle tasks` in an empty directory shows the `setupBuild` task.
+* Running `gradle tasks` in a directory that contains a build script does not show the `setupBuild` task.
 
-# Story: Handle existing Gradle build files
+# Story: User updates Gradle wrapper without defining wrapper task
 
-Better handle the case where there is already some Gradle build scripts.
+* Extract a `wrapper` plugin out of the `build-setup` plugin.
+    * Should live in the `build-setup` project.
+    * Should add a `wrapper` task.
+* Move the `Wrapper` task type to the `build-setup` project.
+* The `wrapper` plugin should add a `ProjectConfigureAction` that adds a task rule to apply the `wrapper` plugin
+  to the root project when the `wrapper` task is requested.
+* Add an internal mechanism on `TaskContainer` that allows a plugin to add a placeholder for a task, which is some
+  action that is called when the task is requested (eg by name)
+* Change the `BuildSetupPlugin` to use this new mechanism.
 
-* When `setupBuild` is run and any of the files that would be generated already exist, warn the user and do not
-  overwrite the file.
+## Test coverage
+
+* Well-behaved plugin int test for the new plugin.
+* Running `gradle wrapper` on a project updates the wrapper JAR and properties file.
+* Running `gradle tasks` shows the `wrapper` task for the root project.
+* Running `gradle tasks` does not show the `wrapper` task for a non-root project.
+
+# Story: Gradle help message informs user how to create a build
+
+* Introduce a service through which a plugin can contribute help messages.
+* Change the `help` task to use this to assemble the help output.
+* Introduce a service through which a plugin can contribute error resolutions.
+* Change the `ExceptionAnalyser` implementations to use this.
+* Change the `build-setup` plugin to add help messages and error resolutions for empty builds and
+  builds that contain a `pom.xml`.
+
+## Test coverage
+
+* The output of `gradle` or `gradle help` in an empty directory includes a message informing the user that there is no Gradle
+  build defined in the current directory, and that they can run `gradle setupBuild` to create one.
+* The output `gradle` or `gradle help` in a directory with no Gradle files and a `pom.xml` includes a message informing the
+  user that they can convert their POM by running `gradle setupBuild`.
+* The `* Try ...` error message from `gradle someTask` in an empty directory includes a similar message to the help output.
 
 # Story: Create a Java library project from scratch
 
@@ -151,6 +188,26 @@ From the command-line:
 1. User downloads and installs a Gradle distribution.
 2. User runs `gradle setupBuild --type java-library` from an empty directory.
 3. User modifies generated build scripts and source, as appropriate.
+
+# Story: User updates wrapper to use the most recent nightly, release candidate or release
+
+* Change the `wrapper` plugin to add `useNighty`, `useReleaseCandidate` and `useRelease` tasks of type `Wrapper`
+* Copy the configuration logic from `$rootDir/gradle/wrapper.gradle`
+* Change the `wrapper` plugin to add task rules for each of these tasks to the root project.
+* Update the Gradle website's `downloads`, `nightly` and `release-candidate` pages to mention you can simply run `gradle use${Target}`.
+
+## Test coverage
+
+* Running `gradle useNightly` uses a nightly build
+* Running `gradle useReleaseCandidate` uses the most recent release candidate, if any.
+* Running `gradle useRelease` uses the most recent release.
+
+# Story: Handle existing Gradle build files
+
+Better handle the case where there is already some Gradle build scripts.
+
+* When `setupBuild` is run and any of the files that would be generated already exist, warn the user and do not
+  overwrite the file.
 
 # Story: Improve POM conversion
 
