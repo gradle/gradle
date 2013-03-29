@@ -17,11 +17,12 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.junit.Test
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ OperatingSystem.current().isWindows() })
+@IgnoreIf({ OperatingSystem.current().isWindows() || Jvm.current().isIbmJvm() })
 @TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002'])
 class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
