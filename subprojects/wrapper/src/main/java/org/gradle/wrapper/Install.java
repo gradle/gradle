@@ -39,41 +39,40 @@ public class Install {
 
     public File createDist(WrapperConfiguration configuration) throws Exception {
         final URI distributionUrl = configuration.getDistribution();
-        final boolean alwaysDownload = configuration.isAlwaysDownload();
-        final boolean alwaysUnpack = configuration.isAlwaysUnpack();
 
         final PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
         final File distDir = localDistribution.getDistributionDir();
+        final File localZipFile = localDistribution.getZipFile();
 
-        return exclusiveFileAccessManager.access(distDir, new Callable<File>() {
+        return exclusiveFileAccessManager.access(localZipFile, new Callable<File>() {
             public File call() throws Exception {
-                if (!alwaysDownload && !alwaysUnpack && distDir.isDirectory()) {
+                final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
+                if (distDir.isDirectory() && markerFile.isFile()) {
                     return getDistributionRoot(distDir, distDir.getAbsolutePath());
                 }
 
-                final File localZipFile = localDistribution.getZipFile();
-                boolean needsDownload = alwaysDownload || !localZipFile.isFile();
+                boolean needsDownload = !localZipFile.isFile();
 
                 if (needsDownload) {
-                    String downloadId = UUID.randomUUID().toString();
-                    File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + "-" + downloadId + ".part");
+                    File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
+                    tmpZipFile.delete();
                     System.out.println("Downloading " + distributionUrl);
                     download.download(distributionUrl, tmpZipFile);
                     tmpZipFile.renameTo(localZipFile);
                 }
 
                 List<File> topLevelDirs = listDirs(distDir);
-                if (needsDownload || alwaysUnpack || topLevelDirs.isEmpty()) {
-                    for (File dir : topLevelDirs) {
-                        System.out.println("Deleting directory " + dir.getAbsolutePath());
-                        deleteDir(dir);
-                    }
-                    System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
-                    unzip(localZipFile, distDir);
+                for (File dir : topLevelDirs) {
+                    System.out.println("Deleting directory " + dir.getAbsolutePath());
+                    deleteDir(dir);
                 }
+                System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
+                unzip(localZipFile, distDir);
 
                 File root = getDistributionRoot(distDir, distributionUrl.toString());
                 setExecutablePermissions(root);
+                markerFile.createNewFile();
+
                 return root;
             }
         });
@@ -158,24 +157,29 @@ public class Install {
 
     private void unzip(File zip, File dest) throws IOException {
         Enumeration entries;
-        ZipFile zipFile;
+        ZipFile zipFile = new ZipFile(zip);
 
-        zipFile = new ZipFile(zip);
+        try {
+            entries = zipFile.entries();
 
-        entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = (ZipEntry) entries.nextElement();
 
-        while (entries.hasMoreElements()) {
-            ZipEntry entry = (ZipEntry) entries.nextElement();
+                if (entry.isDirectory()) {
+                    (new File(dest, entry.getName())).mkdirs();
+                    continue;
+                }
 
-            if (entry.isDirectory()) {
-                (new File(dest, entry.getName())).mkdirs();
-                continue;
+                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(new File(dest, entry.getName())));
+                try {
+                    copyInputStream(zipFile.getInputStream(entry), outputStream);
+                } finally {
+                    outputStream.close();
+                }
             }
-
-            copyInputStream(zipFile.getInputStream(entry),
-                    new BufferedOutputStream(new FileOutputStream(new File(dest, entry.getName()))));
+        } finally {
+            zipFile.close();
         }
-        zipFile.close();
     }
 
     private void copyInputStream(InputStream in, OutputStream out) throws IOException {

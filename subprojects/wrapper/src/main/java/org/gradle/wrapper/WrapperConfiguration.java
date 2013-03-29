@@ -18,32 +18,11 @@ package org.gradle.wrapper;
 import java.net.URI;
 
 public class WrapperConfiguration {
-    public static final String ALWAYS_UNPACK_ENV = "GRADLE_WRAPPER_ALWAYS_UNPACK";
-    public static final String ALWAYS_DOWNLOAD_ENV = "GRADLE_WRAPPER_ALWAYS_DOWNLOAD";
-
-    private boolean alwaysUnpack = Boolean.parseBoolean(System.getenv(ALWAYS_UNPACK_ENV));
-    private boolean alwaysDownload = Boolean.parseBoolean(System.getenv(ALWAYS_DOWNLOAD_ENV));
     private URI distribution;
     private String distributionBase = PathAssembler.GRADLE_USER_HOME_STRING;
     private String distributionPath = Install.DEFAULT_DISTRIBUTION_PATH;
     private String zipBase = PathAssembler.GRADLE_USER_HOME_STRING;
     private String zipPath = Install.DEFAULT_DISTRIBUTION_PATH;
-
-    public boolean isAlwaysDownload() {
-        return alwaysDownload;
-    }
-
-    public void setAlwaysDownload(boolean alwaysDownload) {
-        this.alwaysDownload = alwaysDownload;
-    }
-
-    public boolean isAlwaysUnpack() {
-        return alwaysUnpack;
-    }
-
-    public void setAlwaysUnpack(boolean alwaysUnpack) {
-        this.alwaysUnpack = alwaysUnpack;
-    }
 
     public URI getDistribution() {
         return distribution;
