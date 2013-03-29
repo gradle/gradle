@@ -79,8 +79,8 @@ For all builds:
 
 ## Integration test coverage
 
-* convert a multi-module maven project and run Gradle build with generated Gradle scripts
-* convert a single-module maven project and run with Gradle.
+* convert a multi-module Maven project and run Gradle build with generated Gradle scripts
+* convert a single-module Maven project and run with Gradle.
 * include a sad day case(s)
 
 ## Implementation approach
@@ -93,7 +93,7 @@ For all builds:
 
 # Story: Build initialisation generates the Gradle wrapper files
 
-This story add support for generating the Gradle wrapper files, and changes the existing plugin so that it is more
+This story adds support for generating the Gradle wrapper files, and changes the existing plugin so that it is more
 general purpose:
 
 * Rename the `maven2Gradle` plugin to `build-setup`.
@@ -136,10 +136,12 @@ This story adds support for automatically applying the `build-setup` plugin when
 
 # Story: User updates Gradle wrapper without defining wrapper task
 
+This story adds a `wrapper` plugin and support for automatically applying the `wrapper` plugin when `gradle wrapper` is run:
+
 * Extract a `wrapper` plugin out of the `build-setup` plugin.
     * Should live in the `build-setup` project.
     * Should add a `wrapper` task.
-* Move the `Wrapper` task type to the `build-setup` project.
+* Move the `Wrapper` task type to the `build-setup` project, and remove the dependency on the `plugins` project.
 * The `wrapper` plugin should add a `ProjectConfigureAction` that adds a task rule to apply the `wrapper` plugin
   to the root project when the `wrapper` task is requested.
 * Add an internal mechanism on `TaskContainer` that allows a plugin to add a placeholder for a task, which is some
@@ -153,7 +155,10 @@ This story adds support for automatically applying the `build-setup` plugin when
 * Running `gradle tasks` shows the `wrapper` task for the root project.
 * Running `gradle tasks` does not show the `wrapper` task for a non-root project.
 
-# Story: Gradle help message informs user how to create a build
+# Story: Gradle help message informs user how to setup a build
+
+This story adds some helpful output when the user attempts to run Gradle in a directory that does not contain a
+Gradle build, to let the user know how to create a new build or convert an existing Maven build:
 
 * Introduce a service through which a plugin can contribute help messages.
 * Change the `help` task to use this to assemble the help output.
@@ -171,6 +176,8 @@ This story adds support for automatically applying the `build-setup` plugin when
 * The `* Try ...` error message from `gradle someTask` in an empty directory includes a similar message to the help output.
 
 # Story: Create a Java library project from scratch
+
+This story adds the ability to create a Java library project by running `gradle setupBuild` in an empty directory:
 
 * Add a `--type` command-line option to `setupBuild`.
 * When `type` is `java-library` then:
@@ -190,6 +197,8 @@ From the command-line:
 3. User modifies generated build scripts and source, as appropriate.
 
 # Story: User updates wrapper to use the most recent nightly, release candidate or release
+
+This story adds the ability for the user to easily update the build to use the most recent release of a given type:
 
 * Change the `wrapper` plugin to add `useNighty`, `useReleaseCandidate` and `useRelease` tasks of type `Wrapper`
 * Copy the configuration logic from `$rootDir/gradle/wrapper.gradle`
@@ -212,6 +221,12 @@ Better handle the case where there is already some Gradle build scripts.
 # Story: Improve POM conversion
 
 TBD - fix issues with POM conversion to make it more accurate
+
+- Fix indenting of generated `build.gradle`
+
+## Test coverage
+
+* Decent error message for badly formed pom.xml
 
 # Story: User manually completes migration with help from the build comparison plugin
 

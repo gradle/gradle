@@ -157,6 +157,8 @@ Add to the task history a hash of the task implementation, and rebuild the task'
 
 ## GRADLE-1646: Copy tasks do not consider filter/expansion properties in up-to-date checks
 
+- Also GRADLE-2710
+
 ## GRADLE-1276: processResources task considered up-to-date although its spec has changed
 
 ## GRADLE-1814: Uptodate check fails when changing property includeEmptyDirs of Copy task
