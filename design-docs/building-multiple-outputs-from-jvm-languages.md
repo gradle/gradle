@@ -235,17 +235,16 @@ To build several binaries from source:
     binaries {
         jvm {
             api(ClassDirectoryBinary) {
-                source sources.api
+                source sources.api.java
             }
             impl(ClassDirectoryBinary) {
-                source sources.impl
+                source sources.impl.java
+                source sources.impl.resources
             }
         }
     }
 
 Running `gradle implClasses` will compile the impl source.
-
-TBD - running `gradle assemble` does what?
 
 ### Test coverage
 
@@ -265,16 +264,158 @@ TBD - running `gradle assemble` does what?
 
 ## Story: Build binaries from multiple source sets
 
-This story adds the ability to build a binary from multiple source sets that are jointly compiled.
+This story adds the ability to build a binary from multiple source sets of different types, where each source set is compiled separately.
 
-- Allow multiple resource and java source sets to be added to a binary.
-- Allow functional source sets to be added to a binary.
-- Allow source sets to be composed.
+1. For each Java source set added to a class directory binary, the `java-lang` plugin adds a Java compile task.
+    - When compiling the `main.${lang}` source for the `main` binary, the task should be called `compile${Lang}`.
+    - When compiling the `${name}.${lang}` source for the `${name}` binary, the task should be called `compile${Name}${Lang}`.
+    - For all other source sets `${function}.${lang}` for the `${binary}` binary, the task should be called `compile${Function}${Lang}For${Binary}Classes`
+2. For each resource set added to a class directory binary, the `jvm-lang` plugin adds a process resources task.
+    - When processing the `main.${lang}` resources for the `main` binary, the task should be called `process${Lang}`.
+    - When processing the `${name}.${lang}` resources for the `${name}` binary, the task should be called `process${Name}${Lang}`.
+    - For all other resources sets `${function}.${lang}` for the `${binary}` binary, the task should be called `process${Function}${Lang}For${Binary}Classes`
+3. Remove `ClassDirectoryBinary.resourcesTask` property.
+
+For example, to build several binaries from different combinations of source:
+
+    apply plugin: 'java-lang'
+
+    source {
+        main {
+            java(JavaSourceSet)
+            java5(JavaSourceSet)
+            resources(ResourceSet)
+        }
+        test {
+            java5(JavaSourceSet)
+        }
+    }
+
+    binaries {
+        jvm {
+            main(ClassDirectoryBinary) {
+                source source.main.java
+                source source.main.java5
+                source source.main.resources
+            }
+            java5(ClassDirectoryBinary) {
+                source source.main.java5
+                source source.main.resources
+            }
+            test(ClassDirectoryBinary) {
+                source source.test.java5
+            }
+        }
+    }
+
+This defines the following tasks:
+
+* `classes` depends on
+    * `compileJava`
+    * `compileJava5`
+    * `processResources`
+* `java5Classes` depends on
+    * `compileMainJava5ForJava5Classes`
+    * `processMainResourcesForJava5Classes`
+* `testClasses` depends on
+    * `compileTestJava5`
+
+### Test coverage
+
+- Using the `java-lang` plugin, build a binary from multiple java and resource sets.
+- Using the `java` plugin, build a binary from two legacy source sets.
+- Using the `java` plugin, build a binary from a legacy source set and a Java source set.
+
+## Story: Build binaries from composite source sets
+
+This story adds the ability to build a binary from a composite source set, where all of the source is jointly compiled.
+
+1. Add a mechanism to ask a source set for each of its language source sets. This is not the same as asking for the source set's children.
+2. Adding a source set to a class directory binary is equivalent to adding its language source sets to the binary.
+3. Change the composite source set to merge each child of a given language into a single source set.
+4. Change the class directory binary to allow a rule to be registered for each source set type, so that when a source set of the
+   registered type is added, the rule is invoked to add the appropriate tasks. It should be possible to replace a rule.
+   The tasks(s) created by each rule should be added as dependencies of the `classes` task.
+5. Change the class directory binary to fail when a source set is added for which there is no rule.
+6. Remove `ClassDirectoryBinary.getTaskName()` and `getTaskBaseName()` methods. These should instead be available via the context passed to each rule.
+
+For example, to build a binary from Java, resources and some generated source:
+
+    source {
+        main {
+            java(JavaSourceSet)
+            generatedJava(JavaSourceSet)
+            resources(ResourceSet)
+        }
+    }
+
+    binaries {
+        jvm {
+            main(ClassDirectoryBinary) {
+                source source.main
+            }
+        }
+    }
+
+    compileJava.dependsOn generateJavaSource
+
+TBD - task naming rules
+
+## Story: Build binaries from multiple jointly compiled source sets
+
+This story adds the ability to build a binary from multiple source sets that are jointly compiled. The approach is to allow
+multiple source sets to be combined into a single composite source set, which is then added to a class directory binary.
+
+1. Add some conveniences for defining a functional source set.
+2. Introduce `CompositeSourceSet`.
+
+    source {
+        main {
+            java { ... }
+            resources { ... }
+        }
+        free {
+            java { ... }
+            resources { ... }
+        }
+        paid {
+            java { ... }
+            resoures { ... }
+        }
+        paidMain(CompositeSourceSet) {
+            include source.main
+            include source.paid
+        }
+        freeMain(CompositeSourceSet) {
+            include source.main
+            include source.free
+        }
+    }
+
+    binaries {
+        jvm {
+            paidMain(ClassDirectoryBinary) {
+                source source.paidMain
+            }
+            freeMain(ClassDirectoryBinary) {
+                source source.freeMain
+            }
+        }
+    }
+
+### Test coverage
+
+- Using the `java-lang` plugin, build a binary from 2 jointly compiled Java source sets.
+- Using the `java` plugin, build a binary from 2 jointly compiled legacy source sets.
 
 ## Story: Apply conflict resolution to class paths
 
 - For composite source sets, define a `compile` configuration that contains the union of dependencies from the compile
   classpaths of each origin source set.
+
+## Story: Allow custom language source sets to be defined
+
+- Must be able to provide strategy for merging source sets of this type
 
 ## Story: Dependencies between source sets
 
@@ -381,13 +522,16 @@ This story allows a JVM binary to be attached to a Java library component for pu
 # Open issues
 
 * Bust up plugins project in some way.
+* Wire into `gradle assemble`.
+* Add a library convention plugin.
 * Consuming vs producing.
 * Custom source sets.
 * Warn or fail when some source for a class packaging cannot be handled.
 * Merge classes and resources?
 * Joint compilation.
 * Add JavaScript source sets.
-* More packaging types.
-* More type-specific meta-data on source sets.
-* Navigate from a source set to its packagings and from a packaging to its source sets.
-* Packagings and source sets resolved from a repository.
+* Add more binary types.
+* Add more type-specific meta-data on source sets.
+* Navigate from a source set to its binaries and from a binary to its source sets.
+* Binaries and source sets resolved from a repository.
+* Allow a jvm binary to be used as source for another binary.
