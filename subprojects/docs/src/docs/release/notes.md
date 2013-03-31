@@ -214,6 +214,11 @@ It is not needed internally and it shouldn't be needed by the users, too.
 With the introduction of support for custom tooling API models, the tooling API models are no longer required to extend the `org.gradle.tooling.model.Model` marker
 interface. The upper bound `extends Model` has been removed from the type parameter of `ModelBuilder`.
 
+### Tooling API `org.gradle.tooling.ProjectConnection.model()` no longer throws `UnknownModelException`
+
+With the introduction of support for custom tooling API models, it is no longer possible to determine whether a model is supported without
+configuring the target build. This exception is now thrown as part of the result.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
