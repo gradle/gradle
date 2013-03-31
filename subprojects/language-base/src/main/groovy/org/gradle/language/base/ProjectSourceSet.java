@@ -20,7 +20,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * A container of {@link FunctionalSourceSet}s. Added to a project by the
- * {@link org.gradle.api.plugins.LanguageBasePlugin}.
+ * {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
  */
 @Incubating
 public interface ProjectSourceSet extends NamedDomainObjectContainer<FunctionalSourceSet> {}
