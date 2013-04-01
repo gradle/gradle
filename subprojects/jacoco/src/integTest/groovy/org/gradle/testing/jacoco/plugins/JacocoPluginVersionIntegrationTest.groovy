@@ -19,6 +19,9 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.select.Elements
 import org.junit.Test
 import spock.lang.IgnoreIf
 
@@ -41,7 +44,7 @@ class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
             testCompile 'junit:junit:4.10'
         }
         jacoco {
-            toolVersion = '$org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.version'
+            toolVersion = '$version'
         }
         """
         createTestFiles();
@@ -49,6 +52,8 @@ class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         executer.withArgument("-i")
         succeeds('jacocoTestReport')
         then:
+        correctJacocoVersionUsed()
+        file("build/reports/jacoco/test/html/index.html").exists()
         file("build/reports/jacoco/test/html/index.html").exists()
     }
 
@@ -57,5 +62,12 @@ class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
                 "package org.gradle; public class Class1 { public boolean isFoo(Object arg) { return true; } }"
         file("src/test/java/org/gradle/Class1Test.java") <<
                 "package org.gradle; import org.junit.Test; public class Class1Test { @Test public void someTest() { new Class1().isFoo(\"test\"); } }"
+    }
+
+    def correctJacocoVersionUsed() {
+        Document parsedHtmlReport = Jsoup.parse(file("build/reports/jacoco/test/html/index.html"), "UTF-8")
+        Elements footer = parsedHtmlReport.select("div.footer:has(a[href=http://www.eclemma.org/jacoco])")
+        assertTrue footer.text().contains(version)
+        true
     }
 }

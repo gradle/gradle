@@ -21,6 +21,7 @@ dependencies {
 	compile project(':core')
 	compile project(':plugins')
 	compile project(':reporting')
+    testCompile libraries.jsoup
 }
 
 useTestFixtures()
