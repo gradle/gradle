@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.buildsetup.plugins.internal
+package org.gradle.buildsetup.plugins.internal.maven
 
-import org.gradle.buildsetup.plugins.internal.maven.MavenProjectXmlWriter
 import spock.lang.Specification
 
 /**

@@ -17,8 +17,9 @@
 package org.gradle.buildsetup.plugins.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.buildsetup.plugins.BuildSetupPlugin;
 import org.gradle.configuration.ProjectConfigureAction;
+
+import java.io.File;
 
 public class BuildSetupAutoApplyAction implements ProjectConfigureAction {
     public void execute(ProjectInternal projectInternal) {
@@ -28,12 +29,18 @@ public class BuildSetupAutoApplyAction implements ProjectConfigureAction {
     }
 
     private boolean buildSetupShouldBeAutoApplied(ProjectInternal projectInternal) {
-        if (!projectInternal.getGradle().getStartParameter().getTaskNames().contains(BuildSetupPlugin.SETUP_BUILD_TASK_NAME)) {
+        if (projectInternal.getParent() != null) {
             return false;
         }
-        if (projectInternal.file("build.gradle").exists()) {
+        if (projectInternal.getSubprojects().size() != 0) {
             return false;
         }
+
+        final File buildFile = projectInternal.getBuildFile();
+        if (buildFile!=null && buildFile.exists()) {
+            return false;
+        }
+
         return true;
     }
 }

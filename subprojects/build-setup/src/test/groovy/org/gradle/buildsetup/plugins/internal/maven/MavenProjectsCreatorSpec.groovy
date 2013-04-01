@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.buildsetup.plugins.internal
+package org.gradle.buildsetup.plugins.internal.maven
 
 import org.gradle.api.GradleException
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
-import org.gradle.buildsetup.plugins.internal.maven.MavenProjectsCreator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
