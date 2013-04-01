@@ -58,7 +58,7 @@ class WrapperConcurrentDownloadTest extends AbstractIntegrationSpec {
         builds.each { it.waitForFinish() }
 
         then:
-        builds.collect { it.standardOutput.contains("Downloading") == 1 }
+        builds.findAll { it.standardOutput.contains("Downloading") }.size() == 1
     }
 
     static class BlockingDownloadHttpServer extends ExternalResource {
