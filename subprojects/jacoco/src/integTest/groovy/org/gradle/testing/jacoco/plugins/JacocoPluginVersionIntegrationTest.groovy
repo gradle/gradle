@@ -24,6 +24,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import org.junit.Test
 import spock.lang.IgnoreIf
+import static org.junit.Assert.*
 
 @IgnoreIf({ OperatingSystem.current().isWindows() || Jvm.current().isIbmJvm() })
 @TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002'])
