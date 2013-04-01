@@ -17,8 +17,6 @@
 package org.gradle.buildsetup.plugins
 
 import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.buildsetup.tasks.ConvertMaven2Gradle
-import org.gradle.buildsetup.tasks.GenerateBuildFile
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.Matchers
 import spock.lang.Specification

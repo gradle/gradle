@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.buildsetup.tasks
+package org.gradle.buildsetup.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating

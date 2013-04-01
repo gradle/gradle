@@ -26,6 +26,7 @@ import org.gradle.api.plugins.quality.*
 import org.gradle.testing.jacoco.tasks.*
 import org.gradle.api.plugins.announce.*
 import org.gradle.api.plugins.buildcomparison.gradle.*
+import org.gradle.buildsetup.plugins.*
 import org.gradle.api.specs.*
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.*
