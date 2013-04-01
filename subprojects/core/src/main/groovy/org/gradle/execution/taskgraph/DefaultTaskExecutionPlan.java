@@ -111,12 +111,20 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 Set<? extends Task> dependencies = context.getDependencies(task);
                 for (Task dependency : dependencies) {
                     graph.addHardEdge(node, dependency);
+                    mustRunAfterFinalisers(node, dependency);
                 }
                 for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
                     graph.addSoftEdge(node, mustRunAfter);
+                    mustRunAfterFinalisers(node, mustRunAfter);
                 }
                 node.dependenciesProcessed();
             }
+        }
+    }
+
+    private void mustRunAfterFinalisers(TaskInfo node, Task finalised) {
+        for (Task finaliserTask : finalised.getFinalisedBy().getDependencies(finalised)) {
+            graph.addSoftEdge(node, finaliserTask);
         }
     }
 

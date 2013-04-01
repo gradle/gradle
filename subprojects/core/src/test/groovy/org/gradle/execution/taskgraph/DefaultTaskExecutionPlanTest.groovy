@@ -292,6 +292,30 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executedTasks == [finalised, finaliserDependency, finaliser, dependsOnFinaliser]
     }
 
+    def "finaliser tasks run as soon as possible for tasks that depend on finalised tasks"() {
+        Task finaliser = task("finaliser")
+        Task finalised = task("finalised", finalisedBy: [finaliser])
+        Task dependsOnFinalised = task("dependsOnFinalised", dependsOn: [finalised])
+
+        when:
+        addToGraphAndPopulate([dependsOnFinalised])
+
+        then:
+        executedTasks == [finalised, finaliser, dependsOnFinalised]
+    }
+
+    def "finaliser tasks run as soon as possible for tasks that must run after finalised tasks"() {
+        Task finaliser = task("finaliser")
+        Task finalised = task("finalised", finalisedBy: [finaliser])
+        Task mustRunAfterFinalised = task("mustRunAfterFinalised", mustRunAfter: [finalised])
+
+        when:
+        addToGraphAndPopulate([mustRunAfterFinalised, finalised])
+
+        then:
+        executedTasks == [finalised, finaliser, mustRunAfterFinalised]
+    }
+
     def "getAllTasks returns tasks in execution order"() {
         Task e = task("e");
         Task d = task("d", mustRunAfter: [e]);
