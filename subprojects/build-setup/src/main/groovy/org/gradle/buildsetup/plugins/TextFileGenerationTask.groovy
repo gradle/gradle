@@ -16,15 +16,21 @@
 
 package org.gradle.buildsetup.plugins
 
-import org.gradle.api.Incubating
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 
-@Incubating
-class GenerateBuildFile extends TextFileGenerationTask {
 
-    File buildFile
+abstract class TextFileGenerationTask extends DefaultTask {
 
-    @Override
-    protected File getOutputFile() {
-        return getBuildFile()
+    @TaskAction
+    public void generate() {
+        def textOutputFile = getOutputFile()
+        if (!textOutputFile.exists()) {
+            textOutputFile.text = ""
+        }
     }
+
+    @OutputFile
+    protected abstract File getOutputFile()
 }

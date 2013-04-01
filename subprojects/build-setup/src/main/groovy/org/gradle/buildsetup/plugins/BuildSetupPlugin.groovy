@@ -40,17 +40,23 @@ class BuildSetupPlugin implements Plugin<Project> {
                 description = '[incubating] Attempts to generate gradle builds from Maven project.'
             }
             setupBuild.dependsOn(maven2Gradle)
-        }
-        else if(!project.file("build.gradle").exists()){
+        } else if (!project.file("build.gradle").exists()) {
             // generate empty gradle build file
-            GenerateBuildFile generateBuildFile = project.task("generateBuildFile", type:GenerateBuildFile){
+            GenerateBuildFile generateBuildFile = project.task("generateBuildFile", type: GenerateBuildFile) {
                 group = GROUP
                 description = '[incubating] Creates a Gradle build file.'
                 buildFile = project.file("build.gradle")
             }
+            // generate empty gradle settings file
+            GenerateSettingsFile generateSettingsFile = project.task("generateSettingsFile", type: GenerateSettingsFile) {
+                group = GROUP
+                description = '[incubating] Creates a Gradle settings file.'
+                settingsFile = project.file("settings.gradle")
+            }
+            setupBuild.dependsOn(generateSettingsFile)
             setupBuild.dependsOn(generateBuildFile)
         }
-        Task wrapper = project.task("wrapper", type:Wrapper)
+        Task wrapper = project.task("wrapper", type: Wrapper)
         setupBuild.dependsOn(wrapper)
     }
 }

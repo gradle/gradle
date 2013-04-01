@@ -16,15 +16,12 @@
 
 package org.gradle.buildsetup.plugins
 
-import org.gradle.api.Incubating
 
-@Incubating
-class GenerateBuildFile extends TextFileGenerationTask {
+class GenerateSettingsFile extends TextFileGenerationTask{
 
-    File buildFile
-
+    File settingsFile
     @Override
     protected File getOutputFile() {
-        return getBuildFile()
+        return settingsFile;
     }
 }
