@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -162,7 +163,6 @@ it.exclude group: '*', module: 'badArtifact'
 
       then:
       noExceptionThrown()
-      println file("build.gradle").text
       when:
       run 'clean', 'build'
 
@@ -170,14 +170,12 @@ it.exclude group: '*', module: 'badArtifact'
       file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
     }
 
-    def wrapperFilesGenerated(){
-        wrapperFilesGenerated(file("."))
-    }
-
-    def wrapperFilesGenerated(TestFile parentFolder) {
+    void wrapperFilesGenerated(TestFile parentFolder = file(".")) {
         parentFolder.file("gradlew").assertExists()
         parentFolder.file("gradlew.bat").assertExists()
         parentFolder.file("gradle/wrapper/gradle-wrapper.jar").assertExists()
-        parentFolder.file("gradle/wrapper/gradle-wrapper.properties").assertExists()
+        def wrapperPropertiesFile = parentFolder.file("gradle/wrapper/gradle-wrapper.properties")
+        wrapperPropertiesFile.assertExists()
+        assert wrapperPropertiesFile.text.contains("distributionUrl=http\\://services.gradle.org/distributions-snapshots/gradle-${GradleVersion.current().getVersion()}-bin.zip")
     }
 }
