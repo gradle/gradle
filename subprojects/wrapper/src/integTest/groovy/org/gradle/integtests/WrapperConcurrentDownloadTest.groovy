@@ -50,15 +50,10 @@ class WrapperConcurrentDownloadTest extends AbstractIntegrationSpec {
         succeeds('wrapper')
 
         when:
-        def build1 = executer.usingExecutable("gradlew").start()
-        def build2 = executer.usingExecutable("gradlew").start()
-        def build3 = executer.usingExecutable("gradlew").start()
-        def build4 = executer.usingExecutable("gradlew").start()
-        def builds = [build1, build2, build3, build4]
-        builds.each { it.waitForFinish() }
+        def results = [1..4].collect { executer.usingExecutable("gradlew").start() }*.waitForFinish()
 
         then:
-        builds.findAll { it.standardOutput.contains("Downloading") }.size() == 1
+        results.findAll { it.output.contains("Downloading") }.size() == 1
     }
 
     static class BlockingDownloadHttpServer extends ExternalResource {
