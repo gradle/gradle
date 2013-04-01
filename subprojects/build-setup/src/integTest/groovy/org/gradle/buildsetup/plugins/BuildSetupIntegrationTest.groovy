@@ -16,9 +16,20 @@
 
 package org.gradle.buildsetup.plugins
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class SetupBuildIntegrationTest extends AbstractIntegrationSpec {
+class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
+
+    @Override
+    String getMainTask() {
+        return "setupBuild"
+    }
+
+    @Override
+    String getPluginId() {
+        "build-setup"
+    }
+
     def "can be executed without existing pom"() {
         when:
         run 'setupBuild'
