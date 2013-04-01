@@ -1,6 +1,10 @@
 def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
 timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
 
+if (buildTypes.isActive("promotionBuild")) {
+    logger.lifecycle "Invocation tasks: $gradle.startParameter.taskNames\nInvocation properties: $gradle.startParameter.projectProperties"
+}
+
 if (incomingDistributionsBuildReceipt) {
     ext.versionBase = incomingDistributionsBuildReceipt.versionBase
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
