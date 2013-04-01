@@ -147,7 +147,7 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public void enforceRun() {
-        assert state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.SHOULD_NOT_RUN;
+        assert state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.SHOULD_NOT_RUN || state == TaskExecutionState.MUST_RUN;
         state = TaskExecutionState.MUST_RUN;
     }
 

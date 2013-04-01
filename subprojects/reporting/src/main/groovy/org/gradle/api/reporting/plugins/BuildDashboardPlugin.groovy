@@ -45,7 +45,7 @@ public class BuildDashboardPlugin implements Plugin<ProjectInternal> {
             it.tasks.withType(Reporting).matching { task ->
                 task != buildDashboardTask
             }.all { task ->
-                buildDashboardTask.mustRunAfter(task)
+                task.finalisedBy(buildDashboardTask)
             }
         }
         addReportDestinationConventionMapping(project, buildDashboardTask.reports.html);

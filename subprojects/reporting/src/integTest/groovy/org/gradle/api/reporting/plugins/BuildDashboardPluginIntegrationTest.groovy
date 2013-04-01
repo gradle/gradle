@@ -26,12 +26,23 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
     void setup() {
         writeBuildFile()
-        writeProjectFiles(testDirectory)
+        writeCodenarcConfig()
     }
 
-    private void writeProjectFiles(TestFile root) {
+    private void goodCode(TestFile root = testDirectory) {
+        root.file("src/main/groovy/org/gradle/Class1.groovy") << "package org.gradle; class Class1 { }"
+    }
+
+    private void badCode(TestFile root = testDirectory) {
         root.file("src/main/groovy/org/gradle/class1.groovy") << "package org.gradle; class class1 { }"
-        root.file("config/codenarc/rulesets.groovy") << ""
+    }
+
+    private void writeCodenarcConfig(TestFile root = testDirectory) {
+        root.file("config/codenarc/rulesets.groovy") << """
+            ruleset {
+                ruleset('rulesets/naming.xml')
+            }
+        """
     }
 
     private TestFile getBuildDashboardFile() {
@@ -66,8 +77,18 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
     }
 
+    private void failingDependencyForCodenarcMain() {
+        buildFile << """
+            task failingTask << { throw new RuntimeException() }
+
+            codenarcMain.dependsOn failingTask
+        """
+    }
+
     private void setupSubproject() {
-        writeProjectFiles(file('subproject'))
+        def subprojectDir = file('subproject')
+        writeCodenarcConfig(subprojectDir)
+        goodCode(subprojectDir)
         file('settings.gradle') << "include 'subproject'"
     }
 
@@ -88,6 +109,9 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     void 'running buildDashboard task after some report generating task generates link to it in the dashboard'() {
+        given:
+        goodCode()
+
         when:
         run('check', BUILD_DASHBOARD_TASK_NAME)
 
@@ -96,6 +120,9 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     void 'buildDashboard task always runs after report generating tasks'() {
+        given:
+        goodCode()
+
         when:
         run(BUILD_DASHBOARD_TASK_NAME, 'check')
 
@@ -103,8 +130,56 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         dashboardLinksCount == 2
     }
 
+    void 'running a report generating task also runs build dashboard task'() {
+        given:
+        goodCode()
+
+        when:
+        run('check')
+
+        then:
+        dashboardLinksCount == 2
+    }
+
+    void 'build dashboard task is executed even if report generating task fails'() {
+        given:
+        badCode()
+
+        when:
+        runAndFail('check')
+
+        then:
+        dashboardLinksCount == 2
+    }
+
+    void 'build dashboard task is not executed if a dependency of the report generating task fails'() {
+        given:
+        goodCode()
+        failingDependencyForCodenarcMain()
+
+        when:
+        runAndFail('check')
+
+        then:
+        !buildDashboardFile.exists()
+    }
+
+    void 'build dashboard task is not executed if a dependency of the report generating task fails even with --continue'() {
+        given:
+        goodCode()
+        failingDependencyForCodenarcMain()
+
+        when:
+        args('--continue')
+        runAndFail('check')
+
+        then:
+        !buildDashboardFile.exists()
+    }
+
     void 'no report is generated if it is disabled'() {
         given:
+        goodCode()
         buildFile << """
             $BUILD_DASHBOARD_TASK_NAME {
                 reports.html.enabled = false
@@ -119,6 +194,9 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     void 'buildDashboard is incremental'() {
+        given:
+        goodCode()
+
         expect:
         run(BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in nonSkippedTasks
         run(BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in skippedTasks
@@ -131,6 +209,9 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     void 'enabling an additional report renders buildDashboard out-of-date'() {
+        given:
+        goodCode()
+
         expect:
         run('check', BUILD_DASHBOARD_TASK_NAME) && ":$BUILD_DASHBOARD_TASK_NAME".toString() in nonSkippedTasks
 
@@ -148,6 +229,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
     void 'reports from subprojects are aggregated'() {
         given:
+        goodCode()
         setupSubproject()
 
         when:
