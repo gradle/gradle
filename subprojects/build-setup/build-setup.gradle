@@ -20,7 +20,7 @@ dependencies {
 	compile libraries.groovy
 	compile project(':core')
     compile project(':plugins')
-    compile project(':maven')
+    integTestRuntime project(':maven')
 }
 
 useTestFixtures()
