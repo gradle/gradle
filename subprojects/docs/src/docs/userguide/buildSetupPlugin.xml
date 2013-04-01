@@ -135,7 +135,7 @@
         <itemizedlist>
             <listitem>Make sure your Maven project builds and uses maven3.</listitem>
             <listitem>Make sure no <literal>build.gradle</literal> file is available in your your Maven project folder.</listitem>
-            <listitem>Run <code>gradle buildSetup</code> in your project directory.
+            <listitem>Run <code>gradle setupBuild</code> in your project directory.
                 You should see that the <code>maven2Gradle</code> task is executed as a dependency on setupBuild.</listitem>
         </itemizedlist>
     </section>
