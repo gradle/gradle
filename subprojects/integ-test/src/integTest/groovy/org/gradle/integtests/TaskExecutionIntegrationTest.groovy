@@ -234,21 +234,8 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "finaliser task is executed if a finalised task is executed"() {
         buildFile << """
     task a
-    task b << {}
-
-    b.finalisedBy a
-"""
-        when:
-        succeeds 'b'
-
-        then:
-        result.assertTasksExecuted(':b', ':a')
-    }
-
-    def "finaliser task is not executed if the finalised task does not do any work"() {
-        buildFile << """
-    task a
     task b {
+        doLast {}
         finalisedBy a
     }
 """
@@ -256,7 +243,38 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'b'
 
         then:
-        result.assertTasksExecuted(':b')
+        ":a" in executedTasks
+    }
+
+    def "finaliser task is executed even if the build fails"() {
+        buildFile << """
+    task a
+    task b  {
+        doLast { throw new RuntimeException() }
+        finalisedBy a
+    }
+"""
+        when:
+        fails 'b'
+
+        then:
+        ":a" in executedTasks
+    }
+
+    def "finaliser task is not executed if the finalised task does not do any work"() {
+        buildFile << """
+    task a
+    task b {
+        doLast {}
+        finalisedBy a
+        onlyIf { false }
+    }
+"""
+        when:
+        succeeds 'b'
+
+        then:
+        !(":a" in executedTasks)
     }
 
     def "sensible error message for circular task dependency due to mustRunAfter"() {

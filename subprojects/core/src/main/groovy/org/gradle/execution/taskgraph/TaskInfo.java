@@ -127,17 +127,15 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public void setRequired(boolean required) {
-        if (required) {
-            if (state == TaskExecutionState.NOT_REQUIRED) {
-                state = TaskExecutionState.SHOULD_RUN;
-            }
-        } else {
-            state = TaskExecutionState.NOT_REQUIRED;
-        }
+        state = required ? TaskExecutionState.SHOULD_RUN : TaskExecutionState.NOT_REQUIRED;
     }
 
     public void shouldNotRun() {
         state = TaskExecutionState.SHOULD_NOT_RUN;
+    }
+    
+    public boolean isOnlyFinalising() {
+        return state == TaskExecutionState.SHOULD_NOT_RUN;
     }
 
     public boolean getDependenciesProcessed() {

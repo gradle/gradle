@@ -55,6 +55,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final List<String> runningProjects = new ArrayList<String>();
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
+        List<Task> finalisers = new ArrayList<Task>();
         List<Task> queue = new ArrayList<Task>(tasks);
         Collections.sort(queue);
         for (Task task : queue) {
@@ -67,7 +68,8 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             Task task = queue.get(0);
             TaskInfo node = graph.addNode(task);
             if (node.getDependenciesProcessed()) {
-                // Have already visited this task - skip it
+                // Have already visited this task - skip it but make sure it's required if it's a finaliser
+                requireWithDependenciesIfOnlyFinalising(node);
                 queue.remove(0);
                 continue;
             }
@@ -82,6 +84,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (visiting.add(task)) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
+                if (node.isOnlyFinalising()) {
+                    finalisers.add(task);
+                }
                 Set<? extends Task> dependsOnTasks = context.getDependencies(task);
                 for (Task dependsOnTask : dependsOnTasks) {
                     if (visiting.contains(dependsOnTask)) {
@@ -91,14 +96,18 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     queue.add(0, dependsOnTask);
                 }
                 for (Task finaliserTask : task.getFinalisedBy().getDependencies(task)) {
-                    addFinaliserTaskToGraph(node, finaliserTask);
-                    queue.add(finaliserTask);
+                    addFinaliserNodeToGraph(queue, finaliserTask).addSoftSuccessor(node);
                 }
             } else {
                 // Have visited this task's dependencies - add it to the graph
                 queue.remove(0);
                 visiting.remove(task);
-                node.setRequired(true);
+                if (finalisers.size() > 0) {
+                    node.shouldNotRun();
+                    finalisers.remove(task);
+                } else {
+                    node.setRequired(true);
+                }
                 Set<? extends Task> dependencies = context.getDependencies(task);
                 for (Task dependency : dependencies) {
                     graph.addHardEdge(node, dependency);
@@ -111,10 +120,23 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void addFinaliserTaskToGraph(TaskInfo finalisedNode, Task finaliserTask) {
-        TaskInfo finaliserNode = addEntryTask(finaliserTask);
-        finaliserNode.addSoftSuccessor(finalisedNode);
-        finaliserNode.shouldNotRun();
+    private void requireWithDependenciesIfOnlyFinalising(TaskInfo node) {
+        if (node.isOnlyFinalising()) {
+            for (TaskInfo dependency : node.getHardSuccessors()) {
+                requireWithDependenciesIfOnlyFinalising(dependency);
+            }
+            node.setRequired(true);
+        }
+    }
+
+    private TaskInfo addFinaliserNodeToGraph(List<Task> queue, Task finaliserTask) {
+        TaskInfo finaliserNode = graph.getNode(finaliserTask);
+        if (finaliserNode == null) {
+            finaliserNode = addEntryTask(finaliserTask);
+            finaliserNode.shouldNotRun();
+            queue.add(finaliserTask);
+        }
+        return finaliserNode;
     }
 
     private TaskInfo addEntryTask(Task task) {
@@ -276,10 +298,17 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             for (Task finaliserTask : task.getFinalisedBy().getDependencies(task)) {
                 TaskInfo finaliserNode = graph.getNode(finaliserTask);
                 if (finaliserNode.isRequired()) {
-                    finaliserNode.enforceRun();
+                    enforceWithDependencies(finaliserNode);
                 }
             }
         }
+    }
+
+    private void enforceWithDependencies(TaskInfo node) {
+        for (TaskInfo dependencyNode : node.getHardSuccessors()) {
+            enforceWithDependencies(dependencyNode);
+        }
+        node.enforceRun();
     }
 
     private void handleFailure(TaskInfo taskInfo) {
@@ -303,7 +332,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void abortExecution() {
-        // Allow currently executing tasks to complete, but skip everything else.
+        // Allow currently executing and enforced tasks to complete, but skip everything else.
         for (TaskInfo taskInfo : executionPlan.values()) {
             if (taskInfo.isReady() && !taskInfo.getMustRun()) {
                 taskInfo.skipExecution();
