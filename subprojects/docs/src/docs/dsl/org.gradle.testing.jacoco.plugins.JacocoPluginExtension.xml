@@ -33,14 +33,6 @@
                 <!--<td><literal><replaceable>${project.reporting.baseDir}</replaceable>/jacoco</literal></td>-->
                 <td>jacoco</td>
             </tr>
-            <tr>
-                <td>unitTestTaskName</td>
-                <td><literal>test</literal></td>
-            </tr>
-            <tr>
-                <td>integrationTestTaskName</td>
-                <td><literal>integTest</literal></td>
-            </tr>
         </table>
     </section>
     <section>

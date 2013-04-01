@@ -60,14 +60,6 @@
                 <td>reportsDir</td>
                 <td>$buildDir/reports/jacoco"</td>
             </tr>
-            <tr>
-                <td>unitTestTaskName</td>
-                <td>"test"</td>
-            </tr>
-            <tr>
-                <td>integrationTestTaskName</td>
-                <td>"integTest"</td>
-            </tr>
         </table>
     </section>
     <section><title>Jacoco Report configuration</title>

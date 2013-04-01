@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
 
@@ -177,22 +176,16 @@ class SonarRunnerPlugin implements Plugin<Project> {
             properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory } ?: null
             properties["sonar.libraries"] = getLibraries(main)
             properties["sonar.surefire.reportsPath"] = project.test.testResultsDir.exists() ? project.test.testResultsDir : null
+
+            project.plugins.withType(JacocoPlugin) {
+                properties["sonar.jacoco.reportPath"] = project.test.jacoco.destFile
+            }
         }
 
         if (properties["sonar.sources"] == null) {
             // Should be able to remove this after upgrading to Sonar Runner 2.1 (issue is already marked as fixed),
             // if we can live with the fact that leaf projects w/o source dirs will still cause a failure.
             properties["sonar.sources"] = ""
-        }
-
-        project.plugins.withType(JacocoPlugin) {
-            project.tasks.withType(Test) { testTask ->
-                if (testTask.name == project.jacoco.unitTestTaskName) {
-                    properties["sonar.jacoco.reportPath"] = testTask.jacoco.destFile
-                } else if (testTask.name == project.jacoco.integrationTestTaskName) {
-                    properties["sonar.jacoco.itReportPath"] = testTask.jacoco.destFile
-                }
-            }
         }
     }
 
@@ -233,4 +226,5 @@ class SonarRunnerPlugin implements Plugin<Project> {
     private String convertValue(Object value) {
         value instanceof Iterable ? value.collect { convertValue(it) }.join(",") : value.toString()
     }
+
 }

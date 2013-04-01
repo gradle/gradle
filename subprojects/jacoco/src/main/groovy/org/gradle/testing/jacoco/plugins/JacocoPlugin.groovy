@@ -162,7 +162,7 @@ class JacocoPlugin implements Plugin<Project> {
     private void addDefaultReportTasks(JacocoPluginExtension extension) {
         this.project.plugins.withType(JavaPlugin) {
             this.project.tasks.withType(Test) { task ->
-                if (task.name in [extension.unitTestTaskName, extension.integrationTestTaskName]) {
+                if (task.name == JavaPlugin.TEST_TASK_NAME) {
                     JacocoReport reportTask = this.project.tasks.add("jacoco${task.name.capitalize()}Report", JacocoReport)
                     reportTask.executionData task
                     reportTask.mustRunAfter task

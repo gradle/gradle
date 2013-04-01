@@ -21,7 +21,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.sonar.model.*
-import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
@@ -147,18 +146,9 @@ class SonarPlugin implements Plugin<ProjectInternal> {
                 testReportPath = { project.test.testResultsDir }
                 language = { "java" }
             }
-        }
-
-        project.plugins.withType(JacocoPlugin) {
-            project.tasks.withType(Test) { task ->
-                if (task.name == project.jacoco.unitTestTaskName) {
-                    sonarProject.withProjectProperties { props ->
-                        props['sonar.jacoco.reportPath'] = task.jacoco.destFile
-                    }
-                } else if (task.name == project.jacoco.integrationTestTaskName) {
-                    sonarProject.withProjectProperties { props ->
-                        props['sonar.jacoco.itReportPath'] = task.jacoco.destFile
-                    }
+            project.plugins.withType(JacocoPlugin) {
+                sonarProject.withProjectProperties { props ->
+                    props['sonar.jacoco.reportPath'] = project.test.jacoco.destFile
                 }
             }
         }
