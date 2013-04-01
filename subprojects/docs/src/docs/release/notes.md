@@ -226,6 +226,7 @@ We would like to thank the following community members for making contributions 
 * Marcin Erdmann - added the ability to schedule one task to always run after another, without adding a hard dependency.
 * Andrew Oberstar - added the jacoco code coverage plugin.
 * Uladzimir Mihura - provide first-class support for JUnit @Category (GRADLE-2111).
+* Xavier Ducrohet - fix Success Rate display in test report overview page (GRADLE-2729).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
