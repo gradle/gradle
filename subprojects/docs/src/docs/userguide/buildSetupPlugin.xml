@@ -52,7 +52,7 @@
                         <literal>buildSetup</literal>
                     </td>
                     <td>
-                        <literal>maven2Gradle</literal>, <literal>generateBuildFile</literal>, <literal>wrapper</literal>
+                        <literal>maven2Gradle</literal>, <literal>generateBuildFile</literal>, <literal>generateSettingsFile</literal>, <literal>wrapper</literal>
                     </td>
                     <td>lifecycle task (no actions)</td>
                     <td>Generates a Gradle project.</td>
@@ -62,7 +62,7 @@
                         <literal>maven2Gradle</literal>
                     </td>
                     <td>-</td>
-                    <td><apilink class="org.gradle.buildsetup.tasks.ConvertMaven2Gradle"/></td>
+                    <td><apilink class="org.gradle.buildsetup.plugins.ConvertMaven2Gradle"/></td>
                     <td>Converts a Maven project to a Gradle project by obtaining the effective POM. This task is only added if
                         a <literal>pom.xml</literal> file can be found in the project directory.
                     </td>
@@ -73,9 +73,21 @@
                     </td>
                     <td>-</td>
                     <td>
-                        <apilink class="org.gradle.buildsetup.tasks.GenerateBuildFile"/>
+                        <apilink class="org.gradle.buildsetup.plugins.GenerateBuildFile"/>
                     </td>
                     <td>Generates an build.gradle file. This task is only added if no
+                        <literal>pom.xml</literal> file can be found in the project directory.
+                    </td>
+                </tr>
+				<tr>
+                    <td>
+                        <literal>generateSettingsFile</literal>
+                    </td>
+                    <td>-</td>
+                    <td>
+                        <apilink class="org.gradle.buildsetup.plugins.GenerateSettingsFile"/>
+                    </td>
+                    <td>Generates a <literal>settings.gradle</literal> file. This task is only added if no
                         <literal>pom.xml</literal> file can be found in the project directory.
                     </td>
                 </tr>
