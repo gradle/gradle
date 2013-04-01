@@ -178,7 +178,7 @@ class SonarRunnerPlugin implements Plugin<Project> {
             properties["sonar.surefire.reportsPath"] = project.test.testResultsDir.exists() ? project.test.testResultsDir : null
 
             project.plugins.withType(JacocoPlugin) {
-                properties["sonar.jacoco.reportPath"] = project.test.jacoco.destPath
+                properties["sonar.jacoco.reportPath"] = project.test.jacoco.destPath.exists() ? project.test.jacoco.destPath : null
             }
         }
 
