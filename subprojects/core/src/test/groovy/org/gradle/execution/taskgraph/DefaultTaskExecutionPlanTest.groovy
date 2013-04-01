@@ -759,6 +759,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         def task = createTask(name);
         task.getTaskDependencies() >> brokenDependencies()
         task.getMustRunAfter() >> brokenDependencies()
+        task.getFinalisedBy() >> taskDependencyResolvingTo(task, [])
         return task
     }
 
