@@ -36,7 +36,7 @@ class JacocoMerge extends JacocoBase {
     FileCollection executionData
 
     /**
-     * Path to write merged execution data to.
+     * File to write merged execution data to.
      */
     @OutputFile
     File destFile
