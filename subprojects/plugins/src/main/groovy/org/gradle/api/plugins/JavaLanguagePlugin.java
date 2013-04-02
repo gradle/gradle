@@ -51,7 +51,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
     }
 
     public void apply(final Project target) {
-        final JvmLanguagePlugin jvmLanguagePlugin = target.getPlugins().apply(JvmLanguagePlugin.class);
+        target.getPlugins().apply(JvmLanguagePlugin.class);
 
         JvmBinaryContainer jvmBinaryContainer = (JvmBinaryContainer) target.getExtensions().getByType(BinariesContainer.class).getByName("jvm");
         jvmBinaryContainer.all(new Action<ClassDirectoryBinary>() {
