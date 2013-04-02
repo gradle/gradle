@@ -3,3 +3,5 @@ dependencies {
     compile project(":languageBase")
     compile project(":core")
 }
+
+useClassycle()

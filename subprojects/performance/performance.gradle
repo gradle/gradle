@@ -13,6 +13,7 @@ dependencies {
 }
 
 useTestFixtures()
+useClassycle()
 
 task small(type: ProjectGeneratorTask, description: 'Generates a small project') {
 }
