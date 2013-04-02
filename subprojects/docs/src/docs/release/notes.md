@@ -66,10 +66,10 @@ See the User guide section on “[Ordering Tasks](userguide/more_about_tasks.htm
 >
 > Thanks, Marcin: I'm sure many Gradle users will appreciate your contribution.
 
-### Jacoco Code Coverage Plugin
-Gradle now ships with a Jacoco plugin to generate code coverage reports. JaCoCo is a free code coverage library for Java. 
+### JaCoCo Code Coverage Plugin
+Gradle now ships with a JaCoCo plugin to generate code coverage reports. JaCoCo is a free code coverage library for Java.
 
-To gather code coverage information for your java project, just apply the jacoco plugin:
+To gather code coverage information for your java project, just apply the JaCoCo plugin:
 
     apply plugin:'jacoco'
 
@@ -87,7 +87,7 @@ favourite CI server, you can simply configure this:
     }
 
 In some scenarios it might be desirable to compute code coverage not by running tests, but by running the application itself.
-Since the jacoco plugin can be used in combination with any `JavaExec` task of your build, it's quite simple to combine the `jacoco` plugin with the `run` task introduced by the `application` plugin:
+Since the JaCoCo plugin can be used in combination with any `JavaExec` task of your build, it's quite simple to combine the `JaCoCo` plugin with the `run` task introduced by the `application` plugin:
 
     jacoco {
         applyTo run
@@ -224,7 +224,7 @@ configuring the target build. This exception is now thrown as part of the result
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * Marcin Erdmann - added the ability to schedule one task to always run after another, without adding a hard dependency.
-* Andrew Oberstar - added the jacoco code coverage plugin.
+* Andrew Oberstar - added the JaCoCo code coverage plugin.
 * Uladzimir Mihura - provide first-class support for JUnit @Category (GRADLE-2111).
 * Xavier Ducrohet - fix Success Rate display in test report overview page (GRADLE-2729).
 

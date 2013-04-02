@@ -585,7 +585,7 @@
                 <td>-</td>
                 <td>
                     <para>Provides integration with the
-                        <ulink url="http://www.eclemma.org/jacoco/">Jacoco</ulink>
+                        <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>
                             code coverage library for Java.
                     </para>
                 </td>

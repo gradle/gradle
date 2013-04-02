@@ -15,20 +15,20 @@
   -->
 
 <chapter id="jacoco_plugin">
-    <title>The Jacoco Plugin</title>
+    <title>The JaCoCo Plugin</title>
     <note>
         <para>
-            The Jacoco plugin is <link linkend="sec:incubating_state">incubating</link>.
+            The JaCoCo plugin is <link linkend="sec:incubating_state">incubating</link>.
         </para>
     </note>
-    <para>The Jacoco plugin provides integration with <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>,
+    <para>The JaCoCo plugin provides integration with <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>,
         a code coverage library for Java.
     </para>
 
     <section>
         <title>Getting Started</title>
-        <para>To get started, apply the Jacoco plugin to the project you want to calculate code coverage for.</para>
-        <sample id="applyJacoco" dir="testing/jacoco/quickstart" title="Applying the Jacoco plugin">
+        <para>To get started, apply the JaCoCo plugin to the project you want to calculate code coverage for.</para>
+        <sample id="applyJacoco" dir="testing/jacoco/quickstart" title="Applying the JaCoCo plugin">
             <sourcefile file="build.gradle" snippet="apply-plugin"/>
         </sample>
         <para>
@@ -41,15 +41,15 @@
     </section>
 
     <section>
-        <title>Configuring the Jacoco Plugin</title>
-        <para>The Jacoco plugin adds a <apilink class="org.gradle.testing.jacoco.plugins.JacocoPluginExtension" /> extension to the project,
-            which allows to configure the Jacoco plugin.
+        <title>Configuring the JaCoCo Plugin</title>
+        <para>The JaCoCo plugin adds a <apilink class="org.gradle.testing.jacoco.plugins.JacocoPluginExtension" /> extension to the project,
+            which allows to configure the JaCoCo plugin.
         </para>
         <sample id="configJacoco" dir="testing/jacoco/quickstart" title="Configuring jacoco plugin settings">
             <sourcefile file="build.gradle" snippet="jacoco-configuration"/>
         </sample>
         <table>
-            <title>Gradle defaults for Jacoco properties</title>
+            <title>Gradle defaults for JaCoCo properties</title>
             <thead>
                 <tr>
                     <td>Property</td>
@@ -62,7 +62,7 @@
             </tr>
         </table>
     </section>
-    <section><title>Jacoco Report configuration</title>
+    <section><title>JaCoCo Report configuration</title>
             <para>The <apilink class="org.gradle.testing.jacoco.tasks.JacocoReport" /> task can be used to generate code coverage reports in different formats.
             The current supported formats are
             </para>
@@ -82,15 +82,15 @@
     </section>
 
     <section>
-            <title>Jacoco specific task configuration</title>
-            <para>The Jacoco plugin adds a <apilink class="org.gradle.testing.jacoco.plugins.JacocoTaskExtension" /> extension to all tasks of type <apilink class="org.gradle.api.tasks.testing.Test"/>
+            <title>JaCoCo specific task configuration</title>
+            <para>The JaCoCo plugin adds a <apilink class="org.gradle.testing.jacoco.plugins.JacocoTaskExtension" /> extension to all tasks of type <apilink class="org.gradle.api.tasks.testing.Test"/>
             This extension allows the configuration of the jacoco specific properties of a Test task.
             </para>
             <sample id="jacocotesttast" dir="testing/jacoco/quickstart" title="Configuring test task">
                 <sourcefile file="build.gradle" snippet="testtask-configuration"/>
             </sample>
             <table>
-                <title>Default values of the Jacoco Task extension</title>
+                <title>Default values of the JaCoCo Task extension</title>
                 <thead>
                     <tr>
                         <td>Property</td>
@@ -171,9 +171,9 @@
 
     <section>
         <title>Tasks</title>
-        <para>The Jacoco plugin adds the following tasks to the project:</para>
+        <para>For projects that also use the Java Plugin, The JaCoCo plugin automatically adds the following tasks to project:</para>
         <table>
-            <title>Jacoco plugin - tasks</title>
+            <title>JaCoCo plugin - tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -195,9 +195,9 @@
 
     <section>
             <title>Dependency management</title>
-            <para>The Jacoco plugin adds the following dependency configurations:</para>
+            <para>The JaCoCo plugin adds the following dependency configurations:</para>
             <table>
-                <title>Jacoco plugin - dependency configurations</title>
+                <title>JaCoCo plugin - dependency configurations</title>
                 <thead>
                     <tr>
                         <td>Name</td>
