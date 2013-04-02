@@ -16,6 +16,16 @@
 
 package org.gradle.integtests.tooling.r16;
 
+import java.util.Map;
+import java.util.Set;
+
 public interface CustomModel {
     String getValue();
+
+    Set<Thing> getThings();
+
+    Map<String, Thing> getThingsByName();
+
+    interface Thing {
+    }
 }

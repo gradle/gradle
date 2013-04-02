@@ -98,6 +98,32 @@ class ProtocolToModelAdapterTest extends Specification {
         model.children[0].name == 'name'
     }
 
+    def adaptsIterableToCollectionType() {
+        TestProtocolModel protocolModel = Mock()
+        TestProtocolProject protocolProject = Mock()
+        _ * protocolModel.getChildList() >> [protocolProject]
+        _ * protocolProject.getName() >> 'name'
+
+        expect:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+        model.childList.size() == 1
+        model.childList[0] instanceof TestProject
+        model.childList[0].name == 'name'
+    }
+
+    def adaptsMapElements() {
+        TestProtocolModel protocolModel = Mock()
+        TestProtocolProject protocolProject = Mock()
+        _ * protocolModel.project >> protocolProject
+        _ * protocolModel.getChildMap() >> Collections.singletonMap(protocolProject, protocolProject)
+        _ * protocolProject.getName() >> 'name'
+
+        expect:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+        model.childMap.size() == 1
+        model.childMap[model.project] == model.project
+    }
+
     def cachesPropertyValues() {
         TestProtocolModel protocolModel = Mock()
         TestProtocolProject protocolProject = Mock()
@@ -285,6 +311,10 @@ interface TestModel {
     String getConfig(String defaultValue)
 
     DomainObjectSet<? extends TestProject> getChildren()
+
+    List<TestProject> getChildList()
+
+    Map<TestProject, TestProject> getChildMap()
 }
 
 interface TestProject {
@@ -297,6 +327,10 @@ interface TestProtocolModel {
     TestProtocolProject getProject()
 
     Iterable<? extends TestProtocolProject> getChildren()
+
+    Iterable<? extends TestProtocolProject> getChildList()
+
+    Map<String, ? extends TestProtocolProject> getChildMap()
 
     String getConfig();
 }

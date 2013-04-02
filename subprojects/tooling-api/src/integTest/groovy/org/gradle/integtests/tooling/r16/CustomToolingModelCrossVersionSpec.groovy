@@ -34,6 +34,10 @@ apply plugin: CustomPlugin
 
 class CustomModel implements Serializable {
     String getValue() { 'greetings' }
+    Set<CustomThing> getThings() { return [new CustomThing()] }
+    Map<String, CustomThing> getThingsByName() { return [thing: new CustomThing()] }
+}
+class CustomThing implements Serializable {
 }
 class CustomBuilder implements ToolingModelBuilder {
     boolean canBuild(String modelName) {
@@ -61,11 +65,8 @@ class CustomPlugin implements Plugin<Project> {
 
         then:
         model.value == 'greetings'
-    }
-
-    @Ignore
-    def "gives reasonable error message for unknown model"() {
-        expect: false
+        model.things.find { it instanceof CustomModel.Thing }
+        model.thingsByName.thing instanceof CustomModel.Thing
     }
 
     @Ignore

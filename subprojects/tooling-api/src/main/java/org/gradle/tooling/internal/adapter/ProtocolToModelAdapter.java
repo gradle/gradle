@@ -44,6 +44,7 @@ public class ProtocolToModelAdapter {
     private static final Pattern GETTER_METHOD = Pattern.compile("get(\\w+)");
     private static final Pattern IS_METHOD = Pattern.compile("is(\\w+)");
     private final TargetTypeProvider targetTypeProvider;
+    private final CollectionMapper collectionMapper = new CollectionMapper();
 
     public ProtocolToModelAdapter() {
         this(IDENTITY_TYPE_PROVIDER);
@@ -179,7 +180,7 @@ public class ProtocolToModelAdapter {
                 throw e.getCause();
             }
 
-            if (returnValue == null || invocation.getReturnType().isInstance(returnValue)) {
+            if (returnValue == null) {
                 invocation.setResult(returnValue);
                 return;
             }
@@ -219,13 +220,29 @@ public class ProtocolToModelAdapter {
         private Object convert(Object value, Type targetType) {
             if (targetType instanceof ParameterizedType) {
                 ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
-                if (parameterizedTargetType.getRawType().equals(DomainObjectSet.class)) {
-                    Type targetElementType = getElementType(parameterizedTargetType);
-                    List<Object> convertedElements = new ArrayList<Object>();
-                    for (Object element : (Iterable) value) {
-                        convertedElements.add(convert(element, targetElementType));
+                if (parameterizedTargetType.getRawType() instanceof Class) {
+                    Class<?> rawClass = (Class<?>) parameterizedTargetType.getRawType();
+                    if (Iterable.class.isAssignableFrom(rawClass)) {
+                        Type targetElementType = getElementType(parameterizedTargetType, 0);
+                        Collection<Object> convertedElements = collectionMapper.createEmptyCollection(rawClass);
+                        for (Object element : (Iterable<?>) value) {
+                            convertedElements.add(convert(element, targetElementType));
+                        }
+                        if (rawClass.equals(DomainObjectSet.class)) {
+                            return new ImmutableDomainObjectSet(convertedElements);
+                        } else {
+                            return convertedElements;
+                        }
                     }
-                    return new ImmutableDomainObjectSet(convertedElements);
+                    if (Map.class.isAssignableFrom(rawClass)) {
+                        Type targetKeyType = getElementType(parameterizedTargetType, 0);
+                        Type targetValueType = getElementType(parameterizedTargetType, 1);
+                        Map<Object, Object> convertedElements = collectionMapper.createEmptyMap(rawClass);
+                        for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                            convertedElements.put(convert(entry.getKey(), targetKeyType), convert(entry.getValue(), targetValueType));
+                        }
+                        return convertedElements;
+                    }
                 }
             }
             if (targetType instanceof Class) {
@@ -237,8 +254,8 @@ public class ProtocolToModelAdapter {
             throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", value.getClass(), targetType));
         }
 
-        private Type getElementType(ParameterizedType type) {
-            Type elementType = type.getActualTypeArguments()[0];
+        private Type getElementType(ParameterizedType type, int index) {
+            Type elementType = type.getActualTypeArguments()[index];
             if (elementType instanceof WildcardType) {
                 WildcardType wildcardType = (WildcardType) elementType;
                 return wildcardType.getUpperBounds()[0];
