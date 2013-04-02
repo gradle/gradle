@@ -55,7 +55,6 @@ class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         then:
         correctJacocoVersionUsed()
         file("build/reports/jacoco/test/html/index.html").exists()
-        file("build/reports/jacoco/test/html/index.html").exists()
     }
 
     private void createTestFiles() {
