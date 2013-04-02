@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.AntBuilder;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkTest;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
