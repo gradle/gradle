@@ -1,3 +1,6 @@
-apply plugin:'jacoco'
+if(!org.gradle.internal.os.OperatingSystem.current().isWindows() && !org.gradle.internal.jvm.Jvm.current().isIbmJvm()){
+    apply plugin:'jacoco'
+}
+
 description = "Sonar Test Java Project"
 
