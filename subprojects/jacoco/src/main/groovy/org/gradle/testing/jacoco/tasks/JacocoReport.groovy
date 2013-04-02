@@ -123,7 +123,7 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
             JacocoTaskExtension extension = task.extensions.findByType(JacocoTaskExtension)
             if (extension != null) {
                 executionData({ extension.destPath })
-                this.executionData.builtBy task
+                mustRunAfter(task)
             }
         }
     }

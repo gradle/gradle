@@ -45,7 +45,8 @@ class JacocoPlugin implements Plugin<Project> {
      * Applies the plugin to the given project.
      * @param project the project to apply to
      */
-    @Inject JacocoPlugin(Instantiator instantiator) {
+    @Inject
+    JacocoPlugin(Instantiator instantiator) {
         this.instantiator = instantiator
     }
 
@@ -66,15 +67,13 @@ class JacocoPlugin implements Plugin<Project> {
 
     private void configureJacocoReportDefaults(Project project, extension) {
         project.tasks.withType(JacocoReport) { reportTask ->
-            reportTask.conventionMapping.with {
-                reportTask.reports.all { report ->
-                    report.conventionMapping.with {
-                        enabled = { true }
-                        if (report.outputType == Report.OutputType.DIRECTORY) {
-                            destination = { new File(extension.reportsDir, "${reportTask.name}/${report.name}") }
-                        } else {
-                            destination = { new File(extension.reportsDir, "${reportTask.name}/${reportTask.name}.${report.name}") }
-                        }
+            reportTask.reports.all { report ->
+                report.conventionMapping.with {
+                    enabled = { true }
+                    if (report.outputType == Report.OutputType.DIRECTORY) {
+                        destination = { new File(extension.reportsDir, "${reportTask.name}/${report.name}") }
+                    } else {
+                        destination = { new File(extension.reportsDir, "${reportTask.name}/${reportTask.name}.${report.name}") }
                     }
                 }
             }
@@ -165,7 +164,6 @@ class JacocoPlugin implements Plugin<Project> {
                 if (task.name == JavaPlugin.TEST_TASK_NAME) {
                     JacocoReport reportTask = this.project.tasks.add("jacoco${task.name.capitalize()}Report", JacocoReport)
                     reportTask.executionData task
-                    reportTask.mustRunAfter task
                     reportTask.sourceSets(this.project.sourceSets.main)
                     reportTask.conventionMapping.with {
                         reportTask.reports.all { report ->

@@ -50,7 +50,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             }
             """
         when:
-        succeeds('jacocoTestReport')
+        succeeds('test', 'jacocoTestReport')
         then:
         file("build/jacocoHtml/index.html").exists()
         !file("build/reports/jacoco/test/jacocoTestReport.xml").exists()
@@ -66,7 +66,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             }
             """
         when:
-        succeeds('jacocoTestReport')
+        succeeds('test', 'jacocoTestReport')
         then:
         file("build/customJacocoReportDir/test/html/index.html").exists()
         file("build/customJacocoReportDir/test/jacocoTestReport.xml").exists()
@@ -76,7 +76,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
     @Test
     public void jacocoReportIsIncremental() {
         when:
-        succeeds('jacocoTestReport')
+        succeeds('test', 'jacocoTestReport')
         then:
         file("build/reports/jacoco/test/html/index.html").exists()
         file("build/reports/jacoco/test/jacocoTestReport.xml").exists()
@@ -90,7 +90,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         file("build/reports/jacoco/test/html/.resources").deleteDir()
-        succeeds('jacocoTestReport')
+        succeeds('test', 'jacocoTestReport')
         then:
         !skippedTasks.contains(":jacocoTestReport")
         file("build/reports/jacoco/test/html/index.html").exists()
