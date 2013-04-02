@@ -33,12 +33,11 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 testCompile 'junit:junit:4.11'
             }
         """
-        createTestFiles();
-
+        createTestFiles()
     }
 
     @Test
-    public void canConfigureReports() {
+    public void canConfigureReportsInJacocoTestReport() {
         given:
         buildFile << """
             jacocoTestReport{
@@ -55,6 +54,21 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         file("build/jacocoHtml/index.html").exists()
         !file("build/reports/jacoco/test/jacocoTestReport.xml").exists()
         !file("build/reports/jacoco/test/jacocoTestReport.csv").exists()
+    }
+
+    @Test
+    public void respectsReportingBaseDir() {
+        given:
+        buildFile << """
+            reporting{
+                baseDir = "\$buildDir/customReports"
+            }"""
+        when:
+        succeeds('test', 'jacocoTestReport')
+        then:
+        file("build/customReports/jacoco/test/html/index.html").exists()
+        file("build/customReports/jacoco/test/jacocoTestReport.xml").exists()
+        file("build/customReports/jacoco/test/jacocoTestReport.csv").exists()
     }
 
     @Test
@@ -95,6 +109,15 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         !skippedTasks.contains(":jacocoTestReport")
         file("build/reports/jacoco/test/html/index.html").exists()
     }
+
+    @Test
+    public void jacocoTestReportIsSkippedIfNoCoverageDataAvailable() {
+        when:
+        def executionResult = succeeds('jacocoTestReport')
+        then:
+        executionResult.assertTaskSkipped(':jacocoTestReport')
+    }
+
 
     private void createTestFiles() {
         file("src/main/java/org/gradle/Class1.java") <<

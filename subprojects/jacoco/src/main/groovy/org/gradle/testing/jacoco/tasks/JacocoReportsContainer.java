@@ -26,9 +26,9 @@ import org.gradle.api.reporting.ReportContainer;
 @Incubating
 public interface JacocoReportsContainer extends ReportContainer<ConfigureableReport> {
     /**
-     * The jacoco (single file) HTML report
+     * The jacoco (file directory) HTML report
      *
-     * @return The jacoco (single file) HTML report
+     * @return The jacoco (file directory) HTML report
      */
     ConfigureableReport getHtml();
 

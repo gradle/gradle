@@ -19,7 +19,9 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.reporting.Report
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.internal.reflect.Instantiator
@@ -51,11 +53,13 @@ class JacocoPlugin implements Plugin<Project> {
     }
 
     void apply(Project project) {
+        project.plugins.apply(ReportingBasePlugin)
         this.project = project
         addJacocoConfigurations()
         JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar, project)
         JacocoPluginExtension extension = project.extensions.create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension, project, agent)
-        extension.conventionMapping.reportsDir = { new File(project.buildDir, "reports/jacoco") }
+        ReportingExtension reportingExtension = project.extensions.getByName(ReportingExtension.NAME)
+        extension.conventionMapping.reportsDir = { reportingExtension.file("jacoco") }
 
         configureAgentDependencies(agent, extension)
         configureTaskClasspathDefaults(extension)
@@ -162,7 +166,7 @@ class JacocoPlugin implements Plugin<Project> {
         this.project.plugins.withType(JavaPlugin) {
             this.project.tasks.withType(Test) { task ->
                 if (task.name == JavaPlugin.TEST_TASK_NAME) {
-                    JacocoReport reportTask = this.project.tasks.add("jacoco${task.name.capitalize()}Report", JacocoReport)
+                    JacocoReport reportTask = this.project.tasks.create("jacoco${task.name.capitalize()}Report", JacocoReport)
                     reportTask.executionData task
                     reportTask.sourceSets(this.project.sourceSets.main)
                     reportTask.conventionMapping.with {
