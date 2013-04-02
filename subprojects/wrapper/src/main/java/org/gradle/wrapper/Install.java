@@ -30,7 +30,7 @@ public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
     private final IDownload download;
     private final PathAssembler pathAssembler;
-    private final ExclusiveFileAccessManager exclusiveFileAccessManager = new ExclusiveFileAccessManager(60000, 200);
+    private final ExclusiveFileAccessManager exclusiveFileAccessManager = new ExclusiveFileAccessManager(120000, 200);
 
     public Install(IDownload download, PathAssembler pathAssembler) {
         this.download = download;
