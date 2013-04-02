@@ -70,18 +70,18 @@ class BuildDashboardGeneratorSpec extends Specification {
                 mockReport('c', tmpDir.file('idonotexist.html')),
                 mockReport('d', htmlFolder),
                 mockReport('e', tmpDir.createDir('simpleDirectory')),
-                mockReport('e', null)
         ])
 
         when:
         generator.generate()
 
         then:
-        outputHtml.select('h1').text() == 'Available build reports:'
+        outputHtml.select('h1').text() == 'Build reports'
         with outputHtml.select('ul li'), {
-            size() == 4
+            size() == 5
             select('a[href=report.html]').text() == 'a'
             select('a[href=inner/otherReport.html]').text() == 'b'
+            select('span[class=unavailable]').text() == 'c'
             select('a[href=htmlContent/index.html]').text() == 'd'
             select('a[href=simpleDirectory]').text() == 'e'
         }
