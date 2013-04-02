@@ -357,6 +357,34 @@
             <output args="-q groupPing"/>
         </sample>
     </section>
+
+    <section>
+        <title>Finaliser tasks</title>
+        <note>
+            <para>
+                Finalisers tasks are an <firstterm>incubating</firstterm> feature (see <xref linkend="sec:incubating_state"/>).
+            </para>
+        </note>
+        <para>Finaliser tasks are automatically added to the task graph when the finalised task is scheduled to run.</para>
+        <sample id="taskFinalisers" dir="userguide/tasks/finalisers" title="Adding a task finaliser">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskX"/>
+        </sample>
+        <para>Finaliser task will be executed even if the finalised task fails.</para>
+        <sample id="taskFinalisersWithFailure" dir="userguide/tasks/finalisersWithFailure" title="Task finaliser for a failing task">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskX"/>
+        </sample>
+        <para>On the other hand, finaliser tasks are not executed if the finalised task didn't do any work, for example due to failed
+            task dependency or if it's considered up to date.</para>
+        <para>Finaliser tasks are useful in situations where build creates a resource that has to be cleaned up regardless
+            of the build failing or succeeding. An example of such resource is a web container started before an integration test task
+            and which should be always shut down, even if some of the tests fail.</para>
+        <para>To specify a finaliser task you use the <apilink class="org.gradle.api.Task" method="finalisedBy"/> method.
+            This method accepts a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
+        </para>
+    </section>
+
     <section id='sec:the_idea_behind_gradle_tasks'>
         <title>Summary</title>
         <para>If you are coming from Ant, such an enhanced Gradle task as <emphasis>Copy</emphasis> looks like a mixture

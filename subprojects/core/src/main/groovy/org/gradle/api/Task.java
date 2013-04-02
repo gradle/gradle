@@ -592,9 +592,49 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     @Incubating
     TaskDependency getMustRunAfter();
 
+    /**
+     * <p>Adds the given finaliser tasks for this task.</p>
+     *
+     * <pre autoTested="true">
+     * task taskY {
+     *     finalisedBy "taskX"
+     * }
+     * </pre>
+     *
+     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * a finaliser task.</p>
+     *
+     * @param paths The tasks that finalise this task.
+     *
+     * @return the task object this method is applied to
+     */
     @Incubating
     Task finalisedBy(Object... paths);
 
+    /**
+     * <p>Specifies the set of finaliser tasks for this task.</p>
+     *
+     * <pre autoTested="true">
+     * task taskY {
+     *     finalisedBy = ["taskX1", "taskX2"]
+     * }
+     * </pre>
+     *
+     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * a finaliser task.</p>
+     *
+     * @param finalisedBy The tasks that finalise this task.
+     *
+     * @return the task object this method is applied to
+     */
+    @Incubating
+    void setFinalisedBy(Iterable<?> finalisedBy);
+
+    /**
+     * <p>Returns tasks that finalise this task.</p>
+     *
+     * @return The tasks that finalise this task. Returns an empty set if there are no finalising tasks for this task.
+     */
     @Incubating
     TaskDependency getFinalisedBy();
 }
