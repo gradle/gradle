@@ -121,11 +121,11 @@ $(function() {
     "Retrieving the known issue information for @versionBase@", 
     function(i) {
       if (i > 0) {
-        return i + " issues have been fixed in Gradle @versionBase@.";
+        return i + " issues are known to affect Gradle @versionBase@.";
       } else {
         return "There are no known issues of Gradle @versionBase@ at this time.";
       }
-    } 
+    }
   );
 
   $("section.major-detail").each(function() {
