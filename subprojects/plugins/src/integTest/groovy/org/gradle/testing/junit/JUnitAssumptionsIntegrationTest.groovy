@@ -24,7 +24,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-@TargetVersions(['4.9', '4.11'])
+@TargetVersions(['4.5', '4.11'])
 public class JUnitAssumptionsIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule

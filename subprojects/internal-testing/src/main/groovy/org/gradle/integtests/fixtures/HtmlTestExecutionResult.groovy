@@ -114,6 +114,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
+            assert testsFailures.containsKey(name)
             def message = testsFailures[name];
             messageMatchers.each { it.matches(message) }
             return this
