@@ -5,6 +5,7 @@ dependencies {
 
     testCompile libraries.jsoup
     integTestRuntime project(':codeQuality')
+    integTestRuntime project(':jacoco')
 }
 
 useTestFixtures()
