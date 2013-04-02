@@ -16,6 +16,7 @@
 
 package org.gradle.api.reporting.internal
 
+import org.gradle.api.reporting.DirectoryReport
 import org.gradle.api.reporting.Report
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.jsoup.Jsoup
@@ -49,6 +50,15 @@ class BuildDashboardGeneratorSpec extends Specification {
         }
     }
 
+    Report mockDirectoryReport(String name, File destinationDirectory) {
+        Stub(DirectoryReport){
+            getDisplayName() >> name
+            getDestination() >> destinationDirectory
+            getEntryPoint() >> new File(destinationDirectory, "index.html")
+        }
+    }
+
+
     void 'appropriate message is displayed when there are no reports available'() {
         given:
         generatorFor([])
@@ -68,7 +78,7 @@ class BuildDashboardGeneratorSpec extends Specification {
                 mockReport('a', tmpDir.createFile('report.html')),
                 mockReport('b', tmpDir.createDir('inner').createFile('otherReport.html')),
                 mockReport('c', tmpDir.file('idonotexist.html')),
-                mockReport('d', htmlFolder),
+                mockDirectoryReport('d', htmlFolder),
                 mockReport('e', tmpDir.createDir('simpleDirectory')),
         ])
 

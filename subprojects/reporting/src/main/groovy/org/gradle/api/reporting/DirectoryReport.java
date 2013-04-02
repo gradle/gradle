@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,29 @@
 
 package org.gradle.api.reporting;
 
+import java.io.File;
+
 /**
- * A report that is a single file.
+ * A directory based report to be created.
  */
-public interface SingleFileReport extends ConfigureableReport {
+public interface DirectoryReport extends ConfigureableReport {
+
     /**
-     * Always returns {@link Report.OutputType#FILE}
+     * Returns the entry point of a directory based Report
      *
-     * @return {@link Report.OutputType#FILE}
+     * This can be the index.html file in a html report
+     *
+     * @return the entry point of the report or
+     * {@link org.gradle.api.reporting.DirectoryReport#getDestination()}
+     * if no entry point defined
+     *
+     * */
+    File getEntryPoint();
+
+    /**
+     * Always returns {@link Report.OutputType#DIRECTORY}
+     *
+     * @return {@link Report.OutputType#DIRECTORY}
      */
     OutputType getOutputType();
-
 }

@@ -18,6 +18,7 @@ package org.gradle.api.reporting.internal;
 
 import com.googlecode.jatl.Html;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
@@ -95,13 +96,10 @@ public class BuildDashboardGenerator {
     }
 
     private File getHtmlLinkedFileFromReport(Report report) {
-        final File destination = report.getDestination();
-        if(destination.isFile()){
-            return destination;
+        if(report instanceof DirectoryReport){
+            return ((DirectoryReport) report).getEntryPoint();
+        } else{
+            return report.getDestination();
         }
-        if(destination.isDirectory() && new File(destination, "index.html").exists()){
-            return new File(destination, "index.html");
-        }
-        return destination;
     }
 }

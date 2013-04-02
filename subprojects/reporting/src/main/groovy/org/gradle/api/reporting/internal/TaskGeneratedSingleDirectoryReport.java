@@ -17,12 +17,25 @@
 package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.reporting.DirectoryReport;
 
-public class TaskGeneratedSingleDirectoryReport extends TaskGeneratedReport implements SingleFileReport {
+import java.io.File;
 
-    public TaskGeneratedSingleDirectoryReport(String name, Task task) {
+public class TaskGeneratedSingleDirectoryReport extends TaskGeneratedReport implements DirectoryReport {
+
+    private final String relativeEntryPath;
+
+    public TaskGeneratedSingleDirectoryReport(String name, Task task, String relativeEntryPath) {
         super(name, OutputType.DIRECTORY, task);
+        this.relativeEntryPath = relativeEntryPath;
+    }
+
+    public File getEntryPoint() {
+        if(relativeEntryPath==null){
+            return getDestination();
+        }else{
+            return new File(getDestination(), relativeEntryPath);
+        }
     }
 
     @Override

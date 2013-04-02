@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,16 @@
 package org.gradle.api.reporting;
 
 /**
- * A report that is a single file.
+ * A file based report to be created with
+ * a configurable destination.
  */
-public interface SingleFileReport extends ConfigureableReport {
+public interface ConfigureableReport extends Report {
     /**
-     * Always returns {@link Report.OutputType#FILE}
+     * Sets the destination for the report.
      *
-     * @return {@link Report.OutputType#FILE}
+     * The file parameter is evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     *
+     * @param file The destination for the report.
      */
-    OutputType getOutputType();
-
+    void setDestination(Object file);
 }

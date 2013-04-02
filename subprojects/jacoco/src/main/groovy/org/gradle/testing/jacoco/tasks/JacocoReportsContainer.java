@@ -17,32 +17,32 @@
 package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.reporting.ConfigureableReport;
 import org.gradle.api.reporting.ReportContainer;
-import org.gradle.api.reporting.SingleFileReport;
 
 /**
  * The reporting configuration for the the {@link JacocoReport} task.
  */
 @Incubating
-public interface JacocoReportsContainer extends ReportContainer<SingleFileReport> {
+public interface JacocoReportsContainer extends ReportContainer<ConfigureableReport> {
     /**
      * The jacoco (single file) HTML report
      *
      * @return The jacoco (single file) HTML report
      */
-    SingleFileReport getHtml();
+    ConfigureableReport getHtml();
 
     /**
      * The jacoco (single file) XML report
      *
      * @return The jacoco (single file) XML report
      */
-    SingleFileReport getXml();
+    ConfigureableReport getXml();
 
     /**
      * The jacoco (single file) CSV report
      *
      * @return The jacoco (single file) CSV report
      */
-    SingleFileReport getCsv();
+    ConfigureableReport getCsv();
 }
