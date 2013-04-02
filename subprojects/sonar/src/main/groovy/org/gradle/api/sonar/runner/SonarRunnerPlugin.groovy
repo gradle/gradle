@@ -36,12 +36,16 @@ import org.gradle.testing.jacoco.plugins.JacocoPlugin
  * small example:
  *
  * <pre autoTested=''>
- * sonarRunner {*     skipProject = false // this is the default
+ * sonarRunner {
+ *     skipProject = false // this is the default
  *
- *     sonarProperties {*         property "sonar.host.url", "http://my.sonar.server" // adding a single property
+ *     sonarProperties {
+ *         property "sonar.host.url", "http://my.sonar.server" // adding a single property
  *         properties mapOfProperties // adding multiple properties at once
  *         properties["sonar.sources"] += sourceSets.other.java.srcDirs // manipulating an existing property
- *}*}* </pre>
+ *     }
+ * }
+ * </pre>
  *
  * The Sonar Runner already comes with defaults for some of the most important
  * Sonar properties (server URL, database settings, etc.). For details see
