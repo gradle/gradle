@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.m8
+package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
+import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.UnknownModelException
-import org.gradle.tooling.model.Model
+import org.gradle.tooling.model.idea.BasicIdeaProject
+import org.gradle.tooling.model.idea.IdeaProject
 
-@MinToolingApiVersion('1.0-milestone-8')
-class UnknownModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
-    interface UnknownModel extends Model {}
-
-    def "fails gracefully when building unknown model"() {
+@MaxTargetGradleVersion('1.0-milestone-4')
+class UnsupportedModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
+    def "fails gracefully when unsupported model requested"() {
         when:
-        maybeFailWithConnection { it.getModel(UnknownModel.class) }
+        maybeFailWithConnection { it.getModel(model) }
 
         then:
         UnknownModelException e = thrown()
-        // TODO:ADAM - clean up message
-        e.message.contains('UnknownModel')
+        e.message.contains(model.simpleName)
+
+        where:
+        model << [IdeaProject, BasicIdeaProject]
     }
 }
