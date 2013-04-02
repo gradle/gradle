@@ -31,7 +31,7 @@ public class SamplesJUnitIntegrationTest extends AbstractIntegrationTest {
     public final Sample sample = new Sample(testDirectoryProvider, 'testing/junit')
 
     @Test
-    public void categegoriesSample() {
+    public void categoriesSample() {
         TestFile projectDir = sample.dir.file("categories")
 
         // Build and test projects
