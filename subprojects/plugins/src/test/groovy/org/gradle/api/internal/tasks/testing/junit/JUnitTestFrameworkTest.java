@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkTest;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
@@ -28,6 +29,7 @@ import org.jmock.Expectations;
 import org.junit.Before;
 
 import java.io.File;
+import java.util.Collections;
 
 import static junit.framework.Assert.assertNotNull;
 import static org.hamcrest.Matchers.instanceOf;
@@ -63,6 +65,8 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
             will(returnValue(context.mock(AntBuilder.class)));
             allowing(testMock).getTemporaryDirFactory();
             will(returnValue(temporaryDirFactory));
+            allowing(classpathMock).iterator();
+            will(returnIterator(Collections.EMPTY_LIST));
         }});
     }
 
@@ -82,7 +86,9 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
 
         context.checking(new Expectations() {{
             allowing(jUnitOptionsMock).getIncludeCategories();
+            will(returnValue(Collections.emptySet()));
             allowing(jUnitOptionsMock).getExcludeCategories();
+            will(returnValue(Collections.emptySet()));
             one(serviceRegistry).get(IdGenerator.class);
             will(returnValue(idGenerator));
             one(serviceRegistry).get(ActorFactory.class);
