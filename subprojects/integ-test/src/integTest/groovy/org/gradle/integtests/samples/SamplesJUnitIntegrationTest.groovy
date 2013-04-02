@@ -35,7 +35,7 @@ public class SamplesJUnitIntegrationTest extends AbstractIntegrationTest {
         TestFile projectDir = sample.dir.file("categories")
 
         // Build and test projects
-        executer.inDirectory(projectDir).withTasks('clean', 'build').withArguments("--no-opt").run()
+        executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(projectDir)
