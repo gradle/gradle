@@ -273,7 +273,6 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         executesWithRebuildContext()
     }
 
-
     def "incremental task is informed of 'out-of-date' files since previous successful execution"() {
         given:
         previousExecution()
