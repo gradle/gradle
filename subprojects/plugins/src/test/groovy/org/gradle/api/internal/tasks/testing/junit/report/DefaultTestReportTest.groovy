@@ -98,6 +98,8 @@ class DefaultTestReportTest extends Specification {
         index.assertHasLinkTo('org.gradle')
         index.assertHasLinkTo('org.gradle.sub')
         index.assertHasLinkTo('org.gradle.Test', 'org.gradle.Test')
+        index.packageDetails("org.gradle").assertSuccessRate(100)
+        index.packageDetails("org.gradle.sub").assertSuccessRate(100)
 
         reportDir.file("style.css").assertIsFile()
 
@@ -156,6 +158,8 @@ class DefaultTestReportTest extends Specification {
         index.assertHasFailures(2)
         index.assertHasSuccessRate(50)
         index.assertHasFailedTest('org.gradle.Test', 'test1')
+        index.packageDetails("org.gradle").assertSuccessRate(33)
+        index.packageDetails("org.gradle.sub").assertSuccessRate(100)
 
         def packageFile = results(reportDir.file('org.gradle.html'))
         packageFile.assertHasTests(3)
@@ -171,41 +175,6 @@ class DefaultTestReportTest extends Specification {
         testClassFile.assertHasFailure('test1', 'this is the failure\nat someClass\n')
         testClassFile.assertHasTest('test2')
         testClassFile.assertHasFailure('test2', 'this is a failure.')
-    }
-
-    def generatesCorrectSuccessRateInPackageOverview() {
-        given:
-        def testTestResults = buildResults {
-            testClassResult("org.gradle.Test") {
-                testcase("test1") {
-                    duration = 0
-                    failure("something failed", "this is the failure\nat someClass")
-                }
-                testcase("test2") {
-                    duration = 0
-                    failure("a multi-line\nmessage\"", "this is a failure.")
-                }
-                stdout = "this is\nstandard output"
-                stderr = "this is\nstandard error"
-            }
-
-            testClassResult("org.gradle.Test2") {
-                testcase("test1") {
-                    duration = 0
-                }
-            }
-            testClassResult("org.gradle.sub.Test") {
-                testcase("test1") {
-                    duration = 0
-                }
-            }
-        }
-        when:
-        report.generateReport(testTestResults, reportDir)
-        then:
-        def index = results(indexFile)
-        index.packageDetails("org.gradle").assertSuccessRate("33%")
-        index.packageDetails("org.gradle.sub").assertSuccessRate("100%")
     }
 
     def generatesReportWhenThereAreIgnoredTests() {
@@ -528,8 +497,8 @@ class TestResultsFixture {
             this.packageElement = packageElement
         }
 
-        void assertSuccessRate(String expected){
-            assert packageElement.select("tr > td:eq(4)").text() == expected
+        void assertSuccessRate(int expected){
+            assert packageElement.select("tr > td:eq(4)").text() == "${expected}%"
         }
     }
 }
