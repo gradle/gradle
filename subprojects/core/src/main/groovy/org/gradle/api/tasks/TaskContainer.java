@@ -62,7 +62,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
      * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>The closure or {@link TaskAction} to
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>The closure or {@link Action} to
      * execute when the task executes. See {@link Task#doFirst(Action)}.</td><td><code>null</code></td></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
@@ -76,8 +76,8 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
      * by name in your build file.  See <a href="../Project.html#properties">here</a> for more details.</p>
      *
-     * <p>If a task with the given name already exists in this container and the <code>overwrite</code> option is not set
-     * to true, an exception is thrown.</p>
+     * <p>If a task with the given name already exists in this container and the <code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code>
+     * option is not set to true, an exception is thrown.</p>
      *
      * @param options The task creation options.
      * @return The newly created task object
@@ -99,7 +99,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
      * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>The closure or {@link TaskAction} to
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>The closure or {@link Action} to
      * execute when the task executes. See {@link Task#doFirst(Action)}.</td><td><code>null</code></td></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
@@ -113,8 +113,8 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
      * by name in your build file.  See <a href="../Project.html#properties">here</a> for more details.</p>
      *
-     * <p>If a task with the given name already exists in this container and the <code>overwrite</code> option is not set
-     * to true, an exception is thrown.</p>
+     * <p>If a task with the given name already exists in this container and the <code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code>
+     * option is not set to true, an exception is thrown.</p>
      *
      * @param options The task creation options.
      * @return The newly created task object
