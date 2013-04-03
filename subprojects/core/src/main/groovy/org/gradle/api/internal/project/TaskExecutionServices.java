@@ -68,15 +68,13 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess));
 
-        return new FileCacheBroadcastTaskArtifactStateRepository(
-                new ShortCircuitTaskArtifactStateRepository(
+        return new ShortCircuitTaskArtifactStateRepository(
                         get(StartParameter.class),
                         new DefaultTaskArtifactStateRepository(
                                 taskHistoryRepository,
                                 outputFilesSnapshotter,
                                 fileSnapshotter
-                        )),
-                new DefaultFileCacheListener());
+                        ));
     }
 
     protected TaskPlanExecutor createTaskExecutorFactory() {
