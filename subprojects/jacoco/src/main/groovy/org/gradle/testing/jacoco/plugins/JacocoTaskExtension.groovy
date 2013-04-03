@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Incubating
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.process.JavaForkOptions
+import org.gradle.util.GFileUtils
 
 /**
  * Extension for tasks that should run with a Jacoco agent
@@ -138,7 +139,7 @@ class JacocoTaskExtension {
                 if (value instanceof Collection) {
                     builder << value.join(':')
                 } else if (value instanceof File) {
-                    builder << relativePath(workingDirectory, value)
+                    builder << GFileUtils.relativePath(workingDirectory, value)
                 } else {
                     builder << value
                 }
@@ -147,7 +148,8 @@ class JacocoTaskExtension {
         }
 
         builder << '-javaagent:'
-        builder << relativePath(task.getWorkingDir(), agent.jar)
+
+        builder << GFileUtils.relativePath(task.getWorkingDir(), agent.jar)
         builder << '='
         arg 'destfile', getDestPath()
         arg 'append', getAppend()
@@ -167,11 +169,6 @@ class JacocoTaskExtension {
         return builder.toString()
     }
 
-    String relativePath(File from, File to) {
-        def relPath = to.absolutePath - "${from.absolutePath}${File.separator}"
-        println relPath
-        return relPath;
-    }
 /**
  * The types of output that the agent
  * can use for execution data.
