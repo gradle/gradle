@@ -43,6 +43,15 @@ class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         jacoco {
             toolVersion = '$version'
         }
+
+        test{
+            doFirst{
+                copy{
+                    from(zipTree(test.jacoco.agent.jar))
+                    into('build/expandedAgent')
+                }
+            }
+        }
         """
         createTestFiles();
         when:

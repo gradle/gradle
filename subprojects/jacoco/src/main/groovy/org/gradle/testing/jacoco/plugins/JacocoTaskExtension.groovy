@@ -26,7 +26,7 @@ import org.gradle.util.GFileUtils
  */
 @Incubating
 class JacocoTaskExtension {
-    private final JacocoAgentJar agent
+    JacocoAgentJar agent
 
     /**
      * Whether or not the task should generate execution data.
