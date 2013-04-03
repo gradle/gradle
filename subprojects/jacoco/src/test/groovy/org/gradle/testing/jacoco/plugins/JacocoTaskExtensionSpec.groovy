@@ -16,34 +16,44 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.internal.jacoco.JacocoAgentJar
+import org.gradle.process.JavaForkOptions
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class JacocoTaskExtensionSpec extends Specification {
     JacocoAgentJar agent = Mock()
-    JacocoTaskExtension extension = new JacocoTaskExtension(agent)
+    JavaForkOptions task = Mock()
+    JacocoTaskExtension extension = new JacocoTaskExtension(agent, task)
+    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def 'asJvmArg with default arguments assembles correct string'() {
         setup:
         agent.supportsJmx() >> true
-        agent.jar >> new File('fakeagent.jar')
+        agent.jar >> temporaryFolder.file('fakeagent.jar')
+        task.getWorkingDir() >> temporaryFolder.file(".")
         expect:
-        extension.asJvmArg == "-javaagent:${fullPath('fakeagent.jar')}=append=true,dumponexit=true,output=file,jmx=false"
+        extension.asJvmArg == "-javaagent:fakeagent.jar=append=true,dumponexit=true,output=file,jmx=false"
     }
 
     def 'supports jacocoagent with no jmx support'() {
         given:
         agent.supportsJmx() >> false
-        agent.jar >> new File('fakeagent.jar')
+        agent.jar >> temporaryFolder.file('fakeagent.jar')
+        task.getWorkingDir() >> temporaryFolder.file("workingDir")
+
         expect:
-        extension.asJvmArg == "-javaagent:${fullPath('fakeagent.jar')}=append=true,dumponexit=true,output=file"
+        extension.asJvmArg == "-javaagent:../fakeagent.jar=append=true,dumponexit=true,output=file"
     }
 
     def 'asJvmArg with all arguments assembles correct string'() {
         given:
         agent.supportsJmx() >> true
-        agent.jar >> new File('fakeagent.jar')
+        agent.jar >> temporaryFolder.file('workingDir/subfolder/fakeagent.jar')
+        task.getWorkingDir() >> temporaryFolder.file("workingDir")
+
         extension.with {
-            destPath = 'build/jacoco/fake.exec' as File
+            destPath = temporaryFolder.file('build/jacoco/fake.exec')
             append = false
             includes = ['org.*', '*.?acoco*']
             excludes = ['org.?joberstar']
@@ -53,13 +63,13 @@ class JacocoTaskExtensionSpec extends Specification {
             output = JacocoTaskExtension.Output.TCP_SERVER
             address = '1.1.1.1'
             port = 100
-            classDumpPath = 'build/jacoco-dump' as File
+            classDumpPath = temporaryFolder.file('build/jacoco-dump')
             jmx = true
         }
 
         def expected = new StringBuilder().with { builder ->
-            builder << "-javaagent:${fullPath('fakeagent.jar')}="
-            builder << "destfile=${fullPath('build/jacoco/fake.exec')},"
+            builder << "-javaagent:subfolder/fakeagent.jar="
+            builder << "destfile=../build/jacoco/fake.exec,"
             builder << "append=false,"
             builder << "includes=org.*:*.?acoco*,"
             builder << "excludes=org.?joberstar,"
@@ -69,7 +79,7 @@ class JacocoTaskExtensionSpec extends Specification {
             builder << "output=tcpserver,"
             builder << "address=1.1.1.1,"
             builder << "port=100,"
-            builder << "classdumpdir=${fullPath('build/jacoco-dump')},"
+            builder << "classdumpdir=../build/jacoco-dump,"
             builder << "jmx=true"
             builder.toString()
         }
@@ -86,7 +96,4 @@ class JacocoTaskExtensionSpec extends Specification {
         thrown Exception
     }
 
-    private String fullPath(String relativePath) {
-        return new File(relativePath).canonicalPath
-    }
 }

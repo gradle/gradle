@@ -17,6 +17,8 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.api.Incubating
 import org.gradle.internal.jacoco.JacocoAgentJar
+import org.gradle.process.JavaForkOptions
+import org.gradle.util.GFileUtils
 
 /**
  * Extension for tasks that should run with a Jacoco agent
@@ -105,21 +107,31 @@ class JacocoTaskExtension {
     boolean jmx = false
 
     /**
+     * The task we extend
+     * */
+    private JavaForkOptions task
+
+    /**
      * Creates a Jacoco task extension.
      * @param project the project the task is attached to
      * @param agent the agent JAR to use for analysis
      */
-    JacocoTaskExtension(JacocoAgentJar agent) {
+    JacocoTaskExtension(JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent
+        this.task = task;
     }
 
     /**
      * Gets all properties in the format expected of the agent JVM argument.
+     * File paths are calculated relative to the given working directory.
+     *
+     * @param workingDirectory The working directory of the jvm process.
      * @return state of extension in a JVM argument
      */
     String getAsJvmArg() {
         StringBuilder builder = new StringBuilder()
         boolean anyArgs = false
+        File workingDirectory = task.getWorkingDir()
         Closure arg = { name, value ->
             if (value instanceof Boolean || value) {
                 if (anyArgs) {
@@ -130,7 +142,7 @@ class JacocoTaskExtension {
                 if (value instanceof Collection) {
                     builder << value.join(':')
                 } else if (value instanceof File) {
-                    builder << value.canonicalPath
+                    builder << GFileUtils.relativePath(workingDirectory, value)
                 } else {
                     builder << value
                 }
@@ -139,7 +151,8 @@ class JacocoTaskExtension {
         }
 
         builder << '-javaagent:'
-        builder << agent.jar.canonicalPath
+
+        builder << GFileUtils.relativePath(task.getWorkingDir(), agent.jar)
         builder << '='
         arg 'destfile', getDestPath()
         arg 'append', getAppend()
