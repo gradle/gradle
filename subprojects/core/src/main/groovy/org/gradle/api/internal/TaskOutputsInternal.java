@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.tasks.TaskInputChanges;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
 
@@ -28,10 +26,5 @@ public interface TaskOutputsInternal extends TaskOutputs {
     FileCollection getPreviousFiles();
 
     void setHistory(TaskExecutionHistory history);
-
-    // TODO:DAZ Don't want these 2 on here
-    void setTaskArtifactState(TaskArtifactState artifactState);
-
-    TaskInputChanges getInputChanges();
 
 }

@@ -61,6 +61,11 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
             inputs.removed({ change ->
                 removedFiles << change.file
             } as Action)
+
+            touchOutputs()
+        }
+
+        def touchOutputs() {
         }
 
         def addedFiles = []
@@ -76,8 +81,8 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         @OutputDirectory
         def File outputDir
 
-        @TaskAction
-        def updateOutputs() {
+        @Override
+        def touchOutputs() {
             outputDir.eachFile {
                 it << "more content"
             }

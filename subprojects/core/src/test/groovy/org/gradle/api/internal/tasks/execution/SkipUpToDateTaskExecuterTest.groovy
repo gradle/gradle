@@ -15,11 +15,15 @@
  */
 
 package org.gradle.api.internal.tasks.execution
+
+import org.gradle.api.Action
+import org.gradle.api.Task
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
+import org.gradle.api.internal.tasks.IncrementalTaskAction
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
@@ -32,6 +36,9 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
     def repository = Mock(TaskArtifactStateRepository)
     def taskArtifactState = Mock(TaskArtifactState)
     def executionHistory = Mock(TaskExecutionHistory)
+    Action<Task> action = Mock(Action)
+    def incrementalAction = Mock(IncrementalTaskAction)
+
     def executer = new SkipUpToDateTaskExecuter(delegate, repository)
 
     def skipsTaskWhenOutputsAreUpToDate() {
@@ -57,10 +64,10 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         then:
         1 * taskArtifactState.beforeTask()
         1 * taskArtifactState.getExecutionHistory() >> executionHistory
-        2 * task.outputs >> outputs
+        1 * task.outputs >> outputs
         1 * outputs.setHistory(executionHistory)
-        1 * task.isIncrementalTask() >> true
-        1 * outputs.setTaskArtifactState(taskArtifactState)
+        1 * task.actions >> [action, incrementalAction]
+        1 * incrementalAction.setTaskArtifactState(taskArtifactState)
 
         then:
         1 * delegate.execute(task, taskState)
@@ -87,7 +94,8 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         1 * taskArtifactState.getExecutionHistory() >> executionHistory
         1 * task.outputs >> outputs
         1 * outputs.setHistory(executionHistory)
-        1 * task.isIncrementalTask() >> false
+        1 * task.actions >> [action, incrementalAction]
+        1 * incrementalAction.setTaskArtifactState(taskArtifactState)
 
         then:
         1 * delegate.execute(task, taskState)

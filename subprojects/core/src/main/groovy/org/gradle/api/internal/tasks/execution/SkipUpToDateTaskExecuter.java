@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.tasks.IncrementalTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.slf4j.Logger;
@@ -53,8 +54,11 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
             taskArtifactState.beforeTask();
             task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
 
-            if (task.isIncrementalTask()) {
-                task.getOutputs().setTaskArtifactState(taskArtifactState);
+            // TODO:DAZ Unit test
+            for (Object action : task.getActions()) {
+                if (action instanceof IncrementalTaskAction) {
+                    ((IncrementalTaskAction) action).setTaskArtifactState(taskArtifactState);
+                }
             }
             try {
                 executer.execute(task, state);

@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.tasks.TaskInputChanges;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.tasks.*;
@@ -96,11 +96,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         TaskClassInfo taskClassInfo = getTaskClassInfo(task.getClass());
 
         for (Factory<Action<Task>> actionFactory : taskClassInfo.taskActions) {
-            task.doFirst(actionFactory.create());
-        }
-
-        if (taskClassInfo.hasIncrementalAction) {
-            task.setIncrementalTask(true);
+            task.addActionRaw(actionFactory.create());
         }
 
         if (taskClassInfo.validator != null) {
@@ -137,7 +133,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
     }
 
-    private void attachTaskAction(final Method method, TaskClassInfo taskClassInfo, Collection<String> methods) {
+    private void attachTaskAction(final Method method, TaskClassInfo taskClassInfo, Collection<String> processedMethods) {
         if (method.getAnnotation(TaskAction.class) == null) {
             return;
         }
@@ -157,16 +153,30 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                     "Cannot use @TaskAction annotation on method %s.%s() as this method takes multiple parameters.",
                     method.getDeclaringClass().getSimpleName(), method.getName()));
         }
-        if (methods.contains(method.getName())) {
+        // TODO:DAZ Fail if we detect multiple action methods with the same name
+        if (processedMethods.contains(method.getName())) {
             return;
         }
-        methods.add(method.getName());
+        taskClassInfo.taskActions.add(0, createActionFactory(method, parameterTypes));
+        processedMethods.add(method.getName());
+    }
+
+    private Factory<Action<Task>> createActionFactory(final Method method, Class<?>[] parameterTypes) {
+        Factory<Action<Task>> actionFactory;
         if (parameterTypes.length == 1) {
-            taskClassInfo.taskActions.add(new IncrementalTaskActionFactory(method));
-            taskClassInfo.hasIncrementalAction = true;
+            actionFactory = new Factory<Action<Task>>() {
+                public Action<Task> create() {
+                    return new IncrementalTaskAction(method);
+                }
+            };
         } else {
-            taskClassInfo.taskActions.add(new StandardTaskActionFactory(method));
+            actionFactory = new Factory<Action<Task>>() {
+                public Action<Task> create() {
+                    return new StandardTaskAction(method);
+                }
+            };
         }
+        return actionFactory;
     }
 
     private static boolean isGetter(Method method) {
@@ -174,46 +184,47 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 && method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers());
     }
 
-    private static class StandardTaskActionFactory implements Factory<Action<Task>> {
+    private static class StandardTaskAction implements Action<Task> {
         private final Method method;
 
-        public StandardTaskActionFactory(Method method) {
+        public StandardTaskAction(Method method) {
             this.method = method;
         }
 
-        public Action<Task> create() {
-            return new Action<Task>() {
-                public void execute(Task task) {
-                    ClassLoader original = Thread.currentThread().getContextClassLoader();
-                    Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());
-                    try {
-                        doActions(task, method.getName());
-                    } finally {
-                        Thread.currentThread().setContextClassLoader(original);
-                    }
-                }
-            };
+        public void execute(Task task) {
+            ClassLoader original = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());
+            try {
+                doExecute(task, method.getName());
+            } finally {
+                Thread.currentThread().setContextClassLoader(original);
+            }
         }
 
-        protected void doActions(Task task, String methodName) {
+        protected void doExecute(Task task, String methodName) {
             ReflectionUtil.invoke(task, methodName);
         }
     }
 
-    public static class IncrementalTaskActionFactory extends StandardTaskActionFactory {
+    public static class IncrementalTaskAction extends StandardTaskAction implements org.gradle.api.internal.tasks.IncrementalTaskAction {
 
-        public IncrementalTaskActionFactory(Method method) {
+        private TaskArtifactState taskArtifactState;
+
+        public IncrementalTaskAction(Method method) {
             super(method);
         }
 
-        protected void doActions(Task task, String methodName) {
-            TaskInputChanges executionContext = ((TaskInternal) task).getOutputs().getInputChanges();
-            ReflectionUtil.invoke(task, methodName, executionContext);
+        public void setTaskArtifactState(TaskArtifactState taskArtifactState) {
+            this.taskArtifactState = taskArtifactState;
+        }
+
+        protected void doExecute(Task task, String methodName) {
+            ReflectionUtil.invoke(task, methodName, taskArtifactState.getInputChanges());
+            taskArtifactState = null;
         }
     }
 
     private class TaskClassInfo {
-        public boolean hasIncrementalAction;
         public Validator validator;
         public List<Factory<Action<Task>>> taskActions = new ArrayList<Factory<Action<Task>>>();
     }

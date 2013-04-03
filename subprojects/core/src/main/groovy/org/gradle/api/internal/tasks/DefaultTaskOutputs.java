@@ -18,12 +18,10 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskInputChanges;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.specs.AndSpec;
@@ -34,7 +32,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final DefaultConfigurableFileCollection outputFiles;
     private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
     private TaskExecutionHistory history;
-    private TaskArtifactState artifactState;
     private final TaskStatusNagger taskStatusNagger;
 
     public DefaultTaskOutputs(FileResolver resolver, TaskInternal task, TaskStatusNagger taskStatusNagger) {
@@ -92,13 +89,5 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     public void setHistory(TaskExecutionHistory history) {
         this.history = history;
-    }
-
-    public TaskInputChanges getInputChanges() {
-        return artifactState.getInputChanges();
-    }
-
-    public void setTaskArtifactState(TaskArtifactState artifactState) {
-        this.artifactState = artifactState;
     }
 }

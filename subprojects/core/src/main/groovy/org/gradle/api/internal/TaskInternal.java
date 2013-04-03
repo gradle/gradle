@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -25,8 +26,8 @@ import org.gradle.internal.Factory;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
 
-import java.util.List;
 import java.io.File;
+import java.util.List;
 
 public interface TaskInternal extends Task, Configurable<Task> {
     Spec<? super TaskInternal> getOnlyIf();
@@ -55,7 +56,8 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     Factory<File> getTemporaryDirFactory();
 
-    // TODO:DAZ Remove these: they are really only required during the execution chain
-    void setIncrementalTask(boolean incremental);
+    void addActionRaw(Action<Task> action);
+
+    // TODO:DAZ Remove this: it should be stored in the context of the execution chain
     boolean isIncrementalTask();
 }

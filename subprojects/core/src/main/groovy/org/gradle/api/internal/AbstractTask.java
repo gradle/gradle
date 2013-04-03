@@ -96,7 +96,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskStatusNagger taskStatusNagger;
     private ObservableList observableActionList;
-    private boolean incrementalTask;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -444,6 +443,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         };
     }
 
+    public void addActionRaw(Action<Task> action) {
+        actions.add(action);
+    }
+
     public void addValidator(TaskValidator validator) {
         validators.add(validator);
     }
@@ -533,11 +536,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return mustRunAfter;
     }
 
-    public void setIncrementalTask(boolean incrementalTask) {
-        this.incrementalTask = incrementalTask;
-    }
-
     public boolean isIncrementalTask() {
-        return incrementalTask;
+        for (Action<? super Task> action : actions) {
+            if (action instanceof IncrementalTaskAction) {
+                return true;
+            }
+        }
+        return false;
     }
 }
