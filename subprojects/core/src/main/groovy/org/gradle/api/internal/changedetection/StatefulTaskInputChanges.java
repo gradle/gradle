@@ -25,7 +25,7 @@ public abstract class StatefulTaskInputChanges implements TaskInputChanges {
 
     public void outOfDate(final Action<? super InputFileChange> outOfDateAction) {
         if (outOfDateProcessed) {
-            throw new IllegalArgumentException("Cannot process outOfDate files multiple times");
+            throw new IllegalStateException("Cannot process outOfDate files multiple times");
         }
         doOutOfDate(outOfDateAction);
         outOfDateProcessed = true;
@@ -38,7 +38,7 @@ public abstract class StatefulTaskInputChanges implements TaskInputChanges {
             throw new IllegalStateException("Must first process outOfDate files before processing removed files");
         }
         if (removedProcessed) {
-            throw new IllegalArgumentException("Cannot process removed files multiple times");
+            throw new IllegalStateException("Cannot process removed files multiple times");
         }
         doRemoved(removedAction);
         removedProcessed = true;

@@ -17,6 +17,7 @@
 package org.gradle.api.execution;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 import java.io.File;
 
@@ -28,6 +29,7 @@ import java.io.File;
  *     <li>{@link #outOfDate} must be executed before {@link #removed} is called.</li>
  * </ul>
  */
+@Incubating
 public interface TaskInputChanges {
 
     /**
@@ -39,6 +41,8 @@ public interface TaskInputChanges {
     /**
      * Executes the action for all of the input files that are out-of-date since the previous task execution.
      * This method may only be executed a single time for a single {@link TaskInputChanges} instance.
+     *
+     * @throws IllegalStateException on second and subsequent invocations.
      */
     void outOfDate(Action<? super InputFileChange> outOfDateAction);
 
@@ -46,6 +50,8 @@ public interface TaskInputChanges {
      * Executes the action for all of the input files that were removed since the previous task execution.
      * This method may only be executed a single time for a single {@link TaskInputChanges} instance.
      * This method may only be called after {@link #outOfDate} has executed.
+     *
+     * @throws IllegalStateException if invoked prior to {@link #outOfDate}, or if invoked more than once.
      */
     void removed(Action<? super InputFileChange> removedAction);
 
