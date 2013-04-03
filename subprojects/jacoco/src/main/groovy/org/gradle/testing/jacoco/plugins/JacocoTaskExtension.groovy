@@ -18,7 +18,6 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Incubating
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.process.JavaForkOptions
-import org.gradle.util.GFileUtils
 
 /**
  * Extension for tasks that should run with a Jacoco agent
