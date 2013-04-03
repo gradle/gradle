@@ -171,7 +171,7 @@
             This "must run after" task ordering can be useful in a number of scenarios:
         </para>
         <itemizedlist>
-            <listitem>Specify that unit tests should always run before integration tests to fail faster, but still allow integration tests to be run without unit tests.</listitem>
+            <listitem>Specify that unit tests should always run before integration tests for faster feedback, but still allow integration tests to be run without unit tests.</listitem>
             <listitem>Aggregate the results of all tasks of a particular type, without forcing any particular task to run (eg. aggregating results of all executed test tasks).
             </listitem>
         </itemizedlist>
@@ -186,6 +186,13 @@
         <para>To specify a "must run after" ordering between 2 tasks, you use the <apilink class="org.gradle.api.Task" method="mustRunAfter"/> method.
             This method accepts a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
         </para>
+        <para>
+            Note that "<literal>B.mustRunAfter(A)</literal>" does not imply any execution dependency between the tasks:
+        </para>
+        <itemizedlist>
+            <listitem>It is possible to execute tasks <literal>A</literal> and <literal>B</literal> independently. The ordering rule only has an effect when both tasks are scheduled for execution.</listitem>
+            <listitem>When run with <literal>--continue</literal>, it is possible for <literal>B</literal> to execute in the event that <literal>A</literal> fails.</listitem>
+        </itemizedlist>
     </section>
     <section>
         <title>Adding a description to a task</title>
