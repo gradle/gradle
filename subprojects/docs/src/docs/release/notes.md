@@ -73,7 +73,8 @@ To gather code coverage information for your java project, just apply the JaCoCo
 
     apply plugin:'jacoco'
 
-and run `gradle test jacocoTestReport` which generates code coverage reports for the "test" task introduced by the `java` plugin. The `JacocoReport` adds a `mustRunAfter` dependency on the coverage data producing task ('test' in our example). After the build has finished you find the coverage report in different formats in `build/reports/jacoco/test`.
+and run `gradle test jacocoTestReport` which generates code coverage reports for the "test" task introduced by the `java` plugin. The `JacocoReport` adds a `mustRunAfter` dependency on the
+coverage data producing task ('test' in our example). After the build has finished you find the coverage report in different formats in `build/reports/jacoco/test`.
 
 You configure every task of type `JacocoReport` to disable output formats and change the output directory. For example if you just want the `xml` coverage report that can be reused by your
 favourite CI server, you can simply configure this:
