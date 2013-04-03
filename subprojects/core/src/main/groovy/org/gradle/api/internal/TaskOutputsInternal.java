@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.execution.TaskInputChanges;
+import org.gradle.api.tasks.TaskInputChanges;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.specs.Spec;

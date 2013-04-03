@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Task;
-import org.gradle.api.execution.TaskInputChanges;
+import org.gradle.api.tasks.TaskInputChanges;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;

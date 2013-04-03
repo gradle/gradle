@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.execution.RebuildTaskInputChanges;
-import org.gradle.api.execution.TaskInputChanges;
+import org.gradle.api.tasks.TaskInputChanges;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;

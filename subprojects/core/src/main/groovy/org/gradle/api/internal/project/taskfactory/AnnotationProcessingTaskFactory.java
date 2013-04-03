@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.execution.TaskInputChanges;
+import org.gradle.api.tasks.TaskInputChanges;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;

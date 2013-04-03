@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution;
+package org.gradle.api.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.execution.TaskInputChanges;
+import org.gradle.api.tasks.TaskInputChanges;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 

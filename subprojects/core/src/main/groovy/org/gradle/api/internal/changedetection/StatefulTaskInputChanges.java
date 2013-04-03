@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.Action;
-import org.gradle.api.execution.TaskInputChanges;
+import org.gradle.api.tasks.TaskInputChanges;
 
 public abstract class StatefulTaskInputChanges implements TaskInputChanges {
     private boolean outOfDateProcessed;

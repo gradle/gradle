@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.execution.TaskInputChanges;
+import org.gradle.api.tasks.TaskInputChanges;
 import org.gradle.api.internal.changedetection.TaskUpToDateStateChange;
 
 import java.io.File;
