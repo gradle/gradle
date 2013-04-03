@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.buildsetup.plugins
+package org.gradle.buildsetup.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating

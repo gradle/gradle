@@ -176,6 +176,6 @@ it.exclude group: '*', module: 'badArtifact'
         parentFolder.file("gradle/wrapper/gradle-wrapper.jar").assertExists()
         def wrapperPropertiesFile = parentFolder.file("gradle/wrapper/gradle-wrapper.properties")
         wrapperPropertiesFile.assertExists()
-        assert wrapperPropertiesFile.text.contains("distributionUrl=http\\://services.gradle.org/distributions-snapshots/gradle-${GradleVersion.current().getVersion()}-bin.zip")
+        assert wrapperPropertiesFile.text.contains("${GradleVersion.current().getVersion()}-bin.zip")
     }
 }

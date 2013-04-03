@@ -31,8 +31,8 @@
         This means that you can setup a Gradle project build without needing a stub build.gradle file declaring
         the build-setup plugin.
 
-        If a pom.xml file is found in the project directory, a task of type ConvertMaven2Gradle is added
-        to the <literal>setupBuild</literal> lifecycle. Furthermore a <literal>Wrapper</literal> task is part of the
+        If a pom.xml file is found in the project directory, a task of type <apilink class="org.gradle.buildsetup.tasks.ConvertMaven2Gradle"/>
+        is added to the <literal>setupBuild</literal> lifecycle. Furthermore a <apilink class="org.gradle.buildsetup.tasks.GenerateBuildFile"/> task is part of the
         <literal>setupBuild</literal> lifecycle that generates all files needed to run the build using the Gradle Wrapper.
         Details about the Gradle Wrapper can be found in the according chapter <xref linkend='gradle_wrapper'/>
     </para>
@@ -62,7 +62,7 @@
                         <literal>maven2Gradle</literal>
                     </td>
                     <td>-</td>
-                    <td><apilink class="org.gradle.buildsetup.plugins.ConvertMaven2Gradle"/></td>
+                    <td><apilink class="org.gradle.buildsetup.tasks.ConvertMaven2Gradle"/></td>
                     <td>Converts a Maven project to a Gradle project by obtaining the effective POM. This task is only added if
                         a <literal>pom.xml</literal> file can be found in the project directory.
                     </td>
@@ -73,7 +73,7 @@
                     </td>
                     <td>-</td>
                     <td>
-                        <apilink class="org.gradle.buildsetup.plugins.GenerateBuildFile"/>
+                        <apilink class="org.gradle.buildsetup.tasks.GenerateBuildFile"/>
                     </td>
                     <td>Generates an build.gradle file. This task is only added if no
                         <literal>pom.xml</literal> file can be found in the project directory.
@@ -85,7 +85,7 @@
                     </td>
                     <td>-</td>
                     <td>
-                        <apilink class="org.gradle.buildsetup.plugins.GenerateSettingsFile"/>
+                        <apilink class="org.gradle.buildsetup.tasks.GenerateSettingsFile"/>
                     </td>
                     <td>Generates a <literal>settings.gradle</literal> file. This task is only added if no
                         <literal>pom.xml</literal> file can be found in the project directory.

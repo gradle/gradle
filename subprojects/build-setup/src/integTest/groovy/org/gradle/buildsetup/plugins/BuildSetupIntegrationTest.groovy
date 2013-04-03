@@ -17,6 +17,7 @@
 package org.gradle.buildsetup.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.test.fixtures.file.TestFile
 
 class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -34,10 +35,34 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run 'setupBuild'
         then:
-        file("build.gradle").text == ""
+        assertFileTemplateIsValid(file("build.gradle"))
+        assertFileTemplateIsValid(file("settings.gradle"))
         file("gradlew").assertExists()
         file("gradlew.bat").assertExists()
         file("gradle/wrapper/gradle-wrapper.jar").assertExists()
         file("gradle/wrapper/gradle-wrapper.properties").assertExists()
     }
+
+    void assertFileTemplateIsValid(TestFile generatedFile) {
+        assert generatedFile.exists()
+        def generatedFileContent = generatedFile.text
+        assert generatedFileContent != ""
+        println generatedFileContent
+
+        //validate http links in the template
+        generatedFileContent.eachLine {
+               (it =~ /http:\/\/[^\s]+/).each{ httpRef ->
+                   assert getResponseCode(httpRef) == 200
+               }
+        }
+    }
+
+    private static int getResponseCode(String urlString) throws MalformedURLException, IOException {
+        URL u = new URL(urlString);
+        HttpURLConnection huc =  (HttpURLConnection)  u.openConnection();
+        huc.setRequestMethod("GET");
+        huc.connect();
+        return huc.getResponseCode();
+    }
+
 }

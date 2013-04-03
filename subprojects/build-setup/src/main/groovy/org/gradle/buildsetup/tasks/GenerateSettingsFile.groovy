@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.buildsetup.plugins
+package org.gradle.buildsetup.tasks
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 
 
-abstract class TextFileGenerationTask extends DefaultTask {
+class GenerateSettingsFile extends TextFileGenerationTask{
 
-    @TaskAction
-    public void generate() {
-        def textOutputFile = getOutputFile()
-        if (!textOutputFile.exists()) {
-            textOutputFile.text = ""
-        }
+    File settingsFile
+
+    File buildFile
+
+    @Optional @Input URL templateURL = getClass().getResource("/org/gradle/buildsetup/tasks/templates/settings.gradle.template")
+
+    @Override
+    URL getTemplateURL() {
+        return templateURL
     }
 
-    @OutputFile
-    protected abstract File getOutputFile()
+    @Override
+    protected File getOutputFile() {
+        return settingsFile;
+    }
 }

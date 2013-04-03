@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.buildsetup.plugins
+package org.gradle.buildsetup.tasks
 
 import org.gradle.api.Incubating
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 
 @Incubating
 class GenerateBuildFile extends TextFileGenerationTask {
 
     File buildFile
+    @Optional @Input URL templateURL = getClass().getResource("/org/gradle/buildsetup/tasks/templates/build.gradle.template")
+
+    @Override
+    URL getTemplateURL() {
+        return templateURL
+    }
 
     @Override
     protected File getOutputFile() {
