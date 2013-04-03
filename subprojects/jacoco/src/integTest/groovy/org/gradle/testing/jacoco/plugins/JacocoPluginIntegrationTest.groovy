@@ -37,12 +37,23 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Test
+    public void generatesHtmlReportOnlyAsDefault() {
+        given:
+        when:
+        succeeds('test', 'jacocoTestReport')
+        then:
+        file("build/reports/jacoco/test/html/index.html").exists()
+        !file("build/reports/jacoco/test/jacocoTestReport.xml").exists()
+        !file("build/reports/jacoco/test/jacocoTestReport.csv").exists()
+    }
+
+    @Test
     public void canConfigureReportsInJacocoTestReport() {
         given:
         buildFile << """
             jacocoTestReport{
                 reports {
-                    xml.enabled false
+                    xml.enabled true
                     csv.enabled false
                     html.destination "\${buildDir}/jacocoHtml"
                 }
@@ -52,7 +63,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
         then:
         file("build/jacocoHtml/index.html").exists()
-        !file("build/reports/jacoco/test/jacocoTestReport.xml").exists()
+        file("build/reports/jacoco/test/jacocoTestReport.xml").exists()
         !file("build/reports/jacoco/test/jacocoTestReport.csv").exists()
     }
 
@@ -60,6 +71,10 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
     public void respectsReportingBaseDir() {
         given:
         buildFile << """
+            jacocoTestReport{
+                reports.xml.enabled = true
+                reports.csv.enabled = true
+            }
             reporting{
                 baseDir = "\$buildDir/customReports"
             }"""
@@ -75,6 +90,10 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
     public void canConfigureReportDirectory() {
         given:
         buildFile << """
+            jacocoTestReport{
+                reports.xml.enabled = true
+                reports.csv.enabled = true
+            }
             jacoco {
                 reportsDir = new File(buildDir, "customJacocoReportDir")
             }
@@ -93,8 +112,6 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
         then:
         file("build/reports/jacoco/test/html/index.html").exists()
-        file("build/reports/jacoco/test/jacocoTestReport.xml").exists()
-        file("build/reports/jacoco/test/jacocoTestReport.csv").exists()
 
         when:
         succeeds('jacocoTestReport')

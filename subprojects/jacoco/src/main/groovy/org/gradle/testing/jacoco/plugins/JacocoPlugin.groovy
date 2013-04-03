@@ -73,7 +73,7 @@ class JacocoPlugin implements Plugin<Project> {
         project.tasks.withType(JacocoReport) { reportTask ->
             reportTask.reports.all { report ->
                 report.conventionMapping.with {
-                    enabled = { true }
+                    enabled = report.name == "html"
                     if (report.outputType == Report.OutputType.DIRECTORY) {
                         destination = { new File(extension.reportsDir, "${reportTask.name}/${report.name}") }
                     } else {

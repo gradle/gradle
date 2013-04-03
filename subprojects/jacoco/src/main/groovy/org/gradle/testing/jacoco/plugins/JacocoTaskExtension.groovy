@@ -123,9 +123,6 @@ class JacocoTaskExtension {
 
     /**
      * Gets all properties in the format expected of the agent JVM argument.
-     * File paths are calculated relative to the given working directory.
-     *
-     * @param workingDirectory The working directory of the jvm process.
      * @return state of extension in a JVM argument
      */
     String getAsJvmArg() {
