@@ -139,7 +139,7 @@ class JacocoTaskExtension {
                 if (value instanceof Collection) {
                     builder << value.join(':')
                 } else if (value instanceof File) {
-                    builder << GFileUtils.relativePath(workingDirectory, value)
+                    builder << relativePath(workingDirectory, value)
                 } else {
                     builder << value
                 }
@@ -148,8 +148,7 @@ class JacocoTaskExtension {
         }
 
         builder << '-javaagent:'
-
-        builder << GFileUtils.relativePath(task.getWorkingDir(), agent.jar)
+        builder << relativePath(task.getWorkingDir(), agent.jar)
         builder << '='
         arg 'destfile', getDestPath()
         arg 'append', getAppend()
@@ -169,6 +168,11 @@ class JacocoTaskExtension {
         return builder.toString()
     }
 
+    String relativePath(File from, File to) {
+        def relPath = to.absolutePath - "${from.absolutePath}${File.separator}"
+        println relPath
+        return relPath;
+    }
 /**
  * The types of output that the agent
  * can use for execution data.
