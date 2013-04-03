@@ -50,6 +50,8 @@ class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
                     from(zipTree(test.jacoco.agent.jar))
                     into('build/expandedAgent')
                 }
+                assert file('build/expandedAgent/META-INF/MANIFEST.MF').exists()
+                println file('build/expandedAgent/META-INF/MANIFEST.MF').text
             }
         }
         """
