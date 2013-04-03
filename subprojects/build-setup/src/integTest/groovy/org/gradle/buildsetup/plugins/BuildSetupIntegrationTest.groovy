@@ -60,7 +60,7 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
     private static int getResponseCode(String urlString) throws MalformedURLException, IOException {
         URL u = new URL(urlString);
         HttpURLConnection huc =  (HttpURLConnection)  u.openConnection();
-        huc.setRequestMethod("GET");
+        huc.setRequestMethod("HEAD");
         huc.connect();
         return huc.getResponseCode();
     }
