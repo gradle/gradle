@@ -135,6 +135,23 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         executionResult.assertTaskSkipped(':jacocoTestReport')
     }
 
+    @Test
+    public void canUseCoverageDataFromPreviousRunForCoverageReport() {
+        when:
+        succeeds('jacocoTestReport')
+        then:
+        skippedTasks.contains(":jacocoTestReport")
+        !file("build/reports/jacoco/test/html/index.html").exists()
+
+        when:
+        succeeds('test')
+        and:
+
+        succeeds('jacocoTestReport')
+        then:
+        executedTasks.contains(":jacocoTestReport")
+        file("build/reports/jacoco/test/html/index.html").exists()
+    }
 
     private void createTestFiles() {
         file("src/main/java/org/gradle/Class1.java") <<
