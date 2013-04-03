@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection;
+package org.gradle.api.internal.changedetection.rules;
 
-public enum ChangeType {
+enum ChangeType {
     ADDED("has been added"),
     MODIFIED("has changed"),
-    REMOVED("has been removed"),
-    UNSPECIFIED("is not up-to-date");
+    REMOVED("has been removed");
 
     private final String description;
 

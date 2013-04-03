@@ -18,7 +18,6 @@ package org.gradle.api.internal.execution;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.ChangeType;
 import org.gradle.api.internal.changedetection.StatefulTaskInputChanges;
 
 import java.io.File;
@@ -36,10 +35,34 @@ public class RebuildTaskInputChanges extends StatefulTaskInputChanges {
 
     public void doOutOfDate(Action<? super InputFileChange> outOfDateAction) {
         for (File file : task.getInputs().getFiles()) {
-            outOfDateAction.execute(new DefaultInputFileChange(file, ChangeType.UNSPECIFIED));
+            outOfDateAction.execute(new RebuildInputFileChange(file));
         }
     }
 
     public void doRemoved(Action<? super InputFileChange> removedAction) {
+    }
+
+    private static class RebuildInputFileChange implements InputFileChange {
+        private final File file;
+
+        private RebuildInputFileChange(File file) {
+            this.file = file;
+        }
+
+        public File getFile() {
+            return file;
+        }
+
+        public boolean isAdded() {
+            return false;
+        }
+
+        public boolean isModified() {
+            return false;
+        }
+
+        public boolean isRemoved() {
+            return false;
+        }
     }
 }

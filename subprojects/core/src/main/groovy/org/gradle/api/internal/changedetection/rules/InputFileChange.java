@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.ChangeType;
-
 import java.io.File;
 
 public class InputFileChange extends FileChange {
-    private static final String INPUT = "Input";
 
-    public InputFileChange(Task task, File file, ChangeType change) {
-        super(task, file, INPUT, change);
+    public InputFileChange(File file, ChangeType change) {
+        super(file, change);
+    }
+
+    @Override
+    protected String getFileType() {
+        return "Input";
     }
 }

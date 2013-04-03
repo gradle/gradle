@@ -17,8 +17,6 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.changedetection.rules.FileChange;
-import org.gradle.api.internal.execution.DefaultInputFileChange;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,14 +38,12 @@ class IncrementalTaskInputChanges extends StatefulTaskInputChanges {
         inputFilesState.findChanges(new Action<TaskUpToDateStateChange>() {
             public void execute(TaskUpToDateStateChange change) {
                 // TODO:DAZ Generify properly to avoid this check & cast
-                assert change instanceof FileChange;
-                FileChange fileChange = (FileChange) change;
-
-                DefaultInputFileChange inputFileChange = new DefaultInputFileChange(fileChange.getFile(), fileChange.getChange());
-                if (fileChange.getChange() == ChangeType.REMOVED) {
-                    removedFiles.add(inputFileChange);
+                assert change instanceof InputFileChange;
+                InputFileChange fileChange = (InputFileChange) change;
+                if (fileChange.isRemoved()) {
+                    removedFiles.add(fileChange);
                 } else {
-                    outOfDateAction.execute(inputFileChange);
+                    outOfDateAction.execute(fileChange);
                 }
             }
         });

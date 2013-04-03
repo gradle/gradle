@@ -39,15 +39,15 @@ public class InputFilesChangedUpToDateRule {
                 }
                 inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(), new ChangeListener<File>() {
                     public void added(File file) {
-                        action.execute(new InputFileChange(task, file, ChangeType.ADDED));
+                        action.execute(new InputFileChange(file, ChangeType.ADDED));
                     }
 
                     public void removed(File file) {
-                        action.execute(new InputFileChange(task, file, ChangeType.REMOVED));
+                        action.execute(new InputFileChange(file, ChangeType.REMOVED));
                     }
 
                     public void changed(File file) {
-                        action.execute(new InputFileChange(task, file, ChangeType.MODIFIED));
+                        action.execute(new InputFileChange(file, ChangeType.MODIFIED));
                     }
                 });
             }

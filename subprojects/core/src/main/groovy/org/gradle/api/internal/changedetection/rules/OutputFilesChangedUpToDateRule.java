@@ -38,15 +38,15 @@ public class OutputFilesChangedUpToDateRule {
                 }
                 outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(), new ChangeListener<File>() {
                     public void added(File element) {
-                        action.execute(new OutputFileChange(task, element, ChangeType.ADDED));
+                        action.execute(new OutputFileChange(element, ChangeType.ADDED));
                     }
 
                     public void removed(File element) {
-                        action.execute(new OutputFileChange(task, element, ChangeType.REMOVED));
+                        action.execute(new OutputFileChange(element, ChangeType.REMOVED));
                     }
 
                     public void changed(File element) {
-                        action.execute(new OutputFileChange(task, element, ChangeType.MODIFIED));
+                        action.execute(new OutputFileChange(element, ChangeType.MODIFIED));
                     }
                 });
             }

@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 import java.io.File;
 
 /**
- * Provides task state information to incremental task implementations.
+ * Provides changes to task input files to incremental task implementations.
  * Note that this is a stateful API:
  * <ul>
  *     <li>{@link #outOfDate} and {@link #removed} can each only be executed a single time per {@link TaskInputChanges} instance.</li>
@@ -31,7 +31,6 @@ import java.io.File;
  */
 @Incubating
 public interface TaskInputChanges {
-
     /**
      * Specifies if incremental build is not possible due to changed Input Properties, Output Files, etc.
      * In this case, every file will be considered to be 'out-of-date'.
@@ -70,6 +69,12 @@ public interface TaskInputChanges {
          * @return if the file was modified
          */
         boolean isModified();
+
+        /**
+         * Was the file removed?
+         * @return true if the file was removed since the last execution
+         */
+        boolean isRemoved();
 
         /**
          * The input file, which may no longer exist.
