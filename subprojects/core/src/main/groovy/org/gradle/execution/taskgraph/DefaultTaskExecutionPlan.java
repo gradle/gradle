@@ -197,41 +197,6 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.failureHandler = handler;
     }
 
-    public TaskInfo getTaskToExecute(Spec<TaskInfo> criteria) {
-        lock.lock();
-        try {
-
-            TaskInfo nextMatching;
-            while ((nextMatching = getNextReadyAndMatching(criteria)) != null) {
-                while (!nextMatching.allDependenciesComplete()) {
-                    try {
-                        condition.await();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
-                // The task state could have been modified while we waited for dependency completion. Check that it is still 'ready'.
-                if (!nextMatching.isReady()) {
-                    continue;
-                }
-
-                if (nextMatching.allDependenciesSuccessful()) {
-                    nextMatching.startExecution();
-                    return nextMatching;
-                } else {
-                    nextMatching.skipExecution();
-                    condition.signalAll();
-                }
-            }
-
-            return null;
-
-        } finally {
-            lock.unlock();
-        }
-    }
-
     public TaskInfo getTaskToExecute() {
         lock.lock();
         try {
@@ -268,15 +233,6 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         } finally {
             lock.unlock();
         }
-    }
-
-    private TaskInfo getNextReadyAndMatching(Spec<TaskInfo> criteria) {
-        for (TaskInfo taskInfo : executionPlan.values()) {
-            if (taskInfo.isReady() && criteria.isSatisfiedBy(taskInfo)) {
-                return taskInfo;
-            }
-        }
-        return null;
     }
 
     public void taskComplete(TaskInfo taskInfo) {

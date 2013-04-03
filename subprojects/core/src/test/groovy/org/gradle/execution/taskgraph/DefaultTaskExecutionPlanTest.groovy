@@ -21,7 +21,6 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskState
 import org.gradle.execution.TaskFailureHandler
@@ -35,12 +34,13 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root;
-    Spec<TaskInfo> anyTask = Specs.satisfyAll();
 
     def setup() {
         root = createRootProject();
         executionPlan = new DefaultTaskExecutionPlan()
     }
+
+    //TODO SF this needs some coverage that validates that tasks from the same projects are not used in parallel.
 
     private void addToGraphAndPopulate(List tasks) {
         executionPlan.addToTaskGraph(tasks)
@@ -306,7 +306,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     protected TaskInfo getTaskToExecute() {
-        executionPlan.getTaskToExecute(anyTask)
+        executionPlan.getTaskToExecute()
     }
 
     def "stops returning tasks on first task failure when no failure handler provided"() {

@@ -18,17 +18,13 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 
 class DefaultTaskPlanExecutor implements TaskPlanExecutor {
 
     public void process(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
-        Spec<TaskInfo> anyTask = Specs.satisfyAll();
-        TaskInfo taskInfo = taskExecutionPlan.getTaskToExecute(anyTask);
-        while (taskInfo != null) {
+        TaskInfo taskInfo;
+        while ((taskInfo = taskExecutionPlan.getTaskToExecute()) != null) {
             processTask(taskInfo, taskExecutionPlan, taskListener);
-            taskInfo = taskExecutionPlan.getTaskToExecute(anyTask);
         }
         taskExecutionPlan.awaitCompletion();
     }

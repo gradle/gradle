@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
 
 import java.util.List;
 
@@ -25,15 +24,6 @@ import java.util.List;
  * Represents a graph of dependent tasks, returned in execution order.
  */
 public interface TaskExecutionPlan {
-    /**
-     * Provides a ready-to-execute task that matches the specified criteria. A task is ready-to-execute if all of it's dependencies have been completed successfully.
-     * If the next matching task is not ready-to-execute, this method will block until it is ready.
-     * If no tasks remain that match the criteria, null will be returned.
-     * @param criteria Only tasks matching this Spec will be returned.
-     * @return The next matching task, or null if no matching tasks remain.
-     */
-    TaskInfo getTaskToExecute(Spec<TaskInfo> criteria);
-
     /**
      * Signals to the plan that execution of this task has completed. Execution is complete if the task succeeds, fails, or an exception is thrown during execution.
      * @param task the completed task.
@@ -50,6 +40,11 @@ public interface TaskExecutionPlan {
      */
     List<Task> getTasks();
 
-    //TODO SF this should replace completely getTaskToExecute(), inherit and expand existing unit test coverage
+    /**
+     * Provides a ready-to-execute task. A task is ready-to-execute if all of it's dependencies have been completed successfully.
+     * This method blocks until the at least one task is ready-to-execute.
+     * If no tasks remain, null will be returned.
+     * @return The task, or null if no matching tasks remain.
+     */
     TaskInfo getTaskToExecute();
 }
