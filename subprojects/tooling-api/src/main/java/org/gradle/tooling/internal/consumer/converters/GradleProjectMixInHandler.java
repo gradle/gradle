@@ -18,25 +18,16 @@ package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.tooling.internal.adapter.MethodInvocation;
 import org.gradle.tooling.internal.adapter.MethodInvoker;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 
 /**
  * by Szczepan Faber, created at: 4/2/12
  */
-public class ConsumerPropertyHandler implements MethodInvoker {
-
-    private final VersionDetails versionDetails;
-
-    public ConsumerPropertyHandler(VersionDetails versionDetails) {
-        this.versionDetails = versionDetails;
-    }
-
+public class GradleProjectMixInHandler implements MethodInvoker {
     public void invoke(MethodInvocation invocation) throws Throwable {
         if (invocation.getName().equals("getGradleProject")
-                && invocation.getDelegate() instanceof EclipseProjectVersion3
-                && !versionDetails.supportsGradleProjectModel()) {
+                && invocation.getDelegate() instanceof EclipseProjectVersion3) {
             invocation.setResult(new GradleProjectConverter().convert((EclipseProjectVersion3) invocation.getDelegate()));
         }
-    }
+     }
 }

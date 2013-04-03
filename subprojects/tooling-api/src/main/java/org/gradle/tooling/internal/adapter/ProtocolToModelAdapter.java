@@ -21,6 +21,8 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -29,11 +31,8 @@ import java.util.regex.Pattern;
 /**
  * Adapts some source object to some target type.
  */
-public class ProtocolToModelAdapter {
-    private static final MethodInvoker NO_OP_HANDLER = new MethodInvoker() {
-        public void invoke(MethodInvocation invocation) throws Throwable {
-        }
-    };
+public class ProtocolToModelAdapter implements Serializable {
+    private static final MethodInvoker NO_OP_HANDLER = new NoOpMethodInvoker();
     public static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
         public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
             return initialTargetType;
@@ -82,14 +81,26 @@ public class ProtocolToModelAdapter {
         return proxy;
     }
 
-    private class InvocationHandlerImpl implements InvocationHandler {
+    private class InvocationHandlerImpl implements InvocationHandler, Serializable {
         private final Object delegate;
-        private final Method equalsMethod;
-        private final Method hashCodeMethod;
-        private final MethodInvoker invoker;
+        private final MethodInvoker overrideMethodInvoker;
+        private transient Method equalsMethod;
+        private transient Method hashCodeMethod;
+        private transient MethodInvoker invoker;
 
         public InvocationHandlerImpl(Object delegate, MethodInvoker overrideMethodInvoker) {
             this.delegate = delegate;
+            this.overrideMethodInvoker = overrideMethodInvoker;
+            setup();
+        }
+
+        private void readObject(java.io.ObjectInputStream in)
+             throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+            setup();
+        }
+
+        private void setup() {
             invoker = new SupportedPropertyInvoker(
                     new SafeMethodInvoker(
                             new PropertyCachingMethodInvoker(

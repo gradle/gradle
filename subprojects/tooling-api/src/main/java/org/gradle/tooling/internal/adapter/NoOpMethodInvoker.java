@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,7 @@ package org.gradle.tooling.internal.adapter;
 
 import java.io.Serializable;
 
-public interface TargetTypeProvider extends Serializable {
-    /**
-     * Determines the model type to use to wrap the given protocol object.
-     */
-    <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject);
+public class NoOpMethodInvoker implements MethodInvoker, Serializable {
+    public void invoke(MethodInvocation invocation) throws Throwable {
+    }
 }

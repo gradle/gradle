@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.adapter
 
+import org.gradle.messaging.remote.internal.Message
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.util.Matchers
@@ -299,6 +300,21 @@ class ProtocolToModelAdapterTest extends Specification {
         then:
         result instanceof ByteChannel
     }
+
+    def "wrapper objects can be serialized"() {
+        def protocolModel = new TestProtocolProjectImpl()
+
+        given:
+        def model = adapter.adapt(TestProject.class, protocolModel)
+
+        expect:
+        def serialized = new ByteArrayOutputStream()
+        Message.send(model, serialized)
+        def copiedModel = Message.receive(new ByteArrayInputStream(serialized.toByteArray()), getClass().classLoader)
+        copiedModel instanceof TestProject
+        copiedModel != model
+        copiedModel.name == "name"
+    }
 }
 
 interface TestModel {
@@ -341,6 +357,10 @@ interface PartialTestProtocolModel {
 
 interface TestProtocolProject {
     String getName()
+}
+
+class TestProtocolProjectImpl implements Serializable {
+    String name = "name"
 }
 
 class ConfigMixin {
