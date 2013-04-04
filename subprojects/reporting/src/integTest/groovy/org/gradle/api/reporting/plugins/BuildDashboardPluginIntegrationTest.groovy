@@ -171,8 +171,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run("test", "jacocoTestReport", BUILD_DASHBOARD_TASK_NAME, 'check')
         then:
-        dashboardLinksCount == 5
-        jacocoLinks() == 3
+        dashboardLinksCount == 3
+        jacocoLinks() == 1
 
     }
 
