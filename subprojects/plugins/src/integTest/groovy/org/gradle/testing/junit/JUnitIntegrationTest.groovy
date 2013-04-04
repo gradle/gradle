@@ -97,15 +97,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass("org.gradle.SomeTest").assertTestsExecuted("ok", "ok")
     }
 
-    @Test
-    public void canHandleClassLevelIgnoredTests() {
-        resources.maybeCopy('JUnitIntegrationTest/ignoreTests')
-        executer.withTasks('check').run()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.IgnoredTest', 'org.gradle.CustomIgnoredTest')
-        result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored")
-        result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
-    }
+
 
     @Test
     public void canRunTestsUsingJUnit3() {
