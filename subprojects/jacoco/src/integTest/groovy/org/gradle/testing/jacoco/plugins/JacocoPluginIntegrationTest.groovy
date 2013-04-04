@@ -16,10 +16,14 @@
 
 package org.gradle.testing.jacoco.plugins
 
+import org.gradle.api.Project
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Test
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
+
+    private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
 
     def setup() {
         buildFile << """
@@ -42,9 +46,9 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds('test', 'jacocoTestReport')
         then:
-        file("build/reports/jacoco/test/html/index.html").exists()
-        !file("build/reports/jacoco/test/jacocoTestReport.xml").exists()
-        !file("build/reports/jacoco/test/jacocoTestReport.csv").exists()
+        file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
+        !file("${REPORTING_BASE}/jacoco/test/jacocoTestReport.xml").exists()
+        !file("${REPORTING_BASE}/jacoco/test/jacocoTestReport.csv").exists()
     }
 
     @Test
@@ -63,8 +67,8 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
         then:
         file("build/jacocoHtml/index.html").exists()
-        file("build/reports/jacoco/test/jacocoTestReport.xml").exists()
-        !file("build/reports/jacoco/test/jacocoTestReport.csv").exists()
+        file("${REPORTING_BASE}/jacoco/test/jacocoTestReport.xml").exists()
+        !file("${REPORTING_BASE}/jacoco/test/jacocoTestReport.csv").exists()
     }
 
     @Test
@@ -111,20 +115,20 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds('test', 'jacocoTestReport')
         then:
-        file("build/reports/jacoco/test/html/index.html").exists()
+        file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
 
         when:
         succeeds('jacocoTestReport')
         then:
         skippedTasks.contains(":jacocoTestReport")
-        file("build/reports/jacoco/test/html/index.html").exists()
+        file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
 
         when:
-        file("build/reports/jacoco/test/html/.resources").deleteDir()
+        file("${REPORTING_BASE}/jacoco/test/html/.resources").deleteDir()
         succeeds('test', 'jacocoTestReport')
         then:
         !skippedTasks.contains(":jacocoTestReport")
-        file("build/reports/jacoco/test/html/index.html").exists()
+        file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
     }
 
     @Test
@@ -141,7 +145,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('jacocoTestReport')
         then:
         skippedTasks.contains(":jacocoTestReport")
-        !file("build/reports/jacoco/test/html/index.html").exists()
+        !file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
 
         when:
         succeeds('test')
@@ -150,7 +154,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('jacocoTestReport')
         then:
         executedTasks.contains(":jacocoTestReport")
-        file("build/reports/jacoco/test/html/index.html").exists()
+        file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
     }
 
     private void createTestFiles() {
