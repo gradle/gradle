@@ -24,10 +24,10 @@ import org.junit.Test
 import static org.junit.Assert.*
 
 @TargetVersions(['0.6.0.201210061924', '0.6.2.201302030002'])
-class JacocoPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
+class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
 
     @Test
-    public void canRunJacocoWithDifferentToolVersions() {
+    public void canRunVersions() {
         given:
         buildFile << """
         apply plugin: "java"
