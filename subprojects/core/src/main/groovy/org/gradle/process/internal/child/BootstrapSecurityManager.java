@@ -40,7 +40,6 @@ public class BootstrapSecurityManager extends SecurityManager {
 
     @Override
     public void checkPermission(Permission permission) {
-        System.out.println("permission = " + permission);
         synchronized (this) {
             if (initialised) {
                 return;
@@ -52,7 +51,7 @@ public class BootstrapSecurityManager extends SecurityManager {
 
             initialised = true;
         }
-        System.out.println("start initalizing bootstrapping manager= " + permission.getName());
+
         System.clearProperty("java.security.manager");
         System.setSecurityManager(null);
 
@@ -90,6 +89,5 @@ public class BootstrapSecurityManager extends SecurityManager {
             }
             System.setSecurityManager(securityManager);
         }
-        System.out.println("finished initalizing bootstrapping manager= " + permission.getName());
     }
 }
