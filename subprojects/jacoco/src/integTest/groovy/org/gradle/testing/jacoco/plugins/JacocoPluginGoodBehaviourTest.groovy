@@ -21,10 +21,13 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class JacocoPluginGoodBehaviourTest extends WellBehavedPluginTest {
     // The jacoco plugin does not add tasks to an empty project.
-    // We use 'tasks' task as an alternative here, though it makes the
-    // test kind of redundant.
+    // We apply the java plugin too here in this test to check that
+    // the jacoco plugin behaves well when used together
+    // with the java plugin (a typical scenario).
 
-    String getMainTask() {
-        return "tasks"
+    def setup(){
+        buildFile << """
+            apply plugin:'java'
+        """
     }
 }
