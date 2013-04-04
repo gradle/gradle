@@ -17,17 +17,18 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.internal.UncheckedException;
 import org.gradle.mvn3.org.apache.maven.model.Model;
 import org.gradle.mvn3.org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.gradle.mvn3.org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -63,17 +64,26 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private Model parsePomFileIntoMavenModel(MavenNormalizedPublication publication) {
+        File pomFile = publication.getPomFile();
         try {
-            FileReader reader = new FileReader(publication.getPomFile());
-            Model model = new MavenXpp3Reader().read(reader);
-            model.setPomFile(publication.getPomFile());
+            Model model = readModelFromPom(pomFile);
+            model.setPomFile(pomFile);
             return model;
         } catch (XmlPullParserException parseException) {
             throw new InvalidMavenPublicationException(publication.getName(),
                     "POM file is invalid. Check any modifications you have made to the POM file.",
                     parseException);
-        } catch (Exception ex) {
-            throw UncheckedException.throwAsUncheckedException(ex);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+    }
+
+    private Model readModelFromPom(File pomFile) throws IOException, XmlPullParserException {
+        FileReader reader = new FileReader(pomFile);
+        try {
+            return new MavenXpp3Reader().read(reader);
+        } finally {
+            reader.close();
         }
     }
 
