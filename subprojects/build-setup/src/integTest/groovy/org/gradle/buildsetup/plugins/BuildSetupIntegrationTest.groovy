@@ -18,6 +18,7 @@ package org.gradle.buildsetup.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 
 class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -52,7 +53,11 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         //validate http links in the template
         generatedFileContent.eachLine {
                (it =~ /http:\/\/[^\s]+/).each{ httpRef ->
-                   assert getResponseCode(httpRef) == 200
+                   // since we use DocumentationRegistry to create version specific files, we replace possible
+                   // possible gradle versions in the URL by "current". This might not be 100% safe,
+                   // but it works for now.
+                   def testHttpLink = httpRef.toString().replace(GradleVersion.current().getVersion(), "current")
+                   assert getResponseCode(testHttpLink) == 200
                }
         }
     }

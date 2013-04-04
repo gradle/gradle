@@ -17,22 +17,24 @@
 package org.gradle.buildsetup.tasks
 
 import org.gradle.api.Incubating
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
+import org.gradle.api.internal.DocumentationRegistry
 
 @Incubating
 class GenerateBuildFile extends TextFileGenerationTask {
 
     File buildFile
-    @Optional @Input URL templateURL = getClass().getResource("/org/gradle/buildsetup/tasks/templates/build.gradle.template")
 
-    @Override
-    URL getTemplateURL() {
-        return templateURL
+    public GenerateBuildFile() {
+        templateURL = GenerateSettingsFile.class.getResource("/org/gradle/buildsetup/tasks/templates/build.gradle.template")
     }
 
     @Override
     protected File getOutputFile() {
         return getBuildFile()
+    }
+
+    @Override
+    protected Map getTemplateBindings(){
+        return [ref_userguide_java_tutorial:services.get(DocumentationRegistry).getDocumentationFor("tutorial_java_projects")]
     }
 }

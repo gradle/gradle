@@ -4,7 +4,7 @@
  *
  * This generated file contains an out - commented sample java project
  * to get you started. For a quick start with Gradle have a look at the Java Quickstart
- * chapter in the Gradle Userguide available at http://www.gradle.org/docs/current/userguide/tutorial_java_projects.html
+ * chapter in the Gradle Userguide available at ${ref_userguide_java_tutorial}
  */
 
 /*

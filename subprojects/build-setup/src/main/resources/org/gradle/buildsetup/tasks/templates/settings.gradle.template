@@ -5,8 +5,9 @@
  * The settings.gradle file is used to specify which projects to include in your build.
  * In a single module build this file can be empty or even removed.
  *
- * to get you started. For more information about configuring a multiproject build in Gradle, have a look at the
- * Gradle Userguide available at http://www.gradle.org/docs/current/userguide/tutorial_java_projects.html#sec:examples
+ * Detailed information about configuring a multiproject build in Gradle can be found at
+ *
+ * ${ref_userguide_multiproject}
  */
 
 /*

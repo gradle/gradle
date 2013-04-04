@@ -16,25 +16,23 @@
 
 package org.gradle.buildsetup.tasks
 
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
+import org.gradle.api.internal.DocumentationRegistry
 
-
-class GenerateSettingsFile extends TextFileGenerationTask{
+class GenerateSettingsFile extends TextFileGenerationTask {
 
     File settingsFile
 
-    File buildFile
-
-    @Optional @Input URL templateURL = getClass().getResource("/org/gradle/buildsetup/tasks/templates/settings.gradle.template")
-
-    @Override
-    URL getTemplateURL() {
-        return templateURL
+    public GenerateSettingsFile() {
+        templateURL = GenerateSettingsFile.class.getResource("/org/gradle/buildsetup/tasks/templates/settings.gradle.template")
     }
 
     @Override
     protected File getOutputFile() {
         return settingsFile;
+    }
+
+    @Override
+    protected Map getTemplateBindings(){
+        return [ref_userguide_multiproject:services.get(DocumentationRegistry).getDocumentationFor("multi_project_builds")]
     }
 }

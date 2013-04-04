@@ -32,7 +32,7 @@
         the build-setup plugin.
 
         If a pom.xml file is found in the project directory, a task of type <apilink class="org.gradle.buildsetup.tasks.ConvertMaven2Gradle"/>
-        is added to the <literal>setupBuild</literal> lifecycle. Furthermore a <apilink class="org.gradle.buildsetup.tasks.GenerateBuildFile"/> task is part of the
+        is added to the <literal>setupBuild</literal> lifecycle. Furthermore a <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/> task is part of the
         <literal>setupBuild</literal> lifecycle that generates all files needed to run the build using the Gradle Wrapper.
         Details about the Gradle Wrapper can be found in the according chapter <xref linkend='gradle_wrapper'/>
     </para>

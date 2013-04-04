@@ -18,26 +18,33 @@ package org.gradle.buildsetup.tasks
 
 import groovy.text.SimpleTemplateEngine
 import org.gradle.api.DefaultTask
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GradleVersion
 
 abstract class TextFileGenerationTask extends DefaultTask {
 
+    @Input URL templateURL
+
     @TaskAction
     public void generate() {
+        DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry)
+        documentationRegistry.getDocumentationFor()
         def textOutputFile = getOutputFile()
         if (!textOutputFile.exists()) {
-            if (getTemplateURL()!=null){
-                SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
-                def binding = [genDate: new Date(), genUser: System.getProperty("user.name"), genGradleVersion: GradleVersion.current().toString()]
-                textOutputFile.text = templateEngine.createTemplate(getTemplateURL().text).make(binding).toString();
-            }
+            SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
+            def bindings = [genDate: new Date(), genUser: System.getProperty("user.name"), genGradleVersion: GradleVersion.current().toString()]
+            bindings+= getTemplateBindings()
+            textOutputFile.text = templateEngine.createTemplate(getTemplateURL().text).make(bindings).toString();
         }
     }
 
-    abstract URL getTemplateURL()
-
     @OutputFile
     protected abstract File getOutputFile()
+
+    protected Map getTemplateBindings(){
+        return [:]
+    }
 }
