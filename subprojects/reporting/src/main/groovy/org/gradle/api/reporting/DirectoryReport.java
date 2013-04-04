@@ -16,11 +16,14 @@
 
 package org.gradle.api.reporting;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 
 /**
  * A directory based report to be created.
  */
+@Incubating
 public interface DirectoryReport extends ConfigureableReport {
 
     /**

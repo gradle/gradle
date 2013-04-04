@@ -19,8 +19,9 @@ package org.gradle.api.reporting.internal;
 import org.gradle.api.Task;
 import org.gradle.api.reporting.BuildDashboardReports;
 import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.reporting.Report;
 
-public class DefaultBuildDashboardReports extends TaskReportContainer<DirectoryReport> implements BuildDashboardReports {
+public class DefaultBuildDashboardReports extends TaskReportContainer<Report> implements BuildDashboardReports {
 
     public DefaultBuildDashboardReports(Task task) {
         super(DirectoryReport.class, task);
@@ -28,6 +29,6 @@ public class DefaultBuildDashboardReports extends TaskReportContainer<DirectoryR
     }
 
     public DirectoryReport getHtml() {
-        return getByName("html");
+        return (DirectoryReport)getByName("html");
     }
 }
