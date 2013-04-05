@@ -18,6 +18,8 @@ package org.gradle.testing
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.internal.os.OperatingSystem
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -55,6 +57,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         ":test" in nonSkippedTasks
     }
 
+    @IgnoreIf({ OperatingSystem.current().isWindows() })
     def "can use long paths for workindDir"() {
         given:
         def alphanumeric = RandomStringUtils.randomAlphanumeric(60)
