@@ -549,9 +549,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return mustRunAfter;
     }
 
-    public void setFinalisedBy(Iterable<?> finalisedBy) {
-        taskStatusNagger.nagIfTaskNotInConfigurableState("Task.setFinalised(Iterable)");
-        mustRunAfter.setValues(finalisedBy);
+    public void setFinalisedBy(Iterable<?> finalisedByTasks) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("Task.setFinalisedBy(Iterable)");
+        finalisedBy.setValues(finalisedByTasks);
     }
 
     public Task finalisedBy(Object... paths) {
