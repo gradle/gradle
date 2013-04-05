@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.*;
 import org.gradle.util.ChangeListener;
 
-import java.io.File;
+import java.util.List;
 
 /**
  * A rule which detects changes in output files.
@@ -29,24 +28,33 @@ public class OutputFilesChangedUpToDateRule {
     public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter outputFilesSnapshotter) {
         final FileCollectionSnapshot outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
 
-        return new CachingUpToDateState() {
+         // TODO:DAZ This needs to stream changes
+        return new SimpleUpToDateState() {
             @Override
-            protected void doFindChanges(final Action<TaskUpToDateStateChange> action) {
+            protected void addAllChanges(final List<TaskUpToDateChange> changes) {
                 if (previousExecution.getOutputFilesSnapshot() == null) {
-                    action.execute(new DescriptiveChange("Output file history is not available for %s.", task));
+                    changes.add(new DescriptiveChange("Output file history is not available for %s.", task));
                     return;
                 }
-                outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(), new ChangeListener<File>() {
-                    public void added(File element) {
-                        action.execute(new OutputFileChange(element, ChangeType.ADDED));
+                outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(), new FileCollectionSnapshot.SnapshotChangeListener() {
+                    public void added(String element) {
+                        changes.add(new OutputFileChange(element, ChangeType.ADDED));
                     }
 
-                    public void removed(File element) {
-                        action.execute(new OutputFileChange(element, ChangeType.REMOVED));
+                    public void changed(String element) {
+                        changes.add(new OutputFileChange(element, ChangeType.MODIFIED));
                     }
 
-                    public void changed(File element) {
-                        action.execute(new OutputFileChange(element, ChangeType.MODIFIED));
+                    public void removed(String element) {
+                        changes.add(new OutputFileChange(element, ChangeType.REMOVED));
+                    }
+
+                    public String getResumeAfter() {
+                        return null;
+                    }
+
+                    public boolean isStopped() {
+                        return false;
                     }
                 });
             }

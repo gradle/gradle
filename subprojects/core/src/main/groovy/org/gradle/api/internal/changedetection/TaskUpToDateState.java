@@ -16,19 +16,11 @@
 
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.Action;
-
 public interface TaskUpToDateState {
     /**
      * Executes the provided action for every change that makes this task out-of-date.
      */
-    void findChanges(Action<? super TaskUpToDateStateChange> action);
-
-    /**
-     * Returns if the state is up-to-date. If this method returns true, then {@link #findChanges} will not execute the action.
-     * Implementations should ensure that this method is cheap to execute after {@link #findChanges} has already been executed.
-     */
-    boolean isUpToDate();
+    void findChanges(UpToDateChangeListener listener);
 
     /**
      * Snapshot any final state after the task has executed. This method is executed only if the task is to be executed.

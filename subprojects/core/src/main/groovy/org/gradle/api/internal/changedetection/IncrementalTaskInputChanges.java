@@ -35,8 +35,8 @@ class IncrementalTaskInputChanges extends StatefulTaskInputChanges {
 
     @Override
     protected void doOutOfDate(final Action<? super InputFileChange> outOfDateAction) {
-        inputFilesState.findChanges(new Action<TaskUpToDateStateChange>() {
-            public void execute(TaskUpToDateStateChange change) {
+        inputFilesState.findChanges(new UpToDateChangeListener() {
+            public void accept(TaskUpToDateChange change) {
                 // TODO:DAZ Generify properly to avoid this check & cast
                 assert change instanceof InputFileChange;
                 InputFileChange fileChange = (InputFileChange) change;
@@ -45,6 +45,10 @@ class IncrementalTaskInputChanges extends StatefulTaskInputChanges {
                 } else {
                     outOfDateAction.execute(fileChange);
                 }
+            }
+
+            public boolean isAccepting() {
+                return true;
             }
         });
     }

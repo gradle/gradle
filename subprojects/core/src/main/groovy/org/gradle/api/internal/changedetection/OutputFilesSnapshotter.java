@@ -91,15 +91,18 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
             return new OutputFilesDiff(rootFileIds, other.rootFileIds, filesSnapshot.changesSince(other.filesSnapshot));
         }
 
-        public void changesSince(FileCollectionSnapshot oldSnapshot, final ChangeListener<File> listener) {
+        public void changesSince(FileCollectionSnapshot oldSnapshot, final SnapshotChangeListener listener) {
+            assert listener.getResumeAfter() == null : "Output files do not support resuming";
+
+            // TODO:DAZ Does not handle stop signal from controller in this part.
             final OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
             DiffUtil.diff(rootFileIds, other.rootFileIds, new ChangeListener<Map.Entry<String, Long>>() {
                 public void added(Map.Entry<String, Long> element) {
-                    listener.added(new File(element.getKey()));
+                    listener.added(element.getKey());
                 }
 
                 public void removed(Map.Entry<String, Long> element) {
-                    listener.removed(new File(element.getKey()));
+                    listener.removed(element.getKey());
                 }
 
                 public void changed(Map.Entry<String, Long> element) {
@@ -107,22 +110,32 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
                         // Dir used to not exist, now does. Don't care
                         return;
                     }
-                    listener.changed(new File(element.getKey()));
+                    listener.changed(element.getKey());
                 }
             });
-            filesSnapshot.changesSince(other.filesSnapshot, new ChangeListener<File>() {
-                public void added(File element) {
-                    // Ignore files added to output dirs which have been added since last time task executed
-                }
+            filesSnapshot.changesSince(other.filesSnapshot,
+                    new SnapshotChangeListener() {
+                        public void added(String fileName) {
+                            // Ignore files added to output dirs which have been added since last time task executed
+                        }
 
-                public void removed(File element) {
-                    listener.removed(element);
-                }
+                        public void removed(String fileName) {
+                            listener.removed(fileName);
+                        }
 
-                public void changed(File element) {
-                    listener.changed(element);
-                }
-            });
+                        public void changed(String fileName) {
+                            listener.changed(fileName);
+                        }
+
+                        public String getResumeAfter() {
+                            return null;
+                        }
+
+                        public boolean isStopped() {
+                            return listener.isStopped();
+                        }
+                    }
+            );
         }
     }
 

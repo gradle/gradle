@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import java.io.File;
-
 public class OutputFileChange extends FileChange {
 
-    public OutputFileChange(File file, ChangeType change) {
-        super(file, change);
+    public OutputFileChange(String path, ChangeType change) {
+        super(path, change);
     }
 
     @Override

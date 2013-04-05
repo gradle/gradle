@@ -19,14 +19,14 @@ package org.gradle.api.internal.changedetection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.util.ChangeListener;
 
-import java.io.File;
 import java.io.Serializable;
 
 /**
  * An immutable snapshot of the contents of a collection of files.
  */
 public interface FileCollectionSnapshot extends Serializable {
-    void changesSince(FileCollectionSnapshot oldSnapshot, ChangeListener<File> listener);
+
+    void changesSince(FileCollectionSnapshot oldSnapshot, SnapshotChangeListener listener);
 
     Diff changesSince(FileCollectionSnapshot oldSnapshot);
 
@@ -55,5 +55,11 @@ public interface FileCollectionSnapshot extends Serializable {
 
     public interface Merge {
         void ignore();
+    }
+
+    public interface SnapshotChangeListener extends ChangeListener<String> {
+        String getResumeAfter();
+
+        boolean isStopped();
     }
 }

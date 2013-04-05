@@ -14,316 +14,340 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.changedetection
-
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ChangeListener
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
 import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Specification
 
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.notNullValue
-import static org.junit.Assert.assertThat
-
-@RunWith(JMock.class)
-public class DefaultFileSnapshotterTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+// TODO:DAZ Tests for resume and stop
+public class DefaultFileSnapshotterTest extends Specification {
     private final Hasher hasher = new DefaultHasher()
-    private int counter
-    private ChangeListener listener = context.mock(ChangeListener.class)
     private final DefaultFileSnapshotter snapshotter = new DefaultFileSnapshotter(hasher)
+    def listener
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    @Test
-    public void getFilesReturnsOnlyTheFilesWhichExisted() {
+    def setup() {
+        listener = Mock(FileCollectionSnapshot.SnapshotChangeListener.class) {
+            getResumeAfter() >> null
+            isStopped() >> false
+        }
+    }
+
+    def getFilesReturnsOnlyTheFilesWhichExisted() {
+
+        given:
         TestFile file = tmpDir.createFile('file1')
         TestFile dir = tmpDir.createDir('file2')
         TestFile noExist = tmpDir.file('file3')
 
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file, dir, noExist))
+        when:
+        def snapshot = snapshotter.snapshot(files(file, dir, noExist))
 
-        assertThat(snapshot.files.files as List, equalTo([file]))
+        then:
+        snapshot.files.files as List == [file]
     }
     
-    @Test
-    public void notifiesListenerWhenFileAdded() {
+    def notifiesListenerWhenFileAdded() {
+        given:
         TestFile file1 = tmpDir.createFile('file1')
         TestFile file2 = tmpDir.createFile('file2')
 
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1))
-
-        context.checking {
-            one(listener).added(file2)
-        }
+        when:
+        def snapshot = snapshotter.snapshot(files(file1))
         snapshotter.snapshot(files(file1, file2)).changesSince(snapshot, listener)
+
+        then:
+        1 * listener.added(file2.path)
+
+        and:
+        _ * listener.stopped >> false
+        _ * listener.resumeAfter >> null
+        0 * _
     }
 
-    @Test
-    public void notifiesListenerWhenFileRemoved() {
+    def notifiesListenerWhenFileRemoved() {
+        given:
         TestFile file1 = tmpDir.createFile('file1')
         TestFile file2 = tmpDir.createFile('file2')
 
+        when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2))
-
-        context.checking {
-            one(listener).removed(file2)
-        }
         snapshotter.snapshot(files(file1)).changesSince(snapshot, listener)
+
+        then:
+        1 * listener.removed(file2.path)
+
+        and:
+        _ * listener.stopped >> false
+        _ * listener.resumeAfter >> null
+        0 * _
     }
 
-    @Test
-    public void fileHasNotChangedWhenTypeAndHashHaveNotChanged() {
+    def fileHasNotChangedWhenTypeAndHashHaveNotChanged() {
+        given:
         TestFile file = tmpDir.createFile('file')
 
+        when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
-        assertThat(snapshot, notNullValue())
-
         snapshotter.snapshot(files(file)).changesSince(snapshot, listener)
+
+        then:
+        _ * listener.stopped >> false
+        _ * listener.resumeAfter >> null
+        0 * listener._
     }
 
-    @Test
-    public void fileHasChangedWhenTypeHasChanged() {
+    def fileHasChangedWhenTypeHasChanged() {
+        given:
         TestFile file = tmpDir.createFile('file')
 
+        when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
-
         file.delete()
         file.createDir()
-
-        context.checking {
-            one(listener).changed(file)
-        }
         snapshotter.snapshot(files(file)).changesSince(snapshot, listener)
+
+        then:
+        1 * listener.changed(file.path)
+
+        and:
+        _ * listener.stopped >> false
+        _ * listener.resumeAfter >> null
+        0 * _
     }
 
-    @Test
-    public void fileHasChangedWhenHashHasChanged() {
+    def fileHasChangedWhenHashHasChanged() {
         TestFile file = tmpDir.createFile('file')
 
+        when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
-
         file.write('new content')
-
-        context.checking {
-            one(listener).changed(file)
-        }
         snapshotter.snapshot(files(file)).changesSince(snapshot, listener)
+
+        then:
+        1 * listener.changed(file.path)
+
+        and:
+        _ * listener.stopped >> false
+        _ * listener.resumeAfter >> null
+        0 * _
     }
 
-    @Test
-    public void directoryHasNotChangedWhenTypeHasNotChanged() {
+    def directoryHasNotChangedWhenTypeHasNotChanged() {
         TestFile dir = tmpDir.createDir('dir')
 
+        when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(dir))
 
         snapshotter.snapshot(files(dir)).changesSince(snapshot, listener)
+
+        then:
+        _ * listener.stopped >> false
+        _ * listener.resumeAfter >> null
+        0 * _
     }
 
-    @Test
-    public void directoryHasChangedWhenTypeHasChanged() {
+    def directoryHasChangedWhenTypeHasChanged() {
         TestFile dir = tmpDir.createDir('dir')
 
+        when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(dir))
-
         dir.deleteDir()
         dir.createFile()
-
-        context.checking {
-            one(listener).changed(dir)
-        }
         snapshotter.snapshot(files(dir)).changesSince(snapshot, listener)
+
+        then:
+        1 * listener.changed(dir.path)
     }
 
-    @Test
-    public void nonExistentFileUnchangedWhenTypeHasNotChanged() {
+    def nonExistentFileUnchangedWhenTypeHasNotChanged() {
         TestFile file = tmpDir.file('unknown')
 
+        when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
-
         snapshotter.snapshot(files(file)).changesSince(snapshot, listener)
+
+        then:
+        _ * listener.stopped >> false
+        _ * listener.resumeAfter >> null
+        0 * _
     }
 
-    @Test
-    public void nonExistentFileIsChangedWhenTypeHasChanged() {
+    def nonExistentFileIsChangedWhenTypeHasChanged() {
         TestFile file = tmpDir.file('unknown')
 
+        when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
-
         file.createFile()
-
-        context.checking {
-            one(listener).changed(file)
-        }
         snapshotter.snapshot(files(file)).changesSince(snapshot, listener)
+
+        then:
+        1 * listener.changed(file.path)
     }
 
-    @Test
-    public void ignoresDuplicatesInFileCollection() {
+    def ignoresDuplicatesInFileCollection() {
         TestFile file1 = tmpDir.createFile('file')
         TestFile file2 = tmpDir.createFile('file')
 
+        when:
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2))
-
         snapshotter.snapshot(files(file1)).changesSince(snapshot, listener)
+
+        then:
+        _ * listener.stopped >> false
+        _ * listener.resumeAfter >> null
+        0 * _
     }
 
-    @Test
-    public void canCreateEmptySnapshot() {
+    def canCreateEmptySnapshot() {
         TestFile file = tmpDir.createFile('file')
+
+        when:
         FileCollectionSnapshot snapshot = snapshotter.emptySnapshot()
-
         FileCollectionSnapshot newSnapshot = snapshotter.snapshot(files(file))
-
-        context.checking {
-            one(listener).added(file)
-        }
-
         newSnapshot.changesSince(snapshot, listener)
+
+        then:
+        1 * listener.added(file.path)
     }
 
-    @Test
-    public void diffAddsAddedFilesToSnapshot() {
+    def diffAddsAddedFilesToSnapshot() {
         TestFile file = tmpDir.createFile('file')
-        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+
+        given:
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = Mock(ChangeListener.class)
 
         FileCollectionSnapshot original = snapshotter.emptySnapshot()
         FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
 
-        context.checking {
-            one(mergeListener).added(withParam(notNullValue()))
-        }
-
+        when:
         FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.emptySnapshot(), mergeListener)
 
-        context.checking {
-            one(listener).added(file)
-        }
+        then:
+        1 * mergeListener.added(_)
+
+        when:
         target.changesSince(original, listener)
+
+        then:
+        1 * listener.added(file.path)
     }
 
-    @Test
-    public void canIgnoreAddedFileInDiff() {
+    def canIgnoreAddedFileInDiff() {
         TestFile file = tmpDir.createFile('file')
-        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
 
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = Mock(ChangeListener.class)
         FileCollectionSnapshot original = snapshotter.emptySnapshot()
         FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
 
-        context.checking {
-            one(mergeListener).added(withParam(notNullValue()))
-            will {merge -> merge.ignore()}
-        }
-
+        when:
         FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.emptySnapshot(), mergeListener)
-
         target.changesSince(original, listener)
+
+        then:
+        mergeListener.added(!null) >> { FileCollectionSnapshot.Merge merge -> merge.ignore() }
     }
 
-    @Test
-    public void diffAddsChangedFilesToSnapshot() {
+    def diffAddsChangedFilesToSnapshot() {
         TestFile file = tmpDir.createFile('file')
-        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = Mock(ChangeListener.class)
 
         FileCollectionSnapshot original = snapshotter.snapshot(files(file))
         file.write('new content')
         FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
 
-        context.checking {
-            one(mergeListener).changed(withParam(notNullValue()))
-        }
-
+        when:
         FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.emptySnapshot(), mergeListener)
 
-        context.checking {
-            one(listener).changed(file)
-        }
+        then:
+        1 * mergeListener.changed(!null)
+
+        when:
         target.changesSince(original, listener)
+
+        then:
+        1 * listener.changed(file.path)
     }
 
-    @Test
-    public void canIgnoreChangedFileInDiff() {
+    def canIgnoreChangedFileInDiff() {
         TestFile file = tmpDir.createFile('file')
-        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = Mock(ChangeListener.class)
 
+        when:
         FileCollectionSnapshot original = snapshotter.snapshot(files(file))
         FileCollectionSnapshot target = snapshotter.snapshot(files(file))
         file.write('new content')
         FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
 
-        context.checking {
-            one(mergeListener).changed(withParam(notNullValue()))
-            will {merge -> merge.ignore()}
-        }
-
+        and:
         target = modified.changesSince(original).applyTo(target, mergeListener)
-
         target.changesSince(original, listener)
+
+        then:
+        1 * mergeListener.changed(!null) >> { FileCollectionSnapshot.Merge merge -> merge.ignore() }
     }
 
-    @Test
-    public void diffRemovesDeletedFilesFromSnapshot() {
+    def diffRemovesDeletedFilesFromSnapshot() {
         TestFile file = tmpDir.createFile('file')
-        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = Mock(ChangeListener.class)
 
+        when:
         FileCollectionSnapshot original = snapshotter.snapshot(files(file))
         FileCollectionSnapshot modified = snapshotter.emptySnapshot()
 
-        context.checking {
-            one(mergeListener).removed(withParam(notNullValue()))
-        }
-
         FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(files(file)), mergeListener)
 
-        context.checking {
-            one(listener).removed(file)
-        }
+        then:
+        1 * mergeListener.removed(!null)
+
+        when:
         target.changesSince(original, listener)
+
+        then:
+        1 * listener.removed(file.path)
     }
 
-    @Test
-    public void canIgnoreRemovedFileInDiff() {
+    def canIgnoreRemovedFileInDiff() {
         TestFile file = tmpDir.createFile('file')
-        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = Mock(ChangeListener.class)
 
+        when:
         FileCollectionSnapshot original = snapshotter.snapshot(files(file))
         FileCollectionSnapshot modified = snapshotter.emptySnapshot()
-
-        context.checking {
-            one(mergeListener).removed(withParam(notNullValue()))
-            will{merge -> merge.ignore()}
-        }
-
         FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(files(file)), mergeListener)
 
         target.changesSince(original, listener)
+
+        then:
+        mergeListener.removed(!null) >> { FileCollectionSnapshot.Merge merge -> merge.ignore() }
     }
 
-    @Test
-    public void diffIgnoresUnchangedFilesInSnapshot() {
+    def diffIgnoresUnchangedFilesInSnapshot() {
         TestFile file = tmpDir.createFile('file')
-        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = Mock(ChangeListener.class)
 
+        when:
         FileCollectionSnapshot original = snapshotter.snapshot(files(file))
         FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
         FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.emptySnapshot(), mergeListener)
 
         target.changesSince(snapshotter.emptySnapshot(), listener)
+
+        then:
+        _ * listener.stopped >> false
+        _ * listener.resumeAfter >> null
+        0 * _
     }
 
     private FileCollection files(File... files) {
-        FileTree collection = context.mock(FileTree.class)
-        context.checking {
-            allowing(collection).getAsFileTree()
-            will(returnValue(collection))
-            allowing(collection).iterator()
-            will(returnIterator(files as List))
-        }
+        FileTree collection = Mock(FileTree.class)
+        _ * collection.asFileTree >> collection
+        _ * collection.iterator() >> (files as List).iterator()
         return collection
     }
     

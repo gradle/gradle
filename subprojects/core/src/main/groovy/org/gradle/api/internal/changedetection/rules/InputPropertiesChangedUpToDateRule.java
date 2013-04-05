@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.CachingUpToDateState;
 import org.gradle.api.internal.changedetection.TaskExecution;
+import org.gradle.api.internal.changedetection.TaskUpToDateChange;
 import org.gradle.api.internal.changedetection.TaskUpToDateState;
-import org.gradle.api.internal.changedetection.TaskUpToDateStateChange;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,20 +34,20 @@ public class InputPropertiesChangedUpToDateRule {
         final Map<String, Object> properties = new HashMap<String, Object>(task.getInputs().getProperties());
         currentExecution.setInputProperties(properties);
 
-        return new CachingUpToDateState() {
+        return new SimpleUpToDateState() {
             @Override
-            protected void doFindChanges(final Action<TaskUpToDateStateChange> action) {
+            protected void addAllChanges(final List<TaskUpToDateChange> changes) {
                 DiffUtil.diff(properties, previousExecution.getInputProperties(), new ChangeListener<Map.Entry<String, Object>>() {
                     public void added(Map.Entry<String, Object> element) {
-                        action.execute(new DescriptiveChange("Input property '%s' has been added for %s", element.getKey(), task));
+                        changes.add(new DescriptiveChange("Input property '%s' has been added for %s", element.getKey(), task));
                     }
 
                     public void removed(Map.Entry<String, Object> element) {
-                        action.execute(new DescriptiveChange("Input property '%s' has been removed for %s", element.getKey(), task));
+                        changes.add(new DescriptiveChange("Input property '%s' has been removed for %s", element.getKey(), task));
                     }
 
                     public void changed(Map.Entry<String, Object> element) {
-                        action.execute(new DescriptiveChange("Value of input property '%s' has changed for %s", element.getKey(), task));
+                        changes.add(new DescriptiveChange("Value of input property '%s' has changed for %s", element.getKey(), task));
                     }
                 });
             }

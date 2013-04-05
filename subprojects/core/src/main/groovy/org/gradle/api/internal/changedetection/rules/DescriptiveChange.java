@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.internal.changedetection.TaskUpToDateStateChange;
+import org.gradle.api.internal.changedetection.TaskUpToDateChange;
 
-public class DescriptiveChange implements TaskUpToDateStateChange {
+public class DescriptiveChange implements TaskUpToDateChange {
     private final String message;
 
     public DescriptiveChange(String message, Object... params) {

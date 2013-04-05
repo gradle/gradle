@@ -16,28 +16,37 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.api.internal.changedetection.TaskUpToDateChange;
 import org.gradle.api.tasks.TaskInputChanges;
-import org.gradle.api.internal.changedetection.TaskUpToDateStateChange;
 
 import java.io.File;
 
-public abstract class FileChange implements TaskUpToDateStateChange, TaskInputChanges.InputFileChange {
-    private final File file;
+public abstract class FileChange implements TaskUpToDateChange, TaskInputChanges.InputFileChange {
+    private final String path;
     private final ChangeType change;
 
-    public FileChange(File file, ChangeType change) {
-        this.file = file;
+    public FileChange(String path, ChangeType change) {
+        this.path = path;
         this.change = change;
     }
 
     public String getMessage() {
-        return String.format("%s file %s %s.", getFileType(), file, change.describe());
+        return String.format("%s file %s %s.", getFileType(), path, change.describe());
+    }
+
+    @Override
+    public String toString() {
+        return getMessage();
     }
 
     protected abstract String getFileType();
 
+    public String getPath() {
+        return path;
+    }
+
     public File getFile() {
-        return file;
+        return new File(path);
     }
 
     public boolean isAdded() {

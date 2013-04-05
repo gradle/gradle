@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.api.internal.changedetection;
 
-public class InputFileChange extends FileChange {
-
-    public InputFileChange(String path, ChangeType change) {
-        super(path, change);
-    }
-
-    @Override
-    protected String getFileType() {
-        return "Input";
-    }
+public interface TaskUpToDateChange {
+    String getMessage();
 }

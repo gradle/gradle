@@ -29,6 +29,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         prop = 'foo'
     }
 """
+        file('inputs/file0.txt') << "inputFile0"
         file('inputs/file1.txt') << "inputFile1"
         file('inputs/file2.txt') << "inputFile2"
 
@@ -98,9 +99,9 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
     task incrementalCheck(dependsOn: "incremental") << {
         assert incremental.allOutOfDate == project.ext.allOutOfDate
-        assert incremental.addedFiles.collect { it.name } as Set == project.ext.added as Set
-        assert incremental.changedFiles.collect { it.name } as Set == project.ext.changed as Set
-        assert incremental.removedFiles.collect { it.name } as Set == project.ext.removed as Set
+        assert incremental.addedFiles.collect({ it.name }).sort() == project.ext.added
+        assert incremental.changedFiles.collect({ it.name }).sort() == project.ext.changed
+        assert incremental.removedFiles.collect({ it.name }).sort() == project.ext.removed
     }
 """
     }
@@ -164,6 +165,24 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executesWithIncrementalContext("ext.removed = ['file1.txt', 'file2.txt']")
+    }
+
+    def "incremental task is informed of 'out-of-date' files with added, removed and modified files"() {
+        given:
+        previousExecution()
+
+        when:
+        file('inputs/file1.txt') << "changed content"
+        file('inputs/file2.txt').delete()
+        file('inputs/file3.txt') << "new file 3"
+        file('inputs/file4.txt') << "new file 4"
+
+        then:
+        executesWithIncrementalContext("""
+ext.changed = ['file1.txt']
+ext.removed = ['file2.txt']
+ext.added = ['file3.txt', 'file4.txt']
+""")
     }
 
     def "incremental task is informed of 'out-of-date' files when task has no declared outputs or properties"() {
@@ -316,7 +335,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def executesWithRebuildContext() {
         buildFile << """
-    ext.changed = ['file1.txt', 'file2.txt']
+    ext.changed = ['file0.txt', 'file1.txt', 'file2.txt']
     ext.allOutOfDate = true
 """
         succeeds "incrementalCheck"

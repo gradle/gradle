@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.TaskInputChanges;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -26,6 +25,7 @@ import org.gradle.api.internal.execution.RebuildTaskInputChanges;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.TaskInputChanges;
 
 import java.util.ArrayList;
 import java.util.Formatter;
@@ -33,6 +33,7 @@ import java.util.List;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 10;
+
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
     private final TaskHistoryRepository taskHistoryRepository;
     private final FileSnapshotter outputFilesSnapshotter;
@@ -54,8 +55,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private TaskUpToDateState inputPropertiesState;
         private TaskUpToDateState taskTypeState;
         private TaskUpToDateState outputFilesState;
-        private CompositeUpToDateState allTaskState;
-        private CompositeUpToDateState rebuildState;
+        private SummaryUpToDateState allTaskChanges;
+        private SummaryUpToDateState rebuildChanges;
 
         public UpToDateStates(TaskInternal task, TaskExecution lastExecution, TaskExecution thisExecution, FileSnapshotter outputFilesSnapshotter, FileSnapshotter inputFilesSnapshotter) {
             noHistoryState = NoHistoryUpToDateRule.create(task, lastExecution);
@@ -63,32 +64,20 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             inputPropertiesState = InputPropertiesChangedUpToDateRule.create(task, lastExecution, thisExecution);
             outputFilesState = OutputFilesChangedUpToDateRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter);
             inputFilesState = InputFilesChangedUpToDateRule.create(task, lastExecution, thisExecution, inputFilesSnapshotter);
-            allTaskState = new CompositeUpToDateState(noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState);
-            rebuildState = new CompositeUpToDateState(noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
+            allTaskChanges = new SummaryUpToDateState(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState);
+            rebuildChanges = new SummaryUpToDateState(1, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
         }
 
         public TaskUpToDateState getInputFilesState() {
             return inputFilesState;
         }
 
-        public TaskUpToDateState getInputPropertiesState() {
-            return inputPropertiesState;
+        public SummaryUpToDateState getAllTaskState() {
+            return allTaskChanges;
         }
 
-        public TaskUpToDateState getOutputFilesState() {
-            return outputFilesState;
-        }
-
-        public TaskUpToDateState getTaskTypeState() {
-            return taskTypeState;
-        }
-
-        public CompositeUpToDateState getAllTaskState() {
-            return allTaskState;
-        }
-
-        public CompositeUpToDateState getRebuildState() {
-            return rebuildState;
+        public SummaryUpToDateState getRebuildState() {
+            return rebuildChanges;
         }
     }
 
@@ -109,8 +98,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         public boolean isUpToDate() {
             final List<String> messages = new ArrayList<String>();
-            getStates().getAllTaskState().findChanges(new Action<TaskUpToDateStateChange>() {
-                public void execute(TaskUpToDateStateChange taskUpToDateStateChange) {
+            getStates().getAllTaskState().findChanges(new Action<TaskUpToDateChange>() {
+                public void execute(TaskUpToDateChange taskUpToDateStateChange) {
                     messages.add(taskUpToDateStateChange.getMessage());
                 }
             });
@@ -127,12 +116,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (LOGGER.isInfoEnabled()) {
                 Formatter formatter = new Formatter();
                 formatter.format("Executing %s due to:", task);
-                for (int i = 0; i < messages.size() && i < MAX_OUT_OF_DATE_MESSAGES; i++) {
-                    String message = messages.get(i);
-                    formatter.format("%n%s", message);
-                }
-                if (messages.size() > MAX_OUT_OF_DATE_MESSAGES) {
-                    formatter.format("%n%d more ...", messages.size() - MAX_OUT_OF_DATE_MESSAGES);
+                for (String message : messages) {
+                    formatter.format("%n  %s", message);
                 }
                 LOGGER.info(formatter.toString());
             }
@@ -144,7 +129,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (incrementalRequiresRebuild()) {
                 return new RebuildTaskInputChanges(task);
             }
-            // TODO:DAZ We are rescanning all of the input files, which were previously scanned to get the out-of-date messages.
             return new IncrementalTaskInputChanges(getStates().getInputFilesState());
         }
 
@@ -169,8 +153,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public void finished() {
+            // TODO:DAZ Release any pent-up state: paused UpToDateStates etc.
         }
-
 
         private UpToDateStates getStates() {
             if (states == null) {
@@ -181,21 +165,18 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public boolean incrementalRequiresRebuild() {
-            return !getStates().getRebuildState().isUpToDate();
+            return getStates().getRebuildState().hasChanges();
         }
     }
 
     private static class NoHistoryUpToDateRule {
         public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution) {
-            return new TaskUpToDateState() {
-                public void findChanges(Action<? super TaskUpToDateStateChange> messages) {
+            return new SimpleUpToDateState() {
+                @Override
+                protected void addAllChanges(List<TaskUpToDateChange> changes) {
                     if (previousExecution == null) {
-                        messages.execute(new DescriptiveChange("No history is available for %s.", task));
+                        changes.add(new DescriptiveChange("No history is available for %s.", task));
                     }
-                }
-
-                public boolean isUpToDate() {
-                    return previousExecution != null;
                 }
 
                 public void snapshotAfterTask() {

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection;
 
-public interface TaskUpToDateStateChange {
-    String getMessage();
+public interface UpToDateChangeListener {
+    void accept(TaskUpToDateChange change);
+
+    boolean isAccepting();
 }

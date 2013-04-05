@@ -106,21 +106,50 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
             return new SimpleFileCollection(files);
         }
 
-        public void changesSince(FileCollectionSnapshot oldSnapshot, final ChangeListener<File> listener) {
+        // TODO:DAZ Unit test resumeAfter() and isStopped()
+        public void changesSince(FileCollectionSnapshot oldSnapshot, SnapshotChangeListener listener) {
             FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
-            diff(snapshots, other.snapshots, new ChangeListener<Map.Entry<String, FileSnapshot>>() {
-                public void added(Map.Entry<String, FileSnapshot> element) {
-                    listener.added(new File(element.getKey()));
+            Map<String, FileSnapshot> otherSnapshots = new HashMap<String, FileSnapshot>(other.snapshots);
+            boolean started = true;
+
+            String resumeAfter = listener.getResumeAfter();
+            if (resumeAfter != null) {
+                started = false;
+            }
+
+            for (String currentFile : snapshots.keySet()) {
+                FileSnapshot otherFile = otherSnapshots.remove(currentFile);
+
+                if (!started) {
+                    if (currentFile.equals(resumeAfter)) {
+                        started = true;
+                    }
+                    continue;
                 }
 
-                public void removed(Map.Entry<String, FileSnapshot> element) {
-                    listener.removed(new File(element.getKey()));
+                if (otherFile == null) {
+                    listener.added(currentFile);
+                } else if (!snapshots.get(currentFile).isUpToDate(otherFile)) {
+                    listener.changed(currentFile);
+                }
+                if (listener.isStopped()) {
+                    return;
+                }
+            }
+
+            for (Map.Entry<String, FileSnapshot> entry : otherSnapshots.entrySet()) {
+                if (!started) {
+                    if (entry.getKey().equals(resumeAfter)) {
+                        started = true;
+                    }
+                    continue;
                 }
 
-                public void changed(Map.Entry<String, FileSnapshot> element) {
-                    listener.changed(new File(element.getKey()));
+                listener.removed(entry.getKey());
+                if (listener.isStopped()) {
+                    return;
                 }
-            });
+            }
         }
 
         private void diff(Map<String, FileSnapshot> snapshots, Map<String, FileSnapshot> oldSnapshots,

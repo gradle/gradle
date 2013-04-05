@@ -15,39 +15,72 @@
  */
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.*;
-import org.gradle.util.ChangeListener;
 
-import java.io.File;
+import java.util.ArrayList;
 
 /**
  * A rule which detects changes in the input files of a task.
  */
 public class InputFilesChangedUpToDateRule {
+    // TODO:DAZ Unit test
 
     public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter) {
         final FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
 
-        return new CachingUpToDateState() {
-            @Override
-            protected void doFindChanges(final Action<TaskUpToDateStateChange> action) {
+        return new TaskUpToDateState() {
+            private final ArrayList<FileChange> cachedChanges = new ArrayList<FileChange>();
+            private String lastFileChange;
+
+            public void findChanges(final UpToDateChangeListener listener) {
                 if (previousExecution.getInputFilesSnapshot() == null) {
-                    action.execute(new DescriptiveChange("Input file history is not available for %s.", task));
+                    if (listener.isAccepting()) {
+                        listener.accept(new DescriptiveChange("Input file history is not available for %s.", task));
+                    }
                     return;
                 }
-                inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(), new ChangeListener<File>() {
-                    public void added(File file) {
-                        action.execute(new InputFileChange(file, ChangeType.ADDED));
+
+                // First iterate over cached changes
+                for (FileChange cachedChange : cachedChanges) {
+                    if (!listener.isAccepting()) {
+                        return;
+                    }
+                    listener.accept(cachedChange);
+                }
+
+                // TODO:DAZ Remember if all changes are already cached, so we don't need to do anything more.
+
+                // Now get any new changes
+                inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(), new FileCollectionSnapshot.SnapshotChangeListener() {
+                    public void added(String fileName) {
+                        accept(new InputFileChange(fileName, ChangeType.ADDED));
                     }
 
-                    public void removed(File file) {
-                        action.execute(new InputFileChange(file, ChangeType.REMOVED));
+                    public void removed(String fileName) {
+                        accept(new InputFileChange(fileName, ChangeType.REMOVED));
                     }
 
-                    public void changed(File file) {
-                        action.execute(new InputFileChange(file, ChangeType.MODIFIED));
+                    public void changed(String fileName) {
+                        accept(new InputFileChange(fileName, ChangeType.MODIFIED));
+                    }
+
+                    public String getResumeAfter() {
+                        return lastFileChange;
+                    }
+
+                    public boolean isStopped() {
+                        return !listener.isAccepting();
+                    }
+
+                    private void accept(InputFileChange change) {
+                        assert listener.isAccepting();
+
+                        listener.accept(change);
+
+                        // TODO:DAZ Restrict how many changes are cached: for now we don't need to cache more than the max number reported in up-to-date check (10).
+                        cachedChanges.add(change);
+                        lastFileChange = change.getPath();
                     }
                 });
             }
