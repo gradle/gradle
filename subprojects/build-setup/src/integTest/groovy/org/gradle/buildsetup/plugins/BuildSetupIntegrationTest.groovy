@@ -48,7 +48,6 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         assert generatedFile.exists()
         def generatedFileContent = generatedFile.text
         assert generatedFileContent != ""
-        println generatedFileContent
 
         //validate http links in the template
         generatedFileContent.eachLine {
