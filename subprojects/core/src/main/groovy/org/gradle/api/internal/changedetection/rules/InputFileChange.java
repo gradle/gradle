@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
-class DescriptiveChange implements TaskUpToDateChange {
-    private final String message;
+class InputFileChange extends FileChange {
 
-    public DescriptiveChange(String message, Object... params) {
-        this.message = String.format(message, params);
+    public InputFileChange(String path, ChangeType change) {
+        super(path, change);
     }
 
-    public String getMessage() {
-        return message;
+    @Override
+    protected String getFileType() {
+        return "Input";
     }
 }

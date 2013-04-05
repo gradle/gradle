@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
@@ -27,14 +27,14 @@ import java.util.Map;
 /**
  * A rule which detects changes in the input properties of a task.
  */
-class InputPropertiesChangedUpToDateRule {
-    public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
+class InputPropertiesStateChangeRule {
+    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
         final Map<String, Object> properties = new HashMap<String, Object>(task.getInputs().getProperties());
         currentExecution.setInputProperties(properties);
 
-        return new SimpleUpToDateState() {
+        return new SimpleTaskStateChanges() {
             @Override
-            protected void addAllChanges(final List<TaskUpToDateChange> changes) {
+            protected void addAllChanges(final List<TaskStateChange> changes) {
                 DiffUtil.diff(properties, previousExecution.getInputProperties(), new ChangeListener<Map.Entry<String, Object>>() {
                     public void added(Map.Entry<String, Object> element) {
                         changes.add(new DescriptiveChange("Input property '%s' has been added for %s", element.getKey(), task));

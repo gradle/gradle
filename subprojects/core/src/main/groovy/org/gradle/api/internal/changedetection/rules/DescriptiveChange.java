@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
-interface TaskUpToDateChange {
-    String getMessage();
+class DescriptiveChange implements TaskStateChange {
+    private final String message;
+
+    public DescriptiveChange(String message, Object... params) {
+        this.message = String.format(message, params);
+    }
+
+    public String getMessage() {
+        return message;
+    }
 }

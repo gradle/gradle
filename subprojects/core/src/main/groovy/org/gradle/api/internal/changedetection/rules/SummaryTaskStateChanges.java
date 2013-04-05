@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
-
-import org.gradle.api.Action;
+package org.gradle.api.internal.changedetection.rules;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 // TODO:DAZ Unit Test
-class SummaryUpToDateState {
+class SummaryTaskStateChanges implements TaskStateChanges {
     private final int maxReportedChanges;
-    private final List<TaskUpToDateState> sources;
+    private final List<TaskStateChanges> sources;
 
 
-    public SummaryUpToDateState(int maxReportedChanges, TaskUpToDateState... sources) {
+    public SummaryTaskStateChanges(int maxReportedChanges, TaskStateChanges... sources) {
         this.maxReportedChanges = maxReportedChanges;
         this.sources = Arrays.asList(sources);
     }
@@ -38,9 +35,9 @@ class SummaryUpToDateState {
      * - Will only emit changes of a single type (from a single delegate change set)
      * - Will return no more than the specified maximum of number of changes
      */
-    public void findChanges(final Action<TaskUpToDateChange> listener) {
+    public void findChanges(UpToDateChangeListener listener) {
         SummaryListener summaryListener = new SummaryListener(listener, maxReportedChanges);
-        for (TaskUpToDateState source : sources) {
+        for (TaskStateChanges source : sources) {
             source.findChanges(summaryListener);
 
             // Don't check any more states once a change is detected
@@ -50,39 +47,29 @@ class SummaryUpToDateState {
         }
     }
 
-    public boolean hasChanges() {
-        final AtomicBoolean hasChanges = new AtomicBoolean(false);
-        findChanges(new Action<TaskUpToDateChange>() {
-            public void execute(TaskUpToDateChange taskUpToDateChange) {
-                hasChanges.set(true);
-            }
-        });
-        return hasChanges.get();
-    }
-
     public void snapshotAfterTask() {
-        for (TaskUpToDateState state : sources) {
+        for (TaskStateChanges state : sources) {
             state.snapshotAfterTask();
         }
     }
 
     private class SummaryListener implements UpToDateChangeListener {
-        private final Action<TaskUpToDateChange> action;
+        private final UpToDateChangeListener delegate;
         private final int maxReportedChanges;
         int changeCount;
 
-        public SummaryListener(Action<TaskUpToDateChange> action, int maxReportedChanges) {
-            this.action = action;
+        public SummaryListener(UpToDateChangeListener delegate, int maxReportedChanges) {
+            this.delegate = delegate;
             this.maxReportedChanges = maxReportedChanges;
         }
 
-        public void accept(TaskUpToDateChange change) {
+        public void accept(TaskStateChange change) {
             changeCount++;
-            action.execute(change);
+            delegate.accept(change);
         }
 
         public boolean isAccepting() {
-            return changeCount < maxReportedChanges;
+            return changeCount < maxReportedChanges && delegate.isAccepting();
         }
     }
 }

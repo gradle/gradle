@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.TaskInternal;
@@ -24,14 +24,14 @@ import java.util.List;
 /**
  * A rule which detects changes in the task implementation class.
  */
-class TaskTypeChangedUpToDateRule {
-    public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
+class TaskTypeStateChangeRule {
+    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution) {
         final String taskClass = task.getClass().getName();
         currentExecution.setTaskClass(taskClass);
 
-        return new SimpleUpToDateState() {
+        return new SimpleTaskStateChanges() {
             @Override
-            protected void addAllChanges(List<TaskUpToDateChange> changes) {
+            protected void addAllChanges(List<TaskStateChange> changes) {
                 if (!taskClass.equals(previousExecution.getTaskClass())) {
                     changes.add(new DescriptiveChange("%s has changed type from '%s' to '%s'.",
                             StringUtils.capitalize(task.toString()), previousExecution.getTaskClass(), task.getClass().getName()));

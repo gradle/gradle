@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
 import java.util.ArrayList;
 import java.util.List;
 
 // TODO:DAZ Unit Test
-abstract class SimpleUpToDateState implements TaskUpToDateState {
-    private List<TaskUpToDateChange> changes;
+abstract class SimpleTaskStateChanges implements TaskStateChanges {
+    private List<TaskStateChange> changes;
 
     public void findChanges(UpToDateChangeListener listener) {
         if (changes == null) {
-            changes = new ArrayList<TaskUpToDateChange>();
+            changes = new ArrayList<TaskStateChange>();
             addAllChanges(changes);
         }
 
-        for (TaskUpToDateChange change : changes) {
+        for (TaskStateChange change : changes) {
             if (!listener.isAccepting()) {
                 break;
             }
@@ -37,7 +37,7 @@ abstract class SimpleUpToDateState implements TaskUpToDateState {
         }
     }
 
-    protected abstract void addAllChanges(List<TaskUpToDateChange> changes);
+    protected abstract void addAllChanges(List<TaskStateChange> changes);
 
     public void snapshotAfterTask() {
     }

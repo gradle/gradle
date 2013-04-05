@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
-class InputFileChange extends FileChange {
+public interface UpToDateChangeListener {
+    void accept(TaskStateChange change);
 
-    public InputFileChange(String path, ChangeType change) {
-        super(path, change);
-    }
-
-    @Override
-    protected String getFileType() {
-        return "Input";
-    }
+    boolean isAccepting();
 }

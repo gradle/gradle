@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
-interface UpToDateChangeListener {
-    void accept(TaskUpToDateChange change);
-
-    boolean isAccepting();
+public interface TaskStateChange {
+    String getMessage();
 }

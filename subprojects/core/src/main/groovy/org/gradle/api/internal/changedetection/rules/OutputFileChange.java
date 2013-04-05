@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
-enum ChangeType {
-    ADDED("has been added"),
-    MODIFIED("has changed"),
-    REMOVED("has been removed");
+class OutputFileChange extends FileChange {
 
-    private final String description;
-
-    private ChangeType(String description) {
-        this.description = description;
+    public OutputFileChange(String path, ChangeType change) {
+        super(path, change);
     }
 
-    public String describe() {
-        return description;
+    @Override
+    protected String getFileType() {
+        return "Output";
     }
 }

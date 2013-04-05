@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
-interface TaskUpToDateState {
+public interface TaskStateChanges {
     /**
      * Executes the provided action for every change that makes this task out-of-date.
      */

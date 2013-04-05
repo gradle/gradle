@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
@@ -25,13 +25,13 @@ import java.util.ArrayList;
 /**
  * A rule which detects changes in the input files of a task.
  */
-class InputFilesChangedUpToDateRule {
+class InputFilesStateChangeRule {
     // TODO:DAZ Unit test
 
-    public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter) {
+    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter) {
         final FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
 
-        return new TaskUpToDateState() {
+        return new TaskStateChanges() {
             private final ArrayList<FileChange> cachedChanges = new ArrayList<FileChange>();
             private String lastFileChange;
 

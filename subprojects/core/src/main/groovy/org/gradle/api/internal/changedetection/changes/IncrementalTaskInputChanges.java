@@ -17,15 +17,18 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.changedetection.rules.TaskStateChanges;
+import org.gradle.api.internal.changedetection.rules.UpToDateChangeListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 class IncrementalTaskInputChanges extends StatefulTaskInputChanges {
-    private final TaskUpToDateState inputFilesState;
+    private final TaskStateChanges inputFilesState;
     private List<InputFileChange> removedFiles = new ArrayList<InputFileChange>();
 
-    IncrementalTaskInputChanges(TaskUpToDateState inputFilesState) {
+    IncrementalTaskInputChanges(TaskStateChanges inputFilesState) {
         this.inputFilesState = inputFilesState;
     }
 
@@ -36,7 +39,7 @@ class IncrementalTaskInputChanges extends StatefulTaskInputChanges {
     @Override
     protected void doOutOfDate(final Action<? super InputFileChange> outOfDateAction) {
         inputFilesState.findChanges(new UpToDateChangeListener() {
-            public void accept(TaskUpToDateChange change) {
+            public void accept(TaskStateChange change) {
                 // TODO:DAZ Generify properly to avoid this check & cast
                 assert change instanceof InputFileChange;
                 InputFileChange fileChange = (InputFileChange) change;

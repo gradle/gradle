@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
@@ -26,14 +26,14 @@ import java.util.List;
 /**
  * A rule which detects changes in output files.
  */
-class OutputFilesChangedUpToDateRule {
-    public static TaskUpToDateState create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter outputFilesSnapshotter) {
+class OutputFilesStateChangeRule {
+    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter outputFilesSnapshotter) {
         final FileCollectionSnapshot outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
 
          // TODO:DAZ This needs to stream changes
-        return new SimpleUpToDateState() {
+        return new SimpleTaskStateChanges() {
             @Override
-            protected void addAllChanges(final List<TaskUpToDateChange> changes) {
+            protected void addAllChanges(final List<TaskStateChange> changes) {
                 if (previousExecution.getOutputFilesSnapshot() == null) {
                     changes.add(new DescriptiveChange("Output file history is not available for %s.", task));
                     return;

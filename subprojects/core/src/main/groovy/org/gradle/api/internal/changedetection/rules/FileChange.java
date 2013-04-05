@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.tasks.TaskInputChanges;
 
 import java.io.File;
 
-abstract class FileChange implements TaskUpToDateChange, TaskInputChanges.InputFileChange {
+abstract class FileChange implements TaskStateChange, TaskInputChanges.InputFileChange {
     private final String path;
     private final ChangeType change;
 

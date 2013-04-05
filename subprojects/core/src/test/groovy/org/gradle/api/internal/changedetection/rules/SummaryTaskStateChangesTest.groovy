@@ -15,17 +15,17 @@
  */
 
 
-package org.gradle.api.internal.changedetection.changes
-import org.gradle.api.Action
+package org.gradle.api.internal.changedetection.rules
+
 import spock.lang.Specification
 
-class SummaryUpToDateStateTest extends Specification {
+class SummaryTaskStateChangesTest extends Specification {
 
-    def state1 = Mock(TaskUpToDateState)
-    def state2 = Mock(TaskUpToDateState)
-    def state = new SummaryUpToDateState(2, state1, state2)
-    final Action<TaskUpToDateChange> action = Mock()
-    def change = Mock(TaskUpToDateChange)
+    def state1 = Mock(TaskStateChanges)
+    def state2 = Mock(TaskStateChanges)
+    def state = new SummaryTaskStateChanges(2, state1, state2)
+    final UpToDateChangeListener action = Mock()
+    def change = Mock(TaskStateChange)
 
     def looksForChangesInAllDelegateChangeSets() {
         when:
@@ -50,7 +50,7 @@ class SummaryUpToDateStateTest extends Specification {
     }
 
     def onlyReturnsChangesFromASingleDelegate() {
-        def change1 = Mock(TaskUpToDateChange)
+        def change1 = Mock(TaskStateChange)
 
         when:
         state.findChanges(action)
@@ -60,13 +60,13 @@ class SummaryUpToDateStateTest extends Specification {
         0 * state2._
 
         and:
-        1 * action.execute(change1)
+        1 * action.accept(change1)
         0 * _
     }
 
     def willNotAcceptMoreChangesThanSpecified() {
-        def change1 = Mock(TaskUpToDateChange)
-        def change2 = Mock(TaskUpToDateChange)
+        def change1 = Mock(TaskStateChange)
+        def change2 = Mock(TaskStateChange)
 
         when:
         state.findChanges(action)
@@ -81,8 +81,9 @@ class SummaryUpToDateStateTest extends Specification {
         }
 
         and:
-        1 * action.execute(change1)
-        1 * action.execute(change2)
+        1 * action.accept(change1)
+        1 * action.isAccepting() >> true
+        1 * action.accept(change2)
         0 * _
     }
 }
