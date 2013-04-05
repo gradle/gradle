@@ -94,18 +94,27 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
         public void changesSince(FileCollectionSnapshot oldSnapshot, final SnapshotChangeListener listener) {
             assert listener.getResumeAfter() == null : "Output files do not support resuming";
 
-            // TODO:DAZ Does not handle stop signal from controller in this part.
             final OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
+            // This doesn't involve filesystem access, so we don't bother aborting. Just turf any events if listener is stopped.
             DiffUtil.diff(rootFileIds, other.rootFileIds, new ChangeListener<Map.Entry<String, Long>>() {
                 public void added(Map.Entry<String, Long> element) {
+                    if (listener.isStopped()) {
+                        return;
+                    }
                     listener.added(element.getKey());
                 }
 
                 public void removed(Map.Entry<String, Long> element) {
+                    if (listener.isStopped()) {
+                        return;
+                    }
                     listener.removed(element.getKey());
                 }
 
                 public void changed(Map.Entry<String, Long> element) {
+                    if (listener.isStopped()) {
+                        return;
+                    }
                     if (other.rootFileIds.get(element.getKey()) == null) {
                         // Dir used to not exist, now does. Don't care
                         return;

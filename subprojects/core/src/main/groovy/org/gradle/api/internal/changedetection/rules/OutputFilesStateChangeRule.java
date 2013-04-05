@@ -21,34 +21,35 @@ import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.util.ChangeListener;
 
-import java.util.List;
-
 /**
  * A rule which detects changes in output files.
  */
 class OutputFilesStateChangeRule {
+
+    // TODO:DAZ Unit test
     public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter outputFilesSnapshotter) {
         final FileCollectionSnapshot outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
 
-         // TODO:DAZ This needs to stream changes
-        return new SimpleTaskStateChanges() {
-            @Override
-            protected void addAllChanges(final List<TaskStateChange> changes) {
+        return new TaskStateChanges() {
+
+            public void findChanges(final UpToDateChangeListener listener) {
                 if (previousExecution.getOutputFilesSnapshot() == null) {
-                    changes.add(new DescriptiveChange("Output file history is not available for %s.", task));
+                    if (listener.isAccepting()) {
+                        listener.accept(new DescriptiveChange("Output file history is not available for %s.", task));
+                    }
                     return;
                 }
                 outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(), new FileCollectionSnapshot.SnapshotChangeListener() {
                     public void added(String element) {
-                        changes.add(new OutputFileChange(element, ChangeType.ADDED));
+                        accept(new OutputFileChange(element, ChangeType.ADDED));
                     }
 
                     public void changed(String element) {
-                        changes.add(new OutputFileChange(element, ChangeType.MODIFIED));
+                        accept(new OutputFileChange(element, ChangeType.MODIFIED));
                     }
 
                     public void removed(String element) {
-                        changes.add(new OutputFileChange(element, ChangeType.REMOVED));
+                        accept(new OutputFileChange(element, ChangeType.REMOVED));
                     }
 
                     public String getResumeAfter() {
@@ -56,7 +57,11 @@ class OutputFilesStateChangeRule {
                     }
 
                     public boolean isStopped() {
-                        return false;
+                        return !listener.isAccepting();
+                    }
+
+                    private void accept(OutputFileChange change) {
+                        listener.accept(change);
                     }
                 });
             }

@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.rules;
 import java.util.Arrays;
 import java.util.List;
 
-// TODO:DAZ Unit Test
 class SummaryTaskStateChanges implements TaskStateChanges {
     private final int maxReportedChanges;
     private final List<TaskStateChanges> sources;
@@ -64,6 +63,10 @@ class SummaryTaskStateChanges implements TaskStateChanges {
         }
 
         public void accept(TaskStateChange change) {
+            if (!isAccepting()) {
+                throw new IllegalStateException("Listener is no longer accepting changes.");
+            }
+
             changeCount++;
             delegate.accept(change);
         }

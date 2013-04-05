@@ -60,11 +60,12 @@ class SummaryTaskStateChangesTest extends Specification {
         0 * state2._
 
         and:
+        _ * action.isAccepting() >> true
         1 * action.accept(change1)
         0 * _
     }
 
-    def willNotAcceptMoreChangesThanSpecified() {
+    def willNotEmitMoreChangesThanSpecified() {
         def change1 = Mock(TaskStateChange)
         def change2 = Mock(TaskStateChange)
 
@@ -81,8 +82,8 @@ class SummaryTaskStateChangesTest extends Specification {
         }
 
         and:
+        _ * action.isAccepting() >> true
         1 * action.accept(change1)
-        1 * action.isAccepting() >> true
         1 * action.accept(change2)
         0 * _
     }

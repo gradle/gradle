@@ -40,7 +40,7 @@ class IncrementalTaskInputChanges extends StatefulTaskInputChanges {
     protected void doOutOfDate(final Action<? super InputFileChange> outOfDateAction) {
         inputFilesState.findChanges(new UpToDateChangeListener() {
             public void accept(TaskStateChange change) {
-                // TODO:DAZ Generify properly to avoid this check & cast
+                // TODO:DAZ Work out how to avoid this check & cast (or does it not matter?)
                 assert change instanceof InputFileChange;
                 InputFileChange fileChange = (InputFileChange) change;
                 if (fileChange.isRemoved()) {

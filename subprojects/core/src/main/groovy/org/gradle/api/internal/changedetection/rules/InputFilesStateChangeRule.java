@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,8 +76,6 @@ class InputFilesStateChangeRule {
                     }
 
                     private void accept(InputFileChange change) {
-                        assert listener.isAccepting();
-
                         listener.accept(change);
 
                         // TODO:DAZ Restrict how many changes are cached: for now we don't need to cache more than the max number reported in up-to-date check (10).
