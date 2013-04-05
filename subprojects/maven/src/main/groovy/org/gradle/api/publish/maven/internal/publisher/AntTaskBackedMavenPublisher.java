@@ -74,7 +74,7 @@ public class AntTaskBackedMavenPublisher implements MavenPublisher {
     }
 
     private void addRepository(CustomDeployTask deployTask, MavenArtifactRepository artifactRepository) {
-        RemoteRepository mavenRepository = new MavenDeployerConfigurer(artifactRepository).createRepository();
+        RemoteRepository mavenRepository = new MavenRemoteRepositoryFactory(artifactRepository).create();
         deployTask.addRemoteRepository(mavenRepository);
     }
 
