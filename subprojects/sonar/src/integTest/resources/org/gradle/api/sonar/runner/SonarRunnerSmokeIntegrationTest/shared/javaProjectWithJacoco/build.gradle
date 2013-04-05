@@ -1,4 +1,5 @@
-apply plugin:'jacoco'
-
+if(!org.gradle.internal.os.OperatingSystem.current().isWindows()){
+    apply plugin:'jacoco'
+}
 description = "Sonar Test Java Project"
 
