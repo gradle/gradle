@@ -64,7 +64,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile "junit:junit:4.11" }
-            test.workingDir = "${testWorkingDir.absolutePath}"
+            test.workingDir = "${testWorkingDir.toURI()}"
         """
 
         and:
