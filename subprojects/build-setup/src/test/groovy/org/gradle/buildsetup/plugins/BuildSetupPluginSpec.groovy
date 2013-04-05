@@ -59,13 +59,13 @@ class BuildSetupPluginSpec extends Specification {
         Matchers.dependsOn("wrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
     }
 
-    def "generateBuildFile task not added if gradle build file exists"() {
+    def "no additional tasks added if gradle build file exists"() {
         given:
         project.file("build.gradle").createNewFile()
         when:
         project.plugins.apply BuildSetupPlugin
         then:
-        project.tasks.wrapper instanceof Wrapper
-        Matchers.dependsOn("wrapper").matches(project.tasks.setupBuild)
+        project.setupBuild != null
+        project.tasks.collect{it.name} == ["setupBuild"]
     }
 }

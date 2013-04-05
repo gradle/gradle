@@ -33,17 +33,42 @@ class BuildSetupPlugin implements Plugin<Project> {
     public static final String GROUP = 'Build Setup experimental'
 
     void apply(Project project) {
-        Task setupBuild = project.getTasks().add(SETUP_BUILD_TASK_NAME);
+        Task setupBuild = project.getTasks().create(SETUP_BUILD_TASK_NAME);
         setupBuild.group = GROUP
         setupBuild.group = "[incubating] Lifecycle task of the Build-Setup plugin."
 
+        boolean furtherTasksRequired = configureBuildSetupTask(project, setupBuild)
+        if (furtherTasksRequired){
+            configureFurtherSetupActions(project, setupBuild)
+        }
+    }
+
+    boolean configureBuildSetupTask(Project project, Task setupBuildTask) {
+        if (project.subprojects.size() > 0) {
+            setupBuildTask.onlyIf {
+                setupBuildTask.logger.warn("Running 'setupBuild' on already defined multiproject build is not supported. Build setup skipped.")
+                false
+            }
+            return false;
+        }
+        if (project.file("build.gradle").exists()) {
+            setupBuildTask.onlyIf {
+                setupBuildTask.logger.warn("Running 'setupBuild' on existing gradle build setup is not supported. Build setup skipped.")
+                false
+            }
+            return false;
+        }
+        return true;
+    }
+
+    def configureFurtherSetupActions(Project project, Task setupBuild) {
         if (project.file("pom.xml").exists()) {
             def maven2Gradle = project.task("maven2Gradle", type: ConvertMaven2Gradle) {
                 group = GROUP
                 description = '[incubating] Attempts to generate gradle builds from Maven project.'
             }
             setupBuild.dependsOn(maven2Gradle)
-        } else if (!project.file("build.gradle").exists()) {
+        } else {
             // generate empty gradle build file
             GenerateBuildFile generateBuildFile = project.task("generateBuildFile", type: GenerateBuildFile) {
                 group = GROUP

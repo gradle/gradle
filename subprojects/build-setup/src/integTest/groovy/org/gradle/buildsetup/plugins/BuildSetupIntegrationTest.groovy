@@ -33,6 +33,8 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def "can be executed without existing pom"() {
+        given:
+        assert !buildFile.exists()
         when:
         run 'setupBuild'
         then:
@@ -44,6 +46,25 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         file("gradle/wrapper/gradle-wrapper.properties").assertExists()
     }
 
+    def "buildSetup is skipped on existing gradle build"() {
+        given:
+        assert buildFile.createFile()
+        when:
+        def executed = run('setupBuild')
+        then:
+        executed.executedTasks.contains(":setupBuild")
+        executed.output.contains("Running 'setupBuild' on existing gradle build setup is not supported. Build setup skipped.")
+        executed.skippedTasks.contains(":setupBuild")
+
+        when:
+        settingsFile << "include 'projA'"
+        executed = run('setupBuild')
+        then:
+        executed.executedTasks.contains(":setupBuild")
+        executed.output.contains("Running 'setupBuild' on already defined multiproject build is not supported. Build setup skipped.")
+        executed.skippedTasks.contains(":setupBuild")
+    }
+
     void assertFileTemplateIsValid(TestFile generatedFile) {
         assert generatedFile.exists()
         def generatedFileContent = generatedFile.text
@@ -51,19 +72,19 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
 
         //validate http links in the template
         generatedFileContent.eachLine {
-               (it =~ /http:\/\/[^\s]+/).each{ httpRef ->
-                   // since we use DocumentationRegistry to create version specific files, we replace possible
-                   // possible gradle versions in the URL by "current". This might not be 100% safe,
-                   // but it works for now.
-                   def testHttpLink = httpRef.toString().replace(GradleVersion.current().getVersion(), "current")
-                   assert getResponseCode(testHttpLink) == 200
-               }
+            (it =~ /http:\/\/[^\s]+/).each { httpRef ->
+                // since we use DocumentationRegistry to create version specific files, we replace possible
+                // possible gradle versions in the URL by "current". This might not be 100% safe,
+                // but it works for now.
+                def testHttpLink = httpRef.toString().replace(GradleVersion.current().getVersion(), "current")
+                assert getResponseCode(testHttpLink) == 200
+            }
         }
     }
 
     private static int getResponseCode(String urlString) throws MalformedURLException, IOException {
         URL u = new URL(urlString);
-        HttpURLConnection huc =  (HttpURLConnection)  u.openConnection();
+        HttpURLConnection huc = (HttpURLConnection) u.openConnection();
         huc.setRequestMethod("HEAD");
         huc.connect();
         return huc.getResponseCode();

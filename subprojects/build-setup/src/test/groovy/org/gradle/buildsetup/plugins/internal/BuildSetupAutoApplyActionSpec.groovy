@@ -16,7 +16,6 @@
 
 package org.gradle.buildsetup.plugins.internal
 
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.test.fixtures.file.TestFile
@@ -31,41 +30,23 @@ class BuildSetupAutoApplyActionSpec extends Specification {
     TestFile buildFile
     ProjectInternal projectInternal
     PluginContainer pluginContainer
-    GradleInternal gradle
 
     public void setup() {
-        buildFile = temporaryFolder.file("build.gradle")
         projectInternal = Mock(ProjectInternal)
         pluginContainer = Mock(PluginContainer)
-        gradle = Mock(GradleInternal)
-        _ * projectInternal.getGradle() >> gradle
-        _ * projectInternal.getBuildFile() >> buildFile
     }
 
-    def "is not applied if build file exists"() {
-        given:
-        buildFileExists()
-        noChildprojects()
+    def "is applied on rootproject"() {
         when:
         new BuildSetupAutoApplyAction().execute(projectInternal)
         then:
-        0 * projectInternal.getPlugins() >> pluginContainer
-        0 * pluginContainer.apply("build-setup")
+        1 * projectInternal.getPlugins() >> pluginContainer
+        1 * pluginContainer.apply("build-setup")
     }
 
     def "is not applied on non rootprojects"() {
         given:
         isNotRootProject()
-        when:
-        new BuildSetupAutoApplyAction().execute(projectInternal)
-        then:
-        0 * projectInternal.getPlugins() >> pluginContainer
-        0 * pluginContainer.apply("build-setup")
-    }
-
-    def "is not applied on multproject"() {
-        given:
-        hasChildprojects()
         when:
         new BuildSetupAutoApplyAction().execute(projectInternal)
         then:
@@ -79,13 +60,5 @@ class BuildSetupAutoApplyActionSpec extends Specification {
 
     void noChildprojects() {
         projectInternal.subprojects >> []
-    }
-
-    def hasChildprojects() {
-        projectInternal.subprojects >> [Mock(ProjectInternal)]
-    }
-
-    def buildFileExists() {
-        buildFile.createFile()
     }
 }
