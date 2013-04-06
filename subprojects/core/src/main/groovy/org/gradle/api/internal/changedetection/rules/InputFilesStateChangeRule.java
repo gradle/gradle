@@ -21,19 +21,17 @@ import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * A rule which detects changes in the input files of a task.
  */
 class InputFilesStateChangeRule {
-    // TODO:DAZ Unit test
-
     public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter) {
         final FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
 
         return new TaskStateChanges() {
-            private final ArrayList<FileChange> cachedChanges = new ArrayList<FileChange>();
-            private String lastFileChange;
+            private final FileChangeCache fileChangeCache = new FileChangeCache();
 
             public void findChanges(final UpToDateChangeListener listener) {
                 if (previousExecution.getInputFilesSnapshot() == null) {
@@ -44,7 +42,7 @@ class InputFilesStateChangeRule {
                 }
 
                 // First iterate over cached changes
-                for (FileChange cachedChange : cachedChanges) {
+                for (FileChange cachedChange : fileChangeCache) {
                     if (!listener.isAccepting()) {
                         return;
                     }
@@ -53,6 +51,10 @@ class InputFilesStateChangeRule {
 
                 // TODO:DAZ Remember if all changes are already cached, so we don't need to do anything more.
 
+                processUncachedChanges(listener);
+            }
+
+            private void processUncachedChanges(final UpToDateChangeListener listener) {
                 // Now get any new changes
                 inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(), new FileCollectionSnapshot.SnapshotChangeListener() {
                     public void added(String fileName) {
@@ -68,7 +70,7 @@ class InputFilesStateChangeRule {
                     }
 
                     public String getResumeAfter() {
-                        return lastFileChange;
+                        return fileChangeCache.getLastChange();
                     }
 
                     public boolean isStopped() {
@@ -77,10 +79,7 @@ class InputFilesStateChangeRule {
 
                     private void accept(InputFileChange change) {
                         listener.accept(change);
-
-                        // TODO:DAZ Restrict how many changes are cached: for now we don't need to cache more than the max number reported in up-to-date check (10).
-                        cachedChanges.add(change);
-                        lastFileChange = change.getPath();
+                        fileChangeCache.cache(change);
                     }
                 });
             }
@@ -89,5 +88,22 @@ class InputFilesStateChangeRule {
                 currentExecution.setInputFilesSnapshot(inputFilesSnapshot);
             }
         };
+    }
+
+    private static class FileChangeCache implements Iterable<FileChange> {
+        private final ArrayList<FileChange> cachedChanges = new ArrayList<FileChange>();
+
+        public void cache(FileChange change) {
+            // TODO:DAZ Restrict how many changes are cached: for now we don't need to cache more than the max number reported in up-to-date check (10).
+            cachedChanges.add(change);
+        }
+
+        public String getLastChange() {
+            return cachedChanges.size() == 0 ? null : cachedChanges.get(cachedChanges.size() - 1).getPath();
+        }
+
+        public Iterator<FileChange> iterator() {
+            return cachedChanges.iterator();
+        }
     }
 }

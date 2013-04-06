@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,10 @@ import org.gradle.util.ChangeListener;
  */
 class OutputFilesStateChangeRule {
 
-    // TODO:DAZ Unit test
     public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter outputFilesSnapshotter) {
         final FileCollectionSnapshot outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
 
         return new TaskStateChanges() {
-
             public void findChanges(final UpToDateChangeListener listener) {
                 if (previousExecution.getOutputFilesSnapshot() == null) {
                     if (listener.isAccepting()) {
