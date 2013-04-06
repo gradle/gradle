@@ -21,23 +21,15 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
-// TODO:DAZ Tests for resume and stop
+
 public class DefaultFileSnapshotterTest extends Specification {
     private final Hasher hasher = new DefaultHasher()
     private final DefaultFileSnapshotter snapshotter = new DefaultFileSnapshotter(hasher)
-    def listener
+    def listener = Mock(FileCollectionSnapshot.SnapshotChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def setup() {
-        listener = Mock(FileCollectionSnapshot.SnapshotChangeListener.class) {
-            getResumeAfter() >> null
-            isStopped() >> false
-        }
-    }
-
     def getFilesReturnsOnlyTheFilesWhichExisted() {
-
         given:
         TestFile file = tmpDir.createFile('file1')
         TestFile dir = tmpDir.createDir('file2')
@@ -83,6 +75,70 @@ public class DefaultFileSnapshotterTest extends Specification {
         and:
         _ * listener.stopped >> false
         _ * listener.resumeAfter >> null
+        0 * _
+    }
+
+    def stopsNotifyingListenerOnStopSignal() {
+        given:
+        TestFile file1 = tmpDir.createFile('file1')
+        TestFile file2 = tmpDir.createFile('file2')
+
+        def emptySnapshot = snapshotter.snapshot(files())
+        def fullSnapshot = snapshotter.snapshot(files(file1, file2))
+
+        when:
+        fullSnapshot.changesSince(emptySnapshot, listener)
+
+        then:
+        1 * listener.stopped >> false
+        1 * listener.added(file1.path)
+        1 * listener.stopped >> true
+
+        and:
+        _ * listener.resumeAfter >> null
+        0 * _
+
+        when:
+        emptySnapshot.changesSince(fullSnapshot, listener)
+
+        then:
+        1 * listener.stopped >> false
+        1 * listener.removed(file1.path)
+        1 * listener.stopped >> true
+
+        and:
+        _ * listener.resumeAfter >> null
+        0 * _
+    }
+
+    def resumesNotifyingListenerFromSpecifiedFile() {
+        given:
+        TestFile file1 = tmpDir.createFile('file1')
+        TestFile file2 = tmpDir.createFile('file2')
+
+        def emptySnapshot = snapshotter.snapshot(files())
+        def fullSnapshot = snapshotter.snapshot(files(file1, file2))
+
+        when:
+        fullSnapshot.changesSince(emptySnapshot, listener)
+
+        then:
+        1 * listener.resumeAfter >> file1.path
+        1 * listener.added(file2.path)
+
+        and:
+        _ * listener.stopped >> false
+        0 * _
+
+        when:
+        emptySnapshot.changesSince(fullSnapshot, listener)
+
+        then:
+        1 * listener.resumeAfter >> file1.path
+        1 * listener.removed(file2.path)
+
+        and:
+        _ * listener.stopped >> false
         0 * _
     }
 

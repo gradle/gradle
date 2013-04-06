@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.rules;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO:DAZ Unit Test
 abstract class SimpleTaskStateChanges implements TaskStateChanges {
     private List<TaskStateChange> changes;
 

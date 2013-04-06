@@ -34,11 +34,11 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
     }
 
     public FileCollectionSnapshot emptySnapshot() {
-        return new FileCollectionSnapshotImpl(new HashMap<String, FileSnapshot>());
+        return new FileCollectionSnapshotImpl(new LinkedHashMap<String, FileSnapshot>());
     }
 
     public FileCollectionSnapshot snapshot(FileCollection sourceFiles) {
-        Map<String, FileSnapshot> snapshots = new HashMap<String, FileSnapshot>();
+        Map<String, FileSnapshot> snapshots = new LinkedHashMap<String, FileSnapshot>();
         for (File file : sourceFiles.getAsFileTree()) {
             if (file.isFile()) {
                 snapshots.put(file.getAbsolutePath(), new FileHashSnapshot(hasher.hash(file)));
@@ -106,10 +106,9 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
             return new SimpleFileCollection(files);
         }
 
-        // TODO:DAZ Unit test resumeAfter() and isStopped()
         public void changesSince(FileCollectionSnapshot oldSnapshot, SnapshotChangeListener listener) {
             FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
-            Map<String, FileSnapshot> otherSnapshots = new HashMap<String, FileSnapshot>(other.snapshots);
+            Map<String, FileSnapshot> otherSnapshots = new LinkedHashMap<String, FileSnapshot>(other.snapshots);
             boolean started = true;
 
             String resumeAfter = listener.getResumeAfter();
@@ -118,6 +117,10 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
             }
 
             for (String currentFile : snapshots.keySet()) {
+                if (listener.isStopped()) {
+                    return;
+                }
+
                 FileSnapshot otherFile = otherSnapshots.remove(currentFile);
 
                 if (!started) {
@@ -132,12 +135,13 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
                 } else if (!snapshots.get(currentFile).isUpToDate(otherFile)) {
                     listener.changed(currentFile);
                 }
-                if (listener.isStopped()) {
-                    return;
-                }
             }
 
             for (Map.Entry<String, FileSnapshot> entry : otherSnapshots.entrySet()) {
+                if (listener.isStopped()) {
+                    return;
+                }
+
                 if (!started) {
                     if (entry.getKey().equals(resumeAfter)) {
                         started = true;
@@ -146,15 +150,12 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
                 }
 
                 listener.removed(entry.getKey());
-                if (listener.isStopped()) {
-                    return;
-                }
             }
         }
 
         private void diff(Map<String, FileSnapshot> snapshots, Map<String, FileSnapshot> oldSnapshots,
                           ChangeListener<Map.Entry<String, FileSnapshot>> listener) {
-            Map<String, FileSnapshot> otherSnapshots = new HashMap<String, FileSnapshot>(oldSnapshots);
+            Map<String, FileSnapshot> otherSnapshots = new LinkedHashMap<String, FileSnapshot>(oldSnapshots);
             for (Map.Entry<String, FileSnapshot> entry : snapshots.entrySet()) {
                 FileSnapshot otherFile = otherSnapshots.remove(entry.getKey());
                 if (otherFile == null) {
@@ -177,7 +178,7 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
 
                 public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot, final ChangeListener<Merge> listener) {
                     FileCollectionSnapshotImpl target = (FileCollectionSnapshotImpl) snapshot;
-                    final Map<String, FileSnapshot> newSnapshots = new HashMap<String, FileSnapshot>(target.snapshots);
+                    final Map<String, FileSnapshot> newSnapshots = new LinkedHashMap<String, FileSnapshot>(target.snapshots);
                     diff(snapshots, other.snapshots, new MapMergeChangeListener<String, FileSnapshot>(listener, newSnapshots));
                     return new FileCollectionSnapshotImpl(newSnapshots);
                 }
