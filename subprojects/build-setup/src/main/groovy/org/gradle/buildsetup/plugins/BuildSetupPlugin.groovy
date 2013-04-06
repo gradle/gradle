@@ -30,12 +30,11 @@ import org.gradle.buildsetup.tasks.GenerateSettingsFile
 @Incubating
 class BuildSetupPlugin implements Plugin<Project> {
     public static final String SETUP_BUILD_TASK_NAME = "setupBuild"
-    public static final String GROUP = 'Build Setup experimental'
+    public static final String GROUP = '[incubating] Build Setup'
 
     void apply(Project project) {
         Task setupBuild = project.getTasks().create(SETUP_BUILD_TASK_NAME);
         setupBuild.group = GROUP
-        setupBuild.group = "[incubating] Lifecycle task of the Build-Setup plugin."
 
         boolean furtherTasksRequired = configureBuildSetupTask(project, setupBuild)
         if (furtherTasksRequired){

@@ -5,6 +5,10 @@ All tasks runnable from root project
 
 Default tasks: dists
 
+[incubating] Build Setup tasks
+------------------------------
+setupBuild
+
 Build tasks
 -----------
 clean - Deletes the build directory (build)
