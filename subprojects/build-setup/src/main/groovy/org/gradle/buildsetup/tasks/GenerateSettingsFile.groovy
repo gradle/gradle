@@ -18,11 +18,17 @@ package org.gradle.buildsetup.tasks
 
 import org.gradle.api.internal.DocumentationRegistry
 
+import javax.inject.Inject
+
 class GenerateSettingsFile extends TextFileGenerationTask {
+
+    private DocumentationRegistry documentationRegistry
 
     File settingsFile
 
-    public GenerateSettingsFile() {
+    @Inject
+    public GenerateSettingsFile(DocumentationRegistry documentationRegistry) {
+        this.documentationRegistry = documentationRegistry;
         templateURL = GenerateSettingsFile.class.getResource("/org/gradle/buildsetup/tasks/templates/settings.gradle.template")
     }
 
@@ -33,6 +39,6 @@ class GenerateSettingsFile extends TextFileGenerationTask {
 
     @Override
     protected Map getTemplateBindings(){
-        return [ref_userguide_multiproject:services.get(DocumentationRegistry).getDocumentationFor("multi_project_builds")]
+        return [ref_userguide_multiproject:documentationRegistry.getDocumentationFor("multi_project_builds")]
     }
 }
