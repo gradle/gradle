@@ -15,19 +15,14 @@
  */
 package org.gradle.api.internal.changedetection.changes;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.StartParameter;
+import org.gradle.api.internal.TaskExecutionHistory;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.tasks.TaskInputChanges;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskExecutionHistory;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
-    private static final Logger LOGGER = Logging.getLogger(ShortCircuitTaskArtifactStateRepository.class);
     private final StartParameter startParameter;
     private final TaskArtifactStateRepository repository;
 
@@ -37,76 +32,46 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
-        if (task.getOutputs().getHasOutput() || task.isIncrementalTask()) {
-            return new ShortCircuitArtifactState(task, repository.getStateFor(task));
+        final TaskArtifactState state = repository.getStateFor(task);
+
+        if (startParameter.isRerunTasks()) {
+            return new RerunTaskArtifactState(state, task);
         }
-        LOGGER.info(String.format("%s has not declared any outputs, assuming that it is out-of-date.", StringUtils.capitalize(task.toString())));
-        return new NoHistoryArtifactState();
+        return state;
     }
 
-    private static class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
+    private static class RerunTaskArtifactState implements TaskArtifactState {
+        private final TaskArtifactState delegate;
+        private final TaskInternal task;
+
+        private RerunTaskArtifactState(TaskArtifactState delegate, TaskInternal task) {
+            this.delegate = delegate;
+            this.task = task;
+        }
+
         public boolean isUpToDate() {
             return false;
         }
 
         public TaskInputChanges getInputChanges() {
-            throw new UnsupportedOperationException();
-        }
-
-        public void beforeTask() {
-        }
-
-        public void afterTask() {
-        }
-
-        public void finished() {
+            return new RebuildTaskInputChanges(task);
         }
 
         public TaskExecutionHistory getExecutionHistory() {
-            return this;
-        }
-
-        public FileCollection getOutputFiles() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    private class ShortCircuitArtifactState implements TaskArtifactState {
-        private final TaskInternal task;
-        private final TaskArtifactState state;
-
-        public ShortCircuitArtifactState(TaskInternal task, TaskArtifactState state) {
-            this.task = task;
-            this.state = state;
-        }
-
-        public boolean isUpToDate() {
-            return !startParameter.isRerunTasks() && task.getOutputs().getUpToDateSpec().isSatisfiedBy(task) && state.isUpToDate();
-        }
-
-        public TaskInputChanges getInputChanges() {
-            // If we would normally re-run the task, then use a rebuild context
-            // TODO: Don't want to re-execute the upToDateSpec
-            if (startParameter.isRerunTasks() || !task.getOutputs().getUpToDateSpec().isSatisfiedBy(task)) {
-                return new RebuildTaskInputChanges(task);
-            }
-            return state.getInputChanges();
-        }
-
-        public TaskExecutionHistory getExecutionHistory() {
-            return state.getExecutionHistory();
+            return delegate.getExecutionHistory();
         }
 
         public void beforeTask() {
-            state.beforeTask();
+            delegate.beforeTask();
         }
 
         public void afterTask() {
-            state.afterTask();
+            delegate.afterTask();
         }
 
         public void finished() {
-            state.finished();
+            delegate.finished();
         }
     }
+
 }

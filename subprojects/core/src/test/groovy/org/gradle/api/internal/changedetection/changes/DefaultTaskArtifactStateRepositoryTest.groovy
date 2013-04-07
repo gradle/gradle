@@ -17,9 +17,11 @@
 package org.gradle.api.internal.changedetection.changes
 import org.gradle.CacheUsage
 import org.gradle.api.DefaultTask
+import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.*
+import org.gradle.api.internal.tasks.IncrementalTaskAction
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.id.RandomLongIdGenerator
@@ -52,7 +54,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     final inputFiles = toSet(inputFile, inputDir, missingInputFile)
     final outputFiles = toSet(outputFile, outputDir, emptyOutputDir, missingOutputFile)
     final createFiles = toSet(outputFile, outputDirFile, outputDirFile2)
-    private TaskInternal task = builder.task()
+    TaskInternal task = builder.task()
     DefaultTaskArtifactStateRepository repository
 
 
@@ -497,13 +499,47 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         repository.getStateFor(noInputFilesTask).upToDate
     }
 
-    def artifactsAreUpToDateWhenTaskHasNoOutputs() {
+    def artifactsAreUpToDateWhenTaskHasNoOutputFiles() {
         when:
         TaskInternal noOutputsTask = builder.withOutputFiles().task()
         execute(noOutputsTask)
 
         then:
         repository.getStateFor(noOutputsTask).upToDate
+    }
+
+    def artifactsAreNotUpToDateAndHistoryNotPersistedWhenTaskDoesNotDeclareOutputs() {
+        when:
+        TaskInternal noOutputsTask = builder.doesNotDeclareOutputs().task()
+        execute(noOutputsTask)
+
+        then:
+        def state = repository.getStateFor(noOutputsTask)
+        !state.upToDate
+        !state.executionHistory.hasHistory()
+    }
+
+    def artifactsAreUpToDateAndHistoryPersistedWhenIncrementalTaskDoesNotDeclareOutputs() {
+        when:
+        TaskInternal noOutputsIncrementalTask = builder.incremental().doesNotDeclareOutputs().task()
+        execute(noOutputsIncrementalTask)
+
+        then:
+        def state = repository.getStateFor(noOutputsIncrementalTask)
+        state.upToDate
+        state.executionHistory.hasHistory()
+    }
+
+    def artifactsAreNotUpToDateWhenTaskUpToDateSpecIsFalse() {
+        when:
+        task.outputs.upToDateWhen {
+            false
+        }
+        execute(task)
+
+        then:
+        !repository.getStateFor(task).upToDate
+        !repository.getStateFor(task).upToDate
     }
 
     def taskCanProduceIntoDifferentSetsOfOutputFiles() {
@@ -547,6 +583,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         private Collection<? extends TestFile> create = createFiles
         private Class<? extends TaskInternal> type = TaskInternal.class
         private Map<String, Object> inputProperties = new HashMap<String, Object>(toMap("prop", "value"))
+        boolean incremental
 
         TaskBuilder withInputFiles(File... inputFiles) {
             inputs = Arrays.asList(inputFiles)
@@ -579,6 +616,16 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
             return this
         }
 
+        TaskBuilder doesNotDeclareOutputs() {
+            outputs = null
+            return this
+        }
+
+        TaskBuilder incremental() {
+            incremental = true
+            return this
+        }
+
         public TaskBuilder withProperty(String name, Object value) {
             inputProperties.put(name, value)
             return this
@@ -595,13 +642,27 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
             if (outputs != null) {
                 task.getOutputs().files(outputs)
             }
-            task.doLast(new org.gradle.api.Action<Object>() {
-                public void execute(Object o) {
-                    for (TestFile file : create) {
-                        file.createFile()
+            if (incremental) {
+                task.addActionRaw(new IncrementalTaskAction() {
+                    void setTaskArtifactState(TaskArtifactState taskArtifactState) {
                     }
-                }
-            })
+
+                    void execute(Task t) {
+                        for (TestFile file : create) {
+                            file.createFile()
+                        }
+                    }
+                })
+
+            } else {
+                task.doLast(new org.gradle.api.Action<Object>() {
+                    public void execute(Object o) {
+                        for (TestFile file : create) {
+                            file.createFile()
+                        }
+                    }
+                })
+            }
 
             return task
         }

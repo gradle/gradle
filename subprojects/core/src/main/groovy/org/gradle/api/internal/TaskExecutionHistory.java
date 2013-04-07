@@ -18,6 +18,8 @@ package org.gradle.api.internal;
 import org.gradle.api.file.FileCollection;
 
 public interface TaskExecutionHistory {
+
+    boolean hasHistory();
     /**
      * Returns the set of output files which the task produced.
      */
