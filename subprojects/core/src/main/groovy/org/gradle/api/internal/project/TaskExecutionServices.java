@@ -41,18 +41,21 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
     }
 
     protected TaskExecuter createTaskExecuter() {
+        TaskArtifactStateCacheAccess cacheAccess = get(TaskArtifactStateCacheAccess.class);
         return new ExecuteAtMostOnceTaskExecuter(
                 new SkipOnlyIfTaskExecuter(
                         new SkipTaskWithNoActionsExecuter(
                                 new SkipEmptySourceFilesTaskExecuter(
                                         new ValidatingTaskExecuter(
-                                                new SkipUpToDateTaskExecuter(
-                                                        new CacheLockHandlingTaskExecuter(
-                                                                new PostExecutionAnalysisTaskExecuter(
-                                                                        new ExecuteActionsTaskExecuter(
-                                                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
-                                                                get(TaskArtifactStateCacheAccess.class)),
-                                                        get(TaskArtifactStateRepository.class)))))));
+                                                new CacheLockAcquiringTaskExecuter(
+                                                        new SkipUpToDateTaskExecuter(
+                                                                new CacheLockReleasingTaskExecuter(
+                                                                        new PostExecutionAnalysisTaskExecuter(
+                                                                                new ExecuteActionsTaskExecuter(
+                                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
+                                                                        cacheAccess),
+                                                                get(TaskArtifactStateRepository.class)),
+                                                        cacheAccess))))));
     }
 
     protected TaskArtifactStateCacheAccess createCacheAccess() {

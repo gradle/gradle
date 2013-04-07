@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 
-public class CacheLockHandlingTaskExecuter implements TaskExecuter {
+/**
+ * Ensure that the task artifact cache is locked.
+ * Normally this is already achieved via {@link TaskCacheLockHandlingBuildExecuter}, but for direct calls to {@link org.gradle.api.internal.TaskInternal#execute()} we need to reacquire the cache lock.
+ */
+public class CacheLockAcquiringTaskExecuter implements TaskExecuter {
     private final TaskExecuter executer;
     private final TaskArtifactStateCacheAccess cacheAccess;
 
-    public CacheLockHandlingTaskExecuter(TaskExecuter executer, TaskArtifactStateCacheAccess cacheAccess) {
+    public CacheLockAcquiringTaskExecuter(TaskExecuter executer, TaskArtifactStateCacheAccess cacheAccess) {
         this.executer = executer;
         this.cacheAccess = cacheAccess;
     }
 
     public void execute(final TaskInternal task, final TaskStateInternal state) {
-        cacheAccess.longRunningOperation(String.format("execute %s", task), new Runnable() {
+        cacheAccess.useCache(String.format("execute %s", task), new Runnable() {
             public void run() {
                 executer.execute(task, state);
             }
