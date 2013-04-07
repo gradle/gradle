@@ -26,7 +26,7 @@ public class TaskUpToDateSpecStateChangeRule {
             @Override
             protected void addAllChanges(List<TaskStateChange> changes) {
                 if (!task.getOutputs().getUpToDateSpec().isSatisfiedBy(task)) {
-                    changes.add(new DescriptiveChange("Task.upToDateWhen is false for %s", task));
+                    changes.add(new DescriptiveChange("Task.upToDateWhen is false."));
                 }
             }
         };

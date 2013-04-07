@@ -35,7 +35,6 @@ public class InputFilesStateChangeRuleTest extends Specification {
             getFiles() >> new SimpleFileCollection()
         }
         def task = Stub(TaskInternal) {
-            toString() >> "TASK"
             getInputs() >> taskInputs
         }
         def snapshotter = Stub(FileSnapshotter) {
@@ -55,7 +54,7 @@ public class InputFilesStateChangeRuleTest extends Specification {
 
         then:
         1 * listener.isAccepting() >> true
-        1 * listener.accept({it.getMessage() == "Input file history is not available for TASK."})
+        1 * listener.accept({it.getMessage() == "Input file history is not available."})
     }
 
     def "emits change for file changes since previous input snapshot"() {

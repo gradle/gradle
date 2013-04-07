@@ -36,7 +36,7 @@ class InputFilesStateChangeRule {
             public void findChanges(final UpToDateChangeListener listener) {
                 if (previousExecution.getInputFilesSnapshot() == null) {
                     if (listener.isAccepting()) {
-                        listener.accept(new DescriptiveChange("Input file history is not available for %s.", task));
+                        listener.accept(new DescriptiveChange("Input file history is not available."));
                     }
                     return;
                 }

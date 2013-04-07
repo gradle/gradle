@@ -27,7 +27,7 @@ class NoHistoryStateChangeRule {
             @Override
             protected void addAllChanges(List<TaskStateChange> changes) {
                 if (previousExecution == null) {
-                    changes.add(new DescriptiveChange("No history is available for %s.", task));
+                    changes.add(new DescriptiveChange("No history is available."));
                 }
             }
 

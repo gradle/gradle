@@ -33,7 +33,7 @@ class OutputFilesStateChangeRule {
             public void findChanges(final UpToDateChangeListener listener) {
                 if (previousExecution.getOutputFilesSnapshot() == null) {
                     if (listener.isAccepting()) {
-                        listener.accept(new DescriptiveChange("Output file history is not available for %s.", task));
+                        listener.accept(new DescriptiveChange("Output file history is not available."));
                     }
                     return;
                 }

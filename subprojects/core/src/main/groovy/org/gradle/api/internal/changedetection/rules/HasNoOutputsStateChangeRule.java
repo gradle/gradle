@@ -28,7 +28,7 @@ public class HasNoOutputsStateChangeRule {
                 if (task.getOutputs().getHasOutput() || task.isIncrementalTask()) {
                     return;
                 }
-                changes.add(new DescriptiveChange("Task %s has no declared outputs", task));
+                changes.add(new DescriptiveChange("Task has no declared outputs"));
             }
         };
     }

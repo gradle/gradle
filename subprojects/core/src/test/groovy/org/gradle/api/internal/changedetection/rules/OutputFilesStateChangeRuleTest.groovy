@@ -34,7 +34,6 @@ public class OutputFilesStateChangeRuleTest extends Specification {
             getFiles() >> new SimpleFileCollection()
         }
         def task = Stub(TaskInternal) {
-            toString() >> "TASK"
             getOutputs() >> taskOutputs
         }
         def snapshotter = Stub(FileSnapshotter) {
@@ -54,7 +53,7 @@ public class OutputFilesStateChangeRuleTest extends Specification {
 
         then:
         1 * listener.isAccepting() >> true
-        1 * listener.accept({it.getMessage() == "Output file history is not available for TASK."})
+        1 * listener.accept({it.getMessage() == "Output file history is not available."})
     }
 
     def "emits change for file changes since previous output snapshot"() {
