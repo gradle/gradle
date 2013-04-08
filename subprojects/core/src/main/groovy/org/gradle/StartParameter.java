@@ -28,6 +28,7 @@ import org.gradle.initialization.DistributionInitScriptFinder;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.logging.LoggingConfiguration;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -314,12 +315,14 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedence over JVM system properties.
      *
      * @return The merged system properties
+     * @deprecated
      */
     @Deprecated
     public Map<String, String> getMergedSystemProperties() {
         Map<String, String> merged = new HashMap<String, String>();
         merged.putAll((Map) System.getProperties());
         merged.putAll(getSystemPropertiesArgs());
+        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.getMergedSystemProperties()");
         return merged;
     }
 
