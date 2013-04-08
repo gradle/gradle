@@ -508,7 +508,6 @@ task checkDeps << {
         run("dependencies")
 
         then:
-        //TODO SF proper assertions
         output.contains(toPlatformLineSeparators("""
 childFirst
 +--- org:d:1.0
