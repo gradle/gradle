@@ -593,7 +593,7 @@ org:middle:1.0 -> 2.0+ FAILED
         mavenRepo.module("org", "top", "1.0")
                 .dependsOn("org", "leaf", "1.0")
                 .dependsOn("org", "leaf", "[1.5,1.9]")
-                .dependsOn("org", "leaf", "1.3+")
+                .dependsOn("org", "leaf", "0.8+")
                 .publish()
 
         file("build.gradle") << """
@@ -619,11 +619,11 @@ org:middle:1.0 -> 2.0+ FAILED
         output.contains(toPlatformLineSeparators("""
 org:leaf:1.5 (conflict resolution)
 
-org:leaf:1.0 -> 1.5
+org:leaf:0.8+ -> 1.5
 \\--- org:top:1.0
      \\--- conf
 
-org:leaf:1.3+ -> 1.5
+org:leaf:1.0 -> 1.5
 \\--- org:top:1.0
      \\--- conf
 
