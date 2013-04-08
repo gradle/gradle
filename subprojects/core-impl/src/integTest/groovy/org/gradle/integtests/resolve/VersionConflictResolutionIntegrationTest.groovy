@@ -15,7 +15,9 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.api.GradleException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -529,5 +531,43 @@ parentFirst
 |    \\--- org:x:1.0 -> 2.0 FAILED
 \\--- org:f:1.0
      \\--- org:x:2.0 FAILED"""))
+    }
+
+    @Issue("GRADLE-2738")
+    @Ignore("Not yet implemented")
+    def "incorrect resolution of dynamic versions"() {
+        given:
+        //only 1.5 published:
+        mavenRepo.module("org", "leaf", "1.5").publish()
+
+        //problematic dynamic constraint:
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "2.0+").publish()
+
+        //other participants of conflict resolution. Commenting one of them makes Gradle behave correctly for this scenario (!).
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "1.0").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[1.5,1.9]").publish()
+
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+            }
+            task resolve << {
+                configurations.conf.files
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        //needs more assertions. This should fail with resolution failure but it passes.
+        thrown(GradleException)
     }
 }
