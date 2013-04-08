@@ -33,6 +33,7 @@ import org.gradle.logging.internal.OutputEventListener;
 import java.io.InputStream;
 
 public class SingleUseDaemonClient extends DaemonClient {
+    public static final String MESSAGE = "To honour java settings for this build new JVM is forked.";
     private static final Logger LOGGER = Logging.getLogger(SingleUseDaemonClient.class);
     private final DocumentationRegistry documentationRegistry;
 
@@ -44,7 +45,7 @@ public class SingleUseDaemonClient extends DaemonClient {
 
     @Override
     public <T> T execute(BuildAction<T> action, BuildActionParameters parameters) {
-        LOGGER.lifecycle("To honour java settings for this build new JVM is forked. Consider using the daemon {}.", documentationRegistry.getDocumentationFor("gradle_daemon"));
+        LOGGER.lifecycle("{} Consider using the daemon {}.", MESSAGE, documentationRegistry.getDocumentationFor("gradle_daemon"));
         Build build = new BuildAndStop(getIdGenerator().generateId(), action, parameters);
 
         DaemonClientConnection daemonConnection = getConnector().createConnection(ExplainingSpecs.<DaemonContext>satisfyAll());

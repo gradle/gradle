@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.util.TextUtil
 import org.spockframework.runtime.SpockAssertionError
 import org.spockframework.runtime.SpockTimeoutError
@@ -138,6 +139,6 @@ assert System.getProperty('some-prop') == 'some-value'
     }
 
     private def wasForked() {
-        result.output.contains('fork a new JVM')
+        result.output.contains(SingleUseDaemonClient.MESSAGE)
     }
 }
