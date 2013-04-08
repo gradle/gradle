@@ -224,7 +224,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
     }
 
-    private class TaskClassInfo {
+    private static class TaskClassInfo {
         public Validator validator;
         public List<Factory<Action<Task>>> taskActions = new ArrayList<Factory<Action<Task>>>();
     }
