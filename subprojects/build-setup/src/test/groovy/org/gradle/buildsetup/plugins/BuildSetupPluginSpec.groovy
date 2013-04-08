@@ -32,8 +32,8 @@ class BuildSetupPluginSpec extends Specification {
         project.plugins.apply BuildSetupPlugin
 
         then:
-        project.tasks.wrapper instanceof Wrapper
-        Matchers.dependsOn("wrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
+        project.tasks.setupWrapper instanceof Wrapper
+        Matchers.dependsOn("setupWrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
     }
 
     def "adds maven2Gradle task if pom exists"() {
@@ -44,8 +44,8 @@ class BuildSetupPluginSpec extends Specification {
 
         then:
         project.tasks.maven2Gradle instanceof ConvertMaven2Gradle
-        project.tasks.wrapper instanceof Wrapper
-        Matchers.dependsOn("wrapper", "maven2Gradle").matches(project.tasks.setupBuild)
+        project.tasks.setupWrapper instanceof Wrapper
+        Matchers.dependsOn("setupWrapper", "maven2Gradle").matches(project.tasks.setupBuild)
     }
 
     def "adds generateBuildFile task if no pom and no gradle build file exists"() {
@@ -55,17 +55,17 @@ class BuildSetupPluginSpec extends Specification {
         project.plugins.apply BuildSetupPlugin
         then:
         project.tasks.generateBuildFile instanceof GenerateBuildFile
-        project.tasks.wrapper instanceof Wrapper
-        Matchers.dependsOn("wrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
+        project.tasks.setupWrapper instanceof Wrapper
+        Matchers.dependsOn("setupWrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
     }
 
-    def "no additional tasks added if gradle build file exists"() {
+    def "no build file generation if files already exists"() {
         given:
         project.file("build.gradle").createNewFile()
         when:
         project.plugins.apply BuildSetupPlugin
         then:
         project.setupBuild != null
-        project.tasks.collect{it.name} == ["setupBuild"]
+        project.tasks.collect{it.name} == ["setupBuild", "setupWrapper"]
     }
 }

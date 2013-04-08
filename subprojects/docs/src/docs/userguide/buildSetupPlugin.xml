@@ -52,7 +52,7 @@
                         <literal>buildSetup</literal>
                     </td>
                     <td>
-                        <literal>maven2Gradle</literal>, <literal>generateBuildFile</literal>, <literal>generateSettingsFile</literal>, <literal>wrapper</literal>
+                        <literal>maven2Gradle</literal>, <literal>generateBuildFile</literal>, <literal>generateSettingsFile</literal>, <literal>setupWrapper</literal>
                     </td>
                     <td>lifecycle task (no actions)</td>
                     <td>Generates a Gradle project.</td>
@@ -93,7 +93,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <literal>wrapper</literal>
+                        <literal>setupWrapper</literal>
                     </td>
                     <td>-</td>
                     <td>

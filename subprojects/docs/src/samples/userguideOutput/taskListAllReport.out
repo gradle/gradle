@@ -7,7 +7,8 @@ Default tasks: dists
 
 [incubating] Build Setup tasks
 ------------------------------
-setupBuild
+setupBuild - [incubating] Initializes a new project.
+    setupWrapper - Generates gradle wrapper files.
 
 Build tasks
 -----------

@@ -35,11 +35,14 @@ class BuildSetupPlugin implements Plugin<Project> {
     void apply(Project project) {
         Task setupBuild = project.getTasks().create(SETUP_BUILD_TASK_NAME);
         setupBuild.group = GROUP
-
+        setupBuild.description = "[incubating] Initializes a new project."
         boolean furtherTasksRequired = configureBuildSetupTask(project, setupBuild)
-        if (furtherTasksRequired){
+        if (furtherTasksRequired) {
             configureFurtherSetupActions(project, setupBuild)
         }
+        Task wrapper = project.task("setupWrapper", type: Wrapper)
+        wrapper.description = "Generates gradle wrapper files."
+        setupBuild.dependsOn(wrapper)
     }
 
     boolean configureBuildSetupTask(Project project, Task setupBuildTask) {
@@ -63,27 +66,22 @@ class BuildSetupPlugin implements Plugin<Project> {
     def configureFurtherSetupActions(Project project, Task setupBuild) {
         if (project.file("pom.xml").exists()) {
             def maven2Gradle = project.task("maven2Gradle", type: ConvertMaven2Gradle) {
-                group = GROUP
                 description = '[incubating] Attempts to generate gradle builds from Maven project.'
             }
             setupBuild.dependsOn(maven2Gradle)
         } else {
             // generate empty gradle build file
             GenerateBuildFile generateBuildFile = project.task("generateBuildFile", type: GenerateBuildFile) {
-                group = GROUP
-                description = '[incubating] Creates a Gradle build file.'
+                description = '[incubating] Creates a build file.'
                 buildFile = project.file("build.gradle")
             }
             // generate empty gradle settings file
             GenerateSettingsFile generateSettingsFile = project.task("generateSettingsFile", type: GenerateSettingsFile) {
-                group = GROUP
-                description = '[incubating] Creates a Gradle settings file.'
+                description = '[incubating] Creates a settings file.'
                 settingsFile = project.file("settings.gradle")
             }
             setupBuild.dependsOn(generateSettingsFile)
             setupBuild.dependsOn(generateBuildFile)
         }
-        Task wrapper = project.task("wrapper", type: Wrapper)
-        setupBuild.dependsOn(wrapper)
     }
 }
