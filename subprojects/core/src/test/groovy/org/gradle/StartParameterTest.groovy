@@ -286,19 +286,6 @@ class StartParameterTest extends Specification {
         assertThat(newParameter, isSerializable())
     }
     
-    void "system properties are merged"() {
-        def parameter = new StartParameter()
-
-        System.properties.clear()
-        System.properties.a = "sys a"
-        System.properties.c = "sys c"
-
-        parameter.systemPropertiesArgs= [a: 'a', b: 'b']
-
-        expect:
-        parameter.mergedSystemProperties.sort() == [a: 'a', b: 'b', c: 'sys c']
-    }
-
     void "gets all init scripts"() {
         def gradleUserHomeDir = tmpDir.testDirectory.createDir("gradleUserHomeDie")
         def gradleHomeDir = tmpDir.testDirectory.createDir("gradleHomeDir")
