@@ -143,7 +143,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public void finished() {
-            // TODO:DAZ Release any pent-up state: paused UpToDateStates etc.
         }
 
         private TaskUpToDateState getStates() {

@@ -47,7 +47,7 @@ public class TaskUpToDateState {
         taskTypeState = TaskTypeStateChangeRule.create(task, lastExecution, thisExecution);
         inputPropertiesState = InputPropertiesStateChangeRule.create(task, lastExecution, thisExecution);
         outputFilesState = OutputFilesStateChangeRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter);
-        inputFilesState = InputFilesStateChangeRule.create(task, lastExecution, thisExecution, inputFilesSnapshotter);
+        inputFilesState = InputFilesStateChangeRule.create(task, lastExecution, thisExecution, inputFilesSnapshotter, MAX_OUT_OF_DATE_MESSAGES);
         allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, hasNoOutputs, upToDateSpecState, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState);
         rebuildChanges = new SummaryTaskStateChanges(1, upToDateSpecState, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
     }

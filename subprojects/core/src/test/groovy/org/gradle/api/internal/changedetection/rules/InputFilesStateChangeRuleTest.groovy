@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.internal.changedetection.rules
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
@@ -44,7 +42,7 @@ public class InputFilesStateChangeRuleTest extends Specification {
         def previousExecution = Stub(TaskExecution) {
             getInputFilesSnapshot() >> previousInputSnapshot
         }
-        return InputFilesStateChangeRule.create(task, previousExecution, Mock(TaskExecution), snapshotter)
+        return InputFilesStateChangeRule.create(task, previousExecution, Mock(TaskExecution), snapshotter, 3)
     }
 
     def "emits change for no previous input snapshot"() {
@@ -92,9 +90,16 @@ public class InputFilesStateChangeRuleTest extends Specification {
         stateChanges.findChanges(listener)
 
         then:
-        3 * listener.isAccepting() >>> [true, true, false]
+        2 * listener.isAccepting() >>> [true, false]
         1 * listener.accept({it.getMessage() == "Input file one has been added."})
-        1 * listener.accept({it.getMessage() == "Input file two has been removed."})
+        0 * _
+
+        when:
+        stateChanges.findChanges(listener)
+
+        then:
+        _ * listener.isAccepting() >> true
+        1 * listener.accept({it.getMessage() == "Input file one has been added."})
         0 * _
     }
 
@@ -104,7 +109,7 @@ public class InputFilesStateChangeRuleTest extends Specification {
         stateChanges.findChanges(listener)
 
         then:
-        2 * listener.isAccepting() >>> [true, false]
+        3 * listener.isAccepting() >>> [true, false, false]
         1 * inputSnapshot.changesSince(previousInputSnapshot, _ as FileCollectionSnapshot.SnapshotChangeListener) >> { snapshot, snapshotChangeListener ->
             assert !snapshotChangeListener.stopped
             snapshotChangeListener.added("one")
@@ -130,6 +135,43 @@ public class InputFilesStateChangeRuleTest extends Specification {
         }
         1 * listener.accept({it.getMessage() == "Input file two has been removed."})
         1 * listener.accept({it.getMessage() == "Input file three has changed."})
+        0 * _
+    }
+
+    def     "resumes changes after cached changes exhausted when cache is full"() {
+        final stateChanges = createStateChanges()
+        when: "first call has more changes than can fit in cache"
+        stateChanges.findChanges(listener)
+
+        then:
+        1 * inputSnapshot.changesSince(previousInputSnapshot, _ as FileCollectionSnapshot.SnapshotChangeListener) >> { snapshot, snapshotChangeListener ->
+            snapshotChangeListener.added("one")
+            snapshotChangeListener.removed("two")
+            snapshotChangeListener.changed("three")
+            snapshotChangeListener.added("four") // Only 3 changes will be cached
+        }
+        _ * listener.isAccepting() >> true
+        4 * listener.accept(_)
+        0 * _
+
+        when: "subsequent call"
+        stateChanges.findChanges(listener)
+
+        then: "first cached changes are emitted"
+        1 * listener.accept({it.getMessage() == "Input file one has been added."})
+        1 * listener.accept({it.getMessage() == "Input file two has been removed."})
+        1 * listener.accept({it.getMessage() == "Input file three has changed."})
+
+        and:
+        3 * listener.isAccepting() >> true
+
+        then: "other changes are detected in snapshot"
+        1 * inputSnapshot.changesSince(previousInputSnapshot, _ as FileCollectionSnapshot.SnapshotChangeListener) >> { snapshot, snapshotChangeListener ->
+            assert snapshotChangeListener.resumeAfter == "three"
+            snapshotChangeListener.added("four")
+        }
+        1 * listener.accept({it.getMessage() == "Input file four has been added."})
+        1 * listener.isAccepting() >> true
         0 * _
     }
 }

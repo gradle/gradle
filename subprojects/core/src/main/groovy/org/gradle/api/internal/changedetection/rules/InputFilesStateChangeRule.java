@@ -20,18 +20,16 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
 /**
  * A rule which detects changes in the input files of a task.
  */
 class InputFilesStateChangeRule {
-    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter) {
+    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter,
+                                          final int maxCachedChanges) {
         final FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
 
         return new TaskStateChanges() {
-            private final FileChangeCache fileChangeCache = new FileChangeCache();
+            private final FileChangeCache fileChangeCache = new FileChangeCache(maxCachedChanges);
 
             public void findChanges(final UpToDateChangeListener listener) {
                 if (previousExecution.getInputFilesSnapshot() == null) {
@@ -49,9 +47,16 @@ class InputFilesStateChangeRule {
                     listener.accept(cachedChange);
                 }
 
-                // TODO:DAZ Remember if all changes are already cached, so we don't need to do anything more.
+                if (fileChangeCache.isComplete()) {
+                    return;
+                }
 
                 processUncachedChanges(listener);
+
+                // If the listener stopped accepting, then we don't know if there are entries missing from the cache.
+                if (listener.isAccepting()) {
+                    fileChangeCache.hasSeenAllChanges();
+                }
             }
 
             private void processUncachedChanges(final UpToDateChangeListener listener) {
@@ -70,7 +75,7 @@ class InputFilesStateChangeRule {
                     }
 
                     public String getResumeAfter() {
-                        return fileChangeCache.getLastChange();
+                        return fileChangeCache.getLastCachedChange();
                     }
 
                     public boolean isStopped() {
@@ -90,20 +95,4 @@ class InputFilesStateChangeRule {
         };
     }
 
-    private static class FileChangeCache implements Iterable<FileChange> {
-        private final ArrayList<FileChange> cachedChanges = new ArrayList<FileChange>();
-
-        public void cache(FileChange change) {
-            // TODO:DAZ Restrict how many changes are cached: for now we don't need to cache more than the max number reported in up-to-date check (10).
-            cachedChanges.add(change);
-        }
-
-        public String getLastChange() {
-            return cachedChanges.size() == 0 ? null : cachedChanges.get(cachedChanges.size() - 1).getPath();
-        }
-
-        public Iterator<FileChange> iterator() {
-            return cachedChanges.iterator();
-        }
-    }
 }
