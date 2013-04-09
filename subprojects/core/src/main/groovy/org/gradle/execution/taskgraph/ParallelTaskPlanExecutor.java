@@ -42,8 +42,6 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }
 
-        LOGGER.info("Using {} parallel executor threads", numberOfParallelExecutors);
-
         this.stateCacheAccess = cacheAccess;
         this.executorCount = numberOfParallelExecutors;
     }
@@ -62,6 +60,8 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
         List<Project> projects = getAllProjects(taskExecutionPlan);
         int numExecutors = Math.min(executorCount, projects.size());
         numExecutors = Math.min(numExecutors, 4);
+
+        LOGGER.info("Using {} parallel executor threads", numExecutors);
 
         for (int i = 0; i < numExecutors; i++) {
             TaskExecutorWorker worker = new TaskExecutorWorker(taskExecutionPlan, taskListener);
