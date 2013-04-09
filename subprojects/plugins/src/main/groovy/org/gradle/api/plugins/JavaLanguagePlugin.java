@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.language.base.BinariesContainer;
 import org.gradle.language.base.internal.DefaultClasspath;
@@ -44,10 +45,12 @@ import java.util.concurrent.Callable;
 @Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
+    private final FileResolver fileResolver;
 
     @Inject
-    public JavaLanguagePlugin(Instantiator instantiator) {
+    public JavaLanguagePlugin(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
+        this.fileResolver = fileResolver;
     }
 
     public void apply(final Project target) {
@@ -73,8 +76,9 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 functionalSourceSet.registerFactory(JavaSourceSet.class, new NamedDomainObjectFactory<JavaSourceSet>() {
                     public JavaSourceSet create(String name) {
                         return instantiator.newInstance(DefaultJavaSourceSet.class, name,
-                                instantiator.newInstance(DefaultSourceDirectorySet.class),
-                                instantiator.newInstance(DefaultClasspath.class), functionalSourceSet);
+                                instantiator.newInstance(DefaultSourceDirectorySet.class, name, fileResolver),
+                                instantiator.newInstance(DefaultClasspath.class, fileResolver,
+                                        target.getTasks()), functionalSourceSet);
                     }
                 });
             }
@@ -90,7 +94,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
      * @param binary the binary for the compile task
      */
     public void configureCompileTask(AbstractCompile compile, final JvmLanguageSourceSet sourceSet, final ClassDirectoryBinary binary) {
-        compile.setDescription(String.format("Compiles the %s.", sourceSet));
+        compile.setDescription(String.format("Compiles %s.", sourceSet));
         compile.setSource(sourceSet.getSource());
         compile.dependsOn(sourceSet);
         ConventionMapping conventionMapping = compile.getConventionMapping();
