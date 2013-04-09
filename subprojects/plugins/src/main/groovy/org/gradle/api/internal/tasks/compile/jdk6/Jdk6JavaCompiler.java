@@ -34,7 +34,7 @@ public class Jdk6JavaCompiler implements Compiler<JavaCompileSpec>, Serializable
     private static final Logger LOGGER = LoggerFactory.getLogger(Jdk6JavaCompiler.class);
 
     public WorkResult execute(JavaCompileSpec spec) {
-        LOGGER.info("Compiling with JDK 6 Java compiler API.");
+        LOGGER.info("Compiling with JDK Java compiler API.");
 
         JavaCompiler.CompilationTask task = createCompileTask(spec);
         boolean success = task.call();
