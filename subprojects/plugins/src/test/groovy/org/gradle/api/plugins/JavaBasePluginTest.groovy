@@ -69,7 +69,7 @@ class JavaBasePluginTest extends Specification {
         Matchers.builtBy('customClasses').matches(set.output)
 
         def processResources = project.tasks['processCustomResources']
-        processResources.description == 'Processes the custom resources.'
+        processResources.description == "Processes source set 'custom:resources'."
         processResources instanceof Copy
         Matchers.dependsOn().matches(processResources)
         processResources.destinationDir == project.sourceSets.custom.output.resourcesDir
@@ -77,7 +77,7 @@ class JavaBasePluginTest extends Specification {
         resources sameCollection(project.sourceSets.custom.resources)
 
         def compileJava = project.tasks['compileCustomJava']
-        compileJava.description == "Compiles the source set 'custom:java'."
+        compileJava.description == "Compiles source set 'custom:java'."
         compileJava instanceof JavaCompile
         Matchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
@@ -87,7 +87,7 @@ class JavaBasePluginTest extends Specification {
         sources sameCollection(project.sourceSets.custom.java)
 
         def classes = project.tasks['customClasses']
-        classes.description == 'Assembles the custom classes.'
+        classes.description == "Assembles binary 'custom'."
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         classes.dependsOn.contains project.sourceSets.custom.output.dirs
@@ -135,14 +135,14 @@ class JavaBasePluginTest extends Specification {
         compile.transitive
         !compile.visible
         compile.extendsFrom == [] as Set
-        compile.description == 'Classpath for compiling the custom sources.'
+        compile.description == "Compile classpath for source set 'custom'."
 
         and:
         def runtime = project.configurations.customRuntime
         runtime.transitive
         !runtime.visible
         runtime.extendsFrom == [compile] as Set
-        runtime.description == 'Classpath for running the compiled custom classes.'
+        runtime.description == "Runtime classpath for source set 'custom'."
 
         and:
         def runtimeClasspath = sourceSet.runtimeClasspath

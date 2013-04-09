@@ -73,7 +73,7 @@ public class DefaultSourceSet implements SourceSet {
 
     @Override
     public String toString() {
-        return String.format("source set %s", getDisplayName());
+        return String.format("source set '%s'", getDisplayName());
     }
 
     public String getDisplayName() {
