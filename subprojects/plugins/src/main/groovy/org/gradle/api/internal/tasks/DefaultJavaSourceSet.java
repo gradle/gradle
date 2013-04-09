@@ -67,6 +67,6 @@ public class DefaultJavaSourceSet implements JavaSourceSet {
 
 
     public String toString() {
-        return String.format("%s/%s source set", parent.getName(), name);
+        return String.format("source set '%s:%s'", parent.getName(), name);
     }
 }

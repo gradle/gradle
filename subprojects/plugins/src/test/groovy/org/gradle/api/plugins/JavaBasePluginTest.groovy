@@ -77,7 +77,7 @@ class JavaBasePluginTest extends Specification {
         resources sameCollection(project.sourceSets.custom.resources)
 
         def compileJava = project.tasks['compileCustomJava']
-        compileJava.description == 'Compiles the custom/java source set.'
+        compileJava.description == "Compiles the source set 'custom:java'."
         compileJava instanceof JavaCompile
         Matchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)

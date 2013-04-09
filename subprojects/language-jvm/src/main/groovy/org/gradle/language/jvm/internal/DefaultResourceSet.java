@@ -48,6 +48,6 @@ public class DefaultResourceSet implements ResourceSet {
     }
 
     public String toString() {
-        return String.format("%s/%s source set", parent.getName(), name);
+        return String.format("source set '%s:%s'", parent.getName(), name);
     }
 }

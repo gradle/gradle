@@ -97,4 +97,8 @@ public class DefaultClassDirectoryBinary implements ClassDirectoryBinary {
     public String getTaskBaseName() {
         return name.equals("main") ? "" : GUtil.toCamelCase(name);
     }
+
+    public String toString() {
+        return String.format("binary '%s'", getName());
+    }
 }

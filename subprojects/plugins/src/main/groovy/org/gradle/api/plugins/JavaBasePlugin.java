@@ -103,7 +103,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                     compileConfiguration = configurations.create(sourceSet.getCompileConfigurationName());
                 }
                 compileConfiguration.setVisible(false);
-                compileConfiguration.setDescription(String.format("Classpath for compiling the %s sources.", sourceSet.getName()));
+                compileConfiguration.setDescription(String.format("Classpath for compiling %s.", sourceSet));
 
                 Configuration runtimeConfiguration = configurations.findByName(sourceSet.getRuntimeConfigurationName());
                 if (runtimeConfiguration == null) {
@@ -111,7 +111,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 }
                 runtimeConfiguration.setVisible(false);
                 runtimeConfiguration.extendsFrom(compileConfiguration);
-                runtimeConfiguration.setDescription(String.format("Classpath for running the compiled %s classes.", sourceSet.getName()));
+                runtimeConfiguration.setDescription(String.format("Classpath for running %s.", sourceSet));
 
                 sourceSet.setCompileClasspath(compileConfiguration);
                 sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));

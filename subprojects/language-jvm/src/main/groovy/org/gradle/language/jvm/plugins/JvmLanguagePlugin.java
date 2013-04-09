@@ -91,7 +91,7 @@ public class JvmLanguagePlugin implements Plugin<Project> {
                     }
                 });
                 final Task classesTask = target.getTasks().create(binary.getTaskName(null, "classes"));
-                classesTask.setDescription(String.format("Assembles the %s classes.", binary.getName()));
+                classesTask.setDescription(String.format("Assembles %s.", binary));
                 binary.setClassesTask(classesTask);
                 binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
                     public void execute(ResourceSet resourceSet) {
