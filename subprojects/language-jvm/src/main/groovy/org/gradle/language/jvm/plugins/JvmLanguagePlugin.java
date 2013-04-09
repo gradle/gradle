@@ -95,18 +95,15 @@ public class JvmLanguagePlugin implements Plugin<Project> {
                 binary.setClassesTask(classesTask);
                 binary.getSource().withType(ResourceSet.class).all(new Action<ResourceSet>() {
                     public void execute(ResourceSet resourceSet) {
-                        Copy resourcesTask = binary.getResourcesTask();
-                        if (resourcesTask == null) {
-                            resourcesTask = target.getTasks().create(binary.getTaskName("process", "resources"), ProcessResources.class);
-                            resourcesTask.setDescription(String.format("Processes the %s resources.", binary.getName()));
-                            new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
-                                public File call() throws Exception {
-                                    return binary.getResourcesDir();
-                                }
-                            });
-                            binary.setResourcesTask(resourcesTask);
-                            classesTask.dependsOn(resourcesTask);
-                        }
+                        // TODO: handle case where binary has multiple ResourceSet's
+                        Copy resourcesTask = target.getTasks().create(binary.getTaskName("process", "resources"), ProcessResources.class);
+                        resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
+                        new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
+                            public File call() throws Exception {
+                                return binary.getResourcesDir();
+                            }
+                        });
+                        classesTask.dependsOn(resourcesTask);
                         resourcesTask.from(resourceSet.getSource());
                     }
                 });

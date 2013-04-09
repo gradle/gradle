@@ -16,7 +16,6 @@
 package org.gradle.language.jvm;
 
 import org.gradle.api.*;
-import org.gradle.api.tasks.Copy;
 import org.gradle.language.base.LanguageSourceSet;
 
 import java.io.File;
@@ -38,9 +37,6 @@ public interface ClassDirectoryBinary extends Named, Buildable {
     DomainObjectCollection<LanguageSourceSet> getSource();
     Task getClassesTask();
     void setClassesTask(Task task);
-    @Nullable
-    Copy getResourcesTask();
-    void setResourcesTask(Copy task);
     String getTaskName(String verb, String target);
     String getTaskBaseName();
 }
