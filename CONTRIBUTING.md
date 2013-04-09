@@ -14,7 +14,7 @@ Following these simple steps can help ensure that your code contribution ends up
 
 This is the general process for contributing code to the Gradle project.
 
-1. Complete and submit the [Gradleware CLA](http://www.gradleware.com/sites/default/files/CLA.pdf).
+1. Complete and submit the [Gradleware CLA](http://www.gradleware.com/agreements/gradleware-contributor-license-agreement.pdf).
 You'll need to sign one of these before any code contributions will be accepted into the Gradle codebase.
 (Currently, the signed CLA must be posted or scanned/emailed directly to Gradleware. We're still working on our electronic signing process).
     1. Download, print and fill out the CLA, entering all of the requested personal information (Name, E-Mail, Mailing Address, Telephone, Country).
