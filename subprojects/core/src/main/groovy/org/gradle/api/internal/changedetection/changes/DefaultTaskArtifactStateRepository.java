@@ -134,7 +134,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public void afterTask() {
-            if (upToDate || hasChanges(getStates().getHasNoOutputs())) {
+            if (upToDate) {
                 return;
             }
 
@@ -151,12 +151,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 states = new TaskUpToDateState(task, history, outputFilesSnapshotter, inputFilesSnapshotter);
             }
             return states;
-        }
-
-        private boolean hasChanges(TaskStateChanges changes) {
-            UpToDateChangeAction action = new UpToDateChangeAction();
-            changes.findChanges(action);
-            return action.executeCount > 0;
         }
     }
 

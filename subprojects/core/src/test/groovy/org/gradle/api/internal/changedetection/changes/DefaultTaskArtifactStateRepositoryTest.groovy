@@ -506,28 +506,6 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         repository.getStateFor(noOutputsTask).upToDate
     }
 
-    def artifactsAreNotUpToDateAndHistoryNotPersistedWhenTaskDoesNotDeclareOutputs() {
-        when:
-        TaskInternal noOutputsTask = builder.doesNotDeclareOutputs().task()
-        execute(noOutputsTask)
-
-        then:
-        def state = repository.getStateFor(noOutputsTask)
-        !state.upToDate
-        !state.executionHistory.hasHistory()
-    }
-
-    def artifactsAreUpToDateAndHistoryPersistedWhenIncrementalTaskDoesNotDeclareOutputs() {
-        when:
-        TaskInternal noOutputsIncrementalTask = builder.incremental().doesNotDeclareOutputs().task()
-        execute(noOutputsIncrementalTask)
-
-        then:
-        def state = repository.getStateFor(noOutputsIncrementalTask)
-        state.upToDate
-        state.executionHistory.hasHistory()
-    }
-
     def artifactsAreNotUpToDateWhenTaskUpToDateSpecIsFalse() {
         when:
         task.outputs.upToDateWhen {
@@ -581,7 +559,6 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         private Collection<? extends TestFile> create = createFiles
         private Class<? extends TaskInternal> type = TaskInternal.class
         private Map<String, Object> inputProperties = new HashMap<String, Object>(toMap("prop", "value"))
-        boolean incremental
 
         TaskBuilder withInputFiles(File... inputFiles) {
             inputs = Arrays.asList(inputFiles)
@@ -614,16 +591,6 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
             return this
         }
 
-        TaskBuilder doesNotDeclareOutputs() {
-            outputs = null
-            return this
-        }
-
-        TaskBuilder incremental() {
-            incremental = true
-            return this
-        }
-
         public TaskBuilder withProperty(String name, Object value) {
             inputProperties.put(name, value)
             return this
@@ -639,9 +606,6 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
             }
             if (outputs != null) {
                 task.getOutputs().files(outputs)
-            }
-            if (incremental) {
-                task.getOutputs().upToDateWhen {true}
             }
             task.doLast(new org.gradle.api.Action<Object>() {
                 public void execute(Object o) {

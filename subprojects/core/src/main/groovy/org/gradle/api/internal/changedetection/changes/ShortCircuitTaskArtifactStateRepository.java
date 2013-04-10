@@ -15,14 +15,19 @@
  */
 package org.gradle.api.internal.changedetection.changes;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.tasks.TaskInputChanges;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShortCircuitTaskArtifactStateRepository.class);
+
     private final StartParameter startParameter;
     private final TaskArtifactStateRepository repository;
 
@@ -32,11 +37,19 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
+
+        if (!task.getOutputs().getHasOutput()) { // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
+            LOGGER.info(String.format("%s has not declared any outputs, assuming that it is out-of-date.", StringUtils.capitalize(task.toString())));
+            return new NoHistoryArtifactState();
+        }
+
         final TaskArtifactState state = repository.getStateFor(task);
 
         if (startParameter.isRerunTasks()) {
+            LOGGER.info(String.format("Executing %s with '--rerun-tasks', assuming that it is out-of-date.", StringUtils.capitalize(task.toString())));
             return new RerunTaskArtifactState(state, task);
         }
+
         return state;
     }
 
