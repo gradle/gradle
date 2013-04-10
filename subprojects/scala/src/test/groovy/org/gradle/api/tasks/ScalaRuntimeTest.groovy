@@ -24,7 +24,7 @@ import spock.lang.Specification
 class ScalaRuntimeTest extends Specification {
     def project = HelperUtil.createRootProject()
 
-    def "allows to infer Scala compiler class path"() {
+    def "allows to infer Scala class path"() {
         project.plugins.apply(ScalaBasePlugin)
 
         project.repositories {
