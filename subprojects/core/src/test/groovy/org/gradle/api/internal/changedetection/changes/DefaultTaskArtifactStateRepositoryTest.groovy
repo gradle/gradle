@@ -17,11 +17,9 @@
 package org.gradle.api.internal.changedetection.changes
 import org.gradle.CacheUsage
 import org.gradle.api.DefaultTask
-import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.*
-import org.gradle.api.internal.tasks.IncrementalTaskAction
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.id.RandomLongIdGenerator
@@ -643,26 +641,15 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
                 task.getOutputs().files(outputs)
             }
             if (incremental) {
-                task.addActionRaw(new IncrementalTaskAction() {
-                    void setTaskArtifactState(TaskArtifactState taskArtifactState) {
-                    }
-
-                    void execute(Task t) {
-                        for (TestFile file : create) {
-                            file.createFile()
-                        }
-                    }
-                })
-
-            } else {
-                task.doLast(new org.gradle.api.Action<Object>() {
-                    public void execute(Object o) {
-                        for (TestFile file : create) {
-                            file.createFile()
-                        }
-                    }
-                })
+                task.getOutputs().upToDateWhen {true}
             }
+            task.doLast(new org.gradle.api.Action<Object>() {
+                public void execute(Object o) {
+                    for (TestFile file : create) {
+                        file.createFile()
+                    }
+                }
+            })
 
             return task
         }

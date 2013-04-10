@@ -23,7 +23,9 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.*;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
@@ -95,8 +97,18 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         TaskInternal task = taskFactory.createTask(args);
         TaskClassInfo taskClassInfo = getTaskClassInfo(task.getClass());
 
+        // TODO:DAZ Make this more general purpose, and support IncrementalTaskActions added via another mechanism.
+        if (taskClassInfo.incremental) {
+            // Add a dummy upToDateWhen spec: this will for TaskOutputs.hasOutputs() to be true.
+            task.getOutputs().upToDateWhen(new Spec<Task>() {
+                public boolean isSatisfiedBy(Task element) {
+                    return true;
+                }
+            });
+        }
+
         for (Factory<Action<Task>> actionFactory : taskClassInfo.taskActions) {
-            task.addActionRaw(actionFactory.create());
+            task.doFirst(actionFactory.create());
         }
 
         if (taskClassInfo.validator != null) {
@@ -142,41 +154,38 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                     method.getDeclaringClass().getSimpleName(), method.getName()));
         }
         final Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length > 1) {
+            throw new GradleException(String.format(
+                    "Cannot use @TaskAction annotation on method %s.%s() as this method takes multiple parameters.",
+                    method.getDeclaringClass().getSimpleName(), method.getName()));
+        }
+
         if (parameterTypes.length == 1) {
             if (!parameterTypes[0].equals(TaskInputChanges.class)) {
                 throw new GradleException(String.format(
                         "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
                         method.getDeclaringClass().getSimpleName(), method.getName(), parameterTypes[0]));
             }
-        } else if (parameterTypes.length > 1) {
-            throw new GradleException(String.format(
-                    "Cannot use @TaskAction annotation on method %s.%s() as this method takes multiple parameters.",
-                    method.getDeclaringClass().getSimpleName(), method.getName()));
+            taskClassInfo.incremental = true;
         }
         // TODO:DAZ Fail if we detect multiple action methods with the same name
         if (processedMethods.contains(method.getName())) {
             return;
         }
-        taskClassInfo.taskActions.add(0, createActionFactory(method, parameterTypes));
+        taskClassInfo.taskActions.add(createActionFactory(method, parameterTypes));
         processedMethods.add(method.getName());
     }
 
-    private Factory<Action<Task>> createActionFactory(final Method method, Class<?>[] parameterTypes) {
-        Factory<Action<Task>> actionFactory;
-        if (parameterTypes.length == 1) {
-            actionFactory = new Factory<Action<Task>>() {
-                public Action<Task> create() {
+    private Factory<Action<Task>> createActionFactory(final Method method, final Class<?>[] parameterTypes) {
+        return new Factory<Action<Task>>() {
+            public Action<Task> create() {
+                if (parameterTypes.length == 1) {
                     return new IncrementalTaskAction(method);
-                }
-            };
-        } else {
-            actionFactory = new Factory<Action<Task>>() {
-                public Action<Task> create() {
+                } else {
                     return new StandardTaskAction(method);
                 }
-            };
-        }
-        return actionFactory;
+            }
+        };
     }
 
     private static boolean isGetter(Method method) {
@@ -206,7 +215,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
     }
 
-    public static class IncrementalTaskAction extends StandardTaskAction implements org.gradle.api.internal.tasks.IncrementalTaskAction {
+    public static class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTaskAction {
 
         private TaskArtifactState taskArtifactState;
 
@@ -214,8 +223,8 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             super(method);
         }
 
-        public void setTaskArtifactState(TaskArtifactState taskArtifactState) {
-            this.taskArtifactState = taskArtifactState;
+        public void contextualise(TaskExecutionContext context) {
+            this.taskArtifactState = context == null ? null : context.getTaskArtifactState();
         }
 
         protected void doExecute(Task task, String methodName) {
@@ -227,6 +236,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private static class TaskClassInfo {
         public Validator validator;
         public List<Factory<Action<Task>>> taskActions = new ArrayList<Factory<Action<Task>>>();
+        public boolean incremental;
     }
 
     private class Validator implements Action<Task>, TaskValidator {

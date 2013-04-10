@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
 
-import java.util.List;
-
-public class HasNoOutputsStateChangeRule {
-    public static TaskStateChanges create(final TaskInternal task) {
-        return new SimpleTaskStateChanges() {
-            @Override
-            protected void addAllChanges(List<TaskStateChange> changes) {
-                if (task.getOutputs().getHasOutput()) { // Only false if no declared outputs AND no upToDateWhen spec. We force to true for incremental tasks.
-                    return;
-                }
-                changes.add(new DescriptiveChange("Task has no declared outputs"));
-            }
-        };
-    }
+public interface ContextualTaskExecuter {
+    /**
+     * Executes the given task. If the task fails with an exception, the exception is packaged in the provided task
+     * state.
+     */
+    void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context);
 }

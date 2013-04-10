@@ -17,21 +17,22 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.ContextualTaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 
 /**
- * A {@link TaskExecuter} which marks tasks as up-to-date if they did no work.
+ * A {@link ContextualTaskExecuter} which marks tasks as up-to-date if they did no work.
  */
-public class PostExecutionAnalysisTaskExecuter implements TaskExecuter {
-    private final TaskExecuter executer;
+public class PostExecutionAnalysisTaskExecuter implements ContextualTaskExecuter {
+    private final ContextualTaskExecuter executer;
 
-    public PostExecutionAnalysisTaskExecuter(TaskExecuter executer) {
+    public PostExecutionAnalysisTaskExecuter(ContextualTaskExecuter executer) {
         this.executer = executer;
     }
 
-    public void execute(TaskInternal task, TaskStateInternal state) {
-        executer.execute(task, state);
+    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+        executer.execute(task, state, context);
         if (!state.getDidWork()) {
             state.upToDate();
         }

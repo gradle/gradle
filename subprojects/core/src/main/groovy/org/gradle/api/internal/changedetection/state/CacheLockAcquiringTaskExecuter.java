@@ -28,7 +28,7 @@ public class CacheLockAcquiringTaskExecuter implements TaskExecuter {
     private final TaskExecuter executer;
     private final TaskArtifactStateCacheAccess cacheAccess;
 
-    public CacheLockAcquiringTaskExecuter(TaskExecuter executer, TaskArtifactStateCacheAccess cacheAccess) {
+    public CacheLockAcquiringTaskExecuter(TaskArtifactStateCacheAccess cacheAccess, TaskExecuter executer) {
         this.executer = executer;
         this.cacheAccess = cacheAccess;
     }

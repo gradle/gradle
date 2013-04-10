@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,23 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.ContextualTaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 
-public class CacheLockReleasingTaskExecuter implements TaskExecuter {
-    private final TaskExecuter executer;
+public class CacheLockReleasingTaskExecuter implements ContextualTaskExecuter {
+    private final ContextualTaskExecuter executer;
     private final TaskArtifactStateCacheAccess cacheAccess;
 
-    public CacheLockReleasingTaskExecuter(TaskExecuter executer, TaskArtifactStateCacheAccess cacheAccess) {
+    public CacheLockReleasingTaskExecuter(TaskArtifactStateCacheAccess cacheAccess, ContextualTaskExecuter executer) {
         this.executer = executer;
         this.cacheAccess = cacheAccess;
     }
 
-    public void execute(final TaskInternal task, final TaskStateInternal state) {
+    public void execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
         cacheAccess.longRunningOperation(String.format("execute %s", task), new Runnable() {
             public void run() {
-                executer.execute(task, state);
+                executer.execute(task, state, context);
             }
         });
     }

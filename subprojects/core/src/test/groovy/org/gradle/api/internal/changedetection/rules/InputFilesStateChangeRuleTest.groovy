@@ -98,7 +98,7 @@ public class InputFilesStateChangeRuleTest extends Specification {
         stateChanges.findChanges(listener)
 
         then:
-        _ * listener.isAccepting() >> true
+        _ * listener.isAccepting() >>> [true, false]
         1 * listener.accept({it.getMessage() == "Input file one has been added."})
         0 * _
     }

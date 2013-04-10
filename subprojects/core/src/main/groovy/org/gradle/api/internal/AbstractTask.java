@@ -62,7 +62,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String name;
 
-    private List<Action<? super Task>> actions = new ArrayList<Action<? super Task>>();
+    private List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>();
 
     private String path;
 
@@ -178,6 +178,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public List<Action<? super Task>> getActions() {
+        return observableActionList;
+    }
+
+    public List<ContextAwareTaskAction> getTaskActions() {
         return observableActionList;
     }
 
@@ -443,10 +447,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         };
     }
 
-    public void addActionRaw(Action<Task> action) {
-        actions.add(action);
-    }
-
     public void addValidator(TaskValidator validator) {
         validators.add(validator);
     }
@@ -455,11 +455,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return validators;
     }
 
-    private Action<Task> convertClosureToAction(Closure actionClosure) {
+    private ContextAwareTaskAction convertClosureToAction(Closure actionClosure) {
         return new ClosureTaskAction(actionClosure);
     }
 
-    private Action<Task> wrap(final Action<? super Task> action) {
+    private ContextAwareTaskAction wrap(final Action<? super Task> action) {
         return new TaskActionWrapper(action);
     }
 
@@ -473,11 +473,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static class ClosureTaskAction implements Action<Task> {
+    private static class ClosureTaskAction implements ContextAwareTaskAction {
         private final Closure closure;
 
         private ClosureTaskAction(Closure closure) {
             this.closure = closure;
+        }
+
+        public void contextualise(TaskExecutionContext context) {
         }
 
         public void execute(Task task) {
@@ -503,11 +506,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static class TaskActionWrapper implements Action<Task> {
+    private static class TaskActionWrapper implements ContextAwareTaskAction {
         private final Action<? super Task> action;
 
         public TaskActionWrapper(Action<? super Task> action) {
             this.action = action;
+        }
+
+        public void contextualise(TaskExecutionContext context) {
+            if (action instanceof ContextAwareTaskAction) {
+                ((ContextAwareTaskAction) action).contextualise(context);
+            }
         }
 
         public void execute(Task task) {
@@ -534,14 +543,5 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public TaskDependency getMustRunAfter() {
         return mustRunAfter;
-    }
-
-    public boolean isIncrementalTask() {
-        for (Action<? super Task> action : actions) {
-            if (action instanceof IncrementalTaskAction) {
-                return true;
-            }
-        }
-        return false;
     }
 }

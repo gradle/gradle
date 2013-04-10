@@ -18,8 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
 
-public interface IncrementalTaskAction extends Action<Task> {
-    void setTaskArtifactState(TaskArtifactState taskArtifactState);
+public interface ContextAwareTaskAction extends Action<Task> {
+    void contextualise(TaskExecutionContext context);
 }

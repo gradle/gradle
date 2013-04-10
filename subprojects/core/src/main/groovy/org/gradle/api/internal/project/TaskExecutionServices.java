@@ -42,20 +42,20 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
 
     protected TaskExecuter createTaskExecuter() {
         TaskArtifactStateCacheAccess cacheAccess = get(TaskArtifactStateCacheAccess.class);
+        TaskArtifactStateRepository repository = get(TaskArtifactStateRepository.class);
         return new ExecuteAtMostOnceTaskExecuter(
                 new SkipOnlyIfTaskExecuter(
                         new SkipTaskWithNoActionsExecuter(
                                 new SkipEmptySourceFilesTaskExecuter(
                                         new ValidatingTaskExecuter(
-                                                new CacheLockAcquiringTaskExecuter(
-                                                        new SkipUpToDateTaskExecuter(
-                                                                new CacheLockReleasingTaskExecuter(
-                                                                        new PostExecutionAnalysisTaskExecuter(
-                                                                                new ExecuteActionsTaskExecuter(
-                                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
-                                                                        cacheAccess),
-                                                                get(TaskArtifactStateRepository.class)),
-                                                        cacheAccess))))));
+                                                new CacheLockAcquiringTaskExecuter(cacheAccess,
+                                                        new ContextualisingTaskExecuter(
+                                                                new SkipUpToDateTaskExecuter(repository,
+                                                                        new CacheLockReleasingTaskExecuter(cacheAccess,
+                                                                                new PostExecutionAnalysisTaskExecuter(
+                                                                                        new ExecuteActionsTaskExecuter(
+                                                                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class)
+                                                                                        )))))))))));
     }
 
     protected TaskArtifactStateCacheAccess createCacheAccess() {
