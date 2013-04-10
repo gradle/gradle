@@ -166,9 +166,11 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                         "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
                         method.getDeclaringClass().getSimpleName(), method.getName(), parameterTypes[0]));
             }
+            if (taskClassInfo.incremental) {
+                throw new GradleException("Cannot have multiple @TaskAction methods accepting a TaskInputChanges parameter.");
+            }
             taskClassInfo.incremental = true;
         }
-        // TODO:DAZ Fail if we detect multiple action methods with the same name
         if (processedMethods.contains(method.getName())) {
             return;
         }

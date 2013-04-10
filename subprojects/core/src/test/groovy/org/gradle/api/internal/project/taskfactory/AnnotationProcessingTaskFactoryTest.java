@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
@@ -47,8 +48,6 @@ import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-// TODO:DAZ Convert to spock
-// TODO:DAZ Add tests for incremental action
 @RunWith(JMock.class)
 public class AnnotationProcessingTaskFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
@@ -141,6 +140,24 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    public void createsContextualActionFoIncrementalTaskAction() {
+        final Action<TaskInputChanges> action = context.mock(Action.class);
+        TaskWithIncrementalAction task = expectTaskCreated(TaskWithIncrementalAction.class, action);
+
+        context.checking(new Expectations() {{
+            one(action).execute(with(notNullValue(TaskInputChanges.class)));
+        }});
+
+        task.execute();
+    }
+
+    @Test
+    public void failsWhenMultipleActionsAreIncremental() {
+        assertTaskCreationFails(TaskWithMultipleIncrementalActions.class,
+                "Cannot have multiple @TaskAction methods accepting a TaskInputChanges parameter.");
+    }
+
+    @Test
     public void cachesClassMetaInfo() {
         TaskWithInputFile task = expectTaskCreated(TaskWithInputFile.class, existingFile);
         TaskWithInputFile task2 = expectTaskCreated(TaskWithInputFile.class, missingFile);
@@ -156,8 +173,14 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void failsWhenMethodWithParametersHasTaskActionAnnotation() {
-        assertTaskCreationFails(TaskWithParamMethod.class,
-                "Cannot use @TaskAction annotation on method TaskWithParamMethod.doStuff() as this method takes multiple parameters.");
+        assertTaskCreationFails(TaskWithMultiParamAction.class,
+                "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters.");
+    }
+
+    @Test
+    public void failsWhenMethodWithInvalidParameterHasTaskActionAnnotation() {
+        assertTaskCreationFails(TaskWithSingleParamAction.class,
+                "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method.");
     }
 
     private void assertTaskCreationFails(Class<? extends Task> type, String message) {
@@ -734,7 +757,37 @@ public class AnnotationProcessingTaskFactoryTest {
         }
     }
 
-    public static class TaskWithParamMethod extends DefaultTask {
+    public static class TaskWithIncrementalAction extends DefaultTask {
+        private final Action<TaskInputChanges> action;
+
+        public TaskWithIncrementalAction(Action<TaskInputChanges> action) {
+            this.action = action;
+        }
+
+        @TaskAction
+        public void doStuff(TaskInputChanges changes) {
+            action.execute(changes);
+        }
+    }
+
+    public static class TaskWithMultipleIncrementalActions extends DefaultTask {
+
+        @TaskAction
+        public void doStuff(TaskInputChanges changes) {
+        }
+
+        @TaskAction
+        public void doStuff2(TaskInputChanges changes) {
+        }
+    }
+
+    public static class TaskWithSingleParamAction extends DefaultTask {
+        @TaskAction
+        public void doStuff(int value1) {
+        }
+    }
+
+    public static class TaskWithMultiParamAction extends DefaultTask {
         @TaskAction
         public void doStuff(int value1, int value2) {
         }
