@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.scala
+package org.gradle.api.tasks
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.util.HelperUtil
 
 import spock.lang.Specification
 
-class ScalaRuntimeExtensionTest extends Specification {
+class ScalaRuntimeTest extends Specification {
     def project = HelperUtil.createRootProject()
 
     def "allows to infer Scala compiler class path"() {

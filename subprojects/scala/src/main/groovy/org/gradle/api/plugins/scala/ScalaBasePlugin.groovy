@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.DefaultScalaSourceSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
@@ -53,7 +54,7 @@ class ScalaBasePlugin implements Plugin<Project> {
     private final FileResolver fileResolver
 
     private Project project
-    private ScalaRuntimeExtension scalaRuntime
+    private ScalaRuntime scalaRuntime
 
     @Inject
     ScalaBasePlugin(FileResolver fileResolver) {
@@ -93,7 +94,7 @@ class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureScalaRuntimeExtension() {
-        scalaRuntime = project.extensions.create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntimeExtension, project)
+        scalaRuntime = project.extensions.create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime, project)
     }
 
     private void configureSourceSetDefaults(JavaBasePlugin javaPlugin) {

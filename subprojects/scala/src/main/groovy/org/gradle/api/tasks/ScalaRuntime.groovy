@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.scala
+package org.gradle.api.tasks
 
 import org.gradle.api.Incubating
 import org.gradle.api.Nullable
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.plugins.scala.ScalaBasePlugin
 
 import java.util.regex.Pattern
 
 @Incubating
-class ScalaRuntimeExtension {
+class ScalaRuntime {
     private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar")
 
     private final Project project
 
-    ScalaRuntimeExtension(Project project) {
+    ScalaRuntime(Project project) {
         this.project = project
     }
 
