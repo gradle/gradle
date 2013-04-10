@@ -32,7 +32,7 @@ class ScalaRuntimeTest extends Specification {
         }
 
         when:
-        def classpath = project.scalaRuntime.inferScalaCompilerClasspath([new File("other.jar"), new File("scala-library-2.10.0.jar")])
+        def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.0.jar")])
 
         then:
         classpath instanceof Configuration
@@ -49,7 +49,7 @@ class ScalaRuntimeTest extends Specification {
         project.plugins.apply(ScalaBasePlugin)
 
         when:
-        def classpath = project.scalaRuntime.inferScalaCompilerClasspath([new File("other.jar"), new File("scala-library-2.10.0.jar")])
+        def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.0.jar")])
 
         then:
         classpath == project.configurations.scalaTools
@@ -59,7 +59,7 @@ class ScalaRuntimeTest extends Specification {
         project.plugins.apply(ScalaBasePlugin)
 
         when:
-        def classpath = project.scalaRuntime.inferScalaCompilerClasspath([new File("other.jar"), new File("other2.jar")])
+        def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("other2.jar")])
 
         then:
         classpath == project.configurations.scalaTools

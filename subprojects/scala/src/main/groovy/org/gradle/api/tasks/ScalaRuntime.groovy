@@ -24,6 +24,28 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin
 
 import java.util.regex.Pattern
 
+/**
+ * Provides information related to the Scala runtime(s) used in a project. Added by the
+ * {@link ScalaBasePlugin} as a project extension named {@code scalaRuntime}.
+ *
+ * <p>Example usage:
+ *
+ * <pre autoTested="">
+ *     apply plugin: "scala"
+ *
+ *     repositories {
+ *         mavenCentral()
+ *     }
+ *
+ *     dependencies {
+ *         compile "org.scala-lang:scala-library:2.10.1"
+ *     }
+ *
+ *     def scalaClasspath = scalaRuntime.inferScalaClasspath(configurations.compile)
+ *     // The returned class path can be used to configure the 'scalaClasspath' property of tasks
+ *     // such as 'ScalaCompile' or 'ScalaDoc', or to execute these and other Scala tools directly.
+ * </pre>
+ */
 @Incubating
 class ScalaRuntime {
     private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar")
@@ -35,27 +57,20 @@ class ScalaRuntime {
     }
 
     /**
-     * Infers a Scala compiler class path (containing a 'scala-compiler' Jar and its dependencies)
-     * based on the 'scala-library' Jar found on the specified class path.
+     * Searches the specified class path for a 'scala-library' Jar, and returns a class path
+     * containing a corresponding (same version) 'scala-compiler' Jar and its dependencies.
      *
-     * <p>Falls back to returning the 'scalaTools' configuration if one of the following holds:
+     * <p>If the (deprecated) 'scalaTools' configuration is explicitly configured, no repository
+     * is declared for the project, no 'scala-library' Jar is found on the specified class path,
+     * or its version cannot be determined, the 'scalaTools' configuration is returned, irrespective
+     * of its contents.
      *
-     * <ol>
-     *     <li>The 'scalaTools' configuration is explicitly configured (ie. has dependencies declared).
-     *         This is important for backwards compatibility.</li>
-     *     <li>No repository is declared for the project.</li>
-     *     <li>A 'scala-library' Jar cannot be found on the specified class path, or its
-     *         version cannot be determined.</li>
-     * </ol>
+     * <p>The returned class path may be empty, or may fail to resolve when asked for its contents.
      *
-     * Note that the returned class path may be empty, or may fail to resolve when asked for its contents.
-     * If this happens at task execution time, it should usually be treated as a configuration error on part of the user.
-     *
-     * @param classpath a class path (supposedly) containing a 'scala-library' Jar
-     * @return a Scala compiler class path
+     * @param classpath a class path containing a 'scala-library' Jar
+     * @return a class path containing a corresponding 'scala-compiler' Jar and its dependencies
      */
-    @Incubating
-    FileCollection inferScalaCompilerClasspath(Iterable<File> classpath) {
+    FileCollection inferScalaClasspath(Iterable<File> classpath) {
         def scalaTools = project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]
         if (!scalaTools.dependencies.empty || project.repositories.empty) { return scalaTools }
 
@@ -72,19 +87,19 @@ class ScalaRuntime {
     }
 
     /**
-     * Searches the specified class path for a Scala Jar file matching the specified
-     * module (compiler, library, jdbc, etc.).
+     * Searches the specified class path for a Scala Jar file (scala-compiler, scala-library,
+     * scala-jdbc, etc.) with the specified appendix (compiler, library, jdbc, etc.).
+     * If no such file is found, {@code null} is returned.
      *
      * @param classpath the class path to search
-     * @param module the module to search for
-     * @return a matching Scala Jar file, or {@code null} if no match was found
+     * @param appendix the appendix to search for
+     * @return a Scala Jar file with the specified appendix
      */
     @Nullable
-    @Incubating
-    File findScalaJar(Iterable<File> classpath, String module) {
+    File findScalaJar(Iterable<File> classpath, String appendix) {
         for (file in classpath) {
             def matcher = SCALA_JAR_PATTERN.matcher(file.name)
-            if (matcher.matches() && matcher.group(1) == module) {
+            if (matcher.matches() && matcher.group(1) == appendix) {
                 return file
             }
         }
@@ -92,17 +107,17 @@ class ScalaRuntime {
     }
 
     /**
-     * Determines the version of a Scala Jar file (scala-compiler, scala-library, scala-jdbc, etc.).
-     * If the version cannot be determined, {@code null} is returned.
+     * Determines the version of a Scala Jar file (scala-compiler, scala-library,
+     * scala-jdbc, etc.). If the version cannot be determined, or the file is not a Scala
+     * Jar file, {@code null} is returned.
      *
      * <p>Implementation note: The version is determined by parsing the file name, which
      * is expected to match the pattern 'scala-[component]-[version].jar'.
      *
      * @param scalaJar a Scala Jar file
-     * @return the version of the Jar file
+     * @return the version of the Scala Jar file
      */
     @Nullable
-    @Incubating
     String getScalaVersion(File scalaJar) {
         def matcher = SCALA_JAR_PATTERN.matcher(scalaJar.name)
         matcher.matches() ? matcher.group(2) : null

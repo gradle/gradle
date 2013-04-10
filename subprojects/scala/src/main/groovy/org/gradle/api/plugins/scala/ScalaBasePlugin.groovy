@@ -140,7 +140,7 @@ class ScalaBasePlugin implements Plugin<Project> {
         scalaConsole.dependsOn(sourceSet.runtimeClasspath)
         scalaConsole.description = "Starts a Scala REPL with the $sourceSet.name runtime class path."
         scalaConsole.main = "scala.tools.nsc.MainGenericRunner"
-        scalaConsole.conventionMapping.classpath = { scalaRuntime.inferScalaCompilerClasspath(sourceSet.runtimeClasspath) }
+        scalaConsole.conventionMapping.classpath = { scalaRuntime.inferScalaClasspath(sourceSet.runtimeClasspath) }
         scalaConsole.systemProperty("scala.usejavacp", true)
         scalaConsole.standardInput = System.in
         scalaConsole.conventionMapping.jvmArgs = { ["-classpath", sourceSet.runtimeClasspath.asPath] }
@@ -148,7 +148,7 @@ class ScalaBasePlugin implements Plugin<Project> {
 
     private void configureCompileDefaults() {
         project.tasks.withType(ScalaCompile.class) { ScalaCompile compile ->
-            compile.conventionMapping.scalaClasspath = { scalaRuntime.inferScalaCompilerClasspath(compile.classpath) }
+            compile.conventionMapping.scalaClasspath = { scalaRuntime.inferScalaClasspath(compile.classpath) }
             compile.conventionMapping.zincClasspath = {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
                 if (!compile.scalaCompileOptions.useAnt && config.dependencies.empty) {
@@ -165,7 +165,7 @@ class ScalaBasePlugin implements Plugin<Project> {
         project.tasks.withType(ScalaDoc) { ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
             scalaDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
-            scalaDoc.conventionMapping.scalaClasspath = { scalaRuntime.inferScalaCompilerClasspath(scalaDoc.classpath) }
+            scalaDoc.conventionMapping.scalaClasspath = { scalaRuntime.inferScalaClasspath(scalaDoc.classpath) }
         }
     }
 }

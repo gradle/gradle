@@ -63,7 +63,7 @@ class IdeaScalaConfigurer {
             def files = filePaths.collect { it.file }
 
             def runtime = scalaProject.scalaRuntime
-            def scalaClasspath = runtime.inferScalaCompilerClasspath(files)
+            def scalaClasspath = runtime.inferScalaClasspath(files)
             def compilerJar = runtime.findScalaJar(scalaClasspath, "compiler")
             def version = compilerJar == null ? "?" : runtime.getScalaVersion(compilerJar)
             def library = createProjectLibrary("scala-compiler-$version", scalaClasspath)
