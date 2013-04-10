@@ -11,7 +11,7 @@
             </thead>
             <tr>
                 <td>modules</td>
-                <td><literal>project.allprojects*idea.module</literal></td>
+                <td><literal>project.allprojects.idea.module</literal></td>
                 <td/>
             </tr>
             <tr>
