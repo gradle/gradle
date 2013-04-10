@@ -15,78 +15,94 @@
  */
 package org.gradle.api.plugins.scala
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.util.HelperUtil
-import org.junit.Test
 
-class ScalaRuntimeExtensionTest {
-    private final Project project = HelperUtil.createRootProject()
+import spock.lang.Specification
 
-    @Test void allowsToInferScalaCompilerClasspath() {
+class ScalaRuntimeExtensionTest extends Specification {
+    def project = HelperUtil.createRootProject()
+
+    def "allows to infer Scala compiler class path"() {
         project.plugins.apply(ScalaBasePlugin)
 
         project.repositories {
             mavenCentral()
         }
 
+        when:
         def classpath = project.scalaRuntime.inferScalaCompilerClasspath([new File("other.jar"), new File("scala-library-2.10.0.jar")])
 
-        assert classpath instanceof Configuration
-        assert classpath.state == Configuration.State.UNRESOLVED
-        assert classpath.dependencies.size() == 1
-        classpath.dependencies.iterator().next().with {
-            assert group == "org.scala-lang"
-            assert name == "scala-compiler"
-            assert version == "2.10.0"
+        then:
+        classpath instanceof Configuration
+        classpath.state == Configuration.State.UNRESOLVED
+        classpath.dependencies.size() == 1
+        with(classpath.dependencies.iterator().next()) {
+            group == "org.scala-lang"
+            name == "scala-compiler"
+            version == "2.10.0"
         }
     }
 
-    @Test void inferenceFallsBackToScalaToolsIfNoRepositoryDeclared() {
+    def "inference falls back to scalaTools if no repository declared"() {
         project.plugins.apply(ScalaBasePlugin)
 
+        when:
         def classpath = project.scalaRuntime.inferScalaCompilerClasspath([new File("other.jar"), new File("scala-library-2.10.0.jar")])
 
-        assert classpath == project.configurations.scalaTools
+        then:
+        classpath == project.configurations.scalaTools
     }
 
-    @Test void inferenceFallsBackToScalaToolsIfScalaLibraryNotFoundOnClassPath() {
+    def "inference falls back to scalaTools if Scala library not found on class path"() {
         project.plugins.apply(ScalaBasePlugin)
 
+        when:
         def classpath = project.scalaRuntime.inferScalaCompilerClasspath([new File("other.jar"), new File("other2.jar")])
 
-        assert classpath == project.configurations.scalaTools
+        then:
+        classpath == project.configurations.scalaTools
     }
 
-    @Test void allowsToFindScalaJarInClassPath() {
+    def "allows to find Scala Jar on class path"() {
         project.plugins.apply(ScalaBasePlugin)
 
+        when:
         def file = project.scalaRuntime.findScalaJar([new File("other.jar"), new File("scala-jdbc-1.5.jar"), new File("scala-compiler-1.7.jar")], "jdbc")
 
-        assert file.name == "scala-jdbc-1.5.jar"
+        then:
+        file.name == "scala-jdbc-1.5.jar"
     }
 
-    @Test void returnsNullIfScalaJarNotFound() {
+    def "returns null if Scala Jar not found"() {
         project.plugins.apply(ScalaBasePlugin)
 
+        when:
         def file = project.scalaRuntime.findScalaJar([new File("other.jar"), new File("scala-jdbc-1.5.jar"), new File("scala-compiler-1.7.jar")], "library")
 
-        assert file == null
+        then:
+        file == null
     }
 
-    @Test void allowsToDetermineVersionOfScalaJar() {
+    def "allows to determine version of Scala Jar"() {
         project.plugins.apply(ScalaBasePlugin)
 
-        assert project.scalaRuntime.getScalaVersion(new File("scala-compiler-2.9.2.jar")) == "2.9.2"
-        assert project.scalaRuntime.getScalaVersion(new File("scala-jdbc-2.9.2.jar")) == "2.9.2"
-        assert project.scalaRuntime.getScalaVersion(new File("scala-library-2.10.0-SNAPSHOT.jar")) == "2.10.0-SNAPSHOT"
-        assert project.scalaRuntime.getScalaVersion(new File("scala-library-2.10.0-rc-3.jar")) == "2.10.0-rc-3"
+        expect:
+        with(project.scalaRuntime) {
+            getScalaVersion(new File("scala-compiler-2.9.2.jar")) == "2.9.2"
+            getScalaVersion(new File("scala-jdbc-2.9.2.jar")) == "2.9.2"
+            getScalaVersion(new File("scala-library-2.10.0-SNAPSHOT.jar")) == "2.10.0-SNAPSHOT"
+            getScalaVersion(new File("scala-library-2.10.0-rc-3.jar")) == "2.10.0-rc-3"
+        }
     }
 
-    @Test void returnsNullIfScalaVersionCannotBeDetermined() {
+    def "returns null if Scala version cannot be determined"() {
         project.plugins.apply(ScalaBasePlugin)
 
-        assert project.scalaRuntime.getScalaVersion(new File("scala-compiler.jar")) == null
-        assert project.scalaRuntime.getScalaVersion(new File("groovy-compiler-2.1.0.jar")) == null
+        expect:
+        with(project.scalaRuntime) {
+            getScalaVersion(new File("scala-compiler.jar")) == null
+            getScalaVersion(new File("groovy-compiler-2.1.0.jar")) == null
+        }
     }
 }
