@@ -38,7 +38,7 @@ class IdeaScalaConfigurer {
             Map<String, ProjectLibrary> scalaCompilerLibraries = [:]
 
             rootProject.ideaProject.doFirst {
-                scalaCompilerLibraries = resolveScalaCompilerLibraries(project, scalaProjects)
+                scalaCompilerLibraries = resolveScalaCompilerLibraries(scalaProjects)
                 declareUniqueProjectLibraries(scalaCompilerLibraries.values() as Set)
             }
 
@@ -50,11 +50,10 @@ class IdeaScalaConfigurer {
         }
     }
 
-    private Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Project rootProject, Collection<Project> scalaProjects) {
+    private Map<String, ProjectLibrary> resolveScalaCompilerLibraries(Collection<Project> scalaProjects) {
         def scalaCompilerLibraries = [:]
 
         for (scalaProject in scalaProjects) {
-            def scalaPlugin = scalaProject.plugins.getPlugin(ScalaBasePlugin)
             IdeaModule ideaModule = scalaProject.idea.module
 
             // could make resolveDependencies() cache its result for later use by GenerateIdeaModule
@@ -63,9 +62,10 @@ class IdeaScalaConfigurer {
             def filePaths = moduleLibraries.collectMany { it.classes.findAll { it instanceof FilePath } }
             def files = filePaths.collect { it.file }
 
-            def scalaClasspath = scalaPlugin.inferScalaCompilerClasspath(files)
-            def compilerJar = scalaPlugin.findScalaJar(scalaClasspath, "compiler")
-            def version = compilerJar == null ? "?" : scalaPlugin.getScalaVersion(compilerJar)
+            def runtime = scalaProject.scalaRuntime
+            def scalaClasspath = runtime.inferScalaCompilerClasspath(files)
+            def compilerJar = runtime.findScalaJar(scalaClasspath, "compiler")
+            def version = compilerJar == null ? "?" : runtime.getScalaVersion(compilerJar)
             def library = createProjectLibrary("scala-compiler-$version", scalaClasspath)
             def duplicate = scalaCompilerLibraries.values().find { it.classes == library.classes }
             scalaCompilerLibraries[scalaProject.path] = duplicate ?: library
