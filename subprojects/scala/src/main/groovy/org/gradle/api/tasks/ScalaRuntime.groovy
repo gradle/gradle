@@ -18,8 +18,11 @@ package org.gradle.api.tasks
 import org.gradle.api.Incubating
 import org.gradle.api.Nullable
 import org.gradle.api.Project
+import org.gradle.api.Buildable
+import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 
 import java.util.regex.Pattern
@@ -50,7 +53,8 @@ import java.util.regex.Pattern
 class ScalaRuntime {
     private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar")
 
-    private final Project project
+    // should be private but Groovy can't handle this
+    protected final Project project
 
     ScalaRuntime(Project project) {
         this.project = project
@@ -62,8 +66,8 @@ class ScalaRuntime {
      *
      * <p>If the (deprecated) 'scalaTools' configuration is explicitly configured, no repository
      * is declared for the project, no 'scala-library' Jar is found on the specified class path,
-     * or its version cannot be determined, the 'scalaTools' configuration is returned, irrespective
-     * of its contents.
+     * or its version cannot be determined, a class path with the contents of the 'scalaTools'
+     * configuration is returned.
      *
      * <p>The returned class path may be empty, or may fail to resolve when asked for its contents.
      *
@@ -71,19 +75,45 @@ class ScalaRuntime {
      * @return a class path containing a corresponding 'scala-compiler' Jar and its dependencies
      */
     FileCollection inferScalaClasspath(Iterable<File> classpath) {
-        def scalaTools = project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]
-        if (!scalaTools.dependencies.empty || project.repositories.empty) { return scalaTools }
+        // alternatively, we could return project.files(Runnable)
+        // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
+        return new LazilyInitializedFileCollection() {
+            @Override
+            FileCollection createDelegate() {
+                def scalaTools = project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]
+                if (!scalaTools.dependencies.empty || project.repositories.empty) {
+                    return scalaTools
+                }
 
-        def scalaLibraryJar = findScalaJar(classpath, "library")
-        if (scalaLibraryJar == null) { return scalaTools }
+                def scalaLibraryJar = findScalaJar(classpath, "library")
+                if (scalaLibraryJar == null) { return scalaTools }
 
-        def scalaVersion = getScalaVersion(scalaLibraryJar)
-        if (scalaVersion == null) {
-            throw new AssertionError("Unexpectedly failed to determine version of Scala Jar file: $scalaLibraryJar")
+                def scalaVersion = getScalaVersion(scalaLibraryJar)
+                if (scalaVersion == null) {
+                    throw new AssertionError("Failed to determine version of Scala Jar file: $scalaLibraryJar")
+                }
+
+                return project.configurations.detachedConfiguration(
+                        new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion))
+            }
+
+            // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
+            @Override
+            TaskDependency getBuildDependencies() {
+                def scalaTools = project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]
+                if (!scalaTools.dependencies.empty || project.repositories.empty) {
+                    return scalaTools.buildDependencies
+                }
+                if (classpath instanceof Buildable) {
+                    return classpath.buildDependencies
+                }
+                return new TaskDependency() {
+                    Set<? extends Task> getDependencies(Task task) {
+                        Collections.emptySet()
+                    }
+                }
+            }
         }
-
-        return project.configurations.detachedConfiguration(
-                new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion))
     }
 
     /**
