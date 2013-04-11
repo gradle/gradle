@@ -191,7 +191,12 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 for (File file : fileSet.getFiles()) {
                     convertFileToFileTree(file, result);
                 }
-            } else if (element instanceof FileCollection || element instanceof MinimalFileCollection) {
+            } else if (element instanceof FileCollection) {
+                FileCollection fileCollection = (FileCollection) element;
+                for (File file : fileCollection.getFiles()) {
+                    convertFileToFileTree(file, result);
+                }
+            } else if (element instanceof MinimalFileCollection) {
                 throw new UnsupportedOperationException(String.format("Cannot convert instance of %s to FileTree", element.getClass().getSimpleName()));
             } else if (element instanceof TaskDependency) {
                 // Ignore
