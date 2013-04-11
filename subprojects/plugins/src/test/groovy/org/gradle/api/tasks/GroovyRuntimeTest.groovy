@@ -16,7 +16,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
+import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.util.HelperUtil
 
@@ -29,72 +29,63 @@ class GroovyRuntimeTest extends Specification {
         project.plugins.apply(GroovyBasePlugin)
     }
 
-    def "inferred Groovy class path uses same 'groovy-all' Jar that is found on class path"() {
+    def "inferred Groovy class path uses file dependency if 'groovy-all' Jar is found"() {
         when:
-        def classpath = project.groovyRuntime.inferGroovyClasspath([project.file("other.jar"), project.file("groovy-all-2.1.2${classifier}.jar")])
+        def classpath = project.groovyRuntime.inferGroovyClasspath([new File("other.jar"), new File("groovy-all-2.1.2${classifier}.jar")])
 
         then:
-        classpath.singleFile == project.file("groovy-all-2.1.2${classifier}.jar")
+        classpath instanceof FileCollection
+        classpath.singleFile.name == "groovy-all-2.1.2${classifier}.jar"
 
         where:
         classifier << ["", "-indy"]
     }
 
-    def "inferred Groovy class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {
+    def "inferred Groovy class path uses repository dependency if 'groovy' Jar is found (to get transitive dependencies right)"() {
         project.repositories {
             mavenCentral()
         }
 
         when:
-        def classpath = project.groovyRuntime.inferGroovyClasspath([project.file("other.jar"), project.file("groovy-2.1.2${classifier}.jar")])
+        def classpath = project.groovyRuntime.inferGroovyClasspath([new File("other.jar"), new File("groovy-2.1.2${classifier}.jar")])
 
         then:
-        classpath instanceof LazilyInitializedFileCollection
-        with(classpath.delegate) {
-            it instanceof Configuration
-            state == Configuration.State.UNRESOLVED
-            dependencies.size() == 2
-            dependencies.any { it.group == "org.codehaus.groovy" && it.name == "groovy" && it.version == "2.1.2" } // not sure how to check classifier
-            dependencies.any { it.group == "org.codehaus.groovy" && it.name == "groovy-ant" && it.version == "2.1.2" } // not sure how to check classifier
-        }
+        classpath instanceof Configuration
+        classpath.state == Configuration.State.UNRESOLVED
+        classpath.dependencies.size() == 2
+        classpath.dependencies.any { it.group == "org.codehaus.groovy" && it.name == "groovy" && it.version == "2.1.2" } // not sure how to check classifier
+        classpath.dependencies.any { it.group == "org.codehaus.groovy" && it.name == "groovy-ant" && it.version == "2.1.2" } // not sure how to check classifier
 
         where:
         classifier << ["", "-indy"]
     }
 
-    def "inferred Groovy class path falls back to contents of 'groovy' configuration if the latter is explicitly configured"() {
+    def "inferred Groovy class path falls back to 'groovy' configuration if the latter is explicitly configured"() {
         project.dependencies {
             groovy project.files("my-groovy.jar")
         }
 
         when:
-        def classpath = project.groovyRuntime.inferGroovyClasspath([project.file("other.jar"), project.file("groovy-all-2.1.2.jar")])
+        def classpath = project.groovyRuntime.inferGroovyClasspath([new File("other.jar"), new File("groovy-all-2.1.2.jar")])
 
         then:
+        classpath.is(project.configurations.groovy)
         classpath.singleFile.name == "my-groovy.jar"
     }
 
-    def "inferred Groovy class path falls back to contents of 'groovy' configuration if no Groovy Jar found on class path"() {
-        project.dependencies {
-            groovy project.files("my-groovy.jar")
-        }
-
+    def "inferred Groovy class path falls back to 'groovy' configuration if no Groovy Jar found on class path"() {
         when:
-        def classpath = project.groovyRuntime.inferGroovyClasspath([project.file("other.jar"), project.file("other2.jar")])
+        def classpath = project.groovyRuntime.inferGroovyClasspath([new File("other.jar"), new File("other2.jar")])
 
         then:
-        classpath.singleFile.name == "my-groovy.jar"
+        classpath.is(project.configurations.groovy)
     }
 
-    def "inferred Groovy class path falls back to contents of 'groovy' configuration if 'groovy' Jar found and no repository declared"() {
-        project.dependencies {
-            groovy project.files("my-groovy.jar")
-        }
-
+    def "inferred Groovy class path falls back to 'groovy' configuration if 'groovy' Jar found and no repository declared"() {
         when:
-        def classpath = project.groovyRuntime.inferGroovyClasspath([project.file("other.jar"), project.file("groovy-2.1.2.jar")])
+        def classpath = project.groovyRuntime.inferGroovyClasspath([new File("other.jar"), new File("groovy-2.1.2.jar")])
 
         then:
-        classpath.singleFile.name == "my-groovy.jar"
+        classpath.is(project.configurations.groovy)
     }
 }
