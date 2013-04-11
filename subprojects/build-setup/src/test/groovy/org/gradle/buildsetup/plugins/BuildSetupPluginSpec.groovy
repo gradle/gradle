@@ -16,18 +16,24 @@
 
 package org.gradle.buildsetup.plugins
 
+import org.gradle.api.Project
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.buildsetup.tasks.ConvertMaven2Gradle
 import org.gradle.buildsetup.tasks.GenerateBuildFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.Matchers
+import org.junit.Rule
 import spock.lang.Specification
 
 class BuildSetupPluginSpec extends Specification {
 
-    def project = new ProjectBuilder().build()
+    @Rule
+    public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
 
     def "applies plugin"() {
+        setup:
+        def project = createProject()
         when:
         project.plugins.apply BuildSetupPlugin
 
@@ -36,8 +42,12 @@ class BuildSetupPluginSpec extends Specification {
         Matchers.dependsOn("setupWrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
     }
 
+
+
     def "adds maven2Gradle task if pom exists"() {
-        given:
+        setup:
+        def project = createProject()
+        and:
         project.file("pom.xml").createNewFile()
         when:
         project.plugins.apply BuildSetupPlugin
@@ -49,8 +59,8 @@ class BuildSetupPluginSpec extends Specification {
     }
 
     def "adds generateBuildFile task if no pom and no gradle build file exists"() {
-        given:
-        project.file("build.gradle")
+        setup:
+        def project = createProject()
         when:
         project.plugins.apply BuildSetupPlugin
         then:
@@ -60,12 +70,23 @@ class BuildSetupPluginSpec extends Specification {
     }
 
     def "no build file generation if files already exists"() {
-        given:
-        project.file("build.gradle").createNewFile()
+        setup:
+        def project = createProject(true)
         when:
         project.plugins.apply BuildSetupPlugin
         then:
         project.setupBuild != null
-        project.tasks.collect{it.name} == ["setupBuild", "setupWrapper"]
+        project.tasks.collect { it.name } == ["setupBuild", "setupWrapper"]
+    }
+
+    private Project createProject(boolean withBuildScriptFile = false) {
+        ProjectBuilder builder = ProjectBuilder.builder()
+        if (withBuildScriptFile) {
+            def projectDir = testDirectoryProvider.createDir("projectdir")
+            projectDir.createFile("build.gradle")
+            builder.withProjectDir(projectDir).build()
+        } else {
+            builder.build()
+        }
     }
 }

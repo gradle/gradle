@@ -60,4 +60,16 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         executed.output.contains("Running 'setupBuild' on already defined multiproject build is not supported. Build setup skipped.")
         executed.skippedTasks.contains(":setupBuild")
     }
+
+    def "respects custom build files"() {
+        given:
+        def customBuildScript = testDirectory.file("customBuild.gradle").createFile()
+        when:
+        executer.usingBuildScript(customBuildScript)
+        def executed = run('setupBuild')
+        then:
+        executed.executedTasks.contains(":setupBuild")
+        executed.output.contains("Running 'setupBuild' on existing gradle build setup is not supported. Build setup skipped.")
+        executed.skippedTasks.contains(":setupBuild")
+    }
 }

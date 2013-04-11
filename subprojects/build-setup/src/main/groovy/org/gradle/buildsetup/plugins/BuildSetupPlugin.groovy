@@ -53,7 +53,8 @@ class BuildSetupPlugin implements Plugin<Project> {
             }
             return false;
         }
-        if (project.file("build.gradle").exists()) {
+
+        if (project.getBuildFile()?.exists()) {
             setupBuildTask.onlyIf {
                 setupBuildTask.logger.warn("Running 'setupBuild' on existing gradle build setup is not supported. Build setup skipped.")
                 false
