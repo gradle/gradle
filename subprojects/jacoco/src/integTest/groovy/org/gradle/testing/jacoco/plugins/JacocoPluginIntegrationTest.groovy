@@ -19,11 +19,20 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
+    private static final String REPORT_XML_FILE_NAME = "jacocoTestReport.xml"
+    private static final String REPORT_CSV_FILE_NAME = "jacocoTestReport.csv"
+
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
+    private static final String JACOCO_REPORTING_RELATIVE_PATH = "jacoco/test/"
+    private static final String REPORT_HTML_DEFAULT_PATH = "${REPORTING_BASE}/${JACOCO_REPORTING_RELATIVE_PATH}/html/index.html"
+
+    private static final String REPORT_XML_DEFAULT_PATH = "${REPORTING_BASE}/$JACOCO_REPORTING_RELATIVE_PATH/${REPORT_XML_FILE_NAME}"
+    private static final String REPORT_CSV_DEFAULT_REPORT = "${REPORTING_BASE}/$JACOCO_REPORTING_RELATIVE_PATH/${REPORT_CSV_FILE_NAME}"
 
     def setup() {
         buildFile << """
@@ -42,13 +51,12 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Test
     public void generatesHtmlReportOnlyAsDefault() {
-        given:
         when:
         succeeds('test', 'jacocoTestReport')
         then:
-        file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
-        !file("${REPORTING_BASE}/jacoco/test/jacocoTestReport.xml").exists()
-        !file("${REPORTING_BASE}/jacoco/test/jacocoTestReport.csv").exists()
+        file(REPORTING_BASE).listFiles().collect{it.name} == ["jacoco", "tests"]
+        file(REPORT_HTML_DEFAULT_PATH).exists()
+        file("${REPORTING_BASE}/${JACOCO_REPORTING_RELATIVE_PATH}").listFiles().collect{it.name} == ["html"]
     }
 
     @Test
@@ -67,8 +75,8 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
         then:
         file("build/jacocoHtml/index.html").exists()
-        file("${REPORTING_BASE}/jacoco/test/jacocoTestReport.xml").exists()
-        !file("${REPORTING_BASE}/jacoco/test/jacocoTestReport.csv").exists()
+        file(REPORT_XML_DEFAULT_PATH).exists()
+        !file(REPORT_CSV_DEFAULT_REPORT).exists()
     }
 
     @Test
@@ -85,29 +93,30 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds('test', 'jacocoTestReport')
         then:
-        file("build/customReports/jacoco/test/html/index.html").exists()
-        file("build/customReports/jacoco/test/jacocoTestReport.xml").exists()
-        file("build/customReports/jacoco/test/jacocoTestReport.csv").exists()
+        file("build/customReports/$JACOCO_REPORTING_RELATIVE_PATH/html/index.html").exists()
+        file("build/customReports/$JACOCO_REPORTING_RELATIVE_PATH/$REPORT_CSV_FILE_NAME").exists()
+        file("build/customReports/$JACOCO_REPORTING_RELATIVE_PATH/$REPORT_CSV_FILE_NAME").exists()
     }
 
     @Test
     public void canConfigureReportDirectory() {
         given:
+        def customReportDirectory = "customJacocoReportDir"
         buildFile << """
             jacocoTestReport{
                 reports.xml.enabled = true
                 reports.csv.enabled = true
             }
             jacoco {
-                reportsDir = new File(buildDir, "customJacocoReportDir")
+                reportsDir = new File(buildDir, "$customReportDirectory")
             }
             """
         when:
         succeeds('test', 'jacocoTestReport')
         then:
-        file("build/customJacocoReportDir/test/html/index.html").exists()
-        file("build/customJacocoReportDir/test/jacocoTestReport.xml").exists()
-        file("build/customJacocoReportDir/test/jacocoTestReport.csv").exists()
+        file("build/${customReportDirectory}/test/html/index.html").exists()
+        file("build/${customReportDirectory}/test/${REPORT_XML_FILE_NAME}").exists()
+        file("build/${customReportDirectory}/test/${REPORT_CSV_FILE_NAME}").exists()
     }
 
     @Test
@@ -115,20 +124,20 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds('test', 'jacocoTestReport')
         then:
-        file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
+        file(REPORT_HTML_DEFAULT_PATH).exists()
 
         when:
         succeeds('jacocoTestReport')
         then:
         skippedTasks.contains(":jacocoTestReport")
-        file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
+        file(REPORT_HTML_DEFAULT_PATH).exists()
 
         when:
         file("${REPORTING_BASE}/jacoco/test/html/.resources").deleteDir()
         succeeds('test', 'jacocoTestReport')
         then:
         !skippedTasks.contains(":jacocoTestReport")
-        file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
+        file(REPORT_HTML_DEFAULT_PATH).exists()
     }
 
     @Test
@@ -145,7 +154,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('jacocoTestReport')
         then:
         skippedTasks.contains(":jacocoTestReport")
-        !file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
+        !file(REPORT_HTML_DEFAULT_PATH).exists()
 
         when:
         succeeds('test')
@@ -154,7 +163,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('jacocoTestReport')
         then:
         executedTasks.contains(":jacocoTestReport")
-        file("${REPORTING_BASE}/jacoco/test/html/index.html").exists()
+        file(REPORT_HTML_DEFAULT_PATH).exists()
     }
 
     private void createTestFiles() {
