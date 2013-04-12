@@ -17,10 +17,7 @@ package org.gradle.api.tasks;
 
 import com.google.common.collect.Lists;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.Incubating;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
@@ -75,25 +72,27 @@ public class GroovyRuntime {
      * @return a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool
      */
     public FileCollection inferGroovyClasspath(final Iterable<File> classpath) {
+        final Configuration groovyConfiguration = project.getConfigurations().getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME);
+        if (!groovyConfiguration.getDependencies().isEmpty()) {
+            return groovyConfiguration;
+        }
+
         // alternatively, we could return project.files(Runnable)
-        // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
+        // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {
             @Override
             public FileCollection createDelegate() {
-                Configuration groovyConfiguration = project.getConfigurations().getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME);
-                if (!groovyConfiguration.getDependencies().isEmpty()) {
-                    return groovyConfiguration;
-                }
-
                 GroovyJarFile groovyJar = findGroovyJarFile(classpath);
-                if (groovyJar == null) { return groovyConfiguration; }
+                if (groovyJar == null) {
+                    throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s"));
+                }
 
                 if (groovyJar.isGroovyAll()) {
                     return project.files(groovyJar.getFile());
                 }
 
                 if (project.getRepositories().isEmpty()) {
-                    return groovyConfiguration;
+                    throw new GradleException("Cannot infer Groovy class path because no repository is declared for the project.");
                 }
 
                 String notation = groovyJar.getDependencyNotation();
@@ -110,10 +109,6 @@ public class GroovyRuntime {
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
             @Override
             public TaskDependency getBuildDependencies() {
-                Configuration groovyConfiguration = project.getConfigurations().getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME);
-                if (!groovyConfiguration.getDependencies().isEmpty()) {
-                    return groovyConfiguration.getBuildDependencies();
-                }
                 if (classpath instanceof Buildable) {
                     return ((Buildable) classpath).getBuildDependencies();
                 }
