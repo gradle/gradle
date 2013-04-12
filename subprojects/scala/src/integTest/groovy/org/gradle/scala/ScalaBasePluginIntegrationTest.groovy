@@ -18,7 +18,37 @@ package org.gradle.scala
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ScalaBasePluginIntegrationTest extends AbstractIntegrationSpec {
-    def "defaults scalaClasspath to inferred Scala compiler dependency if scalaTools configuration is empty"() {
+    def "defaults scalaClasspath to 'scalaTools' configuration if the latter is non-empty"() {
+        executer.withDeprecationChecksDisabled()
+        file("build.gradle") << """
+apply plugin: "scala-base"
+
+sourceSets {
+    custom
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    scalaTools "org.scala-lang:scala-compiler:2.10.1"
+}
+
+task scaladoc(type: ScalaDoc)
+
+task verify << {
+    assert compileCustomScala.scalaClasspath.is(configurations.scalaTools)
+    assert scalaCustomConsole.classpath.is(configurations.scalaTools)
+    assert scaladoc.scalaClasspath.is(configurations.scalaTools)
+}
+"""
+
+        expect:
+        succeeds("verify")
+    }
+
+    def "defaults scalaClasspath to inferred Scala compiler dependency if 'scalaTools' configuration is empty"() {
         file("build.gradle") << """
 apply plugin: "scala-base"
 
@@ -30,7 +60,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    customCompile "org.scala-lang:scala-library:2.9.2"
+    customCompile "org.scala-lang:scala-library:2.10.1"
 }
 
 task scaladoc(type: ScalaDoc) {
@@ -38,34 +68,9 @@ task scaladoc(type: ScalaDoc) {
 }
 
 task verify << {
-    assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-2.9.2.jar" }
-    assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-2.9.2.jar" }
-    assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-2.9.2.jar" }
-}
-"""
-
-        expect:
-        succeeds("verify")
-    }
-
-    def "defaults scalaClasspath to (empty) scalaTools configuration if Scala compiler dependency isn't found on class path"() {
-        file("build.gradle") << """
-apply plugin: "scala-base"
-
-sourceSets {
-    custom
-}
-
-repositories {
-    mavenCentral()
-}
-
-task scaladoc(type: ScalaDoc)
-
-task verify << {
-    assert compileCustomScala.scalaClasspath.is(configurations.scalaTools)
-    assert scalaCustomConsole.classpath.is(configurations.scalaTools)
-    assert scaladoc.scalaClasspath.is(configurations.scalaTools)
+    assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-2.10.1.jar" }
+    assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-2.10.1.jar" }
+    assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-2.10.1.jar" }
 }
 """
 

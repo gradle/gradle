@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks
 
+import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.Nullable
 import org.gradle.api.Project
@@ -75,22 +76,28 @@ class ScalaRuntime {
      * @return a class path containing a corresponding 'scala-compiler' Jar and its dependencies
      */
     FileCollection inferScalaClasspath(Iterable<File> classpath) {
+        def scalaTools = project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]
+        if (!scalaTools.dependencies.empty) {
+            return scalaTools
+        }
+
         // alternatively, we could return project.files(Runnable)
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
         return new LazilyInitializedFileCollection() {
             @Override
             FileCollection createDelegate() {
-                def scalaTools = project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]
-                if (!scalaTools.dependencies.empty || project.repositories.empty) {
-                    return scalaTools
+                if (project.repositories.empty) {
+                    throw new GradleException("Cannot infer Scala class path because no repository is declared for the project.")
                 }
 
                 def scalaLibraryJar = findScalaJar(classpath, "library")
-                if (scalaLibraryJar == null) { return scalaTools }
+                if (scalaLibraryJar == null) {
+                    throw new GradleException("Cannot infer Scala class path because no Scala library Jar was found on class path: $classpath")
+                }
 
                 def scalaVersion = getScalaVersion(scalaLibraryJar)
                 if (scalaVersion == null) {
-                    throw new AssertionError("Failed to determine version of Scala Jar file: $scalaLibraryJar")
+                    throw new AssertionError("Unexpectedly failed to parse version of Scala Jar file: $scalaLibraryJar")
                 }
 
                 return project.configurations.detachedConfiguration(
@@ -100,10 +107,6 @@ class ScalaRuntime {
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
             @Override
             TaskDependency getBuildDependencies() {
-                def scalaTools = project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]
-                if (!scalaTools.dependencies.empty || project.repositories.empty) {
-                    return scalaTools.buildDependencies
-                }
                 if (classpath instanceof Buildable) {
                     return classpath.buildDependencies
                 }
