@@ -60,8 +60,11 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
     @IgnoreIf({ OperatingSystem.current().isWindows() })
     def "can use long paths for workindDir"() {
         given:
-        def alphanumeric = RandomStringUtils.randomAlphanumeric(60)
-        def testWorkingDir = testDirectory.createDir("$alphanumeric/$alphanumeric/$alphanumeric/$alphanumeric/")
+        // windows can handle a path up to 260 characters
+        // we create a path that is 260 +1 (offset + "/" + randompath)
+        def pathoffset = 260 - testDirectory.getAbsolutePath().length()
+        def alphanumeric = RandomStringUtils.randomAlphanumeric(pathoffset)
+        def testWorkingDir = testDirectory.createDir("$alphanumeric")
 
         buildFile << """
             apply plugin: 'java'
