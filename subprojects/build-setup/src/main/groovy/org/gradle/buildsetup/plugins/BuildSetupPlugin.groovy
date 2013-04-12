@@ -48,7 +48,7 @@ class BuildSetupPlugin implements Plugin<Project> {
     boolean configureBuildSetupTask(Project project, Task setupBuildTask) {
         if (project.subprojects.size() > 0) {
             setupBuildTask.onlyIf {
-                setupBuildTask.logger.warn("Running 'setupBuild' on already defined multiproject build is not supported. Build setup skipped.")
+                setupBuildTask.logger.warn("Running 'setupBuild' on already defined multiproject build is not supported. Build-file generation skipped.")
                 false
             }
             return false;
@@ -56,7 +56,7 @@ class BuildSetupPlugin implements Plugin<Project> {
 
         if (project.getBuildFile()?.exists()) {
             setupBuildTask.onlyIf {
-                setupBuildTask.logger.warn("Running 'setupBuild' on existing gradle build setup is not supported. Build setup skipped.")
+                setupBuildTask.logger.warn("Running 'setupBuild' on existing gradle build setup is not supported. Build-file generation skipped.")
                 false
             }
             return false;

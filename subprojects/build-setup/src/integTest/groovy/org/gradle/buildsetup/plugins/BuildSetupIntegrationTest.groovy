@@ -36,20 +36,17 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run 'setupBuild'
         then:
-        file("gradlew").assertExists()
-        file("gradlew.bat").assertExists()
-        file("gradle/wrapper/gradle-wrapper.jar").assertExists()
-        file("gradle/wrapper/gradle-wrapper.properties").assertExists()
+        wrapperIsGenerated()
     }
 
-    def "buildSetup is skipped on existing gradle build"() {
+    def "build file generation is skipped on existing gradle build"() {
         given:
         assert buildFile.createFile()
         when:
         def executed = run('setupBuild')
         then:
         executed.executedTasks.contains(":setupBuild")
-        executed.output.contains("Running 'setupBuild' on existing gradle build setup is not supported. Build setup skipped.")
+        executed.output.contains("Running 'setupBuild' on existing gradle build setup is not supported. Build-file generation skipped.")
         executed.skippedTasks.contains(":setupBuild")
 
         when:
@@ -57,8 +54,9 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         executed = run('setupBuild')
         then:
         executed.executedTasks.contains(":setupBuild")
-        executed.output.contains("Running 'setupBuild' on already defined multiproject build is not supported. Build setup skipped.")
+        executed.output.contains("Running 'setupBuild' on already defined multiproject build is not supported. Build-file generation skipped.")
         executed.skippedTasks.contains(":setupBuild")
+        wrapperIsGenerated()
     }
 
     def "respects custom build files"() {
@@ -69,7 +67,15 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         def executed = run('setupBuild')
         then:
         executed.executedTasks.contains(":setupBuild")
-        executed.output.contains("Running 'setupBuild' on existing gradle build setup is not supported. Build setup skipped.")
+        executed.output.contains("Running 'setupBuild' on existing gradle build setup is not supported. Build-file generation skipped.")
         executed.skippedTasks.contains(":setupBuild")
+        wrapperIsGenerated()
+    }
+
+    private def wrapperIsGenerated() {
+        file("gradlew").assertExists()
+        file("gradlew.bat").assertExists()
+        file("gradle/wrapper/gradle-wrapper.jar").assertExists()
+        file("gradle/wrapper/gradle-wrapper.properties").assertExists()
     }
 }
