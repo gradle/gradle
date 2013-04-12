@@ -17,6 +17,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.DelegatingFileCollection
+import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 
@@ -24,7 +25,7 @@ import spock.lang.Specification
 
 class DelegatingFileCollectionTest extends Specification {
     FileCollection delegatedTo = Mock()
-    FileCollection fileCollection = new DelegatingFileCollection() {
+    DelegatingFileCollection fileCollection = new DelegatingFileCollection() {
         @Override
         FileCollection getDelegate() {
             delegatedTo
@@ -78,5 +79,26 @@ class DelegatingFileCollectionTest extends Specification {
             1 * iterator()
             0 * _
         }
+    }
+
+    interface MyFileCollection extends FileCollection, MinimalFileSet {}
+
+    def "delegates getDisplayName() to toString() if delegate is not a MinimalFileSet"() {
+        when:
+        fileCollection.getDisplayName()
+
+        then:
+        1 * delegatedTo.toString()
+
+    }
+
+    def "delegates getDisplayName() to getDisplayName() if delegate is a MinimalFileSet"() {
+        delegatedTo = Mock(MyFileCollection)
+
+        when:
+        fileCollection.getDisplayName()
+
+        then:
+        1 * delegatedTo.getDisplayName()
     }
 }

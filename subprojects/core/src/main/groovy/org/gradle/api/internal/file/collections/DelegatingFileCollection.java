@@ -30,7 +30,7 @@ import java.util.Set;
  * A file collection that delegates each method call to the
  * file collection returned by {@link #getDelegate()}.
  */
-public abstract class DelegatingFileCollection implements FileCollection {
+public abstract class DelegatingFileCollection implements FileCollection, MinimalFileSet {
     public abstract FileCollection getDelegate();
 
     public File getSingleFile() throws IllegalStateException {
@@ -99,5 +99,13 @@ public abstract class DelegatingFileCollection implements FileCollection {
 
     public Iterator<File> iterator() {
         return getDelegate().iterator();
+    }
+
+    public String getDisplayName() {
+        FileCollection delegate = getDelegate();
+        if (delegate instanceof MinimalFileSet) {
+            return ((MinimalFileSet) delegate).getDisplayName();
+        }
+        return getDelegate().toString();
     }
 }
