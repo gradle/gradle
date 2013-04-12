@@ -59,6 +59,7 @@ sourceSets {
 repositories {
     mavenCentral()
 }
+
 dependencies {
     customCompile "org.scala-lang:scala-library:2.10.1"
 }
@@ -73,6 +74,36 @@ task verify << {
     assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-2.10.1.jar" }
 }
 """
+
+        expect:
+        succeeds("verify")
+    }
+
+    def "only resolves source class path feeding into inferred Scala class path if/when the latter is actually used (but not during autowiring)"() {
+        file("build.gradle") << """
+apply plugin: "scala-base"
+
+sourceSets {
+    custom
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    customCompile "org.scala-lang:scala-library:2.10.1"
+}
+
+task scaladoc(type: ScalaDoc) {
+    classpath = sourceSets.custom.runtimeClasspath
+}
+
+task verify << {
+    assert configurations.customCompile.state.toString() == "UNRESOLVED"
+    assert configurations.customRuntime.state.toString() == "UNRESOLVED"
+}
+        """
 
         expect:
         succeeds("verify")
