@@ -22,7 +22,47 @@ import org.gradle.api.Incubating;
 import java.io.File;
 
 /**
- * Provides changes to task input files to incremental task implementations.
+ * Provides access to any input files that need to be processed by an incremental task.
+ * <p>
+ * An incremental task action is one that accepts a single {@link TaskInputChanges} parameter.
+ * The task can then provide an action to execute for all input files that are out of date with respect to the previous execution of the task,
+ * and a separate action for all input files that have been removed since the previous execution.
+ *
+ * <pre autoTested="true">
+ * class IncrementalReverseTask extends DefaultTask {
+ *      @InputDirectory
+ *      def File inputDir
+ *
+ *      @OutputDirectory
+ *      def File outputDir
+ *
+ *      @TaskAction
+ *      void execute(TaskInputChanges inputs) {
+ *          inputs.outOfDate({ change ->
+ *              def targetFile = project.file("$outputDir/${change.file.name}")
+ *              targetFile.text = change.file.text.reverse()
+ *          } as Action)
+ *
+ *          inputs.removed({ change ->
+ *              def targetFile = project.file("$outputDir/${change.file.name}")
+ *              if (targetFile.exists()) {
+ *                  targetFile.delete()
+ *              }
+ *          } as Action)
+ *      }
+ *  }
+ * </pre>
+ *
+ * <p>
+ * In the case where Gradle is unable to determine which input files need to be reprocessed, then all of the input files will be reported as {@link #outOfDate}.
+ * Cases where this occurs include:
+ * <ul>
+ *     <li>There is no history available from a previous execution.</li>
+ *     <li>An {@link TaskOutputs#upToDateWhen(groovy.lang.Closure)} criteria added to the task returns <code>false</code>.</li>
+ *     <li>An {@link Input} property has changed since the previous execution.</li>
+ *     <li>One or more output files have changed since the previous execution.</li>
+ * </ul>
+ *
  * Note that this is a stateful API:
  * <ul>
  *     <li>{@link #outOfDate} and {@link #removed} can each only be executed a single time per {@link TaskInputChanges} instance.</li>
@@ -32,24 +72,33 @@ import java.io.File;
 @Incubating
 public interface TaskInputChanges {
     /**
-     * Specifies if incremental build is not possible due to changed Input Properties, Output Files, etc.
-     * In this case, every file will be considered to be 'out-of-date'.
+     * Indicates if it was not possible for Gradle to determine which input files were out of date, due to changed Input Properties, Output Files, etc.
+     * <p>
+     * When <code>true</code>:
+     * <ul>
+     *     <li>Every input file will be considered to be 'out-of-date' and will be reported to {@link #outOfDate}.</li>
+     *     <li>No input files will be reported to {@link #removed}.</li>
+     * </ul>
+     * </p>
      */
     boolean isAllOutOfDate();
 
     /**
      * Executes the action for all of the input files that are out-of-date since the previous task execution.
-     * This method may only be executed a single time for a single {@link TaskInputChanges} instance.
-     *
+     * <p>
+     * This method may only be called a single time for a single {@link TaskInputChanges} instance.
+     * </p>
      * @throws IllegalStateException on second and subsequent invocations.
      */
     void outOfDate(Action<? super InputFileChange> outOfDateAction);
 
     /**
      * Executes the action for all of the input files that were removed since the previous task execution.
-     * This method may only be executed a single time for a single {@link TaskInputChanges} instance.
-     * This method may only be called after {@link #outOfDate} has executed.
-     *
+     * <p>
+     * This method may only be called a single time for a single {@link TaskInputChanges} instance.
+     * </p><p>
+     * This method may only be called after {@link #outOfDate} has been called.
+     * </p>
      * @throws IllegalStateException if invoked prior to {@link #outOfDate}, or if invoked more than once.
      */
     void removed(Action<? super InputFileChange> removedAction);
