@@ -91,13 +91,13 @@
                 inputs/2.txt
                 inputs/3.txt
             </layout>
-            <output args="-q incrementalReverse"/>
+            <output args="-q incrementalReverse" ignoreLineOrder="true"/>
         </sample>
         <para>
             Naturally when the task is executed again with no changes, then task itself is up to date and no files are reported to the task action:
         </para>
         <sample id="incrementalTaskNoChange" dir="userguide/tasks/incrementalTask" title="Running the incremental task with unchanged inputs">
-            <test args="-q originalInputs incrementalReverse" outputFile="incrementalTaskFirstRun.out"/>
+            <test args="-q originalInputs incrementalReverse"/>
             <output args="-q incrementalReverse"/>
         </sample>
 
@@ -106,8 +106,8 @@
         </para>
         <sample id="incrementalTaskUpdatedInputs" dir="userguide/tasks/incrementalTask" title="Running the incremental task with updated input files">
             <sourcefile file="build.gradle" snippet="updated-inputs" />
-            <test args="-q originalInputs incrementalReverse" outputFile="incrementalTaskFirstRun.out"/>
-            <output args="-q updatedInputs incrementalReverse"/>
+            <test args="-q originalInputs incrementalReverse"/>
+            <output args="-q updatedInputs incrementalReverse" ignoreLineOrder="true"/>
         </sample>
 
         <para>
@@ -115,8 +115,8 @@
         </para>
         <sample id="incrementalTaskRemovedInput" dir="userguide/tasks/incrementalTask" title="Running the incremental task with an input file removed">
             <sourcefile file="build.gradle" snippet="removed-input" />
-            <test args="-q originalInputs incrementalReverse" outputFile="incrementalTaskFirstRun.out"/>
-            <output args="-q removedInput incrementalReverse"/>
+            <test args="-q originalInputs incrementalReverse"/>
+            <output args="-q removedInput incrementalReverse" ignoreLineOrder="true"/>
         </sample>
 
         <para>
@@ -126,8 +126,8 @@
         </para>
         <sample id="incrementalTaskRemovedOutput" dir="userguide/tasks/incrementalTask" title="Running the incremental task with an output file removed">
             <sourcefile file="build.gradle" snippet="removed-output" />
-            <test args="-q originalInputs incrementalReverse" outputFile="incrementalTaskFirstRun.out"/>
-            <output args="-q removedOutput incrementalReverse"/>
+            <test args="-q originalInputs incrementalReverse"/>
+            <output args="-q removedOutput incrementalReverse" ignoreLineOrder="true"/>
         </sample>
     </section>
  </chapter>
