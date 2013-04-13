@@ -184,7 +184,23 @@ For build with the `build-dashboard` plugin applied to the root project and the 
 - running `gradle check` will not run the `buildDashboard` task when the checkstyle task is not executed due to a failed dependency.
 - running `gradle check --continue` will not run the `buildDashboard` task when the checkstyle task is not executed due to a failed dependency.
 
-TBD - some general int tests
+- Given `a.finalizedBy b` and `a.dependsOn c` and `b.dependsOn d`, then:
+    - `gradle a` runs `c` then `a` then `d` then `b`.
+    - `gradle a b` runs `c` then `a` then `d` then `b`.
+    - `gradle d a` runs `d` then `c` then `a` then `b`.
+    - `gradle a -x b` runs `c` then `a` only. Neither `b` nor `d` are added to the task graph.
+    - `gradle a -x d` runs `c` then `a` then `b`. Task `d` is not added to the task graph.
+    - `gradle a -x a` runs no tasks. No tasks are added to the task graph.
+    - `gradle a --continue` runs `c` only when `c` fails.
+    - `gradle a b --continue` runs `c` then `a` then `d` then `b` when `a` fails.
+    - `gradle a b --continue` runs `c` then `d` then `b` when `c` fails.
+    - `gradle a` run `c` only when `a` is disabled. All tasks are added to the task graph.
+    - `gradle a` run `c` only when `a.onlyIf { false }` . All tasks are added to the task graph.
+    - `gradle b a` fails with a circular dependency failure.
+    - `gradle a --parallel` runs `c` then `a` then `d` then `b` when `a` and `c` are in different projects to `b` and `d`.
+- Given `a.finalizedBy b` and `b.finalizedBy c`, then `gradle a` runs `a` then `b` then `c`.
+- Given `a.dependsOn [b, c]` and `c.finalizedBy b` then `gradle a` runs `c` then `b` then `a`.
+- Verify execution fails with 'circular dependency' failure when `a.finalizedBy b` and `a.dependsOn c` and `c.mustRunAfter b`.
 
 ## Separate test report generation from test execution
 
