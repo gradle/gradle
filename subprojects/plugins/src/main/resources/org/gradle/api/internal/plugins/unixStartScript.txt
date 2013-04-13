@@ -65,7 +65,11 @@ cd "`dirname \"\$PRG\"`/${appHomeRelativePath}" >&-
 APP_HOME="`pwd -P`"
 cd "\$SAVED" >&-
 
-CLASSPATH=$classpath
+if [ -d "\$APP_HOME/libs" ] ; then
+    CLASSPATH=$inPlaceClasspath
+else
+    CLASSPATH=$classpath
+fi
 
 # Determine the Java command to use to start the JVM.
 if [ -n "\$JAVA_HOME" ] ; then

@@ -45,6 +45,11 @@ class StartScriptGenerator {
     Iterable<String> classpath
 
     /**
+     * The classpath, relative to build directory.
+     */
+    Iterable<String> inPlaceClasspath
+
+    /**
      * The path of the script, relative to the application home directory.
      */
     String scriptRelPath
@@ -64,12 +69,14 @@ class StartScriptGenerator {
 
     String generateUnixScriptContent() {
         def unixClassPath = classpath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.join(":")
+        def inPlaceUnixClassPath = inPlaceClasspath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.join(":")
         def binding = [applicationName: applicationName,
                 optsEnvironmentVar: optsEnvironmentVar,
                 mainClassName: mainClassName,
                 appNameSystemProperty: appNameSystemProperty,
                 appHomeRelativePath: appHomeRelativePath,
-                classpath: unixClassPath]
+                classpath: unixClassPath,
+                inPlaceClasspath: inPlaceUnixClassPath]
         return generateNativeOutput('unixStartScript.txt', binding, TextUtil.unixLineSeparator)
     }
 
@@ -80,6 +87,7 @@ class StartScriptGenerator {
 
     String generateWindowsScriptContent() {
         def windowsClassPath = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.join(";")
+        def inPlaceWindowsClassPath = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.join(";")
         def appHome = appHomeRelativePath.replace('/', '\\')
         def binding = [applicationName: applicationName,
                 optsEnvironmentVar: optsEnvironmentVar,
@@ -87,7 +95,8 @@ class StartScriptGenerator {
                 mainClassName: mainClassName,
                 appNameSystemProperty: appNameSystemProperty,
                 appHomeRelativePath: appHome,
-                classpath: windowsClassPath]
+                classpath: windowsClassPath,
+                inPlaceClasspath: inPlaceWindowsClassPath]
         return generateNativeOutput('windowsStartScript.txt', binding, TextUtil.windowsLineSeparator)
 
     }
