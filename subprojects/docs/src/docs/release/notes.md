@@ -61,12 +61,10 @@ The `mustRunAfter` task ordering rule makes it easy to wire this logic into your
 
 See the User guide section on “[Ordering Tasks](userguide/more_about_tasks.html#sec:ordering_tasks)” for more information.
 
-> We are incredibly grateful to Marcin Erdmann for taking on this long anticipated feature.
-> The design and implementation of task ordering rules involved a deep understanding and refactoring of the Gradle Task execution engine, and Marcin took this on with gusto.
->
-> Thanks, Marcin: I'm sure many Gradle users will appreciate your contribution.
+We are incredibly grateful to Marcin Erdmann for taking on this long anticipated feature.
+The design and implementation of task ordering rules involved a deep understanding and refactoring of the Gradle Task execution engine, and Marcin took this on with gusto.
 
-### JaCoCo Code Coverage Plugin
+### JaCoCo Code Coverage Plugin (i)
 Gradle now ships with a JaCoCo plugin to generate code coverage reports. JaCoCo is a free code coverage library for Java.
 
 To gather code coverage information for your java project, just apply the JaCoCo plugin:
@@ -102,7 +100,7 @@ Since the JaCoCo plugin can be used in combination with any `JavaExec` task of y
 There was a great demand by the Gradle community for having a first class code coverage plugin in the Gradle distribution.
 Therefore we're very happy that this plugin was provided by Andrew Oberstar, an energetic member of the Gradle community.
 
-### Build Setup Plugin
+### Build Setup Plugin (i)
 This Gradle distribution introduces a `build-setup` plugin that supports users on initializing new Gradle projects.
 We reworked the functionality for converting Maven projects into Gradle projects (formerly provided by the incubating `maven2Gradle` plugin) to be part of that new `build-setup` plugin.
 Running `gradle setupBuild` in a directory with no `build.gradle` file a gradle project is initialized by
@@ -145,6 +143,30 @@ you can simply configure your test task to run only specific categories:
     }
 
 <!-- TODO Add link to docs for this feature, once they are in place. -->
+
+### Incremental Tasks
+Grade has always [made it easy](userguide/more_about_tasks.html#sec:up_to_date_checks) to implement a task that gets skipped when all of it's inputs and outputs are up to date.
+
+However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs.
+This can be particularly useful for a transformer task, that converts input files to output files on a 1:1 basis.
+
+If you'd like to optimise your build so that only out-of-date inputs are processed, you can now do so by leveraging the new support for [Incremental Tasks](userguide/incremental_tasks.html).
+To implement an incremental task, you add a @TaskAction method that takes a single parameter of type [IncrementalTaskInputs](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html).
+You can then supply an action to execute for every input file that is out of date, and another action to execute for every input file that has been removed.
+
+    @TaskAction
+    void execute(IncrementalTaskInputs inputs) {
+        inputs.outOfDate { change ->
+            println "File ${change.file.name} is out of date"
+        }
+
+        inputs.removed { change ->
+            println "File ${change.file.name} has been removed"
+        }
+    }
+
+Be sure to check out the [User Guide chapter](userguide/incremental_tasks.html) and [DSL reference](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html) for
+more details on how you can benefit from incremental tasks.
 
 ### Plugins can expose custom tooling models via the tooling API
 
