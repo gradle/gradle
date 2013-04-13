@@ -54,7 +54,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds('test', 'jacocoTestReport')
         then:
-        file(REPORTING_BASE).listFiles().collect{it.name} == ["jacoco", "tests"]
+        file(REPORTING_BASE).listFiles().collect{it.name} as Set == ["jacoco", "tests"] as Set
         file(REPORT_HTML_DEFAULT_PATH).exists()
         file("${REPORTING_BASE}/${JACOCO_REPORTING_RELATIVE_PATH}").listFiles().collect{it.name} == ["html"]
     }
