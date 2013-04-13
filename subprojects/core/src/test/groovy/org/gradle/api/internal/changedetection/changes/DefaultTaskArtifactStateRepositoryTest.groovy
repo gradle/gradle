@@ -25,6 +25,7 @@ import org.gradle.api.tasks.incremental.InputFile
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.id.RandomLongIdGenerator
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
@@ -64,7 +65,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher())
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess)
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess))
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, outputFilesSnapshotter, inputFilesSnapshotter)
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, new DirectInstantiator(), outputFilesSnapshotter, inputFilesSnapshotter)
     }
 
     def artifactsAreNotUpToDateWhenCacheIsEmpty() {

@@ -49,17 +49,17 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
             incrementalExecution = inputs.incremental
 
-            inputs.outOfDate({ change ->
+            inputs.outOfDate { change ->
                 if (change.added) {
                     addedFiles << change.file
                 } else {
                     changedFiles << change.file
                 }
-            } as Action)
+            }
 
-            inputs.removed({ change ->
+            inputs.removed { change ->
                 removedFiles << change.file
-            } as Action)
+            }
 
             touchOutputs()
         }

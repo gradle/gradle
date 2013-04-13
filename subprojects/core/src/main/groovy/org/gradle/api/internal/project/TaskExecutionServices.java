@@ -17,7 +17,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.internal.changedetection.*;
+import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.*;
@@ -28,6 +28,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.id.RandomLongIdGenerator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
@@ -74,13 +75,17 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess));
 
+        Instantiator instantiator = get(Instantiator.class);
         return new ShortCircuitTaskArtifactStateRepository(
                         get(StartParameter.class),
+                        instantiator,
                         new DefaultTaskArtifactStateRepository(
                                 taskHistoryRepository,
+                                instantiator,
                                 outputFilesSnapshotter,
                                 fileSnapshotter
-                        ));
+                        )
+        );
     }
 
     protected TaskPlanExecutor createTaskExecutorFactory() {

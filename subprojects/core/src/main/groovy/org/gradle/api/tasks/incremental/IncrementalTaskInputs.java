@@ -36,17 +36,17 @@ import org.gradle.api.Incubating;
  *
  *      @TaskAction
  *      void execute(IncrementalTaskInputs inputs) {
- *          inputs.outOfDate({ change ->
+ *          inputs.outOfDate { change ->
  *              def targetFile = project.file("$outputDir/${change.file.name}")
  *              targetFile.text = change.file.text.reverse()
- *          } as Action)
+ *          }
  *
- *          inputs.removed({ change ->
+ *          inputs.removed { change ->
  *              def targetFile = project.file("$outputDir/${change.file.name}")
  *              if (targetFile.exists()) {
  *                  targetFile.delete()
  *              }
- *          } as Action)
+ *          }
  *      }
  *  }
  * </pre>
@@ -90,7 +90,7 @@ public interface IncrementalTaskInputs {
     boolean isIncremental();
 
     /**
-     * Executes the action for all of the input files that are out-of-date since the previous task execution.
+     * Executes the action for all of the input files that are out-of-date since the previous task execution. The action may also be supplied as a {@link groovy.lang.Closure}.
      * <ul>
      *     <li>When {@link #isIncremental()} == <code>true</code>, the action will be executed for any added or modified input file.</li>
      *     <li>When {@link #isIncremental()} == <code>false</code>, the action will be executed for every input file for the task.</li>
@@ -103,7 +103,7 @@ public interface IncrementalTaskInputs {
     void outOfDate(Action<? super InputFile> outOfDateAction);
 
     /**
-     * Executes the action for all of the input files that were removed since the previous task execution.
+     * Executes the action for all of the input files that were removed since the previous task execution. The action may also be supplied as a {@link groovy.lang.Closure}.
      * <ul>
      *     <li>When {@link #isIncremental()} == <code>true</code>, the action will be executed for any removed input file.</li>
      *     <li>When {@link #isIncremental()} == <code>false</code>, the action will not be executed.</li>

@@ -22,7 +22,7 @@ import org.gradle.api.tasks.incremental.InputFile;
 
 import java.io.File;
 
-class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
+public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
     private final Task task;
 
     public RebuildIncrementalTaskInputs(Task task) {

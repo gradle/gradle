@@ -25,11 +25,11 @@ import org.gradle.api.tasks.incremental.InputFile;
 import java.util.ArrayList;
 import java.util.List;
 
-class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
+public class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
     private final TaskStateChanges inputFilesState;
     private List<InputFile> removedFiles = new ArrayList<InputFile>();
 
-    ChangesOnlyIncrementalTaskInputs(TaskStateChanges inputFilesState) {
+    public ChangesOnlyIncrementalTaskInputs(TaskStateChanges inputFilesState) {
         this.inputFilesState = inputFilesState;
     }
 

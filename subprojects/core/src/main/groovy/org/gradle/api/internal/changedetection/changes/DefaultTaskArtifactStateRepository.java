@@ -33,6 +33,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
 import java.util.Formatter;
@@ -44,9 +45,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final TaskHistoryRepository taskHistoryRepository;
     private final FileSnapshotter outputFilesSnapshotter;
     private final FileSnapshotter inputFilesSnapshotter;
+    private final Instantiator instantiator;
 
-    public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, FileSnapshotter outputFilesSnapshotter, FileSnapshotter inputFilesSnapshotter) {
+    public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
+                                              FileSnapshotter outputFilesSnapshotter, FileSnapshotter inputFilesSnapshotter) {
         this.taskHistoryRepository = taskHistoryRepository;
+        this.instantiator = instantiator;
         this.outputFilesSnapshotter = outputFilesSnapshotter;
         this.inputFilesSnapshotter = inputFilesSnapshotter;
     }
@@ -112,9 +116,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             if (canPerformIncrementalBuild()) {
-                return new ChangesOnlyIncrementalTaskInputs(getStates().getInputFilesChanges());
+                return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             }
-            return new RebuildIncrementalTaskInputs(task);
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
         }
 
         public boolean hasHistory() {
