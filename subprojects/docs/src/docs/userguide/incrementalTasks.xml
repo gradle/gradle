@@ -45,26 +45,40 @@
             For a simple transformer task like this, the task action simply needs to generate output files for any out-of-date inputs,
             and delete output files for any removed inputs.
         </para>
-        <note>
-            <para>
-                In the case where Gradle is unable to determine which input files need to be reprocessed, then all of the input files will be supplied as <literal>outOfDate</literal>.
-                Cases where this occurs include:
-            </para>
-            <itemizedlist>
-                <listitem>There is no history available from a previous execution.</listitem>
-                <listitem>An <literal>upToDateWhen</literal> criteria added to the task returns <literal>false</literal>.</listitem>
-                <listitem>An input property has changed since the previous execution.</listitem>
-                <listitem>One or more output files have changed since the previous execution.</listitem>
-            </itemizedlist>
-        </note>
         <para>
             A task may only contain a single incremental task action.
         </para>
     </section>
     <section>
+        <title>Which inputs are considered out of date?</title>
+        <para>
+            When Gradle has history of a previous task execution, and the only changes to the task execution context since that execution are to input files,
+            then Gradle is able to determine which input files need to be reprocessed by the task.
+            In this case, the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/> action will be executed any input file that was <emphasis>added</emphasis> or <emphasis>modified</emphasis>,
+            and the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/> action will be executed for any <emphasis>removed</emphasis> input file.
+        </para>
+        <para>
+            However, there are many cases where Gradle is unable to determine which input files need to be reprocessed. Examples include:
+        </para>
+        <itemizedlist>
+            <listitem>There is no history available from a previous execution.</listitem>
+            <listitem>An <literal>upToDateWhen</literal> criteria added to the task returns <literal>false</literal>.</listitem>
+            <listitem>An input property has changed since the previous execution.</listitem>
+            <listitem>One or more output files have changed since the previous execution.</listitem>
+        </itemizedlist>
+        <para>
+            In any of these cases, Gradle will consider all of the input files to be <literal>outOfDate</literal>.
+            The <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/> action will be executed for every input file, and the
+            <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/> action will not be executed at all.
+        </para>
+        <para>
+            You can check if Gradle was able to determine the incremental changes to input files with <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="isIncremental"/>.
+        </para>
+    </section>
+    <section>
         <title>An incremental task in action</title>
         <para>
-            Given the incremental task implementation above, we can explore the various change scenarios by example.
+            Given the incremental task implementation <link linkend="taskDefinition">above</link>, we can explore the various change scenarios by example.
             First, consider the an <literal>IncrementalReverseTask</literal> executed against a set of inputs for the first time.
             In this case, all inputs will be considered "out of date":
         </para>
@@ -80,7 +94,7 @@
             <output args="-q incrementalReverse"/>
         </sample>
         <para>
-            Naturally if the task is executed again with no changes, then task itself is up to date and no files are reported to the task action:
+            Naturally when the task is executed again with no changes, then task itself is up to date and no files are reported to the task action:
         </para>
         <sample id="incrementalTaskNoChange" dir="userguide/tasks/incrementalTask" title="Running the incremental task with unchanged inputs">
             <test args="-q originalInputs incrementalReverse" outputFile="incrementalTaskFirstRun.out"/>
@@ -88,7 +102,7 @@
         </sample>
 
         <para>
-            If an input file is modified in some way or a new input file is added, then re-executing the task results in those files being reported to <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/>:
+            When an input file is modified in some way or a new input file is added, then re-executing the task results in those files being reported to <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/>:
         </para>
         <sample id="incrementalTaskUpdatedInputs" dir="userguide/tasks/incrementalTask" title="Running the incremental task with updated input files">
             <sourcefile file="build.gradle" snippet="updated-inputs" />
@@ -97,7 +111,7 @@
         </sample>
 
         <para>
-            If an existing input file is removed, then re-executing the task results that file being reported to <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/>:
+            When an existing input file is removed, then re-executing the task results that file being reported to <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/>:
         </para>
         <sample id="incrementalTaskRemovedInput" dir="userguide/tasks/incrementalTask" title="Running the incremental task with an input file removed">
             <sourcefile file="build.gradle" snippet="removed-input" />
@@ -106,7 +120,7 @@
         </sample>
 
         <para>
-            If an output file is deleted (or modified), then Gradle is unable to determine which input files are out of date.
+            When an output file is deleted (or modified), then Gradle is unable to determine which input files are out of date.
             In this case, <emphasis>all</emphasis> input files are reported to the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/> action,
             and no input files are reported to the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/> action:
         </para>
@@ -116,5 +130,4 @@
             <output args="-q removedOutput incrementalReverse"/>
         </sample>
     </section>
-
  </chapter>

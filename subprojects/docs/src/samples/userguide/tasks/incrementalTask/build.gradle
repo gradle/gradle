@@ -41,6 +41,7 @@ class IncrementalReverseTask extends DefaultTask {
 
     @TaskAction
     void execute(IncrementalTaskInputs inputs) {
+        println inputs.incremental ? "CHANGED inputs considered out of date" : "ALL inputs considered out of date"
         // START SNIPPET out-of-date-inputs
         inputs.outOfDate({ change ->
             println "out of date: ${change.file.name}"
