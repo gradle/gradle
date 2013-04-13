@@ -33,6 +33,7 @@ import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.*
 import org.gradle.api.tasks.diagnostics.*
 import org.gradle.api.tasks.compile.*
+import org.gradle.api.tasks.incremental.*
 import org.gradle.api.tasks.javadoc.*
 import org.gradle.api.tasks.testing.*
 import org.gradle.api.tasks.util.*

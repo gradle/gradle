@@ -32,7 +32,7 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.TaskInputChanges;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
 import java.util.ArrayList;
 import java.util.Formatter;
@@ -108,13 +108,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
         }
 
-        public TaskInputChanges getInputChanges() {
+        public IncrementalTaskInputs getInputChanges() {
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             if (canPerformIncrementalBuild()) {
-                return new IncrementalTaskInputChanges(getStates().getInputFilesChanges());
+                return new ChangesOnlyIncrementalTaskInputs(getStates().getInputFilesChanges());
             }
-            return new RebuildTaskInputChanges(task);
+            return new RebuildIncrementalTaskInputs(task);
         }
 
         public boolean hasHistory() {

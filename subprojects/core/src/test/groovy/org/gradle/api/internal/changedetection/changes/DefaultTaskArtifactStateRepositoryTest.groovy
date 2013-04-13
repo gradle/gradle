@@ -21,7 +21,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.*
-import org.gradle.api.tasks.TaskInputChanges.InputFileChange
+import org.gradle.api.tasks.incremental.InputFile
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.id.RandomLongIdGenerator
@@ -555,8 +555,8 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         assert !inputChanges.allOutOfDate
 
         final changedFiles = new ChangedFiles()
-        inputChanges.outOfDate(new Action<InputFileChange>() {
-            void execute(InputFileChange t) {
+        inputChanges.outOfDate(new Action<InputFile>() {
+            void execute(InputFile t) {
                 if (t.added) {
                     println "Added: " + t.file
                     changedFiles.added << t.file
@@ -568,8 +568,8 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
                 }
             }
         })
-        inputChanges.removed(new Action<InputFileChange>() {
-            void execute(InputFileChange t) {
+        inputChanges.removed(new Action<InputFile>() {
+            void execute(InputFile t) {
                 println "Removed: " + t.file
                 assert t.removed
                 changedFiles.removed << t.file

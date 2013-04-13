@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.tasks.TaskInputChanges;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,8 +66,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return false;
         }
 
-        public TaskInputChanges getInputChanges() {
-            return new RebuildTaskInputChanges(task);
+        public IncrementalTaskInputs getInputChanges() {
+            return new RebuildIncrementalTaskInputs(task);
         }
 
         public TaskExecutionHistory getExecutionHistory() {

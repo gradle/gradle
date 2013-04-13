@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.*;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ReflectionUtil;
@@ -161,13 +162,13 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         if (parameterTypes.length == 1) {
-            if (!parameterTypes[0].equals(TaskInputChanges.class)) {
+            if (!parameterTypes[0].equals(IncrementalTaskInputs.class)) {
                 throw new GradleException(String.format(
                         "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
                         method.getDeclaringClass().getSimpleName(), method.getName(), parameterTypes[0]));
             }
             if (taskClassInfo.incremental) {
-                throw new GradleException("Cannot have multiple @TaskAction methods accepting a TaskInputChanges parameter.");
+                throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s parameter.", IncrementalTaskInputs.class.getSimpleName()));
             }
             taskClassInfo.incremental = true;
         }

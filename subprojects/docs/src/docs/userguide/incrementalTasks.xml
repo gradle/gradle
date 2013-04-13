@@ -32,11 +32,11 @@
         <title>Implementing an incremental task</title>
         <para>
             For a task to process inputs incrementally, that task must contain an <firstterm>incremental task action</firstterm>. This is a task action method that contains a
-            single <apilink class="org.gradle.api.tasks.TaskInputChanges"/> parameter, which indicates to Gradle that the action will process the changed inputs only.
+            single <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs"/> parameter, which indicates to Gradle that the action will process the changed inputs only.
         </para>
         <para>
-            The incremental task action may supply an <apilink class="org.gradle.api.tasks.TaskInputChanges" method="outOfDate"/> action for processing any input file that is out-of-date,
-            and a <apilink class="org.gradle.api.tasks.TaskInputChanges" method="removed"/> action that executes for any input file that has been removed since the previous execution.
+            The incremental task action may supply an <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/> action for processing any input file that is out-of-date,
+            and a <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/> action that executes for any input file that has been removed since the previous execution.
         </para>
         <sample id="taskDefinition" dir="userguide/tasks/incrementalTask" title="Defining an incremental task action" includeLocation="true">
             <sourcefile file="build.gradle" snippet="incremental-task" />
@@ -88,7 +88,7 @@
         </sample>
 
         <para>
-            If an input file is modified in some way or a new input file is added, then re-executing the task results in those files being reported to <apilink class="org.gradle.api.tasks.TaskInputChanges" method="outOfDate"/>:
+            If an input file is modified in some way or a new input file is added, then re-executing the task results in those files being reported to <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/>:
         </para>
         <sample id="incrementalTaskUpdatedInputs" dir="userguide/tasks/incrementalTask" title="Running the incremental task with updated input files">
             <sourcefile file="build.gradle" snippet="updated-inputs" />
@@ -97,7 +97,7 @@
         </sample>
 
         <para>
-            If an existing input file is removed, then re-executing the task results that file being reported to <apilink class="org.gradle.api.tasks.TaskInputChanges" method="removed"/>:
+            If an existing input file is removed, then re-executing the task results that file being reported to <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/>:
         </para>
         <sample id="incrementalTaskRemovedInput" dir="userguide/tasks/incrementalTask" title="Running the incremental task with an input file removed">
             <sourcefile file="build.gradle" snippet="removed-input" />
@@ -107,8 +107,8 @@
 
         <para>
             If an output file is deleted (or modified), then Gradle is unable to determine which input files are out of date.
-            In this case, <emphasis>all</emphasis> input files are reported to the <apilink class="org.gradle.api.tasks.TaskInputChanges" method="outOfDate"/> action,
-            and no input files are reported to the <apilink class="org.gradle.api.tasks.TaskInputChanges" method="removed"/> action:
+            In this case, <emphasis>all</emphasis> input files are reported to the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/> action,
+            and no input files are reported to the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/> action:
         </para>
         <sample id="incrementalTaskRemovedOutput" dir="userguide/tasks/incrementalTask" title="Running the incremental task with an output file removed">
             <sourcefile file="build.gradle" snippet="removed-output" />

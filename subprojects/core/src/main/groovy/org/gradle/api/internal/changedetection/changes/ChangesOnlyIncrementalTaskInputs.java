@@ -20,15 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChanges;
 import org.gradle.api.internal.changedetection.rules.UpToDateChangeListener;
+import org.gradle.api.tasks.incremental.InputFile;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class IncrementalTaskInputChanges extends StatefulTaskInputChanges {
+class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
     private final TaskStateChanges inputFilesState;
-    private List<InputFileChange> removedFiles = new ArrayList<InputFileChange>();
+    private List<InputFile> removedFiles = new ArrayList<InputFile>();
 
-    IncrementalTaskInputChanges(TaskStateChanges inputFilesState) {
+    ChangesOnlyIncrementalTaskInputs(TaskStateChanges inputFilesState) {
         this.inputFilesState = inputFilesState;
     }
 
@@ -37,11 +38,11 @@ class IncrementalTaskInputChanges extends StatefulTaskInputChanges {
     }
 
     @Override
-    protected void doOutOfDate(final Action<? super InputFileChange> outOfDateAction) {
+    protected void doOutOfDate(final Action<? super InputFile> outOfDateAction) {
         inputFilesState.findChanges(new UpToDateChangeListener() {
             public void accept(TaskStateChange change) {
-                assert change instanceof InputFileChange;
-                InputFileChange fileChange = (InputFileChange) change;
+                assert change instanceof InputFile;
+                InputFile fileChange = (InputFile) change;
                 if (fileChange.isRemoved()) {
                     removedFiles.add(fileChange);
                 } else {
@@ -56,8 +57,8 @@ class IncrementalTaskInputChanges extends StatefulTaskInputChanges {
     }
 
     @Override
-    protected void doRemoved(Action<? super InputFileChange> removedAction) {
-        for (InputFileChange removedFile : removedFiles) {
+    protected void doRemoved(Action<? super InputFile> removedAction) {
+        for (InputFile removedFile : removedFiles) {
             removedAction.execute(removedFile);
         }
     }

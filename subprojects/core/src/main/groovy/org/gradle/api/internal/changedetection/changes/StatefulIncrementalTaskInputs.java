@@ -17,13 +17,14 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.TaskInputChanges;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.tasks.incremental.InputFile;
 
-abstract class StatefulTaskInputChanges implements TaskInputChanges {
+abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputs {
     private boolean outOfDateProcessed;
     private boolean removedProcessed;
 
-    public void outOfDate(final Action<? super InputFileChange> outOfDateAction) {
+    public void outOfDate(final Action<? super InputFile> outOfDateAction) {
         if (outOfDateProcessed) {
             throw new IllegalStateException("Cannot process outOfDate files multiple times");
         }
@@ -31,9 +32,9 @@ abstract class StatefulTaskInputChanges implements TaskInputChanges {
         outOfDateProcessed = true;
     }
 
-    protected abstract void doOutOfDate(Action<? super InputFileChange> outOfDateAction);
+    protected abstract void doOutOfDate(Action<? super InputFile> outOfDateAction);
 
-    public void removed(Action<? super InputFileChange> removedAction) {
+    public void removed(Action<? super InputFile> removedAction) {
         if (!outOfDateProcessed) {
             throw new IllegalStateException("Must first process outOfDate files before processing removed files");
         }
@@ -44,5 +45,5 @@ abstract class StatefulTaskInputChanges implements TaskInputChanges {
         removedProcessed = true;
     }
 
-    protected abstract void doRemoved(Action<? super InputFileChange> removedAction);
+    protected abstract void doRemoved(Action<? super InputFile> removedAction);
 }

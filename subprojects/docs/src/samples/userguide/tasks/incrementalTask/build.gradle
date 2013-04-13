@@ -40,7 +40,7 @@ class IncrementalReverseTask extends DefaultTask {
     def File outputDir
 
     @TaskAction
-    void execute(TaskInputChanges inputs) {
+    void execute(IncrementalTaskInputs inputs) {
         // START SNIPPET out-of-date-inputs
         inputs.outOfDate({ change ->
             println "out of date: ${change.file.name}"

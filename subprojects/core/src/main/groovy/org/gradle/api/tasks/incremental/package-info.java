@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
-
-import org.gradle.api.tasks.incremental.InputFile;
-
-class InputFileChange extends FileChange implements InputFile {
-
-    public InputFileChange(String path, ChangeType change) {
-        super(path, change);
-    }
-
-    @Override
-    protected String getFileType() {
-        return "Input";
-    }
-}
+/**
+ * API classes for implementing incremental tasks.
+ */
+package org.gradle.api.tasks.incremental;

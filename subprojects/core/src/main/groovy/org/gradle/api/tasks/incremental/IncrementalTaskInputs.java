@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.tasks.incremental;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
-import java.io.File;
-
 /**
  * Provides access to any input files that need to be processed by an incremental task.
  * <p>
- * An incremental task action is one that accepts a single {@link TaskInputChanges} parameter.
+ * An incremental task action is one that accepts a single {@link IncrementalTaskInputs} parameter.
  * The task can then provide an action to execute for all input files that are out of date with respect to the previous execution of the task,
  * and a separate action for all input files that have been removed since the previous execution.
  *
@@ -37,7 +35,7 @@ import java.io.File;
  *      def File outputDir
  *
  *      @TaskAction
- *      void execute(TaskInputChanges inputs) {
+ *      void execute(IncrementalTaskInputs inputs) {
  *          inputs.outOfDate({ change ->
  *              def targetFile = project.file("$outputDir/${change.file.name}")
  *              targetFile.text = change.file.text.reverse()
@@ -58,19 +56,19 @@ import java.io.File;
  * Cases where this occurs include:
  * <ul>
  *     <li>There is no history available from a previous execution.</li>
- *     <li>An {@link TaskOutputs#upToDateWhen(groovy.lang.Closure)} criteria added to the task returns <code>false</code>.</li>
- *     <li>An {@link Input} property has changed since the previous execution.</li>
+ *     <li>An {@link org.gradle.api.tasks.TaskOutputs#upToDateWhen(groovy.lang.Closure)} criteria added to the task returns <code>false</code>.</li>
+ *     <li>An {@link org.gradle.api.tasks.Input} property has changed since the previous execution.</li>
  *     <li>One or more output files have changed since the previous execution.</li>
  * </ul>
  *
  * Note that this is a stateful API:
  * <ul>
- *     <li>{@link #outOfDate} and {@link #removed} can each only be executed a single time per {@link TaskInputChanges} instance.</li>
+ *     <li>{@link #outOfDate} and {@link #removed} can each only be executed a single time per {@link IncrementalTaskInputs} instance.</li>
  *     <li>{@link #outOfDate} must be executed before {@link #removed} is called.</li>
  * </ul>
  */
 @Incubating
-public interface TaskInputChanges {
+public interface IncrementalTaskInputs {
     /**
      * Indicates if it was not possible for Gradle to determine which input files were out of date, due to changed Input Properties, Output Files, etc.
      * <p>
@@ -86,49 +84,21 @@ public interface TaskInputChanges {
     /**
      * Executes the action for all of the input files that are out-of-date since the previous task execution.
      * <p>
-     * This method may only be called a single time for a single {@link TaskInputChanges} instance.
+     * This method may only be called a single time for a single {@link IncrementalTaskInputs} instance.
      * </p>
      * @throws IllegalStateException on second and subsequent invocations.
      */
-    void outOfDate(Action<? super InputFileChange> outOfDateAction);
+    void outOfDate(Action<? super InputFile> outOfDateAction);
 
     /**
      * Executes the action for all of the input files that were removed since the previous task execution.
      * <p>
-     * This method may only be called a single time for a single {@link TaskInputChanges} instance.
+     * This method may only be called a single time for a single {@link IncrementalTaskInputs} instance.
      * </p><p>
      * This method may only be called after {@link #outOfDate} has been called.
      * </p>
      * @throws IllegalStateException if invoked prior to {@link #outOfDate}, or if invoked more than once.
      */
-    void removed(Action<? super InputFileChange> removedAction);
+    void removed(Action<? super InputFile> removedAction);
 
-    /**
-     * A change to an input file.
-     */
-    interface InputFileChange {
-        /**
-         * Was the file added?
-         * @return true if the file was added since the last execution
-         */
-        boolean isAdded();
-
-        /**
-         * Was the file modified?
-         * @return if the file was modified
-         */
-        boolean isModified();
-
-        /**
-         * Was the file removed?
-         * @return true if the file was removed since the last execution
-         */
-        boolean isRemoved();
-
-        /**
-         * The input file, which may no longer exist.
-         * @return the input file
-         */
-        File getFile();
-    }
 }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.tasks.TaskInputChanges;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 
 /**
@@ -27,7 +27,7 @@ public interface TaskArtifactState {
      */
     boolean isUpToDate();
 
-    TaskInputChanges getInputChanges();
+    IncrementalTaskInputs getInputChanges();
 
     /**
      * Called before the task is to be executed. Note that {@link #isUpToDate()} may not necessarily have been called.

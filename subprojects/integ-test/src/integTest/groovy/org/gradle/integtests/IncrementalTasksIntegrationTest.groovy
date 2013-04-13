@@ -42,7 +42,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         def File inputDir
 
         @TaskAction
-        void execute(TaskInputChanges inputs) {
+        void execute(IncrementalTaskInputs inputs) {
             if (project.hasProperty('forceFail')) {
                 throw new RuntimeException('failed')
             }

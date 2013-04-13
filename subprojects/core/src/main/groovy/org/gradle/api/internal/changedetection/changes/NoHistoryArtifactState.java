@@ -19,14 +19,14 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.tasks.TaskInputChanges;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
     public boolean isUpToDate() {
         return false;
     }
 
-    public TaskInputChanges getInputChanges() {
+    public IncrementalTaskInputs getInputChanges() {
         throw new UnsupportedOperationException();
     }
 

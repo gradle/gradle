@@ -95,7 +95,7 @@ Incremental execution is not possible when:
             def File destination
 
             @TaskAction
-            void execute(TaskInputChanges inputs) {
+            void execute(IncrementalTaskInputs inputs) {
                 if (inputs.allOutOfDate) {
                     FileUtils.forceDelete(destination)
                 }

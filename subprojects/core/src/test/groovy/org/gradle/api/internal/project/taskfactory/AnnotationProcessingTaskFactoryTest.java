@@ -25,6 +25,7 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GFileUtils;
@@ -141,11 +142,11 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void createsContextualActionFoIncrementalTaskAction() {
-        final Action<TaskInputChanges> action = context.mock(Action.class);
+        final Action<IncrementalTaskInputs> action = context.mock(Action.class);
         TaskWithIncrementalAction task = expectTaskCreated(TaskWithIncrementalAction.class, action);
 
         context.checking(new Expectations() {{
-            one(action).execute(with(notNullValue(TaskInputChanges.class)));
+            one(action).execute(with(notNullValue(IncrementalTaskInputs.class)));
         }});
 
         task.execute();
@@ -154,7 +155,7 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void failsWhenMultipleActionsAreIncremental() {
         assertTaskCreationFails(TaskWithMultipleIncrementalActions.class,
-                "Cannot have multiple @TaskAction methods accepting a TaskInputChanges parameter.");
+                "Cannot have multiple @TaskAction methods accepting an IncrementalTaskInputs parameter.");
     }
 
     @Test
@@ -758,14 +759,14 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     public static class TaskWithIncrementalAction extends DefaultTask {
-        private final Action<TaskInputChanges> action;
+        private final Action<IncrementalTaskInputs> action;
 
-        public TaskWithIncrementalAction(Action<TaskInputChanges> action) {
+        public TaskWithIncrementalAction(Action<IncrementalTaskInputs> action) {
             this.action = action;
         }
 
         @TaskAction
-        public void doStuff(TaskInputChanges changes) {
+        public void doStuff(IncrementalTaskInputs changes) {
             action.execute(changes);
         }
     }
@@ -773,11 +774,11 @@ public class AnnotationProcessingTaskFactoryTest {
     public static class TaskWithMultipleIncrementalActions extends DefaultTask {
 
         @TaskAction
-        public void doStuff(TaskInputChanges changes) {
+        public void doStuff(IncrementalTaskInputs changes) {
         }
 
         @TaskAction
-        public void doStuff2(TaskInputChanges changes) {
+        public void doStuff2(IncrementalTaskInputs changes) {
         }
     }
 
