@@ -7,7 +7,7 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>allOutOfDate</td></tr>
+            <tr><td>incremental</td></tr>
         </table>
     </section>
     <section>

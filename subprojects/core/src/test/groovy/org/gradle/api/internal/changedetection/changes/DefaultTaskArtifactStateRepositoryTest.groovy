@@ -544,7 +544,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     private void outOfDate(TaskInternal task) {
         final state = repository.getStateFor(task)
         assert !state.upToDate
-        assert state.inputChanges.allOutOfDate
+        assert !state.inputChanges.incremental
     }
 
     def inputsOutOfDate(TaskInternal task) {
@@ -552,7 +552,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         assert !state.upToDate
 
         final inputChanges = state.inputChanges
-        assert !inputChanges.allOutOfDate
+        assert inputChanges.incremental
 
         final changedFiles = new ChangedFiles()
         inputChanges.outOfDate(new Action<InputFile>() {

@@ -70,19 +70,31 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface IncrementalTaskInputs {
     /**
-     * Indicates if it was not possible for Gradle to determine which input files were out of date, due to changed Input Properties, Output Files, etc.
+     * Indicates if it was possible for Gradle to determine which exactly which input files were out of date compared to a previous execution.
+     * This is <em>not</em> possible in the case of no previous execution, changed Input Properties, Output Files, etc.
      * <p>
      * When <code>true</code>:
+     * <ul>
+     *     <li>Any input file that has been added or modified since previous execution will be considered 'out-of-date' and reported to {@link #outOfDate}.</li>
+     *     <li>Any input files that has been removed since previous execution will be reported to {@link #removed}.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * When <code>false</code>:
      * <ul>
      *     <li>Every input file will be considered to be 'out-of-date' and will be reported to {@link #outOfDate}.</li>
      *     <li>No input files will be reported to {@link #removed}.</li>
      * </ul>
      * </p>
      */
-    boolean isAllOutOfDate();
+    boolean isIncremental();
 
     /**
      * Executes the action for all of the input files that are out-of-date since the previous task execution.
+     * <ul>
+     *     <li>When {@link #isIncremental()} == <code>true</code>, the action will be executed for any added or modified input file.</li>
+     *     <li>When {@link #isIncremental()} == <code>false</code>, the action will be executed for every input file for the task.</li>
+     * </ul>
      * <p>
      * This method may only be called a single time for a single {@link IncrementalTaskInputs} instance.
      * </p>
@@ -92,6 +104,10 @@ public interface IncrementalTaskInputs {
 
     /**
      * Executes the action for all of the input files that were removed since the previous task execution.
+     * <ul>
+     *     <li>When {@link #isIncremental()} == <code>true</code>, the action will be executed for any removed input file.</li>
+     *     <li>When {@link #isIncremental()} == <code>false</code>, the action will not be executed.</li>
+     * </ul>
      * <p>
      * This method may only be called a single time for a single {@link IncrementalTaskInputs} instance.
      * </p><p>

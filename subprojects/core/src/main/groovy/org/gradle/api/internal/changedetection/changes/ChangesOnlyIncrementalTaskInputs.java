@@ -33,8 +33,8 @@ class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
         this.inputFilesState = inputFilesState;
     }
 
-    public boolean isAllOutOfDate() {
-        return false;
+    public boolean isIncremental() {
+        return true;
     }
 
     @Override

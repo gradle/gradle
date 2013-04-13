@@ -96,7 +96,7 @@ Incremental execution is not possible when:
 
             @TaskAction
             void execute(IncrementalTaskInputs inputs) {
-                if (inputs.allOutOfDate) {
+                if (!inputs.incremental) {
                     FileUtils.forceDelete(destination)
                 }
                 inputs.outOfDate({ change ->

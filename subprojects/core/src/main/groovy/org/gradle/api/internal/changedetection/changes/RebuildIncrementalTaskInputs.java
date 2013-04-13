@@ -29,8 +29,8 @@ class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
         this.task = task;
     }
 
-    public boolean isAllOutOfDate() {
-        return true;
+    public boolean isIncremental() {
+        return false;
     }
 
     public void doOutOfDate(Action<? super InputFile> outOfDateAction) {

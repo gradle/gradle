@@ -72,6 +72,6 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         !state.upToDate
 
         and:
-        state.inputChanges.allOutOfDate
+        !state.inputChanges.incremental
     }
 }
