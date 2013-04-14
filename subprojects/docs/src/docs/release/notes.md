@@ -244,6 +244,11 @@ interface. The upper bound `extends Model` has been removed from the type parame
 With the introduction of support for custom tooling API models, it is no longer possible to determine whether a model is supported without
 configuring the target build. This exception is now thrown as part of the result.
 
+## Wrapper environment variable `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` no longer supported
+
+The Gradle wrapper no longer supports the `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` environment variables.
+Instead, the wrapper is now much better at recovering from failures to download or unpack the distribution.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
