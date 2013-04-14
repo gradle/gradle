@@ -21,10 +21,7 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with
-                        <literal>jacoco</literal>
-                        plugin
-                    </td>
+                    <td>Default with <literal>jacoco</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
