@@ -17,13 +17,14 @@
 package org.gradle.buildsetup.tasks
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.tasks.OutputFile
 
 import javax.inject.Inject
 
 class GenerateSettingsFile extends TextFileGenerationTask {
+    private final DocumentationRegistry documentationRegistry
 
-    private DocumentationRegistry documentationRegistry
-
+    @OutputFile
     File settingsFile
 
     @Inject
