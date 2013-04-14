@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -25,7 +24,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChanges;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
-import org.gradle.api.internal.changedetection.rules.UpToDateChangeListener;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
@@ -93,11 +91,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         private List<String> getChangeMessages(TaskStateChanges stateChanges) {
             final List<String> messages = new ArrayList<String>();
-            stateChanges.findChanges(new UpToDateChangeAction() {
-                public void execute(TaskStateChange taskUpToDateStateChange) {
-                    messages.add(taskUpToDateStateChange.getMessage());
-                }
-            });
+            for (TaskStateChange stateChange : stateChanges) {
+                messages.add(stateChange.getMessage());
+            }
             return messages;
         }
 
@@ -158,19 +154,4 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
     }
 
-    static class UpToDateChangeAction implements UpToDateChangeListener, Action<TaskStateChange> {
-        public int executeCount;
-
-        public void accept(TaskStateChange change) {
-            executeCount++;
-            execute(change);
-        }
-
-        public void execute(TaskStateChange taskStateChange) {
-        }
-
-        public boolean isAccepting() {
-            return true;
-        }
-    }
 }

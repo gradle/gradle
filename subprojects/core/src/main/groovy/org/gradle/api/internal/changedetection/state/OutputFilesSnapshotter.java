@@ -24,8 +24,7 @@ import org.gradle.util.DiffUtil;
 import org.gradle.util.NoOpChangeListener;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Takes a snapshot of the output files of a task. 2 parts to the algorithm:
@@ -91,60 +90,93 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
             return new OutputFilesDiff(rootFileIds, other.rootFileIds, filesSnapshot.changesSince(other.filesSnapshot));
         }
 
-        public void changesSince(FileCollectionSnapshot oldSnapshot, final SnapshotChangeListener listener) {
-            assert listener.getResumeAfter() == null : "Output files do not support resuming";
-
+        public ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot) {
             final OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
-            // This doesn't involve filesystem access, so we don't bother aborting. Just turf any events if listener is stopped.
-            DiffUtil.diff(rootFileIds, other.rootFileIds, new ChangeListener<Map.Entry<String, Long>>() {
-                public void added(Map.Entry<String, Long> element) {
-                    if (listener.isStopped()) {
-                        return;
+            final ChangeIterator<String> rootFileIdIterator = iterateRootFileIdChanges(other);
+            final ChangeIterator<String> fileIterator = filesSnapshot.iterateChangesSince(other.filesSnapshot);
+
+            final AddIgnoreChangeListenerAdapter listenerAdapter = new AddIgnoreChangeListenerAdapter();
+            return new ChangeIterator<String>() {
+                public boolean next(final ChangeListener<String> listener) {
+                    listenerAdapter.withDelegate(listener);
+                    if (rootFileIdIterator.next(listener)) {
+                        return true;
                     }
-                    listener.added(element.getKey());
+
+                    while (fileIterator.next(listenerAdapter)) {
+                        if (!listenerAdapter.wasIgnored) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
+            };
+        }
 
-                public void removed(Map.Entry<String, Long> element) {
-                    if (listener.isStopped()) {
-                        return;
-                    }
-                    listener.removed(element.getKey());
+        private ChangeIterator<String> iterateRootFileIdChanges(final OutputFilesSnapshot other) {
+            // Inlining DiffUtil.diff makes the inefficiencies here a bit more explicit
+            Map<String, Long> added = new HashMap<String, Long>(rootFileIds);
+            added.keySet().removeAll(other.rootFileIds.keySet());
+            final Iterator<String> addedIterator = added.keySet().iterator();
+
+            Map<String, Long> removed = new HashMap<String, Long>(other.rootFileIds);
+            removed.keySet().removeAll(rootFileIds.keySet());
+            final Iterator<String> removedIterator = removed.keySet().iterator();
+
+            Set<String> changed = new HashSet<String>();
+            for (Map.Entry<String, Long> current : rootFileIds.entrySet()) {
+                 // Only care about rootIds that used to exist, and have changed or been removed
+                Long otherValue = other.rootFileIds.get(current.getKey());
+                if (otherValue != null && !otherValue.equals(current.getValue())) {
+                    changed.add(current.getKey());
                 }
+            }
+            final Iterator<String> changedIterator = changed.iterator();
 
-                public void changed(Map.Entry<String, Long> element) {
-                    if (listener.isStopped()) {
-                        return;
+            return new ChangeIterator<String>() {
+                public boolean next(ChangeListener<String> listener) {
+                    if (addedIterator.hasNext()) {
+                        listener.added(addedIterator.next());
+                        return true;
                     }
-                    if (other.rootFileIds.get(element.getKey()) == null) {
-                        // Dir used to not exist, now does. Don't care
-                        return;
+                    if (removedIterator.hasNext()) {
+                        listener.removed(removedIterator.next());
+                        return true;
                     }
-                    listener.changed(element.getKey());
+                    if (changedIterator.hasNext()) {
+                        listener.changed(changedIterator.next());
+                        return true;
+                    }
+
+                    return false;
                 }
-            });
-            filesSnapshot.changesSince(other.filesSnapshot,
-                    new SnapshotChangeListener() {
-                        public void added(String fileName) {
-                            // Ignore files added to output dirs which have been added since last time task executed
-                        }
+            };
+        }
+    }
 
-                        public void removed(String fileName) {
-                            listener.removed(fileName);
-                        }
+    /**
+     * A flyweight wrapper that is used to ignore any added files called.
+     */
+    private static class AddIgnoreChangeListenerAdapter implements ChangeListener<String> {
+        private ChangeListener<String> delegate;
+        boolean wasIgnored;
 
-                        public void changed(String fileName) {
-                            listener.changed(fileName);
-                        }
+        private void withDelegate(ChangeListener<String> delegate) {
+            this.delegate = delegate;
+        }
 
-                        public String getResumeAfter() {
-                            return null;
-                        }
+        public void added(String element) {
+            wasIgnored = true;
+        }
 
-                        public boolean isStopped() {
-                            return listener.isStopped();
-                        }
-                    }
-            );
+        public void removed(String element) {
+            delegate.removed(element);
+            wasIgnored = false;
+        }
+
+        public void changed(String element) {
+            delegate.changed(element);
+            wasIgnored = false;
         }
     }
 

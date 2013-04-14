@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChanges;
-import org.gradle.api.internal.changedetection.rules.UpToDateChangeListener;
 import org.gradle.api.tasks.incremental.InputFile;
 
 import java.util.ArrayList;
@@ -39,21 +38,14 @@ public class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInp
 
     @Override
     protected void doOutOfDate(final Action<? super InputFile> outOfDateAction) {
-        inputFilesState.findChanges(new UpToDateChangeListener() {
-            public void accept(TaskStateChange change) {
-                assert change instanceof InputFile;
-                InputFile fileChange = (InputFile) change;
-                if (fileChange.isRemoved()) {
-                    removedFiles.add(fileChange);
-                } else {
-                    outOfDateAction.execute(fileChange);
-                }
+        for (TaskStateChange change : inputFilesState) {
+            InputFile fileChange = (InputFile) change;
+            if (fileChange.isRemoved()) {
+                removedFiles.add(fileChange);
+            } else {
+                outOfDateAction.execute(fileChange);
             }
-
-            public boolean isAccepting() {
-                return true;
-            }
-        });
+        }
     }
 
     @Override

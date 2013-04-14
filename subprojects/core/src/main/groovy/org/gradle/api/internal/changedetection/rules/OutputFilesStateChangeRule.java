@@ -15,11 +15,15 @@
  */
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.util.ChangeListener;
+
+import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * A rule which detects changes in output files.
@@ -30,38 +34,24 @@ class OutputFilesStateChangeRule {
         final FileCollectionSnapshot outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
 
         return new TaskStateChanges() {
-            public void findChanges(final UpToDateChangeListener listener) {
+
+            public Iterator<TaskStateChange> iterator() {
                 if (previousExecution.getOutputFilesSnapshot() == null) {
-                    if (listener.isAccepting()) {
-                        listener.accept(new DescriptiveChange("Output file history is not available."));
-                    }
-                    return;
+                    return Collections.<TaskStateChange>singleton(new DescriptiveChange("Output file history is not available.")).iterator();
                 }
-                outputFilesBefore.changesSince(previousExecution.getOutputFilesSnapshot(), new FileCollectionSnapshot.SnapshotChangeListener() {
-                    public void added(String element) {
-                        accept(new OutputFileChange(element, ChangeType.ADDED));
-                    }
 
-                    public void changed(String element) {
-                        accept(new OutputFileChange(element, ChangeType.MODIFIED));
-                    }
+                return new AbstractIterator<TaskStateChange>() {
+                    final FileCollectionSnapshot.ChangeIterator<String> changeIterator = outputFilesBefore.iterateChangesSince(previousExecution.getOutputFilesSnapshot());
+                    final ChangeListenerAdapter listenerAdapter = new ChangeListenerAdapter();
 
-                    public void removed(String element) {
-                        accept(new OutputFileChange(element, ChangeType.REMOVED));
+                    @Override
+                    protected TaskStateChange computeNext() {
+                        if (changeIterator.next(listenerAdapter)) {
+                            return listenerAdapter.lastChange;
+                        }
+                        return endOfData();
                     }
-
-                    public String getResumeAfter() {
-                        return null;
-                    }
-
-                    public boolean isStopped() {
-                        return !listener.isAccepting();
-                    }
-
-                    private void accept(OutputFileChange change) {
-                        listener.accept(change);
-                    }
-                });
+                };
             }
 
             public void snapshotAfterTask() {
@@ -90,5 +80,21 @@ class OutputFilesStateChangeRule {
                 currentExecution.setOutputFilesSnapshot(outputFilesAfter.changesSince(outputFilesBefore).applyTo(newOutputFiles));
             }
         };
+    }
+
+    private static class ChangeListenerAdapter implements ChangeListener<String> {
+        public OutputFileChange lastChange;
+
+        public void added(String fileName) {
+            lastChange = new OutputFileChange(fileName, ChangeType.ADDED);
+        }
+
+        public void removed(String fileName) {
+            lastChange = new OutputFileChange(fileName, ChangeType.REMOVED);
+        }
+
+        public void changed(String fileName) {
+            lastChange = new OutputFileChange(fileName, ChangeType.MODIFIED);
+        }
     }
 }

@@ -14,42 +14,32 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.changedetection.rules
 
 import spock.lang.Specification;
 
 public class SimpleTaskStateChangesTest extends Specification {
     def simpleTaskStateChanges = new TestSimpleTaskStateChanges()
-    def listener = Mock(UpToDateChangeListener)
     def change1 = Mock(TaskStateChange)
     def change2 = Mock(TaskStateChange)
 
     def "fires all changes"() {
         when:
-        simpleTaskStateChanges.findChanges(listener)
+        final iterator = simpleTaskStateChanges.iterator()
 
         then:
-        _ * listener.accepting >> true
-        1 * listener.accept(change1)
-        1 * listener.accept(change2)
-        0 * listener._
-    }
-
-    def "fires only changes while listener is accepting"() {
-        when:
-        simpleTaskStateChanges.findChanges(listener)
-
-        then:
-        1 * listener.accepting >> true
-        1 * listener.accept(change1)
-        1 * listener.accepting >> false
-        0 * listener._
+        iterator.hasNext()
+        iterator.next() == change1
+        iterator.hasNext()
+        iterator.next() == change2
     }
 
     def "caches all changes"() {
         when:
-        simpleTaskStateChanges.findChanges(listener)
-        simpleTaskStateChanges.findChanges(listener)
+        simpleTaskStateChanges.iterator().next()
+        simpleTaskStateChanges.iterator().next()
 
         then:
         simpleTaskStateChanges.addAllCount == 1

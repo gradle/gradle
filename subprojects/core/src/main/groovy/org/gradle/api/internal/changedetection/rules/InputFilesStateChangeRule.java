@@ -15,78 +15,42 @@
  */
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.util.ChangeListener;
+
+import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * A rule which detects changes in the input files of a task.
  */
 class InputFilesStateChangeRule {
-    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter,
-                                          final int maxCachedChanges) {
+    public static TaskStateChanges create(final TaskInternal task, final TaskExecution previousExecution, final TaskExecution currentExecution, final FileSnapshotter inputFilesSnapshotter) {
         final FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
 
         return new TaskStateChanges() {
-            private final FileChangeCache fileChangeCache = new FileChangeCache(maxCachedChanges);
 
-            public void findChanges(final UpToDateChangeListener listener) {
+            public Iterator<TaskStateChange> iterator() {
                 if (previousExecution.getInputFilesSnapshot() == null) {
-                    if (listener.isAccepting()) {
-                        listener.accept(new DescriptiveChange("Input file history is not available."));
-                    }
-                    return;
+                    return Collections.<TaskStateChange>singleton(new DescriptiveChange("Input file history is not available.")).iterator();
                 }
 
-                // First iterate over cached changes
-                for (FileChange cachedChange : fileChangeCache) {
-                    if (!listener.isAccepting()) {
-                        return;
+                return new AbstractIterator<TaskStateChange>() {
+                    final FileCollectionSnapshot.ChangeIterator<String> changeIterator = inputFilesSnapshot.iterateChangesSince(previousExecution.getInputFilesSnapshot());
+                    final ChangeListenerAdapter listenerAdapter = new ChangeListenerAdapter();
+
+                    @Override
+                    protected TaskStateChange computeNext() {
+                        if (changeIterator.next(listenerAdapter)) {
+                            return listenerAdapter.lastChange;
+                        }
+                        return endOfData();
                     }
-                    listener.accept(cachedChange);
-                }
-
-                if (fileChangeCache.isComplete()) {
-                    return;
-                }
-
-                processUncachedChanges(listener);
-
-                // If the listener stopped accepting, then we don't know if there are entries missing from the cache.
-                if (listener.isAccepting()) {
-                    fileChangeCache.hasSeenAllChanges();
-                }
-            }
-
-            private void processUncachedChanges(final UpToDateChangeListener listener) {
-                // Now get any new changes
-                inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(), new FileCollectionSnapshot.SnapshotChangeListener() {
-                    public void added(String fileName) {
-                        accept(new InputFileChange(fileName, ChangeType.ADDED));
-                    }
-
-                    public void removed(String fileName) {
-                        accept(new InputFileChange(fileName, ChangeType.REMOVED));
-                    }
-
-                    public void changed(String fileName) {
-                        accept(new InputFileChange(fileName, ChangeType.MODIFIED));
-                    }
-
-                    public String getResumeAfter() {
-                        return fileChangeCache.getLastCachedChange();
-                    }
-
-                    public boolean isStopped() {
-                        return !listener.isAccepting();
-                    }
-
-                    private void accept(InputFileChange change) {
-                        listener.accept(change);
-                        fileChangeCache.cache(change);
-                    }
-                });
+                };
             }
 
             public void snapshotAfterTask() {
@@ -95,4 +59,19 @@ class InputFilesStateChangeRule {
         };
     }
 
+    private static class ChangeListenerAdapter implements ChangeListener<String> {
+        public InputFileChange lastChange;
+
+        public void added(String fileName) {
+            lastChange = new InputFileChange(fileName, ChangeType.ADDED);
+        }
+
+        public void removed(String fileName) {
+            lastChange = new InputFileChange(fileName, ChangeType.REMOVED);
+        }
+
+        public void changed(String fileName) {
+            lastChange = new InputFileChange(fileName, ChangeType.MODIFIED);
+        }
+    }
 }

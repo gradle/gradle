@@ -26,7 +26,7 @@ import java.io.Serializable;
  */
 public interface FileCollectionSnapshot extends Serializable {
 
-    void changesSince(FileCollectionSnapshot oldSnapshot, SnapshotChangeListener listener);
+    ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot);
 
     Diff changesSince(FileCollectionSnapshot oldSnapshot);
 
@@ -55,6 +55,10 @@ public interface FileCollectionSnapshot extends Serializable {
 
     public interface Merge {
         void ignore();
+    }
+
+    interface ChangeIterator<T> {
+        boolean next(ChangeListener<T> listener);
     }
 
     public interface SnapshotChangeListener extends ChangeListener<String> {
