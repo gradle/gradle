@@ -144,6 +144,8 @@ Incremental execution is not possible when:
 Handle multiple actions added via multiple calls to outOfDate() and removed()?
 Provide a simpler API that separates outOfDate() and removed() processing temporally?
 
+## GRADLE-918: Document task input and output annotations
+
 ## Story: Invalidate task outputs when task implementation changes
 
 Add to the task history a hash of the task implementation, and rebuild the task's outputs when this changes.
@@ -155,6 +157,8 @@ Add to the task history a hash of the task implementation, and rebuild the task'
 - The hash of a task is the combination of the hash of the task's implementation class plus the hash of
   the implementation class of each task action attached to the task.
 
+## GRADLE-2115: Handle `is` property accessors for boolean properties marked with `@Input`
+
 ## GRADLE-1646: Copy tasks do not consider filter/expansion properties in up-to-date checks
 
 - Also GRADLE-2710
@@ -164,6 +168,14 @@ Add to the task history a hash of the task implementation, and rebuild the task'
 ## GRADLE-1814: Uptodate check fails when changing property includeEmptyDirs of Copy task
 
 ## GRADLE-1298: Change in filtered resource not picked up by archive tasks
+
+## GRADLE-2082: Validate that input and output annotation are attached to property with valid type
+
+## Change type decoration so that incremental API objects are not extensible
+
+Allow type decoration to distinguish between domain objects and API objects.  API objects should not be
+decorated with `DynamicObjectAware`, `IConventionAware` or `ExtensionAware` or any of the asssociated
+state.
 
 ## Story: Java compile task specifies its output files
 
