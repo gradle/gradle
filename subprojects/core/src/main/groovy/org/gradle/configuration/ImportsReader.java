@@ -33,7 +33,7 @@ public class ImportsReader {
     public String getImports() {
         if (importsText == null) {
             try {
-                URL url = getClass().getResource("default-imports.txt");
+                URL url = getClass().getResource("/default-imports.txt");
                 InputStreamReader reader = new InputStreamReader(url.openStream(), "UTF8");
                 try {
                     int bufferSize = 2048; // at time of writing, the file was about 1k so this should cover in one read

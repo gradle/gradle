@@ -19,27 +19,29 @@ package org.gradle.configuration
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.Resources
 import org.junit.Rule
-import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import spock.lang.Specification
 
 /**
  * @author Hans Dockter
  */
-class ImportsReaderTest {
+class ImportsReaderTest extends Specification {
     @Rule public Resources resources = new Resources()
-    ImportsReader testObj = new ImportsReader()
+    ImportsReader reader = new ImportsReader()
 
-    @Test public void testReadImportsFromResource() {
-        String result = testObj.getImports()
-        assertEquals(resources.getResource('default-imports.txt').text, result)
+    public void testReadImportsFromResource() {
+        expect:
+        reader.imports.contains('import org.gradle.api.*')
     }
 
-    @Test public void testCreatesScriptSource() {
-        ScriptSource source = [:] as ScriptSource
-        ScriptSource importsSource = testObj.withImports(source)
-        assertThat(importsSource, instanceOf(ImportsScriptSource.class))
-        assertThat(importsSource.source, sameInstance(source))
-        assertThat(importsSource.importsReader, sameInstance(testObj))
+    public void testCreatesScriptSource() {
+        def source = [:] as ScriptSource
+
+        when:
+        def importsSource = reader.withImports(source)
+
+        then:
+        importsSource instanceof ImportsScriptSource
+        importsSource.source == source
+        importsSource.importsReader == reader
     }
 }
