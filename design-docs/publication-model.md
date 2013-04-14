@@ -520,8 +520,9 @@ At any point above, and as required, more meta-data for a publication can be mad
 
 # Open issues
 
+* Use authentication information from Maven settings.xml
 * Live collections of artifacts.
-* Add a packaging to a publication, add multiple packagings to a publication.
+* Add multiple components to a publication.
 * How to get rid of `Configuration.artifacts`?
 * How to map a project dependency to Ivy publication or Maven publication when generating descriptor?
 * Add in local publications.

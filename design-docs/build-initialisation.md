@@ -124,15 +124,22 @@ general purpose:
 
 This story adds support for automatically applying the `build-setup` plugin when `gradle setupBuild` is run:
 
-* Add `ProjectConfigureAction` to the plugin project which adds a task rule that applies the `build-setup` plugin
-  when `setupBuild` is requested. It should only apply the plugin to the root project of a single project build
-  where the project build script does not exist.
+1. Add `ProjectConfigureAction` to the plugin project which adds a task rule that applies the `build-setup` plugin
+  when `setupBuild` is requested. It should only apply the plugin to the root project a build.
+2. Change the `build-setup` plugin so that it adds only the `setupBuild` lifecycle task and no other tasks when
+   any of the following is true. In this case, the `setupBuild` task should simply log a warning when run.
+    - The settings script already exists.
+    - The current project's build script already exists.
 
 ## Test coverage
 
 * Change the existing integration tests so that they do not create the stub build script that applies the plugin.
-* Running `gradle tasks` in an empty directory shows the `setupBuild` task.
-* Running `gradle tasks` in a directory that contains a build script does not show the `setupBuild` task.
+* Running `gradle tasks` in a root directory shows the `setupBuild` task.
+* Running `gradle setupBuild` in a multi-project build logs a warning and does not overwrite existing files.
+* Running `gradle setupBuild` for a project whose `build.gradle` already exists logs a warning and does not overwrite
+  existing files.
+* Running `gradle setupBuild -b foo.gradle` when `foo.gradle` already exists logs a warning and does not generate
+  any files.
 
 # Story: User updates Gradle wrapper without defining wrapper task
 
