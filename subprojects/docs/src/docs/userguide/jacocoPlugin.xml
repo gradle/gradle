@@ -34,7 +34,7 @@
         <para>
             If the Java plugin is also applied to your project a new task named <literal>jacocoTestReport</literal> is created.
             Executing <userinput>gradle jacocoTestReport</userinput> will trigger the <literal>test</literal> task and afterwards the
-            <literal>jacocoTestReport</literal> to be executed. After the build has finished you find the jacoco code coverage report in
+            <literal>jacocoTestReport</literal> to be executed. After the build has finished you find the JaCoCo code coverage report in
             <filename><replaceable>$buildDir</replaceable>/<replaceable>reports</replaceable>/<replaceable>jacoco/test</replaceable></filename>.
             The output format of the report is configurable. You can choose the output format from <literal>HTML</literal>, <literal>XML</literal> and <literal>CSV</literal>.
             As a default only the html report is generated.
@@ -85,7 +85,7 @@
     <section>
             <title>JaCoCo specific task configuration</title>
             <para>The JaCoCo plugin adds a <apilink class="org.gradle.testing.jacoco.plugins.JacocoTaskExtension" /> extension to all tasks of type <apilink class="org.gradle.api.tasks.testing.Test"/>
-            This extension allows the configuration of the jacoco specific properties of a Test task.
+            This extension allows the configuration of the JaCoCo specific properties of a Test task.
             </para>
             <sample id="jacocotesttast" dir="testing/jacoco/quickstart" title="Configuring test task">
                 <sourcefile file="build.gradle" snippet="testtask-configuration"/>
@@ -207,13 +207,13 @@
                     <td>
                         <filename>jacocoAnt</filename>
                     </td>
-                    <td>The jacoco ant library used running the <literal>JacocoReport</literal> and <literal>JacocoMerge</literal> task</td>
+                    <td>The JaCoCo ant library used running the <literal>JacocoReport</literal> and <literal>JacocoMerge</literal> task</td>
                 </tr>
                 <tr>
                     <td>
                         <filename>jacocoAgent</filename>
                     </td>
-                    <td>The jacoco agent library used for instrumenting the code under test</td>
+                    <td>The JaCoCo agent library used for instrumenting the code under test</td>
                 </tr>
             </table>
         </section>
