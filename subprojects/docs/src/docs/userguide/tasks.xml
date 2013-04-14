@@ -174,7 +174,7 @@
         </itemizedlist>
         <para>
             Presently, the only task ordering rule available is "<emphasis>must run after</emphasis>", which allows you to specify that <literal>taskB</literal> must always run after <literal>taskA</literal>,
-            whenever both <literal>taskA</literal> and <literal>taskB</literal> are scheduled for execution. This is expressed as <literal>B.mustRunAfter(A)</literal>.
+            whenever both <literal>taskA</literal> and <literal>taskB</literal> are scheduled for execution. This is expressed as <literal>taskB.mustRunAfter(taskA)</literal>.
             With this rule present it is still possible to execute <literal>taskA</literal> without <literal>taskB</literal> and vice-versa.
         </para>
         <note>
