@@ -20,50 +20,30 @@ import groovy.lang.Closure;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.Map;
 
 abstract public class AbstractPluginAware implements PluginAware {
-    private PluginContainer pluginContainer;
-    private ServiceRegistryFactory services;
-    private FileResolver fileResolver;
 
     protected AbstractPluginAware() {
     }
 
-    public AbstractPluginAware(ServiceRegistryFactory serviceRegistryFactory) {
-        this.services = serviceRegistryFactory.createFor(this);
-    }
-
-    public PluginContainer getPlugins() {
-        if (pluginContainer == null) {
-            pluginContainer = services.get(PluginContainer.class);
-        }
-        return pluginContainer;
-    }
 
     public void apply(Closure closure) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), services.get(
-                ScriptPluginFactory.class), this);
+        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), this);
         ConfigureUtil.configure(closure, action);
         action.execute();
     }
 
-    FileResolver getFileResolver() {
-        if(fileResolver == null){
-            fileResolver = services.get(FileResolver.class);
-        }
-        return fileResolver;
-    }
-
-
     public void apply(Map<String, ?> options) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), services.get(
-                ScriptPluginFactory.class), this);
+        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), this);
         ConfigureUtil.configureByMap(options, action);
         action.execute();
     }
+
+    protected abstract FileResolver getFileResolver();
+
+    protected abstract ScriptPluginFactory getScriptPluginFactory();
 }

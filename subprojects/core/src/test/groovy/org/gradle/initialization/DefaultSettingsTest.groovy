@@ -21,8 +21,13 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternallServiceRegistry
+import org.gradle.api.internal.ThreadGlobalInstantiator
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistryFactory
+import org.gradle.api.plugins.PluginContainer
+import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.Expectations
@@ -31,14 +36,13 @@ import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+
 import static org.junit.Assert.*
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.ThreadGlobalInstantiator
 
 /**
  * @author Hans Dockter
  */
-@RunWith (JMock)
+@RunWith(JMock)
 class DefaultSettingsTest {
     File settingsDir
     StartParameter startParameter
@@ -50,8 +54,12 @@ class DefaultSettingsTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     DefaultProjectDescriptorRegistry projectDescriptorRegistry
     ServiceRegistryFactory serviceRegistryFactory
+    PluginContainer pluginContainer
+    FileResolver fileResolver
+    ScriptPluginFactory scriptPluginFactory;
 
-    @Before public void setUp() {
+    @Before
+    public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         settingsDir = new File('/somepath/root').absoluteFile
         gradleProperties = [someGradleProp: 'someValue']
@@ -61,18 +69,32 @@ class DefaultSettingsTest {
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
         serviceRegistryFactory = context.mock(ServiceRegistryFactory.class)
+        pluginContainer = context.mock(PluginContainer.class)
+        scriptPluginFactory = context.mock(ScriptPluginFactory.class)
+        fileResolver = context.mock(FileResolver.class)
+
+
         SettingsInternallServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternallServiceRegistry.class)
-        context.checking(new Expectations() {{
-                    one(serviceRegistryFactory).createFor(with(any(Settings.class)));
-                    will(returnValue(settingsInternallServiceRegistry));
-                }});
+        context.checking(new Expectations() {
+            {
+                one(serviceRegistryFactory).createFor(with(any(Settings.class)));
+                will(returnValue(settingsInternallServiceRegistry));
+                one(settingsInternallServiceRegistry).get(PluginContainer.class);
+                will(returnValue(pluginContainer));
+                one(settingsInternallServiceRegistry).get(FileResolver.class);
+                will(returnValue(fileResolver));
+                one(settingsInternallServiceRegistry).get(ScriptPluginFactory.class);
+                will(returnValue(scriptPluginFactory));
+            }
+        });
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
         settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,
                 gradleMock, projectDescriptorRegistry, expectedClassLoader, settingsDir, scriptSourceMock, startParameter
         )
     }
 
-    @Test public void testSettings() {
+    @Test
+    public void testSettings() {
         assert settings.startParameter.is(startParameter)
         assertSame(settings, settings.getSettings())
         assertEquals(settingsDir, settings.getSettingsDir())
@@ -84,7 +106,8 @@ class DefaultSettingsTest {
         assertSame(gradleMock, settings.gradle)
     }
 
-    @Test public void testInclude() {
+    @Test
+    public void testInclude() {
         ProjectDescriptor rootProjectDescriptor = settings.getRootProject();
         String projectA = "a"
         String projectB = "b"
@@ -100,7 +123,8 @@ class DefaultSettingsTest {
         testDescriptor(settings.project(":$projectB:$projectC"), projectC, new File(settingsDir, "$projectB/$projectC"))
     }
 
-    @Test public void testIncludeFlat() {
+    @Test
+    public void testIncludeFlat() {
         ProjectDescriptor rootProjectDescriptor = settings.getRootProject();
         String projectA = "a"
         String projectB = "b"
@@ -116,7 +140,8 @@ class DefaultSettingsTest {
         assertEquals(projectDir, descriptor.getProjectDir())
     }
 
-    @Test public void testCreateProjectDescriptor() {
+    @Test
+    public void testCreateProjectDescriptor() {
         String testName = "testname"
         File testDir = new File("testDir")
         DefaultProjectDescriptor projectDescriptor = settings.createProjectDescriptor(settings.getRootProject(), testName, testDir)
@@ -126,19 +151,22 @@ class DefaultSettingsTest {
         assertEquals(testDir.canonicalFile, projectDescriptor.getProjectDir())
     }
 
-    @Test public void testFindDescriptorByPath() {
+    @Test
+    public void testFindDescriptorByPath() {
         DefaultProjectDescriptor projectDescriptor = createTestDescriptor();
         DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getPath())
         assertSame(foundProjectDescriptor, projectDescriptor)
     }
 
-    @Test public void testFindDescriptorByProjectDir() {
+    @Test
+    public void testFindDescriptorByProjectDir() {
         DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
         DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getProjectDir())
         assertSame(foundProjectDescriptor, projectDescriptor)
     }
 
-    @Test (expected = UnknownProjectException) public void testDescriptorByPath() {
+    @Test(expected = UnknownProjectException)
+    public void testDescriptorByPath() {
         DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
         DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getPath())
         assertSame(foundProjectDescriptor, projectDescriptor)
@@ -146,7 +174,8 @@ class DefaultSettingsTest {
     }
 
 
-    @Test (expected = UnknownProjectException) public void testDescriptorByProjectDir() {
+    @Test(expected = UnknownProjectException)
+    public void testDescriptorByProjectDir() {
         DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
         DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.getProjectDir())
         assertSame(foundProjectDescriptor, projectDescriptor)
@@ -163,27 +192,32 @@ class DefaultSettingsTest {
         return [name: 'someName']
     }
 
-    @Test public void testCreateClassLoader() {
+    @Test
+    public void testCreateClassLoader() {
         StartParameter expectedStartParameter = settings.startParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
         URLClassLoader createdClassLoader = settings.getClassLoader()
         assertSame(createdClassLoader, expectedClassLoader)
     }
 
-    @Test public void testCanGetAndSetDynamicProperties() {
+    @Test
+    public void testCanGetAndSetDynamicProperties() {
         settings.dynamicProp = 'value'
         assertEquals('value', settings.dynamicProp)
     }
 
-    @Test (expected = MissingPropertyException) public void testPropertyMissing() {
+    @Test(expected = MissingPropertyException)
+    public void testPropertyMissing() {
         settings.unknownProp
     }
 
-    @Test public void testGetRootDir() {
+    @Test
+    public void testGetRootDir() {
         assertEquals(settingsDir, settings.rootDir);
     }
 
-    @Test public void testHasUsefulToString() {
+    @Test
+    public void testHasUsefulToString() {
         assertEquals('settings \'root\'', settings.toString())
     }
 }

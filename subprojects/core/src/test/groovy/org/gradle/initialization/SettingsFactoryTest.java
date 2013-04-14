@@ -21,7 +21,10 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternallServiceRegistry;
 import org.gradle.api.internal.ThreadGlobalInstantiator;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -56,9 +59,19 @@ public class SettingsFactoryTest {
         StartParameter expectedStartParameter = new StartParameter();
         final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
         final SettingsInternallServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternallServiceRegistry.class);
+        final PluginContainer pluginContainer = context.mock(PluginContainer.class);
+        final FileResolver fileResolver = context.mock(FileResolver.class);
+        final ScriptPluginFactory scriptPluginFactory= context.mock(ScriptPluginFactory.class);
+
         context.checking(new Expectations() {{
             one(serviceRegistryFactory).createFor(with(any(Settings.class)));
             will(returnValue(settingsInternallServiceRegistry));
+            one(settingsInternallServiceRegistry).get(PluginContainer.class);
+            will(returnValue(pluginContainer));
+            one(settingsInternallServiceRegistry).get(FileResolver.class);
+            will(returnValue(fileResolver));
+            one(settingsInternallServiceRegistry).get(ScriptPluginFactory.class);
+            will(returnValue(scriptPluginFactory));
         }});
 
 

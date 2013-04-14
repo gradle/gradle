@@ -36,7 +36,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
@@ -74,7 +73,7 @@ import static org.gradle.util.GUtil.isTrue;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractProject implements ProjectInternal, DynamicObjectAware {
+public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private ServiceRegistryFactory services;
 
@@ -149,6 +148,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     private String description;
 
     private final Path path;
+    private ScriptPluginFactory scriptPluginFactory;
 
     public AbstractProject(String name,
                            ProjectInternal parent,
@@ -156,6 +156,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
                            ScriptSource buildScriptSource,
                            GradleInternal gradle,
                            ServiceRegistryFactory serviceRegistryFactory) {
+        super();
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
@@ -192,6 +193,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         projectRegistry = services.get(IProjectRegistry.class);
         loggingManager = services.get(LoggingManagerInternal.class);
         softwareComponentContainer = services.get(SoftwareComponentContainer.class);
+        scriptPluginFactory = services.get(ScriptPluginFactory.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
@@ -832,20 +834,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return getServices().get(DependencyMetaDataProvider.class).getModule();
     }
 
-    public void apply(Closure closure) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
-                ScriptPluginFactory.class), this);
-        configure(action, closure);
-        action.execute();
-    }
-
-    public void apply(Map<String, ?> options) {
-        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
-                ScriptPluginFactory.class), this);
-        ConfigureUtil.configureByMap(options, action);
-        action.execute();
-    }
-
     public AntBuilder ant(Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getAnt());
     }
@@ -925,6 +913,12 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return task(options, task.toString(), configureClosure);
     }
 
+
+    @Override
+    protected ScriptPluginFactory getScriptPluginFactory() {
+        return scriptPluginFactory;
+    }
+
     /**
      * This is called by the task creation DSL. Need to find a cleaner way to do this...
      */
@@ -950,4 +944,5 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     public ExtensionContainerInternal getExtensions() {
         return (ExtensionContainerInternal) getConvention();
     }
+
 }
