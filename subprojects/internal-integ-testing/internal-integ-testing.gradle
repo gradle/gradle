@@ -32,7 +32,7 @@ useClassycle()
 
 task prepareVersionsInfo(type: PrepareVersionsInfo) {
    url = "http://services.gradle.org/versions/all"
-   destDir = file("$buildDir/generated-resources/main")
+   destDir = generatedResourcesDir
    destFileName = "all-released-versions.json"
    offline = gradle.startParameter.offline
 }
