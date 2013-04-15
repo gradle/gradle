@@ -54,13 +54,14 @@ public class SettingsFactoryTest {
         final File expectedSettingsDir = new File("settingsDir");
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
-        IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = new StartParameter();
         final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
         final SettingsInternalServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternalServiceRegistry.class);
         final PluginContainer pluginContainer = context.mock(PluginContainer.class);
         final FileResolver fileResolver = context.mock(FileResolver.class);
-        final ScriptPluginFactory scriptPluginFactory= context.mock(ScriptPluginFactory.class);
+        final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
+
+        final IProjectDescriptorRegistry expectedProjectDescriptorRegistry = context.mock(IProjectDescriptorRegistry.class);
 
         context.checking(new Expectations() {{
             one(serviceRegistryFactory).createFor(with(any(Settings.class)));
@@ -71,10 +72,13 @@ public class SettingsFactoryTest {
             will(returnValue(fileResolver));
             one(settingsInternallServiceRegistry).get(ScriptPluginFactory.class);
             will(returnValue(scriptPluginFactory));
+            one(settingsInternallServiceRegistry).get(IProjectDescriptorRegistry.class);
+            will(returnValue(expectedProjectDescriptorRegistry));
+            one(expectedProjectDescriptorRegistry).addProject(with(any(DefaultProjectDescriptor.class)));
         }});
 
 
-        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry, ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory);
+        SettingsFactory settingsFactory = new SettingsFactory(ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory);
         final URLClassLoader urlClassLoader = new URLClassLoader(new URL[0]);
         GradleInternal gradle = context.mock(GradleInternal.class);
 

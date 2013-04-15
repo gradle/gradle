@@ -194,7 +194,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new ScriptEvaluatingSettingsProcessor(
                         get(ScriptPluginFactory.class),
                         new SettingsFactory(
-                                new DefaultProjectDescriptorRegistry(),
+
                                 get(Instantiator.class),
                                 this
                         ),

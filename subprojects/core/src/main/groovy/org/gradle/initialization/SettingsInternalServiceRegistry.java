@@ -45,11 +45,15 @@ public class SettingsInternalServiceRegistry extends DefaultServiceRegistry impl
         return new BaseDirFileResolver(get(FileSystem.class), settings.getSettingsDir());
     }
 
-        protected PluginRegistry createPluginRegistry() {
-            return new DefaultPluginRegistry(settings.getClassLoader(), new DependencyInjectingInstantiator(this));
-        }
+    protected PluginRegistry createPluginRegistry() {
+        return new DefaultPluginRegistry(settings.getClassLoader(), new DependencyInjectingInstantiator(this));
+    }
 
     protected PluginContainer createPluginContainer() {
-            return new DefaultPluginContainer(get(PluginRegistry.class), settings);
-        }
+        return new DefaultPluginContainer(get(PluginRegistry.class), settings);
+    }
+
+    protected IProjectDescriptorRegistry createIProjectDescriptorRegistry() {
+        return new DefaultProjectDescriptorRegistry();
+    }
 }

@@ -29,7 +29,6 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.Expectations
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
@@ -51,7 +50,7 @@ class DefaultSettingsTest {
     GradleInternal gradleMock
     DefaultSettings settings
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    DefaultProjectDescriptorRegistry projectDescriptorRegistry
+    IProjectDescriptorRegistry projectDescriptorRegistry
     ServiceRegistryFactory serviceRegistryFactory
     PluginContainer pluginContainer
     FileResolver fileResolver
@@ -71,11 +70,11 @@ class DefaultSettingsTest {
         pluginContainer = context.mock(PluginContainer.class)
         scriptPluginFactory = context.mock(ScriptPluginFactory.class)
         fileResolver = context.mock(FileResolver.class)
+        projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
 
 
         SettingsInternalServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternalServiceRegistry.class)
-        context.checking(new Expectations() {
-            {
+        context.checking{
                 one(serviceRegistryFactory).createFor(with(any(Settings.class)));
                 will(returnValue(settingsInternallServiceRegistry));
                 one(settingsInternallServiceRegistry).get(PluginContainer.class);
@@ -84,12 +83,12 @@ class DefaultSettingsTest {
                 will(returnValue(fileResolver));
                 one(settingsInternallServiceRegistry).get(ScriptPluginFactory.class);
                 will(returnValue(scriptPluginFactory));
-            }
-        });
-        projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
+                one(settingsInternallServiceRegistry).get(IProjectDescriptorRegistry.class);
+                will(returnValue(projectDescriptorRegistry));
+        }
         settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,
-                gradleMock, projectDescriptorRegistry, expectedClassLoader, settingsDir, scriptSourceMock, startParameter
-        )
+                    gradleMock, expectedClassLoader, settingsDir, scriptSourceMock, startParameter);
+
     }
 
     @Test

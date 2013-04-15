@@ -60,15 +60,10 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     private ScriptPluginFactory scriptPluginFactory;
 
-    BaseSettings(){
-    }
-
     public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
-                        IProjectDescriptorRegistry projectDescriptorRegistry,
                         URLClassLoader classloader, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
         this.gradle = gradle;
-        this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
@@ -77,6 +72,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         this.plugins = services.get(PluginContainer.class);
         this.fileResolver = services.get(FileResolver.class);
         this.scriptPluginFactory = services.get(ScriptPluginFactory.class);
+        this.projectDescriptorRegistry = services.get(IProjectDescriptorRegistry.class);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
 
