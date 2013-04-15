@@ -93,23 +93,9 @@ Initially the coercion will be implemented by fetching a `FileResolver` from the
 
 The "type coercing wrapper" will be implemented as a `DynamicObject` implementation that can wrap any `DynamicObject` implementation. It will intercept methods and identify coercions based on given argument types and parameter types of the methods provided by the real dynamic object. 
 
-## Story 2: A static API user (e.g. Java) specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
+## Story 2: Type coercion is used in conjunction with convention mapping to defer evaluation (incl. coercion)
 
-### User visible changes
-
-TBD
-
-### Sad day cases
-
-TBD
-
-### Test coverage
-
-TBD
-
-### Implementation approach
-
-TBD
+## Story 3: A static API user (e.g. Java) specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
 
 # Open issues
 
