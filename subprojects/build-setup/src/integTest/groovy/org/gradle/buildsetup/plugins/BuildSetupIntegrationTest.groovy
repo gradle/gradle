@@ -39,37 +39,57 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         wrapperIsGenerated()
     }
 
-    def "build file generation is skipped on existing gradle build"() {
+    def "build file generation is skipped when build file already exists"() {
         given:
         assert buildFile.createFile()
+
         when:
         def executed = run('setupBuild')
-        then:
-        executed.executedTasks.contains(":setupBuild")
-        executed.output.contains("Running 'setupBuild' on existing gradle build setup is not supported. Build-file generation skipped.")
-        executed.skippedTasks.contains(":setupBuild")
 
-        when:
-        settingsFile << "include 'projA'"
-        executed = run('setupBuild')
         then:
-        executed.executedTasks.contains(":setupBuild")
-        executed.output.contains("Running 'setupBuild' on already defined multiproject build is not supported. Build-file generation skipped.")
-        executed.skippedTasks.contains(":setupBuild")
-        wrapperIsGenerated()
+        executed.assertTasksExecuted(":setupBuild")
+        executed.output.contains("The Gradle build file 'build.gradle' already exists. Skipping build initialization.")
     }
 
-    def "respects custom build files"() {
+    def "build file generation is skipped when settings file already exists"() {
+        given:
+        assert settingsFile.createFile()
+
+        when:
+        def executed = run('setupBuild')
+
+        then:
+        executed.assertTasksExecuted(":setupBuild")
+        executed.output.contains("The Gradle settings file 'settings.gradle' already exists. Skipping build initialization.")
+    }
+
+    def "build file generation is skipped when using a custom build file"() {
         given:
         def customBuildScript = testDirectory.file("customBuild.gradle").createFile()
+
         when:
         executer.usingBuildScript(customBuildScript)
         def executed = run('setupBuild')
+
         then:
-        executed.executedTasks.contains(":setupBuild")
-        executed.output.contains("Running 'setupBuild' on existing gradle build setup is not supported. Build-file generation skipped.")
-        executed.skippedTasks.contains(":setupBuild")
-        wrapperIsGenerated()
+        executed.assertTasksExecuted(":setupBuild")
+        executed.output.contains("The build file 'customBuild.gradle' for this Gradle project already exists. Skipping build initialization.")
+    }
+
+    def "build file generation is skipped when part of a multi-project build with non-standard settings file location"() {
+        given:
+        def customSettings = testDirectory.file("customSettings.gradle")
+        customSettings << """
+include 'child'
+"""
+
+        when:
+        executer.usingSettingsFile(customSettings)
+        def executed = run('setupBuild')
+
+        then:
+        executed.assertTasksExecuted(":setupBuild")
+        executed.output.contains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
     }
 
     private def wrapperIsGenerated() {

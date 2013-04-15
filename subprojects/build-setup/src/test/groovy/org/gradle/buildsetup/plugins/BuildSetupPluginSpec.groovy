@@ -16,24 +16,17 @@
 
 package org.gradle.buildsetup.plugins
 
-import org.gradle.api.Project
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.buildsetup.tasks.ConvertMaven2Gradle
 import org.gradle.buildsetup.tasks.GenerateBuildFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
-import org.junit.Rule
 import spock.lang.Specification
 
 class BuildSetupPluginSpec extends Specification {
-
-    @Rule
-    public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
+    def project = HelperUtil.createRootProject()
 
     def "applies plugin"() {
-        setup:
-        def project = createProject()
         when:
         project.plugins.apply BuildSetupPlugin
 
@@ -46,9 +39,8 @@ class BuildSetupPluginSpec extends Specification {
 
     def "adds maven2Gradle task if pom exists"() {
         setup:
-        def project = createProject()
-        and:
         project.file("pom.xml").createNewFile()
+
         when:
         project.plugins.apply BuildSetupPlugin
 
@@ -59,34 +51,48 @@ class BuildSetupPluginSpec extends Specification {
     }
 
     def "adds generateBuildFile task if no pom and no gradle build file exists"() {
-        setup:
-        def project = createProject()
         when:
         project.plugins.apply BuildSetupPlugin
+
         then:
         project.tasks.generateBuildFile instanceof GenerateBuildFile
         project.tasks.setupWrapper instanceof Wrapper
         Matchers.dependsOn("setupWrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
     }
 
-    def "no build file generation if files already exists"() {
+    def "no build file generation if build file already exists"() {
         setup:
-        def project = createProject(true)
+        project.file("build.gradle") << '// an empty build'
+
         when:
         project.plugins.apply BuildSetupPlugin
+
         then:
         project.setupBuild != null
-        project.tasks.collect { it.name } == ["setupBuild", "setupWrapper"]
+        project.tasks.collect { it.name } == ["setupBuild"]
     }
 
-    private Project createProject(boolean withBuildScriptFile = false) {
-        ProjectBuilder builder = ProjectBuilder.builder()
-        if (withBuildScriptFile) {
-            def projectDir = testDirectoryProvider.createDir("projectdir")
-            projectDir.createFile("build.gradle")
-            builder.withProjectDir(projectDir).build()
-        } else {
-            builder.build()
-        }
+    def "no build file generation if settings file already exists"() {
+        setup:
+        project.file("settings.gradle") << '// an empty file'
+
+        when:
+        project.plugins.apply BuildSetupPlugin
+
+        then:
+        project.setupBuild != null
+        project.tasks.collect { it.name } == ["setupBuild"]
+    }
+
+    def "no build file generation when part of multi-project build"() {
+        setup:
+        HelperUtil.createChildProject(project, 'child')
+
+        when:
+        project.plugins.apply BuildSetupPlugin
+
+        then:
+        project.setupBuild != null
+        project.tasks.collect { it.name } == ["setupBuild"]
     }
 }
