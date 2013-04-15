@@ -24,12 +24,15 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
@@ -69,6 +72,10 @@ public class DefaultGradleTest {
     private final GradleDistributionLocator gradleDistributionLocatorMock = context.mock(GradleDistributionLocator.class);
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast = new ListenerBroadcast<BuildListener>(BuildListener.class);
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast = context.mock(ListenerBroadcast.class);
+    private final FileResolver fileResolverMock = context.mock(FileResolver.class);
+    private final PluginContainer pluginContainer = context.mock(PluginContainer.class);
+    private final ScriptPluginFactory scriptPluginFactory= context.mock(ScriptPluginFactory.class);
+
     private DefaultGradle gradle;
 
     @Before
@@ -92,6 +99,12 @@ public class DefaultGradleTest {
             will(returnValue(scriptClassLoaderMock));
             allowing(gradleServiceRegistryMock).get(GradleDistributionLocator.class);
             will(returnValue(gradleDistributionLocatorMock));
+            allowing(gradleServiceRegistryMock).get(PluginContainer.class);
+            will(returnValue(pluginContainer));
+            allowing(gradleServiceRegistryMock).get(FileResolver.class);
+            will(returnValue(fileResolverMock));
+            allowing(gradleServiceRegistryMock).get(ScriptPluginFactory.class);
+            will(returnValue(scriptPluginFactory));
             allowing(listenerManager).createAnonymousBroadcaster(BuildListener.class);
             will(returnValue(buildListenerBroadcast));
             allowing(listenerManager).createAnonymousBroadcaster(ProjectEvaluationListener.class);

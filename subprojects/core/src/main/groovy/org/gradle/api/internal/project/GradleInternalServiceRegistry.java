@@ -21,8 +21,12 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.changedetection.state.TaskCacheLockHandlingBuildExecuter;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
@@ -79,14 +83,22 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
         return new DefaultTaskGraphExecuter(get(ListenerManager.class), get(TaskPlanExecutor.class));
     }
 
-    protected PluginRegistry createPluginRegistry() {
-        return new DefaultPluginRegistry(gradle.getScriptClassLoader(), new DependencyInjectingInstantiator(this));
-    }
-
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof ProjectInternal) {
             return new ProjectInternalServiceRegistry(this, (ProjectInternal) domainObject);
         }
         throw new UnsupportedOperationException();
+    }
+
+    protected FileResolver createFileResolver() {
+        return new IdentityFileResolver();
+    }
+
+    protected PluginRegistry createPluginRegistry() {
+        return new DefaultPluginRegistry(gradle.getScriptClassLoader(), new DependencyInjectingInstantiator(this));
+    }
+
+    protected PluginContainer createPluginContainer() {
+        return new DefaultPluginContainer(get(PluginRegistry.class), gradle);
     }
 }
