@@ -19,7 +19,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternallServiceRegistry;
 import org.gradle.api.internal.ThreadGlobalInstantiator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
@@ -58,7 +57,7 @@ public class SettingsFactoryTest {
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = new StartParameter();
         final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
-        final SettingsInternallServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternallServiceRegistry.class);
+        final SettingsInternalServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternalServiceRegistry.class);
         final PluginContainer pluginContainer = context.mock(PluginContainer.class);
         final FileResolver fileResolver = context.mock(FileResolver.class);
         final ScriptPluginFactory scriptPluginFactory= context.mock(ScriptPluginFactory.class);

@@ -27,10 +27,6 @@ import java.util.Map;
 
 abstract public class AbstractPluginAware implements PluginAware {
 
-    protected AbstractPluginAware() {
-    }
-
-
     public void apply(Closure closure) {
         DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), this);
         ConfigureUtil.configure(closure, action);

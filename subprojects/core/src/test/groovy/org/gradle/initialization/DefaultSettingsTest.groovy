@@ -22,7 +22,6 @@ import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.SettingsInternallServiceRegistry
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistryFactory
@@ -74,7 +73,7 @@ class DefaultSettingsTest {
         fileResolver = context.mock(FileResolver.class)
 
 
-        SettingsInternallServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternallServiceRegistry.class)
+        SettingsInternalServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternalServiceRegistry.class)
         context.checking(new Expectations() {
             {
                 one(serviceRegistryFactory).createFor(with(any(Settings.class)));

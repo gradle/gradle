@@ -156,7 +156,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                            ScriptSource buildScriptSource,
                            GradleInternal gradle,
                            ServiceRegistryFactory serviceRegistryFactory) {
-        super();
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;

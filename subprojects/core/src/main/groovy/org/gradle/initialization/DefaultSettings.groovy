@@ -25,10 +25,10 @@ import org.gradle.groovy.scripts.ScriptSource
  * @author Hans Dockter
  */
 public class DefaultSettings extends BaseSettings {
-    public DefaultSettings() {
+
+    DefaultSettings(){
 
     }
-
     DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
                     GradleInternal gradle,
                     IProjectDescriptorRegistry projectDescriptorRegistry,

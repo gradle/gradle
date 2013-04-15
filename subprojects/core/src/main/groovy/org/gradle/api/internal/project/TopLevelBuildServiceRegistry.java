@@ -246,7 +246,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
             return new GradleInternalServiceRegistry(this, (GradleInternal) domainObject);
         }
         if (domainObject instanceof SettingsInternal) {
-            return new SettingsInternallServiceRegistry(this, (SettingsInternal) domainObject);
+            return new SettingsInternalServiceRegistry(this, (SettingsInternal) domainObject);
         }
         throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
                 domainObject.getClass().getSimpleName()));

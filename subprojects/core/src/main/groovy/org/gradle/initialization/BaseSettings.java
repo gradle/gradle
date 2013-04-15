@@ -60,7 +60,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     private ScriptPluginFactory scriptPluginFactory;
 
-    protected BaseSettings(){
+    BaseSettings(){
     }
 
     public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
