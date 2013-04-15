@@ -19,20 +19,14 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String REPORT_XML_FILE_NAME = "jacocoTestReport.xml"
-    private static final String REPORT_CSV_FILE_NAME = "jacocoTestReport.csv"
-
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
-    private static final String JACOCO_REPORTING_RELATIVE_PATH = "jacoco/test/"
-    private static final String REPORT_HTML_DEFAULT_PATH = "${REPORTING_BASE}/${JACOCO_REPORTING_RELATIVE_PATH}/html/index.html"
-
-    private static final String REPORT_XML_DEFAULT_PATH = "${REPORTING_BASE}/$JACOCO_REPORTING_RELATIVE_PATH/${REPORT_XML_FILE_NAME}"
-    private static final String REPORT_CSV_DEFAULT_REPORT = "${REPORTING_BASE}/$JACOCO_REPORTING_RELATIVE_PATH/${REPORT_CSV_FILE_NAME}"
+    private static final String REPORT_HTML_DEFAULT_PATH = "${REPORTING_BASE}/jacoco/test/html/index.html"
+    private static final String REPORT_XML_DEFAULT_PATH = "${REPORTING_BASE}/jacoco/test/jacocoTestReport.xml"
+    private static final String REPORT_CSV_DEFAULT_REPORT = "${REPORTING_BASE}/jacoco/test/jacocoTestReport.csv"
 
     def setup() {
         buildFile << """
@@ -54,9 +48,9 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds('test', 'jacocoTestReport')
         then:
-        file(REPORTING_BASE).listFiles().collect{it.name} as Set == ["jacoco", "tests"] as Set
+        file(REPORTING_BASE).listFiles().collect { it.name } as Set == ["jacoco", "tests"] as Set
         file(REPORT_HTML_DEFAULT_PATH).exists()
-        file("${REPORTING_BASE}/${JACOCO_REPORTING_RELATIVE_PATH}").listFiles().collect{it.name} == ["html"]
+        file("${REPORTING_BASE}/jacoco/test").listFiles().collect { it.name } == ["html"]
     }
 
     @Test
@@ -66,7 +60,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             jacocoTestReport{
                 reports {
                     xml.enabled true
-                    csv.enabled false
+                    csv.enabled true
                     html.destination "\${buildDir}/jacocoHtml"
                 }
             }
@@ -76,7 +70,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/jacocoHtml/index.html").exists()
         file(REPORT_XML_DEFAULT_PATH).exists()
-        !file(REPORT_CSV_DEFAULT_REPORT).exists()
+        file(REPORT_CSV_DEFAULT_REPORT).exists()
     }
 
     @Test
@@ -93,9 +87,9 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds('test', 'jacocoTestReport')
         then:
-        file("build/customReports/$JACOCO_REPORTING_RELATIVE_PATH/html/index.html").exists()
-        file("build/customReports/$JACOCO_REPORTING_RELATIVE_PATH/$REPORT_CSV_FILE_NAME").exists()
-        file("build/customReports/$JACOCO_REPORTING_RELATIVE_PATH/$REPORT_CSV_FILE_NAME").exists()
+        file("build/customReports/jacoco/test/html/index.html").exists()
+        file("build/customReports/jacoco/test/jacocoTestReport.xml").exists()
+        file("build/customReports/jacoco/test/jacocoTestReport.csv").exists()
     }
 
     @Test
@@ -115,8 +109,8 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
         then:
         file("build/${customReportDirectory}/test/html/index.html").exists()
-        file("build/${customReportDirectory}/test/${REPORT_XML_FILE_NAME}").exists()
-        file("build/${customReportDirectory}/test/${REPORT_CSV_FILE_NAME}").exists()
+        file("build/${customReportDirectory}/test/jacocoTestReport.xml").exists()
+        file("build/${customReportDirectory}/test/jacocoTestReport.csv").exists()
     }
 
     @Test
