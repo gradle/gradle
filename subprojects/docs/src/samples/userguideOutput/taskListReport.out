@@ -5,15 +5,15 @@ All tasks runnable from root project
 
 Default tasks: dists
 
-[incubating] Build Setup tasks
-------------------------------
-setupBuild - [incubating] Initializes a new project.
-
 Build tasks
 -----------
 clean - Deletes the build directory (build)
 dists - Builds the distribution
 libs - Builds the JAR
+
+Build Setup tasks
+-----------------
+setupBuild - Initializes a new Gradle build. [incubating]
 
 Help tasks
 ----------

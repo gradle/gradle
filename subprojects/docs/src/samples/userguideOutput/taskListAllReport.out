@@ -5,11 +5,6 @@ All tasks runnable from root project
 
 Default tasks: dists
 
-[incubating] Build Setup tasks
-------------------------------
-setupBuild - [incubating] Initializes a new project.
-    setupWrapper - Generates gradle wrapper files.
-
 Build tasks
 -----------
 clean - Deletes the build directory (build)
@@ -21,6 +16,10 @@ api:libs - Builds the JAR
     api:compile - Compiles the source files
 webapp:libs - Builds the JAR [api:libs]
     webapp:compile - Compiles the source files
+
+Build Setup tasks
+-----------------
+setupBuild - Initializes a new Gradle build. [incubating]
 
 Help tasks
 ----------
