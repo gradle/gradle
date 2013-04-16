@@ -1,6 +1,33 @@
 # Dependency resolution
 
-1. Cache dependency descriptors. Useful for regular builds. Very useful for daemon builds as the daemon can keep the descriptors in memory.
+## Cache dependency descriptors. Useful for regular builds. Very useful for daemon builds as the daemon can keep the descriptors in memory.
+
+### User visible changes
+
+Faster builds, especially with hot daemon
+
+### Sad day cases
+
+In what ways can things go wrong? What will the user see when things do go wrong?
+
+### Test coverage
+
+-changing modules are cached only within a given build
+-dynamic versions are cached only within a given build
+-static versions are cached forever (until daemon exits)
+-modules/artifacts from different repositories are separated
+-building with --refresh-dependencies throws away cached data
+
+### Implementation plan
+
+-Cache should use soft maps (see guava map maker)
+-Use ModuleVersionRepository
+-For cache state we need to have static DependencyManagementServices. Currently all services from GlobalServicesRegistry are static in the daemon
+-compatible with internal cache control dsl
+
+### Questions
+
+-sensitive to --offline builds?
 
 # Multi-process locking
 
