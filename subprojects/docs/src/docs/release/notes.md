@@ -66,7 +66,7 @@ The design and implementation of task ordering rules involved a deep understandi
 
 ### JaCoCo Code Coverage Plugin (i)
 
-Gradle now ships with a JaCoCo plugin to generate code coverage reports. JaCoCo is a free code coverage library for Java.
+Gradle now ships with a [JaCoCo](http://www.eclemma.org/jacoco/) plugin to generate code coverage reports. JaCoCo is a free code coverage library for Java.
 
 To gather code coverage information for your java project, just apply the JaCoCo plugin:
 
