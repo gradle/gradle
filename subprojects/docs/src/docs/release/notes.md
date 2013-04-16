@@ -99,7 +99,7 @@ Since the JaCoCo plugin can be used in combination with any `JavaExec` task of y
     }
 
 There was a great demand by the Gradle community for having a first class code coverage plugin in the Gradle distribution.
-Therefore we're very happy that this plugin was provided by Andrew Oberstar, an energetic member of the Gradle community.
+Therefore we're very happy that this plugin was provided by [Andrew Oberstar](https://github.com/ajoberstar), an energetic member of the Gradle community.
 
 ### Build Setup Plugin (i)
 This Gradle distribution introduces a `build-setup` plugin that supports users on initializing new Gradle projects.
