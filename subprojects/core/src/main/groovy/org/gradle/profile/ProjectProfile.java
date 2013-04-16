@@ -15,31 +15,29 @@
  */
 package org.gradle.profile;
 
-import org.gradle.api.Project;
-import org.gradle.api.ProjectState;
-import org.gradle.api.Task;
+import org.gradle.util.CollectionUtils;
 
 import java.util.HashMap;
+import java.util.List;
 
-public class ProjectProfile {
-    private final Project project;
-    private ProjectState state;
-    private HashMap<Task, TaskExecution> tasks = new HashMap<Task, TaskExecution>();
-    private final ContinuousOperation evaluation;
+public class ProjectProfile extends Operation {
+    private HashMap<String, TaskExecution> tasks = new HashMap<String, TaskExecution>();
+    private final ContinuousOperation configurationOperation;
+    private String projectPath;
 
-    public ProjectProfile(Project project) {
-        this.project = project;
-        this.evaluation = new EvalutationOperation(project);
+    public ProjectProfile(String projectPath) {
+        this.projectPath = projectPath;
+        this.configurationOperation = new ContinuousOperation(projectPath);
     }
 
     /**
      * Gets the task profiling container for the specified task.
      */
-    public TaskExecution getTaskProfile(Task task) {
-        TaskExecution result = tasks.get(task);
+    public TaskExecution getTaskProfile(String taskPath) {
+        TaskExecution result = tasks.get(taskPath);
         if (result == null) {
-            result = new TaskExecution(task);
-            tasks.put(task, result);
+            result = new TaskExecution(taskPath);
+            tasks.put(taskPath, result);
         }
         return result;
     }
@@ -48,31 +46,33 @@ public class ProjectProfile {
      * Returns the task executions for this project.
      */
     public CompositeOperation<TaskExecution> getTasks() {
-        return new CompositeOperation<TaskExecution>(tasks.values());
+        List<TaskExecution> taskExecutions = CollectionUtils.sort(tasks.values(), Operation.comparator());
+        return new CompositeOperation<TaskExecution>(taskExecutions);
     }
 
     /**
      * Get the String project path.
      */
     public String getPath() {
-        return project.getPath();
+        return projectPath;
     }
 
     /**
-     * Returns the evaluation time of this project.
+     * Returns the configuration time of this project.
      */
-    public ContinuousOperation getEvaluation() {
-        return evaluation;
+    public ContinuousOperation getConfigurationOperation() {
+        return configurationOperation;
     }
 
-    /**
-     * Gets the state of the project after evaluation finishes.
-     */
-    public ProjectState getState() {
-        return state;
+    public String toString() {
+        return projectPath;
     }
 
-    public void setState(ProjectState state) {
-        this.state = state;
+    public String getDescription() {
+        return projectPath;
+    }
+
+    long getElapsedTime() {
+        return getTasks().getElapsedTime();
     }
 }

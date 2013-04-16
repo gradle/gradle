@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.language.jvm.JvmLanguageSourceSet;
 
 /**
  * A set of sources passed to the Java compiler.

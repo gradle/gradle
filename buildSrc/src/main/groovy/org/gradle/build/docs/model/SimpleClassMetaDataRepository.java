@@ -16,12 +16,12 @@
 package org.gradle.build.docs.model;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.UnknownDomainObjectException;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements ClassMetaDataRepository<T> {
     private final Map<String, T> classes = new HashMap<String, T>();
@@ -80,6 +80,12 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
     public void each(Closure cl) {
         for (Map.Entry<String, T> entry : classes.entrySet()) {
             cl.call(new Object[]{entry.getKey(), entry.getValue()});
+        }
+    }
+
+    public void each(Action<? super T> action) {
+        for (T t : classes.values()) {
+            action.execute(t);
         }
     }
 }

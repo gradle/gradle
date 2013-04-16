@@ -49,4 +49,9 @@ public interface IvyModule {
     IvyModule publish();
 
     IvyDescriptor getIvy();
+
+    /**
+     * Assert that exactly the ivy.xml and jar file for this module, plus checksum files, have been published.
+     */
+    void assertIvyAndJarFilePublished();
 }

@@ -18,7 +18,8 @@ package org.gradle.scala
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ScalaBasePluginIntegrationTest extends AbstractIntegrationSpec {
-    def "defaults scalaClasspath to inferred Scala compiler dependency if scalaTools configuration is empty"() {
+    def "defaults scalaClasspath to 'scalaTools' configuration if the latter is non-empty"() {
+        executer.withDeprecationChecksDisabled()
         file("build.gradle") << """
 apply plugin: "scala-base"
 
@@ -29,35 +30,9 @@ sourceSets {
 repositories {
     mavenCentral()
 }
+
 dependencies {
-    customCompile "org.scala-lang:scala-library:2.9.2"
-}
-
-task scaladoc(type: ScalaDoc) {
-    classpath = sourceSets.custom.runtimeClasspath
-}
-
-task verify << {
-    assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-2.9.2.jar" }
-    assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-2.9.2.jar" }
-    assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-2.9.2.jar" }
-}
-"""
-
-        expect:
-        succeeds("verify")
-    }
-
-    def "defaults scalaClasspath to (empty) scalaTools configuration if Scala compiler dependency isn't found on class path"() {
-        file("build.gradle") << """
-apply plugin: "scala-base"
-
-sourceSets {
-    custom
-}
-
-repositories {
-    mavenCentral()
+    scalaTools "org.scala-lang:scala-compiler:2.10.1"
 }
 
 task scaladoc(type: ScalaDoc)
@@ -68,6 +43,67 @@ task verify << {
     assert scaladoc.scalaClasspath.is(configurations.scalaTools)
 }
 """
+
+        expect:
+        succeeds("verify")
+    }
+
+    def "defaults scalaClasspath to inferred Scala compiler dependency if 'scalaTools' configuration is empty"() {
+        file("build.gradle") << """
+apply plugin: "scala-base"
+
+sourceSets {
+    custom
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    customCompile "org.scala-lang:scala-library:2.10.1"
+}
+
+task scaladoc(type: ScalaDoc) {
+    classpath = sourceSets.custom.runtimeClasspath
+}
+
+task verify << {
+    assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-2.10.1.jar" }
+    assert scalaCustomConsole.classpath.files.any { it.name == "scala-compiler-2.10.1.jar" }
+    assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-2.10.1.jar" }
+}
+"""
+
+        expect:
+        succeeds("verify")
+    }
+
+    def "only resolves source class path feeding into inferred Scala class path if/when the latter is actually used (but not during autowiring)"() {
+        file("build.gradle") << """
+apply plugin: "scala-base"
+
+sourceSets {
+    custom
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    customCompile "org.scala-lang:scala-library:2.10.1"
+}
+
+task scaladoc(type: ScalaDoc) {
+    classpath = sourceSets.custom.runtimeClasspath
+}
+
+task verify << {
+    assert configurations.customCompile.state.toString() == "UNRESOLVED"
+    assert configurations.customRuntime.state.toString() == "UNRESOLVED"
+}
+        """
 
         expect:
         succeeds("verify")

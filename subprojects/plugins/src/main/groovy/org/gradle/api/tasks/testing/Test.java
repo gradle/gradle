@@ -116,7 +116,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private final StyledTextOutputFactory textOutputFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final TestLoggingContainer testLogging;
-    private final DefaultJavaForkOptions options;
+    private final DefaultJavaForkOptions forkOptions;
 
     private TestExecuter testExecuter;
     private List<File> testSrcDirs = new ArrayList<File>();
@@ -142,8 +142,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         this.textOutputFactory = textOutputFactory;
-        options = new DefaultJavaForkOptions(fileResolver);
-        options.setEnableAssertions(true);
+        forkOptions = new DefaultJavaForkOptions(fileResolver);
+        forkOptions.setEnableAssertions(true);
         testExecuter = new DefaultTestExecuter(processBuilderFactory, actorFactory);
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
         testReporter = new DefaultTestReport();
@@ -164,21 +164,21 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Input
     public File getWorkingDir() {
-        return options.getWorkingDir();
+        return forkOptions.getWorkingDir();
     }
 
     /**
      * {@inheritDoc}
      */
     public void setWorkingDir(Object dir) {
-        options.setWorkingDir(dir);
+        forkOptions.setWorkingDir(dir);
     }
 
     /**
      * {@inheritDoc}
      */
     public Test workingDir(Object dir) {
-        options.workingDir(dir);
+        forkOptions.workingDir(dir);
         return this;
     }
 
@@ -187,14 +187,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Input
     public String getExecutable() {
-        return options.getExecutable();
+        return forkOptions.getExecutable();
     }
 
     /**
      * {@inheritDoc}
      */
     public Test executable(Object executable) {
-        options.executable(executable);
+        forkOptions.executable(executable);
         return this;
     }
 
@@ -202,7 +202,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     public void setExecutable(Object executable) {
-        options.setExecutable(executable);
+        forkOptions.setExecutable(executable);
     }
 
     /**
@@ -210,21 +210,21 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Input
     public Map<String, Object> getSystemProperties() {
-        return options.getSystemProperties();
+        return forkOptions.getSystemProperties();
     }
 
     /**
      * {@inheritDoc}
      */
     public void setSystemProperties(Map<String, ?> properties) {
-        options.setSystemProperties(properties);
+        forkOptions.setSystemProperties(properties);
     }
 
     /**
      * {@inheritDoc}
      */
     public Test systemProperties(Map<String, ?> properties) {
-        options.systemProperties(properties);
+        forkOptions.systemProperties(properties);
         return this;
     }
 
@@ -232,7 +232,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     public Test systemProperty(String name, Object value) {
-        options.systemProperty(name, value);
+        forkOptions.systemProperty(name, value);
         return this;
     }
 
@@ -241,21 +241,21 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Input
     public FileCollection getBootstrapClasspath() {
-        return options.getBootstrapClasspath();
+        return forkOptions.getBootstrapClasspath();
     }
 
     /**
      * {@inheritDoc}
      */
     public void setBootstrapClasspath(FileCollection classpath) {
-        options.setBootstrapClasspath(classpath);
+        forkOptions.setBootstrapClasspath(classpath);
     }
 
     /**
      * {@inheritDoc}
      */
     public Test bootstrapClasspath(Object... classpath) {
-        options.bootstrapClasspath(classpath);
+        forkOptions.bootstrapClasspath(classpath);
         return this;
     }
 
@@ -263,42 +263,42 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     public String getMinHeapSize() {
-        return options.getMinHeapSize();
+        return forkOptions.getMinHeapSize();
     }
 
     /**
      * {@inheritDoc}
      */
     public String getDefaultCharacterEncoding() {
-        return options.getDefaultCharacterEncoding();
+        return forkOptions.getDefaultCharacterEncoding();
     }
 
     /**
      * {@inheritDoc}
      */
     public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
-        options.setDefaultCharacterEncoding(defaultCharacterEncoding);
+        forkOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
     /**
      * {@inheritDoc}
      */
     public void setMinHeapSize(String heapSize) {
-        options.setMinHeapSize(heapSize);
+        forkOptions.setMinHeapSize(heapSize);
     }
 
     /**
      * {@inheritDoc}
      */
     public String getMaxHeapSize() {
-        return options.getMaxHeapSize();
+        return forkOptions.getMaxHeapSize();
     }
 
     /**
      * {@inheritDoc}
      */
     public void setMaxHeapSize(String heapSize) {
-        options.setMaxHeapSize(heapSize);
+        forkOptions.setMaxHeapSize(heapSize);
     }
 
     /**
@@ -306,21 +306,21 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Input
     public List<String> getJvmArgs() {
-        return options.getJvmArgs();
+        return forkOptions.getJvmArgs();
     }
 
     /**
      * {@inheritDoc}
      */
     public void setJvmArgs(Iterable<?> arguments) {
-        options.setJvmArgs(arguments);
+        forkOptions.setJvmArgs(arguments);
     }
 
     /**
      * {@inheritDoc}
      */
     public Test jvmArgs(Iterable<?> arguments) {
-        options.jvmArgs(arguments);
+        forkOptions.jvmArgs(arguments);
         return this;
     }
 
@@ -328,7 +328,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     public Test jvmArgs(Object... arguments) {
-        options.jvmArgs(arguments);
+        forkOptions.jvmArgs(arguments);
         return this;
     }
 
@@ -337,56 +337,56 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Input
     public boolean getEnableAssertions() {
-        return options.getEnableAssertions();
+        return forkOptions.getEnableAssertions();
     }
 
     /**
      * {@inheritDoc}
      */
     public void setEnableAssertions(boolean enabled) {
-        options.setEnableAssertions(enabled);
+        forkOptions.setEnableAssertions(enabled);
     }
 
     /**
      * {@inheritDoc}
      */
     public boolean getDebug() {
-        return options.getDebug();
+        return forkOptions.getDebug();
     }
 
     /**
      * {@inheritDoc}
      */
     public void setDebug(boolean enabled) {
-        options.setDebug(enabled);
+        forkOptions.setDebug(enabled);
     }
 
     /**
      * {@inheritDoc}
      */
     public List<String> getAllJvmArgs() {
-        return options.getAllJvmArgs();
+        return forkOptions.getAllJvmArgs();
     }
 
     /**
      * {@inheritDoc}
      */
     public void setAllJvmArgs(Iterable<?> arguments) {
-        options.setAllJvmArgs(arguments);
+        forkOptions.setAllJvmArgs(arguments);
     }
 
     /**
      * {@inheritDoc}
      */
     public Map<String, Object> getEnvironment() {
-        return options.getEnvironment();
+        return forkOptions.getEnvironment();
     }
 
     /**
      * {@inheritDoc}
      */
     public Test environment(Map<String, ?> environmentVariables) {
-        options.environment(environmentVariables);
+        forkOptions.environment(environmentVariables);
         return this;
     }
 
@@ -394,7 +394,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     public Test environment(String name, Object value) {
-        options.environment(name, value);
+        forkOptions.environment(name, value);
         return this;
     }
 
@@ -402,14 +402,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     public void setEnvironment(Map<String, ?> environmentVariables) {
-        options.setEnvironment(environmentVariables);
+        forkOptions.setEnvironment(environmentVariables);
     }
 
     /**
      * {@inheritDoc}
      */
     public Test copyTo(ProcessForkOptions target) {
-        options.copyTo(target);
+        forkOptions.copyTo(target);
         return this;
     }
 
@@ -417,7 +417,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     public Test copyTo(JavaForkOptions target) {
-        options.copyTo(target);
+        forkOptions.copyTo(target);
         return this;
     }
 
@@ -802,7 +802,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     public TestFrameworkOptions options(Closure testFrameworkConfigure) {
         TestFrameworkOptions options = getTestFramework().getOptions();
-        ConfigureUtil.configure(testFrameworkConfigure, testFramework.getOptions());
+        ConfigureUtil.configure(testFrameworkConfigure, options);
         return options;
     }
 

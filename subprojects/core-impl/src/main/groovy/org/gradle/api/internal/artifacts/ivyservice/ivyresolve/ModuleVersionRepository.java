@@ -21,7 +21,8 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 /**
  * A repository of module versions.
  *
- * The plan is to sync this with {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver}
+ * The plan is to sync this with {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver} and rename it
+ * to have 'resolver' instead of 'repository' in its name.
  */
 public interface ModuleVersionRepository {
     String getId();

@@ -1,285 +1,161 @@
-Continuing on with the performance improvements delivered in recent Gradle versions, 1.5 brings wide reaching optimizations to dependency resolution as well as important 
-improvements to two recent features; configure-on-demand and parallel execution. 
-Gradle continues to embrace the challenges of large scale build automation. Along with the performance improvements comes the usual mix of new features, bug fixes, usability improvements and refinements. 
-
-The dependency resolve rule feature introduced in 1.4 gains new capabilities in 1.5. Trouble dependencies can now be completely substituted at resolution time which enables solving 
-some very tricky issues with complex dependency graphs. On the publication side, the new (incubating) Maven and Ivy publishing plugins gain new capabilities making them able 
-to solve more publishing use cases with elegance.
-
-A very exciting trend is the increase in code and documentation contributions from the community, both large and small. Some very useful new features such as the "build dashboard" 
-and "distributions" plugins added in this release, to name a few, came by way of contribution. If you'd like to get involved and contribute to Gradle, a great place to 
-start is [gradle.org/contribute](http://www.gradle.org/contribute).
-
-The Gradle team is also excited to announce the first ever [“Gradle Summit”](http://gradlesummit.com/) (Sponsored by [Gradleware](http://gradleware.com/)),
-held June 13th - 14th in Santa Clara, California. The summit will be two fully packed days of technical sessions given by Gradle core developers ranging from introductory 
-to deep dive as well as informational sessions by several large organizations on how they get the most out of Gradle. In between sessions there'll be plenty of opportunity 
-for talking to other Gradle users and the Gradle development team. This is an event not to miss. 
-Registration is [now open](http://gradlesummit.com/conference/santa_clara/2013/06/gradle/event_register).
-    
-Read on for more details on why you should upgrade to Gradle 1.5. As always, please share your feedback and experiences with Gradle 1.5 via the Gradle Forums.
-
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
 
-### Performance improvements 
+### Installation via Gradle Wrapper is now multi process safe
 
-This release brings performance improvements for JUnit and TestNG test execution as well as dependency resolution improvements for all builds that use dependency resolution.
+In previous versions of Gradle it was possible for a Gradle distribution installed implicitly via the [Gradle Wrapper](userguide/gradle_wrapper.html) to be corrupted, 
+or to fail to install, if more than one process was trying to do this at the same time. This was more likely to occur on a continuous build server than a developer workstation. 
+This no longer occurs as the installation performed by the wrapper is now multi process safe.
 
-#### Test execution performance
+**Important:** leveraging the new multi process safe wrapper requires updating the `gradle-wrapper.jar` that is checked in to your project. 
+This requires an extra step to the usual wrapper upgrade process. 
 
-Test execution has been further optimized in this release, continuing on the work in Gradle 1.4. The test report is now generated more efficiently, so that it take less
-time and heap space to generate the HTML report. In addition, for those projects that use the TestNG framework, the test JVM now starts more quickly, meaning that test
-execution starts earlier than it did in previous Gradle releases.
+First, update your wrapper as per usual by updating the `gradleVersion` property of the wrapper task in the build…
 
-#### Dependency resolution performance
+    task wrapper(type: Wrapper) {
+        gradleVersion = "1.6"
+    }
 
-Gradle's [dependency cache](userguide/dependency_management.html#sec:dependency_cache) is multi process safe, which requires the use of locking mechanisms.
-Improvements to the way the locks are utilised in this release have increased the dependency resolution speed by up to 30%
-for builds that use local repositories or maven local.
-Builds that don't use local repositories should also exhibit slightly faster dependency resolution.
-Every build that resolves dependencies benefits from this improvement.
+Then run `./gradlew wrapper` to update the wrapper definition. This will configure the wrapper to use and download Gradle 1.6 for future builds, 
+but it has not updated the `gradle-wrapper.jar` that is checked in to your project. To do this, simply run `./gradlew wrapper` again. This is necessary as the wrapper 
+jar is sourced from the Gradle environment that is running the build. 
 
-### Substituting dependencies via dependency resolve rules (i)
+If you are seeding a new project using an installation of Gradle 1.6 or higher, you do not need to run the wrapper task twice. It is only necessary when upgrading the 
+wrapper from an older version.
 
-Gradle 1.4 [introduced the ability](http://www.gradle.org/docs/1.4/release-notes#dependency-resolve-rules) to dynamically change the version of a dependency to be resolved via dependency resolve rules.
-It is now possible to change the group, name and/or version of a requested dependency, allowing a dependency to be substituted with a completely
-different dependency during resolution.
+### Force a task to run after another task, without adding a dependency (i)
 
-    configurations.all {
-        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (details.requested.name == 'groovy-all') {
-                details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
-            }
+In the past, the only way to ensure that Gradle ran one task after another was to add a dependency between those tasks. So if `Task A` must always run before `Task B`, you would
+ say that `B.dependsOn(A)`. This has the added effect of forcing `Task A` to always run if `Task B` is executed.
+
+In some cases, `dependsOn` is not the correct semantics. A simple example is “clean” must always run before “build”, but you don't always want to run “clean” whenever you run “build”.
+For this use case Gradle now has “task ordering” rules, the first of which is `Task.mustRunAfter`.
+This rule does not change which tasks will be executed, but it does influence the order in which they will be executed.
+
+    task clean { ... }
+    task build { ... }
+
+    build.mustRunAfter clean
+
+In this example you can still execute `gradle clean` and `gradle build` independently, but running `gradle build clean` will cause 'clean' to be executed before 'build'.
+
+Another example is a test-aggregation task that consumes the outputs of all of the test tasks.
+You want this aggregation task to run _after_ all test tasks, but you do not necessarily want to force all test tasks to run.
+
+    task runUnitTests(type: Test) { ... }
+    task runIntegTests(type: Test) { ... }
+    task createTestReports { ... }
+
+    tasks.withType(Test) { testTask ->
+        createTestReports.mustRunAfter(testTask)
+    }
+
+    task allTest(dependsOn: [runUnitTests, runIntegTests, createTestReports]) // This will run unit+integ tests and create the aggregated report
+    task unitTest(dependsOn: [runUnitTests, createTestReports]) // This will run unit tests only and create the report
+    task integTest(dependsOn: [runIntegTests, createTestReports]) // This will run integ tests only and create the report
+
+Note that it would not be suitable to use `createTestReport.dependsOn(runUnitTests)` in this case,
+since that would make it difficult to execute the integration tests and generate the report, _without_ running the unit tests.
+The `mustRunAfter` task ordering rule makes it easy to wire this logic into your build.
+
+See the User guide section on “[Ordering Tasks](userguide/more_about_tasks.html#sec:ordering_tasks)” for more information.
+
+On behalf of the Gradle community, the Gradle development team would like to thank [Marcin Erdmann](https://github.com/erdi) for taking on this long anticipated feature.
+The design and implementation of task ordering rules involved a deep understanding and refactoring of the Gradle Task execution engine, and Marcin took this on with gusto.
+
+### JaCoCo Code Coverage Plugin (i)
+
+Gradle now ships with a [JaCoCo](http://www.eclemma.org/jacoco/) plugin to generate code coverage reports. JaCoCo is a free code coverage library for Java.
+
+To gather code coverage information for your java project, just apply the JaCoCo plugin:
+
+    apply plugin: 'jacoco'
+
+and run `gradle test jacocoTestReport` which generates code coverage reports for the “test” task introduced by the `java` plugin. The `JacocoReport` adds a `mustRunAfter` dependency on the
+coverage data producing task ('test' in our example). After the build has finished you find the coverage report in different formats in `build/reports/jacoco/test`.
+
+You can configure every task of type `JacocoReport` to enable other output formats than the default `HTML` report. For example, if you just want the `xml` coverage report that can be reused by your
+favourite CI server, you can simply configure this:
+
+    jacocoTestReport {
+        reports {
+            html.enabled = false
+            csv.enabled = false
+            xml.enabled = true
+        } 
+    }
+
+In some scenarios it might be desirable to compute code coverage not by running tests, but by running the application itself.
+Since the JaCoCo plugin can be used in combination with any `JavaExec` task of your build, it's quite simple to combine the `JaCoCo` plugin with the `run` task introduced by the `application` plugin:
+
+    jacoco {
+        applyTo run
+    }
+    
+    task applicationCodeCoverageReport(type: JacocoReport) {
+        executionData run
+        sourceSets sourceSets.main
+    }
+
+This plugin was contributed by [Andrew Oberstar](https://github.com/ajoberstar), an energetic member of the Gradle community, and is a long requested out-of-the-box feature that is a very welcome addition.
+
+### Build Setup Plugin (i)
+
+Gradle 1.6 introduces a `build-setup` plugin that makes initializing new Gradle projects more convenient. 
+It also supports bootstrapping the migration of an Apache Maven build to a Gradle build by generating a `build.gradle` file from a `pom.xml`.
+
+The `build-setup` plugin is not a plugin that you manually apply to your project. You use it by executing the `setupBuild` task in a directory that does not contain a `build.gradle` file. 
+
+Running `gradle setupBuild` in a directory with no `build.gradle` file will do the following:
+
+* If a `pom.xml` exists, a `build.gradle` file is generated based on its content (e.g. equivalent dependency definitions).
+* If no `pom.xml` exists, an empty `build.gradle` file is generated.
+* The [Gradle Wrapper](userguide/gradle_wrapper.html) is installed for the project.
+
+For more information please see the [User Guide chapter on this plugin](userguide/build_setup_plugin.html).
+
+This plugin is an *incubating* feature and will improve and expand in scope in future releases. 
+If you're interested in its progress and future, you can check out the [design spec](https://github.com/gradle/gradle/blob/master/design-docs/build-initialisation.md). 
+
+### Support for JUnit @Category (i)
+
+Thanks to a contribution by [Uladzimir Mihura](https://github.com/trnl), Gradle now supports [JUnit categories](https://github.com/junit-team/junit/wiki/Categories). 
+Categories are a mechanism to label and group JUnit tests by using annotations. 
+
+Given the following JUnit test code:
+
+    public interface FastTests { /* category marker interface */ }
+    public interface SlowTests { /* category marker interface */ }
+
+    public class MyTestClass {
+        @Category(SlowTests.class)
+        @Test public void testA() {
+	        …
+        }
+
+        @Category(FastTests.class)
+        @Test public void testB() {
+	        …
         }
     }
 
-Dependency resolve rules can now be used to solve some interesting dependency resolution problems:
+You can now easily configure your test task to run only specific categories:
 
-- Substituting an alternative implementation for some module. For example, replace all usages of `log4j` with a compatible version of `log4j-over-slf4j`.
-- Dealing with conflicting implementations of some module. For example, replace all usages of the various `slf4j` bindings with `slf4j-simple`.
-- Dealing with conflicting packaging of some module. For example, replace all usages of `groovy-all` with `groovy`.
-- Dealing with modules that have changed their (group, module) identifier. For example, replace `ant:ant:*` with `org.apache.ant:ant:1.7.0` and let conflict resolution take care of the rest.
-- Substituting different implementations at different stages. For example, substitute all servlet API dependencies with `'javax.servlet:servlet-api:2.4'` at compile time and the jetty implementation at test runtime.
-
-For more information, including more code samples, please refer to [the user guide](userguide/dependency_management.html#sec:dependency_resolve_rules).
-
-### New Sonar Runner plugin (i)
-
-Gradle 1.5 ships with a new `sonar-runner` plugin that is set to replace the existing Sonar plugin. As its name indicates,
-the new plugin is based on the [Sonar Runner](http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner),
-the new and official way to integrate with Sonar. Unlike the old Sonar plugin, the new Sonar Runner plugin
-is compatible with the latest Sonar versions (3.4 and above). To learn more, check out the [Sonar Runner Plugin](userguide/sonar_runner_plugin.html)
-chapter in the Gradle user guide, and the `sonarRunner` samples in the full Gradle distribution.
-
-### IDEA plugin is now Scala aware
-
-When the IDEA plugin encounters a Scala project, it will now add additional configuration to make the
-project compile in IntelliJ IDEA out of the box. In particular, the plugin adds a Scala facet and
-a Scala compiler library that matches the Scala version used on the project's class path.
-
-### Configure-on-demand improvements (i)
-
-Gradle 1.4 introduced a [new operational mode called “configure-on-demand”](http://www.gradle.org/docs/1.4/release-notes#improved-scalability-via-configuration-on-demand) designed
-to improve Gradle performance on large projects.  This release brings the following improvements to this new feature:
-
-* [Tooling API](userguide/embedding.html) compatibility.
-* [buildSrc](userguide/organizing_build_logic.html#sec:build_sources) is now fully supported.
-* Task dependencies declared via task path are now supported.
-
-Enabling this new mode is now more convenient. It can be enabled at invocation time via the new `--configure-on-demand` flag, or via the `org.gradle.configureondemand` project property.
-The project property can be set permanently for a project, or permanently for a user just like other [build settings](userguide/build_environment.html#sec:gradle_configuration_properties).
-
-For example, by adding a `gradle.properties` file to root of the project with the following content Gradle will always use configure-on-demand mode for the project.
-
-    #gradle.properties file
-    org.gradle.configureondemand=true
-
-For more information on configure-on-demand please consult [the user guide](userguide/multi_project_builds.html#sec:configuration_on_demand).
-
-### Parallel execution improvements (i)
-
-Gradle 1.2 introduced a [parallel execution](userguide/multi_project_builds.html#sec:parallel_execution) mode for multi-project builds.
-This release brings significantly improved utilisation of the parallel workers.
-
-Previously, workers where statically assigned to projects and often waited for the upstream dependencies to be built.
-This caused workers to stay idle when there was work they could be doing. The distribution of work is now more dynamic which has resulted in highly parallelizable builds building up to 30% faster.
-
-It is also now possible to enable parallel building via a [build setting](userguide/build_environment.html#sec:gradle_configuration_properties).
-For example, by adding a `gradle.properties` file to root of the project with the following content Gradle will always build the project in parallel.
-
-    //gradle.properties file
-    org.gradle.parallel=true
-
-### New distribution plugin (i)
-
-Thanks to a contribution from [Sébastien Cogneau](https://github.com/scogneau), a new `distribution` plugin has been added. This plugin adds general-purpose for support bundling and installing distributions.
-
-This plugin adds a `main` distribution, and you can add additional distributions. For each distribution, tasks are added to create a ZIP or TAR file for the distribution and
-to install the distribution.
-
-You can define multiple distributions:
-
-    distributions {
-        enterprise
-        community
-    }
-
-To build the additional distributions you can run the generated `Zip` tasks `enterpriseDistZip` and `communityDistZip`. For more information, please consult the 
-[user guide](userguide/distribution_plugin.html).
-
-### Improved Java library distribution plugin (i)
-
-The Java library distribution plugin now extends the newly introduced distribution plugin. Thanks to this, you can now create tar files and install Java library distributions.
-
-For more information, please consult the [user guide](userguide/javaLibraryDistribution_plugin.html).
-
-### Improved usability of project dependencies
-
-Project dependencies at configuration time are now fully supported.
-Prior to this change, any resolution of a project dependency at configuration time may have led to confusing behavior as the target project may not have been configured yet.
-Now the resolution of the project dependency implies configuration of the target project.
-This means that the order in which projects are configured may now be different (i.e. it will be correct).
-This change should not cause any trouble in existing builds and it fixes up the confusing behavior with project dependencies.
-
-### Improvements to the new '`maven-publish`' and '`ivy-publish`' plugins (i)
-
-The '`maven-publish`' and '`ivy-publish`' plugins gain new features and capabilities in this Gradle release.
-
-#### Easy publication of software components
-
-Gradle 1.5 introduces the concept of a “Software Component”, which defines something that can be produced by a Gradle project such as a Java library or a web application.
-Both the '`ivy-publish`' and '`maven-publish`' plugins are component-aware, simplifying the process of publishing a module. The component defines the set of artifacts and dependencies for publishing.
-
-Presently, the set of components available for publishing is limited to '`java`' and '`web`', added by the '`java`' and '`war`' plugins respectively. In the future it will be possible to
-create new components and new component types.
-
-Publishing the '`web`' component will result in the war file being published with no runtime dependencies (dependencies are bundled in the war):
-
-    apply plugin: 'war'
-    apply plugin: 'maven-publish'
-
-    group = 'group'
-    version = '1.0'
-
-    // … declare dependencies and other config on how to build
-
-    publishing {
-        repositories {
-            maven { url 'http://mycompany.org/mavenRepo' }
-            ivy { url 'http://mycompany.org/ivyRepo' }
-        }
-        publications {
-            mavenWeb(MavenPublication) {
-                from components.web
-            }
-            ivyWeb(IvyPublication) {
-                from components.java // Include the standard java artifacts
-            }
+    test { // run fast unit test only
+        useJUnit {
+            includeCategories 'org.gradle.categories.FastTests'
+            excludeCategories 'org.gradle.categories.SlowTests'
         }
     }
 
-#### Publishing custom artifacts
+The `includeCategories` and `excludeCategories` are methods of the [JUnitOptions](groovydoc/org/gradle/api/tasks/testing/junit/JUnitOptions.html) object and take 
+the full class names of one or more category annotations to include or exclude.
 
-This release introduces the ability to customize the set of artifacts to publish to a Maven repository or an Ivy repository.
-This gives complete control over which artifacts are published, and the classifier/extension used to publish them.
+### Plugins can expose custom tooling models via the tooling API
 
-Due to differences in the capabilities of Ivy vs Maven repositories, the DSL is slightly different for each repository format.
+TODO
 
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
-    apply plugin: 'ivy-publish'
-
-    group = 'group'
-    version = '1.0'
-
-    // … declare dependencies and other config on how to build
-
-    task sourceJar(type: Jar) {
-        from sourceSets.main.allJava
-        classifier "source"
-    }
-
-    publishing {
-        repositories {
-            maven { url 'http://mycompany.org/mavenRepo' }
-            ivy { url 'http://mycompany.org/ivyRepo' }
-        }
-        publications {
-            mavenCustom(MavenPublication) {
-                from components.java // Include the standard java artifacts
-                artifact sourceJar {
-                    classifier "source"
-                }
-                artifact("project-docs.htm") {
-                    classifier "docs"
-                    extension "html"
-                    builtBy myDocsTask
-                }
-            }
-            ivyCustom(IvyPublication) {
-                from components.java // Include the standard java artifacts
-                artifact(sourceJar) {
-                    type "source"
-                    conf "runtime"
-                    classifier "source"
-                }
-                artifact("project-docs.htm") {
-                    classifier "docs"
-                    extension "html"
-                    builtBy myDocsTask
-                }
-            }
-        }
-    }
-
-Be sure to check out the DSL reference for [MavenPublication](dsl/org.gradle.api.publish.maven.MavenPublication.html) and [IvyPublication](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
-for complete details on how the set of artifacts can be customized.
-
-For more information about using the new '`maven-publish`' and '`ivy-publish`' plugins in general, please consult the user guide ([maven](userguide/publishing_maven.html)) ([ivy](userguide/publishing_ivy.html)).
-
-#### Generate POM file without publishing
-
-POM file generation has been moved into a separate task, so that it is now possible to generate the POM file without actually publishing your project. All details of
-the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
-
-The task for generating the POM file is of type [`GenerateMavenPom`](dsl/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html), and is given a name based on the name
-of the publication: `generatePomFileFor<publication-name>Publication`. So in the above example where the publication is named '`mavenCustom`',
-the task will be named `generatePomFileForMavenCustomPublication`.
-
-#### Full support for Unicode in publication identifiers
-
-Where supported by the underlying metadata format, Gradle will now handle any valid Unicode character in module group, name and version as well as artifact name, extension and classifier.
-
-The only values that are explicitly prohibited are '\\', '/' and any ISO control character. Supplied values are validated early in publication. 
-
-A couple of caveats to the Unicode support:
-
-- Maven restricts '`groupId`' and '`artifactId`' to a limited character set (`[A-Za-z0-9_\\-.]+`) and Gradle enforces this restriction.
-- Certain repositories will not be able to handle all supported characters. For example, the '`:`' character cannot be used
-  as an identifier when publishing to a filesystem-backed repository on Windows.
-
-### Support for Ivy dynamic resolve mode (i)
-
-It is now possible to enable the equivalent of Ivy's _dynamic resolve_ mode when resolving dependencies. This is only supported for Ivy repositories.
-
-See the [user guide](userguide/dependency_management.html#ivy_dynamic_resolve_mode) for examples and further details.
-
-### New build dashboard Plugin (i)
-
-Thanks to a contribution from [Marcin Erdmann](https://github.com/erdi), a new `build-dashboard` plugin has been added. This plugin adds a task to projects to generate a build dashboard HTML report which contains
-references to all reports that were generated during the build. In the following example, the `build-dashboard` plugin is added to a project which has also the `groovy` and
-the `codenarc` plugin applied:
-
-    apply plugin: 'groovy'
-    apply plugin: 'build-dashboard'
-    apply plugin: 'codenarc'
-
-By running the `buildDashboard` task after other tasks that generate reports (e.g. by running `gradle check buildDashboard`), the generated build dashboard contains links to the 
-`codenarc` reports. This version of the build dashboard does not include links to test reports. This plugin is in the early stages of development and will be significantly improved in future Gradle releases.
-
-More information on the `build-dashboard` plugin can be found in the [user guide](userguide/buildDashboard_plugin.html).
-  
 ## Fixed issues
 
 ## Deprecations
@@ -289,100 +165,76 @@ in the next major Gradle version (Gradle 2.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-### `ArtifactRepositoryContainer.getResolvers()`
+### `StartParameter.getMergedSystemProperties()` method is deprecated
 
-This method exposes internal implementation details that will be subject to change in the future. Its use should be avoided.
+This method is no longer used internally so it does not make sense to keep it in the public API.
+
+### `groovy` configuration is deprecated
+
+Since Gradle 1.4, the preferred way to specify the Groovy library is to add it to the `compile` (or `testCompile`) configuration, rather than the `groovy` configuration.
+Therefore, the `groovy` configuration is now deprecated. Simply replace `groovy` with `compile` in the `dependencies` block:
+
+    dependencies {
+        compile "org.codehaus.groovy:groovy-all:2.0.6"
+    }
+
+In some cases (for example if the Groovy Jar has been renamed), it may also be necessary to explicitly configure the `groovyClasspath` of `GroovyCompile` and `Groovydoc` tasks.
+
+For additional background information about this change, see the [Groovy chapter](userguide/groovy_plugin.html#N1289B) of the Gradle user guide.
 
 ## Potential breaking changes
 
-### Changes to incubating Maven publishing support
+### `org.gradle.api.artifacts.ProjectDependency` and `org.gradle.api.plugins.ExtensionContainer` now have an internal protocol
 
-Breaking changes have been made to the incubating '`maven-publish`' plugin, which provides an alternative means to publish to Maven repositories.
+This means that the users should not create own implementations of `org.gradle.api.artifacts.ProjectDependenc` or `org.gradle.api.plugins.ExtensionContainer`.
+This change should not affect any builds because there are no known use cases supporting custom instances of these API classes.
 
-- A MavenPublication must be explicitly added to the `publications` container; no publication is added implicitly by the `maven-publish` plugin.
-    - If no `MavenPublication` is configured then nothing will be published.
-- A `MavenPublication` does not include any artifacts or dependencies by default; these must be added directly or via a `SoftwareComponent`.
-    - If no artifacts are configured, a Maven POM file will be published with no artifacts or dependencies declared.
-- The `groupId`, `artifactId` and `version` in the published pom cannot be changed via `MavenPom.withXml()`:
-   it was previously possible change these values, but any interproject dependency would not pick up these changes.
-    - In the future Gradle will provide a robust mechanism for modifying publication identity prior to publication.
-- Identifiers used in Maven publications (`groupId`, `artifactId`, `version`, `ext`, `classifier`) have new character restrictions:
-  these identifiers may not contain '`/`', '`\`' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so this is now prevented
-  at the time of publication.
-   - `groupId` and `artifactId` are further restricted to "`[A-Za-z0-9_\-.]+`": this is a Maven restriction, so it is enforced at the time of publication.
-- The `GenerateMavenPom` task for a publication is not created until the publishing extension is first accessed. Any attempt to configure a `GenerateMavenPom` task
-  should be enclosed within a `publishing` block.
-- Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
+### Renamed `add()` method on PublicationContainer (incubating)
 
-Be sure to check out the [Maven Publishing User Guide Chapter](userguide/publishing_maven.html) and the [MavenPublication DSL reference](dsl/org.gradle.api.publish.maven.MavenPublication.html)
-for complete description and examples of the new Maven Publishing support.
+The [org.gradle.api.publish.PublicationContainer](javadoc/org/gradle/api/publish/PublicationContainer.html) introduced by the incubating publish plugins leverages the new support for
+polymorphic domain object containers in Gradle. This change involved switching from the custom `add` methods to the standard `create`.
+The semantics of the replacement methods is identical to those replaced.
 
-### Changes to incubating Ivy publishing support
+This change does not effect publications added to the PublicationContainer using [a configuration block](javadoc/org/gradle/api/publish/PublishingExtension.html#publications),
+but will impact publications added directly using `add()`.
 
-Breaking changes have been made to the incubating '`ivy-publish`' plugin, which provides an alternative means to publish to Ivy repositories.
+### Changes to exceptions thrown on project evaluation
 
-- An `IvyPublication` must be explicitly added to the `publications` container; no publication is added implicitly by the `ivy-publish` plugin.
-    - If no `IvyPublication` is configured then nothing will be published.
-- An `IvyPublication` does not include any artifacts or dependencies by default; these must be added directly or via a `SoftwareComponent`.
-    - If no artifacts are configured, an `ivy.xml` file will be published with no artifacts or dependencies declared.
-- The `organisation`, `name` and `revision` cannot be changed via `IvyDescriptor.withXml()`:
-   it was previously possible to do this, although it did not change the actual identity of the published module.
-    - In the future Gradle will provide a robust mechanism for modifying publication identity prior to publication.
-- Identifiers in ivy modules (`organisation`, `module`, `revision`) and artifacts (`name`, `ext`, `type`, `classifier`) have new character restrictions:
-  these identifiers may not contain '`/`', '`\`' or any ISO Control Characters. Using these values generally made it impossible to resolve these modules, so this is now prevented
-  at the time of publication.
-- Removed `GenerateIvyDescriptor.xmlAction` property. The `ivy.descriptor.withXml()` method provides a way to customise the generated module descriptor.
-- The `GenerateIvyDescriptor` task for a publication is not created until the publishing extension is first accessed. Any attempt to configure a `GenerateIvyDescriptor`
-  should be enclosed within a `publishing` block.
-- Once the publishing extension is accessed as a property, it is no longer possible to further configure the extension using a `publishing` block.
+The exception thrown by Gradle when on build script error or other configuration problem has changed. All such exceptions are now chained in ProjectConfigurationException.
+This change will only impact code that explicitly catches and processes an exception thrown by Gradle when configuring a project.
 
-Be sure to check out the [Ivy Publishing User Guide Chapter](userguide/publishing_ivy.html) and the [IvyPublication DSL reference](dsl/org.gradle.api.publish.ivy.IvyPublication.html)
-for complete description and examples of the new Ivy Publishing support.
+### Incubating `StartParameter.isParallelThreadCountConfigured()` method removed
 
-### Project configuration order
+It is not needed internally and it shouldn't be needed by the users, too.
 
-Improving the usability of project dependencies (see the section above) might change the order in which projects are configured.
-This is not expected to cause problems in existing builds, but is mentioned for completeness.
+### Upper bound removed from Tooling API `org.gradle.tooling.ModelBuilder`
 
-### Optimized order of task execution in parallel execution mode
+With the introduction of support for custom tooling API models, the tooling API models are no longer required to extend the `org.gradle.tooling.model.Model` marker
+interface. The upper bound `extends Model` has been removed from the type parameter of `ModelBuilder`.
 
-Parallel builds are now much faster due to better utilisation of parallel workers. However, this means that tasks may be executed in different order in parallel builds.
-This will not cause problems in a correctly [decoupled build](userguide/multi_project_builds.html#sec:decoupled_projects) but may bring problems to light in builds that are not properly decoupled.
+### Tooling API `org.gradle.tooling.ProjectConnection.model()` no longer throws `UnknownModelException`
 
-### Changes to the incubating Java library distribution plugin
+With the introduction of support for custom tooling API models, it is no longer possible to determine whether a model is supported without
+configuring the target build. This exception is now thrown as part of the result.
 
-The `distribution` extension that is added by the `java-library-distribution` plugin was removed. The `main` distribution is now accessible using the `distributions` extension:
+### Wrapper environment variable `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` no longer supported
 
-    distributions {
-        main {
-            ...
-        }
-    }
+The Gradle wrapper no longer supports the `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` environment variables.
+Instead, the wrapper is now much better at recovering from failures to download or unpack the distribution.
+
+### More packages included in default imports
+
+The set of default imports is now generated from the Gradle API. This means that the default imports now includes a number of additional packages
+that were not previously imported by default. These packages may contain classes that conflict with other imports present in your build scripts.
 
 ## External contributions
 
-We would like to thank the following community members for making excellent contributions to this release of Gradle.
+We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Joe Sortelli](https://github.com/sortelli) - Fixed incorrect handling of `ivy.xml` where dependency configuration contained wildcard values (GRADLE-2352)
-* [David M. Carr](https://github.com/davidmc24)
-    * When JUnit tests have assumption failures, treat them as "skipped" (GRADLE-2454)
-    * Documentation cleanups.
-* [Sébastien Cogneau](https://github.com/scogneau) - Introduce the distribution plugin
-* [Kenny Stridh](https://github.com/kensi)
-    * Allow specifying `targetJdk` for PMD code analysis (GRADLE-2106)
-    * Added support for PMD version 5.0.+
-* [Marcin Erdmann](https://github.com/erdi)
-    * Add `build-dashboard` plugin
-    * Make notify-send notifications transient in Gnome Shell
-* [Michael R. Maletich](https://github.com/HawaiianSpork)
-    * Add `maxHeapSize` property to `FindBugs` task to allow setting the max heap size for spawned FindBugs java process
-    * Add `contentsCompression` property to the `Zip` task type to specify the compression level of the archive
-* [Barry Pitman](https://github.com/barrypitman) - Fixed Maven conversion problem (GRADLE-2645)
-* [Kallin Nagelberg](https://github.com/Kallin) - Fixed grammar in the `SourceSetOutput` documentation
-* [Klaus Illusioni](https://github.com/illusioni) - Fixed Eclipse wtp component generation issue (GRADLE-2653)
-* [Alex Birmingham](https://github.com/abirmingham) - Fixed PMD Javadoc
-* [Matthieu Leclercq](https://github.com/mleclercq) - Fixed the nested configuration resolution issue (GRADLE-2477)
-* [Dan Stine](https://github.com/dstine) - Userguide cleanups.
+* [Marcin Erdmann](https://github.com/erdi) - added the ability to schedule one task to always run after another, without adding a hard dependency.
+* [Andrew Oberstar](https://github.com/ajoberstar) - added the JaCoCo code coverage plugin.
+* [Uladzimir Mihura](https://github.com/trnl) - provide first-class support for JUnit @Category (GRADLE-2111).
+* [Xavier Ducrohet](https://github.com/ducrohet) - fix Success Rate display in test report overview page (GRADLE-2729).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

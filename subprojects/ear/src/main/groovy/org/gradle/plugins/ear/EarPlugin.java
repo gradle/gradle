@@ -125,7 +125,7 @@ public class EarPlugin implements Plugin<Project> {
     }
 
     private void setupEarTask(final Project project, EarPluginConvention convention) {
-        Ear ear = project.getTasks().add(EAR_TASK_NAME, Ear.class);
+        Ear ear = project.getTasks().create(EAR_TASK_NAME, Ear.class);
         ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
         DeploymentDescriptor deploymentDescriptor = convention.getDeploymentDescriptor();
         if (deploymentDescriptor != null) {
@@ -172,9 +172,9 @@ public class EarPlugin implements Plugin<Project> {
     private void configureConfigurations(final Project project) {
 
         ConfigurationContainer configurations = project.getConfigurations();
-        Configuration moduleConfiguration = configurations.add(DEPLOY_CONFIGURATION_NAME).setVisible(false)
+        Configuration moduleConfiguration = configurations.create(DEPLOY_CONFIGURATION_NAME).setVisible(false)
                 .setTransitive(false).setDescription("Classpath for deployable modules, not transitive.");
-        Configuration earlibConfiguration = configurations.add(EARLIB_CONFIGURATION_NAME).setVisible(false)
+        Configuration earlibConfiguration = configurations.create(EARLIB_CONFIGURATION_NAME).setVisible(false)
                 .setDescription("Classpath for module dependencies.");
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION)

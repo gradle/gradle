@@ -97,26 +97,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass("org.gradle.SomeTest").assertTestsExecuted("ok", "ok")
     }
 
-    @Test
-    public void canRunMixOfJunit3And4Tests() {
-        resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
-        resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
-        executer.withTasks('check').run()
 
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test', 'org.gradle.IgnoredTest', 'org.gradle.CustomIgnoredTest')
-        result.testClass('org.gradle.Junit3Test')
-                .assertTestCount(1, 0, 0)
-                .assertTestsExecuted('testRenamesItself')
-                .assertTestPassed('testRenamesItself')
-        result.testClass('org.gradle.Junit4Test')
-                .assertTestCount(3, 0, 0)
-                .assertTestsExecuted('ok')
-                .assertTestPassed('ok')
-                .assertTestsSkipped('broken', 'assumptionFailed')
-        result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored")
-        result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
-    }
 
     @Test
     public void canRunTestsUsingJUnit3() {
@@ -467,4 +448,6 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
     }
+
+
 }

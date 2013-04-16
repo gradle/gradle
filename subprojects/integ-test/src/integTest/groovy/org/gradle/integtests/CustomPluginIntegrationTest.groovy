@@ -155,7 +155,7 @@ apply plugin: 'groovy'
 repositories { mavenCentral() }
 dependencies {
     compile gradleApi()
-    groovy localGroovy()
+    compile localGroovy()
     testCompile 'junit:junit:4.11'
 }
 """
@@ -196,7 +196,7 @@ apply plugin: 'groovy'
 repositories { mavenCentral() }
 dependencies {
     compile gradleApi()
-    groovy localGroovy()
+    compile localGroovy()
     testCompile 'junit:junit:4.11'
 }
 """

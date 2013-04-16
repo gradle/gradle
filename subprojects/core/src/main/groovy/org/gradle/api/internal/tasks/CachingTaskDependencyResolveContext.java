@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.CachingDirectedGraphWalker;
-import org.gradle.api.internal.DirectedGraph;
+import org.gradle.internal.graph.CachingDirectedGraphWalker;
+import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.util.*;
@@ -79,7 +79,7 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
     }
 
     private class TaskGraphImpl implements DirectedGraph<Object, Task> {
-        public void getNodeValues(Object node, Collection<Task> values, Collection<Object> connectedNodes) {
+        public void getNodeValues(Object node, Collection<? super Task> values, Collection<? super Object> connectedNodes) {
             if (node instanceof TaskDependencyInternal) {
                 TaskDependencyInternal taskDependency = (TaskDependencyInternal) node;
                 queue.clear();

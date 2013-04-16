@@ -63,6 +63,18 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         }
     }
 
+    interface UnnamedPerson {} // doesn't implement Named
+
+    static class DefaultUnnamedPerson {}
+
+    interface CtorNamedPerson extends Person {}
+
+    static class DefaultCtorNamedPerson extends DefaultPerson implements CtorNamedPerson {
+        DefaultCtorNamedPerson(String name) {
+            this.name = name
+        }
+    }
+
     def "add elements"() {
         when:
         container.add(fred)
@@ -95,10 +107,11 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "This container does not support creating domain objects without specifying a type."
+        e.message == "Cannot create a Person named 'fred' because this container does not support creating " +
+                "elements by name alone. Please specify which subtype of Person to create. Known subtypes are: (None)"
     }
 
-    def "create elements with specified type"() {
+    def "create elements with specified type based on NamedDomainObjectFactory"() {
         container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
         container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
 
@@ -114,6 +127,45 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         container.asDynamicObject.getProperty("barney") == agedBarney
     }
 
+    def "create elements with specified type based on closure-based factory"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) })
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) })
+
+        when:
+        container.create("fred", Person)
+        container.create("barney", AgeAwarePerson)
+
+        then:
+        container.size() == 2
+        container.findByName("fred") == fred
+        container.findByName("barney") == agedBarney
+        container.asDynamicObject.getProperty("fred") == fred
+        container.asDynamicObject.getProperty("barney") == agedBarney
+    }
+
+    def "create elements with specified type based on type binding"() {
+        container = new DefaultPolymorphicDomainObjectContainer<?>(Object, new DirectInstantiator(),
+                { it instanceof Named ? it.name : "unknown" } as Named.Namer)
+
+        container.registerBinding(UnnamedPerson, DefaultUnnamedPerson)
+        container.registerBinding(CtorNamedPerson, DefaultCtorNamedPerson)
+
+        when:
+        container.create("fred", UnnamedPerson)
+        container.create("barney", CtorNamedPerson)
+
+        then:
+        container.size() == 2
+        !container.findByName("fred")
+        with(container.findByName("unknown")) {
+            it.getClass() == DefaultUnnamedPerson
+        }
+        with(container.findByName("barney")) {
+            it.getClass() == DefaultCtorNamedPerson
+            name == "barney"
+        }
+    }
+
     def "throws meaningful exception if it doesn't support creating domain objects with the specified type"() {
         container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, new DirectInstantiator())
 
@@ -122,8 +174,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "This container does not support creating domain objects of type " +
-                "'org.gradle.api.internal.DefaultPolymorphicDomainObjectContainerTest\$Person'."
+        e.message == "Cannot create a Person because this type is not known to this container. Known types are: (None)"
     }
 
     def "throws meaningful exception if factory element type is not a subtype of container element type"() {
@@ -132,8 +183,8 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "Factory element type 'java.lang.String' is not a subtype of container element type " +
-                "'org.gradle.api.internal.DefaultPolymorphicDomainObjectContainerTest\$Person'"
+        e.message == "Cannot register a factory for type String because it is not a subtype of " +
+                "container element type Person."
     }
 
     def "fires events when elements are added"() {

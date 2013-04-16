@@ -47,7 +47,7 @@ class DefaultConfigurationContainerTest {
     private ListenerManager listenerManager = context.mock(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class)
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
-    private DefaultConfigurationContainer configurationHandler = instantiator.newInstance(DefaultConfigurationContainer.class,
+    private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, { name -> name } as DomainObjectContext,
             listenerManager, metaDataProvider)
 
@@ -60,42 +60,42 @@ class DefaultConfigurationContainerTest {
 
     @Test
     void addsNewConfigurationWhenConfiguringSelf() {
-        configurationHandler.configure {
+        configurationContainer.configure {
             newConf
         }
-        assertThat(configurationHandler.findByName('newConf'), notNullValue())
-        assertThat(configurationHandler.newConf, notNullValue())
+        assertThat(configurationContainer.findByName('newConf'), notNullValue())
+        assertThat(configurationContainer.newConf, notNullValue())
     }
 
     @Test(expected = UnknownConfigurationException)
     void doesNotAddNewConfigurationWhenNotConfiguringSelf() {
-        configurationHandler.getByName('unknown')
+        configurationContainer.getByName('unknown')
     }
 
     @Test
     void makesExistingConfigurationAvailableAsProperty() {
-        Configuration configuration = configurationHandler.add('newConf')
+        Configuration configuration = configurationContainer.create('newConf')
         assertThat(configuration, notNullValue())
-        assertThat(configurationHandler.getByName("newConf"), sameInstance(configuration))
-        assertThat(configurationHandler.newConf, sameInstance(configuration))
+        assertThat(configurationContainer.getByName("newConf"), sameInstance(configuration))
+        assertThat(configurationContainer.newConf, sameInstance(configuration))
     }
 
     @Test
     void addsNewConfigurationWithClosureWhenConfiguringSelf() {
         String someDesc = 'desc1'
-        configurationHandler.configure {
+        configurationContainer.configure {
             newConf {
                 description = someDesc
             }
         }
-        assertThat(configurationHandler.newConf.getDescription(), equalTo(someDesc))
+        assertThat(configurationContainer.newConf.getDescription(), equalTo(someDesc))
     }
 
     @Test
     void makesExistingConfigurationAvailableAsConfigureMethod() {
         String someDesc = 'desc1'
-        configurationHandler.add('newConf')
-        Configuration configuration = configurationHandler.newConf {
+        configurationContainer.create('newConf')
+        Configuration configuration = configurationContainer.newConf {
             description = someDesc
         }
         assertThat(configuration.getDescription(), equalTo(someDesc))
@@ -104,8 +104,8 @@ class DefaultConfigurationContainerTest {
     @Test
     void makesExistingConfigurationAvailableAsConfigureMethodWhenConfiguringSelf() {
         String someDesc = 'desc1'
-        Configuration configuration = configurationHandler.add('newConf')
-        configurationHandler.configure {
+        Configuration configuration = configurationContainer.create('newConf')
+        configurationContainer.configure {
             newConf {
                 description = someDesc
             }
@@ -115,6 +115,6 @@ class DefaultConfigurationContainerTest {
 
     @Test(expected = MissingMethodException)
     void newConfigurationWithNonClosureParametersShouldThrowMissingMethodEx() {
-        configurationHandler.newConf('a', 'b')
+        configurationContainer.newConf('a', 'b')
     }
 }

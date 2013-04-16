@@ -15,8 +15,11 @@
  */
 package org.gradle.testing
 
+import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.internal.os.OperatingSystem
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -43,6 +46,40 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
             public class SomeTest {
                 @Test public void foo() {
                     Thread.currentThread().interrupt();
+                }
+            }
+        """
+
+        when:
+        run "test"
+
+        then:
+        ":test" in nonSkippedTasks
+    }
+
+    @IgnoreIf({ OperatingSystem.current().isWindows() })
+    def "can use long paths for workindDir"() {
+        given:
+        // windows can handle a path up to 260 characters
+        // we create a path that is 260 +1 (offset + "/" + randompath)
+        def pathoffset = 260 - testDirectory.getAbsolutePath().length()
+        def alphanumeric = RandomStringUtils.randomAlphanumeric(pathoffset)
+        def testWorkingDir = testDirectory.createDir("$alphanumeric")
+
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile "junit:junit:4.11" }
+            test.workingDir = "${testWorkingDir.toURI()}"
+        """
+
+        and:
+        file("src/test/java/SomeTest.java") << """
+            import org.junit.*;
+
+            public class SomeTest {
+                @Test public void foo() {
+                    System.out.println(new java.io.File(".").getAbsolutePath());
                 }
             }
         """

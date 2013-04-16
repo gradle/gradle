@@ -17,15 +17,19 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.Factory
+import org.gradle.language.jvm.tasks.StaleClassCleaner
 
 class AntDependsStaleClassCleaner extends StaleClassCleaner {
     private final Factory<AntBuilder> antBuilderFactory
+    private final CompileOptions compileOptions
 
     File dependencyCacheDir
 
-    AntDependsStaleClassCleaner(Factory<AntBuilder> antBuilderFactory) {
+    AntDependsStaleClassCleaner(Factory<AntBuilder> antBuilderFactory, CompileOptions compileOptions) {
         this.antBuilderFactory = antBuilderFactory;
+        this.compileOptions = compileOptions;
     }
 
     void execute() {

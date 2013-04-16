@@ -19,17 +19,7 @@ package org.gradle.api.reporting;
 /**
  * A report that is a single file.
  */
-public interface SingleFileReport extends Report {
-
-    /**
-     * Sets the destination for the report.
-     * 
-     * The file parameter is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * 
-     * @param file The destination for the report.
-     */
-    void setDestination(Object file);
-
+public interface SingleFileReport extends ConfigureableReport {
     /**
      * Always returns {@link Report.OutputType#FILE}
      *

@@ -20,9 +20,6 @@ public class Main {
         }
 
         connector.forProjectDirectory(new File("."));
-        if (args.length > 0) {
-            connector.useInstallation(new File(args[0]));
-        }
 
         ProjectConnection connection = connector.connect();
         try {

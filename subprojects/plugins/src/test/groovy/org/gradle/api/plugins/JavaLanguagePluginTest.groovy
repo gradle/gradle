@@ -16,6 +16,10 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.tasks.JavaSourceSet
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.language.jvm.ClassDirectoryBinary
+import org.gradle.language.jvm.plugins.JvmLanguagePlugin
 import org.gradle.util.HelperUtil
 
 import spock.lang.Specification
@@ -32,8 +36,15 @@ class JavaLanguagePluginTest extends Specification {
         project.plugins.hasPlugin(JvmLanguagePlugin)
     }
 
-    // TODO once we have a DSL for adding source sets/binaries
     def "adds a JavaCompile task for every JavaSourceSet added to a ClassDirectoryBinary"() {
+        when:
+        project.sources.create("model").create("java", JavaSourceSet)
+        project.binaries.jvm.create("integTest", ClassDirectoryBinary)
+        project.binaries.jvm.integTest.source << project.sources.model.java
 
+        then:
+        def task = project.tasks.findByName("compileIntegTestJava")
+        task instanceof JavaCompile
+        task.description == "Compiles source set 'model:java'."
     }
 }

@@ -64,7 +64,7 @@ public class TestNGOptions extends TestFrameworkOptions{
      *
      * test {
      *   useTestNG() {
-     *     //creates emailable html file
+     *     //creates emailable HTML file
      *     //this reporter typically ships with TestNG library
      *     listeners << 'org.testng.reporters.EmailableReporter'
      *   }
@@ -111,19 +111,19 @@ public class TestNGOptions extends TestFrameworkOptions{
      *
      * Please refer to the documentation of your version of TestNG what are the default listeners.
      * At the moment of writing this documentation, the default listeners are a set of reporters that generate:
-     * TestNG variant of html results, TestNG variant of xml results in JUnit format, emailable html test report,
-     * xml results in TestNG format.
+     * TestNG variant of HTML results, TestNG variant of XML results in JUnit format, emailable HTML test report,
+     * XML results in TestNG format.
      *
      */
     boolean useDefaultListeners = false
 
     /**
-     * Sets the default name of the test suite, if one is not specified in a suite xml file or in the source code.
+     * Sets the default name of the test suite, if one is not specified in a suite XML file or in the source code.
      */
     String suiteName = 'Gradle suite'
 
     /**
-     * Sets the default name of the test, if one is not specified in a suite xml file or in the source code.
+     * Sets the default name of the test, if one is not specified in a suite XML file or in the source code.
      */
     String testName = 'Gradle test'
 

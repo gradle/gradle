@@ -16,23 +16,22 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.internal.protocol.InternalGradleProject;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.internal.Exceptions;
 
 /**
  * by Szczepan Faber, created at: 12/21/11
  */
 public class ModelProvider {
-
-    public <T> T provide(ConsumerConnection connection, Class<T> type, ConsumerOperationParameters operationParameters) {
+    public <T> T provide(ConsumerConnection connection, Class<T> modelType, ConsumerOperationParameters operationParameters) {
         VersionDetails version = connection.getVersionDetails();
 
         if (operationParameters.getJavaHome() != null) {
@@ -50,31 +49,31 @@ public class ModelProvider {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()");
             }
         }
-        if (type != Void.class && operationParameters.getTasks() != null) {
+        if (modelType != Void.class && operationParameters.getTasks() != null) {
             if (!version.supportsRunningTasksWhenBuildingModel()) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()");
             }
         }
 
-        if (type == InternalBuildEnvironment.class && !version.supportsCompleteBuildEnvironment()) {
+        if (modelType == BuildEnvironment.class && !version.isModelSupported(BuildEnvironment.class)) {
             //early versions of provider do not support BuildEnvironment model
             //since we know the gradle version at least we can give back some result
             VersionOnlyBuildEnvironment out = new VersionOnlyBuildEnvironment(version.getVersion());
-            return type.cast(out);
+            return modelType.cast(out);
         }
-        if (version.clientHangsOnEarlyDaemonFailure() && version.isPostM6Model(type)) {
-            //those version require special handling because of the client hanging bug
-            //it is due to the exception handing on the daemon side in M5 and M6
-            String message = String.format("I don't know how to build a model of type '%s'.", type.getSimpleName());
-            throw new UnsupportedOperationException(message);
-        }
-        if (type == InternalGradleProject.class && !version.supportsGradleProjectModel()) {
+        if (modelType == GradleProject.class && !version.isModelSupported(GradleProject.class)) {
             //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
             //this patch enables getting gradle tasks for target gradle version pre M5
             EclipseProjectVersion3 project = connection.run(EclipseProjectVersion3.class, operationParameters);
             GradleProject gradleProject = new GradleProjectConverter().convert(project);
-            return (T) gradleProject;
+            return modelType.cast(gradleProject);
         }
-        return connection.run(type, operationParameters);
+        if (!version.isModelSupported(modelType)) {
+            //don't bother asking the provider for this model
+            throw new UnknownModelException(String.format("The version of Gradle you are using (%s) does not support building a model of type '%s'.",
+                    version.getVersion(), modelType.getSimpleName()));
+        }
+
+        return connection.run(modelType, operationParameters);
     }
 }

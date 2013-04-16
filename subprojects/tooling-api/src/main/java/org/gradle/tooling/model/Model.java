@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.model;
 
+// TODO:ADAM - Deprecate
 /**
  * A model that is buildable by the Tooling API. Models contain various information regarding the build.
  * Models are typically tailored to a specific domain, for example build environment or IDE.

@@ -72,16 +72,10 @@ class DefaultSettingsConverterTest extends Specification {
 
     public void testConvertForPublish() {
         when:
-        IvySettings settings = converter.convertForPublish([testResolver, testResolver2])
+        IvySettings settings = converter.convertForPublish()
 
         then:
         settings.is(ivySettings)
-
-        and:
-        [testResolver, testResolver2].each {
-            it.settings == settings
-            it.repositoryCacheManager.settings == settings
-        }
 
         and:
         1 * ivySettingsFactory.create() >> ivySettings
@@ -89,26 +83,18 @@ class DefaultSettingsConverterTest extends Specification {
     }
 
     public void reusesPublishSettings() {
+        given:
+        _ * ivySettingsFactory.create() >> ivySettings
+
+        and:
+        IvySettings settings = converter.convertForPublish()
+        settings.addResolver(testResolver)
+
         when:
-        IvySettings settings = converter.convertForPublish([testResolver])
+        settings = converter.convertForPublish()
 
         then:
         settings.is(ivySettings)
-
-        and:
-        1 * ivySettingsFactory.create() >> ivySettings
-        0 * _._
-
-        when:
-        settings = converter.convertForPublish([testResolver, testResolver2])
-
-        then:
-        settings.is(ivySettings)
-
-        and:
-            [testResolver, testResolver2].each {
-            it.settings == settings
-            it.repositoryCacheManager.settings == settings
-        }
+        settings.resolvers.empty
     }
 }

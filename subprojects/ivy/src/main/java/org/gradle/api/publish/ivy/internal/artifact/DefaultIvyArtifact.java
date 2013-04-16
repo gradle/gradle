@@ -93,4 +93,9 @@ public class DefaultIvyArtifact implements IvyArtifact {
     public TaskDependency getBuildDependencies() {
         return buildDependencies;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s:%s:%s:%s", getClass().getSimpleName(), getName(), getType(), getExtension(), getClassifier());
+    }
 }

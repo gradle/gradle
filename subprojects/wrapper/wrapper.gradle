@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 dependencies {
-    groovy libraries.groovy
     compile project(":cli")
+
+    testCompile libraries.groovy
     testCompile libraries.ant
 
     integTestRuntime rootProject.configurations.testRuntime.allDependencies

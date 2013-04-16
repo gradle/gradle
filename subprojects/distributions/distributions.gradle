@@ -30,7 +30,7 @@ tasks.withType(AbstractArchiveTask) {
 }
 
 dependencies {
-    groovy libraries.groovy
+    testCompile libraries.groovy
 }
 
 configurations {

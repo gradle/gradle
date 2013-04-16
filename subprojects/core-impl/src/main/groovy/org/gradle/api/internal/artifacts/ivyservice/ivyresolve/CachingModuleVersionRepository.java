@@ -88,7 +88,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
                 moduleDescriptorCache.cacheModuleDescriptor(delegate, moduleVersionIdentifier, null, null, dependency.isChanging());
                 break;
             case Resolved:
-                moduleResolutionCache.cacheModuleResolution(delegate, dependency.getDescriptor().getDependencyRevisionId(), result.getId());
+                moduleResolutionCache.cacheModuleResolution(delegate, dependency.getRequested(), result.getId());
                 final ModuleSource moduleSource = result.getModuleSource();
                 final ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.cacheModuleDescriptor(delegate, result.getId(), result.getDescriptor(), moduleSource, isChangingDependency(dependency, result));
                 result.setModuleSource(new CachingModuleSource(cachedModuleDescriptor.getDescriptorHash(), cachedModuleDescriptor.isChangingModule(), moduleSource));
@@ -101,16 +101,15 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     }
 
     private DependencyMetaData maybeUseCachedDynamicVersion(ModuleVersionRepository repository, DependencyMetaData original) {
-        ModuleRevisionId originalId = original.getDescriptor().getDependencyRevisionId();
-        ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = moduleResolutionCache.getCachedModuleResolution(repository, originalId);
+        ModuleVersionSelector requested = original.getRequested();
+        ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = moduleResolutionCache.getCachedModuleResolution(repository, requested);
         if (cachedModuleResolution != null && cachedModuleResolution.isDynamicVersion()) {
-            ModuleVersionSelector selector = createModuleVersionSelector(originalId);
             ModuleVersionIdentifier resolvedVersion = cachedModuleResolution.getResolvedVersion();
-            if (cachePolicy.mustRefreshDynamicVersion(selector, resolvedVersion, cachedModuleResolution.getAgeMillis())) {
-                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", selector, repository.getName());
+            if (cachePolicy.mustRefreshDynamicVersion(requested, resolvedVersion, cachedModuleResolution.getAgeMillis())) {
+                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, repository.getName());
                 return original;
             } else {
-                LOGGER.debug("Found resolved revision in dynamic revision cache of '{}': Using '{}' for '{}'", repository.getName(), cachedModuleResolution.getResolvedVersion(), originalId);
+                LOGGER.debug("Found resolved revision in dynamic revision cache of '{}': Using '{}' for '{}'", repository.getName(), cachedModuleResolution.getResolvedVersion(), requested);
                 return original.withRequestedVersion(DefaultModuleVersionSelector.newSelector(resolvedVersion.getGroup(), resolvedVersion.getName(), resolvedVersion.getVersion()));
             }
         }
@@ -190,17 +189,13 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         }
 
         delegate.resolve(artifact, result, cachedModuleSource.getDelegate());
-        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate);
+        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate.getName());
 
         if (result.getFailure() instanceof ArtifactNotFoundException) {
             artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey, descriptorHash);
         } else {
             artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, result.getFile(), descriptorHash);
         }
-    }
-
-    private ModuleVersionSelector createModuleVersionSelector(ModuleRevisionId moduleRevisionId) {
-        return new DefaultModuleVersionSelector(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
     }
 
     private ModuleVersionIdentifier createModuleVersionIdentifier(ModuleRevisionId moduleRevisionId) {

@@ -19,13 +19,30 @@ import java.io.File;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 1.0-milestone-3 to 1.0-milestone-7 to represent the model objects. Later consumer versions don't require that the
+ * model objects implement this interface. </p>
+ *
+ * @since 1.0-milestone-3
  */
 public interface ProjectVersion3 {
+    /**
+     * @since 1.0-milestone-3
+     */
     String getPath();
 
+    /**
+     * @since 1.0-milestone-3
+     */
     String getName();
 
+    /**
+     * @since 1.0-milestone-3
+     */
     String getDescription();
 
+    /**
+     * @since 1.0-milestone-3
+     */
     File getProjectDirectory();
 }

@@ -60,6 +60,7 @@
     <xi:include href='findBugsPlugin.xml'/>
     <xi:include href='jdependPlugin.xml'/>
     <xi:include href='pmdPlugin.xml'/>
+    <xi:include href='jacocoPlugin.xml'/>
     <xi:include href='sonarPlugin.xml'/>
     <xi:include href='sonarRunnerPlugin.xml'/>
     <xi:include href='osgi.xml'/>
@@ -72,7 +73,7 @@
     <xi:include href='distributionPlugin.xml'/>
     <xi:include href='applicationPlugin.xml'/>
     <xi:include href='javaLibraryDistributionPlugin.xml'/>
-    <xi:include href='bootstrapPlugin.xml'/>
+    <xi:include href='buildSetupPlugin.xml'/>
     <xi:include href='buildDashboardPlugin.xml'/>
 	<xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
@@ -82,6 +83,7 @@
     <xi:include href='buildLifecycle.xml'/>
     <xi:include href='multiproject.xml'/>
     <xi:include href='customTasks.xml'/>
+    <xi:include href='incrementalTasks.xml'/>
     <xi:include href='customPlugins.xml'/>
     <xi:include href='organizeBuildLogic.xml'/>
     <xi:include href='initscripts.xml'/>

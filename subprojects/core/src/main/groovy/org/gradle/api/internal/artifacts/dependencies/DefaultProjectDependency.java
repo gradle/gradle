@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependency {
+public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
     private ProjectInternal dependencyProject;
     private final boolean buildProjectDependencies;
     private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
@@ -87,6 +87,10 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive);
         context.add(this);
         return context.resolve().getFiles();
+    }
+
+    public void beforeResolved() {
+        projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
     }
 
     @Override

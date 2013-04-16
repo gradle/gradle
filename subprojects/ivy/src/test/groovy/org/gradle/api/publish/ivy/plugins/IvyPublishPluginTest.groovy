@@ -41,7 +41,7 @@ class IvyPublishPluginTest extends Specification {
 
     def "publication can be added"() {
         when:
-        publishing.publications.add("test", IvyPublication)
+        publishing.publications.create("test", IvyPublication)
 
         then:
         publishing.publications.size() == 1
@@ -50,7 +50,7 @@ class IvyPublishPluginTest extends Specification {
 
     def "creates publish task for publication and repository"() {
         when:
-        publishing.publications.add("test", IvyPublication)
+        publishing.publications.create("test", IvyPublication)
         publishing.repositories { ivy { url = "http://foo.com" } }
         def publishTask = project.tasks["publishTestPublicationToIvyRepository"]
 
@@ -66,7 +66,7 @@ class IvyPublishPluginTest extends Specification {
         project.status = "integration"
 
         and:
-        publishing.publications.add("test", IvyPublication)
+        publishing.publications.create("test", IvyPublication)
 
         then:
         with (publishing.publications.test) {
@@ -89,7 +89,7 @@ class IvyPublishPluginTest extends Specification {
 
     def "can configure descriptor"() {
         given:
-        publishing.publications.add("ivy", IvyPublication)
+        publishing.publications.create("ivy", IvyPublication)
         IvyPublicationInternal publication = publishing.publications.ivy
 
         when:

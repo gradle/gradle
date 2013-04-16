@@ -15,41 +15,40 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.launcher.daemon.configuration.GradleProperties;
-import org.gradle.launcher.exec.InitializationAware;
-import org.gradle.logging.ShowStacktrace;
+import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, InitializationAware, Serializable {
+class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
     private LogLevel buildLogLevel;
     private List<String> arguments;
     private List<String> tasks;
-    private GradleLauncherAction<T> action;
+    private BuildAction<? extends T> action;
     private File projectDirectory;
     private File gradleUserHomeDir;
     private Boolean searchUpwards;
+    private Map<String, String> properties = new HashMap<String, String>();
 
     // Important that this is constructed on the client so that it has the right gradleHomeDir internally
     private final StartParameter startParameterTemplate = new StartParameter();
-    private boolean configureOnDemand;
 
     public ConfiguringBuildAction() {}
 
-    public ConfiguringBuildAction(ProviderOperationParameters parameters, GradleLauncherAction<T> action, GradleProperties gradleProperties) {
-        this.configureOnDemand = gradleProperties.isConfigureOnDemand();
+    public ConfiguringBuildAction(ProviderOperationParameters parameters, BuildAction<? extends T> action, Map<String, String> properties) {
+        this.properties.putAll(properties);
         this.gradleUserHomeDir = parameters.getGradleUserHomeDir();
         this.projectDirectory = parameters.getProjectDir();
         this.searchUpwards = parameters.isSearchUpwards();
@@ -59,21 +58,23 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
         this.action = action;
     }
 
-    public StartParameter configureStartParameter() {
+    StartParameter configureStartParameter() {
+        return configureStartParameter(new PropertiesToStartParameterConverter());
+    }
+
+    StartParameter configureStartParameter(PropertiesToStartParameterConverter propertiesToStartParameterConverter) {
         StartParameter startParameter = startParameterTemplate.newInstance();
+
         startParameter.setProjectDir(projectDirectory);
         if (gradleUserHomeDir != null) {
             startParameter.setGradleUserHomeDir(gradleUserHomeDir);
-        }
-        if (searchUpwards != null) {
-            startParameter.setSearchUpwards(searchUpwards);
         }
 
         if (tasks != null) {
             startParameter.setTaskNames(tasks);
         }
 
-        startParameter.setConfigureOnDemand(configureOnDemand);
+        propertiesToStartParameterConverter.convert(properties, startParameter);
 
         if (arguments != null) {
             DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
@@ -91,19 +92,19 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
             }
         }
 
+        if (searchUpwards != null) {
+            startParameter.setSearchUpwards(searchUpwards);
+        }
+
         if (buildLogLevel != null) {
             startParameter.setLogLevel(buildLogLevel);
         }
 
-        startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
         return startParameter;
     }
 
-    public BuildResult run(GradleLauncher launcher) {
-        return action.run(launcher);
-    }
-
-    public T getResult() {
-        return action.getResult();
+    public T run(BuildController buildController) {
+        buildController.setStartParameter(configureStartParameter());
+        return action.run(buildController);
     }
 }

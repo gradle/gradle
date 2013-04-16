@@ -21,7 +21,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.MavenRepository
+import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Before
@@ -45,7 +45,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     TestFile classFile
     TestFile artifactsCache
 
-    MavenRepository repo
+    MavenHttpRepository repo
 
     @Before
     public void setUp() {
@@ -62,11 +62,10 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         classFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/classes/${source.className}.class")
         artifactsCache = projectDir.file(".gradle/$version/taskArtifacts/taskArtifacts.bin")
 
-        def repoDir = file("repo")
-        repo = maven(repoDir)
-        server.allowGetOrHead("/repo", repo.rootDir)
-        repo.module("commons-io", "commons-io", "1.4").publish()
-        repo.module("commons-lang", "commons-lang", "2.6").publish()
+        repo = new MavenHttpRepository(server, mavenRepo)
+
+        repo.module("commons-io", "commons-io", "1.4").publish().allowAll()
+        repo.module("commons-lang", "commons-lang", "2.6").publish().allowAll()
 
         server.start()
     }
@@ -167,7 +166,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         String content = """
 repositories {
     maven{
-        url "http://localhost:${server.port}/repo"
+        url "${repo.uri}"
     }
 }
 configurations { compile }

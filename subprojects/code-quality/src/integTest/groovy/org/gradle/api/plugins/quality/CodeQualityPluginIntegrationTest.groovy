@@ -37,7 +37,7 @@ apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
         inTestDirectory().withTasks('check').run()
     }
@@ -66,7 +66,7 @@ repositories { mavenCentral() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
         writeCheckstyleConfig()
 
@@ -89,7 +89,7 @@ dependencies { groovy localGroovy() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
         writeCheckstyleConfig()
 
@@ -109,7 +109,7 @@ dependencies { groovy localGroovy() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
         writeCheckstyleConfig()
 
@@ -117,7 +117,7 @@ dependencies { groovy localGroovy() }
         testFile('src/main/groovy/org/gradle/class2.java') << 'package org.gradle; class class2 { }'
 
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
-        failure.assertHasDescription('Execution failed for task \':checkstyleMain\'')
+        failure.assertHasDescription('Execution failed for task \':checkstyleMain\'.')
         failure.assertThatCause(startsWith('Checkstyle rule violations were found. See the report at'))
 
         testFile('build/checkstyle/main.xml').assertExists()
@@ -129,7 +129,7 @@ dependencies { groovy localGroovy() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
         writeCodeNarcConfigFile()
 
@@ -148,7 +148,7 @@ dependencies { groovy localGroovy() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
 
         writeCodeNarcConfigFile()
@@ -167,7 +167,7 @@ dependencies { groovy localGroovy() }
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 repositories { mavenCentral() }
-dependencies { groovy localGroovy() }
+dependencies { compile localGroovy() }
 '''
 
         writeCodeNarcConfigFile()
@@ -175,7 +175,7 @@ dependencies { groovy localGroovy() }
         testFile('src/main/groovy/org/gradle/class1.groovy') << 'package org.gradle; class class1 { }'
 
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
-        failure.assertHasDescription('Execution failed for task \':codenarcMain\'')
+        failure.assertHasDescription('Execution failed for task \':codenarcMain\'.')
         failure.assertThatCause(startsWith('CodeNarc rule violations were found. See the report at:'))
 
         testFile('build/reports/codenarc/main.html').assertExists()

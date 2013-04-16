@@ -17,9 +17,10 @@
 apply from: "$rootDir/gradle/providedConfiguration.gradle"
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile project(":core")
+    compile project(":languageJvm")
     compile project(":plugins")
 
     // keep in sync with ScalaBasePlugin code

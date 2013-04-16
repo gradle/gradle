@@ -18,17 +18,17 @@ package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.reporting.BuildDashboardReports;
-import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.reporting.Report;
 
-public class DefaultBuildDashboardReports extends TaskReportContainer<SingleFileReport> implements BuildDashboardReports {
+public class DefaultBuildDashboardReports extends TaskReportContainer<Report> implements BuildDashboardReports {
 
     public DefaultBuildDashboardReports(Task task) {
-        super(SingleFileReport.class, task);
-
-        add(TaskGeneratedSingleFileReport.class, "html", task);
+        super(DirectoryReport.class, task);
+        add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
     }
 
-    public SingleFileReport getHtml() {
-        return getByName("html");
+    public DirectoryReport getHtml() {
+        return (DirectoryReport)getByName("html");
     }
 }

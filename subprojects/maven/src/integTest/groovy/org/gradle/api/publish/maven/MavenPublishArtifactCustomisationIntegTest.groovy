@@ -41,6 +41,33 @@ class MavenPublishArtifactCustomisationIntegTest extends AbstractMavenPublishInt
         resolveArtifacts(module, [classifier: 'customjar']) == ["projectText-1.0-customjar.jar", "projectText-1.0.txt"]
     }
 
+    public void "can configure artifacts added from component"() {
+        given:
+        createBuildScripts("""
+            publications {
+                maven(MavenPublication) {
+                    from components.java
+                }
+            }
+            publications.maven.artifacts.each {
+                if (it.extension == 'jar') {
+                    it.classifier = 'classified'
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def module = mavenRepo.module("group", "projectText", "1.0")
+        module.assertPublished()
+        module.assertArtifactsPublished("projectText-1.0-classified.jar", "projectText-1.0.pom")
+
+        and:
+        resolveArtifact(module, 'jar', 'classified') == ["projectText-1.0-classified.jar"]
+    }
+
     def "can set custom artifacts to override component artifacts"() {
         given:
         createBuildScripts("""

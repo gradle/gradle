@@ -11,6 +11,10 @@ clean - Deletes the build directory (build)
 dists - Builds the distribution
 libs - Builds the JAR
 
+Build Setup tasks
+-----------------
+setupBuild - Initializes a new Gradle build. [incubating]
+
 Help tasks
 ----------
 dependencies - Displays all dependencies declared in root project 'projectReports'.

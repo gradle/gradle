@@ -17,6 +17,7 @@
 package org.gradle.api.internal.plugins
 
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.DeferredConfigurable
 import spock.lang.Specification
@@ -130,6 +131,81 @@ class ExtensionsStorageTest extends Specification {
         then:
         1 * delegate.call(1)
         1 * delegate.call(2)
+    }
+
+    def "propagates configure exception on each attempt to access deferred configurable exception"() {
+
+        TestDeferredExtension extension = new TestDeferredExtension()
+        def delegate = Mock(TestExtension)
+        extension.delegate = delegate
+
+        given:
+        storage.add("ext", extension)
+        storage.configureExtension("ext", {
+            throw new RuntimeException("bad")
+        })
+
+        when:
+        storage.getByName("ext")
+
+        then:
+        def first = thrown RuntimeException
+        first.message == "bad"
+
+        when:
+        storage.getByName("ext")
+
+        then:
+        def second = thrown RuntimeException
+        second == first
+    }
+
+    def "rethrows unknown domain object exception thrown by deferred configurable extension config"() {
+
+        TestDeferredExtension extension = new TestDeferredExtension()
+        def delegate = Mock(TestExtension)
+        extension.delegate = delegate
+
+        when:
+        storage.add("ext", extension)
+        storage.configureExtension("ext", {
+            throw new UnknownDomainObjectException("ORIGINAL")
+        })
+
+        then:
+        0 * _
+
+        when:
+        storage.findByType(TestDeferredExtension)
+
+        then:
+        def t = thrown UnknownDomainObjectException
+        t.message == "ORIGINAL"
+    }
+
+    def "cannot configure deferred configurable extension after access"() {
+
+        TestDeferredExtension extension = new TestDeferredExtension()
+        def delegate = Mock(TestExtension)
+        extension.delegate = delegate
+
+        given:
+        storage.add("ext", extension)
+        storage.configureExtension("ext", {
+            it.call(1)
+        })
+
+        and:
+        storage.getByName("ext")
+
+        when:
+        storage.configureExtension("ext", {
+            it.call(2)
+        })
+
+        then:
+        def t = thrown InvalidUserDataException
+        t.message == "Cannot configure the 'ext' extension after it has been accessed."
     }
 
     public static interface TestExtension {

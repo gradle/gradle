@@ -61,6 +61,16 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
     T create(String name, Closure configureClosure) throws InvalidUserDataException;
 
     /**
+     * Creates a new item with the given name, adding it to this container, then configuring it with the given action.
+     *
+     * @param name The name to assign to the created object
+     * @param configureAction The action to configure the created object with
+     * @return The created object. Never null.
+     * @throws InvalidUserDataException if an object with the given name already exists in this container.
+     */
+    T create(String name, Action<? super T> configureAction) throws InvalidUserDataException;
+
+    /**
      * <p>Allows the container to be configured, creating missing objects as they are referenced.</p>
      * 
      * <p>TODO: example usage</p>

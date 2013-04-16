@@ -18,9 +18,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
-
-import static org.hamcrest.Matchers.containsString
 
 public class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
 
@@ -159,7 +158,7 @@ project(':c') {
 
         then:
         failure.assertHasNoCause()
-        failure.assertThatDescription(containsString("Circular dependency between tasks. Cycle includes [task ':a:compileJava', task ':a:jar']."))
+        failure.assertThatDescription(Matchers.startsWith("Circular dependency between the following tasks:"))
     }
 
     def "project dependency a->b->c->d and c fails"() {
@@ -247,15 +246,12 @@ project(':$from') {
     }
 
     def failingBuild(def project) {
+        file("$project/src/main/java/Foo.java") << "class Foo {}"
         buildFile << """
 project(':$project') {
-    //fail needs to have a dependendency on compileJava
-    //this way all the java project dependencies are built first in paralle mode
-    //if 'fail 'does not have any dependencies it will be scheduled to execute very early in parallel mode
-    task fail(dependsOn: compileJava) << {
+    compileJava.doFirst {
         throw new RuntimeException('failure in $project')
     }
-    jar.dependsOn fail
 }
 """
     }

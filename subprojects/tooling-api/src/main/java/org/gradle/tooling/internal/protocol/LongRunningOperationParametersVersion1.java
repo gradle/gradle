@@ -20,12 +20,17 @@ import java.io.OutputStream;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 1.0-milestone-3
+ * @deprecated 1.2-rc-1. Use {@link BuildParameters} instead.
  */
+@Deprecated
 public interface LongRunningOperationParametersVersion1 {
     /**
      * Returns the output stream to write stdout logging to.
      *
      * @return The output stream. May be null.
+     * @since 1.0-milestone-3
      */
     OutputStream getStandardOutput();
 
@@ -33,6 +38,7 @@ public interface LongRunningOperationParametersVersion1 {
      * Returns the output stream to write stderr logging to.
      *
      * @return The output stream. May be null.
+     * @since 1.0-milestone-3
      */
     OutputStream getStandardError();
 
@@ -40,6 +46,7 @@ public interface LongRunningOperationParametersVersion1 {
      * Returns the listener to receive progress events.
      *
      * @return The listener. Must not be null.
+     * @since 1.0-milestone-3
      */
     ProgressListenerVersion1 getProgressListener();
 
@@ -47,6 +54,7 @@ public interface LongRunningOperationParametersVersion1 {
      * Returns the input stream to that can be consumed.
      *
      * @return The input stream. May be null.
+     * @since 1.0-milestone-8
      */
     InputStream getStandardInput();
 }

@@ -18,7 +18,7 @@ dependencies {
     compile project(':core')
     compile project(':openApi')
 
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile libraries.dom4j
     compile libraries.commons_io

@@ -150,7 +150,7 @@ public class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring the 'publishing' extension")
+        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'.")
         failure.assertHasCause("Ivy publication 'ivy' cannot include multiple components")
     }
 

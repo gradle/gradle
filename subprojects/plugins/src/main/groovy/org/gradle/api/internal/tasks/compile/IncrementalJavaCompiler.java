@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.AntBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.language.jvm.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.jvm.tasks.StaleClassCleaner;
 
 public class IncrementalJavaCompiler extends IncrementalJavaCompilerSupport<JavaCompileSpec> implements Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> compiler;
@@ -38,7 +40,7 @@ public class IncrementalJavaCompiler extends IncrementalJavaCompilerSupport<Java
 
     protected StaleClassCleaner createCleaner(JavaCompileSpec spec) {
         if (spec.getCompileOptions().isUseDepend()) {
-            AntDependsStaleClassCleaner cleaner = new AntDependsStaleClassCleaner(antBuilderFactory);
+            AntDependsStaleClassCleaner cleaner = new AntDependsStaleClassCleaner(antBuilderFactory, spec.getCompileOptions());
             cleaner.setDependencyCacheDir(spec.getDependencyCacheDir());
             return cleaner;
         } else {

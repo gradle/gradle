@@ -103,7 +103,7 @@ class BasePluginTest extends Specification {
         uploadArchives dependsOn('someJar')
 
         when:
-        project.configurations.add('conf')
+        project.configurations.create('conf')
         project.artifacts.conf someJar
 
         then:
@@ -208,7 +208,7 @@ class BasePluginTest extends Specification {
 
         when:
         plugin.apply(project)
-        project.configurations.add("custom").artifacts.add(artifact)
+        project.configurations.create("custom").artifacts.add(artifact)
 
         then:
         project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts.contains(artifact)

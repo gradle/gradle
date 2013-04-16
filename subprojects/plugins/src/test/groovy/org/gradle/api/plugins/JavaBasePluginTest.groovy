@@ -18,7 +18,7 @@ package org.gradle.api.plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
-import org.gradle.api.tasks.ClassDirectoryBinary
+import org.gradle.language.jvm.ClassDirectoryBinary
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -59,7 +59,7 @@ class JavaBasePluginTest extends Specification {
     void createsTasksAndAppliesMappingsForNewSourceSet() {
         when:
         javaBasePlugin.apply(project)
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         
         then:
         def set = project.sourceSets.custom
@@ -69,7 +69,7 @@ class JavaBasePluginTest extends Specification {
         Matchers.builtBy('customClasses').matches(set.output)
 
         def processResources = project.tasks['processCustomResources']
-        processResources.description == 'Processes the custom resources.'
+        processResources.description == "Processes source set 'custom:resources'."
         processResources instanceof Copy
         Matchers.dependsOn().matches(processResources)
         processResources.destinationDir == project.sourceSets.custom.output.resourcesDir
@@ -77,27 +77,43 @@ class JavaBasePluginTest extends Specification {
         resources sameCollection(project.sourceSets.custom.resources)
 
         def compileJava = project.tasks['compileCustomJava']
-        compileJava.description == 'Compiles the custom/java source set.'
+        compileJava.description == "Compiles source set 'custom:java'."
         compileJava instanceof JavaCompile
         Matchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
         compileJava.destinationDir == project.sourceSets.custom.output.classesDir
+
         def sources = compileJava.source
         sources sameCollection(project.sourceSets.custom.java)
+
         def classes = project.tasks['customClasses']
-        classes.description == 'Assembles the custom classes.'
+        classes.description == "Assembles binary 'custom'."
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         classes.dependsOn.contains project.sourceSets.custom.output.dirs
     }
-    
+
+    void "wires generated resources task into classes task for sourceset"() {
+        when:
+        javaBasePlugin.apply(project)
+        project.sourceSets.create('custom')
+
+        and:
+        final someTask = project.task("someTask")
+        project.sourceSets.custom.output.dir('some-dir', builtBy: someTask)
+
+        then:
+        def customClasses = project.tasks['customClasses']
+        Matchers.dependsOn('someTask', 'processCustomResources', 'compileCustomJava').matches(customClasses)
+    }
+
     void tasksReflectChangesToSourceSetConfiguration() {
         def classesDir = project.file('target/classes')
         def resourcesDir = project.file('target/resources')
 
         when:
         javaBasePlugin.apply(project)
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         project.sourceSets.custom.output.classesDir = classesDir
         project.sourceSets.custom.output.resourcesDir = resourcesDir
 
@@ -112,21 +128,21 @@ class JavaBasePluginTest extends Specification {
     void createsConfigurationsForNewSourceSet() {
         when:
         javaBasePlugin.apply(project)
-        def sourceSet = project.sourceSets.add('custom')
+        def sourceSet = project.sourceSets.create('custom')
 
         then:
         def compile = project.configurations.customCompile
         compile.transitive
         !compile.visible
         compile.extendsFrom == [] as Set
-        compile.description == 'Classpath for compiling the custom sources.'
+        compile.description == "Compile classpath for source set 'custom'."
 
         and:
         def runtime = project.configurations.customRuntime
         runtime.transitive
         !runtime.visible
         runtime.extendsFrom == [compile] as Set
-        runtime.description == 'Classpath for running the compiled custom classes.'
+        runtime.description == "Runtime classpath for source set 'custom'."
 
         and:
         def runtimeClasspath = sourceSet.runtimeClasspath

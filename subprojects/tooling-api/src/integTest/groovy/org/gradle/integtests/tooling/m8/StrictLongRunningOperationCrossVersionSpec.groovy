@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
@@ -28,7 +27,6 @@ import org.gradle.tooling.model.internal.Exceptions
 import spock.lang.IgnoreIf
 
 @MinToolingApiVersion('1.0-milestone-8')
-@MinTargetGradleVersion('1.0-milestone-3')
 @MaxTargetGradleVersion('1.0-milestone-7') //the configuration was not supported for old versions
 class StrictLongRunningOperationCrossVersionSpec extends ToolingApiSpecification {
 

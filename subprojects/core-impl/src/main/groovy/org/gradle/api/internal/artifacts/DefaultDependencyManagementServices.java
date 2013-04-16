@@ -88,7 +88,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter() {
         return new ResolveModuleDescriptorConverter(
                 get(ModuleDescriptorFactory.class),
-                get(DependencyDescriptorFactory.class),
                 get(ConfigurationsToModuleDescriptorConverter.class),
                 new DefaultDependenciesToModuleDescriptorConverter(
                         get(DependencyDescriptorFactory.class),
@@ -276,7 +275,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 ),
                 new DefaultProjectModuleRegistry(
                         get(PublishModuleDescriptorConverter.class)),
-                get(ProjectAccessListener.class),
                 get(CacheLockingManager.class)
         );
         return new ErrorHandlingArtifactDependencyResolver(

@@ -75,7 +75,7 @@ public class JettyRun extends AbstractJettyRunTask {
     private File webXml;
 
     /**
-     * Root directory for all html/jsp etc files.
+     * Root directory for all HTML/JSP etc files.
      */
     private File webAppSourceDirectory;
 

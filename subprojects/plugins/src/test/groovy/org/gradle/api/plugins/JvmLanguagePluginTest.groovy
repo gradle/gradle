@@ -15,10 +15,11 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.plugins.ProcessResources
-import org.gradle.api.tasks.ClassDirectoryBinary
-import org.gradle.api.tasks.JvmBinaryContainer
-import org.gradle.api.tasks.ResourceSet
+import org.gradle.language.jvm.tasks.ProcessResources
+import org.gradle.language.jvm.ClassDirectoryBinary
+import org.gradle.language.jvm.JvmBinaryContainer
+import org.gradle.language.jvm.ResourceSet
+import org.gradle.language.jvm.plugins.JvmLanguagePlugin
 import org.gradle.util.HelperUtil
 
 import spock.lang.Specification
@@ -26,6 +27,15 @@ import spock.lang.Specification
 class JvmLanguagePluginTest extends Specification {
     def project = HelperUtil.createRootProject()
     def jvmLanguagePlugin = project.plugins.apply(JvmLanguagePlugin)
+
+    def "registers the 'ResourceSet' type for each functional source set added to the 'sources' container"() {
+        when:
+        project.sources.create("custom")
+        project.sources.custom.create("resources", ResourceSet)
+
+        then:
+        project.sources.custom.resources instanceof ResourceSet
+    }
 
     def "adds a 'binaries.jvm' container to the project"() {
         def binaries = project.extensions.findByName("binaries")
@@ -35,18 +45,15 @@ class JvmLanguagePluginTest extends Specification {
         binaries.jvm instanceof JvmBinaryContainer
     }
 
-    def "allows the JvmBinaryContainer to be looked up on the plugin"() {
-        expect:
-        jvmLanguagePlugin.jvmBinaryContainer instanceof JvmBinaryContainer
-    }
-
     def "adds a 'classes' task for every ClassDirectoryBinary added to the container"() {
         when:
         def binary = project.binaries.jvm.create("prod", ClassDirectoryBinary)
 
         then:
         binary.classesDir == new File("$project.buildDir/classes/prod")
-        project.tasks.findByName("prodClasses") != null
+        def task = project.tasks.findByName("prodClasses")
+        task != null
+        task.description == "Assembles binary 'prod'."
     }
 
     def "adds a 'processResources' task for every ResourceSet added to a ClassDirectoryBinary"() {
@@ -58,6 +65,8 @@ class JvmLanguagePluginTest extends Specification {
 
         then:
         project.tasks.size() == old(project.tasks.size()) + 1
-        project.tasks.findByName("processProdResources") instanceof ProcessResources
+        def task = project.tasks.findByName("processProdResources")
+        task instanceof ProcessResources
+        task.description == "Processes source set 'main:resources'."
     }
 }

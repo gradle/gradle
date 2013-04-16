@@ -64,6 +64,10 @@ that shares compatible model classes.
 
 ## Story: Tooling API client can query the available tooling models
 
+## Story: Add a convenience dependency for obtaining the tooling API JARs
+
+Similar to `gradleApi()`
+
 # Open issues
 
 * Discovery or registration?

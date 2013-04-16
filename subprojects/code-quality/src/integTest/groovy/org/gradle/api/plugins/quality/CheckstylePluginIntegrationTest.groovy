@@ -49,7 +49,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.error.contains("Name 'class1' must match pattern")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
@@ -65,7 +65,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         !failure.error.contains("Name 'class1' must match pattern")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
@@ -144,7 +144,7 @@ repositories {
 }
 
 dependencies {
-    groovy localGroovy()
+    compile localGroovy()
 }
         """
     }

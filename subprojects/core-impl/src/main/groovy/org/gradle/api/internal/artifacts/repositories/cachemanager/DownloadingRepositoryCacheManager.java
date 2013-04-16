@@ -64,6 +64,10 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         this.cacheLockingManager = cacheLockingManager;
     }
 
+    public boolean isLocal() {
+        return false;
+    }
+
     public EnhancedArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver,
                                                    ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
         EnhancedArtifactDownloadReport adr = new EnhancedArtifactDownloadReport(artifact);

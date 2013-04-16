@@ -278,7 +278,7 @@ rootProject.name = 'root'
         run ":dependencies"
 
         then:
-        output.contains 'compile - Classpath for compiling the main sources.'
+        output.contains "compile - Compile classpath for source set 'main'."
 
         output.contains(toPlatformLineSeparators("""
 +--- root:a:1.0

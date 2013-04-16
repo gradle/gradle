@@ -77,10 +77,6 @@ public class LazyConnection implements ConsumerConnection {
         }
     }
 
-    public ConsumerConnectionMetadata getMetaData() {
-        return new ConsumerConnectionMetadata(distribution.getDisplayName(), null);
-    }
-
     public String getDisplayName() {
         return distribution.getDisplayName();
     }

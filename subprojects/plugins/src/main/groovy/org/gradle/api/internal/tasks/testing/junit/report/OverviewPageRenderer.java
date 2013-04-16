@@ -64,7 +64,7 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
             htmlWriter.startElement("td").characters(Integer.toString(testPackage.getTestCount())).endElement();
             htmlWriter.startElement("td").characters(Integer.toString(testPackage.getFailureCount())).endElement();
             htmlWriter.startElement("td").characters(testPackage.getFormattedDuration()).endElement();
-            htmlWriter.startElement("td").attribute("class", testPackage.getStatusClass()).characters(testPackage.getFormattedDuration()).endElement();
+            htmlWriter.startElement("td").attribute("class", testPackage.getStatusClass()).characters(testPackage.getFormattedSuccessRate()).endElement();
             htmlWriter.endElement();
         }
         htmlWriter.endElement();

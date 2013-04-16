@@ -17,7 +17,6 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.*;
 import org.gradle.internal.Factory;

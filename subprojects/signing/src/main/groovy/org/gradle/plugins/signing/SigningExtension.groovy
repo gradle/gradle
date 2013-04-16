@@ -131,7 +131,7 @@ class SigningExtension {
         def configurations = project.configurations
         def configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME)
         if (configuration == null) {
-            configuration = configurations.add(DEFAULT_CONFIGURATION_NAME)
+            configuration = configurations.create(DEFAULT_CONFIGURATION_NAME)
         }
         configuration
     }
@@ -323,9 +323,9 @@ class SigningExtension {
     }
 
     /**
-     * Signs the POM artifact for the given maven deployment.
+     * Signs the POM artifact for the given Maven deployment.
      *
-     * <p>You can use this method to sign the generated pom when publishing to a maven repository with the maven plugin.
+     * <p>You can use this method to sign the generated POM when publishing to a Maven repository with the Maven plugin.
      * </p>
      * <pre autoTested=''>
      * uploadArchives {
@@ -344,7 +344,7 @@ class SigningExtension {
      * this method will silently do nothing. That is, a signature for the POM file will not be uploaded.
      *
      * @param mavenDeployment The deployment to sign the POM of
-     * @param closure the configuration of the underlying {@link SignOperation sign operation} for the pom (optional)
+     * @param closure the configuration of the underlying {@link SignOperation sign operation} for the POM (optional)
      * @return the generated signature artifact
      */
     Signature signPom(MavenDeployment mavenDeployment, Closure closure = null) {

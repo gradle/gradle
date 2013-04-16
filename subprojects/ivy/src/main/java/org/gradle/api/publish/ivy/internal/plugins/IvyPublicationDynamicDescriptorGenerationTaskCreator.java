@@ -49,7 +49,7 @@ public class IvyPublicationDynamicDescriptorGenerationTaskCreator {
         String publicationName = publication.getName();
 
         String descriptorTaskName = calculateDescriptorTaskName(publicationName);
-        GenerateIvyDescriptor descriptorTask = project.getTasks().add(descriptorTaskName, GenerateIvyDescriptor.class);
+        GenerateIvyDescriptor descriptorTask = project.getTasks().create(descriptorTaskName, GenerateIvyDescriptor.class);
         descriptorTask.setDescription(String.format("Generates the Ivy Module Descriptor XML file for publication '%s'.", publication.getName()));
         descriptorTask.setDescriptor(publication.getDescriptor());
 

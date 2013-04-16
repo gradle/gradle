@@ -27,7 +27,7 @@ import org.gradle.api.Incubating;
  * <pre autoTested="true">
  * apply plugin: 'ivy-publish'
  *
- * def publication = publishing.publications.add("my-pub", IvyPublication)
+ * def publication = publishing.publications.create("my-pub", IvyPublication)
  * def artifacts = publication.artifacts
  *
  * artifacts.matching({

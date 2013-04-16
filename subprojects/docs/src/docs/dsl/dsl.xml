@@ -149,6 +149,9 @@
                 <td>org.gradle.api.tasks.SourceSetOutput</td>
             </tr>
             <tr>
+                <td>org.gradle.api.tasks.incremental.IncrementalTaskInputs</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.Configuration</td>
             </tr>
             <tr>
@@ -256,9 +259,6 @@
                 <td>org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.compile.Compile</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.Copy</td>
             </tr>
             <tr>
@@ -296,6 +296,12 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.javadoc.Groovydoc</td>
+            </tr>
+            <tr>
+                <td>org.gradle.testing.jacoco.tasks.JacocoReport</td>
+            </tr>
+            <tr>
+                <td>org.gradle.testing.jacoco.tasks.JacocoMerge</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Jar</td>

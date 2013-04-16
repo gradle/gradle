@@ -36,7 +36,7 @@ import org.gradle.util.ConfigureUtil
  *       facet name: 'someCoolFacet', version: '1.3'
  *
  *       file {
- *         //if you want to mess with the resulting xml in whatever way you fancy
+ *         //if you want to mess with the resulting XML in whatever way you fancy
  *         withXml {
  *           def node = it.asNode()
  *           node.appendNode('xml', 'is what I love')
@@ -87,7 +87,7 @@ class EclipseWtpFacet {
     }
 
     /**
-     * Enables advanced configuration like tinkering with the output xml
+     * Enables advanced configuration like tinkering with the output XML
      * or affecting the way existing wtp facet file content is merged with gradle build information
      * <p>
      * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link WtpFacet}

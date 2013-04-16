@@ -3,8 +3,6 @@ configurations {
 }
 
 dependencies {
-    groovy libraries.groovy
-
     compile project(':baseServices')
     compile project(':core')
     compile project(':cli')
@@ -13,6 +11,8 @@ dependencies {
     compile project(':native')
 
     compile libraries.slf4j_api
+
+    testCompile libraries.groovy
 
     startScriptGenerator project(':plugins')
 }

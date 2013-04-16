@@ -17,19 +17,21 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
-import java.io.File;
 import java.io.Serializable;
+import java.net.URLClassLoader;
 
 /**
  * @author Tom Eyckmans
@@ -46,8 +48,19 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
-        final File testResultsDir = testTask.getTestResultsDir();
-        return new TestClassProcessorFactoryImpl(testResultsDir);
+        verifyJUnitCategorySupport();
+        return new TestClassProcessorFactoryImpl(new JUnitSpec(options));
+    }
+
+    private void verifyJUnitCategorySupport() {
+        if (!options.getExcludeCategories().isEmpty() || !options.getIncludeCategories().isEmpty()) {
+            ClassLoader testClassloader = new URLClassLoader(new DefaultClassPath(testTask.getClasspath()).getAsURLArray(), null);
+            try {
+                testClassloader.loadClass("org.junit.experimental.categories.Category");
+            } catch (ClassNotFoundException e) {
+                throw new GradleException("JUnit Categories defined but declared JUnit version does not support Categories.");
+            }
+        }
     }
 
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
@@ -73,14 +86,14 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
-        private final File testResultsDir;
+        private final JUnitSpec spec;
 
-        public TestClassProcessorFactoryImpl(File testResultsDir) {
-            this.testResultsDir = testResultsDir;
+        public TestClassProcessorFactoryImpl(JUnitSpec spec) {
+            this.spec = spec;
         }
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitTestClassProcessor(testResultsDir, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), new JULRedirector());
+            return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), new JULRedirector());
         }
     }
 }

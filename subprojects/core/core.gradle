@@ -21,7 +21,7 @@ configurations {
 }
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     publishCompile libraries.slf4j_api
     publishCompile project(":baseServices")
@@ -44,6 +44,8 @@ dependencies {
 
     compile project(":cli")
     compile project(":native")
+
+    runtime project(":docs")
 
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j

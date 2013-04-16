@@ -32,10 +32,7 @@ import org.gradle.api.internal.HasInternalProtocol;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.plugins.*;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
@@ -194,7 +191,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 @HasInternalProtocol
-public interface Project extends Comparable<Project>, ExtensionAware {
+public interface Project extends Comparable<Project>, ExtensionAware, PluginAware {
     /**
      * The default project build file name.
      */
@@ -973,7 +970,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * &lt;/target&gt;
      * </pre>
      *
-     * Here's how it would look like in gradle. Observe how the ant xml is represented in groovy by the ant builder
+     * Here's how it would look like in gradle. Observe how the ant XML is represented in groovy by the ant builder
      * <pre autoTested=''>
      * task printChecksum {
      *   doLast {

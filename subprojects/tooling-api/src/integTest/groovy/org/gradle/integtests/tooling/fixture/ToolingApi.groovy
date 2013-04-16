@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.util.GradleVersion
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -76,10 +77,32 @@ class ToolingApi {
         }
     }
 
+    private validate(Throwable throwable) {
+        if (dist.version != GradleVersion.current()) {
+            return
+        }
+
+        // Verify that the exception carries the calling thread's stack information
+        def currentThreadStack = Thread.currentThread().stackTrace as List
+        while (!currentThreadStack.empty && (currentThreadStack[0].className != ToolingApi.name || currentThreadStack[0].methodName != 'withConnectionRaw')) {
+            currentThreadStack.remove(0)
+        }
+        assert currentThreadStack.size() > 1
+        currentThreadStack.remove(0)
+        String currentThreadStackStr = currentThreadStack.join("\n")
+
+        def throwableStack = throwable.stackTrace.join("\n")
+
+        assert throwableStack.endsWith(currentThreadStackStr)
+    }
+
     private <T> T withConnectionRaw(GradleConnector connector, Closure<T> cl) {
         ProjectConnection connection = connector.connect()
         try {
             return cl.call(connection)
+        } catch (Throwable t) {
+            validate(t)
+            throw t
         } finally {
             connection.close()
         }
@@ -90,7 +113,7 @@ class ToolingApi {
         connector.useGradleUserHomeDir(userHomeDir)
         connector.forProjectDirectory(testWorkDirProvider.testDirectory)
         connector.searchUpwards(false)
-        connector.daemonMaxIdleTime(60, TimeUnit.SECONDS)
+        connector.daemonMaxIdleTime(120, TimeUnit.SECONDS)
         if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {
             connector.verboseLogging = verboseLogging
         }

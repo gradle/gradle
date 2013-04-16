@@ -41,11 +41,8 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        module.ivyFile.assertIsFile()
-        module.assertChecksumPublishedFor(module.ivyFile)
-
+        module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
-        module.assertChecksumPublishedFor(module.jarFile)
     }
 
     @Issue("GRADLE-2456")

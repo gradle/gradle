@@ -70,7 +70,7 @@ public class MavenPublishDynamicTaskCreator {
 
         String publishTaskName = calculatePublishTaskName(publicationName, repositoryName);
         if (tasks.findByName(publishTaskName) == null) {
-            PublishToMavenRepository publishTask = tasks.add(publishTaskName, PublishToMavenRepository.class);
+            PublishToMavenRepository publishTask = tasks.create(publishTaskName, PublishToMavenRepository.class);
             publishTask.setPublication(publication);
             publishTask.setRepository(repository);
             publishTask.setGroup("publishing");

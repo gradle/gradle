@@ -29,7 +29,9 @@ import org.gradle.api.publish.Publication;
  * <pre>
  * publishing {
  *   publications {
- *     myPublicationName(IvyPublication)
+ *     myPublicationName(IvyPublication) {
+ *       // Configure the publication here
+ *     }
  *   }
  * }
  * </pre>
@@ -148,7 +150,7 @@ public interface IvyPublication extends Publication {
      *   publications {
      *     ivy(IvyPublication) {
      *       configurations {
-     *           testCompile
+     *           testCompile {}
      *           testRuntime {
      *               extend "testCompile"
      *           }

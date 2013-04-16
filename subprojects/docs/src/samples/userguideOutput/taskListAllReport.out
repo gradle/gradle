@@ -17,6 +17,10 @@ api:libs - Builds the JAR
 webapp:libs - Builds the JAR [api:libs]
     webapp:compile - Compiles the source files
 
+Build Setup tasks
+-----------------
+setupBuild - Initializes a new Gradle build. [incubating]
+
 Help tasks
 ----------
 dependencies - Displays all dependencies declared in root project 'projectReports'.

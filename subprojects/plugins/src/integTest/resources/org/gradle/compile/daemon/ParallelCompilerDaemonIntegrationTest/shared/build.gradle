@@ -2,7 +2,7 @@ subprojects {
     apply plugin: "groovy"
 
     dependencies {
-        groovy localGroovy()
+        compile localGroovy()
     }
 
     compileJava.options.fork = true

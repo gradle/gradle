@@ -15,20 +15,20 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.BuildAction;
 import org.gradle.launcher.exec.BuildActionParameters;
 
 public class Build extends Command {
-    private final GradleLauncherAction<?> action;
+    private final BuildAction<?> action;
     private final BuildActionParameters parameters;
 
-    public Build(Object identifier, GradleLauncherAction<?> action, BuildActionParameters parameters) {
+    public Build(Object identifier, BuildAction<?> action, BuildActionParameters parameters) {
         super(identifier);
         this.action = action;
         this.parameters = parameters;
     }
 
-    public GradleLauncherAction<?> getAction() {
+    public BuildAction<?> getAction() {
         return action;
     }
 

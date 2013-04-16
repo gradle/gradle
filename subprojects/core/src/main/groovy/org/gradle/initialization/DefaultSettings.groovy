@@ -18,19 +18,19 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.ServiceRegistryFactory
 import org.gradle.groovy.scripts.ScriptSource
 
 /**
  * @author Hans Dockter
  */
 public class DefaultSettings extends BaseSettings {
-    public DefaultSettings() {}
 
-    DefaultSettings(GradleInternal gradle,
-                    IProjectDescriptorRegistry projectDescriptorRegistry,
+    DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
+                    GradleInternal gradle,
                     URLClassLoader classloader, File settingsDir,
                     ScriptSource settingsScript, StartParameter startParameter) {
-      super(gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter)
+      super(serviceRegistryFactory, gradle, classloader, settingsDir, settingsScript, startParameter)
     }
 
 }

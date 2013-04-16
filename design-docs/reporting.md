@@ -45,7 +45,7 @@ verifications and documentation will be supported.
 
 In addition, the task graph will be changed to make the dashboard report more usable and reliable in various cases.
 
-## Add a build dashboard report
+## Add a build dashboard report (DONE)
 
 Add a basic dashboard HTML report that links to the reports declared in the build.
 
@@ -92,7 +92,119 @@ Note that running `gradle buildDashboard check` will not do anything very useful
     * Adds a `buildDashboard` task of type `GenerateBuildDashboard`.
     * Configures `buildDashboard` to report on all enabled `Report` instances for all tasks of type `Reporting` in the current project and all subprojects.
 
-## Test task implements `Reporting`
+## Schedule dashboard report task to run after all reporting and verification tasks
+
+Run any reporting tasks that are to be executed by the build before running the dashboard report task, so that the dashboard report includes results from
+the current build.
+
+### User visible changes
+
+Running `gradle dashboardReport check` will run the reporting and verification tasks first, then the `dashboardReport` task, followed by the remaining
+check tasks.
+
+Running `gradle check dashboardReport --continue` will generate the dashboard report on failures, regardless of whether any reporting tasks have been
+succefully executed.
+
+For this story, running `gradle check dashboardReport` without `--continue` will not generate the dashboard report on failures. Later stories will improve
+this behaviour.
+
+### Implementation approach
+
+1. Add a "always runs after" dependency type to the task graph.
+    * When "taskA always runs after taskB" and both are in the task graph, then taskA must not be executed until after taskB has been executed, and
+      must execute regardless of whether taskB succeeds or fails. Execution of taskA must honour the other dependencies of taskA.
+2. When `dashboardReport` task is added to the graph, add "always runs after" dependencies from `dashboardReport` to any task that generates one of its
+   input reports and that is also included in the task graph.
+
+### Test coverage
+
+- For a multi-project build where `rootProject.check.dependsOn(dashboardReport)` and that applies the code quality plugins:
+    - verify that running `gradle check` generates the report after each of the code quality tasks have completed.
+    - verify that running `gradle check --continue` generates the report when one of the code quality tasks fails.
+- When `a.mustRunAfter b` and `a.dependsOn c` and `b.dependsOn d`
+    - running `gradle a` runs c then a.
+    - running `gradle a b` runs d then b then c then a.
+    - running `gradle a b --continue` where b is broken, then runs d then b then c then a.
+    - running `gradle a b --continue` where d is broken, then runs d then c then a.
+- When `a.mustRunAfter b` and `b.mustRunAfter a`
+    - running `gradle a` runs a only.
+    - running `gradle a b` gives a reasonable error message
+- When `a.mustRunAfter b` and `b.dependsOn a`
+    - running `gradle a` runs a only.
+    - running `gradle b` gives a reasonable error message
+- When `a.mustRunAfter b` and `b.mustRunAfter c`
+    - running `gradle a b c` runs c then b then a.
+- In parallel mode:
+    - when `a.mustRunAfter b` and b depends on a slow task c in another project, verify that c runs before b runs before a.
+
+## Automatically add dashboard report task to task graph
+
+A DSL element will be added to allow a _finaliser_ task to be automatically added to the task graph when some other task is scheduled to run. This task
+and its dependencies are run only if the target task is executed.
+
+The `build-dashboard` plugin will use this to ensure that the dasboard report task is always updated when any of the reports are generated.
+
+This type of task relationship will also be used to generate test and code coverage reports after the tests have been executed. It will also be used to
+undeploy applications and stop servers and clean up other resources when the tests that use them have finished executing.
+
+### User visible changes
+
+Running `gradle checkstyleMain` will also execute `dashboardReport`. The `dashboardReport` task will be executed regardless of whether the `checkstyleMain`
+task succeeds or fails and regardless of whether `--continue` is used or not.
+
+The `dashboardReport` task is not executed when none of the reporting tasks in the graph are executed due to failed dependencies.
+
+TBD - Need to some reasonable behaviour when:
+
+1. A build has the checkstyle plugin applied.
+2. `gradle check` is run and implcitly generates the dashboard.
+3. The checkstyle plugin is removed.
+4. `gradle check` is run. The dashboard should still be generated or removed. Currently, the old report would not be regenerated.
+
+### Implementation approach
+
+When a task a is a finaliser for task b, then:
+
+- when task b is added to the graph, then task a must be added to the graph.
+- task a must always execute after task b.
+- task a must be executed if task b is executed, and regardless of whether task b succeeds or fails.
+- task a should not be executed if task b is not executed and task a is otherwise not required to be executed. Here 'not executed' includes:
+    - was not executed due to a failed dependency.
+    - was considered up-to-date.
+    - was disabled or skipped due to an onlyIf { } constraint.
+    - is a finaliser for tasks which were not executed for some reason.
+- A dependency task c of task a should not be executed if task b is not executed (as above) and the task c is otherwise not required to be executed
+
+### Test coverage
+
+For build with the `build-dashboard` plugin applied to the root project and the (say) `checkstyle` plugin applied:
+
+- running `gradle check` will run the `buildDashboard` task.
+- running `gradle check` will run the `buildDashboard` task when the checkstyle task fails.
+- running `gradle check` will not run the `buildDashboard` task when the checkstyle task is not executed due to a failed dependency.
+- running `gradle check --continue` will not run the `buildDashboard` task when the checkstyle task is not executed due to a failed dependency.
+
+- Given `a.finalizedBy b` and `a.dependsOn c` and `b.dependsOn d`, then:
+    - `gradle a` runs `c` then `a` then `d` then `b`.
+    - `gradle a b` runs `c` then `a` then `d` then `b`.
+    - `gradle d a` runs `d` then `c` then `a` then `b`.
+    - `gradle a -x b` runs `c` then `a` only. Neither `b` nor `d` are added to the task graph.
+    - `gradle a -x d` runs `c` then `a` then `b`. Task `d` is not added to the task graph.
+    - `gradle a -x a` runs no tasks. No tasks are added to the task graph.
+    - `gradle a --continue` runs `c` only when `c` fails.
+    - `gradle a b --continue` runs `c` then `a` then `d` then `b` when `a` fails.
+    - `gradle a b --continue` runs `c` then `d` then `b` when `c` fails.
+    - `gradle a` run `c` only when `a` is disabled. All tasks are added to the task graph.
+    - `gradle a` run `c` only when `a.onlyIf { false }` . All tasks are added to the task graph.
+    - `gradle b a` fails with a circular dependency failure.
+    - `gradle a --parallel` runs `c` then `a` then `d` then `b` when `a` and `c` are in different projects to `b` and `d`.
+- Given `a.finalizedBy b` and `b.finalizedBy c`, then `gradle a` runs `a` then `b` then `c`.
+- Given `a.dependsOn [b, c]` and `c.finalizedBy b` then `gradle a` runs `c` then `b` then `a`.
+- Verify execution fails with 'circular dependency' failure when `a.finalizedBy b` and `a.dependsOn c` and `c.mustRunAfter b`.
+
+## Separate test report generation from test execution
+
+Configure a `TestReport` task to always run after the `Test` task, and change the `TestReport` type to implement `Reporting`. Remove (via deprecation) the reporting from the `Test` task type.
 
 ## Include summary of all verification task results in the dashboard report
 
@@ -131,48 +243,11 @@ The report will show more information.
 4. Persist the verification result.
 5. Dashboard report includes test summary when verification result is an instanceof `TestSummary`.
 
-## Schedule dashboard report task to run after all reporting and verification tasks
-
-Run any reporting and verification tasks that are to be executed by the build before running the dashboard report task, so that the dashboard
-report includes results from the current build.
-
-Run the dashboard report task even if one of the reporting or verification tasks fail, so that the dashboard report shows the up-to-date results
-in the presence of failures.
-
-### User visible changes
-
-Running `gradle dashboardReport check` will run the reporting and verification tasks first, then the `dashboardReport` task, followed by the remaining
-check tasks.
-
-Running `gradle check dashboardReport` will generate the dashboard report on failures, provided at least one reporting or verification task has been
-executed.
-
-### Implementation approach
-
-1. Add a "always runs after" dependency type to the task graph.
-    * When "taskA always runs after taskB" and both are in the task graph, then taskA must not be executed until after taskB has been executed, and
-      must execute regardless of whether taskB succeeds or fails. Execution of taskA must honour the other dependencies of taskA.
-2. When `dashboardReport` task is added to the graph, add "always runs after" dependencies from `dashboardReport` to any task that generates one of its
-   input reports and that is also included in the task graph.
-
-## Automatically add dashboard report task to task graph
-
-Running `gradle test` will also run `dashboardReport`.
-
 ## Allow a custom verification task to be implemented
 
 ## Allow a custom reporting task to be implemented
 
-## Add a Cobertura plugin
-
-Cobertura plugin adds instrument task and coverage report task. The test task depends on instrument task and the coverage report "always runs after"
-the test task.
-
-## Include test coverage summary in the dashboard report
-
-## Separate test report generation from test execution
-
-Split a `TestReport` task out of the `Test` task. The test report task "always runs after" the test task.
+## Include code coverage summary in the dashboard report
 
 ## Link to the API documentation in the dashboard report
 

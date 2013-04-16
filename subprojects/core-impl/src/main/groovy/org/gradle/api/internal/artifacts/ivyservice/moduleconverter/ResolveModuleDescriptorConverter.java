@@ -20,10 +20,8 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 
 import java.util.Set;
 
@@ -32,16 +30,13 @@ import java.util.Set;
  */
 public class ResolveModuleDescriptorConverter implements ModuleDescriptorConverter {
     private final ModuleDescriptorFactory moduleDescriptorFactory;
-    private final DependencyDescriptorFactory dependencyDescriptorFactory;
     private final ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
     private final DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
 
     public ResolveModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,
-                                            DependencyDescriptorFactory dependencyDescriptorFactory,
                                             ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
                                             DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter) {
         this.moduleDescriptorFactory = moduleDescriptorFactory;
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
         this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
         this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
     }
@@ -52,13 +47,5 @@ public class ResolveModuleDescriptorConverter implements ModuleDescriptorConvert
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
         dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations);
         return moduleDescriptor;
-    }
-
-    public ModuleDescriptor createModuleDescriptor(Module module) {
-        return moduleDescriptorFactory.createModuleDescriptor(module);
-    }
-
-    public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
-        dependencyDescriptorFactory.addDependencyDescriptor(configuration, moduleDescriptor, dependency);
     }
 }

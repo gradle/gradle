@@ -41,11 +41,7 @@ public class Download implements IDownload {
     }
 
     public void download(URI address, File destination) throws Exception {
-        if (destination.exists()) {
-            return;
-        }
         destination.getParentFile().mkdirs();
-
         downloadInternal(address, destination);
     }
 

@@ -20,16 +20,10 @@ import org.gradle.reporting.DurationFormatter;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Comparator;
-import java.util.List;
 
-//TODO SF add coverage
 public class ProfileReportRenderer {
     public void writeTo(BuildProfile buildProfile, File file) {
         HtmlReportRenderer renderer = new HtmlReportRenderer();
@@ -42,8 +36,6 @@ public class ProfileReportRenderer {
     private static final DurationFormatter DURATION_FORMAT = new DurationFormatter();
 
     private static class ProfilePageRenderer extends TabbedPageRenderer<BuildProfile> {
-        static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
-
         @Override
         protected String getTitle() {
             return "Profile report";
@@ -55,8 +47,8 @@ public class ProfileReportRenderer {
                 @Override
                 public void render(BuildProfile model, SimpleHtmlWriter htmlWriter) throws IOException {
                     htmlWriter.startElement("div").attribute("id", "header")
-                        .startElement("p").characters(String.format("Profiled with tasks: %s", model.getTaskDescription())).endElement()
-                        .startElement("p").characters(String.format("Run on: %s", DATE_FORMAT.format(model.getBuildStarted()))).endElement()
+                        .startElement("p").characters(model.getBuildDescription()).endElement()
+                        .startElement("p").characters(model.getBuildStartedDescription()).endElement()
                     .endElement();
                 }
             };
@@ -67,6 +59,8 @@ public class ProfileReportRenderer {
             return new ReportRenderer<BuildProfile, SimpleHtmlWriter>() {
                 @Override
                 public void render(BuildProfile model, SimpleHtmlWriter htmlWriter) throws IOException {
+                    CompositeOperation<Operation> profiledProjectConfiguration = model.getProjectConfiguration();
+
                     htmlWriter.startElement("div").attribute("id", "tabs")
                         .startElement("ul").attribute("class", "tabLinks")
                             .startElement("li").startElement("a").attribute("href", "#tab0").characters("Summary").endElement().endElement()
@@ -101,7 +95,7 @@ public class ProfileReportRenderer {
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Configuring Projects").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getElapsedAfterProjectsEvaluated())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profiledProjectConfiguration.getElapsedTime())).endElement();
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("Task Execution").endElement();
@@ -120,18 +114,12 @@ public class ProfileReportRenderer {
                                 htmlWriter.endElement();
                                 htmlWriter.startElement("tr");
                                     htmlWriter.startElement("td").characters("All projects").endElement();
-                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getProjectConfiguration().getElapsedTime())).endElement();
+                                    htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profiledProjectConfiguration.getElapsedTime())).endElement();
                                 htmlWriter.endElement();
-                                final List<Operation> operations = CollectionUtils.sort(model.getProjectConfiguration().getOperations(), new Comparator<Operation>() {
-                                    public int compare(Operation o1, Operation o2) {
-                                        return Long.valueOf(o2.getElapsedTime()).compareTo(Long.valueOf(o1.getElapsedTime()));
-                                    }
-                                });
-                                for (Operation operation : operations) {
-                                    EvalutationOperation evalOperation = (EvalutationOperation)operation;
+                                for (Operation operation : profiledProjectConfiguration) {
                                     htmlWriter.startElement("tr");
-                                        htmlWriter.startElement("td").characters(evalOperation.getPath()).endElement();
-                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(evalOperation.getElapsedTime())).endElement();
+                                        htmlWriter.startElement("td").characters(operation.getDescription()).endElement();
+                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(operation.getElapsedTime())).endElement();
                                     htmlWriter.endElement();
                                 }
                             htmlWriter.endElement()
@@ -150,15 +138,10 @@ public class ProfileReportRenderer {
                                     htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(model.getDependencySets().getElapsedTime())).endElement();
                                 htmlWriter.endElement();
 
-                                final List<DependencyResolveProfile> dependencyResolveProfiles = CollectionUtils.sort(model.getDependencySets().getOperations(), new Comparator<DependencyResolveProfile>() {
-                                        public int compare(DependencyResolveProfile p1, DependencyResolveProfile p2) {
-                                        return Long.valueOf(p2.getElapsedTime()).compareTo(Long.valueOf(p1.getElapsedTime()));
-                                    }
-                                    });
-                                for (DependencyResolveProfile profile : dependencyResolveProfiles) {
+                                for (Operation operation : model.getDependencySets()) {
                                     htmlWriter.startElement("tr");
-                                        htmlWriter.startElement("td").characters(profile.getPath()).endElement();
-                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(profile.getElapsedTime())).endElement();
+                                        htmlWriter.startElement("td").characters(operation.getDescription()).endElement();
+                                        htmlWriter.startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(operation.getElapsedTime())).endElement();
                                     htmlWriter.endElement();
                                 }
                             htmlWriter.endElement()
@@ -173,27 +156,17 @@ public class ProfileReportRenderer {
                                         .startElement("th").characters("Result").endElement()
                                     .endElement()
                                 .endElement();
-                                final List<ProjectProfile> projects = CollectionUtils.sort(model.getProjects(), new Comparator<ProjectProfile>() {
-                                        public int compare(ProjectProfile p1, ProjectProfile p2) {
-                                        return Long.valueOf(p2.getTasks().getElapsedTime()).compareTo(p1.getTasks().getElapsedTime());
-                                    }
-                                });
-                                for (ProjectProfile project : projects) {
+                                for (ProjectProfile project : model.getProjects()) {
                                    htmlWriter.startElement("tr")
                                         .startElement("td").characters(project.getPath()).endElement()
-                                        .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(project.getTasks().getElapsedTime())).endElement()
+                                        .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(project.getElapsedTime())).endElement()
                                         .startElement("td").characters("(total)").endElement()
                                     .endElement();
-                                    final List<TaskExecution> taskExecutions = CollectionUtils.sort(project.getTasks().getOperations(), new Comparator<TaskExecution>() {
-                                        public int compare(TaskExecution p1, TaskExecution p2) {
-                                            return Long.valueOf(p2.getElapsedTime()).compareTo(Long.valueOf(p1.getElapsedTime()));
-                                        }
-                                    });
-                                    for (TaskExecution taskExecution : taskExecutions) {
+                                    for (TaskExecution taskExecution : project.getTasks()) {
                                         htmlWriter.startElement("tr")
                                             .startElement("td").attribute("class", "indentPath").characters(taskExecution.getPath()).endElement()
                                             .startElement("td").attribute("class", "numeric").characters(DURATION_FORMAT.format(taskExecution.getElapsedTime())).endElement()
-                                            .startElement("td").characters(taskExecution.getState().getSkipped() ? taskExecution.getState().getSkipMessage() : (taskExecution.getState().getDidWork()) ? "" : "Did No Work").endElement()
+                                            .startElement("td").characters(taskExecution.getStatus()).endElement()
                                         .endElement();
                                     }
                                 }

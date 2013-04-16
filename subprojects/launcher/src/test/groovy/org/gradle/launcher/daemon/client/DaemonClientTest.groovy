@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.initialization.GradleLauncherAction
+import org.gradle.initialization.BuildAction
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.exec.BuildActionParameters
@@ -91,7 +91,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
     def executesAction() {
         when:
-        def result = client.execute(Stub(GradleLauncherAction), Stub(BuildActionParameters))
+        def result = client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
         result == '[result]'
@@ -108,7 +108,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         RuntimeException failure = new RuntimeException()
 
         when:
-        client.execute(Stub(GradleLauncherAction), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
         RuntimeException e = thrown()
@@ -126,7 +126,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(GradleLauncherAction), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -140,7 +140,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(GradleLauncherAction), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -156,7 +156,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(GradleLauncherAction), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -173,7 +173,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         connection.receive() >> Mock(DaemonUnavailable)
 
         when:
-        client.execute(Stub(GradleLauncherAction), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildActionParameters))
 
         then:
         thrown(NoUsableDaemonFoundException)

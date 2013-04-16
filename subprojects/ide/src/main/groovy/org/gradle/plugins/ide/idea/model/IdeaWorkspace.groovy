@@ -38,7 +38,7 @@ import org.gradle.util.ConfigureUtil
 class IdeaWorkspace {
 
     /**
-     * Enables advanced manipulation of the output xml.
+     * Enables advanced manipulation of the output XML.
      * <p>
      * For example see docs for {@link IdeaWorkspace}
      *
@@ -49,7 +49,7 @@ class IdeaWorkspace {
     }
 
     /**
-     * Enables advanced manipulation of the output xml.
+     * Enables advanced manipulation of the output XML.
      * <p>
      * For example see docs for {@link IdeaWorkspace}
      */

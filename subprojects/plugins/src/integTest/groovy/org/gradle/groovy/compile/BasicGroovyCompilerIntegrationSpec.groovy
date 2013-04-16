@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.0'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
 

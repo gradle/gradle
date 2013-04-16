@@ -22,6 +22,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.internal.jvm.Jvm
+import org.gradle.testing.jacoco.plugins.JacocoPlugin
 
 /**
  * A plugin for analyzing projects with the
@@ -120,21 +121,27 @@ class SonarRunnerPlugin implements Plugin<Project> {
 
     void computeSonarProperties(Project project, Properties properties) {
         def extension = project.extensions.getByType(SonarRunnerExtension)
-        if (extension.skipProject) { return }
+        if (extension.skipProject) {
+            return
+        }
 
         Map<String, Object> rawProperties = [:]
         addGradleDefaults(project, rawProperties)
         extension.evaluateSonarPropertiesBlocks(rawProperties)
-        if (project == targetProject) { addSystemProperties(rawProperties) }
+        if (project == targetProject) {
+            addSystemProperties(rawProperties)
+        }
 
         def projectPrefix = project.path.substring(targetProject.path.size()).replace(":", ".")
         if (projectPrefix.startsWith(".")) {
             projectPrefix = projectPrefix.substring(1)
         }
         convertProperties(rawProperties, projectPrefix, properties)
-        
-        def enabledChildProjects = project.childProjects.values().findAll { !it.sonarRunner.skipProject }
-        if (enabledChildProjects.empty) { return }
+
+        def enabledChildProjects = project.childProjects.values().findAll { !it.sonarRunner.skipProject }.sort()
+        if (enabledChildProjects.empty) {
+            return
+        }
 
         properties[convertKey("sonar.modules", projectPrefix)] = convertValue(enabledChildProjects.name)
         for (childProject in enabledChildProjects) {
@@ -173,6 +180,10 @@ class SonarRunnerPlugin implements Plugin<Project> {
             properties["sonar.binaries"] = main.runtimeClasspath.findAll { it.directory } ?: null
             properties["sonar.libraries"] = getLibraries(main)
             properties["sonar.surefire.reportsPath"] = project.test.testResultsDir.exists() ? project.test.testResultsDir : null
+
+            project.plugins.withType(JacocoPlugin) {
+                properties["sonar.jacoco.reportPath"] = project.test.jacoco.destPath.exists() ? project.test.jacoco.destPath : null
+            }
         }
 
         if (properties["sonar.sources"] == null) {
@@ -211,12 +222,13 @@ class SonarRunnerPlugin implements Plugin<Project> {
             }
         }
     }
-    
+
     private String convertKey(String key, String projectPrefix) {
         projectPrefix ? "${projectPrefix}.$key" : key
     }
-    
+
     private String convertValue(Object value) {
         value instanceof Iterable ? value.collect { convertValue(it) }.join(",") : value.toString()
     }
+
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -90,7 +91,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     @Override
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
         builder.setUid(UUID.randomUUID().toString());
-        builder.setDaemonRegistryDir(new DaemonDir(new DaemonParameters().getBaseDir()).getRegistry());
+        builder.setDaemonRegistryDir(new DaemonDir(new DaemonParameters(new BuildLayoutParameters()).getBaseDir()).getRegistry());
     }
 
     protected DaemonServerConnector createDaemonServerConnector() {

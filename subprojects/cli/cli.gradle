@@ -21,7 +21,7 @@
     It has no dependencies, and should never have any.
 */
 dependencies {
-    groovy libraries.groovy
+    testCompile libraries.groovy
 }
 
 useClassycle()

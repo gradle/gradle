@@ -19,11 +19,11 @@ package org.gradle.api.sonar.runner
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.server.http.ServletContainer
 import org.gradle.util.AvailablePortFinder
 import org.gradle.util.ClasspathUtil
 import org.junit.Rule
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.webapp.WebAppContext
+
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 
@@ -32,7 +32,7 @@ class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
     AvailablePortFinder portFinder = AvailablePortFinder.createPrivate()
 
     @AutoCleanup("stop")
-    Server webServer = new Server(0)
+    ServletContainer container
 
     @Rule
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
@@ -61,10 +61,8 @@ sonar.jdbc.url=jdbc:h2:mem:sonartest
 sonar.embeddedDatabase.port=$databasePort
         """.trim()
 
-        def context = new WebAppContext()
-        context.war = warFile
-        webServer.addHandler(context)
-        webServer.start()
+        container = new ServletContainer(warFile)
+        container.start()
     }
 
     def "execute 'sonarRunner' task"() {
@@ -74,7 +72,7 @@ sonar.embeddedDatabase.port=$databasePort
                 .withArgument("-i")
                 .withArgument("-PserverUrl=foo") // dummy value for configuring sonarAnalyze task
                 .withArgument("-PdatabaseUrl=bar") // dummy value for configuring sonarAnalyze task
-                .withArgument("-Dsonar.host.url=http://localhost:${webServer.connectors[0].localPort}")
+                .withArgument("-Dsonar.host.url=http://localhost:${container.port}")
                 .withArgument("-Dsonar.jdbc.url=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
                 .withTasks("sonarRunner").run()
 

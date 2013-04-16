@@ -25,12 +25,14 @@ if (!javaVersion.java6Compatible) {
 }
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile project(':core')
     compile project(':coreImpl')
     compile project(':wrapper')
     compile project(':reporting')
+    compile project(':languageBase')
+    compile project(':languageJvm')
 
     compile libraries.ant
     compile libraries.asm

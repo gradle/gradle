@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.language.jvm.tasks.SimpleStaleClassCleaner
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

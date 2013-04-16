@@ -21,8 +21,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.Message;
 import org.gradle.internal.Factory;
 
-import java.util.List;
-
 /**
  * @author Hans Dockter
  */
@@ -36,14 +34,11 @@ public class DefaultSettingsConverter implements SettingsConverter {
         Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
-    public IvySettings convertForPublish(List<DependencyResolver> publishResolvers) {
+    public IvySettings convertForPublish() {
         if (publishSettings == null) {
             publishSettings = settingsFactory.create();
         } else {
             publishSettings.getResolvers().clear();
-        }
-        for (DependencyResolver dependencyResolver : publishResolvers) {
-            dependencyResolver.setSettings(publishSettings);
         }
         return publishSettings;
     }

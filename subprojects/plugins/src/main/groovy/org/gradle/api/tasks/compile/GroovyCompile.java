@@ -80,7 +80,8 @@ public class GroovyCompile extends AbstractCompile {
 
     private void checkGroovyClasspathIsNonEmpty() {
         if (getGroovyClasspath().isEmpty()) {
-            throw new InvalidUserDataException("'" + getName() + ".groovyClasspath' must not be empty. It is either configured automatically by the 'groovy-base' plugin, or can be set manually.");
+            throw new InvalidUserDataException("'" + getName() + ".groovyClasspath' must not be empty. If a Groovy compile dependency is provided, "
+                    + "the 'groovy-base' plugin will attempt to configure 'groovyClasspath' automatically. Alternatively, you may configure 'groovyClasspath' explicitly.");
         }
     }
 

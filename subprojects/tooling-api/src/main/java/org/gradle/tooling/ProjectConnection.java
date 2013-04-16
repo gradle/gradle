@@ -15,8 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.model.Model;
-
 /**
  * Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.
  *
@@ -50,36 +48,37 @@ import org.gradle.tooling.model.Model;
  */
 public interface ProjectConnection {
     /**
-     * Fetches a snapshot of the model of the given type for this project.
+     * Fetches a snapshot of the model of the given type for this project. This method blocks until the model is available.
      *
-     * <p>This method blocks until the model is available.
+     * <p>This method is simply a convenience for calling {@code model(modelType).get()}</p>
      *
-     * @param viewType The model type.
+     * @param modelType The model type.
      * @param <T> The model type.
      * @return The model.
      * @throws UnsupportedVersionException When the target Gradle version does not support the given model.
-     * @throws UnknownModelException When you are building a model unknown to the Tooling API,
-     *  for example you attempt to build a model of a type does not come from the Tooling API.
+     * @throws UnknownModelException When the target Gradle version or build does not support the requested model.
      * @throws BuildException On some failure executing the Gradle build, in order to build the model.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When this connection has been closed or is closing.
      * @since 1.0-milestone-3
      */
-    <T extends Model> T getModel(Class<T> viewType) throws UnsupportedVersionException,
-            UnknownModelException, BuildException, GradleConnectionException, IllegalStateException;
+    <T> T getModel(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
 
     /**
-     * Fetches a snapshot of the model for this project asynchronously. This method return immediately, and the result of the operation is passed to the supplied result handler.
+     * Starts fetching a snapshot of the given model, passing the result to the given handler when complete. This method returns immediately, and the result is later
+     * passed to the given handler's {@link ResultHandler#onComplete(Object)} method. If the operation fails, the handler's
+     * {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception.
+     * See {@link #getModel(Class)} for a description of the various exceptions that the operation may fail with.
      *
-     * @param viewType The model type.
+     * <p>This method is simply a convenience for calling {@code model(modelType).get(handler)}</p>
+     *
+     * @param modelType The model type.
      * @param handler The handler to pass the result to.
      * @param <T> The model type.
      * @throws IllegalStateException When this connection has been closed or is closing.
-     * @throws UnknownModelException When you are building a model unknown to the Tooling API,
-     *  for example you attempt to build a model of a type does not come from the Tooling API.
      * @since 1.0-milestone-3
      */
-    <T extends Model> void getModel(Class<T> viewType, ResultHandler<? super T> handler) throws IllegalStateException, UnknownModelException;
+    <T> void getModel(Class<T> modelType, ResultHandler<? super T> handler) throws IllegalStateException;
 
     /**
      * Creates a launcher which can be used to execute a build.
@@ -95,11 +94,9 @@ public interface ProjectConnection {
      * @param modelType The model type
      * @param <T> The model type.
      * @return The builder.
-     * @throws UnknownModelException When you are building a model unknown to the Tooling API,
-     *  for example you attempt to build a model of a type does not come from the Tooling API.
      * @since 1.0-milestone-3
      */
-    <T extends Model> ModelBuilder<T> model(Class<T> modelType) throws UnknownModelException;
+    <T> ModelBuilder<T> model(Class<T> modelType);
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

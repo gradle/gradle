@@ -41,7 +41,7 @@ class BuildSrcPluginTest extends AbstractIntegrationSpec {
             apply plugin: "groovy"
 
             dependencies {
-                groovy localGroovy()
+                compile localGroovy()
                 compile gradleApi()
             }
         """

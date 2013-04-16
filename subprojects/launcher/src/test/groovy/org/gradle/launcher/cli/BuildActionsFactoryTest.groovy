@@ -15,17 +15,20 @@
  */
 package org.gradle.launcher.cli
 
-import org.gradle.StartParameter
-import org.gradle.cli.CommandLineConverter
 import org.gradle.cli.CommandLineParser
+import org.gradle.cli.SystemPropertiesCommandLineConverter
+import org.gradle.initialization.DefaultCommandLineConverter
+import org.gradle.initialization.LayoutCommandLineConverter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
+import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
+import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter
+import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.launcher.daemon.bootstrap.DaemonMain
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.launcher.daemon.configuration.DaemonParameters
-import org.gradle.launcher.daemon.configuration.GradlePropertiesConfigurer
-import org.gradle.launcher.exec.InProcessGradleLauncherActionExecuter
+import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,19 +41,21 @@ class BuildActionsFactoryTest extends Specification {
     public final SetSystemProperties sysProperties = new SetSystemProperties();
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-    final CommandLineConverter<StartParameter> startParameterConverter = Mock()
-    final ServiceRegistry loggingServices = Mock()
-    final GradlePropertiesConfigurer configurer = Stub()
-    final BuildActionsFactory factory = new BuildActionsFactory(loggingServices, startParameterConverter, configurer)
+    ServiceRegistry loggingServices = Mock()
+    PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
 
-    def setup() {        
+    BuildActionsFactory factory = new BuildActionsFactory(
+            loggingServices, Stub(DefaultCommandLineConverter), new DaemonCommandLineConverter(),
+            Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
+            Stub(LayoutToPropertiesConverter), Stub(PropertiesToStartParameterConverter),
+            propertiesToDaemonParametersConverter)
+
+    def setup() {
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
     }
 
     def "executes build"() {
-        configurer.configureParameters(_ as StartParameter) >> new DaemonParameters()
-
         when:
         def action = convert('args')
 
@@ -59,8 +64,6 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     def "by default daemon is not used"() {
-        configurer.configureParameters(_) >> new DaemonParameters().setEnabled(false)
-
         when:
         def action = convert('args')
 
@@ -69,8 +72,6 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     def "daemon is used when command line option is used"() {
-        configurer.configureParameters(_) >> new DaemonParameters().setEnabled(false)
-
         when:
         def action = convert('--daemon', 'args')
 
@@ -78,19 +79,7 @@ class BuildActionsFactoryTest extends Specification {
         isDaemon action
     }
 
-    def "daemon is used when daemon parameters say so"() {
-        configurer.configureParameters(_) >> new DaemonParameters().setEnabled(true)
-
-        when:
-        def action = convert('args')
-
-        then:
-        isDaemon action
-    }
-
     def "does not use daemon when no-daemon command line option issued"() {
-        configurer.configureParameters(_) >> new DaemonParameters().setEnabled(true)
-
         when:
         def action = convert('--no-daemon', 'args')
 
@@ -99,8 +88,6 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     def "stops daemon"() {
-        configurer.configureParameters(_) >> new DaemonParameters()
-
         when:
         def action = convert('--stop')
 
@@ -110,8 +97,6 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     def "runs daemon in foreground"() {
-        configurer.configureParameters(_) >> new DaemonParameters()
-
         when:
         def action = convert('--foreground')
 
@@ -124,7 +109,7 @@ class BuildActionsFactoryTest extends Specification {
         given:
         def javaHome = tmpDir.createDir("javahome")
         javaHome.createFile(OperatingSystem.current().getExecutableName("bin/java"))
-        configurer.configureParameters(_) >> new DaemonParameters().setJavaHome(javaHome.canonicalFile)
+        propertiesToDaemonParametersConverter.convert(_, _) >> { args -> args[1].javaHome = javaHome }
 
         when:
         def action = convert()
@@ -149,7 +134,7 @@ class BuildActionsFactoryTest extends Specification {
     void isInProcess(def action) {
         // Relying on impl of Actions.toAction(Runnable)
         assert action.runnable instanceof RunBuildAction
-        assert action.runnable.executer instanceof InProcessGradleLauncherActionExecuter
+        assert action.runnable.executer instanceof InProcessBuildActionExecuter
     }
 
     void isSingleUseDaemon(def action) {

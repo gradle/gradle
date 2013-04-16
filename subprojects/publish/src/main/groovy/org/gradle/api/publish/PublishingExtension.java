@@ -26,6 +26,29 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
  * This new publishing mechanism will eventually replace the current mechanism of upload tasks and configurations. At this time, it is an
  * incubating feature and under development.
  *
+ * <p>
+ * The PublishingExtension is a {@link org.gradle.api.plugins.DeferredConfigurable} model element, meaning that extension will not be configured as late as possible in the build.
+ * So any 'publishing' configuration blocks are not evaluated until either:
+ * <ol>
+ *     <li>The project is about to execute, or</li>
+ *     <li>he publishing extension is referenced as an instance, as opposed to via a configuration closure.</li>
+ * </ol>
+ * <p>
+ * A 'publishing' configuration block does not need to dereference the publishing extension, and so will be evaluated late. eg:
+ * <pre>
+ *     publishing {
+ *         publications { ... }
+ *         repositories.maven { ... }
+ *     }
+ * </pre>
+ *
+ * <p>
+ * Any use that accesses the publishing extension as an instance does require the publishing extension to be realised, forcing all configuration blocks to be evaluated. eg:
+ * <pre>
+ *     publishing.publications { ... }
+ *     publishing.repositories.maven { ... }
+ * </pre>
+ *
  * @since 1.3
  */
 @Incubating

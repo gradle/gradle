@@ -22,10 +22,11 @@ import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.initialization.BuildLayoutParameters
 
 class DaemonClientServicesTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
-    final DaemonParameters parameters = new DaemonParameters(baseDir: tmp.testDirectory)
+    final DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters()).setBaseDir(tmp.testDirectory)
     final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), parameters, System.in)
 
     def "makes a DaemonRegistry available"() {

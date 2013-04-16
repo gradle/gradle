@@ -16,45 +16,55 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.tasks.DefaultClasspath;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.language.base.BinariesContainer;
+import org.gradle.language.base.internal.DefaultClasspath;
 import org.gradle.api.internal.tasks.DefaultJavaSourceSet;
-import org.gradle.api.internal.tasks.DefaultProjectSourceSet;
+import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.jvm.ClassDirectoryBinary;
+import org.gradle.language.jvm.JvmBinaryContainer;
+import org.gradle.language.jvm.JvmLanguageSourceSet;
+import org.gradle.language.jvm.plugins.JvmLanguagePlugin;
 
 import javax.inject.Inject;
+import java.util.concurrent.Callable;
 
 /**
- * Plugin for compiling Java code. Applies the {@link JvmLanguagePlugin}.
- * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link ClassDirectoryBinary}.
- * Registers the {@link JavaSourceSet} element type for each {@link FunctionalSourceSet} added to {@link ProjectSourceSet}.
+ * Plugin for compiling Java code. Applies the {@link org.gradle.language.jvm.plugins.JvmLanguagePlugin}.
+ * Adds a {@link JavaCompile} task for each {@link JavaSourceSet} added to a {@link org.gradle.language.jvm.ClassDirectoryBinary}.
+ * Registers the {@link JavaSourceSet} element type for each {@link org.gradle.language.base.FunctionalSourceSet} added to {@link org.gradle.language.base.ProjectSourceSet}.
  */
 @Incubating
 public class JavaLanguagePlugin implements Plugin<Project> {
     private final Instantiator instantiator;
+    private final FileResolver fileResolver;
 
     @Inject
-    public JavaLanguagePlugin(Instantiator instantiator) {
+    public JavaLanguagePlugin(Instantiator instantiator, FileResolver fileResolver) {
         this.instantiator = instantiator;
+        this.fileResolver = fileResolver;
     }
 
     public void apply(final Project target) {
-        final JvmLanguagePlugin jvmLanguagePlugin = target.getPlugins().apply(JvmLanguagePlugin.class);
+        target.getPlugins().apply(JvmLanguagePlugin.class);
 
-        JvmBinaryContainer jvmBinaryContainer = jvmLanguagePlugin.getJvmBinaryContainer();
+        JvmBinaryContainer jvmBinaryContainer = (JvmBinaryContainer) target.getExtensions().getByType(BinariesContainer.class).getByName("jvm");
         jvmBinaryContainer.all(new Action<ClassDirectoryBinary>() {
             public void execute(final ClassDirectoryBinary binary) {
                 binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
                     public void execute(JavaSourceSet javaSourceSet) {
-                        JavaCompile compileTask = (JavaCompile) binary.getCompileTask(); // TODO: can't simply cast
-                        if (compileTask == null) {
-                            compileTask = target.getTasks().add(binary.getTaskName("compile", "java"), JavaCompile.class);
-                            jvmLanguagePlugin.configureCompileTask(compileTask, javaSourceSet, binary);
-                            binary.setCompileTask(compileTask);
-                            binary.getClassesTask().dependsOn(compileTask);
-                        }
+                        // TODO: handle case where binary has multiple JavaSourceSet's
+                        JavaCompile compileTask = target.getTasks().create(binary.getTaskName("compile", "java"), JavaCompile.class);
+                        configureCompileTask(compileTask, javaSourceSet, binary);
+                        binary.getClassesTask().dependsOn(compileTask);
                     }
                 });
             }
@@ -66,10 +76,36 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 functionalSourceSet.registerFactory(JavaSourceSet.class, new NamedDomainObjectFactory<JavaSourceSet>() {
                     public JavaSourceSet create(String name) {
                         return instantiator.newInstance(DefaultJavaSourceSet.class, name,
-                                instantiator.newInstance(DefaultSourceDirectorySet.class),
-                                instantiator.newInstance(DefaultClasspath.class), functionalSourceSet);
+                                instantiator.newInstance(DefaultSourceDirectorySet.class, name, fileResolver),
+                                instantiator.newInstance(DefaultClasspath.class, fileResolver,
+                                        target.getTasks()), functionalSourceSet);
                     }
                 });
+            }
+        });
+    }
+
+
+    /**
+     * Preconfigures the specified compile task based on the specified source set and class directory binary.
+     *
+     * @param compile the compile task to be preconfigured
+     * @param sourceSet the source set for the compile task
+     * @param binary the binary for the compile task
+     */
+    public void configureCompileTask(AbstractCompile compile, final JvmLanguageSourceSet sourceSet, final ClassDirectoryBinary binary) {
+        compile.setDescription(String.format("Compiles %s.", sourceSet));
+        compile.setSource(sourceSet.getSource());
+        compile.dependsOn(sourceSet);
+        ConventionMapping conventionMapping = compile.getConventionMapping();
+        conventionMapping.map("classpath", new Callable<Object>() {
+            public Object call() throws Exception {
+                return sourceSet.getCompileClasspath().getFiles();
+            }
+        });
+        conventionMapping.map("destinationDir", new Callable<Object>() {
+            public Object call() throws Exception {
+                return binary.getClassesDir();
             }
         });
     }

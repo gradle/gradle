@@ -16,20 +16,22 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
 
-public class InternalConnectionBackedConsumerConnection extends AdaptedConnection {
+public class InternalConnectionBackedConsumerConnection extends AbstractPre12ConsumerConnection {
     private final InternalConnection connection;
 
-    public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate) {
-        super(delegate);
+    public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ProtocolToModelAdapter adapter) {
+        super(delegate, providerMetaData, adapter);
         connection = (InternalConnection) delegate;
     }
 
     @Override
-    protected <T> T doGetModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-        return connection.getTheModel(type, operationParameters);
+    protected Object doGetModel(Class<?> protocolType, ConsumerOperationParameters operationParameters) {
+        return connection.getTheModel(protocolType, operationParameters);
     }
 }

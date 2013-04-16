@@ -21,5 +21,7 @@ package org.gradle.tooling.internal.protocol;
  * Corresponding client facing model is {@link org.gradle.tooling.model.build.BuildEnvironment}
  * <p>
  * by Szczepan Faber, created at: 12/17/11
+ *
+ * @since 1.0-milestone-8
  */
 public interface InternalBuildEnvironment extends InternalProtocolInterface {}

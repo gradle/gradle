@@ -18,8 +18,8 @@ package org.gradle.api.tasks.diagnostics.internal;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.gradle.api.Task;
-import org.gradle.api.internal.DirectedGraph;
-import org.gradle.api.internal.GraphAggregator;
+import org.gradle.internal.graph.DirectedGraph;
+import org.gradle.internal.graph.GraphAggregator;
 import org.gradle.util.GUtil;
 import org.gradle.util.Path;
 
@@ -49,7 +49,7 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
             }
         }
         GraphAggregator<Task> aggregator = new GraphAggregator<Task>(new DirectedGraph<Task, Object>() {
-            public void getNodeValues(Task node, Collection<Object> values, Collection<Task> connectedNodes) {
+            public void getNodeValues(Task node, Collection<? super Object> values, Collection<? super Task> connectedNodes) {
                 for (Task dep : node.getTaskDependencies().getDependencies(node)) {
                     if (containsTaskWithPath(tasks, dep.getPath())) {
                         connectedNodes.add(dep);

@@ -17,8 +17,8 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.FunctionalSourceSet;
+import org.gradle.language.base.Classpath;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.api.tasks.JavaSourceSet;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -67,6 +67,6 @@ public class DefaultJavaSourceSet implements JavaSourceSet {
 
 
     public String toString() {
-        return String.format("%s/%s source set", parent.getName(), name);
+        return String.format("source set '%s:%s'", parent.getName(), name);
     }
 }

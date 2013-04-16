@@ -151,6 +151,58 @@
         </sample>
         <para>For more information about task dependencies, see the <apilink class="org.gradle.api.Task"/> API.</para>
     </section>
+    <section id="sec:ordering_tasks">
+        <title>Ordering tasks</title>
+        <note>
+            <para>
+                Task ordering is an <firstterm>incubating</firstterm> feature (see <xref linkend="sec:incubating_state"/>).
+            </para>
+        </note>
+        <para>
+            In some cases it is useful to control the <emphasis>order</emphasis> in which 2 tasks will execute, without introducing an explicit dependency between those tasks.
+            The primary difference between a task <emphasis>ordering</emphasis> and a task <emphasis>dependency</emphasis> is that an ordering rule does not influence which tasks
+            will be executed, only the order in which they will be executed.
+        </para>
+        <para>
+            Task ordering can be useful in a number of scenarios:
+        </para>
+        <itemizedlist>
+            <listitem>Enforce sequential ordering of tasks: eg. 'build' never runs before 'clean'.</listitem>
+            <listitem>Run build validations early in the build: eg. validate I have the correct credentials before starting the work for a release build.</listitem>
+            <listitem>Get feedback faster by running quick verification tasks before long verification tasks: eg. unit tests should run before integration tests.</listitem>
+            <listitem>A task that aggregates the results of all tasks of a particular type: eg. test report task combines the outputs of all executed test tasks.</listitem>
+        </itemizedlist>
+        <para>
+            Presently, the only task ordering rule available is "<emphasis>must run after</emphasis>", which allows you to specify that <literal>taskB</literal> must always run after <literal>taskA</literal>,
+            whenever both <literal>taskA</literal> and <literal>taskB</literal> are scheduled for execution. This is expressed as <literal>taskB.mustRunAfter(taskA)</literal>.
+            With this rule present it is still possible to execute <literal>taskA</literal> without <literal>taskB</literal> and vice-versa.
+        </para>
+        <note>
+            <para>
+                While 'must-run-after' is useful in many cases, there are times when your ordering requirements are slightly different.
+                An example is an ordering preference for faster feedback, where the ordering is helpful but not strictly required.
+                We plan to add different types of task ordering in the future, to better support the full gamut of ordering use cases.
+            </para>
+        </note>
+        <sample id="mustRunAfter" dir="userguide/tasks/mustRunAfter" title="Adding a 'must run after' task ordering">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskY taskX"/>
+        </sample>
+        <para>In the example, it is still possible to execute <literal>taskY</literal> without causing <literal>taskX</literal> to run:</para>
+        <sample id="mustRunAfterSingleTask" dir="userguide/tasks/mustRunAfter" title="Task ordering does not imply task execution">
+            <output args="-q taskY"/>
+        </sample>
+        <para>To specify a "must run after" ordering between 2 tasks, you use the <apilink class="org.gradle.api.Task" method="mustRunAfter"/> method.
+            This method accepts a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
+        </para>
+        <para>
+            Note that "<literal>B.mustRunAfter(A)</literal>" does not imply any execution dependency between the tasks:
+        </para>
+        <itemizedlist>
+            <listitem>It is possible to execute tasks <literal>A</literal> and <literal>B</literal> independently. The ordering rule only has an effect when both tasks are scheduled for execution.</listitem>
+            <listitem>When run with <literal>--continue</literal>, it is possible for <literal>B</literal> to execute in the event that <literal>A</literal> fails.</listitem>
+        </itemizedlist>
+    </section>
     <section>
         <title>Adding a description to a task</title>
         <para>You can add a description to your task. This description is for example displayed when executing
@@ -228,7 +280,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:up_to_date_checks">
         <title>Skipping tasks that are up-to-date</title>
         <para>If you are using one of the tasks that come with Gradle, such as a task added by the Java plugin,
             you might have noticed that Gradle will skip tasks that are up-to-date. This behaviour is also available

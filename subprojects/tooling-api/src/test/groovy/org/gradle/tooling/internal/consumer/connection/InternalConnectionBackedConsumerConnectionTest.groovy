@@ -15,16 +15,20 @@
  */
 package org.gradle.tooling.internal.consumer.connection
 
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.protocol.InternalConnection
 import spock.lang.Specification
 
 class InternalConnectionBackedConsumerConnectionTest extends Specification {
     final InternalConnection target = Mock()
     final ConsumerOperationParameters parameters = Mock()
-    final InternalConnectionBackedConsumerConnection connection = new InternalConnectionBackedConsumerConnection(target)
+    final ProtocolToModelAdapter adapter = Mock()
+    final VersionDetails versionDetails = Mock()
+    final InternalConnectionBackedConsumerConnection connection = new InternalConnectionBackedConsumerConnection(target, versionDetails, adapter)
 
-    def "builds model using getTheModel() method"() {
+    def "builds model using connection's getTheModel() method"() {
         when:
         def result = connection.run(String.class, parameters)
 
@@ -32,11 +36,13 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         result == 'ok'
 
         and:
-        1 * target.getTheModel(String.class, parameters) >> 'ok'
+        1 * versionDetails.mapModelTypeToProtocolType(String.class) >> Integer.class
+        1 * target.getTheModel(Integer.class, parameters) >> 12
+        1 * adapter.adapt(String.class, 12, _) >> 'ok'
         0 * target._
     }
 
-    def "runs build using executeBuild() method"() {
+    def "runs build using connection's executeBuild() method"() {
         when:
         connection.run(Void.class, parameters)
 

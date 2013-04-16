@@ -18,6 +18,35 @@ package org.gradle.groovy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class GroovyBasePluginIntegrationTest extends AbstractIntegrationSpec {
+    def "defaults groovyClasspath to 'groovy' configuration if the latter is non-empty"() {
+        executer.withDeprecationChecksDisabled()
+        file("build.gradle") << """
+apply plugin: "groovy-base"
+
+sourceSets {
+    custom
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    groovy "org.codehaus.groovy:groovy-all:2.1.2"
+}
+
+task groovydoc(type: Groovydoc)
+
+task verify << {
+    assert compileCustomGroovy.groovyClasspath.is(configurations.groovy)
+    assert groovydoc.groovyClasspath.is(configurations.groovy)
+}
+"""
+
+        expect:
+        succeeds("verify")
+    }
+
     def "defaults Groovy class path to inferred Groovy dependency if Groovy configuration is empty"() {
         file("build.gradle") << """
 apply plugin: "groovy-base"
@@ -49,12 +78,12 @@ task verify << {
 
         where:
         dependency                                  | jarFile
-        "org.codehaus.groovy:groovy-all:2.0.5"      | "groovy-all-2.0.5.jar"
-        "org.codehaus.groovy:groovy:2.0.5"          | "groovy-2.0.5.jar"
-        "org.codehaus.groovy:groovy-all:2.0.5:indy" | "groovy-all-2.0.5-indy.jar"
+        "org.codehaus.groovy:groovy-all:2.1.2"      | "groovy-all-2.1.2.jar"
+        "org.codehaus.groovy:groovy:2.1.2"          | "groovy-2.1.2.jar"
+        "org.codehaus.groovy:groovy-all:2.1.2:indy" | "groovy-all-2.1.2-indy.jar"
     }
 
-    def "defaults groovyClasspath to (empty) Groovy configuration if Groovy library isn't found on class path"() {
+    def "only resolves source class path feeding into inferred Groovy class path if/when the latter is actually used (but not during autowiring)"() {
         file("build.gradle") << """
 apply plugin: "groovy-base"
 
@@ -66,13 +95,19 @@ repositories {
     mavenCentral()
 }
 
-task groovydoc(type: Groovydoc)
+dependencies {
+    customCompile "org.codehaus.groovy:groovy-all:2.1.2"
+}
+
+task groovydoc(type: Groovydoc) {
+    classpath = sourceSets.custom.runtimeClasspath
+}
 
 task verify << {
-    assert compileCustomGroovy.groovyClasspath.is(configurations.groovy)
-    assert groovydoc.groovyClasspath.is(configurations.groovy)
+    assert configurations.customCompile.state.toString() == "UNRESOLVED"
+    assert configurations.customRuntime.state.toString() == "UNRESOLVED"
 }
-"""
+        """
 
         expect:
         succeeds("verify")

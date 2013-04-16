@@ -15,6 +15,8 @@
  */
 package org.gradle.profile;
 
+import java.util.Comparator;
+
 /**
  * A general operation.
  */
@@ -23,4 +25,21 @@ public abstract class Operation {
      * Returns the total elapsed execution time of this operation in millis.
      */
     abstract long getElapsedTime();
+
+    abstract String getDescription();
+
+    /**
+     * @return comparator that compares operations, slowest first, then alphabetically
+     */
+    public static Comparator<? super Operation> comparator() {
+        return new Comparator<Operation>() {
+            public int compare(Operation o1, Operation o2) {
+                int byElapsedTime = Long.valueOf(o2.getElapsedTime()).compareTo(Long.valueOf(o1.getElapsedTime()));
+                if (byElapsedTime!=0) {
+                    return byElapsedTime;
+                }
+                return o1.getDescription().compareTo(o2.getDescription());
+            }
+        };
+    }
 }

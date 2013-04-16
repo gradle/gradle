@@ -302,6 +302,8 @@ For example, a simple source file that includes `Windows.h` generates 2.7Mb in t
 
 For GCC, can run with `-M` or `-MM` and parse the resulting make file to extract the header dependencies.
 
+The implementation will also remove stale object files.
+
 # Expose only public header files for a library
 
 TBD

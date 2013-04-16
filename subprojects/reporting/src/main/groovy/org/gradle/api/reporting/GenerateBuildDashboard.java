@@ -123,7 +123,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
     @TaskAction
     void run() {
         if (getReports().getHtml().isEnabled()) {
-            BuildDashboardGenerator generator = new BuildDashboardGenerator(getEnabledInputReports(), reports.getHtml().getDestination());
+            BuildDashboardGenerator generator = new BuildDashboardGenerator(getEnabledInputReports(), reports.getHtml().getEntryPoint());
             generator.generate();
         }else {
             setDidWork(false);

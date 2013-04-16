@@ -16,11 +16,14 @@
 
 package org.gradle.plugins.ide.idea.model
 
-import org.gradle.internal.SystemProperties
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 
 import spock.lang.Specification
 
 class ProjectLibraryTest extends Specification {
+    @Rule TestNameTestDirectoryProvider testDirProvider
+
     def "has friendly defaults"() {
         def library = new ProjectLibrary()
 
@@ -46,7 +49,7 @@ class ProjectLibraryTest extends Specification {
     }
 
     def "generates correct XML"() {
-        def userHome = new File(SystemProperties.javaIoTmpDir)
+        def userHome = testDirProvider.testDirectory
 
         def lib = new ProjectLibrary(name: "lib",
                 classes: [new File(userHome, "class/one.jar"), new File(userHome, "class/two.jar")] as LinkedHashSet,

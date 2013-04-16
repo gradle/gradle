@@ -38,7 +38,7 @@ class DependencyInsightReportTaskSpec extends Specification {
     }
 
     def "fails if dependency to include missing"() {
-        def conf = project.configurations.add("foo")
+        def conf = project.configurations.create("foo")
         task.configuration = conf
 
         when:
@@ -58,7 +58,7 @@ class DependencyInsightReportTaskSpec extends Specification {
 
     def "can set spec and configuration directly"() {
         when:
-        def conf = project.configurations.add("foo")
+        def conf = project.configurations.create("foo")
         task.configuration = conf
         task.dependencySpec = { true } as Spec
         then:
@@ -68,7 +68,7 @@ class DependencyInsightReportTaskSpec extends Specification {
 
     def "can set spec and configuration via methods"() {
         when:
-        project.configurations.add("foo")
+        project.configurations.create("foo")
         task.setConfiguration 'foo'
         task.setDependencySpec 'bar'
         then:

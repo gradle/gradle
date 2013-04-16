@@ -308,7 +308,7 @@
                     </link>
                 </td>
                 <td>-</td>
-                <td>-</td>
+                <td><literal>java</literal>, <literal>war</literal></td>
                 <td>
                     <para>This plugin provides a new DSL to support publishing artifacts to Ivy repositories, which improves on the existing DSL.
                     </para>
@@ -572,6 +572,21 @@
                     <para>Provides integration with the
                         <ulink url="http://www.sonarsource.org">Sonar</ulink>
                         code quality platform. Superceeds the <link linkend='sonar_plugin'><literal>sonar</literal></link> plugin.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='jacoco_plugin'>
+                        <literal>jacoco</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Provides integration with the
+                        <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>
+                            code coverage library for Java.
                     </para>
                 </td>
             </tr>

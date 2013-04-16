@@ -80,7 +80,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         def module = mavenRepo.module('org.gradle.test', 'empty-project', '1.0')
-        module.assertPublished()
+        module.assertPublishedAsPomModule()
         module.parsedPom.scopes.isEmpty()
 
         and:
@@ -196,11 +196,11 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring the 'publishing' extension")
+        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'.")
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 
-    @Ignore("Not yet implemented - currently the second publication will overwrite") // TODO:DAZ fix in validation story
+    @Ignore("Not yet implemented - currently the second publication will overwrite")
     def "cannot publish multiple maven publications with the same identity"() {
         given:
         settingsFile << "rootProject.name = 'bad-project'"
@@ -229,7 +229,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'bad-project'")
+        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'.")
         failure.assertHasCause("Publication with name 'mavenJava' already exists")
     }
 }

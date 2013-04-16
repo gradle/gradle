@@ -61,8 +61,8 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
             publications {
                 ivy(IvyPublication) {
                     configurations {
-                        foo
-                        bar
+                        foo {}
+                        bar {}
                         "default" {
                             extend "foo"
                         }
@@ -108,8 +108,8 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
             publications {
                 ivy(IvyPublication) {
                     configurations {
-                        foo
-                        bar
+                        foo {}
+                        bar {}
                         "default" {
                             extend "foo"
                         }
@@ -243,7 +243,7 @@ class IvyPublishArtifactCustomisationIntegTest extends AbstractIvyPublishIntegTe
             publications {
                 ivy(IvyPublication) {
                     configurations {
-                        runtime
+                        runtime {}
                         base {}
                         custom {
                             extend "runtime"

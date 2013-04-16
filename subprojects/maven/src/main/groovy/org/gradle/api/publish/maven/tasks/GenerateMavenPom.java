@@ -53,9 +53,9 @@ public class GenerateMavenPom extends DefaultTask {
     }
 
     /**
-     * The Maven pom.
+     * The Maven POM.
      *
-     * @return The Maven pom.
+     * @return The Maven POM.
      */
     public MavenPom getPom() {
         return pom;
@@ -66,9 +66,9 @@ public class GenerateMavenPom extends DefaultTask {
     }
 
     /**
-     * The file the pom will be written to.
+     * The file the POM will be written to.
      *
-     * @return The file the pom will be written to
+     * @return The file the POM will be written to
      */
     @OutputFile
     public File getDestination() {

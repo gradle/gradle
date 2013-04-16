@@ -36,7 +36,7 @@ public interface Report extends Serializable, Configurable<Report> {
     /**
      * The symbolic name of this report.
      *
-     * The name of the report usually indicates the format (e.g. xml, html etc.) but can be anything.
+     * The name of the report usually indicates the format (e.g. XML, HTML etc.) but can be anything.
      *
      * When part of a {@link ReportContainer}, reports are accessed via their name. That is, given a report container variable
      * named {@code reports} containing a report who's {@code getName()} returns {@code "html"}, the report could be accessed

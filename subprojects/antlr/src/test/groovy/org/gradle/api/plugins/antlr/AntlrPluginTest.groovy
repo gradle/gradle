@@ -35,7 +35,7 @@ class AntlrPluginTest extends Specification {
         test.antlr.srcDirs == [project.file('src/test/antlr')] as Set
 
         when:
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
 
         then:
         def custom = project.sourceSets.custom
@@ -56,7 +56,7 @@ class AntlrPluginTest extends Specification {
         project.tasks.compileTestJava.taskDependencies.getDependencies(null).contains(test)
 
         when:
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
 
         then:
         def custom = project.tasks.generateCustomGrammarSource

@@ -477,7 +477,7 @@ TODO - PublishArtifactSet currently extends DomainObjectSet.
     }
 
     class IvyXmlArtifact implements PublishArtifact {
-        // Contains an ivy xml artifact generated from a Component
+        // Contains an ivy XML artifact generated from a Component
     }
 
 #### Classpaths and other paths

@@ -56,13 +56,13 @@ class GroovyBasePluginTest {
     }
 
     @Test void appliesMappingsToNewSourceSet() {
-        def sourceSet = project.sourceSets.add('custom')
+        def sourceSet = project.sourceSets.create('custom')
         assertThat(sourceSet.groovy.displayName, equalTo("custom Groovy source"))
         assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/custom/groovy"))))
     }
 
     @Test void addsCompileTaskToNewSourceSet() {
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
 
         def task = project.tasks['compileCustomGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
@@ -71,7 +71,7 @@ class GroovyBasePluginTest {
     }
 
     @Test void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
-        project.sourceSets.add('custom')
+        project.sourceSets.create('custom')
         def task = project.tasks['customClasses']
         assertThat(task, dependsOn(hasItem('compileCustomGroovy')))
     }
@@ -81,23 +81,5 @@ class GroovyBasePluginTest {
         assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
         assertThat(task.docTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
         assertThat(task.windowTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
-    }
-
-    @Test void defaultsGroovyClasspathToGroovyConfigurationIfTheLatterIsNonEmpty() {
-        project.sourceSets.add('custom')
-        def configuration = project.configurations.groovy
-        project.dependencies {
-            groovy "org.codehaus.groovy:groovy-all:2.0.5"
-        }
-
-        def compileTask = project.tasks.compileCustomGroovy
-        assertSame(configuration, compileTask.groovyClasspath)
-
-        def groovydocTask = project.task('groovydoc', type: Groovydoc)
-        assertSame(configuration, groovydocTask.groovyClasspath)
-    }
-
-    // see GroovyBasePluginIntegrationTest
-    @Test void defaultsGroovyClasspathToInferredGroovyDependencyIfGroovyConfigurationIsEmpty() {
     }
 }

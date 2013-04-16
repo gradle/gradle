@@ -115,7 +115,7 @@ public class MavenPluginTest {
         MavenRepositoryHandlerConvention convention = new DslObject(task.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
         assertThat(convention, notNullValue());
 
-        task = project.getTasks().add("customUpload", Upload.class);
+        task = project.getTasks().create("customUpload", Upload.class);
         convention = new DslObject(task.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
         assertThat(convention, notNullValue());
     }

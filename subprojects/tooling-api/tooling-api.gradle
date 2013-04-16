@@ -2,15 +2,17 @@ import org.gradle.build.*
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
 dependencies {
-    groovy libraries.groovy
     compile project(path: ':core', configuration: "publishCompileWithProjectJar")
     compile project(':messaging')
     compile project(':wrapper')
     compile project(':baseServices')
     publishCompile libraries.slf4j_api
 
+    testCompile libraries.groovy
+
     // lots of integTest errors otherwise
     integTestRuntime project(':ide')
+    integTestRuntime project(':buildComparison')
 }
 
 useTestFixtures()

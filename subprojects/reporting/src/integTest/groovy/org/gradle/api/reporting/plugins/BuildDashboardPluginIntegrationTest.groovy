@@ -60,7 +60,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
                 dependencies {
                     codenarc 'org.codenarc:CodeNarc:0.16.1'
-                    groovy localGroovy()
+                    compile localGroovy()
                 }
             }
         """
@@ -90,6 +90,14 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     void 'running buildDashboard task after some report generating task generates link to it in the dashboard'() {
         when:
         run('check', BUILD_DASHBOARD_TASK_NAME)
+
+        then:
+        dashboardLinksCount == 2
+    }
+
+    void 'buildDashboard task always runs after report generating tasks'() {
+        when:
+        run(BUILD_DASHBOARD_TASK_NAME, 'check')
 
         then:
         dashboardLinksCount == 2
@@ -143,9 +151,53 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         setupSubproject()
 
         when:
-        run('check', BUILD_DASHBOARD_TASK_NAME)
+        run(BUILD_DASHBOARD_TASK_NAME, 'check')
 
         then:
         dashboardLinksCount == 3
+    }
+
+    void 'dashboard lists jacoco reports'() {
+        given:
+        writeJavaSources()
+        buildFile << """
+        apply plugin:'jacoco'
+
+        dependencies{
+            testCompile "junit:junit:4.11"
+        }
+        """
+
+        when:
+        run("test", "jacocoTestReport", BUILD_DASHBOARD_TASK_NAME, 'check')
+        then:
+        dashboardLinksCount == 3
+        jacocoLinks() == 1
+
+    }
+
+    private int jacocoLinks() {
+        Jsoup.parse(buildDashboardFile, null).select("ul li a:contains(':jacocoTestReport')").size()
+    }
+
+    private void writeJavaSources() {
+        file("src/main/java/org/gradle/test/SimpleJava.java").createFile().text = """
+    package org.gradle.test;
+
+    public class SimpleJava {
+        public void sayhello(){
+            System.out.println("hello");
+        }
+    }"""
+
+        file("src/test/java/org/gradle/test/SimpleJavaTest.java").createFile().text = """
+            package org.gradle.test;
+            import org.junit.Test;
+
+            public class SimpleJavaTest {
+                @Test public void sayhello(){
+                    new SimpleJava().sayhello();
+                }
+            }"""
     }
 }

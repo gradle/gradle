@@ -160,7 +160,7 @@
     <section>
         <title>Dependency management</title>
         <para>
-            Scala projects need to add a <literal>scala-library</literal> dependency to the appropriate configuration(s). This dependency will then
+            Scala projects need to add a <literal>scala-library</literal> dependency to the appropriate compile configuration(s). This dependency will then
             be used as a compile and runtime dependency for the project's Scala code. It will also be used to infer a <literal>scala-compiler</literal>
             dependency for executing the Scala compiler and Scaladoc tool.
             <footnote>
@@ -185,11 +185,6 @@
         <sample id="declareScalaTestDependency" dir="userguide/scala/scalaDependency" title="Declaring a Scala dependency for test code">
             <sourcefile file="build.gradle" snippet="scala-test-dependency"/>
         </sample>
-        <para>
-            In earlier Gradle versions, it was necessary to add a <literal>scala-compiler</literal> dependency to the <literal>scalaTools</literal>
-            configuration. Although typically no longer necessary (because the compiler dependency is inferred), this is still supported for
-            backwards compatibility.
-        </para>
     </section>
 
     <section>

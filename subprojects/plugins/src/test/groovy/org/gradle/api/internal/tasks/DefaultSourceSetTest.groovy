@@ -37,7 +37,7 @@ class DefaultSourceSetTest {
     @Test
     public void hasUsefulDisplayName() {
         SourceSet sourceSet = sourceSet('int-test')
-        assertThat(sourceSet.toString(), equalTo('source set int test'));
+        assertThat(sourceSet.toString(), equalTo("source set 'int test'"));
     }
 
     @Test public void defaultValues() {

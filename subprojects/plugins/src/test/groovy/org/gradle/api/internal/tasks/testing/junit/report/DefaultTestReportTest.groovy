@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -97,6 +98,8 @@ class DefaultTestReportTest extends Specification {
         index.assertHasLinkTo('org.gradle')
         index.assertHasLinkTo('org.gradle.sub')
         index.assertHasLinkTo('org.gradle.Test', 'org.gradle.Test')
+        index.packageDetails("org.gradle").assertSuccessRate(100)
+        index.packageDetails("org.gradle.sub").assertSuccessRate(100)
 
         reportDir.file("style.css").assertIsFile()
 
@@ -155,6 +158,8 @@ class DefaultTestReportTest extends Specification {
         index.assertHasFailures(2)
         index.assertHasSuccessRate(50)
         index.assertHasFailedTest('org.gradle.Test', 'test1')
+        index.packageDetails("org.gradle").assertSuccessRate(33)
+        index.packageDetails("org.gradle.sub").assertSuccessRate(100)
 
         def packageFile = results(reportDir.file('org.gradle.html'))
         packageFile.assertHasTests(3)
@@ -426,17 +431,22 @@ class TestResultsFixture {
     }
 
     void assertHasLinkTo(String target, String display = target) {
-        assert content.select("a[href=${target}.html]").find{it.text() == display}
+        assert content.select("a[href=${target}.html]").find { it.text() == display }
     }
 
     void assertHasFailedTest(String className, String testName) {
         def tab = findTab('Failed tests')
         assert tab != null
-        assert tab.select("a[href=${className}.html#$testName]").find{it.text() == testName}
+        assert tab.select("a[href=${className}.html#$testName]").find { it.text() == testName }
     }
 
     void assertHasTest(String testName) {
         assert findTestDetails(testName)
+    }
+
+    PackageDetails packageDetails(String packageName) {
+       def packageElement = findPackageDetails(packageName)
+       new PackageDetails(packageElement)
     }
 
     void assertTestIgnored(String testName) {
@@ -449,29 +459,46 @@ class TestResultsFixture {
         assert detailsRow.select("tr > td:eq(2)").text() == 'failed'
         def tab = findTab('Failed tests')
         assert tab != null && !tab.isEmpty()
-        assert tab.select("pre").find {it.text() == stackTrace.trim() }
+        assert tab.select("pre").find { it.text() == stackTrace.trim() }
     }
 
     private def findTestDetails(String testName) {
         def tab = findTab('Tests')
-        def anchor = tab.select("TD").find {it.text() == testName}
+        def anchor = tab.select("TD").find { it.text() == testName }
+        return anchor?.parent()
+    }
+
+    private def findPackageDetails(String packageName) {
+        def tab = findTab('Packages')
+        def anchor = tab.select("TD").find { it.text() == packageName }
         return anchor?.parent()
     }
 
     void assertHasStandardOutput(String stdout) {
         def tab = findTab('Standard output')
         assert tab != null
-        assert tab.select("SPAN > PRE").find{it.text() == stdout.trim() }
+        assert tab.select("SPAN > PRE").find { it.text() == stdout.trim() }
     }
 
     void assertHasStandardError(String stderr) {
         def tab = findTab('Standard error')
         assert tab != null
-        assert tab.select("SPAN > PRE").find{it.text() == stderr.trim() }
+        assert tab.select("SPAN > PRE").find { it.text() == stderr.trim() }
     }
 
     private def findTab(String title) {
         def tab = content.select("div.tab:has(h2:contains($title))")
         return tab
+    }
+
+    class PackageDetails{
+        private final Element packageElement
+        PackageDetails(Element packageElement){
+            this.packageElement = packageElement
+        }
+
+        void assertSuccessRate(int expected){
+            assert packageElement.select("tr > td:eq(4)").text() == "${expected}%"
+        }
     }
 }

@@ -16,10 +16,7 @@
 
 package org.gradle.api.publish;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.*;
 
 /**
  * A {@code PublicationContainer} is responsible for creating and managing {@link Publication} instances.
@@ -30,48 +27,22 @@ import org.gradle.api.NamedDomainObjectSet;
  *     <li>The {@link org.gradle.api.publish.ivy.plugins.IvyPublishPlugin} makes it possible to create {@link org.gradle.api.publish.ivy.IvyPublication} instances.</li>
  * </ul>
  *
- * See the documentation for {@link PublishingExtension#publications(org.gradle.api.Action)} for more examples of how to create and configure publications.
+ *
+ * <pre autoTested="true">
+ * apply plugin: 'ivy-publish'
+ *
+ * publishing.publications.create('publication-name', IvyPublication) {
+ *     // Configure the ivy publication here
+ * }
+ * </pre>
+ *
+ * The usual way to add publications is via a configuration block.
+ * See the documentation for {@link PublishingExtension#publications(org.gradle.api.Action)} for examples of how to create and configure publications.
  *
  * @since 1.3
  * @see Publication
  * @see PublishingExtension
  */
 @Incubating
-public interface PublicationContainer extends NamedDomainObjectSet<Publication> {
-
-    /**
-     * Creates a publication with the specified name and type, adding it to the container.
-     *
-     * <pre autoTested="true">
-     * apply plugin: 'maven-publish'
-     *
-     * publishing.publications.add('publication-name', MavenPublication)
-     * </pre>
-     *
-     * @param name The publication name.
-     * @param type The publication type.
-     * @return The added publication
-     * @throws InvalidUserDataException If type is not a valid publication type, or if a publication named "name" already exists.
-     */
-    <T extends Publication> T add(String name, Class<T> type) throws InvalidUserDataException;
-
-    /**
-     * Creates a publication with the specified name and type, adding it to the container and configuring it with the supplied action.
-     * A {@link groovy.lang.Closure} can be supplied in place of an action, through type coercion.
-     *
-     * <pre autoTested="true">
-     * apply plugin: 'ivy-publish'
-     *
-     * publishing.publications.add('publication-name', IvyPublication) {
-     *     // Configure the ivy publication here
-     * }
-     * </pre>
-     *
-     * @param name The publication name.
-     * @param type The publication type.
-     * @param configuration The action or closure to configure the publication with.
-     * @return The added publication
-     * @throws InvalidUserDataException If type is not a valid publication type, or if a publication named "name" already exists.
-     */
-    <T extends Publication> T add(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException;
+public interface PublicationContainer extends ExtensiblePolymorphicDomainObjectContainer<Publication> {
 }

@@ -33,20 +33,23 @@ public class ImportsReader {
     public String getImports() {
         if (importsText == null) {
             try {
-                URL url = getClass().getResource("default-imports.txt");
+                URL url = getClass().getResource("/default-imports.txt");
                 InputStreamReader reader = new InputStreamReader(url.openStream(), "UTF8");
+                try {
+                    int bufferSize = 2048; // at time of writing, the file was about 1k so this should cover in one read
+                    StringBuilder imports = new StringBuilder(bufferSize);
+                    char[] chars = new char[bufferSize];
 
-                int bufferSize = 2048; // at time of writing, the file was about 1k so this should cover in one read
-                StringBuilder imports = new StringBuilder(bufferSize);
-                char[] chars = new char[bufferSize];
+                    int numRead = reader.read(chars, 0, bufferSize);
+                    while (numRead != -1) {
+                        imports.append(chars, 0, numRead);
+                        numRead = reader.read(chars, 0, bufferSize);
+                    }
 
-                int numRead = reader.read(chars, 0, bufferSize);
-                while (numRead != -1) {
-                    imports.append(chars, 0, numRead);
-                    numRead = reader.read(chars, 0, bufferSize);
+                    importsText = imports.toString();
+                } finally {
+                    reader.close();
                 }
-
-                importsText = imports.toString();
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }

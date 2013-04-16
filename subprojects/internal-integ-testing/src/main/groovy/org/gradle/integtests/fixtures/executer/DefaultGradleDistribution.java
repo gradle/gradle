@@ -34,6 +34,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
         this.binDistribution = binDistribution;
     }
 
+    @Override
+    public String toString() {
+        return version.toString();
+    }
+
     public TestFile getGradleHomeDir() {
         return gradleHomeDir;
     }
@@ -101,7 +106,9 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public int getArtifactCacheLayoutVersion() {
-        if (isSameOrNewer("1.4-rc-1")) {
+        if (isSameOrNewer("1.6-rc-1")) {
+            return 24;
+        } else if (isSameOrNewer("1.4-rc-1")) {
             return 23;
         } else if (isSameOrNewer("1.3")) {
             return 15;

@@ -10,12 +10,6 @@ dependencies {
 }
 // END SNIPPET groovy-test-dependency
 
-// START SNIPPET groovy-configuration
-dependencies {
-    groovy "org.codehaus.groovy:groovy-all:2.0.5"
-}
-// END SNIPPET groovy-configuration
-
 // START SNIPPET bundled-groovy-dependency
 dependencies {
     compile localGroovy()

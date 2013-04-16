@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.externalresource.transport.http;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
@@ -32,10 +32,10 @@ import java.net.URI;
 
 public class HttpTransport implements RepositoryTransport {
     private final String name;
-    private final RepositoryCacheManager repositoryCacheManager;
+    private final RepositoryArtifactCache repositoryCacheManager;
     private final ExternalResourceRepository repository;
 
-    public HttpTransport(String name, PasswordCredentials credentials, RepositoryCacheManager repositoryCacheManager,
+    public HttpTransport(String name, PasswordCredentials credentials, RepositoryArtifactCache repositoryCacheManager,
                          ProgressLoggerFactory progressLoggerFactory, TemporaryFileProvider temporaryFileProvider,
                          CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
         this.name = name;

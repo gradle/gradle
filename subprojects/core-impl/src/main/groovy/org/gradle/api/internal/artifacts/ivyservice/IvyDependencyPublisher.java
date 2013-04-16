@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.event.EventManager;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 
 import java.io.File;
 import java.util.List;
@@ -28,7 +27,7 @@ import java.util.Set;
  */
 public interface IvyDependencyPublisher {
     void publish(Set<String> configurations,
-                 List<DependencyResolver> publishResolvers,
+                 List<ModuleVersionPublisher> publishResolvers,
                  ModuleDescriptor moduleDescriptor,
-                 File descriptorDestination, EventManager eventManager);
+                 File descriptorDestination);
 }

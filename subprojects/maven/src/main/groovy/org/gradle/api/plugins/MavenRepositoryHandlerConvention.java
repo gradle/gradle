@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.maven.MavenResolver;
 import java.util.Map;
 
 /**
- * Allows maven repositories for publishing artifacts to be defined. The maven plugin mixes-in this interface to the {@link org.gradle.api.artifacts.dsl.RepositoryHandler} associated with each
+ * Allows Maven repositories for publishing artifacts to be defined. The Maven plugin mixes-in this interface to the {@link org.gradle.api.artifacts.dsl.RepositoryHandler} associated with each
  * task of type {@link org.gradle.api.tasks.Upload}.
  */
 public interface MavenRepositoryHandlerConvention {

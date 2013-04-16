@@ -2,8 +2,6 @@
     This project contains various native operating system integration utilities.
 */
 dependencies {
-    groovy libraries.groovy
-
     compile project(':baseServices')
     compile libraries.commons_io
     compile libraries.slf4j_api
@@ -17,6 +15,7 @@ dependencies {
     }
     compile libraries.guava
     compile libraries.jcip
+    testCompile libraries.groovy
 }
 
 if (!javaVersion.java7) {

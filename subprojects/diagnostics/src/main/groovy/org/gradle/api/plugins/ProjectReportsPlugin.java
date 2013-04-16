@@ -39,7 +39,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
         final ProjectReportsPluginConvention convention = new ProjectReportsPluginConvention(project);
         project.getConvention().getPlugins().put("projectReports", convention);
 
-        TaskReportTask taskReportTask = project.getTasks().add(TASK_REPORT, TaskReportTask.class);
+        TaskReportTask taskReportTask = project.getTasks().create(TASK_REPORT, TaskReportTask.class);
         taskReportTask.setDescription("Generates a report about your tasks.");
         taskReportTask.conventionMapping("outputFile", new Callable<Object>() {
             public Object call() throws Exception {
@@ -52,7 +52,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
             }
         });
 
-        PropertyReportTask propertyReportTask = project.getTasks().add(PROPERTY_REPORT, PropertyReportTask.class);
+        PropertyReportTask propertyReportTask = project.getTasks().create(PROPERTY_REPORT, PropertyReportTask.class);
         propertyReportTask.setDescription("Generates a report about your properties.");
         propertyReportTask.conventionMapping("outputFile", new Callable<Object>() {
             public Object call() throws Exception {
@@ -65,7 +65,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
             }
         });
 
-        DependencyReportTask dependencyReportTask = project.getTasks().add(DEPENDENCY_REPORT,
+        DependencyReportTask dependencyReportTask = project.getTasks().create(DEPENDENCY_REPORT,
                 DependencyReportTask.class);
         dependencyReportTask.setDescription("Generates a report about your library dependencies.");
         dependencyReportTask.conventionMapping("outputFile", new Callable<Object>() {
@@ -79,7 +79,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
             }
         });
 
-        Task projectReportTask = project.getTasks().add(PROJECT_REPORT);
+        Task projectReportTask = project.getTasks().create(PROJECT_REPORT);
         projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT);
         projectReportTask.setDescription("Generates a report about your project.");
         projectReportTask.setGroup("reporting");

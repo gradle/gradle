@@ -188,13 +188,6 @@
         <sample id="bundledGroovyDependency" dir="userguide/groovy/groovyDependency" title="Configuration of bundled Groovy dependency">
             <sourcefile file="build.gradle" snippet="bundled-groovy-dependency"/>
         </sample>
-        <para>
-            In earlier Gradle versions, the Groovy dependency was instead added to the <literal>groovy</literal> configuration.
-            This is no longer the preferred approach, but is still supported for backwards compatibility.
-        </para>
-        <sample id="groovyConfiguration" dir="userguide/groovy/groovyDependency" title="Configuration of Groovy configuration">
-            <sourcefile file="build.gradle" snippet="groovy-configuration"/>
-        </sample>
         <para>The Groovy library doesn't necessarily have to come from a remote repository. It could also come from a local
             <literal>lib</literal> directory, perhaps checked in to source control:</para>
         <sample id="groovyFileDependency" dir="userguide/tutorial/groovyWithFlatDir" title="Configuration of Groovy file dependency">

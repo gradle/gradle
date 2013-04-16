@@ -16,56 +16,63 @@
 
 package org.gradle.tooling.internal.consumer.versioning;
 
-import org.gradle.util.GradleVersion;
+import org.gradle.api.Nullable;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 
 /**
  * by Szczepan Faber, created at: 1/13/12
  */
-public class VersionDetails {
-
-    private final GradleVersion gradleVersion;
-    private static final GradleVersion M5 = GradleVersion.version("1.0-milestone-5");
-    private static final GradleVersion M6 = GradleVersion.version("1.0-milestone-6");
-    private static final GradleVersion M7 = GradleVersion.version("1.0-milestone-7");
-    private static final GradleVersion V1_1 = GradleVersion.version("1.1");
+public abstract class VersionDetails {
+    private final String providerVersion;
 
     public VersionDetails(String version) {
-        gradleVersion = GradleVersion.version(version);
+        providerVersion = version;
     }
 
     public String getVersion() {
-        return gradleVersion.getVersion();
+        return providerVersion;
     }
 
-    public boolean supportsCompleteBuildEnvironment() {
-        return gradleVersion.compareTo(M7) > 0;
-    }
-
-    public boolean clientHangsOnEarlyDaemonFailure() {
-        return gradleVersion.equals(M5) || gradleVersion.equals(M6);
-    }
-
-    public boolean isPostM6Model(Class<?> internalModelType) {
-        return !ModelMapping.getModelsUpToM6().containsValue(internalModelType) && internalModelType != Void.class;
+    /**
+     * Returns true if this provider may support the given model type. Returns false if it is known that the
+     * provider does not support the given model type and <em>should not</em> be asked to provide it.
+     */
+    public boolean isModelSupported(Class<?> modelType) {
+        return false;
     }
 
     public boolean supportsConfiguringJavaHome() {
-        return gradleVersion.compareTo(M7) > 0;
+        return false;
     }
 
     public boolean supportsConfiguringJvmArguments() {
-        return gradleVersion.compareTo(M7) > 0;
+        return false;
     }
 
     public boolean supportsConfiguringStandardInput() {
-        return gradleVersion.compareTo(M7) > 0;
+        return false;
     }
 
     public boolean supportsRunningTasksWhenBuildingModel() {
-        return gradleVersion.compareTo(V1_1) > 0;
+        return false;
     }
 
     public boolean supportsGradleProjectModel() {
-        return gradleVersion.compareTo(M5) >= 0;
+        return false;
     }
+
+    /**
+     * Maps the given model type to a protocol type, for those older provider versions that use protocol types.
+     *
+     * @return null for an unknown model type.
+     */
+    @Nullable
+    public Class<?> mapModelTypeToProtocolType(Class<?> modelType) {
+        return null;
+    }
+
+    /**
+     * Maps the given model type to a cross-version identifier for the model.
+     */
+    abstract public ModelIdentifier mapModelTypeToModelIdentifier(Class<?> modelType);
 }

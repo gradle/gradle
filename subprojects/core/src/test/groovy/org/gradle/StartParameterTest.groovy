@@ -286,19 +286,6 @@ class StartParameterTest extends Specification {
         assertThat(newParameter, isSerializable())
     }
     
-    void "system properties are merged"() {
-        def parameter = new StartParameter()
-
-        System.properties.clear()
-        System.properties.a = "sys a"
-        System.properties.c = "sys c"
-
-        parameter.systemPropertiesArgs= [a: 'a', b: 'b']
-
-        expect:
-        parameter.mergedSystemProperties.sort() == [a: 'a', b: 'b', c: 'sys c']
-    }
-
     void "gets all init scripts"() {
         def gradleUserHomeDir = tmpDir.testDirectory.createDir("gradleUserHomeDie")
         def gradleHomeDir = tmpDir.testDirectory.createDir("gradleHomeDir")
@@ -329,17 +316,5 @@ class StartParameterTest extends Specification {
 
         then:
         parameter.allInitScripts == [userMainInit, userInit1, userInit2, distroInit1, distroInit2]
-    }
-
-    def "knows if parallel feature was configured"() {
-        def parameter = new StartParameter()
-        assert !parameter.parallelThreadCountConfigured
-
-        when:
-        parameter.setParallelThreadCount(15)
-
-        then:
-        parameter.parallelThreadCount == 15
-        parameter.parallelThreadCountConfigured
     }
 }

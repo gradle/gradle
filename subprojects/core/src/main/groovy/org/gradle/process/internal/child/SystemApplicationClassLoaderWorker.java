@@ -25,7 +25,6 @@ import java.util.concurrent.Callable;
 /**
  * <p>Stage 3 of the start-up for a worker process with the application classes loaded in the system ClassLoader. Takes
  * care of adding the application classes to the system ClassLoader and then invoking the next stage of start-up.</p>
- * TODO:DAZ No longer adds application classes to system ClassLoader: is this required at all?
  *
  * <p> Instantiated in the worker bootstrap ClassLoader and invoked from {@link org.gradle.process.internal.launcher.BootstrapClassLoaderWorker}.
  * See {@link ApplicationClassesInSystemClassLoaderWorkerFactory} for details.</p>

@@ -31,7 +31,7 @@ There are two user oriented views of this feature:
 2. The build “plugin” author accepting a file value from the “user”
 
 This type coercion should be entirely transparent to group #2 and simple and predictable for group #1. That is, for any object exposed
-in the DSL, a user should be able to set File properties of objects using different (supported) types.
+in the DSL, a user should be able to set `File` properties of objects using different (well defined) types.
 
 # Implementation plan
 
@@ -41,15 +41,17 @@ A user sets a value for a file property, using a value that can be converted to 
 That is, all values are coerced immediately. This will be targeted at DSL (or more precisely, Groovy) users. This story does
 not include a static Java friendly API for this functionality.
 
+Only property setting is covered, so only setters will be decorated. Arbitrary methods that accept a File are not covered by this story.
+
 ### User visible changes
 
 The only user visible change will the documentation that states that it is possible to assign different types of values to
-File implicitly in the documentation. There is also no new API or change required by plugin/task etc. authors to leverage this
-feature.
+`File` implicitly in the documentation. There is also no new API or change required by plugin/task etc. authors to leverage this
+feature. This implies that any method 
 
 ### Sad day cases
 
-The given value may not be coercible to File. The produced error message should indicate:
+The given value may not be coercible to `File`. The produced error message should indicate:
 
 1. The object that the property-to-be-set belongs to
 2. The name of the property-to-be-set
@@ -67,8 +69,8 @@ The given value may not be coercible to File. The produced error message should 
 
 High level:
 
-1. Add a type coercing DynamicObject implementation.
-2. In ExtensibleDynamicObject (the dynamic object created in decorated classes), wrap the delegate dynamic object in the type coercing wrapper.
+1. Add a type coercing `DynamicObject` implementation.
+2. In `ExtensibleDynamicObject` (the dynamic object created in decorated classes), wrap the delegate dynamic object in the type coercing wrapper.
 
 Detail:
 
@@ -80,31 +82,20 @@ construct decorated objects.
 A new type will be created:
 
     interface ObjectInstantiationContext {
-        Project getProject()
-        Instantiator getInstantiator()
+        ServiceRegistry getServices()
     }
 
-When a decorated object is created, there will be a thread local object of this type available for retrieval (like ThreadGlobalInstantiator
-or AbstractTask.nextInstance). MixInExtensibleDynamicObject will read the thread global ObjectInstantiationContext and use it when constructing
+When a decorated object is created, there will be a thread local object of this type available for retrieval (like `ThreadGlobalInstantiator`
+or `AbstractTask.nextInstance`). `MixInExtensibleDynamicObject` will read the thread global `ObjectInstantiationContext` and use it when constructing
 the backing dynamic objects.
 
-## Story 2: A static API user (e.g. Java) specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
+Initially the coercion will be implemented by fetching a `FileResolver` from the instantion context service registry and using it to coerce the value.
 
-### User visible changes
+The "type coercing wrapper" will be implemented as a `DynamicObject` implementation that can wrap any `DynamicObject` implementation. It will intercept methods and identify coercions based on given argument types and parameter types of the methods provided by the real dynamic object. 
 
-TBD
+## Story 2: Type coercion is used in conjunction with convention mapping to defer evaluation (incl. coercion)
 
-### Sad day cases
-
-TBD
-
-### Test coverage
-
-TBD
-
-### Implementation approach
-
-TBD
+## Story 3: A static API user (e.g. Java) specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
 
 # Open issues
 

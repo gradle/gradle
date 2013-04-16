@@ -24,7 +24,8 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultJavaSourceSet;
-import org.gradle.api.internal.tasks.DefaultResourceSet;
+import org.gradle.language.base.BinariesContainer;
+import org.gradle.language.jvm.internal.DefaultResourceSet;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.*;
@@ -36,6 +37,12 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.Classpath;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.jvm.ResourceSet;
+import org.gradle.language.jvm.ClassDirectoryBinary;
+import org.gradle.language.jvm.JvmBinaryContainer;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -93,18 +100,18 @@ public class JavaBasePlugin implements Plugin<Project> {
 
                 Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
                 if (compileConfiguration == null) {
-                    compileConfiguration = configurations.add(sourceSet.getCompileConfigurationName());
+                    compileConfiguration = configurations.create(sourceSet.getCompileConfigurationName());
                 }
                 compileConfiguration.setVisible(false);
-                compileConfiguration.setDescription(String.format("Classpath for compiling the %s sources.", sourceSet.getName()));
+                compileConfiguration.setDescription(String.format("Compile classpath for %s.", sourceSet));
 
                 Configuration runtimeConfiguration = configurations.findByName(sourceSet.getRuntimeConfigurationName());
                 if (runtimeConfiguration == null) {
-                    runtimeConfiguration = configurations.add(sourceSet.getRuntimeConfigurationName());
+                    runtimeConfiguration = configurations.create(sourceSet.getRuntimeConfigurationName());
                 }
                 runtimeConfiguration.setVisible(false);
                 runtimeConfiguration.extendsFrom(compileConfiguration);
-                runtimeConfiguration.setDescription(String.format("Classpath for running the compiled %s classes.", sourceSet.getName()));
+                runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", sourceSet));
 
                 sourceSet.setCompileClasspath(compileConfiguration);
                 sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
@@ -133,7 +140,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 ResourceSet resourceSet = instantiator.newInstance(DefaultResourceSet.class, "resources", sourceSet.getResources(), functionalSourceSet);
                 functionalSourceSet.add(resourceSet);
 
-                JvmBinaryContainer jvmBinaryContainer = project.getPlugins().getPlugin(JvmLanguagePlugin.class).getJvmBinaryContainer();
+                JvmBinaryContainer jvmBinaryContainer = (JvmBinaryContainer) project.getExtensions().getByType(BinariesContainer.class).getByName("jvm");
                 ClassDirectoryBinary binary = jvmBinaryContainer.create(sourceSet.getName(), ClassDirectoryBinary.class);
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
@@ -150,7 +157,6 @@ public class JavaBasePlugin implements Plugin<Project> {
                 binary.getSource().add(javaSourceSet);
                 binary.getSource().add(resourceSet);
 
-                // TODO:DAZ review this
                 binary.getClassesTask().dependsOn(sourceSet.getOutput().getDirs());
             }
         });
@@ -219,13 +225,13 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureCheck(final Project project) {
-        Task checkTask = project.getTasks().add(CHECK_TASK_NAME);
+        Task checkTask = project.getTasks().create(CHECK_TASK_NAME);
         checkTask.setDescription("Runs all checks.");
         checkTask.setGroup(VERIFICATION_GROUP);
     }
 
     private void configureBuild(Project project) {
-        DefaultTask buildTask = project.getTasks().add(BUILD_TASK_NAME, DefaultTask.class);
+        DefaultTask buildTask = project.getTasks().create(BUILD_TASK_NAME, DefaultTask.class);
         buildTask.setDescription("Assembles and tests this project.");
         buildTask.setGroup(BasePlugin.BUILD_GROUP);
         buildTask.dependsOn(BasePlugin.ASSEMBLE_TASK_NAME);
@@ -233,14 +239,14 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureBuildNeeded(Project project) {
-        DefaultTask buildTask = project.getTasks().add(BUILD_NEEDED_TASK_NAME, DefaultTask.class);
+        DefaultTask buildTask = project.getTasks().create(BUILD_NEEDED_TASK_NAME, DefaultTask.class);
         buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
         buildTask.setGroup(BasePlugin.BUILD_GROUP);
         buildTask.dependsOn(BUILD_TASK_NAME);
     }
 
     private void configureBuildDependents(Project project) {
-        DefaultTask buildTask = project.getTasks().add(BUILD_DEPENDENTS_TASK_NAME, DefaultTask.class);
+        DefaultTask buildTask = project.getTasks().create(BUILD_DEPENDENTS_TASK_NAME, DefaultTask.class);
         buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
         buildTask.setGroup(BasePlugin.BUILD_GROUP);
         buildTask.dependsOn(BUILD_TASK_NAME);

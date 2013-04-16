@@ -31,7 +31,7 @@ public interface ArtifactIdentifier {
 
     /**
      * Returns the type of the dependency artifact. Often the type is the same as the extension,
-     * but sometimes this is not the case. For example for an ivy xml module descriptor, the type is
+     * but sometimes this is not the case. For example for an ivy XML module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
      * @see #getExtension()
@@ -40,7 +40,7 @@ public interface ArtifactIdentifier {
 
     /**
      * Returns the extension of this dependency artifact. Often the extension is the same as the type,
-     * but sometimes this is not the case. For example for an ivy xml module descriptor, the type is
+     * but sometimes this is not the case. For example for an ivy XML module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
      * @see #getType()

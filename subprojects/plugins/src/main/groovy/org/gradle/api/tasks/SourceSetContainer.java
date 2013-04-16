@@ -30,7 +30,9 @@ public interface SourceSetContainer extends NamedDomainObjectContainer<SourceSet
      * @param name The name of the new source set.
      * @return The newly added source set.
      * @throws org.gradle.api.InvalidUserDataException when a source set with the given name already exists in this container.
+     * @deprecated use {@link #create(String)} instead
      */
+    @Deprecated
     SourceSet add(String name) throws InvalidUserDataException;
 
     /**
@@ -41,6 +43,8 @@ public interface SourceSetContainer extends NamedDomainObjectContainer<SourceSet
      * @param configureClosure The closure to use to configure the source set.
      * @return The newly added source set.
      * @throws InvalidUserDataException when a source set with the given name already exists in this container.
+     * @deprecated use {@link #create(String, groovy.lang.Closure)} instead
      */
+    @Deprecated
     SourceSet add(String name, Closure configureClosure) throws InvalidUserDataException;
 }

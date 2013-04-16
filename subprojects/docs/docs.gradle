@@ -18,6 +18,7 @@ import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.Docbook2Xhtml
+import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
 import org.gradle.build.docs.releasenotes.*
@@ -70,6 +71,8 @@ dependencies {
         "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9WsGzsqhEorxQDpu60nfWEc@ttf"
 
     groovy libraries.groovy
+
+    testCompile libraries.groovy
     testCompile "org.pegdown:pegdown:1.1.0"
     testCompile libraries.jsoup
     testCompile "org.gebish:geb-spock:0.9.0-RC-1"
@@ -214,6 +217,24 @@ task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook])
     dsldocUrl = '.'
 }
 
+task defaultImports(type: GenerateDefaultImportsTask, dependsOn: dslMetaData) {
+    metaDataFile = dslMetaData.destFile
+    destFile = new File(generatedResourcesDir, "default-imports.txt")
+    // These are part of the API, but not the DSL
+    excludePackage 'org.gradle.tooling.**'
+    excludePackage 'org.gradle.testfixtures.**'
+
+    // Tweak the imports due to some inconsistencies introduced before we automated the default-imports generation
+    excludePackage 'org.gradle.plugins.ide.eclipse.model'
+    excludePackage 'org.gradle.plugins.ide.idea.model'
+    excludePackage 'org.gradle.api.tasks.testing.logging'
+    extraPackage 'org.gradle.util'
+
+    // TODO - rename some incubating types to remove collisions and then remove these exclusions
+    excludePackage 'org.gradle.plugins.binaries.model'
+    excludePackage 'org.gradle.plugins.cpp.cdt.model'
+}
+
 task dslHtml(type: Docbook2Xhtml) {
     source dslStandaloneDocbook
     destDir = new File(docsDir, 'dsl')
@@ -297,6 +318,8 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/plugins/**'
     include 'org/gradle/testfixtures/**'
     include 'org/gradle/tooling/**'
+    include 'org/gradle/testing/jacoco/**'
+    include 'org/gradle/buildsetup/**'
     exclude '**/internal/**'
     options.links(javaApiUrl, groovyApiUrl, "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
@@ -329,7 +352,7 @@ task groovydocAll(type: Groovydoc, dependsOn: configureGroovydocAll) {
         windowTitle = "Gradle API $version"
         docTitle = windowTitle
     }
-    groovyClasspath = project(':core').configurations.groovy
+    groovyClasspath = configurations.groovy
     doLast {
         def index = new File(destinationDir, "index.html")
         index.text = index.text.replace("{todo.title}", windowTitle) // workaround groovydoc bug
@@ -391,6 +414,8 @@ task viewReleaseNotes(dependsOn: releaseNotes) {
         Class.forName("java.awt.Desktop").newInstance().browse(new File(releaseNotes.destinationDir, releaseNotes.fileName).toURI())
     }
 }
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
 
 test {
     dependsOn releaseNotes

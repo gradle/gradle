@@ -63,4 +63,9 @@ public class DefaultMavenArtifact implements MavenArtifact {
     public TaskDependency getBuildDependencies() {
         return buildDependencies;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s:%s", getClass().getSimpleName(), getExtension(), getClassifier());
+    }
 }

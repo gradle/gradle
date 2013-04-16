@@ -16,6 +16,7 @@
 
 package org.gradle.api.reporting.internal
 
+import org.gradle.api.reporting.DirectoryReport
 import org.gradle.api.reporting.Report
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.jsoup.Jsoup
@@ -49,6 +50,15 @@ class BuildDashboardGeneratorSpec extends Specification {
         }
     }
 
+    Report mockDirectoryReport(String name, File destinationDirectory) {
+        Stub(DirectoryReport){
+            getDisplayName() >> name
+            getDestination() >> destinationDirectory
+            getEntryPoint() >> new File(destinationDirectory, "index.html")
+        }
+    }
+
+
     void 'appropriate message is displayed when there are no reports available'() {
         given:
         generatorFor([])
@@ -62,22 +72,28 @@ class BuildDashboardGeneratorSpec extends Specification {
 
     void 'links to reports are added to the generated markup'() {
         given:
+        def htmlFolder = tmpDir.createDir('htmlContent');
+        htmlFolder.createFile("index.html")
         generatorFor([
                 mockReport('a', tmpDir.createFile('report.html')),
                 mockReport('b', tmpDir.createDir('inner').createFile('otherReport.html')),
                 mockReport('c', tmpDir.file('idonotexist.html')),
-                mockReport('d', null)
+                mockDirectoryReport('d', htmlFolder),
+                mockReport('e', tmpDir.createDir('simpleDirectory')),
         ])
 
         when:
         generator.generate()
 
         then:
-        outputHtml.select('h1').text() == 'Available build reports:'
+        outputHtml.select('h1').text() == 'Build reports'
         with outputHtml.select('ul li'), {
-            size() == 2
+            size() == 5
             select('a[href=report.html]').text() == 'a'
             select('a[href=inner/otherReport.html]').text() == 'b'
+            select('span[class=unavailable]').text() == 'c'
+            select('a[href=htmlContent/index.html]').text() == 'd'
+            select('a[href=simpleDirectory]').text() == 'e'
         }
     }
 

@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.tasks.diagnostics.internal.GraphRenderer
+import org.gradle.internal.graph.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.logging.StyledTextOutput
 

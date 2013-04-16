@@ -16,25 +16,26 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.converters.PropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
-import org.gradle.tooling.internal.protocol.ConfigurableConnection;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
-public class BuildActionRunnerBackedConsumerConnection extends AbstractConsumerConnection {
+public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final BuildActionRunner buildActionRunner;
+    private final ProtocolToModelAdapter adapter;
 
-    public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate) {
-        super(delegate);
+    public BuildActionRunnerBackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ProtocolToModelAdapter adapter) {
+        super(delegate, providerMetaData);
+        this.adapter = adapter;
         buildActionRunner = (BuildActionRunner) delegate;
     }
 
-    public void configure(ConsumerConnectionParameters connectionParameters) {
-        ((ConfigurableConnection) buildActionRunner).configure(connectionParameters);
-    }
-
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return buildActionRunner.run(type, operationParameters).getModel();
+        Class<?> protocolType = getVersionDetails().mapModelTypeToProtocolType(type);
+        Object model = buildActionRunner.run(protocolType, operationParameters).getModel();
+        return adapter.adapt(type, model, new PropertyHandlerFactory().forVersion(getVersionDetails()));
     }
 }

@@ -8,7 +8,6 @@ sourceCompatibility = 1.5
 targetCompatibility = 1.5
 
 ext {
-    hasGroovySource = sourceSets.main.groovy.srcDirs.any { it.exists() }
     compileTasks = tasks.matching { it instanceof Compile || it instanceof GroovyCompile }
     testTasks = tasks.withType(Test)
     generatedResourcesDir = file("$buildDir/generated-resources/main")
@@ -18,11 +17,6 @@ ext {
 
 dependencies {
     testCompile libraries.junit, libraries.jmock, libraries.spock
-}
-
-if (!hasGroovySource) {
-    // Remove Groovy configuration from compile classpath
-    configurations.compile.extendsFrom = []
 }
 
 // Extracted as it's also used by buildSrc

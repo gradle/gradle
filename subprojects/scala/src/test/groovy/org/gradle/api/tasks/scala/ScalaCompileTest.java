@@ -28,11 +28,15 @@ import org.hamcrest.core.IsNull;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.File;
 
 public class ScalaCompileTest extends AbstractCompileTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     private ScalaCompile scalaCompile;
 
@@ -71,12 +75,15 @@ public class ScalaCompileTest extends AbstractCompileTest {
         scalaCompile.compile();
     }
 
-    @Test(expected = InvalidUserDataException.class)
+    @Test
     public void testMoansIfScalaClasspathIsEmpty() {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
             allowing(scalaClasspath).isEmpty(); will(returnValue(true));
         }});
+
+        thrown.expect(InvalidUserDataException.class);
+        thrown.expectMessage("'testTask.scalaClasspath' must not be empty");
 
         scalaCompile.compile();
     }

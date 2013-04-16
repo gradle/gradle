@@ -24,10 +24,8 @@ import org.gradle.tooling.internal.consumer.connection.LazyConnection;
 import org.gradle.tooling.internal.consumer.connection.LoggingInitializerConnection;
 import org.gradle.tooling.internal.consumer.connection.ProgressLoggingConnection;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
-import org.gradle.tooling.internal.consumer.protocoladapter.ProtocolToModelAdapter;
 
 public class ConnectionFactory {
-    private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
     private final ToolingImplementationLoader toolingImplementationLoader;
     private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
 
@@ -41,7 +39,7 @@ public class ConnectionFactory {
         ConsumerConnection progressLoggingConnection = new ProgressLoggingConnection(lazyConnection, synchronizedLogging);
         ConsumerConnection initializingConnection = new LoggingInitializerConnection(progressLoggingConnection, synchronizedLogging);
         AsyncConnection asyncConnection = new DefaultAsyncConnection(initializingConnection, executorFactory);
-        return new DefaultProjectConnection(asyncConnection, adapter, parameters);
+        return new DefaultProjectConnection(asyncConnection, parameters);
     }
 
     ToolingImplementationLoader getToolingImplementationLoader() {

@@ -49,7 +49,7 @@ public class GeneratePomTaskCreator {
         String publicationName = publication.getName();
 
         String descriptorTaskName = calculateDescriptorTaskName(publicationName);
-        GenerateMavenPom generatePomTask = project.getTasks().add(descriptorTaskName, GenerateMavenPom.class);
+        GenerateMavenPom generatePomTask = project.getTasks().create(descriptorTaskName, GenerateMavenPom.class);
         generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'.", publication.getName()));
         generatePomTask.setPom(publication.getPom());
 

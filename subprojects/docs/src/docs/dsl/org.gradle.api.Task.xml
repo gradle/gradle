@@ -44,6 +44,9 @@
                 <td>dependsOn</td>
             </tr>
             <tr>
+                <td>mustRunAfter</td>
+            </tr>
+            <tr>
                 <td>state</td>
             </tr>
             <tr>
@@ -73,6 +76,9 @@
             </thead>
             <tr>
                 <td>dependsOn</td>
+            </tr>
+            <tr>
+                <td>mustRunAfter</td>
             </tr>
             <tr>
                 <td>onlyIf</td>

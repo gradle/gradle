@@ -43,7 +43,7 @@ public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
         this.dependencyHandler = dependencyHandler;
         this.scriptSource = scriptSource;
         this.configContainer = configContainer;
-        classpathConfiguration = configContainer.add(CLASSPATH_CONFIGURATION);
+        classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
     }
 
     public void dependencies(Closure configureClosure) {

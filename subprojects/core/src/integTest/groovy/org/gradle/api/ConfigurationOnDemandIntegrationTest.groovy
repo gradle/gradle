@@ -106,6 +106,26 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         fixture.assertProjectsConfigured(":", ":util", ":impl", ":api")
     }
 
+    def "can have cycles in project dependencies"() {
+        settingsFile << "include 'api', 'impl', 'util'"
+        buildFile << """
+allprojects { apply plugin: 'java' }
+project(':impl') {
+    dependencies { compile project(path: ':api', configuration: 'archives') }
+}
+project(':api') {
+    dependencies { runtime project(':impl') }
+    task run(dependsOn: configurations.runtime)
+}
+"""
+
+        when:
+        run(":api:run")
+
+        then:
+        fixture.assertProjectsConfigured(":", ":api", ':impl')
+    }
+
     def "follows project dependencies when ran in subproject"() {
         settingsFile << "include 'api', 'impl', 'util'"
 
@@ -258,7 +278,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "task foo(type: FooTask)"
 
         when:
-        run("foo")
+        run("foo", "-s")
         then:
         output.contains "Horray!!!"
     }

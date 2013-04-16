@@ -69,7 +69,7 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test public void testHasUsefulToString() {
-        assertEquals('task \':taskname\'', task.toString())
+        assertEquals('task \':testTask\'', task.toString())
     }
 
     @Test public void testCanInjectValuesIntoTaskWhenUsingNoArgsConstructor() {
@@ -89,6 +89,16 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertThat(task, dependsOn("path1"));
         task.dependsOn("path2", dependsOnTask);
         assertThat(task, dependsOn("path1", "path2", "somename"));
+    }
+
+    @Test
+    public void testMustRunAfter() {
+        Task mustRunAfterTask = createTask(project, "mustRunAfter")
+        Task mustRunAfterTaskUsingPath = project.getTasks().add("path")
+        Task task = createTask(project, TEST_TASK_NAME)
+
+        task.mustRunAfter(mustRunAfterTask, "path")
+        assert task.mustRunAfter.getDependencies(task) == [mustRunAfterTask, mustRunAfterTaskUsingPath] as Set
     }
 
     @Test
@@ -239,7 +249,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     @Test
     void canGetTemporaryDirectory() {
-        File tmpDir = new File(project.buildDir, "tmp/taskname")
+        File tmpDir = new File(project.buildDir, "tmp/testTask")
         assertFalse(tmpDir.exists())
 
         assertThat(defaultTask.temporaryDir, equalTo(tmpDir))

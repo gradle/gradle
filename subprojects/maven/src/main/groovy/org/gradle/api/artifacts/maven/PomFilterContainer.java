@@ -47,22 +47,22 @@ public interface PomFilterContainer {
     void setFilter(PublishFilter defaultFilter);
 
     /**
-     * Returns the pom property of the custom filter.
-     * The pom property can be used to customize the pom generation. By default the properties of such a pom object are all null.
-     * Null means that Gradle will use default values for generating the Maven pom. Those default values are derived from the deployable artifact
-     * and from the project type (e.g. java, war, ...). If you explicitly set a pom property, Gradle will use those instead.
+     * Returns the POM property of the custom filter.
+     * The POM property can be used to customize the POM generation. By default the properties of such a POM object are all null.
+     * Null means that Gradle will use default values for generating the Maven POM. Those default values are derived from the deployable artifact
+     * and from the project type (e.g. java, war, ...). If you explicitly set a POM property, Gradle will use those instead.
      *
      * @return The Maven Pom
      */
     MavenPom getPom();
 
     /**
-     * <p>Sets the default pom to be used. This pom is active if no custom filters have been added (see {@link #addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)}).
-     * If at least one custom filter has been added the default pom is not used any longer.</p>
-     * <p>Usually you don't need to set this property as the default value provides you a pom object you might use for configuration.
-     * By default the properties of such a pom object are all null.
-     * If they are null, Gradle will use default values for generating the Maven pom. Those default values are derived from the deployable artifact
-     * and from the project type (e.g. java, war, ...). If you explicitly set a pom property, Gradle will use this instead.</p>
+     * <p>Sets the default POM to be used. This POM is active if no custom filters have been added (see {@link #addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)}).
+     * If at least one custom filter has been added the default POM is not used any longer.</p>
+     * <p>Usually you don't need to set this property as the default value provides you a POM object you might use for configuration.
+     * By default the properties of such a POM object are all null.
+     * If they are null, Gradle will use default values for generating the Maven POM. Those default values are derived from the deployable artifact
+     * and from the project type (e.g. java, war, ...). If you explicitly set a POM property, Gradle will use this instead.</p>
      *
      * @param defaultPom
      */
@@ -70,12 +70,12 @@ public interface PomFilterContainer {
 
     /**
      * If you want to deploy more than one artifact you need to define filters to select each of those artifacts. The method
-     * returns a pom object associated with this filter, that allows you to customize the pom generation for the artifact selected
+     * returns a POM object associated with this filter, that allows you to customize the POM generation for the artifact selected
      * by the filter.
      *
      * @param name The name of the filter
      * @param publishFilter The filter to use
-     * @return The pom associated with the filter
+     * @return The POM associated with the filter
      */
     MavenPom addFilter(String name, PublishFilter publishFilter);
 
@@ -84,7 +84,7 @@ public interface PomFilterContainer {
      *
      * @param name   The name of the filter
      * @param filter The filter
-     * @return The Maven pom associated with the closure
+     * @return The Maven POM associated with the closure
      * @see PublishFilter
      * @see PomFilterContainer#addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)
      */
@@ -107,27 +107,27 @@ public interface PomFilterContainer {
     void filter(Closure filter);
 
     /**
-     * Returns the pom associated with a filter added with {@link #addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)}.
+     * Returns the POM associated with a filter added with {@link #addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)}.
      *
      * @param name The name of the filter.
      */
     MavenPom pom(String name);
 
     /**
-     * Configures a pom by a closure. The closure statements are delegated to the pom object associated with the given name.
+     * Configures a POM by a closure. The closure statements are delegated to the POM object associated with the given name.
      *
      * @param name
      * @param configureClosure
-     * @return The pom object associated with the given name.
+     * @return The POM object associated with the given name.
      * @see PomFilterContainer#pom(String)
      */
     MavenPom pom(String name, Closure configureClosure);
 
     /**
-     * Configures the default pom by a closure. The closure statements are delegated to the default pom.
+     * Configures the default POM by a closure. The closure statements are delegated to the default POM.
      *
      * @param configureClosure
-     * @return The default pom.
+     * @return The default POM.
      * @see PomFilterContainer#getPom()
      */
     MavenPom pom(Closure configureClosure);

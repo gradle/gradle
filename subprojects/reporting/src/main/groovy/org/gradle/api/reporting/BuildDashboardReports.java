@@ -22,11 +22,11 @@ import org.gradle.api.Incubating;
  * The reporting configuration for the the {@link GenerateBuildDashboard} task.
  */
 @Incubating
-public interface BuildDashboardReports extends ReportContainer<SingleFileReport> {
+public interface BuildDashboardReports extends ReportContainer<Report> {
     /**
-     * The build dashboard html report
+     * The build dashboard HTML report
      *
-     * @return The build dashboard html report
+     * @return The build dashboard HTML report
      */
-    SingleFileReport getHtml();
+    DirectoryReport getHtml();
 }

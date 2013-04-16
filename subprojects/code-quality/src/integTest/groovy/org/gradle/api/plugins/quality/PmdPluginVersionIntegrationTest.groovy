@@ -43,7 +43,7 @@ class PmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest'")
+        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))

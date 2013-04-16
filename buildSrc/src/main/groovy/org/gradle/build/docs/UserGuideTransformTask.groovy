@@ -29,7 +29,7 @@ import org.w3c.dom.Element
 import org.gradle.api.tasks.*
 
 /**
- * Transforms userguide source into docbook, replacing custom xml elements.
+ * Transforms userguide source into docbook, replacing custom XML elements.
  *
  * Takes the following as input:
  * <ul>
@@ -227,8 +227,9 @@ public class UserGuideTransformTask extends DefaultTask {
                     String args = child.'@args'
                     String outputFile = child.'@outputFile' ?: "${sampleId}.out"
                     boolean ignoreExtraLines = child.'@ignoreExtraLines' ?: false
+                    boolean ignoreLineOrder = child.'@ignoreLineOrder' ?: false
 
-                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile, ignoreExtraLines: ignoreExtraLines) }
+                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile, ignoreExtraLines: ignoreExtraLines, ignoreLineOrder: ignoreLineOrder) }
 
                     Element outputTitle = doc.createElement("para")
                     outputTitle.appendChild(doc.createTextNode("Output of "))

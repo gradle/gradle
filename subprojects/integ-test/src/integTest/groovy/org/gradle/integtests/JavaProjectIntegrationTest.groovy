@@ -15,11 +15,9 @@
  */
 
 package org.gradle.integtests
-
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Ignore
 import org.junit.Test
 
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
@@ -31,7 +29,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure();
 
-        failure.assertHasDescription("Execution failed for task ':compileJava'");
+        failure.assertHasDescription("Execution failed for task ':compileJava'.");
         failure.assertHasCause("Compilation failed; see the compiler error output for details.");
     }
 
@@ -44,7 +42,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure();
 
-        failure.assertHasDescription("Execution failed for task ':compileTestJava'");
+        failure.assertHasDescription("Execution failed for task ':compileTestJava'.");
         failure.assertHasCause("Compilation failed; see the compiler error output for details.");
     }
 
@@ -67,7 +65,7 @@ public class NotATest {}"""
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("javadoc").runWithFailure();
 
-        failure.assertHasDescription("Execution failed for task ':javadoc'");
+        failure.assertHasDescription("Execution failed for task ':javadoc'.");
         failure.assertHasCause("Javadoc generation failed.");
     }
 
@@ -121,8 +119,6 @@ version = ''
         testFile("build/libs/empty.jar").assertIsFile();
     }
 
-    // TODO: translate to new source set/packaging model
-    @Ignore
     @Test
     public void "task registered as a builder of resources is executed"() {
         TestFile buildFile = testFile("build.gradle");

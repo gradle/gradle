@@ -16,7 +16,6 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.Model;
 
 import java.io.File;
 import java.io.InputStream;
@@ -67,7 +66,7 @@ import java.io.OutputStream;
  * @param <T> The type of model to build
  * @since 1.0-milestone-3
  */
-public interface ModelBuilder<T extends Model> extends LongRunningOperation {
+public interface ModelBuilder<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
@@ -127,10 +126,11 @@ public interface ModelBuilder<T extends Model> extends LongRunningOperation {
      *
      * @return The model.
      * @throws UnsupportedVersionException When the target Gradle version does not support the features required to build this model.
+     * @throws UnknownModelException When the target Gradle version or build does not support the requested model.
      * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
      *          when you have configured the long running operation with a settings
      *          like: {@link #setStandardInput(java.io.InputStream)}, {@link #setJavaHome(java.io.File)},
-     *          {@link #setJvmArguments(String...)} but those settings are not supported on the target Gradle.
+     *          {@link #setJvmArguments(String...)} but those settings are not supported on the target Gradle version.
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.
@@ -139,7 +139,9 @@ public interface ModelBuilder<T extends Model> extends LongRunningOperation {
     T get() throws GradleConnectionException;
 
     /**
-     * Starts fetching the build. This method returns immediately, and the result is later passed to the given handler.
+     * Starts fetching the model, passing the result to the given handler when complete. This method returns immediately, and the result is later passed to the given
+     * handler's {@link ResultHandler#onComplete(Object)} method. If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)}
+     * method is called with the appropriate exception. See {@link #get()} for a description of the various exceptions that the operation may fail with.
      *
      * @param handler The handler to supply the result to.
      * @throws IllegalStateException When the connection has been closed or is closing.

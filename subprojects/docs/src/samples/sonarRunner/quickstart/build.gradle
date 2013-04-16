@@ -10,8 +10,8 @@ sonarRunner {
         property "sonar.host.url", "http://my.server.com"
         property "sonar.jdbc.url", "jdbc:mysql://my.server.com/sonar"
         property "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
-        property "sonar.username", "Fred Flintstone"
-        property "sonar.password", "very clever"
+        property "sonar.jdbc.username", "Fred Flintstone"
+        property "sonar.jdbc.password", "very clever"
     }
 }
 // END SNIPPET connection-settings

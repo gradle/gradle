@@ -15,8 +15,9 @@
  */
 
 dependencies {
-    groovy libraries.groovy
     compile project(':core')
+
+    testCompile libraries.groovy
 
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")

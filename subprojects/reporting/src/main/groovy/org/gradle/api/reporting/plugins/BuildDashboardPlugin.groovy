@@ -23,10 +23,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.reporting.DirectoryReport
 import org.gradle.api.reporting.GenerateBuildDashboard
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.reporting.ReportingExtension
-import org.gradle.api.reporting.SingleFileReport
 
 /**
  * <p>A {@link Plugin} which allows to generate build dashboard report.</p>
@@ -40,13 +40,20 @@ public class BuildDashboardPlugin implements Plugin<ProjectInternal> {
 
         GenerateBuildDashboard buildDashboardTask = project.tasks.add(BUILD_DASHBOARD_TASK_NAME, GenerateBuildDashboard)
 
-        project.allprojects.each { aggregateReportings(it, buildDashboardTask) }
+        project.allprojects.each {
+            aggregateReportings(it, buildDashboardTask)
+            it.tasks.withType(Reporting).matching { task ->
+                task != buildDashboardTask
+            }.all { task ->
+                buildDashboardTask.mustRunAfter(task)
+            }
+        }
         addReportDestinationConventionMapping(project, buildDashboardTask.reports.html);
     }
 
-    private void addReportDestinationConventionMapping(ProjectInternal project, SingleFileReport buildDashboardReport) {
+    private void addReportDestinationConventionMapping(ProjectInternal project, DirectoryReport buildDashboardReport) {
         buildDashboardReport.conventionMapping.map('destination') {
-            project.extensions.getByType(ReportingExtension).file('buildDashboard/index.html')
+            project.extensions.getByType(ReportingExtension).file('buildDashboard')
         }
     }
 

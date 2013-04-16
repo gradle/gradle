@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,8 @@ class DefaultProjectDependencyTest extends Specification {
     void "transitive resolution resolves all dependencies"() {
         def context = Mock(DependencyResolveContext)
 
-        def superConf = project.configurations.add("superConf")
-        def conf = project.configurations.add("conf")
+        def superConf = project.configurations.create("superConf")
+        def conf = project.configurations.create("conf")
         conf.extendsFrom(superConf)
 
         def dep1 = Mock(ProjectDependency)
@@ -110,7 +110,7 @@ class DefaultProjectDependencyTest extends Specification {
     void "is Buildable"() {
         def context = Mock(TaskDependencyResolveContext)
 
-        def conf = project.configurations.add('conf')
+        def conf = project.configurations.create('conf')
         def listener = Mock(ProjectAccessListener)
         projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
 
@@ -126,7 +126,7 @@ class DefaultProjectDependencyTest extends Specification {
 
     void "does not build project dependencies if configured so"() {
         def context = Mock(TaskDependencyResolveContext)
-        project.configurations.add('conf')
+        project.configurations.create('conf')
         projectDependency = new DefaultProjectDependency(project, 'conf', listener, false)
 
         when:
