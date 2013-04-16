@@ -70,7 +70,7 @@ Gradle now ships with a [JaCoCo](http://www.eclemma.org/jacoco/) plugin to gener
 
 To gather code coverage information for your java project, just apply the JaCoCo plugin:
 
-    apply plugin:'jacoco'
+    apply plugin: 'jacoco'
 
 and run `gradle test jacocoTestReport` which generates code coverage reports for the “test” task introduced by the `java` plugin. The `JacocoReport` adds a `mustRunAfter` dependency on the
 coverage data producing task ('test' in our example). After the build has finished you find the coverage report in different formats in `build/reports/jacoco/test`.
