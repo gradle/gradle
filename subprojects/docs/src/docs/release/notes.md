@@ -103,17 +103,19 @@ Therefore we're very happy that this plugin was provided by [Andrew Oberstar](ht
 
 ### Build Setup Plugin (i)
 
-This Gradle distribution introduces a `build-setup` plugin that supports users on initializing new Gradle projects.
-We reworked the functionality for converting Maven projects into Gradle projects (formerly provided by the incubating `maven2Gradle` plugin) to be part of that new `build-setup` plugin.
-Running `gradle setupBuild` in a directory with no `build.gradle` file a gradle project is initialized by
+Gradle 1.6 introduces a `build-setup` plugin that makes initializing new Gradle projects more convenient. It also supports bootstrapping the migration of an Apache Maven build to a Gradle build by generating a `build.gradle` file from a `pom.xml`.
 
-* If a `pom.xml` exists, the maven2Gradle task is triggered for generating a Gradle project out of the information gathered from the Maven POM files.
-* If no `pom.xml` can be found an empty `build.gradle` file is generated.
-* A `Wrapper` task is executed to generate all files needed run the build using the Gradle Wrapper.
+The `build-setup` plugin is not a plugin that you manually apply to your project. You use it by executing the `setupBuild` task in a directory that does not contain a `build.gradle` file. 
 
-As all new plugins, this Build Setup Plugin is marked as *incubating*. We have multiple plans to 
-enhance the build initialization in future releases. Feel free to check out the current plans written up in the 
-[Gradle design docs](https://github.com/gradle/gradle/blob/master/design-docs/build-initialisation.md) and give feedback!
+Running `gradle setupBuild` in a directory with no `build.gradle` file will do the following:
+
+* If a `pom.xml` exists, a `build.gradle` file is generated based on its content (e.g. equivalent dependency definitions).
+* If no `pom.xml` exists, an empty `build.gradle` file is generated.
+* The [Gradle Wrapper](userguide/gradle_wrapper.html) is installed for the project.
+
+For more information please see the [User Guide chapter on this plugin](userguide/build_setup_plugin.html).
+
+This plugin is an *incubating* feature and will improve and expand in scope in future releases. If you're interested in its progress and future, you can check out the [design spec](https://github.com/gradle/gradle/blob/master/design-docs/build-initialisation.md). 
 
 ### Support for JUnit @Category (i)
 Thanks to a contribution by Uladzimir Mihura, Gradle now supports JUnit categories. Categories are a mechanism to label and group JUnit tests by using annotations. Having the following JUnit test code
