@@ -34,9 +34,7 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         def executed = run 'tasks'
         then:
-        executed.output.contains """Build Setup tasks
------------------
-setupBuild - Initializes a new Gradle build."""
+        executed.output.contains "setupBuild - Initializes a new Gradle build."
     }
 
     def "can be executed without existing pom"() {
