@@ -126,9 +126,6 @@ class PathLimitationIntegTest extends Specification {
         assert testWorkingDir.exists()
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(tmpDir.getTestDirectory())
-        processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
         processBuilder.command("CMD", "/C", "testBatch.cmd")
 
         and:
