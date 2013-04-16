@@ -74,6 +74,7 @@ class PathLimitationIntegTest extends Specification {
         messagingServices.stop();
     }
 
+    @IgnoreIf({OperatingSystem.current().isWindows()})
     @Unroll
     def "WorkerProcessBuilder handles workingDir with absolute path length #absolutePathLength"() throws Throwable {
         when:
@@ -82,9 +83,10 @@ class PathLimitationIntegTest extends Specification {
         assert testWorkingDir.exists()
         execute(worker(new HelloWorldRemoteProcess(), testWorkingDir))
         where:
-        absolutePathLength << [258, 259]
+        absolutePathLength << [258, 259, 260]
     }
 
+    @IgnoreIf({OperatingSystem.current().isWindows()})
     @Unroll
     def "JavaProcessBuilder handles workingDir with absolute path length #absolutePathLength"() throws Throwable {
         when:
@@ -141,7 +143,7 @@ class PathLimitationIntegTest extends Specification {
 
 
     TestFile generateTestWorkingDirectory(int absolutePathLength) {
-        // windows can handle a path up to 259 characters
+        // windows can handle a path up to 260 characters (259 + NUL)
         // we create a path that is 260 +1 (absolutePathLength + "/" + randompath)
         def testDirectory = tmpDir.getTestDirectory()
         def pathoffset = absolutePathLength - 1 - testDirectory.getAbsolutePath().length()
