@@ -61,7 +61,7 @@ The `mustRunAfter` task ordering rule makes it easy to wire this logic into your
 
 See the User guide section on “[Ordering Tasks](userguide/more_about_tasks.html#sec:ordering_tasks)” for more information.
 
-We are incredibly grateful to [Marcin Erdmann](https://github.com/erdi) for taking on this long anticipated feature.
+On behalf of the Gradle community, the Gradle development team would like to thank [Marcin Erdmann](https://github.com/erdi) for taking on this long anticipated feature.
 The design and implementation of task ordering rules involved a deep understanding and refactoring of the Gradle Task execution engine, and Marcin took this on with gusto.
 
 ### JaCoCo Code Coverage Plugin (i)
