@@ -213,12 +213,12 @@ interface. The upper bound `extends Model` has been removed from the type parame
 With the introduction of support for custom tooling API models, it is no longer possible to determine whether a model is supported without
 configuring the target build. This exception is now thrown as part of the result.
 
-## Wrapper environment variable `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` no longer supported
+### Wrapper environment variable `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` no longer supported
 
 The Gradle wrapper no longer supports the `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` environment variables.
 Instead, the wrapper is now much better at recovering from failures to download or unpack the distribution.
 
-## More packages included in default imports
+### More packages included in default imports
 
 The set of default imports is now generated from the Gradle API. This means that the default imports now includes a number of additional packages
 that were not previously imported by default. These packages may contain classes that conflict with other imports present in your build scripts.
