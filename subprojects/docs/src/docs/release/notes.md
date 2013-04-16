@@ -102,6 +102,7 @@ There was a great demand by the Gradle community for having a first class code c
 Therefore we're very happy that this plugin was provided by [Andrew Oberstar](https://github.com/ajoberstar), an energetic member of the Gradle community.
 
 ### Build Setup Plugin (i)
+
 This Gradle distribution introduces a `build-setup` plugin that supports users on initializing new Gradle projects.
 We reworked the functionality for converting Maven projects into Gradle projects (formerly provided by the incubating `maven2Gradle` plugin) to be part of that new `build-setup` plugin.
 Running `gradle setupBuild` in a directory with no `build.gradle` file a gradle project is initialized by
