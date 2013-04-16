@@ -122,7 +122,6 @@ class PathLimitationIntegTest extends Specification {
         dir
 """
 
-        testBatchScript.setExecutable(true)
         when:
 
         assert testWorkingDir.exists()
