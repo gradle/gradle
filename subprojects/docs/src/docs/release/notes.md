@@ -189,7 +189,7 @@ This change should not affect any builds because there are no known use cases su
 ### Renamed `add()` method on PublicationContainer (incubating)
 
 The [org.gradle.api.publish.PublicationContainer](javadoc/org/gradle/api/publish/PublicationContainer.html) introduced by the incubating publish plugins leverages the new support for
-polymorphic DomainObject containers in Gradle. This change involved switching from the custom `add` methods to the standard `create`.
+polymorphic domain object containers in Gradle. This change involved switching from the custom `add` methods to the standard `create`.
 The semantics of the replacement methods is identical to those replaced.
 
 This change does not effect publications added to the PublicationContainer using [a configuration block](javadoc/org/gradle/api/publish/PublishingExtension.html#publications),
