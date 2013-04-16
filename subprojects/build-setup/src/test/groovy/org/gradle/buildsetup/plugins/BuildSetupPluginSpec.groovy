@@ -16,6 +16,8 @@
 
 package org.gradle.buildsetup.plugins
 
+import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.buildsetup.tasks.ConvertMaven2Gradle
 import org.gradle.buildsetup.tasks.GenerateBuildFile
@@ -34,8 +36,6 @@ class BuildSetupPluginSpec extends Specification {
         project.tasks.setupWrapper instanceof Wrapper
         Matchers.dependsOn("setupWrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
     }
-
-
 
     def "adds maven2Gradle task if pom exists"() {
         setup:
@@ -62,8 +62,11 @@ class BuildSetupPluginSpec extends Specification {
 
     def "no build file generation if build file already exists"() {
         setup:
-        project.file("build.gradle") << '// an empty build'
-
+        TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
+        File projectDir = temporaryFileProvider.createTemporaryDirectory("gradle", "projectDir");
+        def buildFile = new File(projectDir, "build.gradle") << '// an empty build'
+        buildFile << '// an empty build'
+        project = HelperUtil.builder().withProjectDir(projectDir).build()
         when:
         project.plugins.apply BuildSetupPlugin
 

@@ -43,15 +43,15 @@ class BuildSetupPlugin implements Plugin<Project> {
     }
 
     boolean configureBuildSetupTask(Project project, Task setupBuildTask) {
-        if (project.file("build.gradle").exists()) {
+        if (project.buildFile?.exists()) {
             setupBuildTask.doLast {
-                logger.warn("The Gradle build file 'build.gradle' already exists. Skipping build initialization.")
+                logger.warn("The build file '$project.buildFile.name' already exists. Skipping build initialization.")
             }
             return false
         }
         if (project.file("settings.gradle").exists()) {
             setupBuildTask.doLast {
-                logger.warn("The Gradle settings file 'settings.gradle' already exists. Skipping build initialization.")
+                logger.warn("The settings file 'settings.gradle' already exists. Skipping build initialization.")
             }
             return false
         }
@@ -61,13 +61,6 @@ class BuildSetupPlugin implements Plugin<Project> {
             }
             return false
         }
-        if (project.buildFile?.exists()) {
-            setupBuildTask.doLast {
-                logger.warn("The build file '$project.buildFile.name' for this Gradle project already exists. Skipping build initialization.")
-            }
-            return false
-        }
-
         return true
     }
 
