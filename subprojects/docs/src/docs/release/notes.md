@@ -119,7 +119,7 @@ This plugin is an *incubating* feature and will improve and expand in scope in f
 
 ### Support for JUnit @Category (i)
 
-Thanks to a contribution by [Uladzimir Mihura](https://github.com/trnl), Gradle now supports JUnit categories. Categories are a mechanism to label and group JUnit tests by using annotations. Having the following JUnit test code
+Thanks to a contribution by [Uladzimir Mihura](https://github.com/trnl), Gradle now supports [JUnit categories](https://github.com/junit-team/junit/wiki/Categories). Categories are a mechanism to label and group JUnit tests by using annotations. Having the following JUnit test code
 
     public interface FastTests { /* category marker interface */ }
     public interface SlowTests { /* category marker interface */ }
