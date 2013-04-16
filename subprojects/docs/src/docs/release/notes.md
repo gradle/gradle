@@ -98,8 +98,7 @@ Since the JaCoCo plugin can be used in combination with any `JavaExec` task of y
         sourceSets sourceSets.main
     }
 
-There was a great demand by the Gradle community for having a first class code coverage plugin in the Gradle distribution.
-Therefore we're very happy that this plugin was provided by [Andrew Oberstar](https://github.com/ajoberstar), an energetic member of the Gradle community.
+This plugin was contributed by [Andrew Oberstar](https://github.com/ajoberstar), an energetic member of the Gradle community, and is a long requested out-of-the-box feature that is a very welcome addition.
 
 ### Build Setup Plugin (i)
 
