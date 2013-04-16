@@ -228,10 +228,10 @@ that were not previously imported by default. These packages may contain classes
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* Marcin Erdmann - added the ability to schedule one task to always run after another, without adding a hard dependency.
-* Andrew Oberstar - added the JaCoCo code coverage plugin.
-* Uladzimir Mihura - provide first-class support for JUnit @Category (GRADLE-2111).
-* Xavier Ducrohet - fix Success Rate display in test report overview page (GRADLE-2729).
+* [Marcin Erdmann](https://github.com/erdi) - added the ability to schedule one task to always run after another, without adding a hard dependency.
+* [Andrew Oberstar](https://github.com/ajoberstar) - added the JaCoCo code coverage plugin.
+* [Uladzimir Mihura](https://github.com/trnl) - provide first-class support for JUnit @Category (GRADLE-2111).
+* [Xavier Ducrohet](https://github.com/ducrohet) - fix Success Rate display in test report overview page (GRADLE-2729).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
