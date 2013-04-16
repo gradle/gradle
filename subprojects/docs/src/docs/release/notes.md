@@ -78,10 +78,10 @@ coverage data producing task ('test' in our example). After the build has finish
 You can configure every task of type `JacocoReport` to enable other output formats than the default `HTML` report. For example, if you just want the `xml` coverage report that can be reused by your
 favourite CI server, you can simply configure this:
 
-    jacocoTestReport{
+    jacocoTestReport {
         reports {
-            html.enabled false
-            csv.enabled false
+            html.enabled = false
+            csv.enabled = false
             xml.enabled = true
         } 
     }
