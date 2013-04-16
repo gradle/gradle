@@ -119,7 +119,9 @@ This plugin is an *incubating* feature and will improve and expand in scope in f
 
 ### Support for JUnit @Category (i)
 
-Thanks to a contribution by [Uladzimir Mihura](https://github.com/trnl), Gradle now supports [JUnit categories](https://github.com/junit-team/junit/wiki/Categories). Categories are a mechanism to label and group JUnit tests by using annotations. Having the following JUnit test code
+Thanks to a contribution by [Uladzimir Mihura](https://github.com/trnl), Gradle now supports [JUnit categories](https://github.com/junit-team/junit/wiki/Categories). Categories are a mechanism to label and group JUnit tests by using annotations. 
+
+Given the following JUnit test code:
 
     public interface FastTests { /* category marker interface */ }
     public interface SlowTests { /* category marker interface */ }
@@ -127,18 +129,16 @@ Thanks to a contribution by [Uladzimir Mihura](https://github.com/trnl), Gradle 
     public class MyTestClass {
         @Category(SlowTests.class)
         @Test public void testA() {
-	    ...
-	    ...
+	        …
         }
 
         @Category(FastTests.class)
         @Test public void testB() {
-	    ...
-	    ...
+	        …
         }
     }
 
-you can simply configure your test task to run only specific categories:
+You can now easily configure your test task to run only specific categories:
 
     test { // run fast unit test only
         useJUnit {
@@ -147,7 +147,7 @@ you can simply configure your test task to run only specific categories:
         }
     }
 
-<!-- TODO Add link to docs for this feature, once they are in place. -->
+The `includeCategories` and `excludeCategories` are methods of the [JUnitOptions](groovydoc/org/gradle/api/tasks/testing/junit/JUnitOptions.html) object and take the full class names of one or more category annotations to include or exclude.
 
 ### Incremental Tasks
 Grade has always [made it easy](userguide/more_about_tasks.html#sec:up_to_date_checks) to implement a task that gets skipped when all of it's inputs and outputs are up to date.
