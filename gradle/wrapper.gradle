@@ -17,7 +17,9 @@
 def wrapperUpdateTask = { name, label ->
     task "${name}Wrapper"(type: Wrapper) {
         group = "wrapper"
-        doFirst {
+		def jvmOpts = "-Xmx1024m -XX:MaxPermSize=256m -Dfile.encoding=UTF-8"
+        inputs.property("jvmOpts", jvmOpts)        
+		doFirst {
             def version = new groovy.json.JsonSlurper().parseText(new URL("http://services.gradle.org/versions/$label").text)
             if (version.empty) {
                 throw new GradleException("Cannot update wrapper to '${label}' version as there is currently no version of that label")
@@ -26,8 +28,6 @@ def wrapperUpdateTask = { name, label ->
             distributionUrl version.downloadUrl
         }
         doLast {
-            def jvmOpts = "-Xmx1024m -XX:MaxPermSize=256m -Dfile.encoding=UTF-8"
-            inputs.property("jvmOpts", jvmOpts)
             def optsEnvVar = "DEFAULT_JVM_OPTS"
             scriptFile.write scriptFile.text.replace("$optsEnvVar=\"\"", "$optsEnvVar=\"$jvmOpts\"")
             batchScript.write batchScript.text.replace("set $optsEnvVar=", "set $optsEnvVar=$jvmOpts")
