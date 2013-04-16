@@ -29,8 +29,8 @@ wrapper from an older version.
 In the past, the only way to ensure that Gradle ran one task after another was to add a dependency between those tasks. So if `Task A` must always run before `Task B`, you would
  say that `B.dependsOn(A)`. This has the added effect of forcing `Task A` to always run if `Task B` is executed.
 
-In some cases, `dependsOn` is not the correct semantics. A simple example is "clean" must always run before "build", but you don't always want to run "clean" whenever you run "build".
-For this use case Gradle now has "task ordering" rules, the first of which is `Task.mustRunAfter`.
+In some cases, `dependsOn` is not the correct semantics. A simple example is “clean” must always run before “build”, but you don't always want to run “clean” whenever you run “build”.
+For this use case Gradle now has “task ordering” rules, the first of which is `Task.mustRunAfter`.
 This rule does not change which tasks will be executed, but it does influence the order in which they will be executed.
 
     task clean { ... }
@@ -71,7 +71,7 @@ To gather code coverage information for your java project, just apply the JaCoCo
 
     apply plugin:'jacoco'
 
-and run `gradle test jacocoTestReport` which generates code coverage reports for the "test" task introduced by the `java` plugin. The `JacocoReport` adds a `mustRunAfter` dependency on the
+and run `gradle test jacocoTestReport` which generates code coverage reports for the “test” task introduced by the `java` plugin. The `JacocoReport` adds a `mustRunAfter` dependency on the
 coverage data producing task ('test' in our example). After the build has finished you find the coverage report in different formats in `build/reports/jacoco/test`.
 
 You can configure every task of type `JacocoReport` to enable other output formats than the default `HTML` report. For example, if you just want the `xml` coverage report that can be reused by your
