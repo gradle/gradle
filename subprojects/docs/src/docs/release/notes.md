@@ -93,7 +93,7 @@ Since the JaCoCo plugin can be used in combination with any `JavaExec` task of y
         applyTo run
     }
     
-    task applicationCodeCoverageReport(type:JacocoReport){
+    task applicationCodeCoverageReport(type: JacocoReport) {
         executionData run
         sourceSets sourceSets.main
     }
