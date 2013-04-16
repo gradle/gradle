@@ -102,7 +102,8 @@ This plugin was contributed by [Andrew Oberstar](https://github.com/ajoberstar),
 
 ### Build Setup Plugin (i)
 
-Gradle 1.6 introduces a `build-setup` plugin that makes initializing new Gradle projects more convenient. It also supports bootstrapping the migration of an Apache Maven build to a Gradle build by generating a `build.gradle` file from a `pom.xml`.
+Gradle 1.6 introduces a `build-setup` plugin that makes initializing new Gradle projects more convenient. 
+It also supports bootstrapping the migration of an Apache Maven build to a Gradle build by generating a `build.gradle` file from a `pom.xml`.
 
 The `build-setup` plugin is not a plugin that you manually apply to your project. You use it by executing the `setupBuild` task in a directory that does not contain a `build.gradle` file. 
 
@@ -114,11 +115,13 @@ Running `gradle setupBuild` in a directory with no `build.gradle` file will do t
 
 For more information please see the [User Guide chapter on this plugin](userguide/build_setup_plugin.html).
 
-This plugin is an *incubating* feature and will improve and expand in scope in future releases. If you're interested in its progress and future, you can check out the [design spec](https://github.com/gradle/gradle/blob/master/design-docs/build-initialisation.md). 
+This plugin is an *incubating* feature and will improve and expand in scope in future releases. 
+If you're interested in its progress and future, you can check out the [design spec](https://github.com/gradle/gradle/blob/master/design-docs/build-initialisation.md). 
 
 ### Support for JUnit @Category (i)
 
-Thanks to a contribution by [Uladzimir Mihura](https://github.com/trnl), Gradle now supports [JUnit categories](https://github.com/junit-team/junit/wiki/Categories). Categories are a mechanism to label and group JUnit tests by using annotations. 
+Thanks to a contribution by [Uladzimir Mihura](https://github.com/trnl), Gradle now supports [JUnit categories](https://github.com/junit-team/junit/wiki/Categories). 
+Categories are a mechanism to label and group JUnit tests by using annotations. 
 
 Given the following JUnit test code:
 
@@ -146,7 +149,8 @@ You can now easily configure your test task to run only specific categories:
         }
     }
 
-The `includeCategories` and `excludeCategories` are methods of the [JUnitOptions](groovydoc/org/gradle/api/tasks/testing/junit/JUnitOptions.html) object and take the full class names of one or more category annotations to include or exclude.
+The `includeCategories` and `excludeCategories` are methods of the [JUnitOptions](groovydoc/org/gradle/api/tasks/testing/junit/JUnitOptions.html) object and take 
+the full class names of one or more category annotations to include or exclude.
 
 ### Plugins can expose custom tooling models via the tooling API
 
