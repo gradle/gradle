@@ -123,6 +123,7 @@ public class JavadocConverter {
         handler.add(new LinkHandler(nodes, linkConverter, classMetaData, listener));
         handler.add(new InheritDocHandler(nodes, inheritedCommentSource));
         handler.add(new ValueTagHandler(nodes, linkConverter, classMetaData, listener));
+        handler.add(new LiteralTagHandler(nodes));
         handler.add(new TableHandler(nodes, document));
         handler.add(new DlElementHandler(nodes, document));
         handler.add(new AnchorElementHandler(nodes, document, classMetaData));
@@ -661,6 +662,22 @@ public class JavadocConverter {
                 return false;
             }
             nodes.appendChild(linkConverter.resolveValue(value, classMetaData, listener));
+            return true;
+        }
+    }
+
+    private static class LiteralTagHandler implements JavadocTagHandler {
+        private final DocBookBuilder nodes;
+
+        private LiteralTagHandler(DocBookBuilder nodes) {
+            this.nodes = nodes;
+        }
+
+        public boolean onJavadocTag(String tag, String value) {
+            if (!tag.equals("literal")) {
+                return false;
+            }
+            nodes.appendChild(value);
             return true;
         }
     }
