@@ -54,7 +54,7 @@
         <para>
             When Gradle has history of a previous task execution, and the only changes to the task execution context since that execution are to input files,
             then Gradle is able to determine which input files need to be reprocessed by the task.
-            In this case, the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/> action will be executed any input file that was <emphasis>added</emphasis> or <emphasis>modified</emphasis>,
+            In this case, the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="outOfDate"/> action will be executed for any input file that was <emphasis>added</emphasis> or <emphasis>modified</emphasis>,
             and the <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="removed"/> action will be executed for any <emphasis>removed</emphasis> input file.
         </para>
         <para>
