@@ -238,7 +238,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected PluginRegistry createPluginRegistry() {
-        return new DefaultPluginRegistry(get(ClassLoaderRegistry.class).getRootClassLoader(), new DependencyInjectingInstantiator(this));
+        return new DefaultPluginRegistry(get(ClassLoaderRegistry.class).getPluginsClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
 
