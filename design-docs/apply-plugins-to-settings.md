@@ -14,4 +14,10 @@ This is GRADLE-2066
 
 - Verify that a compiled plugin can be applied to a `Settings` instance.
 - Verify that a compiled plugin can be applied to a `Gradle` instance.
+- Verify that a script can be applied to the `Settings` instance using a relative path from a settings script.
+- Verify that a script can be applied to the `Settings` instance using a relative path from another applied script.
+- Verify that a script can be applied to the `Settings` instance using a relative path via `settings.apply()`
+- Verify that a script can be applied to the `Gradle` instance using a relative path from an init script.
+- Verify that a script can be applied to the `Gradle` instance using a relative path from another applied script.
+- Verify that a script cannot be applied to the `Gradle` instance using a relative path via `gradle.apply()`.
 - Existing coverage for script plugins.
