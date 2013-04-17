@@ -22,7 +22,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.plugins.DefaultPluginContainer
-import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.cache.CacheRepository
@@ -44,14 +43,18 @@ public class GradleInternalServiceRegistryTest extends Specification {
     private CacheRepository cacheRepository = Mock()
     private GradleInternalServiceRegistry registry = new GradleInternalServiceRegistry(parent, gradle)
     private StartParameter startParameter = new StartParameter()
+    private PluginRegistry pluginRegistryParent = Mock()
+    private PluginRegistry pluginRegistryChild = Mock()
 
     public void setup() {
         parent.get(StartParameter) >> Mock(StartParameter)
         parent.get(ListenerManager) >> listenerManager
         parent.get(CacheRepository) >> cacheRepository
         parent.get(DocumentationRegistry) >> Mock(DocumentationRegistry)
+        parent.get(PluginRegistry) >> pluginRegistryParent
         gradle.getStartParameter() >> startParameter
         gradle.getScriptClassLoader() >> new MultiParentClassLoader()
+        pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
     }
 
     def "can create services for a project instance"() {
@@ -80,7 +83,7 @@ public class GradleInternalServiceRegistryTest extends Specification {
         def secondRegistry = registry.get(PluginRegistry)
 
         then:
-        pluginRegistry instanceof DefaultPluginRegistry
+        pluginRegistry == pluginRegistryChild
         secondRegistry sameInstance(pluginRegistry)
     }
 
