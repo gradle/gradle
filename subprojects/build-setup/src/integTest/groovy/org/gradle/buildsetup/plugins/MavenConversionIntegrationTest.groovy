@@ -66,8 +66,6 @@ Root project 'webinar-parent'
         wrapperFilesGenerated()
     }
 
-
-
     def "flatmultimodule"() {
         when:
         executer.inDirectory(file("webinar-parent"))

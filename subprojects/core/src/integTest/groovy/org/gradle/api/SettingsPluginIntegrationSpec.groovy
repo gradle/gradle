@@ -33,6 +33,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
             }
         }
         """
+
         then:
         succeeds(':moduleA:dependencies')
     }
@@ -53,9 +54,10 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
             }
 
             """
-        when:
 
+        when:
         settingsFile << "apply plugin: test.SimpleSettingsPlugin"
+
         then:
         succeeds(':moduleA:dependencies')
     }

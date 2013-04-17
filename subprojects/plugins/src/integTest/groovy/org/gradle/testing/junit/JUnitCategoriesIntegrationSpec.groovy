@@ -30,7 +30,6 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
-
     @Test
     public void reportsUnloadableExcludeCategory() {
         given:
@@ -78,6 +77,6 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
         when:
         ExecutionResult failure = executer.withTasks('test').runWithFailure();
         then:
-        failure.getError().contains("JUnit Categories defined but declared JUnit version does not support Categories.")
+        failure.error.contains("JUnit Categories defined but declared JUnit version does not support Categories.")
     }
 }
