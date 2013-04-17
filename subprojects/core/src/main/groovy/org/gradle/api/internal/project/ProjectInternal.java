@@ -54,7 +54,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     ProjectInternal findProject(String path);
 
-    IProjectRegistry<ProjectInternal> getProjectRegistry();
+    ProjectRegistry<ProjectInternal> getProjectRegistry();
 
     DynamicObject getInheritedScope();
 

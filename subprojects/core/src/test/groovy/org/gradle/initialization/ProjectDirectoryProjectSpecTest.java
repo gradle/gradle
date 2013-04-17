@@ -16,7 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GFileUtils;
@@ -101,8 +101,8 @@ public class ProjectDirectoryProjectSpecTest {
         }
     }
 
-    private IProjectRegistry<ProjectIdentifier> registry(final ProjectIdentifier... projects) {
-        final IProjectRegistry<ProjectIdentifier> registry = context.mock(IProjectRegistry.class, String.valueOf(counter++));
+    private ProjectRegistry<ProjectIdentifier> registry(final ProjectIdentifier... projects) {
+        final ProjectRegistry<ProjectIdentifier> registry = context.mock(ProjectRegistry.class, String.valueOf(counter++));
         context.checking(new Expectations(){{
             allowing(registry).getAllProjects();
             will(returnValue(toSet(projects)));

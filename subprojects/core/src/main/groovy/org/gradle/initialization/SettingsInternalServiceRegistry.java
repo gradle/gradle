@@ -53,7 +53,7 @@ public class SettingsInternalServiceRegistry extends DefaultServiceRegistry impl
         return new DefaultPluginContainer(get(PluginRegistry.class), settings);
     }
 
-    protected IProjectDescriptorRegistry createIProjectDescriptorRegistry() {
+    protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {
         return new DefaultProjectDescriptorRegistry();
     }
 }

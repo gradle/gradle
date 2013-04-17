@@ -18,7 +18,7 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.MultiParentClassLoader;
@@ -70,7 +70,7 @@ public class SettingsHandlerTest {
     }
 
     private void prepareForExistingSettings() {
-        final IProjectRegistry projectRegistry = context.mock(IProjectRegistry.class);
+        final ProjectRegistry projectRegistry = context.mock(ProjectRegistry.class);
         final DefaultProjectDescriptor projectDescriptor = context.mock(DefaultProjectDescriptor.class);
         startParameter.setCurrentDir(settingsLocation.getSettingsDir());
 

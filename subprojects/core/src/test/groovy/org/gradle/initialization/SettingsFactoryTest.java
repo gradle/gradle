@@ -61,7 +61,7 @@ public class SettingsFactoryTest {
         final FileResolver fileResolver = context.mock(FileResolver.class);
         final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
 
-        final IProjectDescriptorRegistry expectedProjectDescriptorRegistry = context.mock(IProjectDescriptorRegistry.class);
+        final ProjectDescriptorRegistry expectedProjectDescriptorRegistry = context.mock(ProjectDescriptorRegistry.class);
 
         context.checking(new Expectations() {{
             one(serviceRegistryFactory).createFor(with(any(Settings.class)));
@@ -72,7 +72,7 @@ public class SettingsFactoryTest {
             will(returnValue(fileResolver));
             one(settingsInternallServiceRegistry).get(ScriptPluginFactory.class);
             will(returnValue(scriptPluginFactory));
-            one(settingsInternallServiceRegistry).get(IProjectDescriptorRegistry.class);
+            one(settingsInternallServiceRegistry).get(ProjectDescriptorRegistry.class);
             will(returnValue(expectedProjectDescriptorRegistry));
             one(expectedProjectDescriptorRegistry).addProject(with(any(DefaultProjectDescriptor.class)));
         }});

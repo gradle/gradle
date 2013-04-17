@@ -123,7 +123,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private TaskContainerInternal implicitTasksContainer;
 
-    private IProjectRegistry<ProjectInternal> projectRegistry;
+    private ProjectRegistry<ProjectInternal> projectRegistry;
 
     private DependencyHandler dependencyHandler;
 
@@ -189,7 +189,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         dependencyHandler = services.get(DependencyHandler.class);
         scriptHandler = services.get(ScriptHandler.class);
         scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
-        projectRegistry = services.get(IProjectRegistry.class);
+        projectRegistry = services.get(ProjectRegistry.class);
         loggingManager = services.get(LoggingManagerInternal.class);
         softwareComponentContainer = services.get(SoftwareComponentContainer.class);
         scriptPluginFactory = services.get(ScriptPluginFactory.class);
@@ -380,7 +380,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return depth;
     }
 
-    public IProjectRegistry<ProjectInternal> getProjectRegistry() {
+    public ProjectRegistry<ProjectInternal> getProjectRegistry() {
         return projectRegistry;
     }
 

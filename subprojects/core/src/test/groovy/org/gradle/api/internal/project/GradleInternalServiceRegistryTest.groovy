@@ -66,8 +66,8 @@ public class GradleInternalServiceRegistryTest extends Specification {
 
     def "provides a project registry"() {
         when:
-        def projectRegistry = registry.get(IProjectRegistry)
-        def secondRegistry = registry.get(IProjectRegistry)
+        def projectRegistry = registry.get(ProjectRegistry)
+        def secondRegistry = registry.get(ProjectRegistry)
 
         then:
         projectRegistry instanceof DefaultProjectRegistry

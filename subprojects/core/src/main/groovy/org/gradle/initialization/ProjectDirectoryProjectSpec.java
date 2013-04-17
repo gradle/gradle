@@ -18,7 +18,7 @@ package org.gradle.initialization;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.InvalidUserDataException;
 
 import java.io.File;
@@ -48,7 +48,7 @@ public class ProjectDirectoryProjectSpec extends AbstractProjectSpec implements 
     }
 
     @Override
-    protected void checkPreconditions(IProjectRegistry<?> registry) {
+    protected void checkPreconditions(ProjectRegistry<?> registry) {
         if (!dir.exists()) {
             throw new InvalidUserDataException(String.format("Project directory '%s' does not exist.", dir));
         }

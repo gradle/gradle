@@ -75,7 +75,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
         };
     }
 
-    protected IProjectRegistry createIProjectRegistry() {
+    protected ProjectRegistry createIProjectRegistry() {
         return new DefaultProjectRegistry<ProjectInternal>();
     }
 

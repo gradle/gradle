@@ -28,7 +28,7 @@ import java.util.HashSet;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectRegistry<T extends ProjectIdentifier> implements IProjectRegistry<T> {
+public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T> {
     private Map<String, T> projects = new HashMap<String, T>();
     private Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();
 

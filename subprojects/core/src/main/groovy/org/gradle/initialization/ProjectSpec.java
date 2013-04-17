@@ -16,21 +16,21 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.InvalidUserDataException;
 
 public interface ProjectSpec {
     /**
      * Determines whether the given registry contains at least 1 project which meets this spec.
      */
-    boolean containsProject(IProjectRegistry<?> registry);
+    boolean containsProject(ProjectRegistry<?> registry);
 
     /**
      * Returns the single project in the given registry which meets this spec.
      * @return the project. Never returns null.
      * @throws InvalidUserDataException When project cannot be selected due to some user input mismatch.
      */
-    <T extends ProjectIdentifier> T selectProject(IProjectRegistry<? extends T> registry) throws
+    <T extends ProjectIdentifier> T selectProject(ProjectRegistry<? extends T> registry) throws
             InvalidUserDataException;
 
     /**

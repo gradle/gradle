@@ -70,7 +70,7 @@ public class DefaultProjectDescriptorTest {
     @Test
     public void setName() {
         final String newName = "newName";
-        final IProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(IProjectDescriptorRegistry.class);
+        final ProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(ProjectDescriptorRegistry.class);
         projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
         context.checking(new Expectations() {{
             one(projectDescriptorRegistryMock).changeDescriptorPath(Path.path(TEST_NAME), Path.path(Project.PATH_SEPARATOR + newName));

@@ -13,28 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.initialization;
 
-import org.gradle.api.specs.Spec;
-
-import java.util.Set;
-import java.io.File;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.util.Path;
 
 /**
  * @author Hans Dockter
  */
-public interface IProjectRegistry<T extends ProjectIdentifier> {
-    void addProject(T project);
-
-    T getProject(String path);
-
-    T getProject(File projectDir);
-
-    Set<T> getAllProjects();
-    
-    Set<T> getAllProjects(String path);
-
-    Set<T> getSubProjects(String path);
-
-    Set<T> findAll(Spec<? super T> constraint);
+public interface ProjectDescriptorRegistry extends ProjectRegistry<DefaultProjectDescriptor> {
+    void changeDescriptorPath(Path oldPath, Path newPath);
 }

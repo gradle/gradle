@@ -15,7 +15,7 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
 
 import java.io.File;
 
@@ -25,7 +25,7 @@ public class DefaultProjectSpec extends ProjectDirectoryProjectSpec {
     }
 
     @Override
-    protected void checkPreconditions(IProjectRegistry<?> registry) {
+    protected void checkPreconditions(ProjectRegistry<?> registry) {
         // Ignore
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.AbstractPluginAware;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -50,7 +50,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     private GradleInternal gradle;
 
-    private IProjectDescriptorRegistry projectDescriptorRegistry;
+    private ProjectDescriptorRegistry projectDescriptorRegistry;
 
     private  ServiceRegistryFactory services;
 
@@ -72,7 +72,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         this.plugins = services.get(PluginContainer.class);
         this.fileResolver = services.get(FileResolver.class);
         this.scriptPluginFactory = services.get(ScriptPluginFactory.class);
-        this.projectDescriptorRegistry = services.get(IProjectDescriptorRegistry.class);
+        this.projectDescriptorRegistry = services.get(ProjectDescriptorRegistry.class);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
 
@@ -188,15 +188,15 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
         this.settingsScript = settingsScript;
     }
 
-    public IProjectDescriptorRegistry getProjectDescriptorRegistry() {
+    public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
         return projectDescriptorRegistry;
     }
 
-    public void setProjectDescriptorRegistry(IProjectDescriptorRegistry projectDescriptorRegistry) {
+    public void setProjectDescriptorRegistry(ProjectDescriptorRegistry projectDescriptorRegistry) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
 
-    public IProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
+    public ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
         return projectDescriptorRegistry;
     }
 
