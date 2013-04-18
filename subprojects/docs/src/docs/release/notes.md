@@ -152,6 +152,30 @@ You can now easily configure your test task to run only specific categories:
 The `includeCategories` and `excludeCategories` are methods of the [JUnitOptions](groovydoc/org/gradle/api/tasks/testing/junit/JUnitOptions.html) object and take 
 the full class names of one or more category annotations to include or exclude.
 
+### Incremental Tasks
+Grade has always [made it easy](userguide/more_about_tasks.html#sec:up_to_date_checks) to implement a task that gets skipped when all of it's inputs and outputs are up to date.
+
+However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs.
+This can be particularly useful for a transformer task, that converts input files to output files on a 1:1 basis.
+
+If you'd like to optimise your build so that only out-of-date inputs are processed, you can now do so by leveraging the new support for [Incremental Tasks](userguide/incremental_tasks.html).
+To implement an incremental task, you add a @TaskAction method that takes a single parameter of type [IncrementalTaskInputs](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html).
+You can then supply an action to execute for every input file that is out of date, and another action to execute for every input file that has been removed.
+
+    @TaskAction
+    void execute(IncrementalTaskInputs inputs) {
+        inputs.outOfDate { change ->
+            println "File ${change.file.name} is out of date"
+        }
+
+        inputs.removed { change ->
+            println "File ${change.file.name} has been removed"
+        }
+    }
+
+Be sure to check out the [User Guide chapter](userguide/incremental_tasks.html) and [DSL reference](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html) for
+more details on how you can benefit from incremental tasks.
+
 ### Plugins can expose custom tooling models via the tooling API
 
 TODO
