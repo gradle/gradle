@@ -152,14 +152,17 @@ You can now easily configure your test task to run only specific categories:
 The `includeCategories` and `excludeCategories` are methods of the [JUnitOptions](groovydoc/org/gradle/api/tasks/testing/junit/JUnitOptions.html) object and take 
 the full class names of one or more category annotations to include or exclude.
 
-### Incremental Tasks
-Grade has always [made it easy](userguide/more_about_tasks.html#sec:up_to_date_checks) to implement a task that gets skipped when all of it's inputs and outputs are up to date.
+### Incremental Tasks (i)
 
-However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs.
-This can be particularly useful for a transformer task, that converts input files to output files on a 1:1 basis.
+One of Gradle's most prized features is its ability to build a project incrementally. 
+If tasks [declare their inputs and outputs](userguide/more_about_tasks.html#sec:task_inputs_outputs), Gradle can optimize the build by skipping the execution of each task 
+whose inputs and outputs are unchanged since the previous execution (because the work would be completely redundant). This is known as “Incremental Build”. 
+Gradle 1.6 introduces a related, [incubating](userguide/feature_lifecycle.html), feature that takes build optimization to the next level: “Incremental Tasks”.
 
-If you'd like to optimise your build so that only out-of-date inputs are processed, you can now do so by leveraging the new support for [Incremental Tasks](userguide/incremental_tasks.html).
-To implement an incremental task, you add a @TaskAction method that takes a single parameter of type [IncrementalTaskInputs](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html).
+An “incremental task” is able to selectively process inputs that have changed, avoiding processing inputs that have not changed and do not need reprocessing. 
+Gradle provides information about changes to inputs to the task implementation for this purpose. 
+
+To implement an incremental task, you add a `@TaskAction` method that takes a single parameter of type [IncrementalTaskInputs](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html).
 You can then supply an action to execute for every input file that is out of date, and another action to execute for every input file that has been removed.
 
     @TaskAction
@@ -173,8 +176,14 @@ You can then supply an action to execute for every input file that is out of dat
         }
     }
 
+**Note:** Incremental task support is a complicated and challenging feature to support. Since the introduction of the implementation described above (early in the Gradle 1.6 release cycle),
+discussions within the Gradle community have produced superior ideas for exposing the information about changes to task implementors. As such, the API for this feature will almost certainly
+change in upcoming releases. However, please do experiment with the current implementation and share your experiences with the Gradle community. 
+The feature incubation process (which is part of the Gradle [feature lifecyle](userguide/feature_lifecycle.html)) exists for this purpose of ensuring high quality 
+final implementation through incorporation of early user feedback.
+
 Be sure to check out the [User Guide chapter](userguide/incremental_tasks.html) and [DSL reference](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html) for
-more details on how you can benefit from incremental tasks.
+more details on implementing incremental tasks.
 
 ### Plugins can expose custom tooling models via the tooling API
 
