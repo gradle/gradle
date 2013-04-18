@@ -164,6 +164,32 @@ This story adds a `wrapper` plugin and support for automatically applying the `w
 * Running `gradle wrapper` on a project that defines a `wrapper` task runs the task defined in the project, not the
   implicit task defined by the `wrapper` plugin.
 
+# Story: Create a Java library project from scratch
+
+This story adds the ability to create a Java library project by running `gradle setupBuild` in an empty directory:
+
+* Add a `--type` command-line option to `setupBuild`.
+* When `type` is `java-library` then:
+    * Ignore any existing POM.
+    * Skip generation if any build or settings files already exist.
+    * Generate a `build.gradle` that applies the Java plugin, adds `mavenCentral()` and the dependencies to allow testing with JUnit.
+    * Create the appropriate source directories, if they do not exist.
+    * Add a sample class and a unit test, if there are no existing source or test files.
+* When `type` is not specified then:
+    * Convert a POM, if present.
+    * Otherwise, generate an empty build, as per previous stories.
+* Change the `settings.gradle` template so that the root project name is set to the project directory name.
+
+## User interaction
+
+From the command-line:
+
+1. User downloads and installs a Gradle distribution.
+2. User runs `gradle setupBuild --type java-library` from an empty directory.
+3. User modifies generated build scripts and source, as appropriate.
+
+# Story: Update the user guide Java tutorial to use the `setupBuild` task
+
 # Story: Gradle help message informs user how to setup a build
 
 This story adds some helpful output when the user attempts to run Gradle in a directory that does not contain a
@@ -183,27 +209,6 @@ Gradle build, to let the user know how to create a new build or convert an exist
 * The output `gradle` or `gradle help` in a directory with no Gradle files and a `pom.xml` includes a message informing the
   user that they can convert their POM by running `gradle setupBuild`.
 * The `* Try ...` error message from `gradle someTask` in an empty directory includes a similar message to the help output.
-
-# Story: Create a Java library project from scratch
-
-This story adds the ability to create a Java library project by running `gradle setupBuild` in an empty directory:
-
-* Add a `--type` command-line option to `setupBuild`.
-* When `type` is `java-library` then:
-    * Ignore any existing POM.
-    * Generate a `build.gradle` that applies the Java plugin, adds `mavenCentral()` and the dependencies to allow testing with JUnit.
-    * Create the appropriate source directories, if they do not exist.
-    * Possibly add a sample class and a unit test, if there are no existing source or test files.
-* When `type` is not specified then:
-    * Convert a POM, if present.
-
-## User interaction
-
-From the command-line:
-
-1. User downloads and installs a Gradle distribution.
-2. User runs `gradle setupBuild --type java-library` from an empty directory.
-3. User modifies generated build scripts and source, as appropriate.
 
 # Story: User updates wrapper to use the most recent nightly, release candidate or release
 

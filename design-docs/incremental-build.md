@@ -144,6 +144,28 @@ Incremental execution is not possible when:
 Handle multiple actions added via multiple calls to outOfDate() and removed()?
 Provide a simpler API that separates outOfDate() and removed() processing temporally?
 
+## Task implementation supports incremental execution for some types of input files
+
+A task may take as input serveral different collections of input files. This story reworks the incremental task API to allow input file changes
+to be delivered per-input file collection. It must be possible for a task to declare which of its input file collections it supports
+incremental execution for. A change in any other input file collection should trigger a rebuild execution of the task:
+
+- A file moves from one collection to another.
+- A file is added to a second collection.
+- A file is removed from some but not all collections.
+
+## C++ compilation is incremental when a C++ source file changes
+
+1. Split `LinkExecutable` and `LinkSharedLibrary` task implementations out of `CppCompile` task type.
+    - Change the `cpp` plugin to add these tasks and wire together.
+2. Change the `CppCompile` task to declare its source files, include directories and output directories as properties with
+   the appropriate annotations.
+4. Change the `CppCompile` task to be incremental wrt source file changes:
+    - When a source file is added, compile only that source file.
+    - When a source file is changed, compile only that source file.
+    - When a source file is removed, remove the object file for that source file.
+    - When a header file is changed in some way, recompile all source files.
+
 ## GRADLE-918: Document task input and output annotations
 
 ## Story: Invalidate task outputs when task implementation changes
@@ -224,6 +246,8 @@ Potential solutions:
 - Handle this at the binary level, rather than the task level. For example, the `classes` task might remove unclaimed files (ie not known
   to be built by any task) from the classes directory. Or perhaps when a task that contributes to the classes directory is scheduled to
   run and no history is available for that task, then remove the classes directory and schedule a `classes` task to run.
+
+## Story: Copy task is incremental wrt its input files
 
 ## Story: Plugin author uses changes to output files to implement incremental task
 
