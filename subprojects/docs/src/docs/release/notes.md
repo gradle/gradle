@@ -2,6 +2,31 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Faster Gradle builds due to in-memory caching of dependency metadata.
+
+With this change, the dependency resolution is much faster. Typically, the larger the project is the more configurations and dependencies are being resolved during the build.
+By caching the dependency metadata in memory we avoid hitting the repository and parsing the descriptor when the same dependency is requested in a different resolution.
+An incremental build for a large project should be tangibly faster with Gradle 1.7.
+A full build may be much faster, too. The level of performance improvement depends on the build.
+If a large portion of the build time is taken by slow integration tests, the performance improvements are smaller.
+Nevertheless, some of the large builds we used for benchmarking show up to 30% speed increase.
+
+Caching the dependency metadata in-memory is very important for local repositories (e.g. local filesystem like mavenLocal())
+and for resolution of snapshots / dynamic versions.
+Prior to Gradle 1.7, every time a local dependency was resolved, Gradle would load the dependency metadata directly from the local repository.
+This behavior also applies to resolution from remote repositories, but only for expired changing modules (snapshots) or expired dynamic versions (e.g. '1.2+').
+With the in-memory caching of dependency metadata, this behavior now *changes*.
+During a single build, a resolved dependency will not be reloaded again from the repository.
+This may be a breaking change for exotic builds that depend the on the fact that certain dependencies are reloaded from the repository during each resolution.
+Bear in mind that the vast majority of builds would much better enjoy faster dependency resolution offered by the in-memory dependency metadata cache.
+If your project require refreshability of snapshots or local dependencies during the build please let us know so that we can better fully your scenario and model it correctly.
+You can also turn off the in-memory dependency metadata cache via a system property:
+
+    //gradle.properties
+    systemProp.org.gradle.resolution.memorycache=false
+
+To avoid increased heap consumption, the in-memory dependency metadata cache may clear the cached data if the system is running out of heap space.
+
 ### TestNG parameters included in test reports
 
 TestNG supports [parameterizing test methods](http://testng.org/doc/documentation-main.html#parameters), allowing a particular test method to be executed multiple times with different inputs.
@@ -61,9 +86,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Caching dependency metadata in memory
+
+Local-repo dependencies and expired snapshots are not loaded from the repository with each resolve.
+During a single build, a resolved dependency is not loaded again from the repository.
+For more details, please refer to the section about the in-memory dependency metadata cache.
 
 ## External contributions
 
