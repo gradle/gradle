@@ -25,15 +25,13 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaDat
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
-import java.io.File;
-
 /**
 * By Szczepan Faber on 4/19/13
 */
 class CachedRepository implements LocalAwareModuleVersionRepository {
-    private DependencyMetadataCache cache;
-    private LocalAwareModuleVersionRepository delegate;
-    private DependencyMetadataCacheStats stats;
+    final DependencyMetadataCache cache;
+    final LocalAwareModuleVersionRepository delegate;
+    final DependencyMetadataCacheStats stats;
 
     public CachedRepository(DependencyMetadataCache cache, LocalAwareModuleVersionRepository delegate, DependencyMetadataCacheStats stats) {
         this.cache = cache;
@@ -50,44 +48,24 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
     }
 
     public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
-        CachedModuleVersionResult fromCache = cache.localDescriptors.get(dependency.getRequested());
-        if (fromCache == null) {
+        if(!cache.supplyLocalMetaData(dependency.getRequested(), result)) {
             delegate.getLocalDependency(dependency, result);
-            CachedModuleVersionResult cachedResult = new CachedModuleVersionResult(result);
-            if (cachedResult.isCacheable()) {
-                cache.localDescriptors.put(dependency.getRequested(), cachedResult);
-            }
-        } else {
-            stats.localMetadataCached++;
-            fromCache.supply(result);
+            cache.newLocalDependencyResult(dependency.getRequested(), result);
         }
     }
 
     public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
-        CachedModuleVersionResult fromCache = cache.descriptors.get(dependency.getRequested());
-        if (fromCache == null) {
+        if(!cache.supplyMetaData(dependency.getRequested(), result)) {
             delegate.getDependency(dependency, result);
-            CachedModuleVersionResult cachedResult = new CachedModuleVersionResult(result);
-            if (cachedResult.isCacheable()) {
-                cache.descriptors.put(dependency.getRequested(), cachedResult);
-            }
-        } else {
-            stats.metadataCached++;
-            fromCache.supply(result);
+            cache.newDependencyResult(dependency.getRequested(), result);
         }
     }
 
     public void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
         ArtifactIdentifier id = new DefaultArtifactIdentifier(artifact);
-        File fromCache = cache.artifacts.get(id);
-        if (fromCache == null) {
+        if(!cache.supplyArtifact(id, result)) {
             delegate.resolve(artifact, result, moduleSource);
-            if (result.getFailure() == null) {
-                cache.artifacts.put(id, result.getFile());
-            }
-        } else {
-            stats.artifactsCached++;
-            result.resolved(fromCache);
+            cache.newArtifact(id, result);
         }
     }
 }

@@ -22,12 +22,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 class DependencyMetadataCacheStats {
     int cacheInstances;
     int reposWrapped;
-    int localMetadataCached;
-    int metadataCached;
-    int artifactsCached;
+    int metadataServed;
+    int artifactsServed;
     public String toString() {
         return String.format(
-                "Repos cached: %s, cache instances: %s, modules served from cache: %s (local %s), artifacts: %s",
-                reposWrapped, cacheInstances, metadataCached, localMetadataCached, artifactsCached);
+                "Repos cached: %s, cache instances: %s, modules served from cache: %s, artifacts: %s",
+                reposWrapped, cacheInstances, metadataServed, artifactsServed);
     }
 }

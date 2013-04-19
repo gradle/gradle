@@ -31,16 +31,16 @@ public class InMemoryDependencyMetadataCache implements Stoppable {
 
     private final static Logger LOG = Logging.getLogger(InMemoryDependencyMetadataCache.class);
 
-    private Map<String, DependencyMetadataCache> cachePerRepo = new MapMaker().softValues().makeMap();
+    Map<String, DependencyMetadataCache> cachePerRepo = new MapMaker().softValues().makeMap();
 
-    private final DependencyMetadataCacheStats stats = new DependencyMetadataCacheStats();
+    final DependencyMetadataCacheStats stats = new DependencyMetadataCacheStats();
 
     public LocalAwareModuleVersionRepository cached(LocalAwareModuleVersionRepository input) {
         DependencyMetadataCache dataCache = cachePerRepo.get(input.getId());
         stats.reposWrapped++;
         if (dataCache == null) {
             LOG.debug("Creating new in-memory cache for repo '{}' [{}].", input.getName(), input.getId());
-            dataCache = new DependencyMetadataCache();
+            dataCache = new DependencyMetadataCache(stats);
             stats.cacheInstances++;
             cachePerRepo.put(input.getId(), dataCache);
         } else {

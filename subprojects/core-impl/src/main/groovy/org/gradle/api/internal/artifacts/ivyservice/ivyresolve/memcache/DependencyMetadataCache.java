@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData;
 
 import java.io.File;
 import java.util.HashMap;
@@ -27,7 +29,59 @@ import java.util.Map;
 * By Szczepan Faber on 4/19/13
 */
 class DependencyMetadataCache {
-    final Map<ModuleVersionSelector, CachedModuleVersionResult> localDescriptors = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
-    final Map<ModuleVersionSelector, CachedModuleVersionResult> descriptors = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
-    final Map<ArtifactIdentifier, File> artifacts = new HashMap<ArtifactIdentifier, File>();
+    private final Map<ModuleVersionSelector, CachedModuleVersionResult> localMetaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
+    private final Map<ModuleVersionSelector, CachedModuleVersionResult> metaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
+    private final Map<ArtifactIdentifier, File> artifacts = new HashMap<ArtifactIdentifier, File>();
+    private DependencyMetadataCacheStats stats;
+
+    DependencyMetadataCache(DependencyMetadataCacheStats stats) {
+        this.stats = stats;
+    }
+
+    boolean supplyLocalMetaData(ModuleVersionSelector requested, BuildableModuleVersionMetaData result) {
+        return supply(requested, result, localMetaData, stats);
+    }
+
+    boolean supplyMetaData(ModuleVersionSelector requested, BuildableModuleVersionMetaData result) {
+        return supply(requested, result, metaData, stats);
+    }
+
+    private static boolean supply(ModuleVersionSelector requested, BuildableModuleVersionMetaData result, Map<ModuleVersionSelector, CachedModuleVersionResult> map, DependencyMetadataCacheStats stats) {
+        CachedModuleVersionResult fromCache = map.get(requested);
+        if (fromCache == null) {
+            return false;
+        }
+        fromCache.supply(result);
+        stats.metadataServed++;
+        return true;
+    }
+
+    void newLocalDependencyResult(ModuleVersionSelector requested, BuildableModuleVersionMetaData result) {
+        newResult(requested, result, localMetaData);
+    }
+
+    void newDependencyResult(ModuleVersionSelector requested, BuildableModuleVersionMetaData result) {
+        newResult(requested, result, metaData);
+    }
+
+    private static void newResult(ModuleVersionSelector requested, BuildableModuleVersionMetaData result, Map<ModuleVersionSelector, CachedModuleVersionResult> map) {
+        CachedModuleVersionResult cachedResult = new CachedModuleVersionResult(result);
+        if (cachedResult.isCacheable()) {
+            map.put(requested, cachedResult);
+        }
+    }
+
+    public boolean supplyArtifact(ArtifactIdentifier id, BuildableArtifactResolveResult result) {
+        File fromCache = artifacts.get(id);
+        if (fromCache != null) {
+            result.resolved(fromCache);
+            stats.artifactsServed++;
+            return true;
+        }
+        return false;
+    }
+
+    public void newArtifact(ArtifactIdentifier id, BuildableArtifactResolveResult result) {
+        artifacts.put(id, result.getFile());
+    }
 }
