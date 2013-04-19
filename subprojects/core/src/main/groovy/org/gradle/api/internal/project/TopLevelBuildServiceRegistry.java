@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
+import org.gradle.api.internal.artifacts.TopLevelDependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
@@ -256,5 +257,11 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
+    }
+
+    protected TopLevelDependencyManagementServices createGlobalDependencyManagementServices() {
+        ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();
+        ServiceLocator serviceLocator = new ServiceLocator(coreImplClassLoader);
+        return serviceLocator.getFactory(TopLevelDependencyManagementServices.class).newInstance();
     }
 }
