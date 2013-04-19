@@ -1281,6 +1281,19 @@
                 multiple test tasks, then the test report will include only one execution of that class and discard the other executions of that
                 class. This will be addressed in a future Gradle version.
             </para>
+            <section id="testNgParameterizedReporting">
+                <title>TestNG parameterized methods and reporting</title>
+                <para>
+                    TestNG supports <ulink url="http://testng.org/doc/documentation-main.html#parameters">parameterizing test methods</ulink>,
+                    allowing a particular test method to be executed multiple times with different inputs. Gradle includes the parameter values
+                    in its reporting of the test method execution.
+                </para>
+                <para>
+                    Given a parameterized test method named <literal>aParameterizedTestMethod</literal> that takes two parameters, it will be reported with the name:
+                    <literal>aParameterizedTestMethod(toStringValueOfParam1, toStringValueOfParam2)</literal>. This makes identifying the parameter values for a
+                    particular iteration easy.
+                </para>
+            </section>
         </section>
 
         <section>

@@ -2,9 +2,38 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
+### TestNG parameters included in test reports
+
+TestNG supports [parameterizing test methods](http://testng.org/doc/documentation-main.html#parameters), allowing a particular test method to be executed multiple times with different inputs.
+Previously in Gradle's test reports, parameterized methods were listed multiple times (for each parameterized iteration) with no way to differentiate the executions.
+The test reports now include the `toString()` values of each parameter for each iteration, making it easy to identify the data set for a given iteration.
+
+Given a TestNG test case:
+
+    import org.testng.annotations.*;
+
+    public class ParameterizedTest {
+        @Test(dataProvider = "1")
+    	public void aParameterizedTestCase(String var1, String var2) {
+    	    …
+    	}
+
+    	@DataProvider(name = "1")
+    	public Object[][] provider1() {
+    		return new Object[][] {
+    		   {"1", "2"},
+    		   {"3", "4"}
+    	    };
+    	}
+    }
+
+The test report will show that the following test cases were executed:
+
+* `aParameterizedTestCase(1, 2)`
+* `aParameterizedTestCase(3, 4)`
+
+This includes Gradle's own HTML test report and the “JUnit XML” file.
+The “JUnit XML” file is typically used to convey test execution information to the CI server running the automated build, which means the parameter info is also visible via the CI server.
 
 ## Promoted features
 
