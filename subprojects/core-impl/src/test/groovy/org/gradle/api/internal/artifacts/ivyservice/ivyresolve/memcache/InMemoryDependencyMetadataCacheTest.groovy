@@ -21,6 +21,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 import spock.lang.Specification
 
 /**
@@ -28,7 +30,19 @@ import spock.lang.Specification
  */
 class InMemoryDependencyMetadataCacheTest extends Specification {
 
+    @Rule SetSystemProperties sysProp = new SetSystemProperties()
     def cache = new InMemoryDependencyMetadataCache()
+
+    def "can be turned off via system property"() {
+        System.properties.setProperty(InMemoryDependencyMetadataCache.TOGGLE_PROPERTY, "false")
+        def repo = Mock(LocalAwareModuleVersionRepository) { getId() >> "mavenCentral" }
+
+        when:
+        def out = cache.cached(repo)
+
+        then:
+        out.is(repo)
+    }
 
     def "wraps repositories"() {
         def repo1 = Mock(LocalAwareModuleVersionRepository) { getId() >> "mavenCentral" }

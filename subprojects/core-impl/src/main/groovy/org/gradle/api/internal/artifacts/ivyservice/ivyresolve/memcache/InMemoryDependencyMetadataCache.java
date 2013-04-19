@@ -29,6 +29,8 @@ import java.util.Map;
  */
 public class InMemoryDependencyMetadataCache implements Stoppable {
 
+    public final static String TOGGLE_PROPERTY = "org.gradle.resolution.memorycache";
+
     private final static Logger LOG = Logging.getLogger(InMemoryDependencyMetadataCache.class);
 
     Map<String, DependencyMetadataCache> cachePerRepo = new MapMaker().softValues().makeMap();
@@ -36,6 +38,10 @@ public class InMemoryDependencyMetadataCache implements Stoppable {
     final DependencyMetadataCacheStats stats = new DependencyMetadataCacheStats();
 
     public LocalAwareModuleVersionRepository cached(LocalAwareModuleVersionRepository input) {
+        if ("false".equalsIgnoreCase(System.getProperty(TOGGLE_PROPERTY))) {
+            return input;
+        }
+
         DependencyMetadataCache dataCache = cachePerRepo.get(input.getId());
         stats.reposWrapped++;
         if (dataCache == null) {
