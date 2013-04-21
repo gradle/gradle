@@ -82,22 +82,4 @@ class GroovyBasePluginTest {
         assertThat(task.docTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
         assertThat(task.windowTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
-
-    @Test void defaultsGroovyClasspathToGroovyConfigurationIfTheLatterIsNonEmpty() {
-        project.sourceSets.create('custom')
-        def configuration = project.configurations.groovy
-        project.dependencies {
-            groovy "org.codehaus.groovy:groovy-all:2.0.5"
-        }
-
-        def compileTask = project.tasks.compileCustomGroovy
-        assertSame(configuration, compileTask.groovyClasspath)
-
-        def groovydocTask = project.task('groovydoc', type: Groovydoc)
-        assertSame(configuration, groovydocTask.groovyClasspath)
-    }
-
-    // see GroovyBasePluginIntegrationTest
-    @Test void defaultsGroovyClasspathToInferredGroovyDependencyIfGroovyConfigurationIsEmpty() {
-    }
 }

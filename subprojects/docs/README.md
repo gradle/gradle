@@ -64,7 +64,7 @@ This is a block element which adds some source code from one of the sample build
         <sourcefile file='build.gradle'/>
         <sourcefile file='water/build.gradle' snippet='some-snippet'/>
         <output args='-PsomeProp=1020 hello'/>
-        <output args='-q hello' outputFile='someSample.out' ignoreExtraLines="true"/>
+        <output args='-q hello' outputFile='someSample.out' ignoreExtraLines="true" ignoreLineOrder="true"/>
         <test args="-q someTask"/>
     </sample>
 

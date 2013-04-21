@@ -124,15 +124,22 @@ general purpose:
 
 This story adds support for automatically applying the `build-setup` plugin when `gradle setupBuild` is run:
 
-* Add `ProjectConfigureAction` to the plugin project which adds a task rule that applies the `build-setup` plugin
-  when `setupBuild` is requested. It should only apply the plugin to the root project of a single project build
-  where the project build script does not exist.
+1. Add `ProjectConfigureAction` to the plugin project which adds a task rule that applies the `build-setup` plugin
+   when `setupBuild` is requested. It should only apply the plugin to the root project of a build.
+2. Change the `build-setup` plugin so that it adds only the `setupBuild` lifecycle task and no other tasks when
+   any of the following is true. In this case, the `setupBuild` task should simply log a warning when run.
+    - The settings script already exists.
+    - The current project's build script already exists.
 
 ## Test coverage
 
 * Change the existing integration tests so that they do not create the stub build script that applies the plugin.
-* Running `gradle tasks` in an empty directory shows the `setupBuild` task.
-* Running `gradle tasks` in a directory that contains a build script does not show the `setupBuild` task.
+* Running `gradle tasks` in a root directory shows the `setupBuild` task.
+* Running `gradle setupBuild` in a multi-project build logs a warning and does not overwrite existing files.
+* Running `gradle setupBuild` for a project whose `build.gradle` already exists logs a warning and does not overwrite
+  existing files.
+* Running `gradle setupBuild -b foo.gradle` when `foo.gradle` already exists logs a warning and does not generate
+  any files.
 
 # Story: User updates Gradle wrapper without defining wrapper task
 
@@ -145,8 +152,8 @@ This story adds a `wrapper` plugin and support for automatically applying the `w
 * The `wrapper` plugin should add a `ProjectConfigureAction` that adds a task rule to apply the `wrapper` plugin
   to the root project when the `wrapper` task is requested.
 * Add an internal mechanism on `TaskContainer` that allows a plugin to add a placeholder for a task, which is some
-  action that is called when the task is requested (eg by name)
-* Change the `BuildSetupPlugin` to use this new mechanism.
+  action that is called when the task is requested by name and no task with that name exists.
+* Change the `build-setup` and `wrapper` plugins to use this new mechanism.
 
 ## Test coverage
 
@@ -154,15 +161,17 @@ This story adds a `wrapper` plugin and support for automatically applying the `w
 * Running `gradle wrapper` on a project updates the wrapper JAR and properties file.
 * Running `gradle tasks` shows the `wrapper` task for the root project.
 * Running `gradle tasks` does not show the `wrapper` task for a non-root project.
+* Running `gradle wrapper` on a project that defines a `wrapper` task runs the task defined in the project, not the
+  implicit task defined by the `wrapper` plugin.
 
 # Story: Gradle help message informs user how to setup a build
 
 This story adds some helpful output when the user attempts to run Gradle in a directory that does not contain a
 Gradle build, to let the user know how to create a new build or convert an existing Maven build:
 
-* Introduce a service through which a plugin can contribute help messages.
+* Introduce an internal service through which a plugin can contribute help messages.
 * Change the `help` task to use this to assemble the help output.
-* Introduce a service through which a plugin can contribute error resolutions.
+* Introduce an internal service through which a plugin can contribute error resolutions.
 * Change the `ExceptionAnalyser` implementations to use this.
 * Change the `build-setup` plugin to add help messages and error resolutions for empty builds and
   builds that contain a `pom.xml`.
@@ -226,7 +235,7 @@ TBD - fix issues with POM conversion to make it more accurate
 
 ## Test coverage
 
-* Decent error message for badly formed pom.xml
+* Decent error message for badly formed `pom.xml`.
 
 # Story: User manually completes migration with help from the build comparison plugin
 
@@ -301,7 +310,7 @@ As for the Eclipse to Gradle case.
 
 # Story: Add further project types
 
-TBD
+Add `groovy`, `scala`, `web-application`, `c++-library` and `c++-application` project types.
 
 # Story: Create a project with custom convention from scratch
 
@@ -313,4 +322,4 @@ TBD
 
 # Open issues
 
-- Extensibility: need to be able to add more types of projects
+- Extensibility: need to be able to add more types of projects.

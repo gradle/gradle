@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.util.ObservableList;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.util.DeprecationLogger;
@@ -70,8 +69,8 @@ public class TaskStatusNagger {
         }
     }
 
-    public Action<Task> leftShift(final Action<? super Task> action) {
-        return new Action<Task>() {
+    public ContextAwareTaskAction leftShift(final ContextAwareTaskAction action) {
+        return new ContextAwareTaskAction() {
             public void execute(Task task) {
                 executingleftShiftAction = true;
                 try {
@@ -79,6 +78,10 @@ public class TaskStatusNagger {
                 } finally {
                     executingleftShiftAction = false;
                 }
+            }
+
+            public void contextualise(TaskExecutionContext context) {
+                action.contextualise(context);
             }
         };
     }

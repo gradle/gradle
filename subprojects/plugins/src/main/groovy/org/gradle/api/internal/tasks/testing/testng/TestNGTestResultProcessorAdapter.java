@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
@@ -70,7 +71,9 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
         TestDescriptorInternal testInternal;
         Object parentId;
         synchronized (lock) {
-            testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(), iTestResult.getName());
+            String name = calculateTestCaseName(iTestResult);
+
+            testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(), name);
             Object oldTestId = tests.put(iTestResult, testInternal.getId());
             assert oldTestId == null : "Apparently some other test has started but it hasn't finished. "
                     + "Expect the resultProcessor to break. "
@@ -80,6 +83,40 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
             assert parentId != null;
         }
         resultProcessor.started(testInternal, new TestStartEvent(iTestResult.getStartMillis(), parentId));
+    }
+
+    private String calculateTestCaseName(ITestResult iTestResult) {
+        Object[] parameters = iTestResult.getParameters();
+        String name = iTestResult.getName();
+        if (parameters != null && parameters.length > 0) {
+            StringBuilder builder = new StringBuilder(name).append("(");
+            int i = 0;
+            for (Object parameter : parameters) {
+                builder.append(calculateParameterRepresentation(parameter));
+                if (++i < parameters.length) {
+                    builder.append(", ");
+                }
+            }
+            builder.append(")");
+            return builder.toString();
+        } else {
+            return name;
+        }
+    }
+
+    private String calculateParameterRepresentation(Object parameter) {
+        if (parameter == null) {
+            return "null";
+        } else {
+            String toString;
+            try {
+                toString = parameter.toString();
+            } catch (Exception e) {
+                return String.format("«toString() threw %s»", e.toString());
+            }
+
+            return StringUtils.abbreviateMiddle(toString, "…", 20);
+        }
     }
 
     public void onTestSuccess(ITestResult iTestResult) {

@@ -15,12 +15,14 @@
  */
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.util.ChangeListener;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -31,57 +33,24 @@ class InputFilesStateChangeRule {
         final FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
 
         return new TaskStateChanges() {
-            private final FileChangeCache fileChangeCache = new FileChangeCache();
 
-            public void findChanges(final UpToDateChangeListener listener) {
+            public Iterator<TaskStateChange> iterator() {
                 if (previousExecution.getInputFilesSnapshot() == null) {
-                    if (listener.isAccepting()) {
-                        listener.accept(new DescriptiveChange("Input file history is not available."));
-                    }
-                    return;
+                    return Collections.<TaskStateChange>singleton(new DescriptiveChange("Input file history is not available.")).iterator();
                 }
 
-                // First iterate over cached changes
-                for (FileChange cachedChange : fileChangeCache) {
-                    if (!listener.isAccepting()) {
-                        return;
+                return new AbstractIterator<TaskStateChange>() {
+                    final FileCollectionSnapshot.ChangeIterator<String> changeIterator = inputFilesSnapshot.iterateChangesSince(previousExecution.getInputFilesSnapshot());
+                    final ChangeListenerAdapter listenerAdapter = new ChangeListenerAdapter();
+
+                    @Override
+                    protected TaskStateChange computeNext() {
+                        if (changeIterator.next(listenerAdapter)) {
+                            return listenerAdapter.lastChange;
+                        }
+                        return endOfData();
                     }
-                    listener.accept(cachedChange);
-                }
-
-                // TODO:DAZ Remember if all changes are already cached, so we don't need to do anything more.
-
-                processUncachedChanges(listener);
-            }
-
-            private void processUncachedChanges(final UpToDateChangeListener listener) {
-                // Now get any new changes
-                inputFilesSnapshot.changesSince(previousExecution.getInputFilesSnapshot(), new FileCollectionSnapshot.SnapshotChangeListener() {
-                    public void added(String fileName) {
-                        accept(new InputFileChange(fileName, ChangeType.ADDED));
-                    }
-
-                    public void removed(String fileName) {
-                        accept(new InputFileChange(fileName, ChangeType.REMOVED));
-                    }
-
-                    public void changed(String fileName) {
-                        accept(new InputFileChange(fileName, ChangeType.MODIFIED));
-                    }
-
-                    public String getResumeAfter() {
-                        return fileChangeCache.getLastChange();
-                    }
-
-                    public boolean isStopped() {
-                        return !listener.isAccepting();
-                    }
-
-                    private void accept(InputFileChange change) {
-                        listener.accept(change);
-                        fileChangeCache.cache(change);
-                    }
-                });
+                };
             }
 
             public void snapshotAfterTask() {
@@ -90,20 +59,19 @@ class InputFilesStateChangeRule {
         };
     }
 
-    private static class FileChangeCache implements Iterable<FileChange> {
-        private final ArrayList<FileChange> cachedChanges = new ArrayList<FileChange>();
+    private static class ChangeListenerAdapter implements ChangeListener<String> {
+        public InputFileChange lastChange;
 
-        public void cache(FileChange change) {
-            // TODO:DAZ Restrict how many changes are cached: for now we don't need to cache more than the max number reported in up-to-date check (10).
-            cachedChanges.add(change);
+        public void added(String fileName) {
+            lastChange = new InputFileChange(fileName, ChangeType.ADDED);
         }
 
-        public String getLastChange() {
-            return cachedChanges.size() == 0 ? null : cachedChanges.get(cachedChanges.size() - 1).getPath();
+        public void removed(String fileName) {
+            lastChange = new InputFileChange(fileName, ChangeType.REMOVED);
         }
 
-        public Iterator<FileChange> iterator() {
-            return cachedChanges.iterator();
+        public void changed(String fileName) {
+            lastChange = new InputFileChange(fileName, ChangeType.MODIFIED);
         }
     }
 }

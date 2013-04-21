@@ -53,7 +53,7 @@ public class Resources implements MethodRule {
         if (resource == null) {
             return null;
         }
-        assertEquals("file", resource.getProtocol());
+        assertEquals(String.format("Cannot handle resource URI %s", resource), "file", resource.getProtocol());
         File file;
         try {
             file = new File(resource.toURI());

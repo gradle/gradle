@@ -47,8 +47,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return output;
     }
 
-    public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines) {
-        new SequentialOutputMatcher().assertOutputMatches(expectedOutput, getOutput(), ignoreExtraLines);
+    public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
+        SequentialOutputMatcher matcher = ignoreLineOrder ? new AnyOrderOutputMatcher() : new SequentialOutputMatcher();
+        matcher.assertOutputMatches(expectedOutput, getOutput(), ignoreExtraLines);
         return this;
     }
 

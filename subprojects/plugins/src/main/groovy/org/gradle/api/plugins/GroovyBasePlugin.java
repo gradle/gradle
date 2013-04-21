@@ -16,22 +16,19 @@
 
 package org.gradle.api.plugins;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.GroovyRuntime;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
@@ -39,7 +36,6 @@ import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -59,8 +55,12 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     @Deprecated
     public static final String GROOVY_CONFIGURATION_NAME = "groovy";
 
+    public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
+
     private final FileResolver fileResolver;
+
     private ProjectInternal project;
+    private GroovyRuntime groovyRuntime;
 
     @Inject
     public GroovyBasePlugin(FileResolver fileResolver) {
@@ -71,14 +71,22 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         this.project = project;
         JavaBasePlugin javaBasePlugin = project.getPlugins().apply(JavaBasePlugin.class);
 
-        Configuration groovyConfiguration = project.getConfigurations().create(GROOVY_CONFIGURATION_NAME).setVisible(false).
-                setDescription("The Groovy libraries to be used for this Groovy project. (Deprecated)");
-        deprecateGroovyConfiguration(groovyConfiguration);
-
+        configureConfigurations(project);
+        configureGroovyRuntimeExtension();
         configureCompileDefaults();
         configureSourceSetDefaults(javaBasePlugin);
 
         configureGroovydoc();
+    }
+
+    private void configureConfigurations(ProjectInternal project) {
+        Configuration groovyConfiguration = project.getConfigurations().create(GROOVY_CONFIGURATION_NAME).setVisible(false).
+                setDescription("The Groovy libraries to be used for this Groovy project. (Deprecated)");
+        deprecateGroovyConfiguration(groovyConfiguration);
+    }
+
+    private void configureGroovyRuntimeExtension() {
+        groovyRuntime = project.getExtensions().create(GROOVY_RUNTIME_EXTENSION_NAME, GroovyRuntime.class, project);
     }
 
     private void deprecateGroovyConfiguration(Configuration groovyConfiguration) {
@@ -95,7 +103,7 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         project.getTasks().withType(GroovyCompile.class, new Action<GroovyCompile>() {
             public void execute(final GroovyCompile compile) {                                                                                                                                                                                                                                            compile.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return getGroovyClasspath(compile.getClasspath());
+                        return groovyRuntime.inferGroovyClasspath(compile.getClasspath());
                     }
                 });
             }
@@ -134,7 +142,7 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
             public void execute(final Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return getGroovyClasspath(groovydoc.getClasspath());
+                        return groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
                     }
                 });
                 groovydoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
@@ -156,43 +164,7 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private FileCollection getGroovyClasspath(FileCollection classpath) {
-        Configuration groovyConfiguration = project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME);
-        if (!groovyConfiguration.getDependencies().isEmpty()) { return groovyConfiguration; }
-
-        GroovyJarFile groovyJar = findGroovyJarFile(classpath);
-        if (groovyJar == null) { return groovyConfiguration; }
-
-        if (groovyJar.isGroovyAll()) {
-            return project.files(groovyJar.getFile());
-        }
-
-        if (project.getRepositories().isEmpty()) {
-            return groovyConfiguration;
-        }
-
-        String notation = groovyJar.getDependencyNotation();
-        List<Dependency> dependencies = Lists.newArrayList();
-        // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
-        dependencies.add(project.getDependencies().create(notation));
-        if (groovyJar.getVersion().getMajor() >= 2) {
-            // add groovy-ant to bring in AntGroovyCompiler
-            dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
-        }
-        return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
-    }
-
     private JavaPluginConvention java(Convention convention) {
         return convention.getPlugin(JavaPluginConvention.class);
-    }
-
-    @Nullable
-    private GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
-        if (classpath == null) { return null; }
-        for (File file : classpath) {
-            GroovyJarFile groovyJar = GroovyJarFile.parse(file);
-            if (groovyJar != null) { return groovyJar; }
-        }
-        return null;
     }
 }

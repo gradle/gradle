@@ -25,10 +25,14 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -39,7 +43,7 @@ import org.gradle.util.MultiParentClassLoader;
 
 import java.io.File;
 
-public class DefaultGradle implements GradleInternal {
+public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private TaskGraphExecuter taskGraph;
@@ -54,6 +58,10 @@ public class DefaultGradle implements GradleInternal {
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private ActionBroadcast<Project> rootProjectActions = new ActionBroadcast<Project>();
 
+    private PluginContainer pluginContainer;
+    private FileResolver fileResolver;
+    private ScriptPluginFactory scriptPluginFactory;
+
     public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
         this.startParameter = startParameter;
@@ -63,9 +71,12 @@ public class DefaultGradle implements GradleInternal {
         taskGraph = services.get(TaskGraphExecuter.class);
         scriptClassLoader = services.get(MultiParentClassLoader.class);
         distributionLocator = services.get(GradleDistributionLocator.class);
+        pluginContainer = services.get(PluginContainer.class);
+        fileResolver = services.get(FileResolver.class);
+        scriptPluginFactory = services.get(ScriptPluginFactory.class);
         buildListenerBroadcast = listenerManager.createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = listenerManager.createAnonymousBroadcaster(ProjectEvaluationListener.class);
-        buildListenerBroadcast.add(new BuildAdapter(){
+        buildListenerBroadcast.add(new BuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
                 rootProjectActions.execute(rootProject);
@@ -218,5 +229,19 @@ public class DefaultGradle implements GradleInternal {
 
     public ServiceRegistryFactory getServices() {
         return services;
+    }
+
+    public PluginContainer getPlugins() {
+        return pluginContainer;
+    }
+
+    @Override
+    protected FileResolver getFileResolver() {
+        return fileResolver;
+    }
+
+    @Override
+    protected ScriptPluginFactory getScriptPluginFactory() {
+        return scriptPluginFactory;
     }
 }

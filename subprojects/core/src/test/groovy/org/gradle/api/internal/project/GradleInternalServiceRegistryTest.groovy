@@ -19,8 +19,12 @@ package org.gradle.api.internal.project;
 import org.gradle.StartParameter
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import org.gradle.api.internal.plugins.PluginRegistry
+import org.gradle.api.plugins.PluginContainer
 import org.gradle.cache.CacheRepository
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
@@ -88,6 +92,26 @@ public class GradleInternalServiceRegistryTest extends Specification {
         then:
         buildExecuter instanceof DefaultBuildExecuter
         buildExecuter sameInstance(secondExecuter)
+    }
+
+    def "provides a plugin container"() {
+        when:
+        def pluginContainer = registry.get(PluginContainer)
+        def secondPluginContainer = registry.get(PluginContainer)
+
+        then:
+        pluginContainer instanceof DefaultPluginContainer
+        secondPluginContainer sameInstance(pluginContainer)
+    }
+
+    def "provides a file resolver"() {
+        when:
+        def fileResolver = registry.get(FileResolver)
+        def secondFileResolver = registry.get(FileResolver)
+
+        then:
+        fileResolver instanceof IdentityFileResolver
+        secondFileResolver sameInstance(fileResolver)
     }
 
     def "provides a task graph executer"() {

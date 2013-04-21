@@ -28,36 +28,28 @@
                 </tr>
             </thead>
             <tr>
-                <td>jacocoClasspath</td>
-                <td>
-                    <literal>project.configurations.jacocoAnt</literal>
-                </td>
-            </tr>
-            <tr>
                 <td>executionData</td>
-                <td>
-                    <literal>build/jacoco/$taskname.exec</literal>
-                </td>
+                <td/>
             </tr>
             <tr>
                 <td>sourceDirectories</td>
-                <td></td>
+                <td/>
             </tr>
             <tr>
                 <td>classDirectories</td>
-                <td></td>
+                <td/>
             </tr>
             <tr>
                 <td>additionalClassDirs</td>
-                <td></td>
+                <td/>
             </tr>
             <tr>
                 <td>additionalSourceDirs</td>
-                <td></td>
+                <td/>
             </tr>
             <tr>
                 <td>reports</td>
-                <td></td>
+                <td/>
             </tr>
         </table>
     </section>

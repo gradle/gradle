@@ -15,6 +15,6 @@
  */
 
 /**
- * Tasks to work with the jacoco code coverage library.
+ * Tasks to work with the JaCoCo code coverage library.
  */
 package org.gradle.testing.jacoco.tasks;

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
+import org.gradle.api.internal.artifacts.TopLevelDependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
@@ -194,7 +195,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new ScriptEvaluatingSettingsProcessor(
                         get(ScriptPluginFactory.class),
                         new SettingsFactory(
-                                new DefaultProjectDescriptorRegistry(),
+
                                 get(Instantiator.class),
                                 this
                         ),
@@ -246,7 +247,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
             return new GradleInternalServiceRegistry(this, (GradleInternal) domainObject);
         }
         if (domainObject instanceof SettingsInternal) {
-            return new SettingsInternallServiceRegistry(this, (SettingsInternal) domainObject);
+            return new SettingsInternalServiceRegistry(this, (SettingsInternal) domainObject);
         }
         throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
                 domainObject.getClass().getSimpleName()));
@@ -256,5 +257,11 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
+    }
+
+    protected TopLevelDependencyManagementServices createGlobalDependencyManagementServices() {
+        ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();
+        ServiceLocator serviceLocator = new ServiceLocator(coreImplClassLoader);
+        return serviceLocator.getFactory(TopLevelDependencyManagementServices.class).newInstance();
     }
 }

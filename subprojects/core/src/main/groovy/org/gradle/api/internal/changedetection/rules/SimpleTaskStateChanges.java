@@ -17,23 +17,18 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 abstract class SimpleTaskStateChanges implements TaskStateChanges {
     private List<TaskStateChange> changes;
 
-    public void findChanges(UpToDateChangeListener listener) {
+    public Iterator<TaskStateChange> iterator() {
         if (changes == null) {
             changes = new ArrayList<TaskStateChange>();
             addAllChanges(changes);
         }
-
-        for (TaskStateChange change : changes) {
-            if (!listener.isAccepting()) {
-                break;
-            }
-            listener.accept(change);
-        }
+        return changes.iterator();
     }
 
     protected abstract void addAllChanges(List<TaskStateChange> changes);

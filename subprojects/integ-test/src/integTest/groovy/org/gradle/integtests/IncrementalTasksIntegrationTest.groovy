@@ -42,24 +42,24 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         def File inputDir
 
         @TaskAction
-        void execute(TaskInputChanges inputs) {
+        void execute(IncrementalTaskInputs inputs) {
             if (project.hasProperty('forceFail')) {
                 throw new RuntimeException('failed')
             }
 
-            allOutOfDate = inputs.allOutOfDate
+            incrementalExecution = inputs.incremental
 
-            inputs.outOfDate({ change ->
+            inputs.outOfDate { change ->
                 if (change.added) {
                     addedFiles << change.file
                 } else {
                     changedFiles << change.file
                 }
-            } as Action)
+            }
 
-            inputs.removed({ change ->
+            inputs.removed { change ->
                 removedFiles << change.file
-            } as Action)
+            }
 
             touchOutputs()
         }
@@ -70,7 +70,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         def addedFiles = []
         def changedFiles = []
         def removedFiles = []
-        def allOutOfDate
+        def incrementalExecution
     }
 
     class IncrementalTask extends BaseIncrementalTask {
@@ -89,14 +89,14 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     }
 
     ext {
-        allOutOfDate = false
+        incrementalExecution = true
         added = []
         changed = []
         removed = []
     }
 
     task incrementalCheck(dependsOn: "incremental") << {
-        assert incremental.allOutOfDate == project.ext.allOutOfDate
+        assert incremental.incrementalExecution == project.ext.incrementalExecution
         assert incremental.addedFiles.collect({ it.name }).sort() == project.ext.added
         assert incremental.changedFiles.collect({ it.name }).sort() == project.ext.changed
         assert incremental.removedFiles.collect({ it.name }).sort() == project.ext.removed
@@ -334,7 +334,7 @@ ext.added = ['file3.txt', 'file4.txt']
     def executesWithRebuildContext() {
         buildFile << """
     ext.changed = ['file0.txt', 'file1.txt', 'file2.txt']
-    ext.allOutOfDate = true
+    ext.incrementalExecution = false
 """
         succeeds "incrementalCheck"
     }

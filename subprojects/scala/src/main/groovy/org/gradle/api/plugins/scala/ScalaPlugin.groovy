@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.scala;
 
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
@@ -38,8 +37,8 @@ public class ScalaPlugin implements Plugin<Project> {
             scalaDoc.conventionMapping.classpath = { project.sourceSets.main.output + project.sourceSets.main.compileClasspath }
             scalaDoc.source = project.sourceSets.main.scala
         }
-        ScalaDoc scalaDoc = project.tasks.add(SCALA_DOC_TASK_NAME, ScalaDoc.class)
-        scalaDoc.description = "Generates scaladoc for the main source code.";
+        ScalaDoc scalaDoc = project.tasks.create(SCALA_DOC_TASK_NAME, ScalaDoc.class)
+        scalaDoc.description = "Generates Scaladoc for the main source code.";
         scalaDoc.group = JavaBasePlugin.DOCUMENTATION_GROUP
     }
 }

@@ -25,23 +25,23 @@ import org.gradle.api.reporting.*;
 @Incubating
 public interface JacocoReportsContainer extends ReportContainer<Report> {
     /**
-     * The jacoco (file directory) HTML report
+     * The JaCoCo HTML report
      *
-     * @return The jacoco (file directory) HTML report
+     * @return The JaCoCo HTML report
      */
     DirectoryReport getHtml();
 
     /**
-     * The jacoco (single file) XML report
+     * The JaCoCo (single file) XML report
      *
-     * @return The jacoco (single file) XML report
+     * @return The JaCoCo (single file) XML report
      */
     SingleFileReport getXml();
 
     /**
-     * The jacoco (single file) CSV report
+     * The JaCoCo (single file) CSV report
      *
-     * @return The jacoco (single file) CSV report
+     * @return The JaCoCo (single file) CSV report
      */
     SingleFileReport getCsv();
 }

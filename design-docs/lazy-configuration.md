@@ -126,6 +126,8 @@ Once the publishing extension has been configured, it will be an error to make f
 - A reasonable error message is given when the configuration of an extension fails.
 - A reasonable error message is given when attempting to access an extension whose configuration has previously failed.
 
+## Prevent `object.properties` triggering configuration of any deferred configurable properties (GRADLE-2754)
+
 ## Allow the project version to be determined early in the build configuration
 
 This story introduces a replacement for calculating the project version based on the contents of the task graph, so that the version is

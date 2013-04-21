@@ -23,6 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.api.plugins.PluginAware;
 
 import java.io.File;
 
@@ -32,7 +33,7 @@ import java.io.File;
  * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}.</p>
  */
 @HasInternalProtocol
-public interface Gradle {
+public interface Gradle extends PluginAware{
     /**
      * Returns the current Gradle version.
      *

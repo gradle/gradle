@@ -15,10 +15,14 @@
  */
 package org.gradle.build.docs.model
 
-import spock.lang.Specification
+import org.gradle.api.Action
 import org.gradle.api.UnknownDomainObjectException
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import spock.lang.Specification
 
 class SimpleClassMetaDataRepositoryTest extends Specification {
+    @Rule TemporaryFolder tmpDir
     final SimpleClassMetaDataRepository<TestDomainObject> repository = new SimpleClassMetaDataRepository<TestDomainObject>()
 
     def canAddMetaData() {
@@ -46,7 +50,7 @@ class SimpleClassMetaDataRepositoryTest extends Specification {
         e.message == 'No meta-data is available for class \'unknown\'.'
     }
 
-    def canIterateOverClasses() {
+    def canIterateOverClassesUsingClosure() {
         TestDomainObject value1 = new TestDomainObject('a')
         TestDomainObject value2 = new TestDomainObject('a')
         repository.put('class1', value1)
@@ -62,9 +66,25 @@ class SimpleClassMetaDataRepositoryTest extends Specification {
         0 * cl._
     }
 
+    def canIterateOverClassesUsingAction() {
+        TestDomainObject value1 = new TestDomainObject('a')
+        TestDomainObject value2 = new TestDomainObject('a')
+        repository.put('class1', value1)
+        repository.put('class2', value2)
+        Action action = Mock()
+
+        when:
+        repository.each(action)
+
+        then:
+        1 * action.execute(value1)
+        1 * action.execute(value2)
+        0 * action._
+    }
+
     def canPersistMetaData() {
         TestDomainObject value = new TestDomainObject('a')
-        File file = File.createTempFile("test-repository", "bin")
+        File file = tmpDir.newFile()
         repository.put('class', value)
 
         when:

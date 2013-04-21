@@ -140,6 +140,16 @@ line 2</para>'''
         format(result.docbook) == '''<para>This is <literal>code</literal>. So is <literal>this</literal>.</para>'''
     }
 
+    def convertsLiteralTagsToText() {
+        _ * classMetaData.rawCommentText >> '{@literal <b>markup</b> {@ignore}}'
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '''<para>&lt;b&gt;markup&lt;/b&gt; {@ignore}</para>'''
+    }
+
     def doesNotInterpretContentsOfCodeTagAsHtml() {
         _ * classMetaData.rawCommentText >> '{@code List<String> && a < 9} <code>&amp;</code>'
 

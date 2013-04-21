@@ -19,9 +19,11 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternallServiceRegistry;
 import org.gradle.api.internal.ThreadGlobalInstantiator;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -52,17 +54,31 @@ public class SettingsFactoryTest {
         final File expectedSettingsDir = new File("settingsDir");
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
-        IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = new StartParameter();
         final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
-        final SettingsInternallServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternallServiceRegistry.class);
+        final SettingsInternalServiceRegistry settingsInternallServiceRegistry = context.mock(SettingsInternalServiceRegistry.class);
+        final PluginContainer pluginContainer = context.mock(PluginContainer.class);
+        final FileResolver fileResolver = context.mock(FileResolver.class);
+        final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
+
+        final IProjectDescriptorRegistry expectedProjectDescriptorRegistry = context.mock(IProjectDescriptorRegistry.class);
+
         context.checking(new Expectations() {{
             one(serviceRegistryFactory).createFor(with(any(Settings.class)));
             will(returnValue(settingsInternallServiceRegistry));
+            one(settingsInternallServiceRegistry).get(PluginContainer.class);
+            will(returnValue(pluginContainer));
+            one(settingsInternallServiceRegistry).get(FileResolver.class);
+            will(returnValue(fileResolver));
+            one(settingsInternallServiceRegistry).get(ScriptPluginFactory.class);
+            will(returnValue(scriptPluginFactory));
+            one(settingsInternallServiceRegistry).get(IProjectDescriptorRegistry.class);
+            will(returnValue(expectedProjectDescriptorRegistry));
+            one(expectedProjectDescriptorRegistry).addProject(with(any(DefaultProjectDescriptor.class)));
         }});
 
 
-        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry, ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory);
+        SettingsFactory settingsFactory = new SettingsFactory(ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory);
         final URLClassLoader urlClassLoader = new URLClassLoader(new URL[0]);
         GradleInternal gradle = context.mock(GradleInternal.class);
 

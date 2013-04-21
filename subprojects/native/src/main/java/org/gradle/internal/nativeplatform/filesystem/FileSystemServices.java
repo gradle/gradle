@@ -61,7 +61,11 @@ public class FileSystemServices {
         if (libC != null && (operatingSystem.isLinux() || operatingSystem.isMacOsX())) {
             FilePathEncoder filePathEncoder = createEncoder(libC);
             serviceRegistry.add(Chmod.class, new LibcChmod(libC, filePathEncoder));
-            serviceRegistry.add(Stat.class, new LibCStat(libC, operatingSystem, (BaseNativePOSIX) PosixUtil.current(), filePathEncoder));
+
+            POSIX posix = PosixUtil.current();
+            if (posix instanceof BaseNativePOSIX) {
+                serviceRegistry.add(Stat.class, new LibCStat(libC, operatingSystem, (BaseNativePOSIX) posix, filePathEncoder));
+            }
             return;
         }
 

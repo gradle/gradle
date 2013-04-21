@@ -27,7 +27,6 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 public class TaskUpToDateState {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 10;
 
-    private TaskStateChanges hasNoOutputs;
     private TaskStateChanges upToDateSpecState;
     private TaskStateChanges noHistoryState;
     private TaskStateChanges inputFilesState;
@@ -41,19 +40,18 @@ public class TaskUpToDateState {
         TaskExecution thisExecution = history.getCurrentExecution();
         TaskExecution lastExecution = history.getPreviousExecution();
 
-        hasNoOutputs = HasNoOutputsStateChangeRule.create(task);
         upToDateSpecState = TaskUpToDateSpecStateChangeRule.create(task);
         noHistoryState = NoHistoryStateChangeRule.create(task, lastExecution);
         taskTypeState = TaskTypeStateChangeRule.create(task, lastExecution, thisExecution);
         inputPropertiesState = InputPropertiesStateChangeRule.create(task, lastExecution, thisExecution);
-        outputFilesState = OutputFilesStateChangeRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter);
-        inputFilesState = InputFilesStateChangeRule.create(task, lastExecution, thisExecution, inputFilesSnapshotter);
-        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, hasNoOutputs, upToDateSpecState, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState);
+        outputFilesState = caching(OutputFilesStateChangeRule.create(task, lastExecution, thisExecution, outputFilesSnapshotter));
+        inputFilesState = caching(InputFilesStateChangeRule.create(task, lastExecution, thisExecution, inputFilesSnapshotter));
+        allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, upToDateSpecState, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState, inputFilesState);
         rebuildChanges = new SummaryTaskStateChanges(1, upToDateSpecState, noHistoryState, taskTypeState, inputPropertiesState, outputFilesState);
     }
 
-    public TaskStateChanges getHasNoOutputs() {
-        return hasNoOutputs;
+    private TaskStateChanges caching(TaskStateChanges wrapped) {
+        return new CachingTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, wrapped);
     }
 
     public TaskStateChanges getInputFilesChanges() {

@@ -83,6 +83,7 @@
     <xi:include href='buildLifecycle.xml'/>
     <xi:include href='multiproject.xml'/>
     <xi:include href='customTasks.xml'/>
+    <xi:include href='incrementalTasks.xml'/>
     <xi:include href='customPlugins.xml'/>
     <xi:include href='organizeBuildLogic.xml'/>
     <xi:include href='initscripts.xml'/>

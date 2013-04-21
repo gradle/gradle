@@ -68,8 +68,9 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
         }
 
         @Override
-        public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines) {
-            new ParallelOutputMatcher().assertOutputMatches(expectedOutput, getOutput(), ignoreExtraLines);
+        public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
+            // We always ignore line order for matching out of parallel builds
+            new AnyOrderOutputMatcher().assertOutputMatches(expectedOutput, getOutput(), ignoreExtraLines);
             return this;
         }
     }

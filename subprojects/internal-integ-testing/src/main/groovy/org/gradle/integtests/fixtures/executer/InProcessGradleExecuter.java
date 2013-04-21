@@ -299,8 +299,8 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             return outputResult.getOutput();
         }
 
-        public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines) {
-            outputResult.assertOutputEquals(expectedOutput, ignoreExtraLines);
+        public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
+            outputResult.assertOutputEquals(expectedOutput, ignoreExtraLines, ignoreLineOrder);
             return this;
         }
 

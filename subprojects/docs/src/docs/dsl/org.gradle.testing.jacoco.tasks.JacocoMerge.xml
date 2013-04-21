@@ -21,19 +21,16 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with
-                        <literal>jacoco</literal>
-                        plugin
-                    </td>
+                    <td>Default with <literal>jacoco</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
                 <td>executionData</td>
-                <td></td>
+                <td/>
             </tr>
             <tr>
                 <td>destFile</td>
-                <td></td>
+                <td><filename><replaceable>buildDir</replaceable>/jacoco/<replaceable>task.name</replaceable>.exec</filename></td>
             </tr>
         </table>
     </section>

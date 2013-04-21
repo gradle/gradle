@@ -30,12 +30,10 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class SettingsFactory {
-    private final IProjectDescriptorRegistry projectDescriptorRegistry;
     private final Instantiator instantiator;
     private final ServiceRegistryFactory serviceRegistryFactory;
 
-    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry, Instantiator instantiator, ServiceRegistryFactory serviceRegistryFactory) {
-        this.projectDescriptorRegistry = projectDescriptorRegistry;
+    public SettingsFactory(Instantiator instantiator, ServiceRegistryFactory serviceRegistryFactory) {
         this.instantiator = instantiator;
         this.serviceRegistryFactory = serviceRegistryFactory;
     }
@@ -45,7 +43,7 @@ public class SettingsFactory {
                                            URLClassLoader classloader) {
 
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class, serviceRegistryFactory,
-                gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter
+                gradle, classloader, settingsDir, settingsScript, startParameter
         );
 
         DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();

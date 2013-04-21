@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -25,14 +24,14 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChanges;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
-import org.gradle.api.internal.changedetection.rules.UpToDateChangeListener;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.TaskInputChanges;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
 import java.util.Formatter;
@@ -44,9 +43,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final TaskHistoryRepository taskHistoryRepository;
     private final FileSnapshotter outputFilesSnapshotter;
     private final FileSnapshotter inputFilesSnapshotter;
+    private final Instantiator instantiator;
 
-    public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, FileSnapshotter outputFilesSnapshotter, FileSnapshotter inputFilesSnapshotter) {
+    public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
+                                              FileSnapshotter outputFilesSnapshotter, FileSnapshotter inputFilesSnapshotter) {
         this.taskHistoryRepository = taskHistoryRepository;
+        this.instantiator = instantiator;
         this.outputFilesSnapshotter = outputFilesSnapshotter;
         this.inputFilesSnapshotter = inputFilesSnapshotter;
     }
@@ -89,11 +91,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         private List<String> getChangeMessages(TaskStateChanges stateChanges) {
             final List<String> messages = new ArrayList<String>();
-            stateChanges.findChanges(new UpToDateChangeAction() {
-                public void execute(TaskStateChange taskUpToDateStateChange) {
-                    messages.add(taskUpToDateStateChange.getMessage());
-                }
-            });
+            for (TaskStateChange stateChange : stateChanges) {
+                messages.add(stateChange.getMessage());
+            }
             return messages;
         }
 
@@ -108,13 +108,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
         }
 
-        public TaskInputChanges getInputChanges() {
+        public IncrementalTaskInputs getInputChanges() {
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             if (canPerformIncrementalBuild()) {
-                return new IncrementalTaskInputChanges(getStates().getInputFilesChanges());
+                return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             }
-            return new RebuildTaskInputChanges(task);
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
         }
 
         public boolean hasHistory() {
@@ -134,7 +134,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public void afterTask() {
-            if (upToDate || hasChanges(getStates().getHasNoOutputs())) {
+            if (upToDate) {
                 return;
             }
 
@@ -143,7 +143,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public void finished() {
-            // TODO:DAZ Release any pent-up state: paused UpToDateStates etc.
         }
 
         private TaskUpToDateState getStates() {
@@ -153,27 +152,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
             return states;
         }
-
-        private boolean hasChanges(TaskStateChanges changes) {
-            UpToDateChangeAction action = new UpToDateChangeAction();
-            changes.findChanges(action);
-            return action.executeCount > 0;
-        }
     }
 
-    static class UpToDateChangeAction implements UpToDateChangeListener, Action<TaskStateChange> {
-        public int executeCount;
-
-        public void accept(TaskStateChange change) {
-            executeCount++;
-            execute(change);
-        }
-
-        public void execute(TaskStateChange taskStateChange) {
-        }
-
-        public boolean isAccepting() {
-            return true;
-        }
-    }
 }

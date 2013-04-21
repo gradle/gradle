@@ -22,12 +22,12 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskExecution
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.util.ChangeListener
 import spock.lang.Specification;
 
 public class OutputFilesStateChangeRuleTest extends Specification {
     def outputSnapshot = Mock(FileCollectionSnapshot)
     def previousOutputSnapshot = Mock(FileCollectionSnapshot)
-    def listener = Mock(UpToDateChangeListener)
 
     TaskStateChanges createStateChanges() {
         def taskOutputs = Stub(TaskOutputsInternal) {
@@ -49,27 +49,34 @@ public class OutputFilesStateChangeRuleTest extends Specification {
     def "emits change for no previous output snapshot"() {
         when:
         previousOutputSnapshot = null
-        createStateChanges().findChanges(listener)
+        def it = createStateChanges().iterator()
 
         then:
-        1 * listener.isAccepting() >> true
-        1 * listener.accept({it.getMessage() == "Output file history is not available."})
+        it.hasNext()
+        it.next().message == "Output file history is not available."
+        !it.hasNext()
     }
 
     def "emits change for file changes since previous output snapshot"() {
+        FileCollectionSnapshot.ChangeIterator<String> changeIterator = Mock()
         when:
-        createStateChanges().findChanges(listener)
+        def it = createStateChanges().iterator()
+        def messages = it.collect {it.message}
 
         then:
-        1 * outputSnapshot.changesSince(previousOutputSnapshot, _ as FileCollectionSnapshot.SnapshotChangeListener) >> { snapshot, snapshotChangeListener ->
-            assert snapshotChangeListener.resumeAfter == null
-            snapshotChangeListener.added("one")
-            snapshotChangeListener.removed("two")
-            snapshotChangeListener.changed("three")
-        }
-        _ * listener.isAccepting() >> true
-        1 * listener.accept({it.getMessage() == "Output file one has been added."})
-        1 * listener.accept({it.getMessage() == "Output file two has been removed."})
-        1 * listener.accept({it.getMessage() == "Output file three has changed."})
+        1 * outputSnapshot.iterateChangesSince(previousOutputSnapshot) >> changeIterator
+        4 * changeIterator.next(_ as ChangeListener<String>) >> { ChangeListener listener ->
+            listener.added("one")
+            true
+        } >> { ChangeListener listener ->
+            listener.removed("two")
+            true
+        } >> { ChangeListener listener ->
+            listener.changed("three")
+            true
+        } >> false
+
+        and:
+        messages == ["Output file one has been added.", "Output file two has been removed.", "Output file three has changed."]
     }
 }

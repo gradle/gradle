@@ -17,35 +17,55 @@ package org.gradle.api.internal.changedetection.changes
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
+import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     StartParameter startParameter = new StartParameter()
     TaskArtifactStateRepository delegate = Mock(TaskArtifactStateRepository)
-    ShortCircuitTaskArtifactStateRepository repository = new ShortCircuitTaskArtifactStateRepository(startParameter, delegate)
+    ShortCircuitTaskArtifactStateRepository repository = new ShortCircuitTaskArtifactStateRepository(startParameter, new DirectInstantiator(), delegate)
     TaskArtifactState taskArtifactState = Mock(TaskArtifactState)
+    TaskInternal task = Mock(TaskInternal)
+    TaskOutputsInternal outputs = Mock(TaskOutputsInternal)
 
-    def delegatesDirectToBackingRepositoryWithoutRerunTasks() {
-        TaskInternal task = Mock(TaskInternal)
-
+    def doesNotLoadHistoryWhenTaskHasNoDeclaredOutputs() {
         when:
         TaskArtifactState state = repository.getStateFor(task);
 
         then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.getHasOutput() >> false
+        0 * _
+
+        and:
+        state instanceof NoHistoryArtifactState
+        !state.upToDate
+        !state.executionHistory.hasHistory()
+
+    }
+
+    def delegatesDirectToBackingRepositoryWithoutRerunTasks() {
+        when:
+        TaskArtifactState state = repository.getStateFor(task);
+
+        then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.getHasOutput() >> true
         1 * delegate.getStateFor(task) >> taskArtifactState
         state == taskArtifactState
     }
 
     def taskArtifactsAreAlwaysOutOfDateWithRerunTasks() {
-        TaskInternal task = Mock(TaskInternal)
-
         when:
         startParameter.setRerunTasks(true);
         def state = repository.getStateFor(task)
 
         then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.getHasOutput() >> true
         1 * delegate.getStateFor(task) >> taskArtifactState
         0 * taskArtifactState._
 
@@ -53,6 +73,6 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         !state.upToDate
 
         and:
-        state.inputChanges.allOutOfDate
+        !state.inputChanges.incremental
     }
 }

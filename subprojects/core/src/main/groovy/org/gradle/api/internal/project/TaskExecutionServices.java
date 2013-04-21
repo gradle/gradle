@@ -17,7 +17,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.internal.changedetection.*;
+import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.*;
@@ -28,6 +28,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.id.RandomLongIdGenerator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
@@ -42,20 +43,20 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
 
     protected TaskExecuter createTaskExecuter() {
         TaskArtifactStateCacheAccess cacheAccess = get(TaskArtifactStateCacheAccess.class);
+        TaskArtifactStateRepository repository = get(TaskArtifactStateRepository.class);
         return new ExecuteAtMostOnceTaskExecuter(
                 new SkipOnlyIfTaskExecuter(
                         new SkipTaskWithNoActionsExecuter(
                                 new SkipEmptySourceFilesTaskExecuter(
                                         new ValidatingTaskExecuter(
-                                                new CacheLockAcquiringTaskExecuter(
-                                                        new SkipUpToDateTaskExecuter(
-                                                                new CacheLockReleasingTaskExecuter(
-                                                                        new PostExecutionAnalysisTaskExecuter(
-                                                                                new ExecuteActionsTaskExecuter(
-                                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
-                                                                        cacheAccess),
-                                                                get(TaskArtifactStateRepository.class)),
-                                                        cacheAccess))))));
+                                                new CacheLockAcquiringTaskExecuter(cacheAccess,
+                                                        new ContextualisingTaskExecuter(
+                                                                new SkipUpToDateTaskExecuter(repository,
+                                                                        new CacheLockReleasingTaskExecuter(cacheAccess,
+                                                                                new PostExecutionAnalysisTaskExecuter(
+                                                                                        new ExecuteActionsTaskExecuter(
+                                                                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class)
+                                                                                        )))))))))));
     }
 
     protected TaskArtifactStateCacheAccess createCacheAccess() {
@@ -74,13 +75,17 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess));
 
+        Instantiator instantiator = get(Instantiator.class);
         return new ShortCircuitTaskArtifactStateRepository(
                         get(StartParameter.class),
+                        instantiator,
                         new DefaultTaskArtifactStateRepository(
                                 taskHistoryRepository,
+                                instantiator,
                                 outputFilesSnapshotter,
                                 fileSnapshotter
-                        ));
+                        )
+        );
     }
 
     protected TaskPlanExecutor createTaskExecutorFactory() {

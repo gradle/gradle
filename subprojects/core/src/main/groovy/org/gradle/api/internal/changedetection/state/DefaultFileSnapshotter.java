@@ -34,11 +34,11 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
     }
 
     public FileCollectionSnapshot emptySnapshot() {
-        return new FileCollectionSnapshotImpl(new LinkedHashMap<String, FileSnapshot>());
+        return new FileCollectionSnapshotImpl(new HashMap<String, FileSnapshot>());
     }
 
     public FileCollectionSnapshot snapshot(FileCollection sourceFiles) {
-        Map<String, FileSnapshot> snapshots = new LinkedHashMap<String, FileSnapshot>();
+        Map<String, FileSnapshot> snapshots = new HashMap<String, FileSnapshot>();
         for (File file : sourceFiles.getAsFileTree()) {
             if (file.isFile()) {
                 snapshots.put(file.getAbsolutePath(), new FileHashSnapshot(hasher.hash(file)));
@@ -106,56 +106,62 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
             return new SimpleFileCollection(files);
         }
 
-        public void changesSince(FileCollectionSnapshot oldSnapshot, SnapshotChangeListener listener) {
+        public ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot) {
             FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
-            Map<String, FileSnapshot> otherSnapshots = new LinkedHashMap<String, FileSnapshot>(other.snapshots);
-            boolean started = true;
+            final Map<String, FileSnapshot> otherSnapshots = new HashMap<String, FileSnapshot>(other.snapshots);
+            final Iterator<String> currentFiles = snapshots.keySet().iterator();
 
-            String resumeAfter = listener.getResumeAfter();
-            if (resumeAfter != null) {
-                started = false;
-            }
+            return new ChangeIterator<String>() {
+                private Iterator<String> removedFiles;
 
-            for (String currentFile : snapshots.keySet()) {
-                if (listener.isStopped()) {
-                    return;
-                }
+                public boolean next(ChangeListener<String> listener) {
+                    while (currentFiles.hasNext()) {
+                        String currentFile = currentFiles.next();
+                        FileSnapshot otherFile = otherSnapshots.remove(currentFile);
 
-                FileSnapshot otherFile = otherSnapshots.remove(currentFile);
-
-                if (!started) {
-                    if (currentFile.equals(resumeAfter)) {
-                        started = true;
+                        if (otherFile == null) {
+                            listener.added(currentFile);
+                            return true;
+                        } else if (!snapshots.get(currentFile).isUpToDate(otherFile)) {
+                            listener.changed(currentFile);
+                            return true;
+                        }
                     }
-                    continue;
-                }
 
-                if (otherFile == null) {
-                    listener.added(currentFile);
-                } else if (!snapshots.get(currentFile).isUpToDate(otherFile)) {
-                    listener.changed(currentFile);
-                }
-            }
-
-            for (Map.Entry<String, FileSnapshot> entry : otherSnapshots.entrySet()) {
-                if (listener.isStopped()) {
-                    return;
-                }
-
-                if (!started) {
-                    if (entry.getKey().equals(resumeAfter)) {
-                        started = true;
+                    // Create a single iterator to use for all of the removed files
+                    if (removedFiles == null) {
+                        removedFiles = otherSnapshots.keySet().iterator();
                     }
-                    continue;
+
+                    if (removedFiles.hasNext()) {
+                        listener.removed(removedFiles.next());
+                        return true;
+                    }
+
+                    return false;
+                }
+            };
+        }
+
+        public Diff changesSince(final FileCollectionSnapshot oldSnapshot) {
+            final FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
+            return new Diff() {
+                public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot) {
+                    return applyTo(snapshot, new NoOpChangeListener<Merge>());
                 }
 
-                listener.removed(entry.getKey());
-            }
+                public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot, final ChangeListener<Merge> listener) {
+                    FileCollectionSnapshotImpl target = (FileCollectionSnapshotImpl) snapshot;
+                    final Map<String, FileSnapshot> newSnapshots = new HashMap<String, FileSnapshot>(target.snapshots);
+                    diff(snapshots, other.snapshots, new MapMergeChangeListener<String, FileSnapshot>(listener, newSnapshots));
+                    return new FileCollectionSnapshotImpl(newSnapshots);
+                }
+            };
         }
 
         private void diff(Map<String, FileSnapshot> snapshots, Map<String, FileSnapshot> oldSnapshots,
                           ChangeListener<Map.Entry<String, FileSnapshot>> listener) {
-            Map<String, FileSnapshot> otherSnapshots = new LinkedHashMap<String, FileSnapshot>(oldSnapshots);
+            Map<String, FileSnapshot> otherSnapshots = new HashMap<String, FileSnapshot>(oldSnapshots);
             for (Map.Entry<String, FileSnapshot> entry : snapshots.entrySet()) {
                 FileSnapshot otherFile = otherSnapshots.remove(entry.getKey());
                 if (otherFile == null) {
@@ -169,20 +175,5 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
             }
         }
 
-        public Diff changesSince(final FileCollectionSnapshot oldSnapshot) {
-            final FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
-            return new Diff() {
-                public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot) {
-                    return applyTo(snapshot, new NoOpChangeListener<Merge>());
-                }
-
-                public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot, final ChangeListener<Merge> listener) {
-                    FileCollectionSnapshotImpl target = (FileCollectionSnapshotImpl) snapshot;
-                    final Map<String, FileSnapshot> newSnapshots = new LinkedHashMap<String, FileSnapshot>(target.snapshots);
-                    diff(snapshots, other.snapshots, new MapMergeChangeListener<String, FileSnapshot>(listener, newSnapshots));
-                    return new FileCollectionSnapshotImpl(newSnapshots);
-                }
-            };
-        }
     }
 }

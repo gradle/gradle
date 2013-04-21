@@ -18,14 +18,15 @@ package org.gradle.buildsetup.tasks
 
 import org.gradle.api.Incubating
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.tasks.OutputFile
 
 import javax.inject.Inject
 
 @Incubating
 class GenerateBuildFile extends TextFileGenerationTask {
+    private final DocumentationRegistry documentationRegistry
 
-    private DocumentationRegistry documentationRegistry
-
+    @OutputFile
     File buildFile
 
     @Inject

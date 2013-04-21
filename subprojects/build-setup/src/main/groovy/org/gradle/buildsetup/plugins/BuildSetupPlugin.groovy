@@ -30,60 +30,62 @@ import org.gradle.buildsetup.tasks.GenerateSettingsFile
 @Incubating
 class BuildSetupPlugin implements Plugin<Project> {
     public static final String SETUP_BUILD_TASK_NAME = "setupBuild"
-    public static final String GROUP = '[incubating] Build Setup'
+    public static final String GROUP = 'Build Setup'
 
     void apply(Project project) {
         Task setupBuild = project.getTasks().create(SETUP_BUILD_TASK_NAME);
         setupBuild.group = GROUP
-
+        setupBuild.description = "Initializes a new Gradle build. [incubating]"
         boolean furtherTasksRequired = configureBuildSetupTask(project, setupBuild)
-        if (furtherTasksRequired){
+        if (furtherTasksRequired) {
             configureFurtherSetupActions(project, setupBuild)
         }
     }
 
     boolean configureBuildSetupTask(Project project, Task setupBuildTask) {
+        if (project.buildFile?.exists()) {
+            setupBuildTask.doLast {
+                logger.warn("The build file '$project.buildFile.name' already exists. Skipping build initialization.")
+            }
+            return false
+        }
+        if (project.file("settings.gradle").exists()) {
+            setupBuildTask.doLast {
+                logger.warn("The settings file 'settings.gradle' already exists. Skipping build initialization.")
+            }
+            return false
+        }
         if (project.subprojects.size() > 0) {
-            setupBuildTask.onlyIf {
-                setupBuildTask.logger.warn("Running 'setupBuild' on already defined multiproject build is not supported. Build setup skipped.")
-                false
+            setupBuildTask.doLast {
+                logger.warn("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
             }
-            return false;
+            return false
         }
-        if (project.file("build.gradle").exists()) {
-            setupBuildTask.onlyIf {
-                setupBuildTask.logger.warn("Running 'setupBuild' on existing gradle build setup is not supported. Build setup skipped.")
-                false
-            }
-            return false;
-        }
-        return true;
+        return true
     }
 
     def configureFurtherSetupActions(Project project, Task setupBuild) {
         if (project.file("pom.xml").exists()) {
             def maven2Gradle = project.task("maven2Gradle", type: ConvertMaven2Gradle) {
-                group = GROUP
-                description = '[incubating] Attempts to generate gradle builds from Maven project.'
+                description = 'Generates a Gradle build from a Maven POM. [incubating]'
             }
             setupBuild.dependsOn(maven2Gradle)
         } else {
             // generate empty gradle build file
             GenerateBuildFile generateBuildFile = project.task("generateBuildFile", type: GenerateBuildFile) {
-                group = GROUP
-                description = '[incubating] Creates a Gradle build file.'
+                description = 'Generates a Gradle build file. [incubating]'
                 buildFile = project.file("build.gradle")
             }
             // generate empty gradle settings file
             GenerateSettingsFile generateSettingsFile = project.task("generateSettingsFile", type: GenerateSettingsFile) {
-                group = GROUP
-                description = '[incubating] Creates a Gradle settings file.'
+                description = 'Generates a Gradle settings file. [incubating]'
                 settingsFile = project.file("settings.gradle")
             }
             setupBuild.dependsOn(generateSettingsFile)
             setupBuild.dependsOn(generateBuildFile)
         }
-        Task wrapper = project.task("wrapper", type: Wrapper)
+        Task wrapper = project.task("setupWrapper", type: Wrapper)
+        wrapper.description = "Generates Gradle wrapper files. [incubating]"
         setupBuild.dependsOn(wrapper)
     }
 }

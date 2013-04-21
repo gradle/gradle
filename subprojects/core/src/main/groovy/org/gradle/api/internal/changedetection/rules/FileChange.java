@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.tasks.TaskInputChanges;
-
 import java.io.File;
 
-abstract class FileChange implements TaskStateChange, TaskInputChanges.InputFileChange {
+abstract class FileChange implements TaskStateChange {
     private final String path;
     private final ChangeType change;
 

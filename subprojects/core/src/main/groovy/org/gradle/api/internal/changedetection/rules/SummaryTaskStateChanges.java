@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.collect.AbstractIterator;
+
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 class SummaryTaskStateChanges implements TaskStateChanges {
@@ -29,50 +32,45 @@ class SummaryTaskStateChanges implements TaskStateChanges {
         this.sources = Arrays.asList(sources);
     }
 
-    /*
+    /**
      * Provides an efficient summary of the changes, without doing too much unnecessary work.
      * - Will only emit changes of a single type (from a single delegate change set)
      * - Will return no more than the specified maximum of number of changes
      */
-    public void findChanges(UpToDateChangeListener listener) {
-        SummaryListener summaryListener = new SummaryListener(listener, maxReportedChanges);
-        for (TaskStateChanges source : sources) {
-            source.findChanges(summaryListener);
+    public Iterator<TaskStateChange> iterator() {
 
-            // Don't check any more states once a change is detected
-            if (summaryListener.changeCount > 0) {
-                break;
+        return new AbstractIterator<TaskStateChange>() {
+            Iterator<TaskStateChange> changes;
+            int count;
+
+            @Override
+            protected TaskStateChange computeNext() {
+                if (changes == null) {
+                    changes = firstDirtyIterator();
+                }
+
+                if (count < maxReportedChanges && changes != null && changes.hasNext()) {
+                    count++;
+                    return changes.next();
+                }
+                return endOfData();
+            }
+        };
+    }
+
+    private Iterator<TaskStateChange> firstDirtyIterator() {
+        for (TaskStateChanges source : sources) {
+            Iterator<TaskStateChange> sourceIterator = source.iterator();
+            if (sourceIterator.hasNext()) {
+                return sourceIterator;
             }
         }
+        return null;
     }
 
     public void snapshotAfterTask() {
         for (TaskStateChanges state : sources) {
             state.snapshotAfterTask();
-        }
-    }
-
-    private class SummaryListener implements UpToDateChangeListener {
-        private final UpToDateChangeListener delegate;
-        private final int maxReportedChanges;
-        int changeCount;
-
-        public SummaryListener(UpToDateChangeListener delegate, int maxReportedChanges) {
-            this.delegate = delegate;
-            this.maxReportedChanges = maxReportedChanges;
-        }
-
-        public void accept(TaskStateChange change) {
-            if (!isAccepting()) {
-                throw new IllegalStateException("Listener is no longer accepting changes.");
-            }
-
-            changeCount++;
-            delegate.accept(change);
-        }
-
-        public boolean isAccepting() {
-            return changeCount < maxReportedChanges && delegate.isAccepting();
         }
     }
 }

@@ -21,9 +21,12 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
@@ -46,22 +49,30 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
     private DefaultProjectDescriptor rootProjectDescriptor;
 
     private GradleInternal gradle;
+
     private IProjectDescriptorRegistry projectDescriptorRegistry;
 
-    protected BaseSettings(){
-    }
+    private  ServiceRegistryFactory services;
+
+    private PluginContainer plugins;
+
+    private FileResolver fileResolver;
+
+    private ScriptPluginFactory scriptPluginFactory;
 
     public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
-                        IProjectDescriptorRegistry projectDescriptorRegistry,
                         URLClassLoader classloader, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
-        super(serviceRegistryFactory);
         this.gradle = gradle;
-        this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.classloader = classloader;
+        this.services = serviceRegistryFactory.createFor(this);
+        this.plugins = services.get(PluginContainer.class);
+        this.fileResolver = services.get(FileResolver.class);
+        this.scriptPluginFactory = services.get(ScriptPluginFactory.class);
+        this.projectDescriptorRegistry = services.get(IProjectDescriptorRegistry.class);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
 
@@ -187,5 +198,20 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     public IProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
         return projectDescriptorRegistry;
+    }
+
+    public PluginContainer getPlugins() {
+        return plugins;
+    }
+
+
+    @Override
+    protected FileResolver getFileResolver() {
+        return fileResolver;
+    }
+
+    @Override
+    protected ScriptPluginFactory getScriptPluginFactory() {
+        return scriptPluginFactory;
     }
 }

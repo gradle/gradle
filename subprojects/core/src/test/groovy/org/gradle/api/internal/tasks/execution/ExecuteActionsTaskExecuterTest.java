@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
@@ -47,11 +48,10 @@ import static org.junit.Assert.assertThat;
 public class ExecuteActionsTaskExecuterTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final TaskInternal task = context.mock(TaskInternal.class, "<task>");
-    @SuppressWarnings("unchecked")
-    private final Action<Task> action1 = context.mock(Action.class, "action1");
-    @SuppressWarnings("unchecked")
-    private final Action<Task> action2 = context.mock(Action.class, "action2");
+    private final ContextAwareTaskAction action1 = context.mock(ContextAwareTaskAction.class, "action1");
+    private final ContextAwareTaskAction action2 = context.mock(ContextAwareTaskAction.class, "action2");
     private final TaskStateInternal state = context.mock(TaskStateInternal.class);
+    private final TaskExecutionContext executionContext = context.mock(TaskExecutionContext.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final StandardOutputCapture standardOutputCapture = context.mock(StandardOutputCapture.class);
     private final Sequence sequence = context.sequence("seq");
@@ -79,7 +79,7 @@ public class ExecuteActionsTaskExecuterTest {
     @Test
     public void doesNothingWhenTaskHasNoActions() {
         context.checking(new Expectations() {{
-            allowing(task).getActions();
+            allowing(task).getTaskActions();
             will(returnValue(emptyList()));
 
             one(listener).beforeActions(task);
@@ -98,13 +98,13 @@ public class ExecuteActionsTaskExecuterTest {
             inSequence(sequence);
         }});
 
-        executer.execute(task, state);
+        executer.execute(task, state, executionContext);
     }
 
     @Test
     public void executesEachActionInOrder() {
         context.checking(new Expectations() {{
-            allowing(task).getActions();
+            allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
             one(listener).beforeActions(task);
@@ -119,7 +119,13 @@ public class ExecuteActionsTaskExecuterTest {
             one(standardOutputCapture).start();
             inSequence(sequence);
 
+            one(action1).contextualise(executionContext);
+            inSequence(sequence);
+
             one(action1).execute(task);
+            inSequence(sequence);
+
+            one(action1).contextualise(null);
             inSequence(sequence);
 
             one(standardOutputCapture).stop();
@@ -131,7 +137,13 @@ public class ExecuteActionsTaskExecuterTest {
             one(standardOutputCapture).start();
             inSequence(sequence);
 
+            one(action2).contextualise(executionContext);
+            inSequence(sequence);
+
             one(action2).execute(task);
+            inSequence(sequence);
+
+            one(action2).contextualise(null);
             inSequence(sequence);
 
             one(standardOutputCapture).stop();
@@ -147,7 +159,7 @@ public class ExecuteActionsTaskExecuterTest {
             inSequence(sequence);
         }});
 
-        executer.execute(task, state);
+        executer.execute(task, state, executionContext);
     }
 
     @Test
@@ -155,6 +167,9 @@ public class ExecuteActionsTaskExecuterTest {
         context.checking(new Expectations() {
             {
                 allowing(task).getActions();
+                will(returnValue(toList(action1)));
+
+                allowing(task).getTaskActions();
                 will(returnValue(toList(action1)));
 
                 one(listener).beforeActions(task);
@@ -169,6 +184,9 @@ public class ExecuteActionsTaskExecuterTest {
                 one(standardOutputCapture).start();
                 inSequence(sequence);
 
+                one(action1).contextualise(executionContext);
+                inSequence(sequence);
+
                 one(action1).execute(task);
                 will(new CustomAction("Add action to actions list") {
                     public Object invoke(Invocation invocation) throws Throwable {
@@ -177,6 +195,9 @@ public class ExecuteActionsTaskExecuterTest {
                     }
                 });
 
+                inSequence(sequence);
+
+                one(action1).contextualise(null);
                 inSequence(sequence);
 
                 one(standardOutputCapture).stop();
@@ -190,7 +211,7 @@ public class ExecuteActionsTaskExecuterTest {
                 inSequence(sequence);
             }
         });
-        executer.execute(task, state);
+        executer.execute(task, state, executionContext);
     }
 
 
@@ -199,7 +220,7 @@ public class ExecuteActionsTaskExecuterTest {
         final Throwable failure = new RuntimeException("failure");
         final Collector<Throwable> wrappedFailure = collector();
         context.checking(new Expectations() {{
-            allowing(task).getActions();
+            allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
             one(listener).beforeActions(task);
@@ -214,8 +235,14 @@ public class ExecuteActionsTaskExecuterTest {
             one(standardOutputCapture).start();
             inSequence(sequence);
 
+            one(action1).contextualise(executionContext);
+            inSequence(sequence);
+
             one(action1).execute(task);
             will(throwException(failure));
+            inSequence(sequence);
+
+            one(action1).contextualise(null);
             inSequence(sequence);
 
             one(standardOutputCapture).stop();
@@ -232,7 +259,7 @@ public class ExecuteActionsTaskExecuterTest {
             inSequence(sequence);
         }});
 
-        executer.execute(task, state);
+        executer.execute(task, state, executionContext);
 
         assertThat(wrappedFailure.get(), instanceOf(TaskExecutionException.class));
         TaskExecutionException exception = (TaskExecutionException) wrappedFailure.get();
@@ -244,7 +271,7 @@ public class ExecuteActionsTaskExecuterTest {
     @Test
     public void stopsAtFirstActionWhichThrowsStopExecutionException() {
         context.checking(new Expectations() {{
-            allowing(task).getActions();
+            allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
             one(listener).beforeActions(task);
@@ -257,12 +284,18 @@ public class ExecuteActionsTaskExecuterTest {
             inSequence(sequence);
 
             one(standardOutputCapture).start();
+            inSequence(sequence);
+
+            one(action1).contextualise(executionContext);
             inSequence(sequence);
 
             one(action1).execute(task);
             will(throwException(new StopExecutionException("stop")));
             inSequence(sequence);
 
+            one(action1).contextualise(null);
+            inSequence(sequence);
+
             one(standardOutputCapture).stop();
             inSequence(sequence);
 
@@ -276,13 +309,13 @@ public class ExecuteActionsTaskExecuterTest {
             inSequence(sequence);
         }});
 
-        executer.execute(task, state);
+        executer.execute(task, state, executionContext);
     }
 
     @Test
     public void skipsActionWhichThrowsStopActionException() {
         context.checking(new Expectations() {{
-            allowing(task).getActions();
+            allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
             one(listener).beforeActions(task);
@@ -297,8 +330,14 @@ public class ExecuteActionsTaskExecuterTest {
             one(standardOutputCapture).start();
             inSequence(sequence);
 
+            one(action1).contextualise(executionContext);
+            inSequence(sequence);
+
             one(action1).execute(task);
             will(throwException(new StopActionException("stop")));
+            inSequence(sequence);
+
+            one(action1).contextualise(null);
             inSequence(sequence);
 
             one(standardOutputCapture).stop();
@@ -310,7 +349,13 @@ public class ExecuteActionsTaskExecuterTest {
             one(standardOutputCapture).start();
             inSequence(sequence);
 
+            one(action2).contextualise(executionContext);
+            inSequence(sequence);
+
             one(action2).execute(task);
+            inSequence(sequence);
+
+            one(action2).contextualise(null);
             inSequence(sequence);
 
             one(standardOutputCapture).stop();
@@ -326,6 +371,6 @@ public class ExecuteActionsTaskExecuterTest {
             inSequence(sequence);
         }});
 
-        executer.execute(task, state);
+        executer.execute(task, state, executionContext);
     }
 }

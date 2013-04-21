@@ -24,19 +24,19 @@ class SummaryTaskStateChangesTest extends Specification {
     def state1 = Mock(TaskStateChanges)
     def state2 = Mock(TaskStateChanges)
     def state = new SummaryTaskStateChanges(2, state1, state2)
-    final UpToDateChangeListener action = Mock()
     def change = Mock(TaskStateChange)
 
     def looksForChangesInAllDelegateChangeSets() {
         when:
-        state.findChanges(action)
+        def hasNext = state.iterator().hasNext()
 
         then:
-        1 * state1.findChanges(!null)
-
-        then:
-        1 * state2.findChanges(!null)
+        1 * state1.iterator() >> [].iterator()
+        1 * state2.iterator() >> [].iterator()
         0 * _
+
+        and:
+        !hasNext
     }
 
     def delegatesSnapshotToAllDelegateChangeSets() {
@@ -53,38 +53,37 @@ class SummaryTaskStateChangesTest extends Specification {
         def change1 = Mock(TaskStateChange)
 
         when:
-        state.findChanges(action)
+        def it = state.iterator()
+        it.hasNext()
 
         then:
-        1 * state1.findChanges(!null) >> { UpToDateChangeListener listener -> listener.accept(change1) }
-        0 * state2._
+        1 * state1.iterator() >> [change1].iterator()
+        0 * _
 
         and:
-        _ * action.isAccepting() >> true
-        1 * action.accept(change1)
-        0 * _
+        it.hasNext()
+        it.next() == change1
+        !it.hasNext()
     }
 
     def willNotEmitMoreChangesThanSpecified() {
         def change1 = Mock(TaskStateChange)
         def change2 = Mock(TaskStateChange)
+        def change3 = Mock(TaskStateChange)
 
         when:
-        state.findChanges(action)
+        def it = state.iterator()
+        it.hasNext()
 
         then:
-        1 * state1.findChanges(!null)
-        1 * state2.findChanges(!null) >> {UpToDateChangeListener listener ->
-            listener.accept(change1)
-            assert listener.accepting
-            listener.accept(change2)
-            assert !listener.accepting
-        }
+        1 * state1.iterator() >> [].iterator()
+        1 * state2.iterator() >> [change1, change2, change3].iterator()
 
         and:
-        _ * action.isAccepting() >> true
-        1 * action.accept(change1)
-        1 * action.accept(change2)
-        0 * _
+        it.hasNext()
+        it.next() == change1
+        it.hasNext()
+        it.next() == change2
+        !it.hasNext()
     }
 }

@@ -101,8 +101,8 @@ class JacocoTaskExtension {
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}.
      * Defaults to {@code false}.
      *
-     * The configuration of the jmx property is only taken into account if the used jacoco version
-     * supports this option (jacoco version >= 0.6.2)
+     * The configuration of the jmx property is only taken into account if the used JaCoCo version
+     * supports this option (JaCoCo version >= 0.6.2)
      */
     boolean jmx = false
 
