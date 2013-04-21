@@ -54,5 +54,8 @@ public interface Distribution extends Named {
      */
     CopySpec contents(Action<? super CopySpec> action);
 
+    /**
+     * Set the baseName of distribution using a closure.This is used in file names for the distribution.
+     */
     void configureBaseName(Closure<String> closure);
 }
