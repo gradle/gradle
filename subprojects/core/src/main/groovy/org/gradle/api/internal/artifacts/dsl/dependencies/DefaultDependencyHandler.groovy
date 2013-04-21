@@ -101,9 +101,18 @@ class DefaultDependencyHandler implements DependencyHandler {
         } else if (normalizedArgs.length == 1) {
             return doAdd(configuration, normalizedArgs[0], (Closure) null)
         }
-        normalizedArgs.each {notation ->
-            doAdd(configuration, notation, null)
+
+        def notations = normalizedArgs
+        Closure config = null
+
+        if (normalizedArgs.size() > 1 && (normalizedArgs[-1] instanceof Closure)) {
+            config = (Closure) normalizedArgs[-1]
+            notations = normalizedArgs[0..-2]
         }
-        return null;
+
+        notations.each { notation ->
+            doAdd(configuration, notation, config)
+        }
+        return null
     }
 }

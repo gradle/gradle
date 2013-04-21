@@ -142,7 +142,26 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencySet.add(dependency2)
     }
 
-    void "can use dynamic method to add multiple dependencies from nested lists"() {
+    void "can use dynamic method to add and config multiple dependencies"() {
+        ExternalDependency dependency1 = Mock()
+        ExternalDependency dependency2 = Mock()
+
+        when:
+        def result = dependencyHandler.someConf("someNotation", "someOther") { force = false }
+
+        then:
+        result == null
+
+        and:
+        1 * dependencyFactory.createDependency("someNotation") >> dependency1
+        1 * dependencyFactory.createDependency("someOther") >> dependency2
+        1 * dependencySet.add(dependency1)
+        1 * dependencySet.add(dependency2)
+        1 * dependency1.setForce(false)
+        1 * dependency2.setForce(false)
+    }
+
+   void "can use dynamic method to add multiple dependencies from nested lists"() {
         Dependency dependency1 = Mock()
         Dependency dependency2 = Mock()
 
@@ -157,6 +176,25 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createDependency("someOther") >> dependency2
         1 * dependencySet.add(dependency1)
         1 * dependencySet.add(dependency2)
+    }
+
+    void "can use dynamic method to add and config multiple dependencies from nested lists"() {
+        ExternalDependency dependency1 = Mock()
+        ExternalDependency dependency2 = Mock()
+
+        when:
+        def result = dependencyHandler.someConf([["someNotation"], ["someOther"]]) { force = false }
+
+        then:
+        result == null
+
+        and:
+        1 * dependencyFactory.createDependency("someNotation") >> dependency1
+        1 * dependencyFactory.createDependency("someOther") >> dependency2
+        1 * dependencySet.add(dependency1)
+        1 * dependencySet.add(dependency2)
+        1 * dependency1.setForce(false)
+        1 * dependency2.setForce(false)
     }
 
     void "creates a project dependency from map"() {
