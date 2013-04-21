@@ -15,19 +15,20 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
-import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.GradleException
 
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
+ *
+ * @author Rene Groeschke
  */
 class ApplicationPlugin implements Plugin<Project> {
     static final String APPLICATION_PLUGIN_NAME = "application"
@@ -69,7 +70,6 @@ class ApplicationPlugin implements Plugin<Project> {
         run.group = APPLICATION_GROUP
         run.classpath = project.sourceSets.main.runtimeClasspath
         run.conventionMapping.main = { pluginConvention.mainClassName }
-        run.conventionMapping.jvmArgs = { pluginConvention.applicationDefaultJvmArgs }
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
@@ -80,7 +80,6 @@ class ApplicationPlugin implements Plugin<Project> {
         startScripts.conventionMapping.mainClassName = { pluginConvention.mainClassName }
         startScripts.conventionMapping.applicationName = { pluginConvention.applicationName }
         startScripts.conventionMapping.outputDir = { new File(project.buildDir, 'scripts') }
-        startScripts.conventionMapping.defaultJvmOpts = { pluginConvention.applicationDefaultJvmArgs }
     }
 
     private void addInstallTask() {
