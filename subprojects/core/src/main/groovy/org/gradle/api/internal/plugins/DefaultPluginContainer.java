@@ -41,6 +41,12 @@ public class DefaultPluginContainer<T extends PluginAware> extends DefaultPlugin
         return addPluginInternal(type);
     }
 
+    public <T extends Plugin> T apply(T plugin) {
+        add(plugin);
+
+        return plugin;
+    }
+
     public boolean hasPlugin(String id) {
         return findPlugin(id) != null;
     }

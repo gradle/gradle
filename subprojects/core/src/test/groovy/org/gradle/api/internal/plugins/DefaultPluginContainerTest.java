@@ -128,4 +128,17 @@ public class DefaultPluginContainerTest {
     public void getNonUsedPluginByType() {
         container.getPlugin(TestPlugin1.class);
     }
+
+    @Test
+    public void applyPluginByInstance() {
+        Plugin addedPlugin = container.apply(pluginWithIdMock);
+
+        assertThat(pluginWithIdMock, sameInstance(addedPlugin));
+
+        assertThat(container.apply(pluginWithIdMock), sameInstance(addedPlugin));
+        assertThat(container.apply(pluginId), sameInstance(addedPlugin));
+
+        assertThat(container.findPlugin(pluginWithIdMock.getClass()), sameInstance(addedPlugin));
+        assertThat(container.findPlugin(pluginId), sameInstance(addedPlugin));
+    }
 }

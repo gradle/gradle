@@ -48,6 +48,16 @@ public interface PluginContainer extends PluginCollection<Plugin> {
     <T extends Plugin> T apply(Class<T> type);
 
     /**
+     * Applies a plugin to the project. This usually means that the plugin uses the project API to add and modify the
+     * state of the project. This method can be called an arbitrary number of times for a particular plugin type. The
+     * plugin will be actually used only the first time this method is called.
+     *
+     * @param plugin The plugin instance of the plugin to be used
+     * @return The plugin which has been used against the project.
+     */
+    <T extends Plugin> T apply(T plugin);
+
+    /**
      * Returns true if the container has a plugin with the given id, false otherwise.
      *
      * @param id The id of the plugin
