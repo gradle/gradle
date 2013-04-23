@@ -67,7 +67,7 @@ transformDocument {
     for (heading in body().select(".topic").select("h3")) {
         if (heading.text().endsWith(incubatingMarker)) {
             heading.text(heading.text() - incubatingMarker).addClass("incubating")
-            heading.after("<a class='incubating-marker' href='userguide/feature_lifecycle.html' title='“incubating” features are not yet guaranteed to be backwards compatible<br />(click for more information)'>incubating feature</a>")
+            heading.append(" <a class='incubating-marker' href='userguide/feature_lifecycle.html' title='“incubating” features are not yet guaranteed to be backwards compatible<br />(click for more information)'>incubating feature</a>")
         }
     }
 }

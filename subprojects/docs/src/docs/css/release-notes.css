@@ -42,30 +42,20 @@ button.display-toggle {
   cursor: pointer;
 }
 
-h3.incubating {
-    display: inline-block;
-}
-
 a.incubating-marker {
-    display: inline-block;
-    clear: right;
     color: white;
     font-style: italic;
-    font-size: 1.0em;
-    text-shadow: 0 0 1px rgba(0, 0, 0, 0.4);
-    margin-left: 0.6em;
-    cursor: help;
+    font-size: 0.6em;
+    text-shadow: none;
+    margin-left: 0.4em;
     border-radius: 6px;
     background-color: rgb(160, 160, 160);
-    padding: 0 5px;
-    box-shadow: 1px 1px 3px 0 black;
-    vertical-align: text-bottom;
+    border: 1px solid rgb(150, 150, 150);
+    padding: 1px 5px;
 }
-
 
 a.incubating-marker:hover {
     text-decoration: none;
-    border-bottom: none
 }
 
 section.footer {
@@ -124,12 +114,12 @@ section.footer {
 
 #tiptip_content {
     font-size: 13px;
-    color: #8B8B8B;
+    color: #717171;
     padding: 6px 10px;
-    border: 2px solid #8B8B8B;
+    border: 1px solid #8B8B8B;
     background-color: #FFF;
     border-radius: 8px;
-    box-shadow: 0 0 4px #acacac;
+    box-shadow: 2px 2px 4px #acacac;
     text-align: center;
 }
 
