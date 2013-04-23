@@ -64,6 +64,8 @@ The given value may not be coercible to `File`. The produced error message shoul
 2. User tries to assign absolute path as String to File property
 3. Variants on #1 and #2 using other values supported by Project.file()
 4. User tries to assign value using the =-less method variant (e.g. obj.someFileProperty("some/path"))
+5. User tries to assign value using a statically declared `setProperty(String, Object)` method (Task.setProperty(), Project.setProperty())
+6. User tries to assign value using Gradle's `DynamicObject` protocol (e.g. Project.setProperty())
 
 ### Implementation approach
 
