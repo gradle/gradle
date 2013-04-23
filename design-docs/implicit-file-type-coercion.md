@@ -102,9 +102,17 @@ The "type coercing wrapper" will be implemented as a `DynamicObject` implementat
 
 ## Story: User reading DSL guide understands where type coercion is applicable for `File` properties and what the coercion rules are
 
-## Story: Task/Plugin authors understand the file type coercion mechanism and can use it in third party code
+## Story: Build logic authors understand the file type coercion mechanism and can use it in third party code
 
 This story is probably just about adding user guide content specifically aimed at people implementing build logic (where as the DSL ref story is targeted at people using build logic)
+
+## Story: Build logic authors (internal and third party) implement defined strategy for removing old, untyped, File setter methods
+
+Having flexible file inputs is currently implemented by types implementing a setter that takes `Object` and doing the coercion internally. 
+Having file type coercion implemented as a decoration means that such setters should be strongly typed to `File`. 
+
+This story will initiate a migration away from these untyped setters to strongly typed setters. 
+As part of this, the migration path should be documented and outlined so that third party build logic authors can do the same thing.
 
 ## Story: Type coercion is used in conjunction with convention mapping to defer evaluation (incl. coercion)
 
