@@ -66,7 +66,6 @@ class ParallelTaskPlanExecutor extends DefaultTaskPlanExecutor {
     private void doProcess(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener, ExecutorFactory factory) {
         List<Project> projects = getAllProjects(taskExecutionPlan);
         int numExecutors = Math.min(executorCount, projects.size());
-        numExecutors = Math.min(numExecutors, 4);
 
         LOGGER.info("Using {} parallel executor threads", numExecutors);
 
