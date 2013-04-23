@@ -43,6 +43,10 @@ not include a static Java friendly API for this functionality.
 
 Only property setting is covered, so only setters will be decorated. Arbitrary methods that accept a File are not covered by this story.
 
+### Coercing relative values
+
+For some objects (that are subject to DSL enhancement), there is no good way to coerce a value that equates to a relative path (e.g. `Gradle` and `Settings` objects). For such objects, if the value to be coerced is not coercable to an absolute file it will be an error condition. 
+
 ### User visible changes
 
 The only user visible change will the documentation that states that it is possible to assign different types of values to
@@ -57,6 +61,7 @@ The given value may not be coercible to `File`. The produced error message shoul
 2. The name of the property-to-be-set
 3. The invalid type
 4. A description of what the valid types are, or how to find out what the valid types are
+5. If the value could not be coerced because it's effectively relative and the target object has no "base" that this is the case
 
 ### Test coverage
 
