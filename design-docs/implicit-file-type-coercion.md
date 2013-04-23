@@ -102,6 +102,10 @@ The "type coercing wrapper" will be implemented as a `DynamicObject` implementat
 
 ## Story: User reading DSL guide understands where type coercion is applicable for `File` properties and what the coercion rules are
 
+## Story: Task/Plugin authors understand the file type coercion mechanism and can use it in third party code
+
+This story is probably just about adding user guide content specifically aimed at people implementing build logic (where as the DSL ref story is targeted at people using build logic)
+
 ## Story: Type coercion is used in conjunction with convention mapping to defer evaluation (incl. coercion)
 
 ## Story: A static API user (e.g. Java) specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
