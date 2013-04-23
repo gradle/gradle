@@ -35,7 +35,7 @@ in the DSL, a user should be able to set `File` properties of objects using diff
 
 # Implementation plan
 
-## Story 1: A DSL user specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
+## Story: A DSL user specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
 
 A user sets a value for a file property, using a value that can be converted to a File via project.file(). No deferred evaluation is supported.
 That is, all values are coerced immediately. This will be targeted at DSL (or more precisely, Groovy) users. This story does
@@ -93,9 +93,11 @@ Initially the coercion will be implemented by fetching a `FileResolver` from the
 
 The "type coercing wrapper" will be implemented as a `DynamicObject` implementation that can wrap any `DynamicObject` implementation. It will intercept methods and identify coercions based on given argument types and parameter types of the methods provided by the real dynamic object. 
 
-## Story 2: Type coercion is used in conjunction with convention mapping to defer evaluation (incl. coercion)
+## Story: User reading DSL guide understands where type coercion is applicable for `File` properties and what the coercion rules are
 
-## Story 3: A static API user (e.g. Java) specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
+## Story: Type coercion is used in conjunction with convention mapping to defer evaluation (incl. coercion)
+
+## Story: A static API user (e.g. Java) specifies the value for a file property with a value supported by project.file() (no deferred evaluation)
 
 # Open issues
 
