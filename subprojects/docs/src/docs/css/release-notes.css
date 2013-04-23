@@ -43,19 +43,24 @@ button.display-toggle {
 }
 
 a.incubating-marker {
+    display: inline;
     color: white;
     font-style: italic;
     font-size: 0.6em;
     text-shadow: none;
-    margin-left: 0.4em;
+    margin-left: 0.6em;
     border-radius: 6px;
     background-color: rgb(160, 160, 160);
     border: 1px solid rgb(150, 150, 150);
     padding: 1px 5px;
+    box-shadow: none;
+    cursor: pointer;
+    vertical-align: 1px;
 }
 
 a.incubating-marker:hover {
     text-decoration: none;
+    border: 1px solid rgb(150, 150, 150);
 }
 
 section.footer {
