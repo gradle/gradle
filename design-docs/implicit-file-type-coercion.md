@@ -51,7 +51,7 @@ For some objects (that are subject to DSL enhancement), there is no good way to 
 
 The only user visible change will the documentation that states that it is possible to assign different types of values to
 `File` implicitly in the documentation. There is also no new API or change required by plugin/task etc. authors to leverage this
-feature. This implies that any method 
+feature.
 
 ### Sad day cases
 
