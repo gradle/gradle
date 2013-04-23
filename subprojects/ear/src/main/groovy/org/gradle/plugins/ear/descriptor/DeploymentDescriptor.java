@@ -149,6 +149,15 @@ public interface DeploymentDescriptor {
     public DeploymentDescriptor securityRole(String role);
 
     /**
+     * Add a security role to the deployment descriptor by applying the closure.
+     *
+     * @param closure The closure that contains the definition for <code>EarSecurityRole</code>
+     *  that should be added.
+     * @return this.
+     */
+    public DeploymentDescriptor securityRole(Closure closure);
+
+    /**
      * Mapping of module paths to module types. Non-null by default. For example, to specify that a module is a java
      * module, set <code>moduleTypeMappings["myJavaModule.jar"] = "java"</code>.
      */

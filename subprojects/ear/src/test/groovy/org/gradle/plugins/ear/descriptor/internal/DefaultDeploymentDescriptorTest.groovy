@@ -75,6 +75,10 @@ class DefaultDeploymentDescriptorTest extends Specification {
         descriptor.webModule("my.war", "/")
         descriptor.securityRole "admin"
         descriptor.securityRole "superadmin"
+        descriptor.securityRole {
+            roleName = 'supersuperadmin'
+            description = 'Super Super Admin Description'
+        }
         descriptor.withXml { it.asNode().appendNode("data-source", "my/data/source") }
 
         when:
@@ -102,6 +106,10 @@ class DefaultDeploymentDescriptorTest extends Specification {
   </security-role>
   <security-role>
     <role-name>superadmin</role-name>
+  </security-role>
+  <security-role>
+    <description>Super Super Admin Description</description>
+    <role-name>supersuperadmin</role-name>
   </security-role>
   <library-directory>APP-INF/lib</library-directory>
   <data-source>my/data/source</data-source>
