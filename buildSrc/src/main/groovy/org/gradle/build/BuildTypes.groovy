@@ -64,7 +64,7 @@ class BuildTypes {
                     if (!project.hasProperty(k)) {
                         project.ext."$k" = null
                     }
-                    project.properties."$k" = v
+                    project."$k" = v
                 }
             }
 
