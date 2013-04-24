@@ -16,12 +16,21 @@
 
 
 
-dependencies {
-	compile libraries.groovy
-	compile project(':core')
-	compile project(':plugins')
-	compile project(':wrapper')
-    integTestRuntime project(':maven')
-}
+package org.gradle.buildsetup.plugins
 
-useTestFixtures()
+import org.gradle.api.tasks.wrapper.Wrapper
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
+
+class WrapperPluginSpec extends Specification {
+    def project = HelperUtil.createRootProject()
+
+    def "adds 'wrapper' task"() {
+        when:
+        project.plugins.apply WrapperPlugin
+
+        then:
+        project.tasks.wrapper instanceof Wrapper
+        project.tasks.wrapper.group == BuildSetupPlugin.GROUP
+    }
+}

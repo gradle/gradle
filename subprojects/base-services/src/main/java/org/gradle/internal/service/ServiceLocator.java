@@ -100,46 +100,49 @@ public class ServiceLocator extends AbstractServiceRegistry {
         List<Class<? extends T>> implementations = new ArrayList<Class<? extends T>>();
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
-            String implementationClassName;
+            List<String> implementationClassNamesFromResource;
             try {
-                implementationClassName = extractImplementationClassName(resource);
-                if (implementationClassName == null) {
+                implementationClassNamesFromResource = extractImplementationClassNames(resource);
+                if (implementationClassNamesFromResource.isEmpty()) {
                     throw new RuntimeException(String.format("No implementation class for service '%s' specified.", serviceType.getName()));
                 }
             } catch (Exception e) {
                 throw new ServiceLookupException(String.format("Could not determine implementation class for service '%s' specified in resource '%s'.", serviceType.getName(), resource), e);
             }
-            if (!implementationClassNames.add(implementationClassName)) {
-                continue;
-            }
-            try {
-                Class<?> implClass = classLoader.loadClass(implementationClassName);
-                if (!serviceType.isAssignableFrom(implClass)) {
-                    throw new RuntimeException(String.format("Implementation class '%s' is not assignable to service class '%s'.", implementationClassName, serviceType.getName()));
+
+            for (String implementationClassName : implementationClassNamesFromResource) {
+                if (implementationClassNames.add(implementationClassName)) {
+                    try {
+                        Class<?> implClass = classLoader.loadClass(implementationClassName);
+                        if (!serviceType.isAssignableFrom(implClass)) {
+                            throw new RuntimeException(String.format("Implementation class '%s' is not assignable to service class '%s'.", implementationClassName, serviceType.getName()));
+                        }
+                        implementations.add(implClass.asSubclass(serviceType));
+                    } catch (Exception e) {
+                        throw new ServiceLookupException(String.format("Could not load implementation class '%s' for service '%s' specified in resource '%s'.", implementationClassName, serviceType.getName(), resource), e);
+                    }
                 }
-                implementations.add(implClass.asSubclass(serviceType));
-            } catch (Exception e) {
-                throw new ServiceLookupException(String.format("Could not load implementation class '%s' for service '%s' specified in resource '%s'.", implementationClassName, serviceType.getName(), resource), e);
             }
         }
         return implementations;
     }
 
-    private String extractImplementationClassName(URL resource) throws IOException {
+    private List<String> extractImplementationClassNames(URL resource) throws IOException {
         InputStream inputStream = resource.openStream();
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            List<String> implemetationClassNames = new ArrayList<String>();
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.replaceAll("#.*", "").trim();
                 if (line.length() > 0) {
-                    return line;
+                    implemetationClassNames.add(line);
                 }
             }
+            return implemetationClassNames;
         } finally {
             inputStream.close();
         }
-        return null;
     }
 
     public static class ServiceFactory<T> implements Factory<T> {

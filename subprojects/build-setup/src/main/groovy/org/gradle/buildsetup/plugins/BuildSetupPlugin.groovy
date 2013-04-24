@@ -22,7 +22,6 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.buildsetup.tasks.ConvertMaven2Gradle
 import org.gradle.buildsetup.tasks.GenerateBuildFile
 import org.gradle.buildsetup.tasks.GenerateSettingsFile
@@ -90,8 +89,6 @@ class BuildSetupPlugin implements Plugin<Project> {
             setupBuild.dependsOn(generateSettingsFile)
             setupBuild.dependsOn(generateBuildFile)
         }
-        Task wrapper = project.task("setupWrapper", type: Wrapper)
-        wrapper.description = "Generates Gradle wrapper files. [incubating]"
-        setupBuild.dependsOn(wrapper)
+        setupBuild.dependsOn("wrapper")
     }
 }
