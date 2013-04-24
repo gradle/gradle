@@ -16,7 +16,10 @@
 
 package org.gradle.buildsetup.plugins.internal
 
+import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,16 +33,22 @@ class BuildSetupAutoApplyActionSpec extends Specification {
     TestFile buildFile
     ProjectInternal projectInternal
     PluginContainer pluginContainer
+    TaskContainerInternal taskContainerInternal
 
     public void setup() {
         projectInternal = Mock(ProjectInternal)
         pluginContainer = Mock(PluginContainer)
+        taskContainerInternal = Mock(TaskContainerInternal)
+        _ * projectInternal.getTasks() >> taskContainerInternal
+
     }
 
-    def "is applied on rootproject"() {
+    def "applies placeholder action for setupBuild on taskcontainer"() {
         when:
         new BuildSetupAutoApplyAction().execute(projectInternal)
         then:
+        1 * taskContainerInternal.addPlaceholderAction("setupBuild", _) >> {args -> args[1].execute(projectInternal)}
+        1 * projectInternal.getParent() >> null
         1 * projectInternal.getPlugins() >> pluginContainer
         1 * pluginContainer.apply("build-setup")
     }
@@ -50,6 +59,7 @@ class BuildSetupAutoApplyActionSpec extends Specification {
         when:
         new BuildSetupAutoApplyAction().execute(projectInternal)
         then:
+        0 * taskContainerInternal.addPlaceholderAction("setupBuild", _)
         0 * projectInternal.getPlugins() >> pluginContainer
         0 * pluginContainer.apply("build-setup")
     }

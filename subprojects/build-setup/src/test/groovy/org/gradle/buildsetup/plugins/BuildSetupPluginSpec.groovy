@@ -31,10 +31,11 @@ class BuildSetupPluginSpec extends Specification {
     def "applies plugin"() {
         when:
         project.plugins.apply BuildSetupPlugin
-
+        and:
+        project.evaluate()
         then:
-        project.tasks.setupWrapper instanceof Wrapper
-        Matchers.dependsOn("setupWrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
+        project.tasks.wrapper instanceof Wrapper
+        Matchers.dependsOn("wrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
     }
 
     def "adds maven2Gradle task if pom exists"() {
@@ -43,21 +44,25 @@ class BuildSetupPluginSpec extends Specification {
 
         when:
         project.plugins.apply BuildSetupPlugin
+        and:
+        project.evaluate()
 
         then:
-        project.tasks.maven2Gradle instanceof ConvertMaven2Gradle
-        project.tasks.setupWrapper instanceof Wrapper
-        Matchers.dependsOn("setupWrapper", "maven2Gradle").matches(project.tasks.setupBuild)
+        project.maven2Gradle instanceof ConvertMaven2Gradle
+        project.tasks.wrapper instanceof Wrapper
+        Matchers.dependsOn("wrapper", "maven2Gradle").matches(project.tasks.setupBuild)
     }
 
     def "adds generateBuildFile task if no pom and no gradle build file exists"() {
         when:
         project.plugins.apply BuildSetupPlugin
+        and:
+        project.evaluate()
 
         then:
         project.tasks.generateBuildFile instanceof GenerateBuildFile
-        project.tasks.setupWrapper instanceof Wrapper
-        Matchers.dependsOn("setupWrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
+        project.tasks.wrapper instanceof Wrapper
+        Matchers.dependsOn("wrapper", "generateBuildFile", "generateSettingsFile").matches(project.tasks.setupBuild)
     }
 
     def "no build file generation if build file already exists"() {

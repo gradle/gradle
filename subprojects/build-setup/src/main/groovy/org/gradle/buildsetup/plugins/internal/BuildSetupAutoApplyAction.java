@@ -16,20 +16,20 @@
 
 package org.gradle.buildsetup.plugins.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ProjectConfigureAction;
 
 public class BuildSetupAutoApplyAction implements ProjectConfigureAction {
-    public void execute(ProjectInternal projectInternal) {
-        if (buildSetupShouldBeAutoApplied(projectInternal)) {
-            projectInternal.getPlugins().apply("build-setup");
-        }
-    }
 
-    private boolean buildSetupShouldBeAutoApplied(ProjectInternal projectInternal) {
-        if (projectInternal.getParent() != null) {
-            return false;
+    public void execute(ProjectInternal projectInternal) {
+        if (projectInternal.getParent() == null) {
+            projectInternal.getTasks().addPlaceholderAction("setupBuild", new Action<Project>() {
+                public void execute(Project project) {
+                    project.getPlugins().apply("build-setup");
+                }
+            });
         }
-        return true;
     }
 }

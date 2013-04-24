@@ -46,7 +46,6 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         wrapperIsGenerated()
     }
 
-
     def "build file generation is skipped when build file already exists"() {
         given:
         assert buildFile.createFile()
