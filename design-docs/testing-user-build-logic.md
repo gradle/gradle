@@ -154,6 +154,12 @@ There is no attempt to auto delete the .gradle-test-kit dir after test execution
 
 The test runner will explicitly not inherit the user's Gradle “environment” (GRADLE_OPTS etc.). It will also not be desirable to inherit the user's gradleUserHome as it may contain per user init scripts that effect the tests. However, it is desirable to reuse the user's artifact cache in order to avoid redownloading dependencies. Currently, we don't have a way to specify the location of the artifact cache individually. This capability will need to be added to Gradle.
 
+## Story: Correctly size resource consumption when functionally testing via the test kit
+
+The initial story involves using the Daemon to execute test builds, without addressing the non-trivial resource consumption that using the Daemon implies.
+
+This story is about reducing resource consumption (particularly memory) to a satisfactory level.
+
 ## Story: A user functionally debugs their custom build logic
 
 ## Story: A user gets more precise information about what happened when the test build was executed
