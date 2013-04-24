@@ -32,6 +32,7 @@ import org.gradle.util.GUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
@@ -191,15 +192,29 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 connectedNodes.addAll(node.getTaskDependencies().getDependencies(node));
             }
         }).add(this).findValues();
+
+
+        final HashSet<String> placeholderNames = new HashSet<String>(placeholders.keySet());
+        for (String placeholder : placeholderNames) {
+            maybeMaterializePlaceholder(placeholder);
+        }
+
     }
 
     public Task findByName(String name) {
-        if(super.findByName(name)==null){
-            if(placeholders.containsKey(name)){
-                placeholders.get(name).execute(project);
+        maybeMaterializePlaceholder(name);
+        return super.findByName(name);
+    }
+
+    private void maybeMaterializePlaceholder(String name) {
+        if (!placeholders.isEmpty()) {
+            if (super.findByName(name) == null) {
+                if (placeholders.containsKey(name)) {
+                    final Action<Project> placeholderAction = placeholders.remove(name);
+                    placeholderAction.execute(project);
+                }
             }
         }
-        return super.findByName(name);
     }
 
     public void addPlaceholderAction(String placeholderName, Action action) {
