@@ -47,6 +47,10 @@ Only property setting is covered, so only setters will be decorated. Arbitrary m
 
 For some objects (that are subject to DSL enhancement), there is no good way to coerce a value that equates to a relative path (e.g. `Gradle` and `Settings` objects). For such objects, if the value to be coerced is not coercable to an absolute file it will be an error condition. 
 
+### Coercing `Object`
+
+Currently, every type is potentially convertible as the `project.file()` coercion strategy includes a fallback of `toString()`'ing any object and using its string representation as a file path. However, this has been deprecated and scheduled for 2.0 removal. Implicit coercion needs to initially support this fallback strategy but issue a deprecation warning similar to `project.file()`.
+
 ### User visible changes
 
 The only user visible change will the documentation that states that it is possible to assign different types of values to
@@ -54,8 +58,6 @@ The only user visible change will the documentation that states that it is possi
 feature.
 
 ### Sad day cases
-
-The given value may not be coercible to `File`. Currently, every type is potentially convertible as the `project.file()` coercion strategy includes a fallback of `toString()`'ing any object and using its string representation as a file path.
 
 The produced error message should indicate:
 
