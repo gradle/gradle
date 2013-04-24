@@ -37,14 +37,6 @@ configurations {
     dists
 }
 
-integTestTasks.all {
-    if (project.hasProperty("noDistTests")) {
-        gradle.startParameter.excludedTaskNames << it.path
-    } else {
-        inputs.files buildDists
-    }
-}
-
 daemonIntegTest.enabled = false
 
 evaluationDependsOn ":docs"

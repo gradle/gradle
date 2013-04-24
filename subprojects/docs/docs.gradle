@@ -424,10 +424,6 @@ test {
 
 }
 
-if (project.hasProperty('noDocsTests')) {
-    gradle.startParameter.excludedTaskNames << test.path
-}
-
 task docs {
     dependsOn javadocAll, groovydocAll, userguide, distDocs, samplesDocs, dslHtml, releaseNotes
     description = 'Generates all documentation'
