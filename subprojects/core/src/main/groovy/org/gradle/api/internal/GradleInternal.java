@@ -42,7 +42,7 @@ public interface GradleInternal extends Gradle {
      */
     ProjectInternal getDefaultProject();
 
-    IProjectRegistry<ProjectInternal> getProjectRegistry();
+    ProjectRegistry<ProjectInternal> getProjectRegistry();
 
     /**
      * Returns the root {@code ClassLoader} to use for the scripts of this build.

@@ -21,7 +21,6 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
-import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.plugins.PluginContainer;
@@ -45,15 +44,15 @@ public class SettingsInternalServiceRegistry extends DefaultServiceRegistry impl
         return new BaseDirFileResolver(get(FileSystem.class), settings.getSettingsDir());
     }
 
-    protected PluginRegistry createPluginRegistry() {
-        return new DefaultPluginRegistry(settings.getClassLoader(), new DependencyInjectingInstantiator(this));
+    protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
+        return parentRegistry.createChild(settings.getClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
     protected PluginContainer createPluginContainer() {
         return new DefaultPluginContainer(get(PluginRegistry.class), settings);
     }
 
-    protected IProjectDescriptorRegistry createIProjectDescriptorRegistry() {
+    protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {
         return new DefaultProjectDescriptorRegistry();
     }
 }

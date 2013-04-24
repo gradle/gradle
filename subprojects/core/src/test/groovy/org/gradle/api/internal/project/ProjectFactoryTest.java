@@ -77,7 +77,7 @@ public class ProjectFactoryTest {
             allowing(gradle).getStartParameter();
             will(returnValue(startParameterStub));
             allowing(gradle).getProjectRegistry();
-            will(returnValue(gradleServices.get(IProjectRegistry.class)));
+            will(returnValue(gradleServices.get(ProjectRegistry.class)));
             allowing(gradle).getScriptClassLoader();
             will(returnValue(buildScriptClassLoader));
             allowing(gradle).getGradleUserHomeDir();

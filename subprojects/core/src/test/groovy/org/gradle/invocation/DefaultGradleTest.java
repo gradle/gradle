@@ -27,7 +27,7 @@ import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
@@ -63,7 +63,7 @@ public class DefaultGradleTest {
     private final ScriptHandler scriptHandlerMock = context.mock(ScriptHandler.class);
     private final ServiceRegistryFactory serviceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, "parent");
     private final ServiceRegistryFactory gradleServiceRegistryMock = context.mock(ServiceRegistryFactory.class, "gradle");
-    private final IProjectRegistry projectRegistry = context.mock(IProjectRegistry.class);
+    private final ProjectRegistry projectRegistry = context.mock(ProjectRegistry.class);
     private final PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);
@@ -87,7 +87,7 @@ public class DefaultGradleTest {
             will(returnValue(scriptHandlerMock));
             allowing(gradleServiceRegistryMock).get(ScriptClassLoaderProvider.class);
             will(returnValue(context.mock(ScriptClassLoaderProvider.class)));
-            allowing(gradleServiceRegistryMock).get(IProjectRegistry.class);
+            allowing(gradleServiceRegistryMock).get(ProjectRegistry.class);
             will(returnValue(projectRegistry));
             allowing(gradleServiceRegistryMock).get(PluginRegistry.class);
             will(returnValue(pluginRegistry));

@@ -43,6 +43,12 @@ class BuildSetupPlugin implements Plugin<Project> {
     }
 
     boolean configureBuildSetupTask(Project project, Task setupBuildTask) {
+        if (project.file("build.gradle").exists()) {
+            setupBuildTask.doLast {
+                logger.warn("The build file 'build.gradle' already exists. Skipping build initialization.")
+            }
+            return false
+        }
         if (project.buildFile?.exists()) {
             setupBuildTask.doLast {
                 logger.warn("The build file '$project.buildFile.name' already exists. Skipping build initialization.")

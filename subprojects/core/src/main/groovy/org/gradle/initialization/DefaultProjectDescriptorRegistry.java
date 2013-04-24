@@ -21,7 +21,7 @@ import org.gradle.util.Path;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectDescriptorRegistry extends DefaultProjectRegistry<DefaultProjectDescriptor> implements IProjectDescriptorRegistry {
+public class DefaultProjectDescriptorRegistry extends DefaultProjectRegistry<DefaultProjectDescriptor> implements ProjectDescriptorRegistry {
 
     public void changeDescriptorPath(Path oldPath, Path newPath) {
         DefaultProjectDescriptor projectDescriptor = removeProject(oldPath.toString());

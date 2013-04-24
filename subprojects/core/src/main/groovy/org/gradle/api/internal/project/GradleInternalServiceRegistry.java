@@ -24,7 +24,6 @@ import org.gradle.api.internal.changedetection.state.TaskCacheLockHandlingBuildE
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
-import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
@@ -75,7 +74,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
         };
     }
 
-    protected IProjectRegistry createIProjectRegistry() {
+    protected ProjectRegistry createIProjectRegistry() {
         return new DefaultProjectRegistry<ProjectInternal>();
     }
 
@@ -94,8 +93,8 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
         return new IdentityFileResolver();
     }
 
-    protected PluginRegistry createPluginRegistry() {
-        return new DefaultPluginRegistry(gradle.getScriptClassLoader(), new DependencyInjectingInstantiator(this));
+    protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
+        return parentRegistry.createChild(gradle.getScriptClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
     protected PluginContainer createPluginContainer() {

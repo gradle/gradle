@@ -45,6 +45,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.lang.Ignore
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
@@ -110,16 +111,15 @@ class PathLimitationIntegTest extends Specification {
         absolutePathLength << [258, 259, 260]
     }
 
-    @IgnoreIf({!OperatingSystem.current().isWindows()})
+    @Ignore
     @Unroll
     def "OS handles workingDir with absolute path length #absolutePathLength"() throws Throwable {
         setup:
         def testWorkingDir = generateTestWorkingDirectory(absolutePathLength)
-
         TestFile testBatchScript = tmpDir.getTestDirectory().createFile("testBatch.cmd")
-        testBatchScript.text == """
+        testBatchScript.text = """
         cd ${testWorkingDir.name}
-        dir
+        java -version > o.txt 2>&1
 """
 
         when:
@@ -135,9 +135,14 @@ class PathLimitationIntegTest extends Specification {
         then:
         process.waitFor() == 0
         process.exitValue() == 0
-
+        and:
+        def outputText = new File(testWorkingDir, "o.txt").text
+        println outputText
+        assert outputText.contains("java version")
         where:
-        absolutePathLength << [258, 259, 260]
+        absolutePathLength << [250, 255, 260] // 250 succeeds
+                                              // 255 fails because path + "/o.txt" >= 260
+                                              // 260 fails different because path >= 260
     }
 
 

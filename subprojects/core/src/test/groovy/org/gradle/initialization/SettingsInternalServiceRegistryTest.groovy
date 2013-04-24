@@ -20,7 +20,6 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.plugins.DefaultPluginContainer
-import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.internal.service.ServiceRegistry
@@ -32,10 +31,14 @@ class SettingsInternalServiceRegistryTest extends Specification {
     private SettingsInternal settings = Mock()
     private ServiceRegistry parent = Stub()
     private SettingsInternalServiceRegistry registry = new SettingsInternalServiceRegistry(parent, settings)
+    private PluginRegistry pluginRegistryParent = Mock()
+    private PluginRegistry pluginRegistryChild = Mock()
 
     def setup() {
         settings.getSettingsDir() >> new File("settings-dir").absoluteFile
         parent.get(org.gradle.internal.nativeplatform.filesystem.FileSystem) >> Stub(org.gradle.internal.nativeplatform.filesystem.FileSystem)
+        parent.get(PluginRegistry) >> pluginRegistryParent
+        pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
     }
 
 
@@ -66,7 +69,7 @@ class SettingsInternalServiceRegistryTest extends Specification {
         def secondPluginRegistry = registry.get(PluginRegistry)
 
         then:
-        pluginRegistry instanceof DefaultPluginRegistry
+        pluginRegistry == pluginRegistryChild
         secondPluginRegistry sameInstance(pluginRegistry)
     }
 }

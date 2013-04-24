@@ -16,7 +16,6 @@
 package org.gradle.api.tasks;
 
 import com.google.common.collect.Lists;
-
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -84,7 +83,7 @@ public class GroovyRuntime {
             public FileCollection createDelegate() {
                 GroovyJarFile groovyJar = findGroovyJarFile(classpath);
                 if (groovyJar == null) {
-                    throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s"));
+                    throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", classpath));
                 }
 
                 if (groovyJar.isGroovyAll()) {

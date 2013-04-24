@@ -112,4 +112,33 @@ task verify << {
         expect:
         succeeds("verify")
     }
+
+    def "not specifying a groovy runtime produces decent error message"() {
+        given:
+        buildFile << """
+            apply plugin: "groovy-base"
+
+            sourceSets {
+                main {}
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile "com.google.guava:guava:11.0.2"
+            }
+        """
+
+        file("src/main/groovy/Thing.groovy") << """
+            class Thing {}
+        """
+
+        when:
+        fails "compileGroovy"
+
+        then:
+        errorOutput.contains "Cannot infer Groovy class path because no Groovy Jar was found on class path: configuration ':compile'"
+    }
 }

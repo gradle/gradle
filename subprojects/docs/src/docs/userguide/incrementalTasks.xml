@@ -17,7 +17,16 @@
     <title>Incremental Tasks</title>
     <note>
         <para>
-            Incremental Tasks are an <firstterm>incubating</firstterm> feature (see <xref linkend="sec:incubating_state"/>).
+            Incremental Tasks are an <firstterm>incubating</firstterm> feature.
+        </para>
+        <para>
+            Since the introduction of the implementation described above (early in the Gradle 1.6 release cycle), discussions within the Gradle community have produced
+            superior ideas for exposing the information about changes to task implementors to what is described below. As such, the API for this feature will almost certainly
+            change in upcoming releases. However, please do experiment with the current implementation and share your experiences with the Gradle community.
+        </para>
+        <para>
+            The feature incubation process, which is part of the Gradle feature lifecycle (see <xref linkend="feature_lifecycle"/>), exists for this purpose of ensuring high quality
+            final implementation through incorporation of early user feedback.
         </para>
     </note>
     <para>

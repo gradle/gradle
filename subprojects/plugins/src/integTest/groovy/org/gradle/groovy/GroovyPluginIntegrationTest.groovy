@@ -16,17 +16,37 @@
 package org.gradle.groovy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.TestResources
-import org.junit.Rule
 
 class GroovyPluginIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def groovyConfigurationCanStillBeUsedButIsDeprecated() {
+        given:
+        buildFile << """
+            apply plugin: "groovy"
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                groovy "org.codehaus.groovy:groovy-all:2.0.5"
+                compile "com.google.guava:guava:11.0.2"
+            }
+        """
+
+        file("src/main/groovy/Thing.groovy") << """
+            import com.google.common.base.Strings
+
+            class Thing {}
+        """
+
+        and:
         executer.withDeprecationChecksDisabled()
 
-        expect:
+        when:
         succeeds("build")
+
+        then:
         output.contains("The groovy configuration has been deprecated")
     }
 }

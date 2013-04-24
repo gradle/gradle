@@ -59,21 +59,6 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         executed.output.contains("The build file 'build.gradle' already exists. Skipping build initialization.")
     }
 
-    def "build file generation is skipped when custom build build file"() {
-        given:
-        File customGradleScript = testDirectory.createFile("foo.gradle")
-
-
-
-        when:
-        executer.usingBuildScript(customGradleScript)
-        def executed = run('setupBuild')
-
-        then:
-        executed.assertTasksExecuted(":setupBuild")
-        executed.output.contains("The build file 'foo.gradle' already exists. Skipping build initialization.")
-    }
-
     def "build file generation is skipped when settings file already exists"() {
         given:
         assert settingsFile.createFile()

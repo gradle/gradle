@@ -15,11 +15,11 @@
  */
 package org.gradle.api.tasks
 
+import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.util.HelperUtil
-
 import spock.lang.Specification
 
 class GroovyRuntimeTest extends Specification {
@@ -27,6 +27,10 @@ class GroovyRuntimeTest extends Specification {
 
     def setup() {
         project.plugins.apply(GroovyBasePlugin)
+    }
+
+    GroovyRuntime getGroovyRuntime() {
+        project.extensions.getByType(GroovyRuntime)
     }
 
     def "inferred Groovy class path uses same 'groovy-all' Jar that is found on class path"() {
@@ -96,5 +100,17 @@ class GroovyRuntimeTest extends Specification {
 
         then:
         classpath.singleFile.name == "my-groovy.jar"
+    }
+
+    def "useful error message is produced when no groovy runtime could be found on a classpath"() {
+        given:
+        def classpath = [project.file("other.jar")]
+
+        when:
+        groovyRuntime.inferGroovyClasspath(classpath).files
+
+        then:
+        def exception = thrown(GradleException)
+        exception.message.contains "no Groovy Jar was found on class path: $classpath"
     }
 }

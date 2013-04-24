@@ -50,7 +50,7 @@ class DefaultSettingsTest {
     GradleInternal gradleMock
     DefaultSettings settings
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    IProjectDescriptorRegistry projectDescriptorRegistry
+    ProjectDescriptorRegistry projectDescriptorRegistry
     ServiceRegistryFactory serviceRegistryFactory
     PluginContainer pluginContainer
     FileResolver fileResolver
@@ -83,7 +83,7 @@ class DefaultSettingsTest {
                 will(returnValue(fileResolver));
                 one(settingsInternallServiceRegistry).get(ScriptPluginFactory.class);
                 will(returnValue(scriptPluginFactory));
-                one(settingsInternallServiceRegistry).get(IProjectDescriptorRegistry.class);
+                one(settingsInternallServiceRegistry).get(ProjectDescriptorRegistry.class);
                 will(returnValue(projectDescriptorRegistry));
         }
         settings = ThreadGlobalInstantiator.orCreate.newInstance(DefaultSettings, serviceRegistryFactory,

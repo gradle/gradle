@@ -78,7 +78,7 @@ class DefaultProjectTest {
 
     ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class)
 
-    IProjectRegistry projectRegistry
+    ProjectRegistry projectRegistry
 
     File rootDir
 
@@ -143,7 +143,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
             allowing(serviceRegistryMock).get(LoggingManagerInternal); will(returnValue(loggingManagerMock))
             allowing(serviceRegistryMock).get(StandardOutputCapture); will(returnValue(context.mock(StandardOutputCapture)))
-            allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
+            allowing(serviceRegistryMock).get(ProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: { -> "file resolver" }] as FileResolver))
             allowing(serviceRegistryMock).get(Instantiator); will(returnValue(instantiatorMock))

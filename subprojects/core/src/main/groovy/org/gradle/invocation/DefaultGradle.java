@@ -27,7 +27,7 @@ import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.AbstractPluginAware;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
@@ -50,7 +50,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final Gradle parent;
     private StartParameter startParameter;
     private MultiParentClassLoader scriptClassLoader;
-    private IProjectRegistry<ProjectInternal> projectRegistry;
+    private ProjectRegistry<ProjectInternal> projectRegistry;
     private final ListenerManager listenerManager;
     private final ServiceRegistryFactory services;
     private final GradleDistributionLocator distributionLocator;
@@ -67,7 +67,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
         this.listenerManager = services.get(ListenerManager.class);
-        projectRegistry = services.get(IProjectRegistry.class);
+        projectRegistry = services.get(ProjectRegistry.class);
         taskGraph = services.get(TaskGraphExecuter.class);
         scriptClassLoader = services.get(MultiParentClassLoader.class);
         distributionLocator = services.get(GradleDistributionLocator.class);
@@ -154,7 +154,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.taskGraph = taskGraph;
     }
 
-    public IProjectRegistry<ProjectInternal> getProjectRegistry() {
+    public ProjectRegistry<ProjectInternal> getProjectRegistry() {
         return projectRegistry;
     }
 
