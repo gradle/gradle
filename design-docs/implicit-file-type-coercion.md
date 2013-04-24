@@ -55,13 +55,25 @@ feature.
 
 ### Sad day cases
 
-The given value may not be coercible to `File`. The produced error message should indicate:
+The given value may not be coercible to `File`. Currently, every type is potentially convertible as the `project.file()` coercion strategy includes a fallback of `toString()`'ing any object and using its string representation as a file path.
+
+The produced error message should indicate:
 
 1. The object that the property-to-be-set belongs to
 2. The name of the property-to-be-set
-3. The invalid type
-4. A description of what the valid types are, or how to find out what the valid types are
-5. If the value could not be coerced because it's effectively relative and the target object has no "base" that this is the case
+3. The string representation of the value to be coerced
+4. They type of the value to be coerced
+5. A description of what the valid types are (including constraints: e.g. URI type values must be of the file:// protocol)
+
+Values that cannot be coerced:
+
+1. `null`
+2. An empty string (incl. an object whose `toString()` value is an empty string) 
+3. An effectively relative path where the target object has no "base" and can not resolve that path relative to anything
+4. A URL type value where the protocol is not `file`
+4. A URL type value where the URL is malformed
+5. An object that will be coerced via its `toString()` representation where the `toString()` method throws an exception
+6. An object that will be coerced via its `toString()` representation where the `toString()` method returns a value that cannot be interpreted as a path (will involve researching what kind of string values cannot be used as paths by `File`)
 
 ### Test coverage
 
