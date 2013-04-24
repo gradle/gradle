@@ -160,6 +160,16 @@ The initial story involves using the Daemon to execute test builds, without addr
 
 This story is about reducing resource consumption (particularly memory) to a satisfactory level.
 
+## Story: Daemon processes used for functional testing are isolated from other daemon processes
+
+This story assumes that the Daemon is being used to execute the builds for functional tests.
+The previous story (resource consumption) may make this story redundant as it may result in the Daemon not being used.
+
+Identified reasons why the functional test daemons should be isolated:
+
+1. They are almost certainly subject to different TTL policies
+2. If the user explicitly does not use the Daemon for regular builds, they should not perceive there being Daemon processes hanging around on their system (extension of #1)
+
 ## Story: A user functionally debugs their custom build logic
 
 ## Story: A user gets more precise information about what happened when the test build was executed
