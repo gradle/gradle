@@ -16,12 +16,19 @@
 
 
 
-dependencies {
-	compile libraries.groovy
-	compile project(':core')
-	compile project(':plugins')
-	compile project(':wrapper')
-    integTestRuntime project(':maven')
-}
+package org.gradle.buildsetup.plugins
 
-useTestFixtures()
+import org.gradle.api.Incubating
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.wrapper.Wrapper
+
+@Incubating
+class WrapperPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        Task wrapper = project.tasks.create("wrapper", Wrapper)
+        wrapper.group = BuildSetupPlugin.GROUP
+        wrapper.description = "Generates Gradle wrapper files. [incubating]"
+    }
+}

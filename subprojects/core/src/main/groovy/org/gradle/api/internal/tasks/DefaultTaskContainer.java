@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.internal.graph.CachingDirectedGraphWalker;
-import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.graph.CachingDirectedGraphWalker;
+import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -37,6 +37,7 @@ import java.util.Map;
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
+    private Map<String, Action<Project>> placeholders = new HashMap<String, Action<Project>>();
 
     public DefaultTaskContainer(ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
         super(Task.class, instantiator, project);
@@ -154,7 +155,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
-        if(!(path instanceof CharSequence)) {
+        if (!(path instanceof CharSequence)) {
             DeprecationLogger.nagUserOfDeprecated(
                     String.format("Converting class %s to a task dependency using toString()", path.getClass().getName()),
                     "Please use org.gradle.api.Task, java.lang.String, org.gradle.api.Buildable, org.gradle.tasks.TaskDependency or a Closure to declare your task dependencies"
@@ -190,5 +191,18 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 connectedNodes.addAll(node.getTaskDependencies().getDependencies(node));
             }
         }).add(this).findValues();
+    }
+
+    public Task findByName(String name) {
+        if(super.findByName(name)==null){
+            if(placeholders.containsKey(name)){
+                placeholders.get(name).execute(project);
+            }
+        }
+        return super.findByName(name);
+    }
+
+    public void addPlaceholderAction(String placeholderName, Action action) {
+        placeholders.put(placeholderName, action);
     }
 }
