@@ -72,6 +72,20 @@ class ServiceLocatorTest extends Specification {
         1 * classLoader.loadClass('org.gradle.ImplClass') >> String
     }
 
+    def "can locate multiple service implementations from one resource file"() {
+            def serviceFile = stream("""org.gradle.ImplClass1
+org.gradle.ImplClass2""")
+
+            when:
+            def result = serviceLocator.getAll(String.class)
+
+            then:
+            result.size() == 2
+            1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
+            1 * classLoader.loadClass('org.gradle.ImplClass1') >> String
+            1 * classLoader.loadClass('org.gradle.ImplClass2') >> String
+        }
+
     def "findFactory() fails when no implementation class specified in service meta data resource"() {
         def serviceFile = stream('#empty!')
 
