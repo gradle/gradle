@@ -70,6 +70,9 @@ dependencies {
         "ubuntumono:bold:3:ceqTZGKHipo8pJj4molytp_TkvowlIOtbR7ePgFOpF4@ttf",
         "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9WsGzsqhEorxQDpu60nfWEc@ttf"
 
+    groovy libraries.groovy
+
+    testCompile libraries.groovy
     testCompile "org.pegdown:pegdown:1.1.0"
     testCompile libraries.jsoup
     testCompile "org.gebish:geb-spock:0.9.0-RC-1"
@@ -419,6 +422,10 @@ test {
     systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
     systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 
+}
+
+if (project.hasProperty('noDocsTests')) {
+    gradle.startParameter.excludedTaskNames << test.path
 }
 
 task docs {
