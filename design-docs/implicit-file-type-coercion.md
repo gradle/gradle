@@ -125,8 +125,7 @@ This story is probably just about adding user guide content specifically aimed a
 Having flexible file inputs is currently implemented by types implementing a setter that takes `Object` and doing the coercion internally. 
 Having file type coercion implemented as a decoration means that such setters should be strongly typed to `File`. 
 
-This story will initiate a migration away from these untyped setters to strongly typed setters. 
-As part of this, the migration path should be documented and outlined so that third party build logic authors can do the same thing.
+The strategy will be to simply overload setters and set methods with `File` accepting variants, and `@Deprecated`ing `Object` accepting variants.
 
 ## Story: Type coercion is used in conjunction with convention mapping to defer evaluation (incl. coercion)
 
