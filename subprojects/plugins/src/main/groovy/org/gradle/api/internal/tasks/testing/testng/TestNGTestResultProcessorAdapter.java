@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
@@ -108,14 +107,11 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGCo
         if (parameter == null) {
             return "null";
         } else {
-            String toString;
             try {
-                toString = parameter.toString();
+                return parameter.toString();
             } catch (Exception e) {
                 return String.format("«toString() threw %s»", e.toString());
             }
-
-            return StringUtils.abbreviateMiddle(toString, "…", 20);
         }
     }
 

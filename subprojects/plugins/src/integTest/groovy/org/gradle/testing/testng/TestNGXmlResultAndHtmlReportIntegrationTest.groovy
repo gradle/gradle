@@ -118,13 +118,12 @@ xml entity: &amp;
                 .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
 
         executionResult.testClass("org.ParameterizedTest")
-                .assertTestCount(8, 4, 0)
+                .assertTestCount(6, 3, 0)
                 .assertTestsExecuted(
-                    "p1(1, 2)", "p2(1111111111…111111111)", "p3(1, «toString() threw java.lang.RuntimeException: bang!»)", "p4(1, \">…Ú)",
-                    "p1(3, 4)", "p2(2222222222…222222222)", "p3(2, «toString() threw java.lang.RuntimeException: bang!»)", "p4(2, \">…Ú)"
+                    "p1(1, 2)", "p3(1, «toString() threw java.lang.RuntimeException: bang!»)", "p4(1, \">…Ú)",
+                    "p1(3, 4)", "p3(2, «toString() threw java.lang.RuntimeException: bang!»)", "p4(2, \">…Ú)"
                 )
                 .assertTestFailed("p1(3, 4)", anything())
-                .assertTestFailed("p2(2222222222…222222222)", anything())
                 .assertTestFailed("p3(2, «toString() threw java.lang.RuntimeException: bang!»)", anything())
                 .assertTestFailed("p4(2, \">…Ú)", anything())
     }
@@ -226,19 +225,6 @@ public class ParameterizedTest {
 		return new Object[][] {
 		   {"1", "2"},
 		   {"3", "4"}
-	    };
-	}
-
-    @Test(dataProvider = "2")
-	public void p2(String v1) {
-	    assertTrue(v1.startsWith("1"));
-	}
-
-	@DataProvider(name = "2")
-	public Object[][] provider2() {
-		return new Object[][] {
-		    {"1111111111111111111111111111111111111111"},
-		    {"2222222222222222222222222222222222222222"}
 	    };
 	}
 
