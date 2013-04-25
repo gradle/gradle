@@ -19,12 +19,15 @@ import org.gradle.api.Nullable;
 
 /**
  * Represents a task which is executable by Gradle.
+ *
+ * @since 1.0-milestone-3
  */
 public interface Task {
     /**
      * Returns the path of this task. This is a fully qualified unique name for this task.
      *
      * @return The path of this task.
+     * @since 1.0-milestone-3
      */
     String getPath();
 
@@ -32,6 +35,7 @@ public interface Task {
      * Returns the name of this task. Note that the name is not necessarily a unique identifier for the task.
      *
      * @return The name of this task.
+     * @since 1.0-milestone-3
      */
     String getName();
 
@@ -39,6 +43,7 @@ public interface Task {
      * Returns the description of this task, or {@code null} if it has no description.
      *
      * @return The description of this task, or {@code null} if it has no description.
+     * @since 1.0-milestone-3
      */
     @Nullable
     String getDescription();
@@ -47,6 +52,7 @@ public interface Task {
      * Returns the element which this task belongs to.
      *
      * @return The element which this task belongs to.
+     * @since 1.0-milestone-3
      */
     Element getProject();
 }

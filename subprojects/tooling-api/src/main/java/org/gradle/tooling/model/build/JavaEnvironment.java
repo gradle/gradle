@@ -29,6 +29,8 @@ public interface JavaEnvironment {
 
     /**
      * The Java home used for Gradle operations (for example running tasks or acquiring model information).
+     *
+     * @since 1.0-milestone-8
      */
     File getJavaHome();
 
@@ -37,6 +39,8 @@ public interface JavaEnvironment {
      * (for example running tasks or acquiring model information).
      * The returned arguments do not include system properties passed as -Dfoo=bar.
      * They may include implicitly immutable system properties like "file.encoding".
+     *
+     * @since 1.0-milestone-8
      */
     List<String> getJvmArguments();
 }
