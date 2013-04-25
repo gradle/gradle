@@ -24,7 +24,6 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.util.GradleVersion;
 
 public class ModelBuilderBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ModelBuilder builder;
@@ -99,10 +98,6 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
 
         public String getName() {
             return model;
-        }
-
-        public String getVersion() {
-            return GradleVersion.current().getVersion();
         }
     }
 }

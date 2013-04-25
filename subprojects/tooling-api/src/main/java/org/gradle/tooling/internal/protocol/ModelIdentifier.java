@@ -26,7 +26,7 @@ package org.gradle.tooling.internal.protocol;
  *
  * @since 1.6-rc-1
  */
-public interface ModelIdentifier {
+public interface ModelIdentifier extends InternalProtocolInterface {
     /**
      * The name of the null model.
      */
@@ -35,13 +35,8 @@ public interface ModelIdentifier {
     /**
      * The name of the model.
      *
-     * Note that the model name is not necessarily a class name, and it simply uniquely identifies the model.
+     * Note that the model name is not necessarily a class name. It simply uniquely identifies the model.
      * Use {@link #NULL_MODEL} to indicate that no model is desired.
      */
     String getName();
-
-    /**
-     * The version of the model. May be null.
-     */
-    String getVersion();
 }

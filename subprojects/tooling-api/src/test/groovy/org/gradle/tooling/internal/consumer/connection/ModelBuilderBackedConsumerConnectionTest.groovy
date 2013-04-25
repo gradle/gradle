@@ -33,7 +33,6 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
-import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class ModelBuilderBackedConsumerConnectionTest extends Specification {
@@ -75,7 +74,6 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         then:
         1 * target.getModel(_, parameters) >> { ModelIdentifier identifier, BuildParameters buildParameters ->
             assert identifier.name == modelName
-            assert identifier.version == GradleVersion.current().version
             return Stub(BuildResult)
         }
 
