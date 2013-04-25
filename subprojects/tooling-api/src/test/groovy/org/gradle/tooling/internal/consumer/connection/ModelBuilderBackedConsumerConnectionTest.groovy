@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
-import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
-import org.gradle.tooling.internal.consumer.versioning.ModelMapping
-import org.gradle.tooling.internal.protocol.BuildActionRunner
+import org.gradle.tooling.internal.protocol.BuildParameters
 import org.gradle.tooling.internal.protocol.BuildResult
 import org.gradle.tooling.internal.protocol.ConfigurableConnection
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
+import org.gradle.tooling.internal.protocol.ModelBuilder
+import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -33,16 +33,15 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
-class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
-    final TestBuildActionRunner target = Mock() {
+class ModelBuilderBackedConsumerConnectionTest extends Specification {
+    final target = Mock(TestModelBuilder) {
         getMetaData() >> Mock(ConnectionMetaDataVersion1)
     }
-    final ConsumerOperationParameters parameters = Stub()
-    final ModelMapping modelMapping = Stub()
-    final ProtocolToModelAdapter adapter = Mock()
-    final BuildActionRunnerBackedConsumerConnection connection = new BuildActionRunnerBackedConsumerConnection(target, modelMapping, adapter)
+    final adapter = Stub(ProtocolToModelAdapter)
+    final connection = new ModelBuilderBackedConsumerConnection(target, adapter)
 
     def "describes capabilities of the provider"() {
         given:
@@ -64,41 +63,35 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         details.isModelSupported(BuildEnvironment)
         details.isModelSupported(ProjectOutcomes)
         details.isModelSupported(Void)
-
-        and:
-        !details.isModelSupported(CustomModel)
+        details.isModelSupported(CustomModel)
     }
 
-    def "configures connection"() {
-        def parameters = new ConsumerConnectionParameters(false)
+    def "maps model type to model identifier"() {
+        def parameters = Stub(ConsumerOperationParameters)
 
         when:
-        connection.configure(parameters)
+        connection.run(modelType, parameters)
 
         then:
-        1 * target.configure(parameters)
-        0 * target._
+        1 * target.getModel(_, parameters) >> { ModelIdentifier identifier, BuildParameters buildParameters ->
+            assert identifier.name == modelName
+            assert identifier.version == GradleVersion.current().version
+            return Stub(BuildResult)
+        }
+
+        where:
+        modelType                  | modelName
+        Void                       | ModelIdentifier.NULL_MODEL
+        HierarchicalEclipseProject | "org.gradle.tooling.model.eclipse.HierarchicalEclipseProject"
+        EclipseProject             | "org.gradle.tooling.model.eclipse.EclipseProject"
+        IdeaProject                | "org.gradle.tooling.model.idea.IdeaProject"
+        GradleProject              | "org.gradle.tooling.model.GradleProject"
+        BasicIdeaProject           | "org.gradle.tooling.model.idea.BasicIdeaProject"
+        BuildEnvironment           | "org.gradle.tooling.model.build.BuildEnvironment"
+        ProjectOutcomes            | "org.gradle.tooling.model.outcomes.ProjectOutcomes"
+        CustomModel                | CustomModel.name
     }
 
-    def "builds model using connection's run() method"() {
-        BuildResult<String> result = Mock()
-
-        given:
-        result.model >> 12
-
-        when:
-        def model = connection.run(String.class, parameters)
-
-        then:
-        model == 'ok'
-
-        and:
-        _ * modelMapping.getProtocolType(String.class) >> Integer.class
-        1 * target.run(Integer.class, parameters) >> result
-        1 * adapter.adapt(String.class, 12, _) >> 'ok'
-        0 * target._
-    }
-
-    interface TestBuildActionRunner extends ConnectionVersion4, BuildActionRunner, ConfigurableConnection {
+    interface TestModelBuilder extends ModelBuilder, ConnectionVersion4, ConfigurableConnection {
     }
 }

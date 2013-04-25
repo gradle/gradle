@@ -18,20 +18,64 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
+import org.gradle.tooling.model.idea.BasicIdeaProject;
+import org.gradle.tooling.model.idea.IdeaProject;
 
 public class InternalConnectionBackedConsumerConnection extends AbstractPre12ConsumerConnection {
     private final InternalConnection connection;
 
-    public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ProtocolToModelAdapter adapter) {
-        super(delegate, providerMetaData, adapter);
+    public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
+        super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()), modelMapping, adapter);
         connection = (InternalConnection) delegate;
     }
 
     @Override
     protected Object doGetModel(Class<?> protocolType, ConsumerOperationParameters operationParameters) {
         return connection.getTheModel(protocolType, operationParameters);
+    }
+
+    private static class R10M8VersionDetails extends VersionDetails {
+        public R10M8VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean supportsConfiguringJavaHome() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsConfiguringJvmArguments() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsConfiguringStandardInput() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsGradleProjectModel() {
+            return true;
+        }
+
+        @Override
+        public boolean isModelSupported(Class<?> modelType) {
+            return modelType.equals(Void.class)
+                    || modelType.equals(HierarchicalEclipseProject.class)
+                    || modelType.equals(EclipseProject.class)
+                    || modelType.equals(IdeaProject.class)
+                    || modelType.equals(BasicIdeaProject.class)
+                    || modelType.equals(GradleProject.class)
+                    || modelType.equals(BuildEnvironment.class);
+        }
     }
 }
