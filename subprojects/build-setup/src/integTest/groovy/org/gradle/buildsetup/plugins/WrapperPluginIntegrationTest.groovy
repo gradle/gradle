@@ -16,32 +16,26 @@
 
 package org.gradle.buildsetup.plugins
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.util.GradleVersion
 
-class WrapperPluginIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can apply wrapper plugin dynamically"() {
-        expect:
-        run 'wrapper'
+class WrapperPluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getMainTask() {
+        return "wrapper"
     }
 
-    def "can reference dynamic applied wrapper plugin"() {
-        given:
-        buildFile << """
-        wrapper{
-            gradleVersion = '12.34'
-        }
-"""
-        executer.withArgument("--stacktrace")
+    def "wrapper task generates wrapper files"() {
+        setup:
+        buildFile << "apply plugin:'wrapper'"
+        when:
         run 'wrapper'
-    }
-
-    def "can depend on dynamic applied wrapper task"() {
-        given:
-        buildFile << """
-        task myTask(dependsOn:wrapper)
-    """
-        executer.withArgument("--stacktrace")
-        run 'myTask'
+        then:
+        file("gradlew").assertExists()
+        file("gradlew.bat").assertExists()
+        file("gradle/wrapper/gradle-wrapper.jar").assertExists()
+        file("gradle/wrapper/gradle-wrapper.properties").assertExists()
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("gradle-${GradleVersion.current().version}-bin.zip")
     }
 }

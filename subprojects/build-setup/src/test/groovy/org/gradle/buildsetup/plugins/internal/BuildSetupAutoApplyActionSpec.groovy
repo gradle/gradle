@@ -16,8 +16,6 @@
 
 package org.gradle.buildsetup.plugins.internal
 
-import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.plugins.PluginContainer
