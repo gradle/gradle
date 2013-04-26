@@ -1,25 +1,10 @@
-<!--
-  ~ Copyright 2010 the original author or authors.
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
 <chapter id="standard_plugins">
     <title>Standard Gradle plugins</title>
     <para>There are a number of plugins included in the Gradle distribution. These are listed below.
     </para>
     <section>
         <title>Language plugins</title>
-        <para>These plugins add support for various languages which can be compiled and executed in the JVM.</para>
+        <para>These plugins add support for various languages which can be compiled for and executed in the JVM.</para>
         <table>
             <title>Language plugins</title>
             <thead>
@@ -149,7 +134,7 @@
     </section>
     <section>
         <title>Integration plugins</title>
-        <para>These plugins provide some integration with various build and runtime technologies.</para>
+        <para>These plugins provide some integration with various runtime technologies.</para>
         <table>
             <title>Integration plugins</title>
             <thead>
@@ -160,18 +145,6 @@
                     <td>Description</td>
                 </tr>
             </thead>
-            <tr>
-                <td>
-                    <link linkend='announce_plugin'>
-                        <literal>announce</literal>
-                    </link>
-                </td>
-                <td>-</td>
-                <td>-</td>
-                <td>
-                    <para>Publish messages to your favourite platforms, such as Twitter or Growl.</para>
-                </td>
-            </tr>
             <tr>
                 <td>
                     <link linkend='application_plugin'>
@@ -185,18 +158,6 @@
                 <td>
                     <para>Adds tasks for running and bundling a Java project as a command-line application.
                     </para>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <link linkend='build_announcements_plugin'>
-                        <literal>build-announcements</literal>
-                    </link>
-                </td>
-                <td>announce</td>
-                <td>-</td>
-                <td>
-                    <para>Sends local announcements to your desktop about interesting events in the build lifecycle.</para>
                 </td>
             </tr>
             <tr>
@@ -277,7 +238,7 @@
     </section>
     <section>
         <title>Incubating integration plugins</title>
-        <para>These plugins provide some integration with various build and runtime technologies.</para>
+        <para>These plugins provide some integration with various runtime technologies.</para>
         <table>
             <title>Incubating integration plugins</title>
             <thead>
@@ -290,14 +251,27 @@
             </thead>
             <tr>
                 <td>
+                    <link linkend="distribution_plugin">
+                        <literal>distribution</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for building ZIP and TAR distributions.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <link linkend="javaLibraryDistribution_plugin">
                         <literal>java-library-distribution</literal>
                     </link>
                 </td>
-                <td><literal>java</literal></td>
+                <td><literal>java</literal>, <literal>distribution</literal></td>
                 <td>-</td>
                 <td>
-                    <para>Adds support for building a ZIP distribution for a Java library.
+                    <para>Adds support for building ZIP and TAR distributions for a Java library.
                     </para>
                 </td>
             </tr>
@@ -327,32 +301,6 @@
                     </para>
                 </td>
             </tr>
-            <tr>
-                <td>
-                    <link linkend="bootstrap_plugin">
-                        <literal>maven2Gradle</literal>
-                    </link>
-                </td>
-                <td>-</td>
-                <td>-</td>
-                <td>
-                    <para>Adds support for converting an existing Maven build into a Gradle project.
-                    </para>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <link linkend="buildDashboard_plugin">
-                        <literal>build-dashboard</literal>
-                    </link>
-                </td>
-                <td>reporting-base</td>
-                <td>-</td>
-                <td>
-                    <para>Generates build dashboard report.
-                    </para>
-                </td>
-            </tr>
         </table>
     </section>
     <section>
@@ -369,6 +317,30 @@
                 </tr>
             </thead>
             <tr>
+                <tr>
+                    <td>
+                        <link linkend='announce_plugin'>
+                            <literal>announce</literal>
+                        </link>
+                    </td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>
+                        <para>Publish messages to your favourite platforms, such as Twitter or Growl.</para>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <link linkend='build_announcements_plugin'>
+                            <literal>build-announcements</literal>
+                        </link>
+                    </td>
+                    <td>announce</td>
+                    <td>-</td>
+                    <td>
+                        <para>Sends local announcements to your desktop about interesting events in the build lifecycle.</para>
+                    </td>
+                </tr>
                 <td>
                     <link linkend='checkstyle_plugin'>
                         <literal>checkstyle</literal>
@@ -537,7 +509,7 @@
                     </link>
                 </td>
                 <td>-</td>
-                <td>-</td>
+                <td>java-base, java, jacoco</td>
                 <td>
                     <para>Provides integration with the
                         <ulink url="http://www.sonarsource.org">Sonar</ulink>
@@ -562,16 +534,27 @@
             </thead>
             <tr>
                 <td>
-                    <link linkend='sonar_runner_plugin'>
-                        <literal>sonar-runner</literal>
+                    <link linkend="buildDashboard_plugin">
+                        <literal>build-dashboard</literal>
+                    </link>
+                </td>
+                <td>reporting-base</td>
+                <td>-</td>
+                <td>
+                    <para>Generates build dashboard report.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="build_setup_plugin">
+                        <literal>build-setup</literal>
                     </link>
                 </td>
                 <td>-</td>
                 <td>-</td>
                 <td>
-                    <para>Provides integration with the
-                        <ulink url="http://www.sonarsource.org">Sonar</ulink>
-                        code quality platform. Superceeds the <link linkend='sonar_plugin'><literal>sonar</literal></link> plugin.
+                    <para>Adds support for initializing a new Gradle build. Handles converting a Maven build to a Gradle build.
                     </para>
                 </td>
             </tr>
@@ -581,12 +564,27 @@
                         <literal>jacoco</literal>
                     </link>
                 </td>
-                <td>-</td>
-                <td>-</td>
+                <td>reporting-base</td>
+                <td>java</td>
                 <td>
                     <para>Provides integration with the
                         <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>
                             code coverage library for Java.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='sonar_runner_plugin'>
+                        <literal>sonar-runner</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>java-base, java, jacoco</td>
+                <td>
+                    <para>Provides integration with the
+                        <ulink url="http://www.sonarsource.org">Sonar</ulink>
+                        code quality platform. Superceeds the <link linkend='sonar_plugin'><literal>sonar</literal></link> plugin.
                     </para>
                 </td>
             </tr>
