@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.adapter
 
+import org.gradle.api.Action
 import org.gradle.messaging.remote.internal.Message
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.UnsupportedMethodException
@@ -286,6 +287,26 @@ class ProtocolToModelAdapterTest extends Specification {
         model.getConfig('default') == "[default]"
     }
 
+    def "mapper can mix in methods from another bean"() {
+        def mapper = Mock(Action)
+        def protocolModel = Mock(PartialTestProtocolModel)
+
+        given:
+        protocolModel.name >> 'name'
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
+
+        then:
+        1 * mapper.execute({it.sourceObject == protocolModel}) >> { SourceObjectMapping mapping ->
+            mapping.mixIn(ConfigMixin)
+        }
+
+        and:
+        model.name == "[name]"
+        model.getConfig('default') == "[default]"
+    }
+
     def "delegates to type provider to determine type to wrap an object in"() {
         def typeProvider = Mock(TargetTypeProvider)
         def adapter = new ProtocolToModelAdapter(typeProvider)
@@ -299,6 +320,33 @@ class ProtocolToModelAdapterTest extends Specification {
 
         then:
         result instanceof ByteChannel
+    }
+
+    def "mapper can specify the type to wrap an object in"() {
+        def mapper = Mock(Action)
+        def sourceObject = Mock(TestProtocolModel)
+        def sourceProject = Mock(TestProtocolProject)
+        def adapter = new ProtocolToModelAdapter()
+
+        given:
+        sourceObject.project >> sourceProject
+
+        when:
+        def result = adapter.adapt(TestModel.class, sourceObject, mapper)
+
+        then:
+        1 * mapper.execute({it.sourceObject == sourceObject})
+
+        when:
+        def project = result.project
+
+        then:
+        project instanceof TestExtendedProject
+
+        and:
+        1 * mapper.execute({it.sourceObject == sourceProject}) >> { SourceObjectMapping mapping ->
+            mapping.mapToType(TestExtendedProject)
+        }
     }
 
     def "wrapper objects can be serialized"() {
@@ -335,6 +383,9 @@ interface TestModel {
 
 interface TestProject {
     String getName()
+}
+
+interface TestExtendedProject extends TestProject {
 }
 
 interface TestProtocolModel {
