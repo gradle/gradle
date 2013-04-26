@@ -18,11 +18,11 @@
     <title>Maven Publishing (new)</title>
     <note>
         <para>
-            This chapter describes the new <emphasis>incubating</emphasis> Maven publishing support provided by the “<literal>maven-publish</literal>”
+            This chapter describes the new <link linkend="feature_lifecycle">incubating</link> Maven publishing support provided by the “<literal>maven-publish</literal>”
             plugin. Eventually this new publishing support will replace publishing via the <literal>Upload</literal> task.
         </para>
         <para>
-            If you are looking for documentation on 'traditional' Maven publishing using the <literal>Upload</literal> task please see
+            If you are looking for documentation on the original Maven publishing support using the <literal>Upload</literal> task please see
             <xref linkend="artifact_management"/>.
         </para>
     </note>

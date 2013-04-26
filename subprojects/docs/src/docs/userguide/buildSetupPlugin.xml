@@ -15,17 +15,24 @@
   -->
 <chapter id='build_setup_plugin'>
     <title>Build Setup Plugin</title>
+
+    <note>
+        <para>
+            The build setup plugin is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+        </para>
+    </note>
+
     <para>The Gradle build setup plugin prepares the current project for Gradle.
         Typically it will create the relevant build.gradle, settings.gradle files.
         If a <filename>pom.xml</filename> file is found in the project directory the Maven build is
         converted to a Gradle build. At the moment only the conversion from Maven 3 is supported.</para>
     <para>
-        The plugin is currently *incubating* which means it is already useful
+        The plugin is currently <link linkend="feature_lifecycle">incubating</link> which means it is already useful
         but not everything might work perfectly.
-        The api, plugin and task names may change before the final release.
+        The API, plugin and task names may change before the final release.
         Please let us know your feedback or report any issues.</para>
     <para>
-        This plugin provideds a lifecycle task named <literal>setupBuild</literal>.
+        This plugin provides a lifecycle task named <literal>setupBuild</literal>.
         If a Gradle build with the task name <literal>setupBuild</literal> is triggered in a directory
         without an existing build file in the project directory, the build setup plugin is auto applied.
         This means that you can setup a Gradle project build without needing a stub build.gradle file declaring

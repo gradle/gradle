@@ -155,7 +155,7 @@
         <title>Ordering tasks</title>
         <note>
             <para>
-                Task ordering is an <firstterm>incubating</firstterm> feature (see <xref linkend="sec:incubating_state"/>).
+                Task ordering is an <link linkend="feature_lifecycle">incubating</link> feature. Please be aware that this feature may change in later Gradle versions.
             </para>
         </note>
         <para>

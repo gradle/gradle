@@ -17,7 +17,7 @@
     <title>The Sonar Runner Plugin</title>
     <note>
         <para>
-            The Sonar Runner plugin is <link linkend="sec:incubating_state">incubating</link>.
+            The Sonar runner plugin is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>
     <para>The Sonar Runner plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
