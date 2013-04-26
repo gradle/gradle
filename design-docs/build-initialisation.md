@@ -186,7 +186,16 @@ From the command-line:
 
 1. User downloads and installs a Gradle distribution.
 2. User runs `gradle setupBuild --type java-library` from an empty directory.
-3. User modifies generated build scripts and source, as appropriate.
+3. User edits generated build scripts and source, as appropriate.
+
+## Test coverage
+
+* Running `gradle setupBuild --type java-library` in an empty directory generates the build files. Running `gradle build` for this project assembles a jar
+  and runs the sample test.
+* The POM is ignored when `gradle setupBuild --type java-library` is used.
+* Decent error message when an unknown type is given.
+* Decent error message when a POM cannot be parsed (this is adding more coverage for a previous story).
+* Update existing test coverage to verify that every generated `settings.gradle` sets the root project name.
 
 # Story: Update the user guide Java tutorial to use the `setupBuild` task
 
