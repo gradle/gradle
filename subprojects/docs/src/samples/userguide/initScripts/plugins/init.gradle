@@ -1,0 +1,33 @@
+import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+
+// START SNIPPET init-script-plugin
+
+apply plugin:EnterpriseRepositoryPlugin
+
+class EnterpriseRepositoryPlugin implements Plugin<Gradle> {
+
+    private static String ENTERPRISE_REPOSITORY_URL = "http://repo.gradle.org/gradle/repo"
+
+    void apply(Gradle gradle) {
+        // ONLY USE COPORATE REPO FOR DEPENDENCIES
+        gradle.allProjects { project ->
+            project.repositories {
+
+                //remove all repositories not pointing to the enterprise repository url
+                all { ArtifactRepository repo ->
+                    if (!(repo instanceof MavenArtifactRepository) || repo.url.toString() != ENTERPRISE_REPOSITORY_URL) {
+                        project.logger.warn "Repository ${repo.url} removed. Only $ENTERPRISE_REPOSITORY_URL is allowed"
+                        remove repo
+                    }
+                }
+
+                // add the enterprise repository
+                maven {
+                    url ENTERPRISE_REPOSITORY_URL
+                }
+            }
+        }
+    }
+}
+// END SNIPPET init-script-plugin
