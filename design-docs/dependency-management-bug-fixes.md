@@ -3,6 +3,31 @@ This feature is really a bucket for key things we want to fix in the short-term 
 
 As this 'feature' is a list of bug fixes, this feature spec will not follow the usual template.
 
+# Conflict resolution considers conflicts on production classes
+
+See [this post](http://forums.gradle.org/gradle/topics/npe_in_dependencygraphbuilder_dependencyedge_getfailure)
+See [GRADLE-2752](http://issues.gradle.org/browse/GRADLE-2752)
+
+- Allow self-resolving dependencies to imply zero or more module versions.
+- Change the resolution algorithm to consider this during conflict resolution. Self-resolving dependencies cannot be evicted and must
+  always be selected. Assert that the self-resolving dependency is compatible-with the requested version. Fail resolution if not.
+- Change the Java plugin to attach current project's identifier to the main and test classes.
+    - To infer the identifier of the current project.
+        - Identifier of any publication.
+        - Project (group, name, version).
+        - Maven deployer.
+        - Project (group, archivesBaseName, version).
+- Change the resolution algorithm so that the root node is not considered by conflict resolution.
+
+TBD - A later story should travel back from each publication to determine if the main or test binary is included in the publication.
+Use this publication's identifier if so.
+
+# Conflict resolution considers local dependencies
+
+See [GRADLE-2516](http://issues.gradle.org/browse/GRADLE-2516)
+
+- Change the local dependencies (eg `gradleApi()`, `localGroovy()`) to imply the various modules that they contribute to the result.
+
 # Lastest status dynamic versions work across multiple repositories
 
 See [GRADLE-2502](http://issues.gradle.org/browse/GRADLE-2502)
