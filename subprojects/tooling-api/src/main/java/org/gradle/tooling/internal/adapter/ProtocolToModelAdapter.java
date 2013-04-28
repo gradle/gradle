@@ -59,16 +59,6 @@ public class ProtocolToModelAdapter implements Serializable {
         return adapt(targetType, sourceObject, NO_OP_MAPPER);
     }
 
-    public <T, S> T adapt(Class<T> targetType, final S sourceObject, final MethodInvoker overrideMethodInvoker) {
-        return adapt(targetType, sourceObject, new Action<SourceObjectMapping>() {
-            public void execute(SourceObjectMapping mapping) {
-                if (mapping.getSourceObject() == sourceObject) {
-                    mapping.mixIn(overrideMethodInvoker);
-                }
-            }
-        });
-    }
-
     /**
      * Adapts the source object.
      *

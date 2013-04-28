@@ -221,16 +221,20 @@ class ProtocolToModelAdapterTest extends Specification {
         model.getConfig("default") == "default"
     }
 
-    def methodInvokerCanOverrideGetterMethod() {
-        MethodInvoker propertyHandler = Mock()
+    def "mapper can override getter method"() {
+        MethodInvoker methodInvoker = Mock()
+        Action mapper = Mock()
         TestProtocolModel protocolModel = Mock()
         TestProject project = Mock()
 
         given:
-        propertyHandler.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
+        mapper.execute(_) >> { SourceObjectMapping mapping ->
+            mapping.mixIn(methodInvoker)
+        }
+        methodInvoker.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
 
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
 
         then:
         model.project == project
@@ -239,16 +243,20 @@ class ProtocolToModelAdapterTest extends Specification {
         0 * protocolModel._
     }
 
-    def methodInvokerCanProvideGetterMethodImplementation() {
-        MethodInvoker propertyHandler = Mock()
+    def "mapper can provider getter method implementation"() {
+        MethodInvoker methodInvoker = Mock()
+        Action mapper = Mock()
         PartialTestProtocolModel protocolModel = Mock()
         TestProject project = Mock()
 
         given:
-        propertyHandler.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
+        mapper.execute(_) >> { SourceObjectMapping mapping ->
+            mapping.mixIn(methodInvoker)
+        }
+        methodInvoker.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
 
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
 
         then:
         model.project == project
@@ -258,18 +266,24 @@ class ProtocolToModelAdapterTest extends Specification {
     }
 
     def methodInvokerPropertiesAreCached() {
-        MethodInvoker propertyHandler = Mock()
+        MethodInvoker methodInvoker = Mock()
+        Action mapper = Mock()
         PartialTestProtocolModel protocolModel = Mock()
         TestProject project = Mock()
 
+        given:
+        mapper.execute(_) >> { SourceObjectMapping mapping ->
+            mapping.mixIn(methodInvoker)
+        }
+
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel, propertyHandler)
+        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
         model.project
         model.project
 
         then:
-        1 * propertyHandler.invoke(!null) >> { MethodInvocation method -> method.result = project }
-        0 * propertyHandler._
+        1 * methodInvoker.invoke(!null) >> { MethodInvocation method -> method.result = project }
+        0 * methodInvoker._
         0 * protocolModel._
     }
 

@@ -16,16 +16,29 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
-import org.gradle.tooling.internal.adapter.MethodInvoker;
-import org.gradle.tooling.internal.adapter.NoOpMethodInvoker;
+import org.gradle.api.Action;
+import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.model.eclipse.EclipseProject;
+
+import java.io.Serializable;
 
 public class PropertyHandlerFactory {
-    public MethodInvoker forVersion(VersionDetails versionDetails) {
-        if (versionDetails.supportsGradleProjectModel()) {
-            return new NoOpMethodInvoker();
-        } else {
-            return new GradleProjectMixInHandler();
+    public Action<SourceObjectMapping> forVersion(VersionDetails versionDetails) {
+        return new ConsumerMapping(versionDetails);
+    }
+
+    private static class ConsumerMapping implements Action<SourceObjectMapping>, Serializable {
+        private final VersionDetails versionDetails;
+
+        public ConsumerMapping(VersionDetails versionDetails) {
+            this.versionDetails = versionDetails;
+        }
+
+        public void execute(SourceObjectMapping mapping) {
+            if (EclipseProject.class.isAssignableFrom(mapping.getTargetType()) && !versionDetails.supportsGradleProjectModel()) {
+                mapping.mixIn(new GradleProjectMixInHandler());
+            }
         }
     }
 }
