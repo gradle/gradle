@@ -81,7 +81,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
             """
         then:
         fails('tasks')
-        errorOutput.contains("Cannot convert relative path somePath/anInit.gradle to an absolute file")
+        errorOutput.contains("Cannot convert relative path somePath${File.separator}anInit.gradle to an absolute file")
     }
 
     def "applied script can apply scripts with relative path"() {
