@@ -2,28 +2,6 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Installation via Gradle Wrapper is now multi process safe
-
-In previous versions of Gradle it was possible for a Gradle distribution installed implicitly via the [Gradle Wrapper](userguide/gradle_wrapper.html) to be corrupted, 
-or to fail to install, if more than one process was trying to do this at the same time. This was more likely to occur on a continuous build server than a developer workstation. 
-This no longer occurs as the installation performed by the wrapper is now multi process safe.
-
-**Important:** leveraging the new multi process safe wrapper requires updating the `gradle-wrapper.jar` that is checked in to your project. 
-This requires an extra step to the usual wrapper upgrade process. 
-
-First, update your wrapper as per usual by updating the `gradleVersion` property of the wrapper task in the build…
-
-    task wrapper(type: Wrapper) {
-        gradleVersion = "1.6"
-    }
-
-Then run `./gradlew wrapper` to update the wrapper definition. This will configure the wrapper to use and download Gradle 1.6 for future builds, 
-but it has not updated the `gradle-wrapper.jar` that is checked in to your project. To do this, simply run `./gradlew wrapper` again. This is necessary as the wrapper 
-jar is sourced from the Gradle environment that is running the build. 
-
-If you are seeding a new project using an installation of Gradle 1.6 or higher, you do not need to run the wrapper task twice. It is only necessary when upgrading the 
-wrapper from an older version.
-
 ### Force a task to run after another task, without adding a dependency (i)
 
 In the past, the only way to ensure that Gradle ran one task after another was to add a dependency between those tasks. So if `Task A` must always run before `Task B`, you would
@@ -185,6 +163,28 @@ final implementation through incorporation of early user feedback.
 Be sure to check out the [User Guide chapter](userguide/incremental_tasks.html) and [DSL reference](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html) for
 more details on implementing incremental tasks.
 
+### Installation via Gradle Wrapper is now multi process safe
+
+In previous versions of Gradle it was possible for a Gradle distribution installed implicitly via the [Gradle Wrapper](userguide/gradle_wrapper.html) to be corrupted,
+or to fail to install, if more than one process was trying to do this at the same time. This was more likely to occur on a continuous build server than a developer workstation.
+This no longer occurs as the installation performed by the wrapper is now multi process safe.
+
+**Important:** leveraging the new multi process safe wrapper requires updating the `gradle-wrapper.jar` that is checked in to your project.
+This requires an extra step to the usual wrapper upgrade process.
+
+First, update your wrapper as per usual by updating the `gradleVersion` property of the wrapper task in the build…
+
+    task wrapper(type: Wrapper) {
+        gradleVersion = "1.6"
+    }
+
+Then run `./gradlew wrapper` to update the wrapper definition. This will configure the wrapper to use and download Gradle 1.6 for future builds,
+but it has not updated the `gradle-wrapper.jar` that is checked in to your project. To do this, simply run `./gradlew wrapper` again. This is necessary as the wrapper
+jar is sourced from the Gradle environment that is running the build.
+
+If you are seeding a new project using an installation of Gradle 1.6 or higher, you do not need to run the wrapper task twice. It is only necessary when upgrading the
+wrapper from an older version.
+
 ### Apply plugins from init and settings scripts (i)
 
 The `Gradle` type, which is configured by init scripts, and the `Settings` type, which is configured by settings scripts, now accept plugins.
@@ -200,14 +200,6 @@ in the next major Gradle version (Gradle 2.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
 
-### `StartParameter.getMergedSystemProperties()` method is deprecated
-
-This method is no longer used internally so it does not make sense to keep it in the public API.
-
-### Renamed `add()` methods
-
-TBD
-
 ### `groovy` configuration is deprecated
 
 Since Gradle 1.4, the preferred way to specify the Groovy library is to add it to the `compile` (or `testCompile`) configuration, rather than the `groovy` configuration.
@@ -220,6 +212,14 @@ Therefore, the `groovy` configuration is now deprecated. Simply replace `groovy`
 In some cases (for example if the Groovy Jar has been renamed), it may also be necessary to explicitly configure the `groovyClasspath` of `GroovyCompile` and `Groovydoc` tasks.
 
 For additional background information about this change, see the [Groovy chapter](userguide/groovy_plugin.html#N1289B) of the Gradle user guide.
+
+### Renamed `add()` methods
+
+TBD
+
+### `StartParameter.getMergedSystemProperties()` method is deprecated
+
+This method is no longer used internally so it does not make sense to keep it in the public API.
 
 ## Potential breaking changes
 
