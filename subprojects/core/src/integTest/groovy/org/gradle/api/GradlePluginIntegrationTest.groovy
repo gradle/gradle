@@ -23,7 +23,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
     File initFile;
 
     def setup() {
-        initFile = temporaryFolder.createFile("init.gradle")
+        initFile = temporaryFolder.createFile("initscripts/init.gradle")
         executer.usingInitScript(initFile);
     }
 
@@ -49,7 +49,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "can apply script with relative path"() {
         setup:
-        def externalInitFile = temporaryFolder.createDir("somePath").createFile("anInit.gradle")
+        def externalInitFile = temporaryFolder.createDir("initscripts/somePath").createFile("anInit.gradle")
         externalInitFile << """
         gradle.addBuildListener(new BuildAdapter(){
             public void buildFinished(BuildResult result) {
@@ -66,8 +66,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executed.output.contains("Gradle Plugin received build finished!")
     }
 
-    @Ignore
-    def "can apply script with relative path on Gradle"() {
+    def "cannot apply script with relative path on Gradle"() {
         setup:
         def externalInitFile = temporaryFolder.createDir("somePath").createFile("anInit.gradle")
         externalInitFile << """
@@ -82,14 +81,14 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
             gradle.apply(from: "somePath/anInit.gradle")
             """
         then:
-        def executed = succeeds('tasks')
-        executed.output.contains("Gradle Plugin received build finished!")
+        fails('tasks')
+        errorOutput.contains("Cannot convert relative path somePath/anInit.gradle to an absolute file")
     }
 
 
     def "applied script can apply scripts with relative path"() {
         setup:
-        def externalInitFile = temporaryFolder.createDir("somePath").createFile("anInit.gradle")
+        def externalInitFile = temporaryFolder.createFile("initscripts/somePath/anInit.gradle")
         externalInitFile << """
             gradle.addBuildListener(new BuildAdapter(){
                 public void buildFinished(BuildResult result) {
@@ -97,7 +96,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
                 }
             });
                         """
-        def anotherExternalInitFile = temporaryFolder.createFile("anotherInit.gradle")
+        def anotherExternalInitFile = temporaryFolder.createFile("initscripts/anotherInit.gradle")
         anotherExternalInitFile << """
             apply from: 'somePath/anInit.gradle'
             """
