@@ -118,7 +118,7 @@ For more information please see the [User Guide chapter on this plugin](userguid
 This plugin is an *incubating* feature and will improve and expand in scope in future releases. 
 If you're interested in its progress and future, you can check out the [design spec](https://github.com/gradle/gradle/blob/master/design-docs/build-initialisation.md). 
 
-### Support for JUnit @Category (i)
+### Support for JUnit `@Category` (i)
 
 Thanks to a contribution by [Uladzimir Mihura](https://github.com/trnl), Gradle now supports [JUnit categories](https://github.com/junit-team/junit/wiki/Categories). 
 Categories are a mechanism to label and group JUnit tests by using annotations. 
@@ -185,9 +185,11 @@ final implementation through incorporation of early user feedback.
 Be sure to check out the [User Guide chapter](userguide/incremental_tasks.html) and [DSL reference](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html) for
 more details on implementing incremental tasks.
 
-### Plugins can expose custom tooling models via the tooling API
+### Apply plugins from init and settings scripts (i)
 
-TODO
+The `Gradle` type, which is configured by init scripts, and the `Settings` type, which is configured by settings scripts, now accept plugins.
+This means that you can now package up init or settings logic in a binary plugin and apply this plugin from the appropriate script, in exactly
+the same way you do for projects.
 
 ## Fixed issues
 
@@ -201,6 +203,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### `StartParameter.getMergedSystemProperties()` method is deprecated
 
 This method is no longer used internally so it does not make sense to keep it in the public API.
+
+### Renamed `add()` methods
+
+TBD
 
 ### `groovy` configuration is deprecated
 
@@ -217,14 +223,14 @@ For additional background information about this change, see the [Groovy chapter
 
 ## Potential breaking changes
 
-### `org.gradle.api.artifacts.ProjectDependency` and `org.gradle.api.plugins.ExtensionContainer` now have an internal protocol
+### `ProjectDependency` and `ExtensionContainer` now have an internal protocol
 
 This means that the users should not create own implementations of `org.gradle.api.artifacts.ProjectDependenc` or `org.gradle.api.plugins.ExtensionContainer`.
 This change should not affect any builds because there are no known use cases supporting custom instances of these API classes.
 
-### Renamed `add()` method on PublicationContainer (incubating)
+### Renamed `add()` method on PublicationContainer
 
-The [org.gradle.api.publish.PublicationContainer](javadoc/org/gradle/api/publish/PublicationContainer.html) introduced by the incubating publish plugins leverages the new support for
+The incubating [org.gradle.api.publish.PublicationContainer](javadoc/org/gradle/api/publish/PublicationContainer.html) introduced by the new publish plugins leverages the new support for
 polymorphic domain object containers in Gradle. This change involved switching from the custom `add` methods to the standard `create`.
 The semantics of the replacement methods is identical to those replaced.
 
@@ -240,15 +246,15 @@ This change will only impact code that explicitly catches and processes an excep
 
 It is not needed internally and it shouldn't be needed by the users, too.
 
-### Upper bound removed from Tooling API `org.gradle.tooling.ModelBuilder`
+### Upper bound removed from Tooling API `ModelBuilder`
 
-With the introduction of support for custom tooling API models, the tooling API models are no longer required to extend the `org.gradle.tooling.model.Model` marker
-interface. The upper bound `extends Model` has been removed from the type parameter of `ModelBuilder`.
+In Gradle 1.6, we've started work to support custom tooling API models. As a result, the tooling API models are no longer required to extend the
+`org.gradle.tooling.model.Model` marker interface. The upper bound `extends Model` has been removed from the type parameter of `ModelBuilder`.
 
-### Tooling API `org.gradle.tooling.ProjectConnection.model()` no longer throws `UnknownModelException`
+### Tooling API `ProjectConnection.model()` no longer throws `UnknownModelException`
 
-With the introduction of support for custom tooling API models, it is no longer possible to determine whether a model is supported without
-configuring the target build. This exception is now thrown as part of the result.
+With support for custom tooling API models, it is no longer possible to determine whether a model is supported without
+configuring the target build. This exception is now thrown when the result is requested, rather than when the builder is created.
 
 ### Wrapper environment variable `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` no longer supported
 
@@ -257,7 +263,7 @@ Instead, the wrapper is now much better at recovering from failures to download 
 
 ### More packages included in default imports
 
-The set of default imports is now generated from the Gradle API. This means that the default imports now includes a number of additional packages
+The set of default imports is now generated directly from the Gradle API. This means that the default imports now includes a number of additional packages
 that were not previously imported by default. These packages may contain classes that conflict with other imports present in your build scripts.
 
 ## External contributions
