@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
     File initFile;
@@ -84,7 +83,6 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         fails('tasks')
         errorOutput.contains("Cannot convert relative path somePath/anInit.gradle to an absolute file")
     }
-
 
     def "applied script can apply scripts with relative path"() {
         setup:
