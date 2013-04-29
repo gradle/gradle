@@ -1,6 +1,14 @@
-task runtimeIntegTests { // only tests the things that are actually part of the gradle runtime
+// only the projects that contribute runtime code
+def runtimeProjects = subprojects - [':docs', ':distributions', ':performance'].collect { project(it) }
+
+task runtimeTests {
     dependsOn {
-        def excluded = [':docs', ':distributions', ':performance'].collect { project(it) }
-        (subprojects - excluded).collect { it.tasks.findByPath("integTest") }.findAll { it }
+        runtimeProjects*.tasks*.findByPath("test")
+    }
+}
+
+task runtimeIntegTests {
+    dependsOn {
+        runtimeProjects*.tasks*.findByPath("integTest")
     }
 }

@@ -35,10 +35,10 @@ buildTypes {
     developerBuild "check"
 
     // Used by the first phase of the build pipeline
-    quickTest "test", "runtimeIntegTests"
+    quickTest "runtimeTests", "runtimeIntegTests"
 
     // Used for builds to test the code on certain platforms
-    platformTest "test", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
+    platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
 
     // Tests using the daemon mode
     daemonTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "daemon"
