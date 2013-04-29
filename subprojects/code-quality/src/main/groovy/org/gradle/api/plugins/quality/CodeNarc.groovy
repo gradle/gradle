@@ -49,21 +49,18 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
      * The maximum number of priority 1 violations allowed before failing the build.
      */
     @Input
-    @Optional
     int maxPriority1Violations
 
     /**
      * The maximum number of priority 2 violations allowed before failing the build.
      */
     @Input
-    @Optional
     int maxPriority2Violations
 
     /**
      * The maximum number of priority 3 violations allowed before failing the build.
      */
     @Input
-    @Optional
     int maxPriority3Violations
 
     /**
