@@ -148,9 +148,9 @@ transformDocument {
         if (subs) {
             def sublist = toc.children().last().append("<ul class='toc-sub'/>").children().last()
             subs.each {
-                def subName = it.text()
+                def subName = it.html()
                 def subAnchorName = it.attr("id")
-                sublist.append("<li><a/></li>").children().last().select("a").first().text(subName).attr("href", "#$subAnchorName")
+                sublist.append("<li><a/></li>").children().last().select("a").first().html(subName).attr("href", "#$subAnchorName")
             }
         }
     }
