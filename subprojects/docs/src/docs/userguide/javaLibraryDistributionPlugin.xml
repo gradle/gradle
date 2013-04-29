@@ -2,9 +2,10 @@
     <title>The Java Library Distribution Plugin</title>
     <note>
         <para>
-            The Java library distribution plugin is incubating (see <xref linkend="sec:incubating_state"/>).
+            The Java library distribution plugin is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>
+
     <para>The Java library distribution plugin adds support for building a distribution ZIP for a Java library. The distribution contains the
         JAR file for the library and its dependencies.
     </para>

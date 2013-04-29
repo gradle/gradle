@@ -19,7 +19,7 @@
 
     <note>
         <para>
-            The Gradle C++ support is in very early stages of development. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            The Gradle C++ support is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>
 

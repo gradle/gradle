@@ -18,9 +18,10 @@
     <title>The Distribution Plugin</title>
     <note>
         <para>
-            The distribution plugin is incubating (see <xref linkend="sec:incubating_state"/>).
+            The distribution plugin is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>
+
     <para>The distribution plugin extends the language plugins with common distribution related tasks.
 	It allows bundling a project including binaries, sources and documentation.
 	</para>

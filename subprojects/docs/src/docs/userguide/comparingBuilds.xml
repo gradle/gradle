@@ -18,7 +18,7 @@
     <title>Comparing Builds</title>
     <note>
         <para>
-            Build comparison support is an <firstterm>incubating</firstterm> feature. This means that it is incomplete and not yet at regular Gradle production quality.
+            Build comparison support is an <link linkend="feature_lifecycle">incubating</link> feature. This means that it is incomplete and not yet at regular Gradle production quality.
             This also means that this Gradle User Guide chapter is a work in progress.
         </para>
     </note>
@@ -127,7 +127,7 @@
     <section>
         <title>Current Capabilities</title>
         <para>
-            As this is an <firstterm>incubating</firstterm> feature, a limited set of the eventual functionality has been implemented at this time.
+            As this is an <link linkend="feature_lifecycle">incubating</link> feature, a limited set of the eventual functionality has been implemented at this time.
         </para>
         <section>
             <title>Supported builds</title>

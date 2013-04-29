@@ -27,6 +27,8 @@ public interface GradleEnvironment {
 
     /**
      * Informs about the Gradle version.
+     *
+     * @since 1.0-milestone-8
      */
     String getGradleVersion();
 }

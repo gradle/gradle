@@ -26,8 +26,7 @@ import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.*;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
-import org.gradle.tooling.internal.consumer.versioning.ProviderMetaDataRegistry;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
@@ -70,18 +69,18 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             ConnectionVersion4 connection = factory.create();
 
             ProtocolToModelAdapter adapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
+            ModelMapping modelMapping = new ModelMapping();
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
-            VersionDetails providerMetaData = new ProviderMetaDataRegistry().getVersionDetails(connection.getMetaData().getVersion());
             AbstractConsumerConnection adaptedConnection;
             if (connection instanceof ModelBuilder) {
-                adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, providerMetaData, adapter);
+                adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, adapter);
             } else if (connection instanceof BuildActionRunner) {
-                adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, providerMetaData, adapter);
+                adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof InternalConnection) {
-                adaptedConnection = new InternalConnectionBackedConsumerConnection(connection, providerMetaData, adapter);
+                adaptedConnection = new InternalConnectionBackedConsumerConnection(connection, modelMapping, adapter);
             } else {
-                adaptedConnection = new ConnectionVersion4BackedConsumerConnection(connection, providerMetaData, adapter);
+                adaptedConnection = new ConnectionVersion4BackedConsumerConnection(connection, modelMapping, adapter);
             }
             adaptedConnection.configure(connectionParameters);
             return adaptedConnection;

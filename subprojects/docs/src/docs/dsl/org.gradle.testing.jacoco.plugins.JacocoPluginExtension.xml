@@ -30,8 +30,7 @@
             </tr>
             <tr>
                 <td>reportsDir</td>
-                <!--<td><literal><replaceable>${project.reporting.baseDir}</replaceable>/jacoco</literal></td>-->
-                <td>jacoco</td>
+                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/jacoco</literal></td>
             </tr>
         </table>
     </section>

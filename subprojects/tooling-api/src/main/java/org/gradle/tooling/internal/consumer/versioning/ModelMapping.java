@@ -66,6 +66,9 @@ public class ModelMapping {
     }
 
     public Class<?> getProtocolType(Class<?> modelType) {
+        if (MODEL_TO_PROTOCOL_MAP.containsValue(modelType)) {
+            return modelType;
+        }
         return MODEL_TO_PROTOCOL_MAP.get(modelType);
     }
 

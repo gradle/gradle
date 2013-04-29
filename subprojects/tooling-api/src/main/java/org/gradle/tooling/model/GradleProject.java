@@ -26,9 +26,7 @@ import org.gradle.api.Nullable;
 public interface GradleProject extends HierarchicalElement, BuildableElement {
 
     /**
-     * Returns the tasks of this project.
-     *
-     * @return The tasks.
+     * {@inheritDoc}
      */
     DomainObjectSet<? extends GradleTask> getTasks();
 
@@ -46,6 +44,7 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
      * Returns Gradle path.
      *
      * @return The path.
+     * {@inheritDoc}
      */
     String getPath();
 
@@ -53,6 +52,7 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
      * Searches all descendants (children, grand children, etc.), including self, by given path.
      *
      * @return Gradle project with matching path or {@code null} if not found.
+     * {@inheritDoc}
      */
     @Nullable
     GradleProject findByPath(String path);

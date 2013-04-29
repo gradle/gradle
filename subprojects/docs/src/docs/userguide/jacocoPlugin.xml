@@ -18,9 +18,10 @@
     <title>The JaCoCo Plugin</title>
     <note>
         <para>
-            The JaCoCo plugin is <link linkend="sec:incubating_state">incubating</link>.
+            The JaCoCo plugin is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>
+
     <para>The JaCoCo plugin provides integration with <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>,
         a code coverage library for Java.
     </para>

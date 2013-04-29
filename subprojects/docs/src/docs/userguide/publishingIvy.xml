@@ -18,11 +18,11 @@
     <title>Ivy Publishing (new)</title>
     <note>
         <para>
-            This chapter describes the new <emphasis>incubating</emphasis> Ivy publishing support provided by the “<literal>ivy-publish</literal>”
+            This chapter describes the new <link linkend="feature_lifecycle">incubating</link> Ivy publishing support provided by the “<literal>ivy-publish</literal>”
             plugin. Eventually this new publishing support will replace publishing via the <literal>Upload</literal> task.
         </para>
         <para>
-            If you are looking for documentation on 'traditional' Ivy publishing using the <literal>Upload</literal> task please see
+            If you are looking for documentation on the original Ivy publishing support using the <literal>Upload</literal> task please see
             <xref linkend="artifact_management"/>.
         </para>
     </note>
@@ -298,7 +298,7 @@
     <section id="publishing_ivy:future">
         <title>Future features</title>
         <para>
-            The “<literal>ivy-publish</literal>” plugin functionality as described above is incomplete, as the feature is still <firstterm>incubating</firstterm>.
+            The “<literal>ivy-publish</literal>” plugin functionality as described above is incomplete, as the feature is still <link linkend="feature_lifecycle">incubating</link>.
             Over the coming Gradle releases, the functionality will be expanded to include (but not limited to):
         </para>
         <itemizedlist>

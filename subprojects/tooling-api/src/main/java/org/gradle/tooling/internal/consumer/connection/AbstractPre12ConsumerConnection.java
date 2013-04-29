@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.PropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
@@ -28,10 +29,12 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
  * A connection to a pre 1.2 provider.
  */
 public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerConnection {
-    protected final ProtocolToModelAdapter adapter;
+    private final ProtocolToModelAdapter adapter;
+    private final ModelMapping modelMapping;
 
-    public AbstractPre12ConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ProtocolToModelAdapter adapter) {
+    public AbstractPre12ConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, providerMetaData);
+        this.modelMapping = modelMapping;
         this.adapter = adapter;
     }
 
@@ -44,7 +47,7 @@ public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerCo
             doRunBuild(operationParameters);
             return null;
         } else {
-            Class<?> protocolType = getVersionDetails().mapModelTypeToProtocolType(type);
+            Class<?> protocolType = modelMapping.getProtocolType(type);
             Object model = doGetModel(protocolType, operationParameters);
             return adapter.adapt(type, model, new PropertyHandlerFactory().forVersion(getVersionDetails()));
         }

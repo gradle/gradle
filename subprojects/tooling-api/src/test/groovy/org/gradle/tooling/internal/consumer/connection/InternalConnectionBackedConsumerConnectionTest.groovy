@@ -17,16 +17,54 @@ package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails
+import org.gradle.tooling.internal.consumer.versioning.CustomModel
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping
+import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
 import org.gradle.tooling.internal.protocol.InternalConnection
+import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.tooling.model.idea.BasicIdeaProject
+import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 class InternalConnectionBackedConsumerConnectionTest extends Specification {
-    final InternalConnection target = Mock()
+    final InternalConnection target = Mock() {
+        getMetaData() >> Mock(ConnectionMetaDataVersion1)
+    }
     final ConsumerOperationParameters parameters = Mock()
     final ProtocolToModelAdapter adapter = Mock()
-    final VersionDetails versionDetails = Mock()
-    final InternalConnectionBackedConsumerConnection connection = new InternalConnectionBackedConsumerConnection(target, versionDetails, adapter)
+    final ModelMapping modelMapping = Stub()
+    final InternalConnectionBackedConsumerConnection connection = new InternalConnectionBackedConsumerConnection(target, modelMapping, adapter)
+
+    def "describes capabilities of the provider"() {
+        given:
+        def details = connection.versionDetails
+
+        expect:
+        details.supportsConfiguringJavaHome()
+        details.supportsConfiguringJvmArguments()
+        details.supportsConfiguringStandardInput()
+        details.supportsGradleProjectModel()
+
+        and:
+        !details.supportsRunningTasksWhenBuildingModel()
+
+        and:
+        details.isModelSupported(HierarchicalEclipseProject)
+        details.isModelSupported(EclipseProject)
+        details.isModelSupported(IdeaProject)
+        details.isModelSupported(BasicIdeaProject)
+        details.isModelSupported(GradleProject)
+        details.isModelSupported(BuildEnvironment)
+        details.isModelSupported(Void)
+
+        and:
+        !details.isModelSupported(ProjectOutcomes)
+        !details.isModelSupported(CustomModel)
+    }
 
     def "builds model using connection's getTheModel() method"() {
         when:
@@ -36,7 +74,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         result == 'ok'
 
         and:
-        1 * versionDetails.mapModelTypeToProtocolType(String.class) >> Integer.class
+        _ * modelMapping.getProtocolType(String.class) >> Integer.class
         1 * target.getTheModel(Integer.class, parameters) >> 12
         1 * adapter.adapt(String.class, 12, _) >> 'ok'
         0 * target._

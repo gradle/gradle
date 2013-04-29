@@ -188,7 +188,7 @@
                     See examples in <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
                 </listitem>
                 <listitem>
-                    Dependency resolve rules are an incubating feature introduced in Gradle 1.4 which give you fine-grained control over the version selected for a particular dependency.
+                    Dependency resolve rules are an <link linkend="feature_lifecycle">incubating</link> feature introduced in Gradle 1.4 which give you fine-grained control over the version selected for a particular dependency.
                 </listitem>
             </itemizedlist>
             <para>To deal with problems due to version conflicts, reports with dependency graphs are also very helpful. Such reports are another feature of dependency management.</para>
@@ -918,7 +918,7 @@ someroot/[artifact]-[revision].[ext]
         <section id='sec:dependency_resolve_rules'>
             <title>Using dependency resolve rules</title>
             <para>A dependency resolve rule is executed for each resolved dependency, and offers a powerful api for manipulating a requested dependency prior to that dependency being resolved.
-                This feature is incubating, but currently offers the ability to change the group, name and/or version of a requested dependency,
+                This feature is <link linkend="feature_lifecycle">incubating</link>, but currently offers the ability to change the group, name and/or version of a requested dependency,
                 allowing a dependency to be substituted with a completely different module during resolution.
             </para>
             <para>
