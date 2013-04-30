@@ -1,11 +1,12 @@
 Gradle 1.6 sees some fantastic new features contributed by the Gradle community: Task ordering rules offer you more control over the execution of tasks,
-there's now a JaCoCo plugin for test coverage, and the Junit integration now supports test categories.
+there's now a JaCoCo plugin for test coverage, and the Junit integration supports test categories.
 
-To help get you started with Gradle, this release introduces a build setup plugin. This plugin takes care of some of the work in setting up
-a new build. It also supports converting a Maven POM to a Gradle build. You simply point Gradle at your current Maven build and you end
-up with a functioning Gradle build. Note that it's early days for the build setup plugin and we plan to improve it over the next releases.
+To help get you started with Gradle, this release introduces the build setup plugin. This plugin takes care of the work of setting up
+a new build. This includes support for converting an Apache Maven POM to a Gradle build. You simply point Gradle at your current Maven build and you end
+up with a functioning Gradle build. Note that this plugin is in early stages of development and we plan to improve it in future releases.
 
-Continuing on the performance work of the last few releases, Gradle 1.6 includes support for incremental tasks.
+Continuing on the performance work of the last few releases, Gradle 1.6 includes support for incremental tasks. These are tasks that selectively process
+only those inputs that have changed, and avoid processing those inputs that have not changed.
 
 The Gradle team also invites you to the first ever [“Gradle Summit”](http://gradlesummit.com/) (Sponsored by [Gradleware](http://gradleware.com/)),
 held June 13th - 14th in Santa Clara, California. The summit will be two fully packed days of technical sessions given by Gradle core developers ranging from introductory
@@ -65,10 +66,10 @@ To gather code coverage information for your java project, just apply the JaCoCo
 
     apply plugin: 'jacoco'
 
-and run `gradle test jacocoTestReport` which generates code coverage reports for the “test” task introduced by the `java` plugin. The `JacocoReport` adds a `mustRunAfter` dependency on the
-coverage data producing task ('test' in our example). After the build has finished you find the coverage report in different formats in `build/reports/jacoco/test`.
+and run `gradle test jacocoTestReport` which generates code coverage reports for the `test` task introduced by the `java` plugin. The `JacocoReport` adds a `mustRunAfter` dependency on the
+coverage data producing task (`test` in our example). After the build has finished you find the coverage report in `build/reports/jacoco/test`.
 
-You can configure every task of type `JacocoReport` to enable other output formats than the default `HTML` report. For example, if you just want the `xml` coverage report that can be reused by your
+You can configure every task of type `JacocoReport` to enable other output formats than the default `HTML` report. For example, if you just want the `XML` coverage report that can be reused by your
 favourite CI server, you can simply configure this:
 
     jacocoTestReport {
@@ -95,15 +96,14 @@ This plugin was contributed by [Andrew Oberstar](https://github.com/ajoberstar),
 
 ### Build Setup Plugin (i)
 
-Gradle 1.6 introduces a `build-setup` plugin that makes initializing new Gradle projects more convenient. 
-It also supports bootstrapping the migration of an Apache Maven build to a Gradle build by generating a `build.gradle` file from a `pom.xml`.
+Gradle 1.6 introduces a `build-setup` plugin that makes initializing new Gradle builds more convenient.
+It also supports the migration of an Apache Maven build to a Gradle build by generating a `build.gradle` file from a `pom.xml`.
 
-The `build-setup` plugin is not a plugin that you manually apply to your project. You use it by executing the `setupBuild` task in a directory that does not contain a `build.gradle` file. 
+The `build-setup` plugin is not a plugin that you would apply to your project. Instead, you use it by executing the `setupBuild` task in a directory that does not contain
+any Gradle build files. This will do the following:
 
-Running `gradle setupBuild` in a directory with no `build.gradle` file will do the following:
-
-* If a `pom.xml` exists, a `build.gradle` file is generated based on its content (e.g. equivalent dependency definitions).
-* If no `pom.xml` exists, an empty `build.gradle` file is generated.
+* If a `pom.xml` exists, a `build.gradle` and `settings.gradle` file is generated based on its content (e.g. equivalent dependency definitions).
+* If no `pom.xml` exists, a basic `build.gradle` and `settings.gradle` file is generated.
 * The [Gradle Wrapper](userguide/gradle_wrapper.html) is installed for the project.
 
 For more information please see the [User Guide chapter on this plugin](userguide/build_setup_plugin.html).
@@ -203,8 +203,10 @@ wrapper from an older version.
 ### Apply plugins from init and settings scripts (i)
 
 The `Gradle` type, which is configured by init scripts, and the `Settings` type, which is configured by settings scripts, now accept plugins.
-This means that you can now package up init or settings logic in a binary plugin and apply this plugin from the appropriate script, in exactly
-the same way you do for projects.
+Previously, you could apply scripts to these types, but not binary plugins.
+
+This change means that you can now package up init or settings logic in a binary plugin and apply this plugin from the appropriate script, in exactly
+the same way you do for projects. And this means that you can reuse and share these plugins in exactly the same way.
 
 ## Fixed issues
 
