@@ -1,4 +1,6 @@
-The docs project produces the [userguide](http://gradle.org/docs/current/userguide/userguide.html), [DSL reference](http://gradle.org/docs/current/dsl/), [javadoc](http://gradle.org/docs/current/javadoc/) and [groovydoc](http://gradle.org/docs/current/groovydoc/) (as well as some other minor bits).
+The docs project produces the [userguide](http://gradle.org/docs/current/userguide/userguide.html), [DSL reference](http://gradle.org/docs/current/dsl/),
+[javadoc](http://gradle.org/docs/current/javadoc/), [groovydoc](http://gradle.org/docs/current/groovydoc/) and [release notes](http://gradle.org/docs/current/release-notes)
+(as well as some other minor bits).
 
 The following is some help for working with the docs, all file paths are relative to this directory unless specified otherwise.
 
@@ -8,11 +10,25 @@ The release notes are generated from `src/docs/release/notes.md`.
 
 ### Schema 
 
-Every `h2` tag will be listed in the generated TOC.
+Every `h2` tag and `h3` will be listed in the generated TOC.
 
 After every `h3` all content after the first element (usually a `p`) will be collapsed/expandable, up until the next `h3`, or `h2`.
 
 After every `h4` all content will be collapsed/expandable, up until the next `h4`, `h3` or `h2`.
+
+An `h3` may include an incubating marker `(i)` at the end of its text to indicate that the feature is incubating.
+
+Here's an example:
+
+    ## h2 New and Noteworthy
+
+    ### h3 Some feature (i)
+
+    This is some incubating feature.
+
+    #### h4 Some detail
+
+    This detail about the feature is collapsed. The reader can expand it if they are interested.
 
 ### Generating
 
@@ -33,6 +49,16 @@ To generate the userguide and see your changes, run:
     ./gradlew docs:userguide
 
 You can then view the built html in `build/docs/userguide` (open the `userguide.html`) to view the front page.
+
+### Useful docbook tags:
+
+See the [docbook reference](http://docbook.org/tdg/en/html/part2.html) for a list of all available tags.
+
+Here are some useful ones:
+
+#### `<programlisting>`
+
+For code snippets
 
 ### Custom Tags
 
@@ -111,16 +137,6 @@ The sample source files can contain snippets which can be included in the docume
     // END SNIPPET something
 
     some other code
-
-### Useful docbook tags:
-
-See the [docbook reference](http://docbook.org/tdg/en/html/part2.html) for a list of all available tags.
-
-Here are some useful ones:
-
-#### `<programlisting>`
-
-For code snippets
 
 ## Reference Documentation
 
