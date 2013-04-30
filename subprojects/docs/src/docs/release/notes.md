@@ -1,3 +1,20 @@
+Gradle 1.6 sees some fantastic new features contributed by the Gradle community: Task ordering rules offer you more control over the execution of tasks,
+there's now a JaCoCo plugin for test coverage, and the Junit integration now supports test categories.
+
+To help get you started with Gradle, this release introduces a build setup plugin. This plugin takes care of some of the work in setting up
+a new build. It also supports converting a Maven POM to a Gradle build. You simply point Gradle at your current Maven build and you end
+up with a functioning Gradle build. Note that it's early days for the build setup plugin and we plan to improve it over the next releases.
+
+Continuing on the performance work of the last few releases, Gradle 1.6 includes support for incremental tasks.
+
+The Gradle team also invites you to the first ever [“Gradle Summit”](http://gradlesummit.com/) (Sponsored by [Gradleware](http://gradleware.com/)),
+held June 13th - 14th in Santa Clara, California. The summit will be two fully packed days of technical sessions given by Gradle core developers ranging from introductory
+to deep dive as well as informational sessions by several large organizations on how they get the most out of Gradle. In between sessions there'll be plenty of opportunity
+for talking to other Gradle users and the Gradle development team. This is an event not to miss.
+Registration is [now open](http://gradlesummit.com/conference/santa_clara/2013/06/gradle/event_register).
+
+Read on for more details on why you should upgrade to Gradle 1.6. As always, please share your feedback and experiences with Gradle 1.6 via the [Gradle Forums](http://forums.gradle.org).
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -25,9 +42,7 @@ You want this aggregation task to run _after_ all test tasks, but you do not nec
     task runIntegTests(type: Test) { ... }
     task createTestReports { ... }
 
-    tasks.withType(Test) { testTask ->
-        createTestReports.mustRunAfter(testTask)
-    }
+    createTestReports.mustRunAfter tasks.withType(Test)
 
     task allTest(dependsOn: [runUnitTests, runIntegTests, createTestReports]) // This will run unit+integ tests and create the aggregated report
     task unitTest(dependsOn: [runUnitTests, createTestReports]) // This will run unit tests only and create the report
@@ -213,50 +228,58 @@ In some cases (for example if the Groovy Jar has been renamed), it may also be n
 
 For additional background information about this change, see the [Groovy chapter](userguide/groovy_plugin.html#N1289B) of the Gradle user guide.
 
-### Renamed `add()` methods
+### Renamed several `add()` methods
 
-`ConfigurationContainer.add()`
-`SourceSetContainer.add()`
-`TaskContainer.add()`
+To improve consistency in the Gradle API, we've replaced the container `add()` methods with a `create()` method. Since well before Gradle 1.0, every container type
+has had a number of `create()` methods which both create a new object and add it to the container. Some older container types also define an `add()`
+method which does the same thing, but also conflicts with the `add()` method inherited from `java.util.Collection` which simply adds an object rather than
+creating it. To simplify this, these `add()` methods have now been deprecated and will be removed in Gradle 2.0.
+
+The methods in question are:
+
+- `ConfigurationContainer.add()`
+- `SourceSetContainer.add()`
+- `TaskContainer.add()`
 
 ### `StartParameter.getMergedSystemProperties()` method is deprecated
 
-This method is no longer used internally so it does not make sense to keep it in the public API.
+This method was used internally and was not intended to form part of the public API. It has now been deprecated and will be removed in Gradle 2.0.
 
 ## Potential breaking changes
 
-### `ProjectDependency` and `ExtensionContainer` now have an internal protocol
-
-This means that the users should not create own implementations of `org.gradle.api.artifacts.ProjectDependenc` or `org.gradle.api.plugins.ExtensionContainer`.
-This change should not affect any builds because there are no known use cases supporting custom instances of these API classes.
-
-### Renamed `add()` method on PublicationContainer
+### Renamed `add()` method on incubating `PublicationContainer`
 
 The incubating [org.gradle.api.publish.PublicationContainer](javadoc/org/gradle/api/publish/PublicationContainer.html) introduced by the new publish plugins leverages the new support for
-polymorphic domain object containers in Gradle. This change involved switching from the custom `add` methods to the standard `create`.
+polymorphic domain object containers in Gradle. This change involved switching from the custom `add`() methods to the standard `create()`, as described above.
 The semantics of the replacement methods is identical to those replaced.
 
 This change does not effect publications added to the PublicationContainer using [a configuration block](javadoc/org/gradle/api/publish/PublishingExtension.html#publications),
-but will impact publications added directly using `add()`.
+but will impact publications added directly using the `add()` method.
+
+### `ProjectDependency` and `ExtensionContainer` now have an internal protocol
+
+This means that the users should not create their own implementations of `org.gradle.api.artifacts.ProjectDependency` or `org.gradle.api.plugins.ExtensionContainer`.
+This change should not affect any builds because there are no known use cases supporting custom instances of these API classes.
 
 ### Changes to exceptions thrown on project evaluation
 
-The exception thrown by Gradle when on build script error or other configuration problem has changed. All such exceptions are now chained in ProjectConfigurationException.
+The exception thrown by Gradle when on build script error or other configuration problem has changed. All such exceptions are now chained in a `ProjectConfigurationException`.
 This change will only impact code that explicitly catches and processes an exception thrown by Gradle when configuring a project.
 
 ### Incubating `StartParameter.isParallelThreadCountConfigured()` method removed
 
-It is not needed internally and it shouldn't be needed by the users, too.
+This incubating method was used internally and was not intended to form part of the public API. It has now been removed.
 
 ### Upper bound removed from Tooling API `ModelBuilder`
 
-In Gradle 1.6, we've started work to support custom tooling API models. As a result, the tooling API models are no longer required to extend the
-`org.gradle.tooling.model.Model` marker interface. The upper bound `extends Model` has been removed from the type parameter of `ModelBuilder`.
+In Gradle 1.6, we've started work to allow plugins to provide custom tooling API models. A consequence of this work is that the tooling API models are no longer required
+to extend the `org.gradle.tooling.model.Model` marker interface. The upper bound `extends Model` has been removed from the type parameter of `ModelBuilder`. This change
+should be both source and binary compatible.
 
 ### Tooling API `ProjectConnection.model()` no longer throws `UnknownModelException`
 
-With support for custom tooling API models, it is no longer possible to determine whether a model is supported without
-configuring the target build. This exception is now thrown when the result is requested, rather than when the builder is created.
+To support for custom tooling API models, it is no longer possible to determine whether a model is supported without configuring the target build. This exception is now
+thrown when the result is requested, rather than when the builder is created.
 
 ### Wrapper environment variable `GRADLE_WRAPPER_ALWAYS_UNPACK` and `GRADLE_WRAPPER_ALWAYS_DOWNLOAD` no longer supported
 
