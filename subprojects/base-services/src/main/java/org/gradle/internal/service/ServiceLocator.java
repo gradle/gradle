@@ -130,7 +130,7 @@ public class ServiceLocator extends AbstractServiceRegistry {
     private List<String> extractImplementationClassNames(URL resource) throws IOException {
         InputStream inputStream = resource.openStream();
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             List<String> implemetationClassNames = new ArrayList<String>();
             String line;
             while ((line = reader.readLine()) != null) {
