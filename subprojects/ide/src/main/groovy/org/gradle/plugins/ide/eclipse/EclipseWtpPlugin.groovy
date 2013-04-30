@@ -213,7 +213,7 @@ class EclipseWtpPlugin extends IdePlugin {
 
     private void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class taskType, Closure action) {
         if (project.tasks.findByName(taskName)) { return }
-        def task = project.tasks.add(taskName, taskType)
+        def task = project.tasks.create(taskName, taskType)
         project.configure(task, action)
         plugin.addWorker(task)
     }

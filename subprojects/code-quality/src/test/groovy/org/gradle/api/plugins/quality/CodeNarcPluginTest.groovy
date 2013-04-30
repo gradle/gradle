@@ -122,7 +122,7 @@ class CodeNarcPluginTest extends Specification {
     }
 
     def "configures any additional codenarc tasks"() {
-        def task = project.tasks.add("codenarcCustom", CodeNarc)
+        def task = project.tasks.create("codenarcCustom", CodeNarc)
 
         expect:
         task.description == null
@@ -135,7 +135,7 @@ class CodeNarcPluginTest extends Specification {
     }
 
     def "can customize additional tasks via extension"() {
-        def task = project.tasks.add("codenarcCustom", CodeNarc)
+        def task = project.tasks.create("codenarcCustom", CodeNarc)
 
         project.codenarc {
             configFile = project.file("codenarc-config")
@@ -162,7 +162,7 @@ class CodeNarcPluginTest extends Specification {
             other
         }
 
-        project.tasks.add("codenarcCustom", CodeNarc)
+        project.tasks.create("codenarcCustom", CodeNarc)
         
         expect:
         that(project.check, dependsOn(hasItems("codenarcMain", "codenarcTest", "codenarcOther")))
@@ -176,7 +176,7 @@ class CodeNarcPluginTest extends Specification {
             other
         }
 
-        project.tasks.add("codenarcCustom", CodeNarc)
+        project.tasks.create("codenarcCustom", CodeNarc)
 
         project.codenarc {
             sourceSets = [project.sourceSets.main]
@@ -187,7 +187,7 @@ class CodeNarcPluginTest extends Specification {
     }
 
     def "can customize task directly"() {
-        CodeNarc task = project.tasks.add("codenarcCustom", CodeNarc)
+        CodeNarc task = project.tasks.create("codenarcCustom", CodeNarc)
 
         task.reports.xml {
             enabled true

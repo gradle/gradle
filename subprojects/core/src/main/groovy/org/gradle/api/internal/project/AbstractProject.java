@@ -727,7 +727,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             } else if (task != null) {
                 throw new InvalidUserDataException(String.format("Cannot add directory task '%s' as a non-directory task with this name already exists.", name));
             } else {
-                dirTask = taskContainer.add(name, Directory.class);
+                dirTask = taskContainer.create(name, Directory.class);
             }
         }
         return dirTask;

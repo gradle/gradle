@@ -38,7 +38,7 @@ public class BuildDashboardPlugin implements Plugin<ProjectInternal> {
     public void apply(ProjectInternal project) {
         project.plugins.apply(ReportingBasePlugin)
 
-        GenerateBuildDashboard buildDashboardTask = project.tasks.add(BUILD_DASHBOARD_TASK_NAME, GenerateBuildDashboard)
+        GenerateBuildDashboard buildDashboardTask = project.tasks.create(BUILD_DASHBOARD_TASK_NAME, GenerateBuildDashboard)
 
         project.allprojects.each {
             aggregateReportings(it, buildDashboardTask)

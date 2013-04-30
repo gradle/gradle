@@ -794,11 +794,11 @@ def scriptMethod(Closure closure) {
         Task dirTask123 = HelperUtil.createTask(Directory.class)
         context.checking {
             one(taskContainerMock).findByName('dir1'); will(returnValue(null))
-            one(taskContainerMock).add('dir1', Directory); will(returnValue(dirTask1))
+            one(taskContainerMock).create('dir1', Directory); will(returnValue(dirTask1))
             one(taskContainerMock).findByName('dir1/dir2'); will(returnValue(null))
-            one(taskContainerMock).add('dir1/dir2', Directory); will(returnValue(dirTask12))
+            one(taskContainerMock).create('dir1/dir2', Directory); will(returnValue(dirTask12))
             one(taskContainerMock).findByName('dir1/dir2/dir3'); will(returnValue(null))
-            one(taskContainerMock).add('dir1/dir2/dir3', Directory); will(returnValue(dirTask123))
+            one(taskContainerMock).create('dir1/dir2/dir3', Directory); will(returnValue(dirTask123))
         }
         assertSame(dirTask123, project.dir('dir1/dir2/dir3'));
     }
@@ -807,7 +807,7 @@ def scriptMethod(Closure closure) {
         Task dirTask1 = HelperUtil.createTask(Directory.class)
         context.checking {
             one(taskContainerMock).findByName('dir1'); will(returnValue(null))
-            one(taskContainerMock).add('dir1', Directory); will(returnValue(dirTask1))
+            one(taskContainerMock).create('dir1', Directory); will(returnValue(dirTask1))
         }
         project.dir('dir1')
 
@@ -815,7 +815,7 @@ def scriptMethod(Closure closure) {
         context.checking {
             one(taskContainerMock).findByName('dir1'); will(returnValue(dirTask1))
             one(taskContainerMock).findByName('dir1/dir4'); will(returnValue(null))
-            one(taskContainerMock).add('dir1/dir4', Directory); will(returnValue(dirTask14))
+            one(taskContainerMock).create('dir1/dir4', Directory); will(returnValue(dirTask14))
         }
         assertSame(dirTask14, project.dir('dir1/dir4'))
     }
@@ -826,7 +826,7 @@ def scriptMethod(Closure closure) {
         Task dirTask1 = HelperUtil.createTask(Directory.class)
         context.checking {
             one(taskContainerMock).findByName('dir1'); will(returnValue(null))
-            one(taskContainerMock).add('dir1', Directory); will(returnValue(dirTask1))
+            one(taskContainerMock).create('dir1', Directory); will(returnValue(dirTask1))
             one(taskContainerMock).findByName('dir1/dir4'); will(returnValue(dirTask14))
         }
 

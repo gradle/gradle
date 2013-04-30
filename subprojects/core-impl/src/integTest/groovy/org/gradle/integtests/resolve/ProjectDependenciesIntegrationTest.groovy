@@ -59,7 +59,7 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
     def "configuring project dependencies by map is validated"() {
         settingsFile << "include 'impl'"
         buildFile << """
-            allprojects { configurations.add('conf') }
+            allprojects { configurations.create('conf') }
             task extraKey << {
                 def dep = dependencies.project(path: ":impl", configuration: ":conf", foo: "bar")
                 assert dep.foo == "bar"

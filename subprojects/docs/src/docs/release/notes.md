@@ -215,7 +215,9 @@ For additional background information about this change, see the [Groovy chapter
 
 ### Renamed `add()` methods
 
-TBD
+`ConfigurationContainer.add()`
+`SourceSetContainer.add()`
+`TaskContainer.add()`
 
 ### `StartParameter.getMergedSystemProperties()` method is deprecated
 

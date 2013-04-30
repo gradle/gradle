@@ -622,7 +622,7 @@ task test << {
     public void projectCanDependOnItself() {
         TestFile buildFile = testFile("build.gradle");
         buildFile << '''
-            configurations { compile; add('default') }
+            configurations { compile; create('default') }
             dependencies { compile project(':') }
             task jar1(type: Jar) { destinationDir = buildDir; baseName = '1' }
             task jar2(type: Jar) { destinationDir = buildDir; baseName = '2' }

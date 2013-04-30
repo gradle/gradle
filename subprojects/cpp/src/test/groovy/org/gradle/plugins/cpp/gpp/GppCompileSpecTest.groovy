@@ -31,7 +31,7 @@ class GppCompileSpecTest extends Specification {
         given:
         def binary = new DefaultBinary("binary", project, Mock(CompileSpecFactory))
         def spec = new GppCompileSpec(binary, Mock(Compiler), project)
-        def compileTask = project.tasks.add("compile", CppCompile)
+        def compileTask = project.tasks.create("compile", CppCompile)
         spec.configure(compileTask)
 
         expect:

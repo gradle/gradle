@@ -66,7 +66,7 @@ class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void addRunTask() {
-        def run = project.tasks.add(TASK_RUN_NAME, JavaExec)
+        def run = project.tasks.create(TASK_RUN_NAME, JavaExec)
         run.description = "Runs this project as a JVM application"
         run.group = APPLICATION_GROUP
         run.classpath = project.sourceSets.main.runtimeClasspath
@@ -75,7 +75,7 @@ class ApplicationPlugin implements Plugin<Project> {
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
     private void addCreateScriptsTask() {
-        def startScripts = project.tasks.add(TASK_START_SCRIPTS_NAME, CreateStartScripts)
+        def startScripts = project.tasks.create(TASK_START_SCRIPTS_NAME, CreateStartScripts)
         startScripts.description = "Creates OS specific scripts to run the project as a JVM application."
         startScripts.classpath = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtime
         startScripts.conventionMapping.mainClassName = { pluginConvention.mainClassName }
@@ -84,7 +84,7 @@ class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void addInstallTask() {
-        def installTask = project.tasks.add(TASK_INSTALL_NAME, Sync)
+        def installTask = project.tasks.create(TASK_INSTALL_NAME, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
         installTask.with pluginConvention.applicationDistribution
@@ -113,7 +113,7 @@ class ApplicationPlugin implements Plugin<Project> {
 	}
 
     private <T extends AbstractArchiveTask> void addArchiveTask(String name, Class<T> type) {
-        def archiveTask = project.tasks.add(name, type)
+        def archiveTask = project.tasks.create(name, type)
         archiveTask.description = "Bundles the project as a JVM application with libs and OS specific scripts."
         archiveTask.group = APPLICATION_GROUP
         archiveTask.conventionMapping.baseName = { pluginConvention.applicationName }

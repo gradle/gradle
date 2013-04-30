@@ -110,7 +110,7 @@ class PmdPluginTest extends Specification {
     }
 
     def "configures any additional PMD tasks"() {
-        def task = project.tasks.add("pmdCustom", Pmd)
+        def task = project.tasks.create("pmdCustom", Pmd)
 
         expect:
         task.description == null
@@ -175,7 +175,7 @@ class PmdPluginTest extends Specification {
     }
 
     def "can customize any additional PMD tasks via extension"() {
-        def task = project.tasks.add("pmdCustom", Pmd)
+        def task = project.tasks.create("pmdCustom", Pmd)
         project.pmd {
             ruleSets = ["braces", "unusedcode"]
             ruleSetFiles = project.files("my-ruleset.xml")

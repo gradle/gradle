@@ -94,7 +94,7 @@ class DistributionPlugin implements Plugin<Project> {
     }
 
     private <T extends AbstractArchiveTask> void configureArchiveTask(String taskName, Distribution distribution, Class<T> type) {
-        def archiveTask = project.tasks.add(taskName, type)
+        def archiveTask = project.tasks.create(taskName, type)
         archiveTask.description = "Bundles the project as a distribution."
         archiveTask.group = DISTRIBUTION_GROUP
         archiveTask.conventionMapping.baseName = {
@@ -114,7 +114,7 @@ class DistributionPlugin implements Plugin<Project> {
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
             taskName = "install"+ distribution.name.capitalize() + "Dist"
         }
-        def installTask = project.tasks.add(taskName, Sync)
+        def installTask = project.tasks.create(taskName, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = DISTRIBUTION_GROUP
         installTask.with distribution.contents

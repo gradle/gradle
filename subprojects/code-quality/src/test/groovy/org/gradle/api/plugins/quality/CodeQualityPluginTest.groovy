@@ -135,7 +135,7 @@ class CodeQualityPluginTest {
 
         project.checkstyleProperties.someProp = 'someValue'
 
-        def task = project.tasks.add('checkstyleApi', Checkstyle)
+        def task = project.tasks.create('checkstyleApi', Checkstyle)
         assertThat(task.source, isEmpty())
         assertThat(task.checkstyleClasspath, equalTo(project.configurations.checkstyle))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
@@ -148,7 +148,7 @@ class CodeQualityPluginTest {
 
         project.checkstyleProperties.someProp = 'someValue'
 
-        def task = project.tasks.add('codenarcApi', CodeNarc)
+        def task = project.tasks.create('codenarcApi', CodeNarc)
         assertThat(task.source, isEmpty())
         assertThat(task.codenarcClasspath, equalTo(project.configurations.codenarc))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))

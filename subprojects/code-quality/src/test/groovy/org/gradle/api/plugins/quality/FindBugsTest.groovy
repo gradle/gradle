@@ -27,7 +27,7 @@ class FindBugsTest extends Specification {
 
     def setup() {
         def project = ProjectBuilder.builder().build()
-        findbugs = project.tasks.add("findbugs", FindBugs)
+        findbugs = project.tasks.create("findbugs", FindBugs)
     }
 
     def "fails when errorCount greater than zero"() {

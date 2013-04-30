@@ -216,7 +216,7 @@ class JavaBasePluginTest extends Specification {
 
     def configuresTestTaskWhenDebugSystemPropertyIsSet() {
         javaBasePlugin.apply(project)
-        def task = project.tasks.add('test', Test.class)
+        def task = project.tasks.create('test', Test.class)
 
         when:
         System.setProperty("test.debug", "true")
@@ -228,7 +228,7 @@ class JavaBasePluginTest extends Specification {
 
     def configuresTestTaskWhenSingleTestSystemPropertyIsSet() {
         javaBasePlugin.apply(project)
-        def task = project.tasks.add('test', Test.class)
+        def task = project.tasks.create('test', Test.class)
         task.include 'ignoreme'
 
         when:

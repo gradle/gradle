@@ -69,6 +69,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task add(Map<String, ?> options) {
+        DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
         return create(options);
     }
 
@@ -77,6 +78,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task add(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
+        DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
         return create(options, configureClosure);
     }
 
@@ -85,6 +87,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public <T extends Task> T add(String name, Class<T> type) {
+        DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
         return create(name, type);
     }
 
@@ -107,6 +110,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task add(String name) {
+        DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
         return create(name);
     }
 
@@ -119,6 +123,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task add(String name, Closure configureClosure) {
+        DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
         return create(name, configureClosure);
     }
 

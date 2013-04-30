@@ -96,7 +96,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "configures any additional FindBugs tasks"() {
-        def task = project.tasks.add("findbugsCustom", FindBugs)
+        def task = project.tasks.create("findbugsCustom", FindBugs)
 
         expect:
         with(task) {
@@ -176,7 +176,7 @@ class FindBugsPluginTest extends Specification {
     }
     
     def "can customize any additional FindBugs tasks via extension"() {
-        def task = project.tasks.add("findbugsCustom", FindBugs)
+        def task = project.tasks.create("findbugsCustom", FindBugs)
         project.findbugs {
             reportsDir = project.file("findbugs-reports")
             ignoreFailures = true
