@@ -20,7 +20,7 @@ import java.io.File;
 /**
  * A change to an input file.
  */
-public interface InputFile {
+public interface InputFileDetails {
     /**
      * Was the file added?
      * @return true if the file was added since the last execution
