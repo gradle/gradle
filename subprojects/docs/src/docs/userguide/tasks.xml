@@ -40,7 +40,7 @@
             <sourcefile file="build.gradle"/>
         </sample>
         <para>Here we add tasks to the <literal>tasks</literal> collection. Have a look at
-            <apilink class="org.gradle.api.tasks.TaskContainer"/> for more variations of the <literal>add()</literal>
+            <apilink class="org.gradle.api.tasks.TaskContainer"/> for more variations of the <literal>create()</literal>
             method.</para>
     </section>
     <section>

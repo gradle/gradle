@@ -31,27 +31,27 @@ import static org.gradle.configuration.ImplicitTasksConfigurer.*
 class HelpTasksPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
-        project.implicitTasks.add(name: HELP_TASK, type: Help) {
+        project.implicitTasks.create(name: HELP_TASK, type: Help) {
             description = "Displays a help message"
             group = HELP_GROUP
         }
 
-        project.implicitTasks.add(name: PROJECTS_TASK, type: ProjectReportTask) {
+        project.implicitTasks.create(name: PROJECTS_TASK, type: ProjectReportTask) {
             description = "Displays the sub-projects of $project."
             group = HELP_GROUP
         }
 
-        project.implicitTasks.add(name: TASKS_TASK, type: TaskReportTask) {
+        project.implicitTasks.create(name: TASKS_TASK, type: TaskReportTask) {
             description = "Displays the tasks runnable from $project (some of the displayed tasks may belong to subprojects)."
             group = HELP_GROUP
         }
 
-        project.implicitTasks.add(name: PROPERTIES_TASK, type: PropertyReportTask) {
+        project.implicitTasks.create(name: PROPERTIES_TASK, type: PropertyReportTask) {
             description = "Displays the properties of $project."
             group = HELP_GROUP
         }
 
-        project.implicitTasks.add(name: DEPENDENCY_INSIGHT_TASK, type: DependencyInsightReportTask) { task ->
+        project.implicitTasks.create(name: DEPENDENCY_INSIGHT_TASK, type: DependencyInsightReportTask) { task ->
             description = "Displays the insight into a specific dependency in $project."
             group = HELP_GROUP
             project.plugins.withType(JavaPlugin) {
@@ -59,7 +59,7 @@ class HelpTasksPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        project.implicitTasks.add(name: DEPENDENCIES_TASK, type: DependencyReportTask) {
+        project.implicitTasks.create(name: DEPENDENCIES_TASK, type: DependencyReportTask) {
             description = "Displays all dependencies declared in $project."
             group = HELP_GROUP
         }

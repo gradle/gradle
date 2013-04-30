@@ -109,7 +109,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     private void configureSourceSetRule() {
         project.plugins.withType(basePlugin) {
             project.sourceSets.all { SourceSet sourceSet ->
-                T task = project.tasks.add(sourceSet.getTaskName(taskBaseName, null), taskType)
+                T task = project.tasks.create(sourceSet.getTaskName(taskBaseName, null), taskType)
                 configureForSourceSet(sourceSet, task)
             }
         }

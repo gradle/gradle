@@ -17,8 +17,16 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 
 class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
+
+    def setup(){
+        executer.usingSettingsFile(settingsFile)
+        settingsFile << "rootProject.projectDir = file('..')\n"
+        executer.withArgument("--stacktrace")
+    }
+
     def "can apply plugin class from settings.gradle"() {
         when:
         settingsFile << """
@@ -37,7 +45,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can apply plugin class from buildSrc"() {
         setup:
-        file("buildSrc/src/main/java/test/SimpleSettingsPlugin.java").createFile().text = """
+        file("settings/buildSrc/src/main/java/test/SimpleSettingsPlugin.java").createFile().text = """
             package test;
 
             import org.gradle.api.Plugin;
@@ -60,7 +68,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can apply script with relative path"() {
         setup:
-        def settingsPluginScript = testDirectory.createDir("somePath").createFile("settingsPlugin.gradle")
+        def settingsPluginScript = testDirectory.createFile("settings/somePath/settingsPlugin.gradle")
         settingsPluginScript << "include 'moduleA'";
 
         when:
@@ -68,5 +76,9 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds(':moduleA:dependencies')
+    }
+
+    protected TestFile getSettingsFile() {
+        testDirectory.file('settings/settings.gradle')
     }
 }

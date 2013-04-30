@@ -43,7 +43,7 @@ class JacocoPluginSpec extends Specification {
 
     def 'jacoco applied to specific JavaExec task'() {
         given:
-        JavaExec task = project.tasks.add('exec', JavaExec)
+        JavaExec task = project.tasks.create('exec', JavaExec)
         when:
         project.jacoco.applyTo(task)
         then:
@@ -52,7 +52,7 @@ class JacocoPluginSpec extends Specification {
 
     def 'jacoco applied to Test task'() {
         given:
-        Test task = project.tasks.add('customTest', Test)
+        Test task = project.tasks.create('customTest', Test)
         expect:
         task.extensions.getByType(JacocoTaskExtension) != null
     }

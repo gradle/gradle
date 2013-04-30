@@ -61,7 +61,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
     }
 
     private SonarAnalyze configureSonarTask(Project project) {
-        project.tasks.add(SONAR_ANALYZE_TASK_NAME, SonarAnalyze)
+        project.tasks.create(SONAR_ANALYZE_TASK_NAME, SonarAnalyze)
     }
 
     private SonarRootModel configureSonarRootModel(Project project) {

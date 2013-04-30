@@ -160,14 +160,10 @@
     <section>
         <title>Dependency management</title>
         <para>
-            Scala projects need to add a <literal>scala-library</literal> dependency to the appropriate compile configuration(s). This dependency will then
-            be used as a compile and runtime dependency for the project's Scala code. It will also be used to infer a <literal>scala-compiler</literal>
-            dependency for executing the Scala compiler and Scaladoc tool.
+            Scala projects need to declare a <literal>scala-library</literal> dependency. This dependency will then be used on compile and
+            runtime class paths. It will also be used to get hold of the Scala compiler and Scaladoc tool, respectively.
             <footnote>
-                More precisely, if a <literal>ScalaCompile</literal> or <literal>ScalaDoc</literal> task's <literal>scalaClasspath</literal> is empty,
-                and the project has at least one repository declared, the plugin searches the task's <literal>classpath</literal> for a
-                <literal>scala-library</literal> artifact, and adds a corresponding <literal>scala-compiler</literal> repository dependency to the
-                task's <literal>scalaClasspath</literal>.
+                <para>See <xref linkend="sec:configure_scala_classpath"/>.</para>
             </footnote>
         </para>
         <para>
@@ -179,12 +175,34 @@
         </sample>
         <para>
             If Scala is only used for test code, the <literal>scala-library</literal> dependency should be added to the <literal>testCompile</literal>
-            (but not the <literal>compile</literal>)
             configuration:
         </para>
         <sample id="declareScalaTestDependency" dir="userguide/scala/scalaDependency" title="Declaring a Scala dependency for test code">
             <sourcefile file="build.gradle" snippet="scala-test-dependency"/>
         </sample>
+    </section>
+
+    <section id="sec:configure_scala_classpath">
+        <title>Automatic configuration of scalaClasspath</title>
+        <para>
+            <literal>ScalaCompile</literal> and <literal>ScalaDoc</literal> tasks consume Scala in two ways: on their <literal>classpath</literal>,
+            and on their <literal>scalaClasspath</literal>. The former is used to locate classes referenced by the source code, and will typically
+            contain <literal>scala-library</literal> along with other libraries. The latter is used to load and execute the Scala compiler
+            and Scaladoc tool, respectively, and should only contain the <literal>scala-compiler</literal> library and its dependencies.
+        </para>
+        <para>
+            Unless a task's <literal>scalaClasspath</literal> is configured explicitly, the Scala (base) plugin will try to infer it
+            from the task's <literal>classpath</literal>. This is done as follows:
+            <itemizedlist>
+                <listitem>
+                    If a <literal>scala-library</literal> Jar is found on <literal>classpath</literal>, and the project has at least one repository declared,
+                    a corresponding <literal>scala-compiler</literal> repository dependency will be added to <literal>scalaClasspath</literal>.
+                </listitem>
+                <listitem>
+                    Otherwise, execution of the task will fail with a message saying that <literal>scalaClasspath</literal> could not be inferred.
+                </listitem>
+            </itemizedlist>
+        </para>
     </section>
 
     <section>

@@ -88,7 +88,7 @@ public class DefaultAntBuilder extends BasicAntBuilder {
         newAntTargets.removeAll(existingAntTargets)
         newAntTargets.each {name ->
             Target target = antProject.targets[name]
-            AntTarget task = gradleProject.tasks.add(target.name, AntTarget)
+            AntTarget task = gradleProject.tasks.create(target.name, AntTarget)
             task.target = target
             task.baseDir = baseDir
         }

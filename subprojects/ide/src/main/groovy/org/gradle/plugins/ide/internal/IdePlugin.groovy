@@ -55,7 +55,7 @@ public abstract class IdePlugin implements Plugin<Project> {
 
     protected void addWorker(Task worker, boolean includeInClean = true) {
         lifecycleTask.dependsOn(worker)
-        Delete cleanWorker = project.getTasks().add(cleanName(worker.getName()), Delete.class)
+        Delete cleanWorker = project.tasks.create(cleanName(worker.name), Delete.class)
         cleanWorker.delete(worker.getOutputs().getFiles())
         if (includeInClean) {
             cleanTask.dependsOn(cleanWorker)

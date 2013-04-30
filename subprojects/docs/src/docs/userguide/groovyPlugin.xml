@@ -153,21 +153,13 @@
 
     <section>
         <title>Dependency management</title>
-        <para>Because Gradle itself is partly implemented in Groovy, and its build language is also based on Groovy, Gradle already ships
-            with a Groovy library (1.8.6 as of Gradle 1.3). Nevertheless, Groovy projects need to explicitly add a Groovy dependency to
-            the appropriate configuration(s). This dependency, which can be the same or a different Groovy version than the one used internally by Gradle,
-            will then be used as a compile and runtime dependency for the project's Groovy code. It will also be used to execute the Groovy
-            compiler and Groovydoc tool, respectively.
-            <footnote>
-                More precisely, if a <literal>GroovyCompile</literal> or <literal>Groovydoc</literal> task's <literal>groovyClasspath</literal>
-                is empty, the plugin searches the task's <literal>classpath</literal> for a
-                <literal>groovy-all(-indy)</literal> or <literal>groovy(-indy)</literal> artifact. If it finds the former, it adds the same artifact
-                to <literal>groovyClasspath</literal>. If it finds the latter, and the project has at least one repository declared, the plugin adds
-                a corresponding repository dependency to <literal>groovyClasspath</literal>.
-            </footnote>
+        <para>Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships
+            with a Groovy library (1.8.6 as of Gradle 1.6). Nevertheless, Groovy projects need to explicitly declare a Groovy dependency.
+            This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler
+            and Groovydoc tool, respectively.
         </para>
         <para>
-            If Groovy is used both for production code, the Groovy dependency should be added to the <literal>compile</literal>
+            If Groovy is used for production code, the Groovy dependency should be added to the <literal>compile</literal>
             configuration:
         </para>
         <sample id="quickstartGroovyDependency" dir="groovy/quickstart" title="Configuration of Groovy dependency">
@@ -175,15 +167,15 @@
         </sample>
         <para>
             If Groovy is only used for test code, the Groovy dependency should be added to the <literal>testCompile</literal>
-            (but not the <literal>compile</literal>) configuration:
+            configuration:
         </para>
         <sample id="groovyTestDependency" dir="userguide/groovy/groovyDependency" title="Configuration of Groovy test dependency">
             <sourcefile file="build.gradle" snippet="groovy-test-dependency"/>
         </sample>
         <para>
-            To use the same Groovy library that ships with Gradle, declare a <literal>localGroovy()</literal> dependency. Note that
+            To use the Groovy library that ships with Gradle, declare a <literal>localGroovy()</literal> dependency. Note that
             different Gradle versions ship with different Groovy versions; as such, using <literal>localGroovy()</literal> is less
-            safe then explicitly choosing a Groovy version.
+            safe then declaring a regular Groovy dependency.
         </para>
         <sample id="bundledGroovyDependency" dir="userguide/groovy/groovyDependency" title="Configuration of bundled Groovy dependency">
             <sourcefile file="build.gradle" snippet="bundled-groovy-dependency"/>
@@ -197,29 +189,32 @@
     </section>
 
     <section>
-        <title>Adding custom GroovyCompile and Groovydoc tasks</title>
+        <title>Automatic configuration of groovyClasspath</title>
         <para>
-            When adding custom <literal>GroovyCompile</literal> and <literal>Groovydoc</literal> tasks, it's important to understand
-            that these tasks consume Groovy in two ways: on their <literal>classpath</literal>, and on their <literal>groovyClasspath</literal>.
-            The former is the regular class path required by these tools to locate referenced classes, and will typically contain more than
-            just the Groovy library. The latter is used to load the Groovy compiler and Groovydoc tool, respectively, and shouldn't contain anything
-            other than the Groovy library and its dependencies.
+            <literal>GroovyCompile</literal> and <literal>Groovydoc</literal> tasks consume Groovy in two ways: on their <literal>classpath</literal>,
+            and on their <literal>groovyClasspath</literal>. The former is used to locate classes referenced by the source code, and will typically
+            contain the Groovy library along with other libraries. The latter is used to load and execute the Groovy compiler and Groovydoc tool,
+            respectively, and should only contain the Groovy library and its dependencies.
         </para>
         <para>
-            Unless <literal>groovyClasspath</literal> is explicitly configured for a task, the Groovy (base) plugin will try to infer
-            the Groovy library to be used from the task's<literal>classpath</literal>. For example, if <literal>classpath</literal> contains
-            <literal>groovy-all-2.0.5.jar</literal>, the plugin will add the same dependency to <literal>groovyClasspath</literal>. If the project
-            has at least one repository defined, an external dependency will be added (e.g. <literal>"org.codehaus.groovy:groovy-all:2.0.5"</literal>);
-            otherwise, a file dependency will be added.
-        </para>
-        <para>
-            Note: When using the <literal>groovy</literal> rather than the <literal>groovy-all</literal> artifact, automatic configuration of
-            <literal>groovyClasspath</literal> will only work correctly if the project declares a repository that contains the <literal>groovy</literal>
-            artifact along with a descriptor (<filename>pom.xml</filename> or <filename>ivy.xml</filename>) listing its dependencies. Otherwise, only the
-            artifact itself will be added to <literal>groovyClasspath</literal>, which will likely result in a <literal>NoClassDefFoundError</literal>
-            during compilation.
+            Unless a task's <literal>groovyClasspath</literal> is configured explicitly, the Groovy (base) plugin will try to infer it
+            from the task's <literal>classpath</literal>. This is done as follows:
+            <itemizedlist>
+                <listitem>
+                    If a <literal>groovy-all(-indy)</literal> Jar is found on <literal>classpath</literal>, the same Jar will be added to
+                    <literal>groovyClasspath</literal>.
+                </listitem>
+                <listitem>
+                    If a <literal>groovy(-indy)</literal> Jar is found on <literal>classpath</literal>, and the project has at least one repository declared,
+                    a corresponding <literal>groovy(-indy)</literal> repository dependency will be added to <literal>groovyClasspath</literal>.
+                </listitem>
+                <listitem>
+                    Otherwise, execution of the task will fail with a message saying that <literal>groovyClasspath</literal> could not be inferred.
+                </listitem>
+            </itemizedlist>
         </para>
     </section>
+
     <section>
         <title>Convention properties</title>
         <para>The Groovy plugin does not add any convention properties to the project.</para>

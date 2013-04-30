@@ -101,7 +101,7 @@ class SonarRunnerPlugin implements Plugin<Project> {
 
     void apply(Project project) {
         targetProject = project
-        def sonarRunnerTask = project.tasks.add("sonarRunner", SonarRunner)
+        def sonarRunnerTask = project.tasks.create("sonarRunner", SonarRunner)
         sonarRunnerTask.conventionMapping.with {
             sonarProperties = {
                 def properties = new Properties()

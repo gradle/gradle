@@ -70,7 +70,7 @@ class PublishToIvyRepositoryTest extends Specification {
     }
 
     PublishToIvyRepository createPublish(String name) {
-        project.tasks.add(name, PublishToIvyRepository)
+        project.tasks.create(name, PublishToIvyRepository)
     }
 
 }

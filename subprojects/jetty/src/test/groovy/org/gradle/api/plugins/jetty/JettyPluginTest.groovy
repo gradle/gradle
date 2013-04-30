@@ -59,11 +59,11 @@ public class JettyPluginTest {
     public void addsMappingToNewJettyTasks() {
         new JettyPlugin().apply(project)
 
-        def task = project.tasks.add('customRun', JettyRun)
+        def task = project.tasks.create('customRun', JettyRun)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
-        task = project.tasks.add('customWar', JettyRunWar)
+        task = project.tasks.create('customWar', JettyRunWar)
         assertThat(task, dependsOn(WarPlugin.WAR_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
     }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.incremental.InputFile;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 
 import java.io.File;
 
@@ -33,16 +33,16 @@ public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs 
         return false;
     }
 
-    public void doOutOfDate(Action<? super InputFile> outOfDateAction) {
+    public void doOutOfDate(Action<? super InputFileDetails> outOfDateAction) {
         for (File file : task.getInputs().getFiles()) {
             outOfDateAction.execute(new RebuildInputFile(file));
         }
     }
 
-    public void doRemoved(Action<? super InputFile> removedAction) {
+    public void doRemoved(Action<? super InputFileDetails> removedAction) {
     }
 
-    private static class RebuildInputFile implements InputFile {
+    private static class RebuildInputFile implements InputFileDetails {
         private final File file;
 
         private RebuildInputFile(File file) {

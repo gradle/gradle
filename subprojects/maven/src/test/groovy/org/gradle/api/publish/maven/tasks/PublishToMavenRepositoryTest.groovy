@@ -25,7 +25,7 @@ class PublishToMavenRepositoryTest extends Specification {
 
     def "can instantiate"() {
         when:
-        project.tasks.add("task", PublishToMavenRepository)
+        project.tasks.create("task", PublishToMavenRepository)
 
         then:
         true

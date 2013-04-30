@@ -94,7 +94,7 @@ public class ScalaBasePluginTest {
 
     @Test void preconfiguresIncrementalCompileOptions() {
         project.sourceSets.create('custom')
-        project.tasks.add('customJar', Jar)
+        project.tasks.create('customJar', Jar)
         ScalaCompile task = project.tasks['compileCustomScala']
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
@@ -104,7 +104,7 @@ public class ScalaBasePluginTest {
 
     @Test void incrementalCompileOptionsCanBeOverridden() {
         project.sourceSets.create('custom')
-        project.tasks.add('customJar', Jar)
+        project.tasks.create('customJar', Jar)
         ScalaCompile task = project.tasks['compileCustomScala']
         task.scalaCompileOptions.incrementalOptions.analysisFile = new File("/my/file")
         task.scalaCompileOptions.incrementalOptions.publishedCode = new File("/my/published/code.jar")

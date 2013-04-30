@@ -10,14 +10,14 @@ buildscript {
 }
 
 import org.jsoup.nodes.Element
+import org.jsoup.nodes.TextNode
 import org.jsoup.select.Elements
 import com.uwyn.jhighlight.renderer.XhtmlRendererFactory
 
-ext {
-    baseStyleFile = project.file("$project.cssFiles.dir/base.css")
-    releaseNotesStyleFile = project.file("$project.cssFiles.dir/release-notes.css")
-    scriptFile = project.file("src/docs/release/content/script.js")
-}
+def baseStyleFile = project.file("$project.cssFiles.dir/base.css")
+def releaseNotesStyleFile = project.file("$project.cssFiles.dir/release-notes.css")
+def scriptFile = project.file("src/docs/release/content/script.js")
+def incubatingMarker = " (i)"
 
 inputs.files([project.cssFiles, baseStyleFile, releaseNotesStyleFile, project.configurations.jquery, scriptFile])
 
@@ -62,12 +62,13 @@ transformDocument {
     }
 }
 
+// replace the incubating marker in h3 with class
 transformDocument {
-    def incubatingMarker = " (i)"
     for (heading in body().select(".topic").select("h3")) {
-        if (heading.text().endsWith(incubatingMarker)) {
-            heading.text(heading.text() - incubatingMarker).addClass("incubating")
-            heading.append(" <a class='incubating-marker' href='userguide/feature_lifecycle.html' title='“incubating” features are not yet guaranteed to be backwards compatible<br />(click for more information)'>incubating feature</a>")
+        def textNode = heading.childNodes().last()
+        if (textNode instanceof TextNode && textNode.text().endsWith(incubatingMarker)) {
+            textNode.text(textNode.text() - incubatingMarker)
+            heading.addClass("incubating")
         }
     }
 }
@@ -147,12 +148,18 @@ transformDocument {
         if (subs) {
             def sublist = toc.children().last().append("<ul class='toc-sub'/>").children().last()
             subs.each {
-                def subName = it.text()
+                def subName = it.html()
                 def subAnchorName = it.attr("id")
-                sublist.append("<li><a/></li>").children().last().select("a").first().text(subName).attr("href", "#$subAnchorName")
+                sublist.append("<li><a/></li>").children().last().select("a").first().html(subName).attr("href", "#$subAnchorName")
             }
         }
+    }
+}
 
+// add a tooltip to all h3 marked incubating
+transformDocument {
+    for (heading in body().select(".incubating").select("h3")) {
+        heading.append(" <a class='incubating-marker' href='userguide/feature_lifecycle.html' title='“incubating” features are not yet guaranteed to be backwards compatible<br />(click for more information)'>incubating feature</a>")
     }
 }
 

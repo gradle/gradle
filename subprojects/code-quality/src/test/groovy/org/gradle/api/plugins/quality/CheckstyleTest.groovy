@@ -23,7 +23,7 @@ import spock.lang.Specification
 class CheckstyleTest extends Specification {
     def "default configuration"() {
         def project = ProjectBuilder.builder().build()
-        def checkstyle = project.tasks.add("checkstyle", Checkstyle)
+        def checkstyle = project.tasks.create("checkstyle", Checkstyle)
 
         expect:
         with(checkstyle) {

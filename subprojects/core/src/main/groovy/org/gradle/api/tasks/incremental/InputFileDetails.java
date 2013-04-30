@@ -15,12 +15,15 @@
  */
 package org.gradle.api.tasks.incremental;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 
 /**
  * A change to an input file.
  */
-public interface InputFile {
+@Incubating
+public interface InputFileDetails {
     /**
      * Was the file added?
      * @return true if the file was added since the last execution

@@ -100,7 +100,7 @@ public interface IncrementalTaskInputs {
      * </p>
      * @throws IllegalStateException on second and subsequent invocations.
      */
-    void outOfDate(Action<? super InputFile> outOfDateAction);
+    void outOfDate(Action<? super InputFileDetails> outOfDateAction);
 
     /**
      * Executes the action for all of the input files that were removed since the previous task execution. The action may also be supplied as a {@link groovy.lang.Closure}.
@@ -115,6 +115,6 @@ public interface IncrementalTaskInputs {
      * </p>
      * @throws IllegalStateException if invoked prior to {@link #outOfDate}, or if invoked more than once.
      */
-    void removed(Action<? super InputFile> removedAction);
+    void removed(Action<? super InputFileDetails> removedAction);
 
 }

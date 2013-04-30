@@ -48,7 +48,7 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
                     def name = it - "autoCreate"
                     name = name[0].toLowerCase() + name[1..-1]
                     if (tasks.findByName(name)) {
-                        project.tasks.add(it)
+                        project.tasks.create(it)
                     }
                 }
             }

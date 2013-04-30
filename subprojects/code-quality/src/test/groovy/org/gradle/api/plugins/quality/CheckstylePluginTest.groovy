@@ -88,7 +88,7 @@ class CheckstylePluginTest extends Specification {
     }
     
     def "configures any additional checkstyle tasks"() {
-        def task = project.tasks.add("checkstyleCustom", Checkstyle)
+        def task = project.tasks.create("checkstyleCustom", Checkstyle)
 
         expect:
         task.description == null
@@ -153,7 +153,7 @@ class CheckstylePluginTest extends Specification {
     }
     
     def "can customize any additional checkstyle tasks via extension"() {
-        def task = project.tasks.add("checkstyleCustom", Checkstyle)
+        def task = project.tasks.create("checkstyleCustom", Checkstyle)
         project.checkstyle {
             configFile = project.file("checkstyle-config")
             configProperties = [foo: "foo"]

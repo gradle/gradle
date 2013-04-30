@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.tasks.incremental.InputFile;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 
-class InputFileChange extends FileChange implements InputFile {
+class InputFileChange extends FileChange implements InputFileDetails {
 
     public InputFileChange(String path, ChangeType change) {
         super(path, change);
