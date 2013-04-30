@@ -226,9 +226,24 @@ Therefore, the `groovy` configuration is now deprecated. Simply replace `groovy`
         compile "org.codehaus.groovy:groovy-all:2.0.6"
     }
 
-In some cases (for example if the Groovy Jar has been renamed), it may also be necessary to explicitly configure the `groovyClasspath` of `GroovyCompile` and `Groovydoc` tasks.
+In some cases (for example if a renamed Groovy Jar is used), it may be necessary to additionally configure the `groovyClasspath` of `GroovyCompile` and `Groovydoc` tasks.
 
-For additional background information about this change, see the [Groovy chapter](userguide/groovy_plugin.html#N1289B) of the Gradle user guide.
+For additional background information about this change, see the [Groovy chapter](userguide/groovy_plugin.html) of the Gradle user guide.
+
+### `scalaTools` configuration is deprecated
+
+Since Gradle 1.4, the Scala compiler to be used is inferred from the `scala-library` dependency added to the `compile` (or `testCompile`) configuration.
+Therefore, the `scalaTools` configuration is now deprecated. Simply remove any `scalaTools` dependency declaration and just declare a `scala-library`
+compile (or `testCompile`) dependency:
+
+    dependencies {
+        compile "org.scala-lang:scala-library:2.10.1"
+    }
+
+In some cases (for example if the inferred `scala-compiler` dependency isn't available from any of the declared repositories),
+it may be necessary to additionally configure the `scalaClasspath` of `ScalaCompile` and `ScalaDoc` tasks.
+
+For additional background information about this change, see the [Scala chapter](userguide/scala_plugin.html) of the Gradle user guide.
 
 ### Renamed several `add()` methods
 
