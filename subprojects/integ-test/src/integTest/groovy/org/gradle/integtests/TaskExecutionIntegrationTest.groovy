@@ -231,12 +231,12 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(':d', ':b', ':a', ':c')
     }
 
-    def "finaliser task is executed if a finalised task is executed"() {
+    def "finalizer task is executed if a finalized task is executed"() {
         buildFile << """
     task a
     task b {
         doLast {}
-        finalisedBy a
+        finalizedBy a
     }
 """
         when:
@@ -246,12 +246,12 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         ":a" in executedTasks
     }
 
-    def "finaliser task is executed even if the build fails"() {
+    def "finalizer task is executed even if the build fails"() {
         buildFile << """
     task a
     task b  {
         doLast { throw new RuntimeException() }
-        finalisedBy a
+        finalizedBy a
     }
 """
         when:
@@ -261,12 +261,12 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         ":a" in executedTasks
     }
 
-    def "finaliser task is not executed if the finalised task does not do any work"() {
+    def "finalizer task is not executed if the finalized task does not do any work"() {
         buildFile << """
     task a
     task b {
         doLast {}
-        finalisedBy a
+        finalizedBy a
         onlyIf { false }
     }
 """

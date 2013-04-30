@@ -47,7 +47,7 @@
                 <td>mustRunAfter</td>
             </tr>
             <tr>
-                <td>finalisedBy</td>
+                <td>finalizedBy</td>
             </tr>
             <tr>
                 <td>state</td>
@@ -84,7 +84,7 @@
                 <td>mustRunAfter</td>
             </tr>
             <tr>
-                <td>finalisedBy</td>
+                <td>finalizedBy</td>
             </tr>
             <tr>
                 <td>onlyIf</td>

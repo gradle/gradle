@@ -6,4 +6,4 @@ task taskY << {
     println 'taskY'
 }
 
-taskX.finalisedBy taskY
+taskX.finalizedBy taskY

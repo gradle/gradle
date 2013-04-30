@@ -200,120 +200,120 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executedTasks == [b]
     }
 
-    def "finaliser tasks are executed if a finalised task is added to the graph"() {
-        Task finaliser = task("a")
-        Task finalised = task("b", finalisedBy: [finaliser])
+    def "finalizer tasks are executed if a finalized task is added to the graph"() {
+        Task finalizer = task("a")
+        Task finalized = task("b", finalizedBy: [finalizer])
 
         when:
-        addToGraphAndPopulate([finalised])
+        addToGraphAndPopulate([finalized])
 
         then:
-        executedTasks == [finalised, finaliser]
+        executedTasks == [finalized, finalizer]
     }
 
-    def "finaliser tasks are executed after the finalised task"() {
-        Task finaliser = task("finaliser")
-        Task finalised = task("finalised", finalisedBy: [finaliser])
+    def "finalizer tasks are executed after the finalized task"() {
+        Task finalizer = task("finalizer")
+        Task finalized = task("finalized", finalizedBy: [finalizer])
 
         when:
-        addToGraphAndPopulate([finaliser, finalised])
+        addToGraphAndPopulate([finalizer, finalized])
 
         then:
-        executedTasks == [finalised, finaliser]
+        executedTasks == [finalized, finalizer]
     }
 
-    def "finaliser tasks and their dependencies are executed even in case of a task failure"() {
-        Task finaliserDependency = task("finaliserDependency")
-        Task finaliser1 = task("finaliser1", dependsOn: [finaliserDependency])
-        Task finalised1 = task("finalised1", finalisedBy: [finaliser1])
-        Task finaliser2 = task("finaliser2")
-        Task finalised2 = task("finalised2", finalisedBy: [finaliser2], failure: new RuntimeException("failure"))
+    def "finalizer tasks and their dependencies are executed even in case of a task failure"() {
+        Task finalizerDependency = task("finalizerDependency")
+        Task finalizer1 = task("finalizer1", dependsOn: [finalizerDependency])
+        Task finalized1 = task("finalized1", finalizedBy: [finalizer1])
+        Task finalizer2 = task("finalizer2")
+        Task finalized2 = task("finalized2", finalizedBy: [finalizer2], failure: new RuntimeException("failure"))
 
         when:
-        addToGraphAndPopulate([finalised1, finalised2])
+        addToGraphAndPopulate([finalized1, finalized2])
 
         then:
-        executedTasks == [finalised1, finalised2, finaliserDependency, finaliser1, finaliser2]
+        executedTasks == [finalized1, finalized2, finalizerDependency, finalizer1, finalizer2]
     }
 
-    def "finaliser task is not added to the graph if it is filtered"() {
+    def "finalizer task is not added to the graph if it is filtered"() {
         given:
-        Task finaliser = filteredTask("finaliser")
-        Task finalised = task("finalised", finalisedBy: [finaliser])
+        Task finalizer = filteredTask("finalizer")
+        Task finalized = task("finalized", finalizedBy: [finalizer])
         Spec<Task> filter = Mock() {
-            isSatisfiedBy(_) >> { Task t -> t != finaliser }
+            isSatisfiedBy(_) >> { Task t -> t != finalizer }
         }
 
         when:
         executionPlan.useFilter(filter);
-        addToGraphAndPopulate([finalised])
+        addToGraphAndPopulate([finalized])
 
         then:
-        executionPlan.getTasks() == [finalised]
-        executedTasks == [finalised]
+        executionPlan.getTasks() == [finalized]
+        executedTasks == [finalized]
     }
 
-    def "finaliser tasks and their dependencies are not executed if finalised task did not do any work"() {
-        Task finaliserDependency = task("finaliserDependency")
-        Task finaliser = task("finaliser", dependsOn: [finaliserDependency])
-        Task finalised = task("finalised", finalisedBy: [finaliser], didWork: false)
+    def "finalizer tasks and their dependencies are not executed if finalized task did not do any work"() {
+        Task finalizerDependency = task("finalizerDependency")
+        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
 
         when:
-        addToGraphAndPopulate([finalised])
+        addToGraphAndPopulate([finalized])
 
         then:
-        executedTasks == [finalised]
+        executedTasks == [finalized]
     }
 
-    def "finaliser tasks and their dependencies are executed if they are previously required even if the finalised task did not do any work"() {
-        Task finaliserDependency = task("finaliserDependency")
-        Task finaliser = task("finaliser", dependsOn: [finaliserDependency])
-        Task finalised = task("finalised", finalisedBy: [finaliser], didWork: false)
+    def "finalizer tasks and their dependencies are executed if they are previously required even if the finalized task did not do any work"() {
+        Task finalizerDependency = task("finalizerDependency")
+        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
 
         when:
-        addToGraphAndPopulate([finaliser, finalised])
+        addToGraphAndPopulate([finalizer, finalized])
 
         then:
-        executedTasks == [finalised, finaliserDependency, finaliser]
+        executedTasks == [finalized, finalizerDependency, finalizer]
     }
 
-    def "finaliser tasks and their dependencies are executed if they are later required via dependency even if the finalised task did not do any work"() {
-        Task finaliserDependency = task("finaliserDependency")
-        Task finaliser = task("finaliser", dependsOn: [finaliserDependency])
-        Task dependsOnFinaliser = task("dependsOnFinaliser", dependsOn: [finaliser])
-        Task finalised = task("finalised", finalisedBy: [finaliser], didWork: false)
+    def "finalizer tasks and their dependencies are executed if they are later required via dependency even if the finalized task did not do any work"() {
+        Task finalizerDependency = task("finalizerDependency")
+        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        Task dependsOnFinalizer = task("dependsOnFinalizer", dependsOn: [finalizer])
+        Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
 
         when:
-        executionPlan.addToTaskGraph([finalised])
-        executionPlan.addToTaskGraph([dependsOnFinaliser])
+        executionPlan.addToTaskGraph([finalized])
+        executionPlan.addToTaskGraph([dependsOnFinalizer])
         executionPlan.determineExecutionPlan()
 
         then:
-        executedTasks == [finalised, finaliserDependency, finaliser, dependsOnFinaliser]
+        executedTasks == [finalized, finalizerDependency, finalizer, dependsOnFinalizer]
     }
 
-    def "finaliser tasks run as soon as possible for tasks that depend on finalised tasks"() {
-        Task finaliser = task("finaliser")
-        Task finalised = task("finalised", finalisedBy: [finaliser])
-        Task dependsOnFinalised = task("dependsOnFinalised", dependsOn: [finalised])
+    def "finalizer tasks run as soon as possible for tasks that depend on finalized tasks"() {
+        Task finalizer = task("finalizer")
+        Task finalized = task("finalized", finalizedBy: [finalizer])
+        Task dependsOnFinalized = task("dependsOnFinalized", dependsOn: [finalized])
 
         when:
-        addToGraphAndPopulate([dependsOnFinalised])
+        addToGraphAndPopulate([dependsOnFinalized])
 
         then:
-        executedTasks == [finalised, finaliser, dependsOnFinalised]
+        executedTasks == [finalized, finalizer, dependsOnFinalized]
     }
 
-    def "finaliser tasks run as soon as possible for tasks that must run after finalised tasks"() {
-        Task finaliser = task("finaliser")
-        Task finalised = task("finalised", finalisedBy: [finaliser])
-        Task mustRunAfterFinalised = task("mustRunAfterFinalised", mustRunAfter: [finalised])
+    def "finalizer tasks run as soon as possible for tasks that must run after finalized tasks"() {
+        Task finalizer = task("finalizer")
+        Task finalized = task("finalized", finalizedBy: [finalizer])
+        Task mustRunAfterFinalized = task("mustRunAfterFinalized", mustRunAfter: [finalized])
 
         when:
-        addToGraphAndPopulate([mustRunAfterFinalised, finalised])
+        addToGraphAndPopulate([mustRunAfterFinalized, finalized])
 
         then:
-        executedTasks == [finalised, finaliser, mustRunAfterFinalised]
+        executedTasks == [finalized, finalizer, mustRunAfterFinalized]
     }
 
     def "getAllTasks returns tasks in execution order"() {
@@ -726,8 +726,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         task.getMustRunAfter() >> taskDependencyResolvingTo(task, mustRunAfterTasks)
     }
 
-    private void finalisedBy(TaskInternal task, List<Task> finalisedByTasks) {
-        task.getFinalisedBy() >> taskDependencyResolvingTo(task, finalisedByTasks)
+    private void finalizedBy(TaskInternal task, List<Task> finalizedByTasks) {
+        task.getFinalizedBy() >> taskDependencyResolvingTo(task, finalizedByTasks)
     }
 
     private void failure(TaskInternal task, final RuntimeException failure) {
@@ -752,14 +752,14 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     private void relationships(Map options, TaskInternal task) {
         dependsOn(task, options.dependsOn ?: [])
         mustRunAfter(task, options.mustRunAfter ?: [])
-        finalisedBy(task, options.finalisedBy ?: [])
+        finalizedBy(task, options.finalizedBy ?: [])
     }
 
     private TaskInternal filteredTask(final String name) {
         def task = createTask(name);
         task.getTaskDependencies() >> brokenDependencies()
         task.getMustRunAfter() >> brokenDependencies()
-        task.getFinalisedBy() >> taskDependencyResolvingTo(task, [])
+        task.getFinalizedBy() >> taskDependencyResolvingTo(task, [])
         return task
     }
 

@@ -359,28 +359,28 @@
     </section>
 
     <section>
-        <title>Finaliser tasks</title>
+        <title>Finalizer tasks</title>
         <note>
             <para>
-                Finalisers tasks are an <firstterm>incubating</firstterm> feature (see <xref linkend="sec:incubating_state"/>).
+                Finalizers tasks are an <firstterm>incubating</firstterm> feature (see <xref linkend="sec:incubating_state"/>).
             </para>
         </note>
-        <para>Finaliser tasks are automatically added to the task graph when the finalised task is scheduled to run.</para>
-        <sample id="taskFinalisers" dir="userguide/tasks/finalisers" title="Adding a task finaliser">
+        <para>Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.</para>
+        <sample id="taskFinalizers" dir="userguide/tasks/finalizers" title="Adding a task finalizer">
             <sourcefile file="build.gradle"/>
             <output args="-q taskX"/>
         </sample>
-        <para>Finaliser task will be executed even if the finalised task fails.</para>
-        <sample id="taskFinalisersWithFailure" dir="userguide/tasks/finalisersWithFailure" title="Task finaliser for a failing task">
+        <para>Finalizer task will be executed even if the finalized task fails.</para>
+        <sample id="taskFinalizersWithFailure" dir="userguide/tasks/finalizersWithFailure" title="Task finalizer for a failing task">
             <sourcefile file="build.gradle"/>
             <output args="-q taskX"/>
         </sample>
-        <para>On the other hand, finaliser tasks are not executed if the finalised task didn't do any work, for example due to failed
+        <para>On the other hand, finalizer tasks are not executed if the finalized task didn't do any work, for example due to failed
             task dependency or if it's considered up to date.</para>
-        <para>Finaliser tasks are useful in situations where build creates a resource that has to be cleaned up regardless
+        <para>Finalizer tasks are useful in situations where build creates a resource that has to be cleaned up regardless
             of the build failing or succeeding. An example of such resource is a web container started before an integration test task
             and which should be always shut down, even if some of the tests fail.</para>
-        <para>To specify a finaliser task you use the <apilink class="org.gradle.api.Task" method="finalisedBy"/> method.
+        <para>To specify a finalizer task you use the <apilink class="org.gradle.api.Task" method="finalizedBy"/> method.
             This method accepts a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
         </para>
     </section>

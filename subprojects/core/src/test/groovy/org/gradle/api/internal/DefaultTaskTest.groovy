@@ -102,23 +102,23 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    public void testFinalisedBy() {
-        Task finaliser = createTask(project, "finaliser")
-        Task finaliserFromPath = project.getTasks().create("path")
-        Task finalised = createTask(project, TEST_TASK_NAME)
+    public void testFinalizedBy() {
+        Task finalizer = createTask(project, "finalizer")
+        Task finalizerFromPath = project.getTasks().create("path")
+        Task finalized = createTask(project, TEST_TASK_NAME)
 
-        finalised.finalisedBy(finaliser, "path")
-        assert finalised.finalisedBy.getDependencies(finalised) == [finaliser, finaliserFromPath] as Set
+        finalized.finalizedBy(finalizer, "path")
+        assert finalized.finalizedBy.getDependencies(finalized) == [finalizer, finalizerFromPath] as Set
     }
 
     @Test
-    public void testSetFinalisedBy() {
-        Task finaliser = createTask(project, "finaliser")
-        Task finaliserFromPath = project.getTasks().create("path")
-        Task finalised = createTask(project, TEST_TASK_NAME)
+    public void testSetFinalizedBy() {
+        Task finalizer = createTask(project, "finalizer")
+        Task finalizerFromPath = project.getTasks().create("path")
+        Task finalized = createTask(project, TEST_TASK_NAME)
 
-        finalised.finalisedBy = [finaliser, "path"]
-        assert finalised.finalisedBy.getDependencies(finalised) == [finaliser, finaliserFromPath] as Set
+        finalized.finalizedBy = [finalizer, "path"]
+        assert finalized.finalizedBy.getDependencies(finalized) == [finalizer, finalizerFromPath] as Set
     }
 
     @Test
