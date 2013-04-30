@@ -89,7 +89,6 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         customSettings << """
 include 'child'
 """
-
         when:
         executer.usingSettingsFile(customSettings)
         def executed = run('setupBuild')
@@ -97,6 +96,48 @@ include 'child'
         then:
         executed.assertTasksExecuted(":setupBuild")
         executed.output.contains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
+    }
+
+    def "pom conversion is triggered when pom and no gradle file found"() {
+        setup:
+        file("pom.xml") << """
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>util</groupId>
+  <artifactId>util</artifactId>
+  <version>2.5</version>
+  <packaging>jar</packaging>
+</project>"""
+        when:
+//            def executed = succeeds('setupBuild', '--type', 'java-library"')
+        def executed = succeeds('setupBuild')
+        then:
+        executed.assertTasksExecuted(":maven2Gradle", ":wrapper", ":setupBuild")
+    }
+
+    def "pom conversion not triggered when setupBuild-type passed"() {
+        setup:
+        file("pom.xml") << """
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>util</groupId>
+  <artifactId>util</artifactId>
+  <version>2.5</version>
+  <packaging>jar</packaging>
+</project>"""
+        when:
+        def executed = succeeds('setupBuild', '--type', 'java-library')
+        then:
+        executed.assertTasksExecuted(":generateBuildFile", ":generateSettingsFile", ":setupProjectLayout", ":wrapper", ":setupBuild")
+    }
+
+    def "gives decent error message when triggered with unknown setupBuild-type"() {
+        when:
+        fails('setupBuild', '--type', 'some-unknown-library')
+        then:
+        errorOutput.contains("Declared setup-type 'some-unknown-library' is not supported.")
     }
 
     private def wrapperIsGenerated() {

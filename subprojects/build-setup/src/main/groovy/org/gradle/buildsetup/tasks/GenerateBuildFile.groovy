@@ -32,7 +32,7 @@ class GenerateBuildFile extends TextFileGenerationTask {
     @Inject
     public GenerateBuildFile(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
-        templateURL = GenerateSettingsFile.class.getResource("/org/gradle/buildsetup/tasks/templates/build.gradle.template")
+        templateURL = GenerateBuildFile.class.getResource("/org/gradle/buildsetup/tasks/templates/build.gradle.template")
     }
 
     @Override
