@@ -24,7 +24,6 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
     def setup(){
         executer.usingSettingsFile(settingsFile)
         settingsFile << "rootProject.projectDir = file('..')\n"
-        executer.withArgument("--stacktrace")
     }
 
     def "can apply plugin class from settings.gradle"() {
