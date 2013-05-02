@@ -39,10 +39,11 @@
         the build-setup plugin.
 
         If a pom.xml file is found in the project directory, a task of type <apilink class="org.gradle.buildsetup.tasks.ConvertMaven2Gradle"/>
-        is added to the <literal>setupBuild</literal> lifecycle. Furthermore a <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/> task is part of the
-        <literal>setupBuild</literal> lifecycle that generates all files needed to run the build using the Gradle Wrapper.
-        Details about the Gradle Wrapper can be found in the according chapter <xref linkend='gradle_wrapper'/>
+        is added to the <literal>setupBuild</literal> lifecycle. Furthermore the <literal>setupBuild</literal> lifecycle task adds a dependency to the
+        <literal>wrapper</literal> task which is implicitly added by the <xref linkend='wrapper_plugin'/>.
     </para>
+    <section>
+        <title>Tasks</title>
     <para>The build-setup plugin adds the following tasks to the project:</para>
             <table>
                 <title>Build Setup plugin - tasks</title>
@@ -59,7 +60,7 @@
                         <literal>buildSetup</literal>
                     </td>
                     <td>
-                        <literal>maven2Gradle</literal>, <literal>generateBuildFile</literal>, <literal>generateSettingsFile</literal>, <literal>setupWrapper</literal>
+                        <literal>maven2Gradle</literal>, <literal>generateBuildFile</literal>, <literal>generateSettingsFile</literal>, <literal>wrapper</literal>
                     </td>
                     <td>lifecycle task (no actions)</td>
                     <td>Generates a Gradle project.</td>
@@ -100,7 +101,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <literal>setupWrapper</literal>
+                        <literal>wrapper</literal>
                     </td>
                     <td>-</td>
                     <td>
@@ -118,7 +119,7 @@
         founded and maintained by recognized leaders of Gradle community;
         created by Baruch Sadogursky with contributions from Antony Stubbs, Matthew McCullough and others.
     </para>
-
+    </section>
     <section>
         <title>Maven conversion - features</title>
         <itemizedlist>
@@ -146,10 +147,7 @@
             only if it finds modules in first project it encounters.
             Making reactor also a parent achieves this.
         </para>
-    </section>
 
-    <section>
-        <title>Usage</title>
         <para>To convert a Maven project follow the steps:</para>
         <itemizedlist>
             <listitem>Make sure your Maven project builds and uses maven3.</listitem>
