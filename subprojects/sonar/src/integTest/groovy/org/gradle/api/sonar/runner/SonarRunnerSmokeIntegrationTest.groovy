@@ -22,11 +22,14 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.ServletContainer
 import org.gradle.util.AvailablePortFinder
 import org.gradle.util.ClasspathUtil
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 
+@Requires(TestPrecondition.JDK6)
 class SonarRunnerSmokeIntegrationTest extends AbstractIntegrationSpec {
     @Shared
     AvailablePortFinder portFinder = AvailablePortFinder.createPrivate()
