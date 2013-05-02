@@ -63,7 +63,7 @@ check.dependsOn(integTest)
 
 ['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
     def taskName = "${mode}IntegTest"
-    tasks.add(taskName, Test).configure {
+    tasks.create(taskName, Test).configure {
         systemProperties['org.gradle.integtest.executer'] = mode
     }
 }
