@@ -23,7 +23,7 @@ dependencies {
     compile libraries.groovy
 
     // Sonar Runner plugin
-    compile "org.codehaus.sonar.runner:sonar-runner-api:2.2"
+    compile "org.codehaus.sonar-plugins:sonar-runner:2.0"
     // version number is part of module name, to allow for multiple versions on same class path
     integTestRuntime "org.gradle.sonar:sonar-server-3.2:3.2@war"
     integTestRuntime "org.gradle.sonar:sonar-test-server-home-dir-3.2:3.2@zip"

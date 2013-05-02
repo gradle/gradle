@@ -20,7 +20,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.TaskAction
-import org.sonar.runner.api.EmbeddedRunner
+import org.sonar.runner.Runner
 
 /**
  * Analyses one or more projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">
@@ -48,8 +48,7 @@ class SonarRunner extends DefaultTask {
             LOGGER.info("Executing Sonar Runner with properties:\n{}",
                     properties.sort().collect { key, value -> "$key: $value" }.join("\n"))
         }
-        def runner = EmbeddedRunner.create()
-        runner.addProperties(properties)
+        def runner = Runner.create(properties)
         runner.execute()
     }
 }
