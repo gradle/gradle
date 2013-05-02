@@ -179,7 +179,7 @@
         <title>Some Groovy basics</title>
         <para>Groovy provides plenty of features for creating DSLs, and the Gradle build language takes advantage of these.
             Understanding how the build language works will help you when you write your build script, and in particular,
-            when you start to write customs plugins and tasks.
+            when you start to write custom plugins and tasks.
         </para>
         <section>
             <title>Groovy JDK</title>
