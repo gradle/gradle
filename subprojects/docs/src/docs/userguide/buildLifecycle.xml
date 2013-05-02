@@ -66,7 +66,7 @@
         <title>Settings file</title>
         <para>Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle
             via a naming convention. The default name for this file is <filename>settings.gradle</filename>. Later in
-            this chapter we explain, how Gradle looks for a settings file.
+            this chapter we explain how Gradle looks for a settings file.
         </para>
         <para>The settings file gets executed during the initialization phase. A multiproject build must have a
             <filename>settings.gradle</filename>
@@ -130,7 +130,7 @@
                     <sourcefile file="settings.gradle" snippet="flat-layout"/>
                 </sample>
                 <para>The <literal>includeFlat</literal> method takes directory names as an argument. Those directories
-                    need to exist at the same level as the root project directory. The location of those directories
+                    need to exist as siblings of the root project directory. The location of those directories
                     are considered as child projects of the root project in the multi-project tree.
                 </para>
             </section>
