@@ -43,6 +43,9 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         extension.with {
             toolVersion = "0.18"
             configFile = project.rootProject.file("config/codenarc/codenarc.xml")
+            maxPriority1Violations = 0
+            maxPriority2Violations = 0
+            maxPriority3Violations = 0
             reportFormat = "html"
         }
         return extension
@@ -61,6 +64,9 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
                 config
             }
             configFile = { extension.configFile }
+            maxPriority1Violations = { extension.maxPriority1Violations }
+            maxPriority2Violations = { extension.maxPriority2Violations }
+            maxPriority3Violations = { extension.maxPriority3Violations }
             ignoreFailures = { extension.ignoreFailures }
         }
 
