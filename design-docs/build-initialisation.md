@@ -197,6 +197,16 @@ From the command-line:
 * Decent error message when a POM cannot be parsed (this is adding more coverage for a previous story).
 * Update existing test coverage to verify that every generated `settings.gradle` sets the root project name.
 
+# Story: Build setup tasks can be referenced using camel-case abbreviations
+
+* Improve the tasks selection mechanism so that it takes placeholders into account. The implementation must not trigger creation of the tasks,
+  unless the task is actually selected.
+
+## Test coverage
+
+* Can run `gradle setB` or `gradle wrap`
+* When a build script defines a `wrap` task, then calling `gradle wrap` does not apply the `wrapper` plugin.
+
 # Story: Update the user guide Java tutorial to use the `setupBuild` task
 
 # Story: Gradle help message informs user how to setup a build
