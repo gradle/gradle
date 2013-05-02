@@ -62,7 +62,7 @@
                     <td>
                         <literal>maven2Gradle</literal>, <literal>generateBuildFile</literal>, <literal>generateSettingsFile</literal>, <literal>wrapper</literal>
                     </td>
-                    <td>lifecycle task (no actions)</td>
+                    <td><apilink class="org.gradle.buildsetup.tasks.SetupBuild"/> - lifecycle task (no actions)</td>
                     <td>Generates a Gradle project.</td>
                 </tr>
                 <tr>
@@ -155,5 +155,27 @@
             <listitem>Run <code>gradle setupBuild</code> in your project directory.
                 You should see that the <code>maven2Gradle</code> task is executed as a dependency on setupBuild.</listitem>
         </itemizedlist>
+    </section>
+    <section>
+        <title>Generate specific project types</title>
+        <para>
+            The build-setup plugin allows the generation of specific project types by passing the type via <literal>--type</literal> command-line option.
+            For example generating a java library project you can run <code>gradle buildSetup --type java-library</code> in an empty directory.
+            When passing a <literal>--type</literal> parameter to the <literal>buildSetup</literal> task, any pom file is ignored and the <literal>maven2Gradle</literal>
+            task isn't part of the setup build.
+        </para>
+
+        <section>
+            <title>java-library</title>
+            <para>The <literal>java-library</literal> build setup type generates
+                <itemizedlist>
+                    <listitem>a <literal>build.gradle</literal>
+                        file that that applies the Java plugin, adds mavenCentral() and the dependencies to allow testing with JUnit.
+                    </listitem>
+                    <listitem>the appropriate source directories, if they do not exist.</listitem>
+                    <listitem>a sample class and a unit test, if there are no existing source or test files.</listitem>
+                </itemizedlist>
+            </para>
+        </section>
     </section>
 </chapter>
