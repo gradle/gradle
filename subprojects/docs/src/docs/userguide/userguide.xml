@@ -74,6 +74,7 @@
     <xi:include href='applicationPlugin.xml'/>
     <xi:include href='javaLibraryDistributionPlugin.xml'/>
     <xi:include href='buildSetupPlugin.xml'/>
+    <xi:include href='wrapperPlugin.xml'/>
     <xi:include href='buildDashboardPlugin.xml'/>
 	<xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
