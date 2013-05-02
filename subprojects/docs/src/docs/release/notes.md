@@ -96,7 +96,7 @@ For more details, please refer to the section about the in-memory dependency met
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* Dan Stine - added maxPriorityViolations settings to the CodeNarc plugin (GRADLE-1742)
+* [Dan Stine](https://github.com/dstine) - added maxPriorityViolations settings to the CodeNarc plugin (GRADLE-1742)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
