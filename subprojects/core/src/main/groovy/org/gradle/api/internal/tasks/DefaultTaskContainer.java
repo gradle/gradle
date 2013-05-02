@@ -38,7 +38,7 @@ import java.util.Map;
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
-    private Map<String, Action<Project>> placeholders = new HashMap<String, Action<Project>>();
+    private Map<String, Runnable> placeholders = new HashMap<String, Runnable>();
 
     public DefaultTaskContainer(ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
         super(Task.class, instantiator, project);
@@ -207,22 +207,24 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task findByName(String name) {
+        Task task = super.findByName(name);
+        if(task!=null){
+            return task;
+        }
         maybeMaterializePlaceholder(name);
         return super.findByName(name);
     }
 
     private void maybeMaterializePlaceholder(String name) {
-        if (!placeholders.isEmpty()) {
+        if (placeholders.containsKey(name)) {
             if (super.findByName(name) == null) {
-                if (placeholders.containsKey(name)) {
-                    final Action<Project> placeholderAction = placeholders.remove(name);
-                    placeholderAction.execute(project);
-                }
+                final Runnable placeholderAction = placeholders.remove(name);
+                placeholderAction.run();
             }
         }
     }
 
-    public void addPlaceholderAction(String placeholderName, Action action) {
-        placeholders.put(placeholderName, action);
+    public void addPlaceholderAction(String placeholderName, Runnable runnable) {
+        placeholders.put(placeholderName, runnable);
     }
 }

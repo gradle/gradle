@@ -45,7 +45,7 @@ class BuildSetupAutoApplyActionSpec extends Specification {
         when:
         new BuildSetupAutoApplyAction().execute(projectInternal)
         then:
-        1 * taskContainerInternal.addPlaceholderAction("setupBuild", _) >> {args -> args[1].execute(projectInternal)}
+        1 * taskContainerInternal.addPlaceholderAction("setupBuild", _) >> {args -> args[1].run()}
         1 * projectInternal.getParent() >> null
         1 * projectInternal.getPlugins() >> pluginContainer
         1 * pluginContainer.apply("build-setup")

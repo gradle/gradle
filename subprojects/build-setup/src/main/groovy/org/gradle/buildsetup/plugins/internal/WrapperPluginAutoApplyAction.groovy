@@ -16,17 +16,15 @@
 
 package org.gradle.buildsetup.plugins.internal
 
-import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.ProjectConfigureAction
 
 class WrapperPluginAutoApplyAction implements ProjectConfigureAction {
     void execute(ProjectInternal projectInternal) {
         if (projectInternal.getParent() == null) {
-            projectInternal.tasks.addPlaceholderAction("wrapper", new Action<Project>() {
-                void execute(Project project) {
-                    project.getPlugins().apply("wrapper");
+            projectInternal.tasks.addPlaceholderAction("wrapper", new Runnable() {
+                void run() {
+                    projectInternal.getPlugins().apply("wrapper")
                 }
             })
         }
