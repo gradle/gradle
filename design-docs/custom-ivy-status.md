@@ -7,14 +7,11 @@ Since Ivy 1.4, the status scheme can be customized at will. For example, it coul
 
 # Use cases
 
-Some users have existing Ivy repositories whose modules have custom statuses. To facilitate coexistence and stepwise
-(i.e. build-by-build) migration from Ant to Gradle, Gradle needs to be able to
+Some users have existing Ivy repositories containing modules with custom statuses. To facilitate coexistence and stepwise
+(i.e. build-by-build) migration from Ant to Gradle, the latter needs to be able to publish and consume modules with custom statuses.
 
-* Consume modules with custom status.
-* Publish modules with custom status.
-
-Publishing modules with custom status is already possible, as Gradle allows to fully customize the generated Ivy descriptor.
-However, Gradle cannot currently consume modules with custom status.
+Publishing modules with custom statuses is already possible, as Gradle allows to fully customize the generated Ivy descriptor.
+However, Gradle cannot currently consume modules with custom statuses.
 
 # Implementation plan
 
@@ -44,8 +41,8 @@ TBD.
 
 ### Test coverage
 
-* Publish and consume a module with custom Ivy status.
-* Publish and consume a module that depends on a module with custom Ivy status.
+* Consume a module with custom Ivy status.
+* Consume a module that depends on a module with custom Ivy status.
 
 ## Consume a "latest" version of an Ivy module with custom status
 
@@ -79,7 +76,7 @@ TBD.
 
 ### Test coverage
 
-* Declare no status scheme. Publish module versions with different default statuses, and consume them using different "latest" selectors.
+* Declare no status scheme. Publish module versions with different statuses (from the default scheme), and consume them using different "latest" selectors.
 
 * Declare a single "global" status scheme. Publish module versions with different statuses, and consume them using different "latest" selectors.
 
@@ -101,7 +98,7 @@ TBD. May turn out that it's better/easier to implement cross-repository "latest"
 
 ### Test coverage
 
-* Declare multiple Ivy repositories. Publish different versions of the same module to different repositories. Make sure that highest version of highest status is selected.
+* Declare multiple Ivy repositories. Publish different versions of the same module to different repositories. Make sure that highest version of highest compatible status is selected.
 
 # Open issues
 
