@@ -41,8 +41,7 @@ class WrapperConcurrentDownloadTest extends AbstractIntegrationSpec {
     def "concurrent downloads do not stomp over each other"() {
         given:
         buildFile << """
-    import org.gradle.api.tasks.wrapper.Wrapper
-    task wrapper(type: Wrapper) {
+    wrapper {
         distributionUrl = '${server.distUri}'
     }
 """

@@ -39,8 +39,7 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 
     private prepareWrapper() {
         file("build.gradle") << """
-    import org.gradle.api.tasks.wrapper.Wrapper
-    task wrapper(type: Wrapper) {
+    wrapper {
         distributionUrl = '${distribution.binDistribution.toURI()}'
     }
 
