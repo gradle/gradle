@@ -67,8 +67,8 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can apply script with relative path"() {
         setup:
-        def settingsPluginScript = testDirectory.createFile("settings/somePath/settingsPlugin.gradle")
-        settingsPluginScript << "include 'moduleA'";
+        testDirectory.createFile("settings/somePath/settingsPlugin.gradle") << "apply from: 'path2/settings.gradle'";
+        testDirectory.createFile("settings/somePath/path2/settings.gradle") << "include 'moduleA'";
 
         when:
         settingsFile << "apply from: 'somePath/settingsPlugin.gradle'"
