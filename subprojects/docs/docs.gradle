@@ -246,12 +246,12 @@ task dslHtml(type: Docbook2Xhtml) {
 }
 
 // This is used in the distribution and for the online version
-task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
+task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook, defaultImports]) {
     destFile = new File(docbookSrc, 'userguide.xml')
 }
 
 // This is used for the PDF, where we need absolute links to the javadoc etc.
-task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
+task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook, defaultImports]) {
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
 }
 
@@ -367,7 +367,7 @@ task checkstyleApi(type: Checkstyle) {
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
-task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
+task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets]) {
     tags << 'standalone'
     sourceFile = new File(userguideSrcDir, 'installation.xml')
     destFile = new File(docbookSrc, 'installation.xml')
