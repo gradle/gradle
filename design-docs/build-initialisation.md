@@ -194,7 +194,6 @@ From the command-line:
   and runs the sample test.
 * The POM is ignored when `gradle setupBuild --type java-library` is used.
 * Decent error message when an unknown type is given.
-* Decent error message when a POM cannot be parsed (this is adding more coverage for a previous story).
 * Update existing test coverage to verify that every generated `settings.gradle` sets the root project name.
 
 # Story: Build setup tasks can be referenced using camel-case abbreviations
@@ -206,6 +205,8 @@ From the command-line:
 
 * Can run `gradle setB` or `gradle wrap`
 * When a build script defines a `wrap` task, then calling `gradle wrap` does not apply the `wrapper` plugin.
+* Decent error message when a POM cannot be parsed (this is adding more coverage for a previous story).
+* Running `gradle setupBuild` in an empty directory generates build files that do not blow up when `gradle help` is run (this is adding more coverage for a previous story).
 
 # Story: Update the user guide Java tutorial to use the `setupBuild` task
 
