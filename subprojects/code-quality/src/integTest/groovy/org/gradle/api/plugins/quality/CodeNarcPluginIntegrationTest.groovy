@@ -100,6 +100,20 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
 
     }
 
+    def "can configure max violations"() {
+        badCode()
+        buildFile << """
+            codenarcTest {
+                maxPriority2Violations = 1
+            }
+        """
+
+        expect:
+        succeeds("check")
+        !output.contains("CodeNarc rule violations were found. See the report at:")
+        file("build/reports/codenarc/test.html").text.contains("testclass2")
+    }
+
     private goodCode() {
         file("src/main/groovy/org/gradle/class1.java") << "package org.gradle; class class1 { }"
         file("src/test/groovy/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
