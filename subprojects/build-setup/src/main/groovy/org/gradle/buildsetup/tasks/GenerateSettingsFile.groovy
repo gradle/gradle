@@ -40,6 +40,7 @@ class GenerateSettingsFile extends TextFileGenerationTask {
 
     @Override
     protected Map getTemplateBindings(){
-        return [ref_userguide_multiproject:documentationRegistry.getDocumentationFor("multi_project_builds")]
+        return [ref_userguide_multiproject:documentationRegistry.getDocumentationFor("multi_project_builds"),
+               rootProjectName:project.projectDir.name]
     }
 }
