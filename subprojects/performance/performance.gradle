@@ -147,6 +147,7 @@ task all(dependsOn: generators)
 task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit])
 
 integTestTasks.all {
+    dependsOn prepareSamples
     maxParallelForks = 1
 }
 
