@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='multi_project_builds' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='multi_project_builds'>
     <title>Multi-project Builds</title>
     <para>The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the
         most intellectually challenging.
