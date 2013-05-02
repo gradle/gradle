@@ -16,6 +16,7 @@
 
 package org.gradle.buildsetup.plugins
 
+import org.gradle.buildsetup.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
@@ -43,7 +44,7 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run 'setupBuild'
         then:
-        wrapperIsGenerated()
+        new WrapperTestFixture(testDirectory).generated()
     }
 
     def "build file generation is skipped when build file already exists"() {
@@ -110,7 +111,6 @@ include 'child'
   <packaging>jar</packaging>
 </project>"""
         when:
-//            def executed = succeeds('setupBuild', '--type', 'java-library"')
         def executed = succeeds('setupBuild')
         then:
         executed.assertTasksExecuted(":maven2Gradle", ":wrapper", ":setupBuild")
@@ -138,12 +138,5 @@ include 'child'
         fails('setupBuild', '--type', 'some-unknown-library')
         then:
         errorOutput.contains("Declared setup-type 'some-unknown-library' is not supported.")
-    }
-
-    private def wrapperIsGenerated() {
-        file("gradlew").assertExists()
-        file("gradlew.bat").assertExists()
-        file("gradle/wrapper/gradle-wrapper.jar").assertExists()
-        file("gradle/wrapper/gradle-wrapper.properties").assertExists()
     }
 }

@@ -16,16 +16,17 @@
 
 package org.gradle.buildsetup.plugins.internal
 
+import org.gradle.buildsetup.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 
 class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
 
-    public static final String GRADLEW_BASH_SCRIPT = "gradlew"
-    public static final String GRADLEW_BATCH_SCRIPT = "gradlew.bat"
-    public static final String GRADLEW_WRAPPER_JAR = "gradle/wrapper/gradle-wrapper.jar"
-    public static final String GRADLEW_PROPERTY_FILE = "gradle/wrapper/gradle-wrapper.properties"
+    private WrapperTestFixture wrapper
+
+    def setup() {
+        wrapper = new WrapperTestFixture(testDirectory)
+    }
 
     def "can apply wrapper plugin dynamically"() {
         when:
@@ -36,7 +37,7 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         when:
         run 'wrapper'
         then:
-        wrapperIsGenerated()
+        wrapper.generated()
     }
 
     def "wrapper plugin not applied on subprojects"() {
@@ -65,7 +66,7 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
     """
         run 'wrapper'
         then:
-        wrapperIsGenerated("12.34")
+        wrapper.generated("12.34")
     }
 
     def "can depend on dynamic applied wrapper task"() {
@@ -75,7 +76,7 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         """
         run 'myTask'
         then:
-        wrapperIsGenerated()
+        wrapper.generated()
     }
 
     def "manually declared wrapper task is preferred"() {
@@ -89,21 +90,6 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         run 'wrapper'
         then:
         output.contains("running custom wrapper task")
-        wrapperIsNotGenerated()
-    }
-
-    private def wrapperIsGenerated(String version = GradleVersion.current().version) {
-        file(GRADLEW_BASH_SCRIPT).assertExists()
-        file(GRADLEW_BATCH_SCRIPT).assertExists()
-        file(GRADLEW_WRAPPER_JAR).assertExists()
-        file(GRADLEW_PROPERTY_FILE).assertExists()
-        file(GRADLEW_PROPERTY_FILE).text.contains("gradle-${version}-bin.zip")
-    }
-
-    private def wrapperIsNotGenerated() {
-        file(GRADLEW_BASH_SCRIPT).assertDoesNotExist()
-        file(GRADLEW_BATCH_SCRIPT).assertDoesNotExist()
-        file(GRADLEW_WRAPPER_JAR).assertDoesNotExist()
-        file(GRADLEW_PROPERTY_FILE).assertDoesNotExist()
+        wrapper.notGenerated()
     }
 }

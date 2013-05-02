@@ -16,9 +16,8 @@
 
 package org.gradle.buildsetup.plugins
 
+import org.gradle.buildsetup.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.util.GradleVersion
-
 
 class WrapperPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
@@ -32,10 +31,6 @@ class WrapperPluginIntegrationTest extends WellBehavedPluginTest {
         when:
         run 'wrapper'
         then:
-        file("gradlew").assertExists()
-        file("gradlew.bat").assertExists()
-        file("gradle/wrapper/gradle-wrapper.jar").assertExists()
-        file("gradle/wrapper/gradle-wrapper.properties").assertExists()
-        file("gradle/wrapper/gradle-wrapper.properties").text.contains("gradle-${GradleVersion.current().version}-bin.zip")
+        new WrapperTestFixture(testDirectory).generated()
     }
 }
