@@ -68,7 +68,7 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     }
 
     protected DocumentationRegistry createDocumentationRegistry() {
-        return new DocumentationRegistry(get(GradleDistributionLocator.class));
+        return new DocumentationRegistry();
     }
 
     protected PluginModuleRegistry createPluginModuleRegistry() {
