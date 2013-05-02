@@ -137,11 +137,11 @@ task manyProjectJavaConfig(type: ProjectGeneratorTask, dependsOn: compilePlugin)
     subProjectTemplates = []
 }
 
-def generators = tasks.withType(ProjectGeneratorTask)
-generators.all {
+def generators = tasks.withType(ProjectGeneratorTask) {
     group = 'Project setup'
     testDependencies = configurations.junit
 }
+
 task all(dependsOn: generators)
 
 task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit])
@@ -149,12 +149,12 @@ task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTe
 integTestTasks.all {
     dependsOn prepareSamples
     maxParallelForks = 1
-}
 
-tasks.integTest.testLogging {
-    showStandardStreams = true
-    lifecycle {
-        exceptionFormat 'full'
+    testLogging {
+        showStandardStreams = true
+        lifecycle {
+            exceptionFormat 'full'
+        }
     }
 }
 
