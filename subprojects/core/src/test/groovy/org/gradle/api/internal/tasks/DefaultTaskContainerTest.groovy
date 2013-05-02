@@ -317,6 +317,22 @@ public class DefaultTaskContainerTest extends Specification {
         container.getByName("task") != null
     }
 
+    void "can materialize all placeholders at once"() {
+        setup:
+        addPlaceholderTask("task1")
+        addPlaceholderTask("task2")
+        addPlaceholderTask("task3")
+
+        expect:
+        container.size() == 0
+
+        when:
+        container.materializePlaceholders()
+
+        then:
+        container.size() == 3
+    }
+
     void "task priotized over placeholders"() {
         given:
         Task task = addTask("task")

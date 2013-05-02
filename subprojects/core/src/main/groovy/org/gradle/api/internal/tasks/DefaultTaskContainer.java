@@ -198,12 +198,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             }
         }).add(this).findValues();
 
+        materializePlaceholders();
+    }
 
+    public void materializePlaceholders() {
         final HashSet<String> placeholderNames = new HashSet<String>(placeholders.keySet());
         for (String placeholder : placeholderNames) {
             maybeMaterializePlaceholder(placeholder);
         }
-
     }
 
     public Task findByName(String name) {

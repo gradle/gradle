@@ -47,6 +47,17 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         new WrapperTestFixture(testDirectory).generated()
     }
 
+    def "auto-applied setupBuild task can be triggered with camel-case"() {
+        given:
+        assert !buildFile.exists()
+        when:
+        run setupTaskNAme
+        then:
+        new WrapperTestFixture(testDirectory).generated()
+        where:
+        setupTaskNAme << ["setupBuild", "sBuild", "setupB"]
+    }
+
     def "build file generation is skipped when build file already exists"() {
         given:
         assert buildFile.createFile()

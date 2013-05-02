@@ -38,7 +38,13 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver {
      * Calling this method will force all task dependencies to be actualised, which may mean new tasks are
      * created because of things like task rules etc.
      *
-     * As part of this, all placeholder actions are materialized to show up in 'tasks' and 'tasks --all' overview.
+     * As part of this, {@link ##materializedPlaceholders} is called to show up in 'tasks' and 'tasks --all' overview.
      */
     void actualize();
+
+    /**
+     * Materializes all placeholder actions registered on the TaskContainer
+     *
+     */
+    void materializePlaceholders();
 }
