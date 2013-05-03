@@ -84,6 +84,10 @@ TBD.
 
 * Use a "latest" version selector with a status that is not contained in the module's status scheme. A meaningful error should occur.
 
+* If a module version's descriptor does not declare a status, its status defaults to the least mature status for the module's status scheme. (Matches Ivy's behavior.)
+
+* If a module version has no descriptor, its status defaults to the least mature status for the module's status scheme.
+
 ## Consume a "latest" version of an Ivy module with custom status that exists in multiple Ivy repositories
 
 If a module exists in multiple Ivy repositories, the "latest" version should be computed across all repositories.
