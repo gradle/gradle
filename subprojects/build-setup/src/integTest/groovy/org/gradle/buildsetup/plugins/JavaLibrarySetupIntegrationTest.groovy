@@ -16,6 +16,7 @@
 
 package org.gradle.buildsetup.plugins
 
+import org.gradle.buildsetup.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
@@ -23,14 +24,22 @@ import org.gradle.integtests.fixtures.TestExecutionResult
 
 class JavaLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
 
+    public static final String SAMPLE_LIBRARY_CLASS = "src/main/java/Library.java"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
+
+    WrapperTestFixture wrapper
+
+    def setup(){
+        wrapper = new WrapperTestFixture(testDirectory)
+    }
+
     def "creates sample source if no source present"() {
         when:
-        def executed = succeeds('setupBuild', '--type', 'java-library')
+        succeeds('setupBuild', '--type', 'java-library')
         then:
-        executed.assertTasksExecuted(":generateBuildFile", ":generateSettingsFile", ":setupProjectLayout", ":wrapper", ":setupBuild")
-        and:
-        file("src/main/java/Library.java").exists()
-
+        file(SAMPLE_LIBRARY_CLASS).exists()
+        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        wrapper.generated()
 
         when:
         succeeds("build")
@@ -38,6 +47,7 @@ class JavaLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
         TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
         testResult.assertTestClassesExecuted("LibraryTest")
         testResult.testClass("LibraryTest").assertTestPassed("testSomeLibraryMethod")
+
     }
 
     def "setupProjectLayout is skipped when sources detected"() {
@@ -55,12 +65,10 @@ class JavaLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
                 }
         """
         when:
-        def executed = succeeds('setupBuild', '--type', 'java-library')
+        succeeds('setupBuild', '--type', 'java-library')
         then:
-        executed.assertTasksExecuted(":generateBuildFile", ":generateSettingsFile", ":setupProjectLayout", ":wrapper", ":setupBuild")
-        executed.assertTaskSkipped(":setupProjectLayout")
-        and:
-        file("src/main/java").exists()
-
+        !file(SAMPLE_LIBRARY_CLASS).exists()
+        !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        wrapper.generated()
     }
 }
