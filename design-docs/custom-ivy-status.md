@@ -112,4 +112,4 @@ TBD. May turn out that it's better/easier to implement cross-repository "latest"
 
 * Figure out what the `integration` flag of an Ivy status means, and if/how we need to support it. See: http://ant.apache.org/ivy/history/2.0.0/settings/statuses.html
 
-
+* How does "latest" resolution interact with conflict resolution?
