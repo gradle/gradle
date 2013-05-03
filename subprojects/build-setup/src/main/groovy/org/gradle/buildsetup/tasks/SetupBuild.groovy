@@ -17,11 +17,34 @@
 package org.gradle.buildsetup.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.Incubating
 import org.gradle.api.internal.tasks.CommandLineOption
+import org.gradle.api.tasks.TaskAction
+import org.gradle.buildsetup.plugins.internal.ProjectLayoutSetupRegistry
 
+@Incubating
 class SetupBuild extends DefaultTask {
 
     String type
+
+    ProjectLayoutSetupRegistry projectLayoutRegistry
+
+    SetupBuild() {
+        getOutputs().files(project.file("build.gradle"), project.file("settings.gradle"), project.file("src"))
+    }
+
+    @TaskAction
+    void setupProjectLayout() {
+        if (type == null) {
+            type = project.file("pom.xml").exists() ? "pom" : "empty"
+        }
+        if (!projectLayoutRegistry.supports(type)) {
+            throw new GradleException("Declared setup-type '${type}' is not supported.")
+        }
+        projectLayoutRegistry.get(type).generateProject()
+    }
+
     @CommandLineOption(options = "type", description = "Set type of BuildSetup.")
     public void setType(String type) {
         this.type = type;

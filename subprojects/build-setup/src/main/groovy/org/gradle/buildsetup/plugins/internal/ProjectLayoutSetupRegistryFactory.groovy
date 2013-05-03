@@ -16,20 +16,27 @@
 
 package org.gradle.buildsetup.plugins.internal
 
-import org.gradle.api.Project
-import org.gradle.buildsetup.plugins.JavaLibraryProjectSetupDescriptor
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.project.ProjectInternal
 
 class ProjectLayoutSetupRegistryFactory {
 
-    Project project
+    ProjectInternal project
 
-    public ProjectLayoutSetupRegistryFactory(Project project) {
+    public ProjectLayoutSetupRegistryFactory(ProjectInternal project) {
         this.project = project;
     }
 
     ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry() {
+        DocumentationRegistry documentationRegistry = project.getServices().get(DocumentationRegistry)
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry()
-        registry.add(new JavaLibraryProjectSetupDescriptor(project))
+
+        // TODO maybe referencing the implementation class here is enough and instantiation
+        // should be defererred when descriptor is requested.
+        registry.add(new EmptyProjectSetupDescriptor(project, documentationRegistry));
+        registry.add(new JavaLibraryProjectSetupDescriptor(project, documentationRegistry));
+        registry.add(new PomProjectSetupDescriptor(project, project.getServices().get(DependencyManagementServices)))
         return registry
     }
 

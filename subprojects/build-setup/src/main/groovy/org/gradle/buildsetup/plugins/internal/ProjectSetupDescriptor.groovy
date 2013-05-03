@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.buildsetup.plugins
-
-import org.gradle.api.Project
+package org.gradle.buildsetup.plugins.internal
 
 interface ProjectSetupDescriptor {
     String getId();
 
-    org.gradle.internal.Factory<Boolean> getOnlyIf()
+    void generateProject()
 
-    void setupLayout(Project project)
+
 }

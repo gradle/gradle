@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.buildsetup.plugins
+package org.gradle.buildsetup.plugins.internal
 
 import groovy.text.SimpleTemplateEngine
 import org.gradle.api.Project
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.util.GradleVersion
 
-class JavaLibraryProjectSetupDescriptor implements ProjectSetupDescriptor {
+class JavaLibraryProjectSetupDescriptor extends TemplateBasedProjectSetupDescriptor {
 
     Project project
 
-    public JavaLibraryProjectSetupDescriptor(Project project) {
+    public JavaLibraryProjectSetupDescriptor(Project project, DocumentationRegistry documentationRegistry) {
+        super(project, documentationRegistry);
         this.project = project;
     }
 
@@ -32,17 +34,20 @@ class JavaLibraryProjectSetupDescriptor implements ProjectSetupDescriptor {
         return "java-library";
     }
 
-    org.gradle.internal.Factory<Boolean> getOnlyIf() {
-        return new org.gradle.internal.Factory<java.lang.Boolean>() {
-            public Boolean create() {
-                project.fileTree("src/main/java").files.empty || project.fileTree("src/test/java").files.empty
-            }
-        };
+    URL getBuildFileTemplate() {
+        return JavaLibraryProjectSetupDescriptor.class.getResource("/org/gradle/buildsetup/tasks/templates/java-library-build.gradle.template");
     }
 
-    void setupLayout(Project project) {
-        generateClass("src/main/java", "Library.java")
-        generateClass("src/test/java", "LibraryTest.java")
+    URL getSettingsTemplate() {
+        return JavaLibraryProjectSetupDescriptor.class.getResource("/org/gradle/buildsetup/tasks/templates/settings.gradle.template")
+    }
+
+    void generateProjectSources() {
+        if (project.fileTree("src/main/java").files.empty ||
+                project.fileTree("src/test/java").files.empty) {
+            generateClass("src/main/java", "Library.java")
+            generateClass("src/test/java", "LibraryTest.java")
+        }
     }
 
     def generateClass(String sourceRoot, String clazzFileName) {

@@ -50,6 +50,7 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         run 'setupBuild'
         then:
         new WrapperTestFixture(testDirectory).generated()
+        buildFile.exists()
     }
 
     def "auto-applied setupBuild task can be triggered with camel-case"() {
@@ -59,6 +60,7 @@ class BuildSetupPluginIntegrationTest extends WellBehavedPluginTest {
         run setupTaskNAme
         then:
         new WrapperTestFixture(testDirectory).generated()
+        buildFile.exists()
         where:
         setupTaskNAme << ["setupBuild", "sBuild", "setupB"]
     }
@@ -129,10 +131,9 @@ include 'child'
         given:
         pom()
         when:
-        def executed = succeeds('setupBuild', '--type', 'java-library')
+        succeeds('setupBuild', '--type', 'java-library')
         then:
         pomValuesNotUsed()
-        executed.assertTasksExecuted(":generateBuildFile", ":generateSettingsFile", ":setupProjectLayout", ":wrapper", ":setupBuild")
     }
 
     def "gives decent error message when triggered with unknown setupBuild-type"() {
