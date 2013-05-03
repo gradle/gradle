@@ -40,7 +40,7 @@ class SetupBuild extends DefaultTask {
             type = project.file("pom.xml").exists() ? "pom" : "empty"
         }
         if (!projectLayoutRegistry.supports(type)) {
-            throw new GradleException("Declared setup-type '${type}' is not supported.")
+            throw new GradleException("Declared setup-type '${type}' is not supported. Supported types: ${projectLayoutRegistry.all.collect{"'${it.id}'"}.join(", ")}.")
         }
         projectLayoutRegistry.get(type).generateProject()
     }

@@ -37,6 +37,10 @@ class ProjectLayoutSetupRegistry {
         return registeredProjectDescriptors.get(type)
     }
 
+    List<ProjectSetupDescriptor> getAll(){
+        return Arrays.asList(registeredProjectDescriptors.values())
+    }
+
     boolean supports(String type){
         return get(type)!=null
     }

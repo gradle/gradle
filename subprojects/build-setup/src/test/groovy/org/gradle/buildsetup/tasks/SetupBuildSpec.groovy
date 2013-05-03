@@ -28,34 +28,41 @@ class SetupBuildSpec extends Specification {
 
     ProjectLayoutSetupRegistry projectLayoutRegistry;
 
-    ProjectSetupDescriptor projectSetupDescriptor
+    ProjectSetupDescriptor projectSetupDescriptor1
+    ProjectSetupDescriptor projectSetupDescriptor2
+    ProjectSetupDescriptor projectSetupDescriptor3
 
     def setup() {
         setupBuild = HelperUtil.builder().build().tasks.create("setupBuild", SetupBuild)
         projectLayoutRegistry = Mock()
-        projectSetupDescriptor = Mock()
+        projectSetupDescriptor1 = Mock()
+        projectSetupDescriptor2 = Mock()
+        projectSetupDescriptor3 = Mock()
+        _ * projectSetupDescriptor2.id >> "supported-type"
+        _ * projectSetupDescriptor3.id >> "another-supported-type"
         setupBuild.projectLayoutRegistry = projectLayoutRegistry
     }
 
-    def "throws GradleException when setupDescriptor is null"() {
+    def "throws GradleException if requested setupDescriptor not supported"() {
         setup:
         _ * projectLayoutRegistry.get("aType") >> null
+        _ * projectLayoutRegistry.all >> [projectSetupDescriptor2, projectSetupDescriptor3]
         when:
         setupBuild.type = "aType"
         setupBuild.setupProjectLayout()
         then:
         def e = thrown(GradleException)
-        e.message == "Declared setup-type 'aType' is not supported."
+        e.message == "Declared setup-type 'aType' is not supported. Supported types: 'supported-type', 'another-supported-type'."
 
     }
 
     def "delegates task action to referenced setupDescriptor"() {
         setup:
         1 * projectLayoutRegistry.supports("empty") >> true
-        1 * projectLayoutRegistry.get("empty") >> projectSetupDescriptor
+        1 * projectLayoutRegistry.get("empty") >> projectSetupDescriptor1
         when:
         setupBuild.setupProjectLayout()
         then:
-        1 * projectSetupDescriptor.generateProject()
+        1 * projectSetupDescriptor1.generateProject()
     }
 }
