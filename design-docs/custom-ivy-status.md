@@ -57,16 +57,16 @@ model a status scheme as a piece of module metadata. Specifically, it should be 
 the status scheme for a module. This could look as follows:
 
     moduleMetadata { module ->
-        module.statusScheme == ['gold', 'silver', 'bronze']
+        module.statusScheme = ['gold', 'silver', 'bronze']
     }
 
 Different modules may use different status schemes:
 
     moduleMetadata { module ->
         if (module.group == "olympic") {
-            module.statusScheme == ['gold', 'silver', 'bronze']
+            module.statusScheme = ['gold', 'silver', 'bronze']
         } else {
-            module.statusScheme == ['release', 'milestone', 'integration']
+            module.statusScheme = ['release', 'milestone', 'integration']
         }
     }
 
