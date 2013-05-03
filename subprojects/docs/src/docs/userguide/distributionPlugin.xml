@@ -79,6 +79,18 @@
                 <td>Creates a full distribution TAR archive.</td>
             </tr>
         <tr>
+                <td>
+                    <literal>assemble</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.Task"/>
+                </td>
+                <td>Assemble all distributions.</td>
+            </tr>
+        <tr>
             <td>
                 <literal>installDist</literal>
             </td>
@@ -111,8 +123,8 @@
         <sample id="multipleDistribution" dir="userguide/distribution" title="Declare multiple distributions">
             <sourcefile file="build.gradle" snippet="declare-distribution"/>
         </sample>
-        <para>This will following tasks to the project : customDistZip, customDistTar, installcustomDist. Given that the project name is myproject, then running gradle customDistZip will produce a ZIP file called myproject-custom-1.2.zip
-            and running customDistTar will produce myproject-custom-1.2.tar. Running installcustomDist will install distribution contents into buildDir/install/custom.</para>
+        <para>This will following tasks to the project : customDistZip, customDistTar,assemblecustomDist, installcustomDist. Given that the project name is myproject, then running gradle customDistZip will produce a ZIP file called myproject-custom-1.2.zip
+            and running customDistTar will produce myproject-custom-1.2.tar.Running assemblecustomDist will produce myproject-custom-1.2.zip and myproject-custom-1.2.tar. Running installcustomDist will install distribution contents into buildDir/install/custom.</para>
     </section>
 
     <section>

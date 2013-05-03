@@ -17,14 +17,15 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.distribution.Distribution
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
-import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.GradleException
+import org.gradle.api.distribution.plugins.DistributionPlugin
 
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
@@ -43,20 +44,19 @@ class ApplicationPlugin implements Plugin<Project> {
 
     private Project project
     private ApplicationPluginConvention pluginConvention
+    private Distribution distribution
 
     void apply(final Project project) {
         this.project = project
         project.plugins.apply(JavaPlugin)
-
+        project.plugins.apply(DistributionPlugin)
+        this.distribution =  project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
         addPluginConvention()
         addRunTask()
         addCreateScriptsTask()
 
-        configureDistSpec(pluginConvention.applicationDistribution)
-
+        configureDistribution()
         addInstallTask()
-        addDistZipTask()
-        addDistTarTask()
     }
 
     private void addPluginConvention() {
@@ -89,7 +89,7 @@ class ApplicationPlugin implements Plugin<Project> {
         def installTask = project.tasks.create(TASK_INSTALL_NAME, Sync)
         installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
         installTask.group = APPLICATION_GROUP
-        installTask.with pluginConvention.applicationDistribution
+        installTask.with distribution.contents
         installTask.into { project.file("${project.buildDir}/install/${pluginConvention.applicationName}") }
         installTask.doFirst {
             if (destinationDir.directory) {
@@ -106,24 +106,12 @@ class ApplicationPlugin implements Plugin<Project> {
         }
     }
 
-    private void addDistZipTask() {
-        addArchiveTask(TASK_DIST_ZIP_NAME, Zip)
+    private configureDistribution(){
+        distribution.configureBaseName { pluginConvention.applicationName }
+
+        configureDistSpec(distribution.contents)
     }
 
-	private void addDistTarTask() {
-        addArchiveTask(TASK_DIST_TAR_NAME, Tar)
-	}
-
-    private <T extends AbstractArchiveTask> void addArchiveTask(String name, Class<T> type) {
-        def archiveTask = project.tasks.create(name, type)
-        archiveTask.description = "Bundles the project as a JVM application with libs and OS specific scripts."
-        archiveTask.group = APPLICATION_GROUP
-        archiveTask.conventionMapping.baseName = { pluginConvention.applicationName }
-        def baseDir = { archiveTask.archiveName - ".${archiveTask.extension}" }
-        archiveTask.into(baseDir) {
-            with(pluginConvention.applicationDistribution)
-        }
-    }
 
     private CopySpec configureDistSpec(CopySpec distSpec) {
         def jar = project.tasks[JavaPlugin.JAR_TASK_NAME]

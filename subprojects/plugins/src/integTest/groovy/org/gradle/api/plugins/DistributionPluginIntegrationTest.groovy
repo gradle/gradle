@@ -126,6 +126,32 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         file('build/distributions/myDistribution.zip').exists()
     }
 
+    def assembleAllDistribution() {
+        given:
+        createDir('src/main/dist') {
+            file 'file1.txt'
+            dir2 {
+                file 'file2.txt'
+            }
+        }
+        and:
+        buildFile << """
+            apply plugin:'distribution'
+
+
+            distributions {
+                main{
+                    baseName='myDistribution'
+                }
+            }
+            """
+        when:
+        run('assemble')
+        then:
+        file('build/distributions/myDistribution.zip').exists()
+        file('build/distributions/myDistribution.tar').exists()
+    }
+
     def createDistributionWithVersion() {
         given:
         createDir('src/main/dist') {

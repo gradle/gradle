@@ -20,9 +20,12 @@ import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.distribution.Distribution
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.distribution.internal.DefaultDistributionContainer
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
@@ -70,14 +73,15 @@ class DistributionPlugin implements Plugin<Project> {
         extension.all { dist ->
             dist.baseName = dist.name == MAIN_DISTRIBUTION_NAME ? project.name : String.format("%s-%s", project.name, dist.name)
             dist.contents.from("src/${dist.name}/dist")
-            addZipTask(dist)
-            addTarTask(dist)
+            def zipTask = addZipTask(dist)
+            def tarTask = addTarTask(dist)
+            addAssembleTask(dist,zipTask,tarTask)
             addInstallTask(dist)
         }
         extension.create(DistributionPlugin.MAIN_DISTRIBUTION_NAME)
     }
 
-    void addZipTask(Distribution distribution) {
+    Task addZipTask(Distribution distribution) {
         def taskName = TASK_DIST_ZIP_NAME
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
             taskName = distribution.name + "DistZip"
@@ -85,7 +89,7 @@ class DistributionPlugin implements Plugin<Project> {
         configureArchiveTask(taskName, distribution, Zip)
     }
 
-    void addTarTask(Distribution distribution) {
+    Task addTarTask(Distribution distribution) {
         def taskName = TASK_DIST_TAR_NAME
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.name)) {
             taskName = distribution.name + "DistTar"
@@ -93,7 +97,7 @@ class DistributionPlugin implements Plugin<Project> {
         configureArchiveTask(taskName, distribution, Tar)
     }
 
-    private <T extends AbstractArchiveTask> void configureArchiveTask(String taskName, Distribution distribution, Class<T> type) {
+    private <T extends AbstractArchiveTask> Task configureArchiveTask(String taskName, Distribution distribution, Class<T> type) {
         def archiveTask = project.tasks.create(taskName, type)
         archiveTask.description = "Bundles the project as a distribution."
         archiveTask.group = DISTRIBUTION_GROUP
@@ -107,6 +111,9 @@ class DistributionPlugin implements Plugin<Project> {
         archiveTask.into(baseDir) {
             with(distribution.contents)
         }
+        ArchivePublishArtifact archiveArtifact = new ArchivePublishArtifact(archiveTask);
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
+        archiveTask
     }
 
     private void addInstallTask(Distribution distribution) {
@@ -129,5 +136,13 @@ class DistributionPlugin implements Plugin<Project> {
                 }
             }
         }
+    }
+
+    private void addAssembleTask(Distribution distribution,Task ... tasks) {
+        def taskName = "assemble"+ distribution.name + "Dist"
+        Task assembleTask = project.getTasks().create(taskName);
+        assembleTask.setDescription("Assembles the "+distribution.name+" distributions");
+        assembleTask.setGroup(DISTRIBUTION_GROUP);
+        assembleTask.dependsOn(tasks);
     }
 }
