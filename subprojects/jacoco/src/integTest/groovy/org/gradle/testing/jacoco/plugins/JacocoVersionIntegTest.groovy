@@ -43,17 +43,6 @@ class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
         jacoco {
             toolVersion = '$version'
         }
-
-        test{
-            doFirst{
-                copy{
-                    from(zipTree(test.jacoco.agent.jar))
-                    into('build/expandedAgent')
-                }
-                assert file('build/expandedAgent/META-INF/MANIFEST.MF').exists()
-                println file('build/expandedAgent/META-INF/MANIFEST.MF').text
-            }
-        }
         """
         createTestFiles();
         when:
