@@ -53,7 +53,7 @@ class JacocoTaskExtensionSpec extends Specification {
         task.getWorkingDir() >> temporaryFolder.file("workingDir")
 
         extension.with {
-            destPath = temporaryFolder.file('build/jacoco/fake.exec')
+            destinationFile = temporaryFolder.file('build/jacoco/fake.exec')
             append = false
             includes = ['org.*', '*.?acoco*']
             excludes = ['org.?joberstar']
@@ -63,7 +63,7 @@ class JacocoTaskExtensionSpec extends Specification {
             output = JacocoTaskExtension.Output.TCP_SERVER
             address = '1.1.1.1'
             port = 100
-            classDumpPath = temporaryFolder.file('build/jacoco-dump')
+            classDumpFile = temporaryFolder.file('build/jacoco-dump')
             jmx = true
         }
 

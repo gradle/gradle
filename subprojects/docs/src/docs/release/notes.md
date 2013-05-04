@@ -92,6 +92,12 @@ Local-repo dependencies and expired snapshots are not loaded from the repository
 During a single build, a resolved dependency is not loaded again from the repository.
 For more details, please refer to the section about the in-memory dependency metadata cache.
 
+### Incubating JaCoCo plugin changes
+
+- `JacocoTaskExtension.destPath` renamed to `destinationFile`
+- `JacocoTaskExtension.classDumpPath` renamed to `classDumpFile`
+- `JacocoMerge.destFile` renamed to `destinationFile`
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

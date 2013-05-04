@@ -24,7 +24,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>destPath</td>
+                <td>destinationFile</td>
             </tr>
             <tr>
                 <td>append</td>
@@ -54,7 +54,7 @@
                 <td>port</td>
             </tr>
             <tr>
-                <td>classDumpPath</td>
+                <td>classDumpFile</td>
             </tr>
             <tr>
                 <td>jmx</td>
