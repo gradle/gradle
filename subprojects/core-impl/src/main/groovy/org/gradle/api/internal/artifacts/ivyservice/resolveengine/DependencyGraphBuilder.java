@@ -93,13 +93,12 @@ public class DependencyGraphBuilder {
                     LOGGER.debug("Visiting dependency {}", dependency);
 
                     // Resolve dependency to a particular revision
-                    dependency.resolveModuleRevisionId();
-                    DefaultModuleRevisionResolveState moduleRevision = dependency.getTargetModuleRevision();
+                    DefaultModuleRevisionResolveState moduleRevision = dependency.resolveModuleRevisionId();
                     if (moduleRevision == null) {
                         // Failed to resolve.
                         continue;
                     }
-                    ModuleId moduleId= moduleRevision.id.getModuleId();
+                    ModuleId moduleId = moduleRevision.id.getModuleId();
 
                     // Check for a new conflict
                     if (moduleRevision.state == ModuleState.New) {
@@ -279,6 +278,7 @@ public class DependencyGraphBuilder {
             this.targetConfigurationRules = targetConfigurationRules;
             this.selectorSpec = selectorSpec;
             this.resolveState = resolveState;
+            selector = resolveState.getSelector(dependencyMetaData, dependencyDescriptor.getDependencyRevisionId());
         }
 
         @Override
@@ -286,16 +286,15 @@ public class DependencyGraphBuilder {
             return String.format("%s -> %s(%s)", from.toString(), dependencyMetaData.getRequested(), targetConfigurationRules);
         }
 
-        public DefaultModuleRevisionResolveState getTargetModuleRevision() {
-            return targetModuleRevision;
-        }
-
-        public void resolveModuleRevisionId() {
+        /**
+         * @return The resolved module version
+         */
+        public DefaultModuleRevisionResolveState resolveModuleRevisionId() {
             if (targetModuleRevision == null) {
-                selector = resolveState.getSelector(dependencyMetaData, dependencyDescriptor.getDependencyRevisionId());
                 targetModuleRevision = selector.resolveModuleRevisionId();
-                selector.module.addUnattachedDependency(this);
+                selector.getSelectedModule().addUnattachedDependency(this);
             }
+            return targetModuleRevision;
         }
 
         public boolean isTransitive() {
@@ -311,7 +310,7 @@ public class DependencyGraphBuilder {
                 targetConfiguration.addIncomingEdge(this);
             }
             if (!targetConfigurations.isEmpty()) {
-                selector.module.removeUnattachedDependency(this);
+                selector.getSelectedModule().removeUnattachedDependency(this);
             }
         }
 
@@ -413,13 +412,11 @@ public class DependencyGraphBuilder {
         }
 
         public DefaultModuleRevisionResolveState getSelected() {
-            //we cannot use the targetModuleRevision field because it may have been evicted
-            //covered in VersionConflictResolutionIntegrationTest
-            return selector.module.selected;
+            return selector.getSelected();
         }
 
         public ModuleVersionSelectionReason getReason() {
-            return getSelected() == null ? selector.idSelectionReason : getSelected().selectionReason;
+            return getSelected() == null ? selector.getSelectionReason() : getSelected().selectionReason;
         }
 
         public void collectFailures(FailureState failureState) {
@@ -482,7 +479,7 @@ public class DependencyGraphBuilder {
             ModuleRevisionId selectorId = ModuleRevisionId.newInstance(original.getOrganisation(), original.getName(), original.getRevision());
             ModuleVersionSelectorResolveState resolveState = selectors.get(selectorId);
             if (resolveState == null) {
-                resolveState = new ModuleVersionSelectorResolveState(dependencyMetaData, getModule(selectorId.getModuleId()), resolver, this);
+                resolveState = new ModuleVersionSelectorResolveState(dependencyMetaData, resolver, this);
                 selectors.put(selectorId, resolveState);
             }
             return resolveState;
@@ -743,7 +740,7 @@ public class DependencyGraphBuilder {
             // If traversed before, and the selected modules have changed, remove previous outgoing edges and add outgoing edges again with
             //    the new selections.
             // If traversed before, and the selected modules have not changed, ignore
-            // If none of the incoming edges is transitive, then the node has no outgoing edges
+            // If none of the incoming edges are transitive, then the node has no outgoing edges
 
             if (moduleRevision.state != ModuleState.Selected) {
                 LOGGER.debug("version for {} is not selected. ignoring.", this);
@@ -883,23 +880,34 @@ public class DependencyGraphBuilder {
         final DependencyToModuleVersionIdResolver resolver;
         final ResolveState resolveState;
         final DependencyMetaData dependencyMetaData;
-        ModuleResolveState module;
         ModuleVersionResolveException failure;
-        ModuleVersionSelectionReason idSelectionReason;
+        ModuleResolveState targetModule;
         DefaultModuleRevisionResolveState targetModuleRevision;
         ModuleVersionIdResolveResult idResolveResult;
         ModuleVersionResolveResult resolveResult;
 
-        private ModuleVersionSelectorResolveState(DependencyMetaData dependencyMetaData, ModuleResolveState module, DependencyToModuleVersionIdResolver resolver, ResolveState resolveState) {
+        private ModuleVersionSelectorResolveState(DependencyMetaData dependencyMetaData, DependencyToModuleVersionIdResolver resolver, ResolveState resolveState) {
             this.dependencyMetaData = dependencyMetaData;
-            this.module = module;
             this.resolver = resolver;
             this.resolveState = resolveState;
+            targetModule = resolveState.getModule(new ModuleId(dependencyMetaData.getRequested().getGroup(), dependencyMetaData.getRequested().getName()));
         }
 
         @Override
         public String toString() {
             return dependencyMetaData.toString();
+        }
+
+        public ModuleVersionSelectionReason getSelectionReason() {
+            return idResolveResult.getSelectionReason();
+        }
+
+        public DefaultModuleRevisionResolveState getSelected() {
+            return targetModule.selected;
+        }
+
+        public ModuleResolveState getSelectedModule() {
+            return targetModule;
         }
 
         /**
@@ -914,7 +922,6 @@ public class DependencyGraphBuilder {
             }
 
             idResolveResult = resolver.resolve(dependencyMetaData);
-            idSelectionReason = idResolveResult.getSelectionReason();
             if (idResolveResult.getFailure() != null) {
                 failure = idResolveResult.getFailure();
                 return null;
@@ -923,10 +930,7 @@ public class DependencyGraphBuilder {
             targetModuleRevision = resolveState.getRevision(idResolveResult.getId());
             targetModuleRevision.addResolver(this);
             targetModuleRevision.selectionReason = idResolveResult.getSelectionReason();
-
-            //the target module details might have been substituted / forced when resolving ID
-            //so update the module:
-            this.module = targetModuleRevision.module;
+            targetModule = targetModuleRevision.module;
 
             return targetModuleRevision;
         }
