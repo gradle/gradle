@@ -759,7 +759,7 @@ class DependencyGraphBuilderTest extends Specification {
         and:
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
-        e.cause.message.contains("group:root:1.0 > group:b:1.0")
+        e.cause.message.contains("group:root:1.0")
     }
 
     def "does not fail when conflict resolution evicts a version that does not exist"() {
