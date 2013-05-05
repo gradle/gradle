@@ -624,6 +624,10 @@ public class DependencyGraphBuilder {
             return String.format("%s:%s:%s", id.getGroup(), id.getName(), id.getVersion());
         }
 
+        public ModuleVersionResolveException getFailure() {
+            return resolver.failure;
+        }
+
         public void restart(DefaultModuleRevisionResolveState selected) {
             for (ConfigurationNode conflictConfiguration : configurations) {
                 conflictConfiguration.restart(selected);
@@ -671,6 +675,7 @@ public class DependencyGraphBuilder {
 
     private static class ConfigurationNode {
         final DefaultModuleRevisionResolveState moduleRevision;
+        final ModuleVersionMetaData metaData;
         final ResolveState resolveState;
         final DefaultModuleDescriptor descriptor;
         final String configurationName;
@@ -681,10 +686,11 @@ public class DependencyGraphBuilder {
         ModuleVersionSpec previousTraversal;
         Set<ResolvedArtifact> artifacts;
 
-        private ConfigurationNode(DefaultModuleRevisionResolveState moduleRevision, ModuleVersionMetaData moduleVersionMetaData, String configurationName, ResolveState resolveState) {
+        private ConfigurationNode(DefaultModuleRevisionResolveState moduleRevision, ModuleVersionMetaData metaData, String configurationName, ResolveState resolveState) {
             this.moduleRevision = moduleRevision;
+            this.metaData = metaData;
             this.resolveState = resolveState;
-            this.descriptor = (DefaultModuleDescriptor) moduleVersionMetaData.getDescriptor();
+            this.descriptor = (DefaultModuleDescriptor) metaData.getDescriptor();
             this.configurationName = configurationName;
             findAncestors(configurationName, resolveState, heirarchy);
             moduleRevision.addConfiguration(this);
@@ -706,7 +712,7 @@ public class DependencyGraphBuilder {
             if (artifacts == null) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
                 for (String config : heirarchy) {
-                    for (Artifact artifact : descriptor.getArtifacts(config)) {
+                    for (Artifact artifact : metaData.getArtifacts(config)) {
                         artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, moduleRevision.resolver.resolve().getArtifactResolver()));
                     }
                 }
@@ -893,7 +899,7 @@ public class DependencyGraphBuilder {
         }
 
         private ModuleVersionResolveException getFailure() {
-            return targetModuleRevision == null ? failure : targetModuleRevision.resolver.failure;
+            return targetModuleRevision == null ? failure : targetModuleRevision.getFailure();
         }
 
         public ModuleVersionSelectionReason getSelectionReason() {
@@ -953,7 +959,7 @@ public class DependencyGraphBuilder {
         public void restart(DefaultModuleRevisionResolveState moduleRevision) {
             this.targetModuleRevision = moduleRevision;
             this.targetModule = moduleRevision.module;
-            this.failure = targetModuleRevision.resolver.failure;
+            this.failure = targetModuleRevision.getFailure();
         }
     }
 

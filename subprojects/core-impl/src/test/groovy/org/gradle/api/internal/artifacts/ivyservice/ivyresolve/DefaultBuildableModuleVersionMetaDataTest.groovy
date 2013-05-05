@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
@@ -28,7 +29,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 class DefaultBuildableModuleVersionMetaDataTest extends Specification {
     final DefaultBuildableModuleVersionMetaData descriptor = new DefaultBuildableModuleVersionMetaData()
-    ModuleSource moduleSource = Mock()
+    ModuleSource moduleSource = Stub()
 
     def "has unknown state by default"() {
         expect:
@@ -65,8 +66,8 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
     }
 
     def "can mark as resolved"() {
-        def id = Mock(ModuleVersionIdentifier)
-        def moduleDescriptor = Mock(ModuleDescriptor)
+        def id = Stub(ModuleVersionIdentifier)
+        def moduleDescriptor = Stub(ModuleDescriptor)
 
         when:
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
@@ -81,7 +82,7 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
     }
 
     def "builds and caches the dependency meta-data from the module descriptor"() {
-        def id = Mock(ModuleVersionIdentifier)
+        def id = Stub(ModuleVersionIdentifier)
         def moduleDescriptor = Mock(ModuleDescriptor)
         def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
         def dependency2 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
@@ -100,15 +101,42 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         deps[0].descriptor == dependency1
         deps[1].descriptor == dependency2
 
+        when:
+        def deps2 = descriptor.dependencies
+
+        then:
+        deps2.is(deps)
+
         and:
-        descriptor.dependencies.is(deps)
+        0 * moduleDescriptor._
+    }
+
+    def "builds artifacts from the module descriptor"() {
+        def id = Stub(ModuleVersionIdentifier)
+        def moduleDescriptor = Stub(ModuleDescriptor)
+        def artifact1 = Stub(Artifact)
+        def artifact2 = Stub(Artifact)
+
+        given:
+        moduleDescriptor.getArtifacts("config") >> ([artifact1, artifact2] as Artifact[])
+
+        and:
+        descriptor.resolved(id, moduleDescriptor, true, moduleSource)
+
+        when:
+        def artifacts = descriptor.getArtifacts("config")
+
+        then:
+        artifacts.size() == 2
+        artifacts[0] == artifact1
+        artifacts[1] == artifact2
     }
 
     def "can replace the dependencies for the module version"() {
-        def id = Mock(ModuleVersionIdentifier)
+        def id = Stub(ModuleVersionIdentifier)
         def moduleDescriptor = Mock(ModuleDescriptor)
-        def dependency1 = Mock(DependencyMetaData)
-        def dependency2 = Mock(DependencyMetaData)
+        def dependency1 = Stub(DependencyMetaData)
+        def dependency2 = Stub(DependencyMetaData)
 
         given:
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)

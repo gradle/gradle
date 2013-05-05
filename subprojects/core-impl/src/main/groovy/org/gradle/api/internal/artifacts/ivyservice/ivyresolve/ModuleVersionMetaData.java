@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
@@ -29,6 +30,8 @@ public interface ModuleVersionMetaData {
     ModuleDescriptor getDescriptor();
 
     List<DependencyMetaData> getDependencies();
+
+    List<Artifact> getArtifacts(String configurationName);
 
     boolean isChanging();
 }

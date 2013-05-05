@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DefaultBuildableModuleVersionMetaData implements BuildableModuleVersionMetaData {
@@ -117,6 +119,11 @@ public class DefaultBuildableModuleVersionMetaData implements BuildableModuleVer
     public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
         assertResolved();
         this.dependencies = CollectionUtils.toList(dependencies);
+    }
+
+    public List<Artifact> getArtifacts(String configurationName) {
+        assertResolved();
+        return Arrays.asList(moduleDescriptor.getArtifacts(configurationName));
     }
 
     public boolean isChanging() {
