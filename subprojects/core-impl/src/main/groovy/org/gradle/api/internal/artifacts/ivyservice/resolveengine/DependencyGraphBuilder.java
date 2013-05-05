@@ -27,8 +27,8 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
@@ -60,7 +60,7 @@ public class DependencyGraphBuilder {
 
     public DefaultLenientConfiguration resolve(ConfigurationInternal configuration, ResolveData resolveData, ResolvedConfigurationListener listener) throws ResolveException {
         ModuleDescriptor rootModuleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule());
-        BuildableModuleVersionMetaData rootMetaData = new DefaultBuildableModuleVersionMetaData();
+        BuildableModuleVersionMetaDataResolveResult rootMetaData = new DefaultBuildableModuleVersionMetaDataResolveResult();
         rootMetaData.resolved(rootModuleDescriptor, false, null);
 
         ResolveState resolveState = new ResolveState(rootMetaData, configuration.getName(), dependencyResolver, resolveData);
@@ -432,7 +432,7 @@ public class DependencyGraphBuilder {
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
-        public ResolveState(BuildableModuleVersionMetaData rootModule, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver, ResolveData resolveData) {
+        public ResolveState(BuildableModuleVersionMetaDataResolveResult rootModule, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver, ResolveData resolveData) {
             this.resolver = resolver;
             this.resolveData = resolveData;
             DefaultModuleRevisionResolveState rootVersion = getRevision(rootModule.getId());
@@ -672,10 +672,6 @@ public class DependencyGraphBuilder {
             }
         }
 
-        public Iterable<? extends Artifact> getArtifacts(String config) {
-            return metaData.getArtifacts(config);
-        }
-
         public void addConfiguration(ConfigurationNode configurationNode) {
             configurations.add(configurationNode);
         }
@@ -732,7 +728,7 @@ public class DependencyGraphBuilder {
             if (artifacts == null) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
                 for (String config : hierarchy) {
-                    for (Artifact artifact : moduleRevision.getArtifacts(config)) {
+                    for (Artifact artifact : metaData.getArtifacts(config)) {
                         artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, moduleRevision.resolve().getArtifactResolver()));
                     }
                 }

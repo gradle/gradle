@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
  *
  * TODO - detach this from ModuleVersionMetaData, so that it has-a instead of is-a.
  */
-public interface BuildableModuleVersionMetaData extends ModuleVersionMetaData {
+public interface BuildableModuleVersionMetaDataResolveResult extends ModuleVersionMetaData {
     static enum State {
         Resolved, Missing, Failed, ProbablyMissing, Unknown
     }

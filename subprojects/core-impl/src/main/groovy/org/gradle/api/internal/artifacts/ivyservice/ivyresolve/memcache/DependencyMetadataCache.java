@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 
 import java.io.File;
 import java.util.HashMap;
@@ -38,15 +38,15 @@ class DependencyMetadataCache {
         this.stats = stats;
     }
 
-    boolean supplyLocalMetaData(ModuleVersionSelector requested, BuildableModuleVersionMetaData result) {
+    boolean supplyLocalMetaData(ModuleVersionSelector requested, BuildableModuleVersionMetaDataResolveResult result) {
         return supply(requested, result, localMetaData, stats);
     }
 
-    boolean supplyMetaData(ModuleVersionSelector requested, BuildableModuleVersionMetaData result) {
+    boolean supplyMetaData(ModuleVersionSelector requested, BuildableModuleVersionMetaDataResolveResult result) {
         return supply(requested, result, metaData, stats);
     }
 
-    private static boolean supply(ModuleVersionSelector requested, BuildableModuleVersionMetaData result, Map<ModuleVersionSelector, CachedModuleVersionResult> map, DependencyMetadataCacheStats stats) {
+    private static boolean supply(ModuleVersionSelector requested, BuildableModuleVersionMetaDataResolveResult result, Map<ModuleVersionSelector, CachedModuleVersionResult> map, DependencyMetadataCacheStats stats) {
         CachedModuleVersionResult fromCache = map.get(requested);
         if (fromCache == null) {
             return false;
@@ -56,15 +56,15 @@ class DependencyMetadataCache {
         return true;
     }
 
-    void newLocalDependencyResult(ModuleVersionSelector requested, BuildableModuleVersionMetaData result) {
+    void newLocalDependencyResult(ModuleVersionSelector requested, BuildableModuleVersionMetaDataResolveResult result) {
         newResult(requested, result, localMetaData);
     }
 
-    void newDependencyResult(ModuleVersionSelector requested, BuildableModuleVersionMetaData result) {
+    void newDependencyResult(ModuleVersionSelector requested, BuildableModuleVersionMetaDataResolveResult result) {
         newResult(requested, result, metaData);
     }
 
-    private static void newResult(ModuleVersionSelector requested, BuildableModuleVersionMetaData result, Map<ModuleVersionSelector, CachedModuleVersionResult> map) {
+    private static void newResult(ModuleVersionSelector requested, BuildableModuleVersionMetaDataResolveResult result, Map<ModuleVersionSelector, CachedModuleVersionResult> map) {
         CachedModuleVersionResult cachedResult = new CachedModuleVersionResult(result);
         if (cachedResult.isCacheable()) {
             map.put(requested, cachedResult);

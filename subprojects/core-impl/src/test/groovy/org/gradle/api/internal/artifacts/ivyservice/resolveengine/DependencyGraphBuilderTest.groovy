@@ -27,7 +27,7 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaData
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultBuildableModuleVersionMetaDataResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedConfigurationListener
@@ -827,7 +827,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def revision(String name, String revision = '1.0') {
         DefaultModuleDescriptor descriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("group", name), revision), "release", new Date())
-        DefaultBuildableModuleVersionMetaData metaData = new DefaultBuildableModuleVersionMetaData()
+        DefaultBuildableModuleVersionMetaDataResolveResult metaData = new DefaultBuildableModuleVersionMetaDataResolveResult()
         metaData.resolved(descriptor, false, null)
         config(metaData, 'default')
         descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))

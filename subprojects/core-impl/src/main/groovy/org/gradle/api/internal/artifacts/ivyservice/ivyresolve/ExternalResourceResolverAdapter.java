@@ -59,7 +59,7 @@ public class ExternalResourceResolverAdapter implements IvyAwareModuleVersionRep
         return dynamicResolve;
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         resolver.getDependency(dependency.getDescriptor(), result);
     }
 

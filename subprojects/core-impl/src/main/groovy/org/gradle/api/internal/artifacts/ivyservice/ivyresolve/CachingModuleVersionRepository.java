@@ -75,12 +75,12 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return "Caching " + delegate.toString();
     }
 
-    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         DependencyMetaData resolvedDependency = maybeUseCachedDynamicVersion(delegate, dependency);
         lookupModuleInCache(delegate, resolvedDependency, result);
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         DependencyMetaData forced = dependency.withChanging();
         delegate.getDependency(forced, result);
         switch (result.getState()) {
@@ -118,7 +118,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         return original;
     }
 
-    public void lookupModuleInCache(ModuleVersionRepository repository, DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void lookupModuleInCache(ModuleVersionRepository repository, DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         ModuleRevisionId resolvedModuleVersionId = dependency.getDescriptor().getDependencyRevisionId();
         ModuleVersionIdentifier moduleVersionIdentifier = newId(resolvedModuleVersionId);
         ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(repository, moduleVersionIdentifier);

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -33,9 +33,9 @@ class DependencyMetadataCacheTest extends Specification {
     def cache = new DependencyMetadataCache(stats)
 
     def "caches and supplies remote metadata"() {
-        def resolvedResult = Mock(BuildableModuleVersionMetaData.class) { getState() >> BuildableModuleVersionMetaData.State.Resolved }
+        def resolvedResult = Mock(BuildableModuleVersionMetaDataResolveResult.class) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved }
         cache.newDependencyResult(newSelector("org", "foo", "1.0"), resolvedResult)
-        def result = Mock(BuildableModuleVersionMetaData.class)
+        def result = Mock(BuildableModuleVersionMetaDataResolveResult.class)
 
         when:
         def local = cache.supplyLocalMetaData(newSelector("org", "foo", "1.0"), result)
@@ -57,13 +57,13 @@ class DependencyMetadataCacheTest extends Specification {
     }
 
     def "caches and supplies remote and local metadata"() {
-        def resolvedLocal = Mock(BuildableModuleVersionMetaData.class) { getState() >> BuildableModuleVersionMetaData.State.Resolved }
-        def resolvedRemote = Mock(BuildableModuleVersionMetaData.class) { getState() >> BuildableModuleVersionMetaData.State.Resolved }
+        def resolvedLocal = Mock(BuildableModuleVersionMetaDataResolveResult.class) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved }
+        def resolvedRemote = Mock(BuildableModuleVersionMetaDataResolveResult.class) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.Resolved }
 
         cache.newDependencyResult(newSelector("org", "remote", "1.0"), resolvedRemote)
         cache.newLocalDependencyResult(newSelector("org", "local", "1.0"), resolvedLocal)
 
-        def result = Mock(BuildableModuleVersionMetaData.class)
+        def result = Mock(BuildableModuleVersionMetaDataResolveResult.class)
 
         when:
         def local = cache.supplyLocalMetaData(newSelector("org", "local", "1.0"), result)
@@ -78,10 +78,10 @@ class DependencyMetadataCacheTest extends Specification {
     }
 
     def "does not cache failed resolves"() {
-        def failedResult = Mock(BuildableModuleVersionMetaData.class) { getState() >> BuildableModuleVersionMetaData.State.Failed }
+        def failedResult = Mock(BuildableModuleVersionMetaDataResolveResult.class) { getState() >> BuildableModuleVersionMetaDataResolveResult.State.Failed }
         cache.newDependencyResult(newSelector("org", "lib", "1.0"), failedResult)
 
-        def result = Mock(BuildableModuleVersionMetaData.class)
+        def result = Mock(BuildableModuleVersionMetaDataResolveResult.class)
 
         when:
         def fromCache = cache.supplyMetaData(newSelector("org", "lib", "1.0"), result)

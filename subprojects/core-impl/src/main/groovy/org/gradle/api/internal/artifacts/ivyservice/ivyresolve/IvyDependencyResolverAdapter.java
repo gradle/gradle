@@ -72,7 +72,7 @@ public class IvyDependencyResolverAdapter implements IvyAwareModuleVersionReposi
         return false;
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         ResolveData resolveData = IvyContextualiser.getIvyContext().getResolveData();
         try {
             ResolvedModuleRevision revision = resolver.getDependency(dependency.getDescriptor(), resolveData);

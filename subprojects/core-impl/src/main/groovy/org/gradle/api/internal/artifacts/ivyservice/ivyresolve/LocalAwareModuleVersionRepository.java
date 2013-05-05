@@ -20,10 +20,10 @@ public interface LocalAwareModuleVersionRepository extends ModuleVersionReposito
     /**
      * Locates the given dependency, using only local resources.
      */
-    void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result);
+    void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
 
     /**
-     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(DependencyMetaData, BuildableModuleVersionMetaData)}.
+     * Locates the given dependency, using whichever resources are appropriate. Always called after {@link #getLocalDependency(DependencyMetaData, BuildableModuleVersionMetaDataResolveResult)}.
      */
-    void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result);
+    void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
 }

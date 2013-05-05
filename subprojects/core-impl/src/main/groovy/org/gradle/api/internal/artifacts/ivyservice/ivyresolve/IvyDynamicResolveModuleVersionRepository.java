@@ -37,21 +37,21 @@ public class IvyDynamicResolveModuleVersionRepository implements LocalAwareModul
         return repository.getName();
     }
 
-    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         repository.getLocalDependency(dependency, result);
-        if (result.getState() == BuildableModuleVersionMetaData.State.Resolved) {
+        if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
             transformDependencies(result);
         }
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         repository.getDependency(dependency, result);
-        if (result.getState() == BuildableModuleVersionMetaData.State.Resolved) {
+        if (result.getState() == BuildableModuleVersionMetaDataResolveResult.State.Resolved) {
             transformDependencies(result);
         }
     }
 
-    private void transformDependencies(BuildableModuleVersionMetaData result) {
+    private void transformDependencies(BuildableModuleVersionMetaDataResolveResult result) {
         List<DependencyMetaData> transformed = new ArrayList<DependencyMetaData>();
         for (DependencyMetaData dependency : result.getDependencies()) {
             transformed.add(dependency.withRequestedVersion(dependency.getDescriptor().getDynamicConstraintDependencyRevisionId().getRevision()));

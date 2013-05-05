@@ -162,7 +162,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
 
     private static class RepositoryResolveState {
         final LocalAwareModuleVersionRepository repository;
-        final DefaultBuildableModuleVersionMetaData descriptor = new DefaultBuildableModuleVersionMetaData();
+        final DefaultBuildableModuleVersionMetaDataResolveResult descriptor = new DefaultBuildableModuleVersionMetaDataResolveResult();
 
         boolean searchedLocally;
         boolean searchedRemotely;
@@ -179,7 +179,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
                 searchedRemotely = true;
                 repository.getDependency(dependency, descriptor);
             }
-            if (descriptor.getState() == BuildableModuleVersionMetaData.State.Failed) {
+            if (descriptor.getState() == BuildableModuleVersionMetaDataResolveResult.State.Failed) {
                 throw descriptor.getFailure();
             }
         }

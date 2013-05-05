@@ -27,13 +27,13 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-class DefaultBuildableModuleVersionMetaDataTest extends Specification {
-    final DefaultBuildableModuleVersionMetaData descriptor = new DefaultBuildableModuleVersionMetaData()
+class DefaultBuildableModuleVersionMetaDataResolveResultTest extends Specification {
+    final DefaultBuildableModuleVersionMetaDataResolveResult descriptor = new DefaultBuildableModuleVersionMetaDataResolveResult()
     ModuleSource moduleSource = Stub()
 
     def "has unknown state by default"() {
         expect:
-        descriptor.state == BuildableModuleVersionMetaData.State.Unknown
+        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Unknown
     }
 
     def "can mark as missing"() {
@@ -41,7 +41,7 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         descriptor.missing()
 
         then:
-        descriptor.state == BuildableModuleVersionMetaData.State.Missing
+        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Missing
         descriptor.failure == null
     }
 
@@ -50,7 +50,7 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         descriptor.probablyMissing()
 
         then:
-        descriptor.state == BuildableModuleVersionMetaData.State.ProbablyMissing
+        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.ProbablyMissing
         descriptor.failure == null
     }
 
@@ -61,7 +61,7 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         descriptor.failed(failure)
 
         then:
-        descriptor.state == BuildableModuleVersionMetaData.State.Failed
+        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Failed
         descriptor.failure == failure
     }
 
@@ -73,7 +73,7 @@ class DefaultBuildableModuleVersionMetaDataTest extends Specification {
         descriptor.resolved(id, moduleDescriptor, true, moduleSource)
 
         then:
-        descriptor.state == BuildableModuleVersionMetaData.State.Resolved
+        descriptor.state == BuildableModuleVersionMetaDataResolveResult.State.Resolved
         descriptor.failure == null
         descriptor.id == id
         descriptor.descriptor == moduleDescriptor

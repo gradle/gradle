@@ -18,24 +18,24 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData.State.Missing;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData.State.ProbablyMissing;
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData.State.Resolved;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.Missing;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.ProbablyMissing;
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult.State.Resolved;
 
 /**
 * By Szczepan Faber on 4/19/13
 */
 class CachedModuleVersionResult {
-    private final BuildableModuleVersionMetaData.State state;
+    private final BuildableModuleVersionMetaDataResolveResult.State state;
     private final ModuleDescriptor moduleDescriptor;
     private final boolean isChanging;
     private final ModuleSource moduleSource;
     private final ModuleVersionIdentifier id;
 
-    public CachedModuleVersionResult(BuildableModuleVersionMetaData result) {
+    public CachedModuleVersionResult(BuildableModuleVersionMetaDataResolveResult result) {
         this.state = result.getState();
         if (state == Resolved) {
             this.id = result.getId();
@@ -54,7 +54,7 @@ class CachedModuleVersionResult {
         return state == Missing || state == ProbablyMissing || state == Resolved;
     }
 
-    public void supply(BuildableModuleVersionMetaData result) {
+    public void supply(BuildableModuleVersionMetaDataResolveResult result) {
         assert isCacheable() : "Results are not cacheable, cannot supply the results.";
         if (state == Resolved) {
             result.resolved(id, moduleDescriptor, isChanging, moduleSource);

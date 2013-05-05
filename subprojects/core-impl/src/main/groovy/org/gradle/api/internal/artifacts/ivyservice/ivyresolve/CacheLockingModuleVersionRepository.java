@@ -39,7 +39,7 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         return repository.getName();
     }
 
-    public void getDependency(final DependencyMetaData dependency, final BuildableModuleVersionMetaData result) {
+    public void getDependency(final DependencyMetaData dependency, final BuildableModuleVersionMetaDataResolveResult result) {
         cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, getId()), new Runnable() {
             public void run() {
                 repository.getDependency(dependency, result);

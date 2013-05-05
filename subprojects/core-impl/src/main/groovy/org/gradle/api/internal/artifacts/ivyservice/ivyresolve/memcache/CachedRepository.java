@@ -20,7 +20,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
@@ -47,14 +47,14 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
         return delegate.getName();
     }
 
-    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getLocalDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         if(!cache.supplyLocalMetaData(dependency.getRequested(), result)) {
             delegate.getLocalDependency(dependency, result);
             cache.newLocalDependencyResult(dependency.getRequested(), result);
         }
     }
 
-    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result) {
+    public void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result) {
         if(!cache.supplyMetaData(dependency.getRequested(), result)) {
             delegate.getDependency(dependency, result);
             cache.newDependencyResult(dependency.getRequested(), result);

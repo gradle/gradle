@@ -29,10 +29,13 @@ public interface ModuleVersionRepository {
 
     String getName();
 
-    void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaData result);
+    /**
+     * Resolves the given dependency to the corresponding module version meta-data.
+     */
+    void getDependency(DependencyMetaData dependency, BuildableModuleVersionMetaDataResolveResult result);
 
     /**
-     * Downloads the given artifact. Any failures are packaged up in the result.
+     * Resolves the given artifact. Any failures are packaged up in the result.
      */
     void resolve(Artifact artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource);
 }

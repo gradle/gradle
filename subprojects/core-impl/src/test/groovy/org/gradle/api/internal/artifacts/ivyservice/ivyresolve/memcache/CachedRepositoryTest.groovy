@@ -21,7 +21,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaData
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
@@ -41,7 +41,7 @@ class CachedRepositoryTest extends Specification {
 
     def lib = newSelector("org", "lib", "1.0")
     def dep = Stub(DependencyMetaData) { getRequested() >> lib }
-    def result = Mock(BuildableModuleVersionMetaData)
+    def result = Mock(BuildableModuleVersionMetaDataResolveResult)
 
     def "delegates"() {
         when:

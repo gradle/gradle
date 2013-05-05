@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DefaultBuildableModuleVersionMetaData implements BuildableModuleVersionMetaData {
+public class DefaultBuildableModuleVersionMetaDataResolveResult implements BuildableModuleVersionMetaDataResolveResult {
     private ModuleDescriptor moduleDescriptor;
     private boolean changing;
     private State state = State.Unknown;
