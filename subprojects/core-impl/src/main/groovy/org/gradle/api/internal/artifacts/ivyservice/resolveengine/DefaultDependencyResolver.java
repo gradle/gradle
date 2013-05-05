@@ -58,7 +58,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         DependencyToModuleVersionResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
         dependencyResolver = new ClientModuleResolver(dependencyResolver);
-        dependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver);
+        ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver, moduleDescriptorConverter);
+        dependencyResolver = projectDependencyResolver;
         DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, ivyAdapter.getResolveData().getSettings().getVersionMatcher());
         idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveRule());
 
@@ -70,7 +71,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
         ModuleConflictResolver actualResolver = new VersionSelectionReasonResolver(conflictResolver);
 
-        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, idResolver, actualResolver, cacheLockingManager);
+        DependencyGraphBuilder builder = new DependencyGraphBuilder(resolvedArtifactFactory, idResolver, projectDependencyResolver, actualResolver, cacheLockingManager);
         ResolutionResultBuilder resultBuilder = new ResolutionResultBuilder();
         DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData(), resultBuilder);
         return new ResolverResults(new DefaultResolvedConfiguration(result), resultBuilder.getResult());

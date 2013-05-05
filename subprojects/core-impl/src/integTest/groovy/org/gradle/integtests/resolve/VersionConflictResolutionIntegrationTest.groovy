@@ -532,6 +532,46 @@ parentFirst
      \\--- org:x:2.0 FAILED"""))
     }
 
+    void "does not replace root module when earlier version of root module is requested"() {
+        mavenRepo.module("org", "test", "1.2").publish()
+        mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "1.2").publish()
+
+        settingsFile << "rootProject.name= 'test'"
+
+        buildFile << """
+apply plugin: 'java'
+
+group "org"
+version "1.3"
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+    compile "org:other:1.7"
+}
+
+task checkDeps(dependsOn: configurations.compile) << {
+    assert configurations.compile*.name == ['other-1.7.jar', 'test-1.3.jar']
+
+    def result = configurations.compile.incoming.resolutionResult
+    assert result.allModuleVersions.size() == 2
+
+    def root = result.root
+    assert root.id.version == '1.3'
+
+    def other = result.allModuleVersions.find { it.id.name == 'other' }
+
+    assert root.dependencies*.selected == [other]
+    assert other.dependencies*.selected == [root]
+}
+"""
+
+        expect:
+        run("checkDeps")
+    }
+
     @Issue("GRADLE-2738")
     @Ignore("Not yet implemented")
     def "incorrect resolution of dynamic versions"() {

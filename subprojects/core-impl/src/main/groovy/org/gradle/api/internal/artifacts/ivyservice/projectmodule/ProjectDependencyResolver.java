@@ -19,21 +19,26 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 
 import java.io.File;
+import java.util.Set;
 
-public class ProjectDependencyResolver implements DependencyToModuleVersionResolver {
+public class ProjectDependencyResolver implements DependencyToModuleVersionResolver, ModuleToModuleVersionResolver {
     private final ProjectModuleRegistry projectModuleRegistry;
     private final DependencyToModuleVersionResolver resolver;
     private final ProjectArtifactResolver artifactResolver;
+    private final ModuleDescriptorConverter moduleDescriptorConverter;
 
-    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleVersionResolver resolver) {
+    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleVersionResolver resolver, ModuleDescriptorConverter moduleDescriptorConverter) {
         this.projectModuleRegistry = projectModuleRegistry;
         this.resolver = resolver;
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
         artifactResolver = new ProjectArtifactResolver();
     }
 
@@ -42,12 +47,19 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         if (descriptor instanceof ProjectDependencyDescriptor) {
             ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
             ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(desc);
-            final ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
-            final DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+            ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
+            DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
             result.resolved(moduleVersionIdentifier, moduleDescriptor, artifactResolver);
         } else {
             resolver.resolve(dependency, result);
         }
+    }
+
+    public void resolve(Module module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result) {
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configurations, module);
+        ModuleRevisionId moduleRevisionId = moduleDescriptor.getModuleRevisionId();
+        DefaultModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+        result.resolved(moduleVersionIdentifier, moduleDescriptor, artifactResolver);
     }
 
     private static class ProjectArtifactResolver implements ArtifactResolver {
